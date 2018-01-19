@@ -58,6 +58,7 @@ class type_Table extends type_Blob {
         }
 
         $columns = $this->getColumns();
+        $opt = array();
         foreach($columns as $field => $fObj) {
         	if(empty($this->params['noCaptions'])){
         		$row0 .= "<td class='formTypeTable'>{$fObj->caption}</td>";
