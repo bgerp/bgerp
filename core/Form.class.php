@@ -1193,6 +1193,8 @@ class core_Form extends core_FieldSet
         $res->html = str_replace("</form>", '', $ajaxPage->getContent()) . '</form>';
         $res->html = substr($res->html, strpos($res->html, '<form'));
         $fields = $this->selectFields("#silent == 'silent'");
+        
+        $sf = array();
         foreach($fields as $name => $field) {
             $sf[$name] = $this->rec->{$name};
         }
