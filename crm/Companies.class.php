@@ -2387,8 +2387,24 @@ class crm_Companies extends core_Master
     {
     	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
     		if($extRec->overdueSales == 'yes'){
-    			//$res = '';
+    			$res = 'img/16/red-building.png';
     		}
     	}
+    }
+
+    /**
+     * След взимане на заглавието за единичния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param int $id
+     */
+    public static function on_AfterGetSingleTitle($mvc, &$res, $id)
+    {
+        if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+            if($extRec->overdueSales == 'yes'){
+                $res = "<span class='dangerTitle'>{$res}</span>";
+            }
+        }
     }
 }

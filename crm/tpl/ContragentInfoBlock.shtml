@@ -4,5 +4,5 @@
 </div>
 <!--ET_END customerSince-->
 <!--ET_BEGIN overdueSales-->
-<div class="richtext"><span class='red'>[#overdueSales#]</span></div>
+<div class="richtext"><b class='red'>[#overdueSales#]</b></div>
 <!--ET_END overdueSales-->
