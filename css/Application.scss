@@ -1398,15 +1398,18 @@ a.tOld {
 /*край на стилове при тредове*/
 
 .typeTable {
-	//width: 100%;
+	 border:none !important;
 	.formTypeTable {
 		text-align: center;
 		font-weight: bold;
-		font-size: 0.9em;
+		font-size: 0.8em;
+        background-color:#eee;
 	}
 	td  {
 		text-align: center;
+        font-size: 0.8em;
 	}
+    
 }
 
 

@@ -72,6 +72,7 @@ class type_Table extends type_Blob {
             $selOpt = $field . '_opt';
             $suggestOpt = $field . '_sgt';
             $readOnlyFld = $field . '_ro';
+
             if($this->params[$selOpt]) {
                 if(is_string($this->params[$selOpt])) {
                     $opt = explode('|', $this->params[$selOpt]);
@@ -175,10 +176,10 @@ class type_Table extends type_Blob {
     /**
      * Помощна ф-я сетваща определено поле като грешно
      */
-    private function getErrorArr($field, $i)
+    private function getErrorArr($column, $i)
     {
     	$errorArr = array();
-    	if(is_array($this->errorFields[$field]) && array_key_exists($i, $this->errorFields[$field])){
+    	if(is_array($this->errorFields[$column]) && array_key_exists($i, $this->errorFields[$column])){
     		$errorArr['class'] = ' inputError';
     		$errorArr['errorClass'] = ' inputError';
     	}
@@ -191,6 +192,26 @@ class type_Table extends type_Blob {
     {
         if(empty($value)) return NULL;
         
+        if($columns = $this->params['mandatory']) {
+            $value = self::toArray($value);
+            $columns = explode('|', $columns);
+            $errFld = array();
+            foreach($value as $r => $obj) {
+                foreach($columns as $c) {
+                    if(strlen($obj->{$c}) == 0) {
+                        $errFld[$c][$r] =  TRUE;
+                    }
+                }
+            }
+
+            if(count($errFld)) {
+                $res['error'] = "Непопълнено задължително поле";
+            	$this->errorFields = $res['errorFields'] = $errFld;
+                
+                return $res;
+            }
+        }
+
         if($this->params['validate']) {
 
         	$valueToValidate = @json_decode($value, TRUE);
@@ -230,7 +251,7 @@ class type_Table extends type_Blob {
             $opt = $this->getOptions();
 
             foreach($columns as $field => $fObj) {
-                $row0 .= "<td class='formTypeTable'>{$fObj->caption}</td>";
+                $row0 .= html_entity_decode("<td class='formTypeTable'>{$fObj->caption}</td>", ENT_QUOTES, 'UTF-8');
             }
  
             $i = 0;
@@ -379,5 +400,44 @@ class type_Table extends type_Blob {
         }
 
         return $opt;
+    }
+
+
+    /**
+     * Преобразува Json представяне на типа към PHP масив
+     *
+     * [0] object(col1, col2, col3, ...)
+     * [1] object(col1, col2, col3, ...)
+     * ......
+     */
+    public static function toArray($value)
+    { 
+        $res = array();
+        
+        if(!empty($value)) {
+        
+            if(is_string($value)) {
+                $value = @json_decode($value, TRUE);
+            }
+
+            $r = 0;
+          
+            do {
+                $empty = TRUE;
+                $obj = new StdClass();
+                foreach($value as $f => $arr) {
+                    if(isset($arr[$r])) {
+                        $obj->{$f} = $arr[$r];
+                        $empty = FALSE;
+                    }
+                }
+                if(!$empty) {
+                    $res[$r] = $obj;
+                }
+                $r++;
+            } while(!$empty);
+        }
+
+        return $res;
     }
 }
