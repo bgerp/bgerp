@@ -385,6 +385,33 @@ class cal_Tasks extends embed_Manager
     
     
     /**
+     * 
+     * 
+     * @param cal_Tasks $mvc
+     * @param object $res
+     * @param object $data
+     * 
+     * @see doc_plg_SelectFolder
+     */
+    static function on_BeforePrepareSelectForm($mvc, &$res, $form)
+    {
+        if (!$form->rec->{$mvc->driverClassField}) {
+            $driverClass = Request::get('driverClass');
+            
+            if ($driverClass && cls::load($driverClass, TRUE)) {
+                $Driver = cls::get($driverClass);
+                
+                if (!isset($form->rec)) {
+                    $form->rec = new stdClass();
+                }
+                
+                $form->rec->{$mvc->driverClassField} = $driverClass;
+            }
+        }
+    }
+    
+    
+    /**
      * Връща URL за създаване на задача от съответния тип, със защитени параметри
      * 
      * @param integer $rId
