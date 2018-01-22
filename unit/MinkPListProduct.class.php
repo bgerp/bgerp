@@ -375,20 +375,18 @@ class unit_MinkPListProduct extends core_Manager {
     
         //Създаване на връзка
         $browser->press('Връзка');
-        $browser->setValue('act', 'Нов документ');
-       
-        $browser->setValue('linkDocType', 'Задачи');
+        $browser->setValue('act', 'Отложена задача');
+        //$browser->setValue('act', 'Нов документ');
         $browser->press('Refresh');
-        return $browser->getHtml();
-        //$browser->setValue('linkFolderId', 'Документите на Bgerp');
-        $browser->setValue('linkFolderId', 20);
+        //$browser->setValue('linkDocType', 'Задачи');
+        //$browser->press('Refresh');
+        //$browser->setValue('linkFolderId', 'Документите на Bgerp'); //не зарежда папките за избор
         $browser->press('Запис');
-        
-        $browser->setValue('assign[]', 'User1');
-        $valior=strtotime("+1 Day");
-        $browser->setValue('timeStart[d]', date('d-m-Y', $valior));
-        $valior=strtotime("+3 Days");
-        $browser->setValue('timeEnd[d]', date('d-m-Y', $valior));
+        //$browser->setValue('assign[]', 'User1');
+        //$valior=strtotime("+1 Day");
+        //$browser->setValue('timeStart[d]', date('d-m-Y', $valior));
+        //$valior=strtotime("+3 Days");
+        //$browser->setValue('timeEnd[d]', date('d-m-Y', $valior));
         $browser->press('Активиране');
         
     }
