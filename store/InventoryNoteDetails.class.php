@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -93,7 +93,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId=Мярка,packQuantity=Установено,modifiedOn,modifiedBy';
+    public $listFields = 'code=Код,productId, packagingId=Мярка,packQuantity=Установено,modifiedOn,modifiedBy';
     
     
     /**
@@ -360,7 +360,12 @@ class store_InventoryNoteDetails extends doc_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->packagingId = cat_UoM::getShortName($rec->packagingId);
-    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
+    	
+    	$pRec = cat_Products::fetch($rec->productId, 'name,code,isPublic');
+    	$row->productId = cat_Products::getVerbal($pRec, 'name');
+    	$row->productId = ht::createLinkRef($row->productId, cat_Products::getSingleUrlArray($pRec->id));
+    	$row->code = cat_Products::getVerbal($pRec, 'code');
+    	
     	deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
     }
     
@@ -456,5 +461,16 @@ class store_InventoryNoteDetails extends doc_Detail
 		core_Form::preventDoubleSubmission($tpl, $form);
 		
 		return $tpl;
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	$code = cat_Products::fetchField($rec->productId, 'code');
+    	$code = (!empty($code)) ? $code : "Art{$rec->productId}";
+    	$res .= " " . plg_Search::normalizeText($code);
     }
 }
