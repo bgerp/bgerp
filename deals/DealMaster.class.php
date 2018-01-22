@@ -2073,4 +2073,19 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	return NULL;
     }
+    
+    
+    /**
+     * След взимане на полетата, които да не се клонират
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
+    {
+    	if(!empty($rec->deliveryLocationId)){
+    		$res['deliveryAdress'] = 'deliveryAdress';
+    	}
+    }
 }
