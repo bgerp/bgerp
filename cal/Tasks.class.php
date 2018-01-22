@@ -81,7 +81,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, sharedUsers';
+    public $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, assign=Потребители->Възложени, sharedUsers=Потребители->Споделени';
 
 
     /**
@@ -380,6 +380,33 @@ class cal_Tasks extends embed_Manager
 
         if ($rec->allDay == 'yes') {
             list($rec->timeStart,) = explode(' ', $rec->timeStart);
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param cal_Tasks $mvc
+     * @param object $res
+     * @param object $data
+     * 
+     * @see doc_plg_SelectFolder
+     */
+    static function on_BeforePrepareSelectForm($mvc, &$res, $form)
+    {
+        if (!$form->rec->{$mvc->driverClassField}) {
+            $driverClass = Request::get('driverClass');
+            
+            if ($driverClass && cls::load($driverClass, TRUE)) {
+                $Driver = cls::get($driverClass);
+                
+                if (!isset($form->rec)) {
+                    $form->rec = new stdClass();
+                }
+                
+                $form->rec->{$mvc->driverClassField} = $driverClass;
+            }
         }
     }
     
@@ -1045,11 +1072,11 @@ class cal_Tasks extends embed_Manager
         // на модела ще се появят
         if ($data->action === "list") {
 
-            $data->listFilter->showFields .= 'search,selectedUsers,order, stateTask';
+            $data->listFilter->showFields .= 'search,selectedUsers,order, stateTask, ' . $mvc->driverClassField;
         } else {
             $data->listFilter->showFields .= 'selectedUsers';
         }
-        $data->listFilter->input('selectedUsers, Chart, View, stateTask, order', 'silent');
+        $data->listFilter->input('selectedUsers, Chart, View, stateTask, order, ' . $mvc->driverClassField, 'silent');
 
         // размяна на датите във филтъра
         $dateRange = array();
@@ -1147,6 +1174,11 @@ class cal_Tasks extends embed_Manager
 	        		              OR
 	        		              (#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND  #timeStart >= '{$dateRange[0]}')
 	        		              ");
+            }
+            
+            // Да може да се филтрира по вида на документа
+            if ($data->listFilter->rec && $data->listFilter->rec->{$mvc->driverClassField}) {
+                $data->query->where(array("#{$mvc->driverClassField} = '[#1#]'", $data->listFilter->rec->{$mvc->driverClassField}));
             }
         }
     }

@@ -842,15 +842,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$update = FALSE;
     	
-    	// Запис на адреса
-    	if(empty($rec->deliveryAdress) && isset($rec->deliveryTermId)){
-    		$update = TRUE;
-    		
-    		$rec->tplLang = $mvc->pushTemplateLg($rec->template);
-    		$rec->deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
-    		core_Lg::pop($rec->tplLang);
-    	}
-    	
     	// Записване на най-големия срок на доставка
     	if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
     		$rec->deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
@@ -1001,7 +992,6 @@ abstract class deals_DealMaster extends deals_DealBase
 			} else {
 				if(isset($rec->deliveryTermId)){
 					$deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
-					$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще бъде записан при активиране');
 				}
 			}
 			
@@ -2082,5 +2072,20 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
     	return NULL;
+    }
+    
+    
+    /**
+     * След взимане на полетата, които да не се клонират
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
+    {
+    	if(!empty($rec->deliveryLocationId)){
+    		$res['deliveryAdress'] = 'deliveryAdress';
+    	}
     }
 }

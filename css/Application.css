@@ -374,6 +374,9 @@ div.folder-cover {
   div.folder-cover .tab-control .detail-info {
     font-size: 0.9em; }
 
+.dangerTitle {
+  color: #cc0000; }
+
 .noheader .listTable {
   width: 100%;
   border-top: none; }

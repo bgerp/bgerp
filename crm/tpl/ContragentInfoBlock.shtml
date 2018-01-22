@@ -1,0 +1,8 @@
+<!--ET_BEGIN customerSince-->
+<div class="richtext">
+|Клиент от|*: <i>[#customerSince#]</i>
+</div>
+<!--ET_END customerSince-->
+<!--ET_BEGIN overdueSales-->
+<div class="richtext"><b class='red'>[#overdueSales#]</b></div>
+<!--ET_END overdueSales-->

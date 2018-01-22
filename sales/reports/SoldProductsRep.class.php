@@ -197,6 +197,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 			
 			$id = $recPrime->productId;
 			
+			$arr [$recPrime->id] [$id] = $recPrime->sellCost;
+			
 			$DetClass = cls::get ( $recPrime->detailClassId );
 			
 			if (isset ( $recPrime->containerId )) {
@@ -215,10 +217,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 					
 					if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
 						$quantity = (- 1) * $recPrime->quantity;
-						$primeCost = (- 1) * $recPrime->sellCost;
+						$primeCost = (- 1) * $recPrime->sellCost * $recPrime->quantity;
 					} else {
 						$quantity = $recPrime->quantity;
-						$primeCost = $recPrime->sellCost;
+						$primeCost = $recPrime->sellCost * $recPrime->quantity;
 					}
 					
 					// добавяме в масива събитието
@@ -236,7 +238,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 					} else {
 						$obj = &$recs [$id];
 						$obj->quantity += $quantity;
-						$obj->amount += $primeCost;
+						$obj->primeCost += $primeCost;
 					}
 				}
 			}
@@ -274,8 +276,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 						$recsLast [$id] = ( object ) array (
 								
 								'quantityLast' => $quantityLast 
-						)
-						;
+						);
 					} else {
 						$obj = &$recsLast [$id];
 						$obj->quantityLast += $quantityLast;
@@ -316,8 +317,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 						$recsYear [$id] = ( object ) array (
 								
 								'quantityLastYear' => $quantityLastYear 
-						)
-						;
+						);
 					} else {
 						$obj = &$recsYear [$id];
 						$obj->quantityLastYear += $quantityLastYear;
@@ -384,6 +384,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 	 * @return stdClass $row - вербалния запис
 	 */
 	protected function detailRecToVerbal($rec, &$dRec) {
+		
+		// bp($dRec);
 		$isPlain = Mode::is ( 'text', 'plain' );
 		$Int = cls::get ( 'type_Int' );
 		$Date = cls::get ( 'type_Date' );
@@ -408,7 +410,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 		foreach ( array (
 				'quantity',
 				'primeCost',
-				'sellCost',
+				// 'sellCost',
 				'quantityLast' 
 		) as $fld ) {
 			$row->{$fld} = ($isPlain) ? frame_CsvLib::toCsvFormatDouble ( $dRec->{$fld} ) : $Double->toVerbal ( $dRec->{$fld} );

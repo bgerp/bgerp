@@ -746,7 +746,7 @@ class core_Master extends core_Manager
     	
     	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
     		if($icon === TRUE) {
-    			$attr['ef_icon'] = $me->singleIcon;
+    			$attr['ef_icon'] = $me->getSingleIcon($id);
     		} elseif($icon) {
     			$attr['ef_icon'] = $icon;
     		}

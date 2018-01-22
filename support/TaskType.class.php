@@ -458,4 +458,28 @@ class support_TaskType extends core_Mvc
             ),'ef_icon = img/16/email_edit.png,title=Отговор на сигнал чрез имейл', 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '");');
         }
     }
+    
+    
+    /**
+     * 
+     *
+     * @param support_TaskType $Driver
+     * @param cal_Tasks $mvc
+     * @param NULL|core_Form $res
+     * @param core_Form $data
+     * 
+     * @see doc_plg_SelectFolder
+     */
+    static function on_AfterPrepareSelectForm($Driver, $mvc, &$res, $form)
+    {
+        // При създаване на задача от тип сигнал, показваме само папките от тип система
+        $form->fields['folderId']->type->params['coverInterface'] = 'support_IssueIntf';
+        $optArr = $form->fields['folderId']->type->getOptions();
+        if (!empty($optArr)) {
+            if (!$optArr[$form->rec->folderId]) {
+                unset($form->rec->folderId);
+                $form->setDefault('folderId', key($optArr));
+            }
+        }
+    }
 }

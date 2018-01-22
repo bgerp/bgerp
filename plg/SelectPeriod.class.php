@@ -45,7 +45,7 @@ class plg_SelectPeriod extends core_Plugin
     {
 
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
-        $fT = $mvc->filterDateTo ? $mvc->filterDateFrom : 'to';
+        $fT = $mvc->filterDateTo ? $mvc->filterDateTo : 'to';
 
         $form = $data->listFilter;
 
