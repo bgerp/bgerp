@@ -637,10 +637,10 @@ class doc_FolderPlg extends core_Plugin
         
         if($fields['-single']) {
             if(Mode::is('screenMode', 'narrow')) {
-                $imageUrl = sbf($mvc->singleIcon, "");
+                $imageUrl = sbf($mvc->getSingleIcon($rec->id), "");
                 $row->SingleIcon = ht::createElement("img", array('src' => $imageUrl, 'alt' => ''));
             } else {
-                $imageUrl = sbf(str_replace('/16/', '/24/', $mvc->singleIcon), "");
+                $imageUrl = sbf(str_replace('/16/', '/24/', $mvc->getSingleIcon($rec->id)), "");
 
                 $row->SingleIcon = ht::createElement("img", array('src' => $imageUrl, 'alt' => ''));
             }

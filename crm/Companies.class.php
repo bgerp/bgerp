@@ -796,10 +796,8 @@ class crm_Companies extends core_Master
                 $row->title = $row->name;
             }
             
-            $customerSince = crm_ext_ContragentInfo::getCustomerSince($mvc->getClassId(), $rec->id);
-            if(!empty($customerSince)){
-            	$row->customerSince = core_Type::getByName('date')->toVerbal($customerSince);
-            }
+            // Разширяване на $row
+            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec);
         }
         
         // Дали има права single' а на тазу фирма
@@ -2378,4 +2376,35 @@ class crm_Companies extends core_Master
     }
 
 
+    /**
+     * След взимане на иконката за единичния изглед
+     * 
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param int $id
+     */
+    public static function on_AfterGetSingleIcon($mvc, &$res, $id)
+    {
+    	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+    		if($extRec->overdueSales == 'yes'){
+    			$res = 'img/16/red-building.png';
+    		}
+    	}
+    }
+
+    /**
+     * След взимане на заглавието за единичния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param int $id
+     */
+    public static function on_AfterGetSingleTitle($mvc, &$res, $id)
+    {
+        if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+            if($extRec->overdueSales == 'yes'){
+                $res = "<span class='dangerTitle'>{$res}</span>";
+            }
+        }
+    }
 }

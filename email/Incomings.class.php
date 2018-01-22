@@ -2558,6 +2558,40 @@ class email_Incomings extends core_Master
                     ), NULL, array('order'=>'19', 'row'=>'2', 'ef_icon'=>'img/16/email_forward.png', 'title'=>'Препращане на имейла')
                 );
             }
+            
+            if ($data->rec->state != 'rejected') {
+                $rec = $data->rec;
+                
+                // Създаване на нов артикул от входящ имейл
+                if (cat_Products::haveRightFor('add', (object)array('folderId' => $rec->folderId, 'threadId' => $rec->threadId))) {
+                    
+                    $innerClass = NULL;
+                    
+                    $Products = cls::get('cat_Products');
+                    // Намира се последния избиран драйвер в папката
+                    $lastDriver = cond_plg_DefaultValues::getFromLastDocument($Products, $rec->folderId, 'innerClass');
+                    if(!$lastDriver){
+                        $lastDriver = cat_GeneralProductDriver::getClassId();
+                    }
+                    
+                    // Ако може да бъде избран
+                    if(!empty($lastDriver)){
+                        if(cls::load($lastDriver, TRUE)){
+                            if(cls::get($lastDriver)->canSelectDriver()){
+                                $innerClass = $lastDriver;
+                            }
+                        }
+                    }
+                    
+                    $url = array('cat_Products', 'add', "innerClass" => $innerClass, "foreignId" => $rec->containerId, 'ret_url' => TRUE);
+                    if(doc_Folders::getCover($rec->folderId)->haveInterface('crm_ContragentAccRegIntf')){
+                        $url['folderId'] = $rec->folderId;
+                        $url['threadId'] = $rec->threadId;
+                    }
+                    
+                    $data->toolbar->addBtn('Артикул', $url, "ef_icon=img/16/wooden-box.png,title=Създаване на артикул по това запитване");
+                }
+            }
         }
     }
     

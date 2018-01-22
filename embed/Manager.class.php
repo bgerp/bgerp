@@ -288,16 +288,12 @@ class embed_Manager extends core_Master
     function invoke($event, $args = array())
     {
 		$status = parent::invoke($event, $args);
-
+		
         if($status !== FALSE) {
             switch(strtolower($event)) {
-                case 'aftersave':
-                case 'afterrectoverbal': 
-                    $driverClass = $args[1]->{$this->driverClassField};
-                    break;
-                
                 case 'aftercreate':
                 case 'afterupdate':
+                case 'afterread':
                     $driverClass = $args[0]->{$this->driverClassField};
                     break;
 
@@ -324,14 +320,13 @@ class embed_Manager extends core_Master
                 case 'afterpreparesinglefields':
                 case 'beforepreparesingletoolbar':
                 case 'afterpreparesingletoolbar':
+                case 'afterprepareselectform':
                     $driverClass = $args[1]->rec->{$this->driverClassField};
                     break;
                 case 'afterinputeditform':
                     $driverClass = $args[0]->rec->{$this->driverClassField};
                     break;
-                case 'afterread':
-                    $driverClass = $args[0]->{$this->driverClassField};
-                    break;
+                
                 case 'aftergetsearchkeywords';
                 case 'aftergethidearrforletterhead';
                 case 'beforesaveclonerec':
@@ -340,6 +335,8 @@ class embed_Manager extends core_Master
                 case 'aftergetdetailstoclone':
                 case 'aftergetfieldforletterhead':
                 case 'aftergetfieldsnottoclone':
+                case 'aftersave':
+                case 'afterrectoverbal': 
                 	$driverClass = $args[1]->{$this->driverClassField};
                 	break;
             }

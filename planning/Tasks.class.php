@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Производствени операции
@@ -1159,5 +1159,15 @@ class planning_Tasks extends core_Master
     	$batchName = str::removeWhitespaces($batchName);
     	
     	return $batchName;
+    }
+    
+    
+    /**
+     * В кои корици може да се вкарва документа
+     * @return array - интерфейси, които трябва да имат кориците
+     */
+    public static function getCoversAndInterfacesForNewDoc()
+    {
+    	return array('folderClass' => 'planning_Centers');
     }
 }

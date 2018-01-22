@@ -151,7 +151,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 				$productCatPrice = price_ListRules::getPrice ( price_ListRules::PRICE_LIST_CATALOG, $sallProductId, NULL, $valior );
 			}
 			
-			$isPublic = $sallProducts->isPublic;
+			$isPublic = $saleProducts->isPublic;
 			
 			// цена на артикула по каталог(за стандартни артикули)взета към дата на вальора на продажбата
 			
@@ -229,7 +229,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 				$expProductCatPrice = price_ListRules::getPrice ( price_ListRules::PRICE_LIST_CATALOG, $expProductId, NULL, $valior );
 			}
 			
-			$isPublic = $sallProducts->isPublic;
+			$isPublic = $saleProducts->isPublic;
 			
 			if (($expProducts->price < $expSelfPrice) || (! empty ( $expProductCatPrice ) && ($expProducts->price > $expProductCatPrice))) {
 				

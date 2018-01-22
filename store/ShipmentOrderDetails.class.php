@@ -139,7 +139,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     {
     	$this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
     	parent::setDocumentFields($this);
-    	
+    	$this->FLD('baseQuantity', 'double(minDecimals=2)', 'after=showMode,caption=Допълнителна мярка->Изписване,input=hidden,autohide');
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short,after=notes');
         $this->FLD('transUnit', 'varchar', 'caption=Логистични единици->Вид,autohide,after=volume');
         $this->FLD('info', "text(rows=2)", 'caption=Логистични единици->Номера,after=transUnit,autohide,after=volume', array('hint' => 'Напишете номерата на колетите, в които се съдържа този продукт, разделени със запетая'));
@@ -179,8 +179,11 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
 
             if(isset($rec->productId) && isset($masterRec)){
                 $masterStore = $masterRec->storeId;
-                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore, $foundQuantity);
                 $form->info = $storeInfo->formInfo;
+                if(!empty($foundQuantity)){
+                	$form->setSuggestions('baseQuantity', array('' => '', $foundQuantity => $foundQuantity));
+                }
             }
             
             if($masterRec->template) {

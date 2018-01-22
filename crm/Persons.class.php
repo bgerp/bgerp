@@ -589,10 +589,8 @@ class crm_Persons extends core_Master
             	$row->buzLocationId = crm_Locations::getHyperLink($rec->buzLocationId, TRUE);
             }
             
-            $customerSince = crm_ext_ContragentInfo::getCustomerSince($mvc->getClassId(), $rec->id);
-            if(!empty($customerSince)){
-            	$row->customerSince = core_Type::getByName('date')->toVerbal($customerSince);
-            }
+            // Разширяване на $row
+            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec);
         }
 
         static $ownCompany;
@@ -3072,5 +3070,38 @@ class crm_Persons extends core_Master
     	if(keylist::isIn($employeeId, crm_Persons::fetchField($id, 'groupList'))) return TRUE;
     	
     	return FALSE;
+    }
+    
+    
+    /**
+     * След взимане на иконката за единичния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param int $id
+     */
+    public static function on_AfterGetSingleIcon($mvc, &$res, $id)
+    {
+    	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+    		if($extRec->overdueSales == 'yes'){
+    			$res = 'img/16/red-vcard.png';
+    		}
+    	}
+    }
+
+    /**
+     * След взимане на заглавието за единичния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param int $id
+     */
+    public static function on_AfterGetSingleTitle($mvc, &$res, $id)
+    {
+        if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+            if($extRec->overdueSales == 'yes'){
+                $res = "<span class='dangerTitle'>{$res}</span>";
+            }
+        }
     }
 }

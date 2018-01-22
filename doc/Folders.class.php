@@ -445,14 +445,15 @@ class doc_Folders extends core_Master
         
 		if(cls::load($rec->coverClass, TRUE)){
 			$typeMvc = cls::get($rec->coverClass);
+			$signleIcon = $typeMvc->getSingleIcon($rec->coverId);
+			$attr['style'] = 'background-image:url(' . sbf($signleIcon) . ');';
 			
-			$attr['style'] = 'background-image:url(' . sbf($typeMvc->singleIcon) . ');';
-			
+			$singleTitle = $typeMvc->getSingleTitle($rec->coverId);
 			if($typeMvc->haveRightFor('single', $rec->coverId)) {
-				$row->type = ht::createLink(tr($typeMvc->singleTitle), array($typeMvc, 'single', $rec->coverId), NULL, $attr);
+				$row->type = ht::createLink($singleTitle, array($typeMvc, 'single', $rec->coverId), NULL, $attr);
 			} else {
 				$attr['style'] .= 'color:#777;';
-				$row->type = ht::createElement('span', $attr, tr($typeMvc->singleTitle));
+				$row->type = ht::createElement('span', $attr, $singleTitle);
 			}
 		} else {
 			$row->type = "<span class='red'>" . tr('Проблем при показването') . "</span>";

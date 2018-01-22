@@ -81,11 +81,7 @@
                     <div class="groupList">
                         [#info#]
                     </div>
-                    <!--ET_BEGIN customerSince-->
-                    <div class="richtext">
-                    |Клиент от|*: <i>[#customerSince#]</i>
-                    </div>
-                    <!--ET_END customerSince-->
+                    [#crm/tpl/ContragentInfoBlock.shtml#]
                     <!--ET_BEGIN CloseTime-->
                     <div>|Затваряне на нишките|*: |Автоматично след|* [#CloseTime#]</div>
                     <!--ET_END CloseTime-->
