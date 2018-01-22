@@ -389,7 +389,7 @@ abstract class deals_Helper
 	 * 				->formInfo - информация за формата
 	 * 				->warning - предупреждението
 	 */
-	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId)
+	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId, &$foundQuantity = NULL)
 	{
 		if(empty($packQuantity)){
 			$packQuantity = 1;
@@ -407,6 +407,7 @@ abstract class deals_Helper
 		$storeName = store_Stores::getTitleById($storeId);
 		$verbalQuantity = $Double->toVerbal($quantity);
 		$verbalQuantity = ht::styleIfNegative($verbalQuantity, $quantity);
+		$foundQuantity = $quantity;
 		
 		$text = "|Разполагаемо в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";
 		if(!empty($stRec->reservedQuantity)){
