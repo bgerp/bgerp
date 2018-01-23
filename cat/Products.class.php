@@ -2025,7 +2025,7 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
     	// Ако има чернова оферта към нея, бутон за редакция
-    	if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    	if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'", 'id')){
     		if(sales_Quotations::haveRightFor('edit', $qRec)){
     			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/edit.png,title=Редактиране на оферта');
     		}

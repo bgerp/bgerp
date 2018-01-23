@@ -19,7 +19,7 @@ class cat_products_Usage extends core_Manager
 	/**
 	 * Колко да са на страница заданията
 	 */
-	public $listJobsPerPage = 20;
+	public $listJobsPerPage = 10;
 	
 	
 	/**
