@@ -321,6 +321,10 @@ class accda_Da extends core_Master
                 }
             }
         }
+        
+        if (!$data->rec->gpsCoords) {
+            $data->row->gpsCoords = NULL;
+        }
     }
     
     
