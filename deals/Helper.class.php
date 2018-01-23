@@ -458,10 +458,10 @@ abstract class deals_Helper
 	 */
 	public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack)
 	{
-		if(cat_products_Packagings::getPack($productId, $packagingId)){
+		if($packRec = cat_products_Packagings::getPack($productId, $packagingId)){
 			if(cat_UoM::fetchField($packagingId, 'showContents') !== 'no'){
 				$measureId = cat_Products::fetchField($productId, 'measureId');
-                $packagingRow .= ' ' . self::getPackMeasure($measureId, $quantityInPack);
+                $packagingRow .= ' ' . self::getPackMeasure($measureId, $quantityInPack, $packRec);
 			}
 		}
 	}
@@ -470,7 +470,7 @@ abstract class deals_Helper
     /**
      * Връща описание на опаковка, заедно с количеството в нея
      */
-    public static function getPackMeasure($measureId, $quantityInPack)
+    public static function getPackMeasure($measureId, $quantityInPack, $packRec = NULL)
     {
         if($quantityInPack < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 0.001))){
 			$quantityInPack *= 1000;
@@ -480,17 +480,31 @@ abstract class deals_Helper
 			$measureId = $downMeasureId;
 		}
 		
+		$hint = FALSE;
+		if(is_object($packRec)){
+			$originalQuantityInPack = $packRec->quantity;
+			$difference = round(abs($quantityInPack - $originalQuantityInPack) / $originalQuantityInPack, 2);
+			if($difference > 0.1){
+				$hint = TRUE;
+			}
+		}
+		
         if($quantityInPack == 1) {
 		    $quantityInPack = '';
         } else {
 		    $quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInPack) . ' ';
         }
 		
-		$shortUomName = cat_UoM::getShortName($measureId);
-		$res = ' <small class="quiet">' . $quantityInPack . tr($shortUomName) . '</small>';
-		$res = "<span class='nowrap'>{$res}</span>";
-
-        return $res;
+        if($hint === TRUE){
+        	$quantityInPack = ht::createHint($quantityInPack, 'Има отклонение спрямо очакваното', 'warning', TRUE, 'width=12px,height=12px');
+        }
+        
+        $tpl = new core_ET("<span class='nowrap'>&nbsp;<small class='quiet'>[#quantityInPack#] [#shortUomName#]</small></span>");
+		$tpl->append(tr(cat_UoM::getShortName($measureId)), 'shortUomName');
+		$tpl->append($quantityInPack, 'quantityInPack');
+		$tpl->removeBlocks();
+		
+        return $tpl;
     }
 	
 	
