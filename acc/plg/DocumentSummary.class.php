@@ -72,9 +72,9 @@ class acc_plg_DocumentSummary extends core_Plugin
             'cash_ExchangeDocument' => 'cashAll',
             'sales_Sales' => 'saleAll',
             'purchase_Purchases' => 'purchaseAll',
-            'planning_DirectProductionNote' => 'planningAll',
-            'planning_ConsumptionNotes' => 'planningAll',
-            'planning_ReturnNotes' => 'planningAll',
+            'planning_DirectProductionNote' => 'planningAll,storeAll',
+            'planning_ConsumptionNotes' => 'planningAll,storeAll',
+            'planning_ReturnNotes' => 'planningAll,storeAll',
             'planning_Jobs' => 'planningAll',
             'planning_Tasks' => 'planningAll',
     );
@@ -103,15 +103,17 @@ class acc_plg_DocumentSummary extends core_Plugin
         $mvc->filterRolesForTeam = implode('|', $rolesForTeamsArr);
         
         $mvc->filterRolesForAll .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_ALL');
-        
         $mvc->filterRolesForAll = trim($mvc->filterRolesForAll, ',');
-        
         // Добавяме глобалните роли за съответния клас да може да филтрират всички
         $rolesAll = self::$rolesAllMap[$mvc->className];
         if ($rolesAll) {
-            $mvc->filterRolesForAll .= ',' . $rolesAll . 'Global';
+            $rolesAllArr = explode(',', $rolesAll);
+            foreach ($rolesAllArr as $roleStr) {
+                $roleStr = trim($roleStr);
+                $mvc->filterRolesForAll .= ',' . $roleStr . 'Global';
+            }
         }
-        
+        $mvc->filterRolesForAll = trim($mvc->filterRolesForAll, ',');
         $rolesForAllArr = arr::make($mvc->filterRolesForAll, TRUE);
         $mvc->filterRolesForAll = implode('|', $rolesForAllArr);
         
