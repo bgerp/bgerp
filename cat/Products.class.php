@@ -2082,21 +2082,27 @@ class cat_Products extends embed_Manager {
      */
     public function cron_closePrivateProducts()
     {
-    	// Намираме датата на начало на последния затворен период, Ако няма - операцията пропада
-    	if(!$lastClosedPeriodRec = acc_Periods::getLastClosedPeriod()) return;
+    	// Последните изчислени периода
+    	$periods = acc_Periods::getCalcedPeriods(TRUE, 2);
+    	if(!count($periods)) return;
     	
-    	// Намираме всички частни артикули
+    	// Взима се най-стария период от тях
+    	$oldestPeriod = min(array_keys($periods));
+    	$periodRec = acc_Periods::fetch($oldestPeriod);
+    	if(empty($periodRec)) return;
+    	
+    	// Намираме всички нестандартни артикули
     	$productQuery = cat_Products::getQuery();
-    	$productQuery->where("#isPublic = 'no'");
+    	$productQuery->where("#isPublic != 'yes'");
     	$productQuery->show('id');
     	$products = array_keys($productQuery->fetchAll());
     	
     	// Ако няма, не правим нищо
     	if(!count($products)) return;
     	
-    	// Намираме отворените пера, създадени преди посочената дата, които са към частни артикули
+    	// Намират се отворените пера, създадени преди посочената дата, които са на нестандартни артикули
     	$iQuery = acc_Items::getQuery();
-    	$iQuery->where("#createdOn < '{$lastClosedPeriodRec->start}'");
+    	$iQuery->where("#createdOn < '{$periodRec->start}'");
     	$iQuery->where("#state = 'active'");
     	$iQuery->where("#classId = {$this->getClassId()}");
     	$iQuery->in("objectId", $products);
@@ -2106,15 +2112,15 @@ class cat_Products extends embed_Manager {
     		$productItems[$iRec->id] = $iRec->id;
     	}
     	
-    	// Ако няма отворени пера, отговарящи на условията не правим нищо
+    	// Ако няма отворени пера, отговарящи на условията не се прави нищо
     	if(!count($productItems)) return;
     	
     	// Намираме баланса преди началото на последно затворения баланс
-    	$balanceBefore = cls::get('acc_Balances')->getBalanceBefore($lastClosedPeriodRec->start);
+    	$balanceBefore = cls::get('acc_Balances')->getBalanceBefore($periodRec->start);
     	
     	// Оставяме само записите където участват перата на частните артикули на произволно място
     	$bQuery = acc_BalanceDetails::getQuery();
-    	acc_BalanceDetails::filterQuery($bQuery, $balanceBefore->id, '301,302,304,305,306,309,321,323,330,333', $productItems);
+    	acc_BalanceDetails::filterQuery($bQuery, $balanceBefore->id, NULL, $productItems);
     	$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
     	
     	// Групираме всички пера на частни артикули използвани в баланса
