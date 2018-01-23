@@ -55,6 +55,14 @@ class cat_products_PriceDetails extends core_Manager
     	$data->Tab = 'top';
     	$data->Order = 5;
     	 
+    	$Param = core_Request::get($data->masterData->tabTopParam, 'varchar');
+    	$isPublic = ($data->masterData->rec->isPublic == 'yes') ? TRUE : FALSE;
+    	
+    	if(!(($isPublic === TRUE && (empty($Param) || $Param == 'Prices')) || ($isPublic === FALSE && $Param == 'Prices'))){
+    		$data->hide = TRUE;
+    		return;
+    	}
+    	
     	$listsData = clone $data;
     	$vatData = clone $data;
     	
