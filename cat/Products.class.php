@@ -2090,6 +2090,7 @@ class cat_Products extends embed_Manager {
     	$oldestPeriod = min(array_keys($periods));
     	$periodRec = acc_Periods::fetch($oldestPeriod);
     	if(empty($periodRec)) return;
+    	log_System::add('cat_Products', "PeriodId = {$periodRec->id}");
     	
     	// Намираме всички нестандартни артикули
     	$productQuery = cat_Products::getQuery();
@@ -2099,6 +2100,7 @@ class cat_Products extends embed_Manager {
     	
     	// Ако няма, не правим нищо
     	if(!count($products)) return;
+    	log_System::add('cat_Products', "Private products count:" . count($products));
     	
     	// Намират се отворените пера, създадени преди посочената дата, които са на нестандартни артикули
     	$iQuery = acc_Items::getQuery();
@@ -2114,6 +2116,7 @@ class cat_Products extends embed_Manager {
     	
     	// Ако няма отворени пера, отговарящи на условията не се прави нищо
     	if(!count($productItems)) return;
+    	log_System::add('cat_Products', "Item products count:" . count($productItems));
     	
     	// Намираме баланса преди началото на последно затворения баланс
     	$balanceBefore = cls::get('acc_Balances')->getBalanceBefore($periodRec->start);
@@ -2122,6 +2125,7 @@ class cat_Products extends embed_Manager {
     	$bQuery = acc_BalanceDetails::getQuery();
     	acc_BalanceDetails::filterQuery($bQuery, $balanceBefore->id, NULL, $productItems);
     	$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
+    	$bQuery->show("ent1Id,ent2Id,ent3Id");
     	
     	// Групираме всички пера на частни артикули използвани в баланса
     	$itemsInBalanceBefore = array();
@@ -2142,6 +2146,7 @@ class cat_Products extends embed_Manager {
     	
     	// Ако не са останали пера за затваряне
     	if(!count($productItems)) return;
+    	log_System::add('cat_Products', "Items to Close count:" . count($productItems));
     	
     	// Затваряме останалите пера
     	foreach ($productItems as $itemId){
