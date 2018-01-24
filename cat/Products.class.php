@@ -2161,6 +2161,8 @@ class cat_Products extends embed_Manager {
     	
     	$this->saveArray($toSave, 'id,state');
     	$this->closeItems = $toSave;
+    	
+    	log_System::add('cat_Products', "END close items:" . count($toSave));
     }
     
     
