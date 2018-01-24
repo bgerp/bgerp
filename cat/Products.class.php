@@ -2083,14 +2083,10 @@ class cat_Products extends embed_Manager {
     public function cron_closePrivateProducts()
     {
     	// Последните изчислени периода
-    	$periods = acc_Periods::getCalcedPeriods(TRUE, 2);
+    	$periods = acc_Periods::getCalcedPeriods(TRUE, 3);
     	if(!count($periods)) return;
     	
-    	// Взима се най-стария период от тях
-    	$oldestPeriod = min(array_keys($periods));
-    	$periodRec = acc_Periods::fetch($oldestPeriod);
-    	if(empty($periodRec)) return;
-    	log_System::add('cat_Products', "PeriodId = {$periodRec->id}");
+    	$oldestPeriod = acc_Periods::fetch(min(array_keys($periods)));
     	
     	// Намираме всички нестандартни артикули
     	$productQuery = cat_Products::getQuery();
@@ -2104,7 +2100,7 @@ class cat_Products extends embed_Manager {
     	
     	// Намират се отворените пера, създадени преди посочената дата, които са на нестандартни артикули
     	$iQuery = acc_Items::getQuery();
-    	$iQuery->where("#createdOn < '{$periodRec->start}'");
+    	$iQuery->where("#createdOn < '{$oldestPeriod->start}'");
     	$iQuery->where("#state = 'active'");
     	$iQuery->where("#classId = {$this->getClassId()}");
     	$iQuery->in("objectId", $products);
@@ -2119,15 +2115,21 @@ class cat_Products extends embed_Manager {
     	if(!count($productItems)) return;
     	log_System::add('cat_Products', "Item products count:" . count($productItems));
     	
-    	// Намираме баланса преди началото на последно затворения баланс
-    	$balanceBefore = cls::get('acc_Balances')->getBalanceBefore($periodRec->start);
-    	
     	// Оставяме само записите където участват перата на частните артикули на произволно място
     	$bQuery = acc_BalanceDetails::getQuery();
-    	acc_BalanceDetails::filterQuery($bQuery, $balanceBefore->id, '321,323,60020,60201,61101,701,703');
+    	acc_BalanceDetails::filterQuery($bQuery, NULL, '321,323,60020,60201,61101,701,703');
+    	
+    	$balances = array();
+    	foreach ($periods as $pId => $name){
+    		$balances[] = acc_Balances::fetchField("#periodId = {$pId}");
+    	}
+    	
+    	$bQuery->in('balanceId', $balances);
     	$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
     	$bQuery->show("ent1Id,ent2Id,ent3Id");
     	$bQuery->groupBy("ent1Id,ent2Id,ent3Id");
+    	
+    	log_System::add('cat_Products', "Details in:" . implode(',', $balances));
     	log_System::add('cat_Products', "Balance Recs:" . $bQuery->count());
     	
     	$itemsInBalanceBefore = array();
@@ -2142,7 +2144,7 @@ class cat_Products extends embed_Manager {
     	if(!is_array($itemsInBalanceBefore)) return;
     	
     	foreach ($productItems as $key => $itemId){
-    		if(!array_key_exists($itemId, $itemsInBalanceBefore)){
+    		if(array_key_exists($itemId, $itemsInBalanceBefore)){
     			unset($productItems[$key]);
     		}
     	}
@@ -2161,6 +2163,8 @@ class cat_Products extends embed_Manager {
     	
     	$this->saveArray($toSave, 'id,state');
     	$this->closeItems = $toSave;
+    	
+    	log_System::add('cat_Products', "END close items:" . count($toSave));
     }
     
     

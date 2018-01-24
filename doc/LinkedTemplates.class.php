@@ -337,6 +337,12 @@ class doc_LinkedTemplates extends core_Master
         $query->orLikeKeylist('roles', $rolesArr);
         
         while ($rec = $query->fetch()) {
+            
+            // Ако няма права за сингъла на папката, да не се праща автоматично там - за добавяне
+            if ($rec->formAct == 'newDoc' && $rec->formDocType && $rec->submit == 'auto') {
+                if ($rec->formFolder && !doc_Folders::haveRightFor('single', $rec->formFolder)) continue ;
+            }
+            
             $res[get_called_class() . '|' . $rec->id] = $rec->title;
         }
         

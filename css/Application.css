@@ -375,7 +375,9 @@ div.folder-cover {
     font-size: 0.9em; }
 
 .dangerTitle {
-  color: #cc0000; }
+  color: #cc0000;
+  font-weight: bold;
+  font-size: 1.1em; }
 
 .noheader .listTable {
   width: 100%;
@@ -1221,12 +1223,16 @@ a.tOld {
 /*
  * край на стилове при тредове
  */
+.typeTable {
+  border: none !important; }
   .typeTable .formTypeTable {
     text-align: center;
     font-weight: bold;
-    font-size: 0.9em; }
+    font-size: 0.8em;
+    background-color: #eeeeee; }
   .typeTable td {
-    text-align: center; }
+    text-align: center;
+    font-size: 0.8em; }
 
 /*
  * стилове за документи
