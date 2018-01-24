@@ -2108,10 +2108,11 @@ class cat_Products extends embed_Manager {
     	$iQuery->where("#state = 'active'");
     	$iQuery->where("#classId = {$this->getClassId()}");
     	$iQuery->in("objectId", $products);
-    	$iQuery->show('id');
-    	$productItems = array();
+    	$iQuery->show('id,objectId');
+    	$productItems = $objectIds = array();
     	while($iRec = $iQuery->fetch()){
     		$productItems[$iRec->id] = $iRec->id;
+    		$objectIds[$iRec->id] = $iRec->objectId;
     	}
     	
     	// Ако няма отворени пера, отговарящи на условията не се прави нищо
@@ -2123,38 +2124,46 @@ class cat_Products extends embed_Manager {
     	
     	// Оставяме само записите където участват перата на частните артикули на произволно място
     	$bQuery = acc_BalanceDetails::getQuery();
-    	acc_BalanceDetails::filterQuery($bQuery, $balanceBefore->id, NULL, $productItems);
+    	acc_BalanceDetails::filterQuery($bQuery, $balanceBefore->id, '321,323,60020,60201,61101,701,703');
     	$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
     	$bQuery->show("ent1Id,ent2Id,ent3Id");
+    	$bQuery->groupBy("ent1Id,ent2Id,ent3Id");
+    	log_System::add('cat_Products', "Balance Recs:" . $bQuery->count());
     	
-    	// Групираме всички пера на частни артикули използвани в баланса
     	$itemsInBalanceBefore = array();
     	while($bRec = $bQuery->fetch()){
     		foreach (range(1, 3) as $i){
-    			if(!empty($bRec->{"ent{$i}Id"}) && in_array($bRec->{"ent{$i}Id"}, $productItems)){
+    			if(!empty($bRec->{"ent{$i}Id"})){
     				$itemsInBalanceBefore[$bRec->{"ent{$i}Id"}] = $bRec->{"ent{$i}Id"};
     			}
     		}
     	}
     	
-    	// Оставяме само тез пера, които не се срещат в предходния затворен баланс
-    	if(!empty($itemsInBalanceBefore)){
-    		foreach ($itemsInBalanceBefore as $index => $itemId){
-    			unset($productItems[$index]);
+    	if(!is_array($itemsInBalanceBefore)) return;
+    	
+    	foreach ($productItems as $key => $itemId){
+    		if(!array_key_exists($itemId, $itemsInBalanceBefore)){
+    			unset($productItems[$key]);
     		}
     	}
     	
-    	// Ако не са останали пера за затваряне
-    	if(!count($productItems)) return;
     	log_System::add('cat_Products', "Items to Close count:" . count($productItems));
     	
+    	// Ако не са останали пера за затваряне
+    	if(!count($productItems)) return;
+    	
+    	
     	// Затваряме останалите пера
-    	foreach ($productItems as $itemId){
-    		$pRec = cat_Products::fetch(acc_Items::fetchField($itemId, 'objectId'));
+    	/*
+    	 * foreach ($productItems as $itemId){
+    		$pRec = cat_Products::fetch($objectIds[$itemId], 'id,state');
+    		
     		$pRec->state = 'closed';
     		$this->save($pRec);
     		acc_Items::logWrite("Затворено е перо", $itemId);
     	}
+    	 */
+    	
     }
     
     
