@@ -2152,18 +2152,15 @@ class cat_Products extends embed_Manager {
     	// Ако не са останали пера за затваряне
     	if(!count($productItems)) return;
     	
-    	
-    	// Затваряме останалите пера
-    	/*
-    	 * foreach ($productItems as $itemId){
+    	$toSave = array();
+    	foreach ($productItems as $itemId){
     		$pRec = cat_Products::fetch($objectIds[$itemId], 'id,state');
-    		
     		$pRec->state = 'closed';
-    		$this->save($pRec);
-    		acc_Items::logWrite("Затворено е перо", $itemId);
+    		$toSave[] = $pRec;
     	}
-    	 */
     	
+    	$this->saveArray($toSave, 'id,state');
+    	$this->closeItems = $toSave;
     }
     
     
