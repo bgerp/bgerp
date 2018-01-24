@@ -2387,7 +2387,7 @@ class crm_Companies extends core_Master
     {
     	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
     		if($extRec->overdueSales == 'yes'){
-    			$res = 'img/16/red-building.png';
+    			$res = 'img/16/stop-sign.png';
     		}
     	}
     }
@@ -2403,7 +2403,7 @@ class crm_Companies extends core_Master
     {
         if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
             if($extRec->overdueSales == 'yes'){
-                $res = "<span class='dangerTitle'>{$res}</span>";
+                $res = "<span class='dangerTitle'>{$res} " . tr("с просрочия") . "</span>";
             }
         }
     }

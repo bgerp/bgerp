@@ -375,7 +375,9 @@ div.folder-cover {
     font-size: 0.9em; }
 
 .dangerTitle {
-  color: #cc0000; }
+  color: #cc0000;
+  font-weight: bold;
+  font-size: 1.1em; }
 
 .noheader .listTable {
   width: 100%;
