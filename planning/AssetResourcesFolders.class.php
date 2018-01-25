@@ -236,12 +236,13 @@ class planning_AssetResourcesFolders extends core_Manager
      * @param int|NULL $folderId - дефолтна папка
      * @return int|void
      */
-    public static function addDefaultFolder($classId, $objectId, $folderId = NULL)
+    public static function addDefaultFolder($classId, $objectId, $folderId = NULL, $users = NULL)
     {
     	if(self::fetch("#classId = {$classId} AND #objectId = {$objectId}")) return;
     	
     	$defFolderId = (isset($folderId)) ? $folderId : planning_Centers::getUndefinedFolderId();
-    	$rec = (object)array('classId' => $classId, 'objectId' => $objectId, 'folderId' => $defFolderId);
+    	$users = (isset($users)) ? $users : NULL;
+    	$rec = (object)array('classId' => $classId, 'objectId' => $objectId, 'folderId' => $defFolderId, 'users' => $users);
     	
     	return self::save($rec);
     }

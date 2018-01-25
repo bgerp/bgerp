@@ -359,6 +359,6 @@ class planning_AssetResources extends core_Master
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-    	planning_AssetResourcesFolders::addDefaultFolder($mvc->getClassId(), $rec->id, $rec->folderId);
+    	planning_AssetResourcesFolders::addDefaultFolder($mvc->getClassId(), $rec->id, $rec->folderId, $rec->users);
     }
 }
