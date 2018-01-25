@@ -87,12 +87,21 @@ class doc_FolderResources extends core_Manager
 	{
 		$folderId = $data->masterData->rec->folderId;
 		$data->recs = $data->rows = array();
-    	$query = $DetailName::getQuery();
-    	if($DetailName == 'planning_Hr'){
-    		$query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
-    		$query->where("#state != 'rejected' && #state != 'closed'");
-    	}
-    	$query->where("LOCATE('|{$folderId}|', #folders)");
+		$Detail = cls::get($DetailName);
+		
+    	
+    	
+		$fQuery = planning_AssetResourcesFolders::getQuery();
+		$fQuery->where("#classId = {$Detail->getClassId()} AND #folderId = {$folderId}");
+		$fQuery->show('objectId');
+		$objectIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
+		
+		$query = $Detail->getQuery();
+		$query->in("id", $objectIds);
+		if($DetailName == 'planning_Hr'){
+			$query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
+		}
+		
     	$query->orderBy("state");
     	
     	// Подготовка на пейджъра
@@ -103,12 +112,20 @@ class doc_FolderResources extends core_Manager
     	// Извличане на записите
     	while($dRec = $query->fetch()){
     		$data->recs[$dRec->id] = $dRec;
-    		$data->rows[$dRec->id] = $DetailName::recToVerbal($dRec);
+    		$row = $DetailName::recToVerbal($dRec);
+    		$fRec = planning_AssetResourcesFolders::fetch("#classId = '{$Detail->getClassId()}' AND #objectId = {$dRec->id} AND #folderId = {$folderId}", 'users');
+    		
+    		if(!empty($fRec->users)){
+    			$row->users = planning_AssetResourcesFolders::recToVerbal($fRec, 'users')->users;
+    		}
+    		
+    		$data->rows[$dRec->id] = $row;
     	}
     	
     	// Подготовка на полетата за показване
-    	$listFields = ($DetailName == 'planning_Hr') ? "code=Код,personId=Служител,created=Създаване" : "name=Оборудване,code=Код,groupId=Вид,created=Създаване";
+    	$listFields = ($DetailName == 'planning_Hr') ? "code=Код,personId=Служител,users=Потребители,created=Създаване" : "name=Оборудване,code=Код,users=Потребители,created=Създаване";
     	$data->listFields = arr::make($listFields, TRUE);
+    	$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields);
     	
     	$type = ($DetailName == 'planning_AssetResources') ? 'asset' : 'employee';
     	if($this->haveRightFor('selectresource', (object)array('folderId' => $folderId, 'type' => $type))){

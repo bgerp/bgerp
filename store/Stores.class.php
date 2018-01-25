@@ -323,4 +323,10 @@ class store_Stores extends core_Master
     	
     	return $res;
     }
+    
+    
+    function act_Test()
+    {
+    	cls::get('extrapack_Setup')->closeDocuments();
+    }
 }

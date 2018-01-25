@@ -32,9 +32,10 @@
             </ul>
         </fieldset>
     </div>
-    <div style='margin-top:20px'>
-           [#planning_AssetResourcesNorms#]
-    </div>
+    <fieldset class="detail-info">
+        <legend class="groupTitle">|Папки|*</legend>
+           [#planning_AssetResourcesFolders#]
+    </fieldset>
     </div>
     [#DETAILS#]
 </div>

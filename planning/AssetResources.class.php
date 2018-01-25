@@ -352,4 +352,13 @@ class planning_AssetResources extends core_Master
     		$data->form->title = core_Detail::getEditTitle($Cover->className, $Cover->that, $mvc->singleTitle, $data->form->rec->id, $mvc->formTitlePreposition);
     	}
     }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	planning_AssetResourcesFolders::addDefaultFolder($mvc->getClassId(), $rec->id, $rec->folderId);
+    }
 }

@@ -2,7 +2,7 @@
 
 
 /**
- * 
+ * Мениджър за папки в които са споделени ресурсите
  *
  * @category  bgerp
  * @package   planning
@@ -42,7 +42,7 @@ class planning_AssetResourcesFolders extends core_Manager
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'ceo, planning';
     
     
     /**
@@ -58,6 +58,14 @@ class planning_AssetResourcesFolders extends core_Manager
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'users';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -68,6 +76,7 @@ class planning_AssetResourcesFolders extends core_Manager
         $this->FLD('users', 'userList', 'caption=Потребители');
         
         $this->setDbUnique('classId, objectId, folderId');
+        $this->setDbIndex('classId, folderId');
     }
     
     
@@ -162,13 +171,11 @@ class planning_AssetResourcesFolders extends core_Manager
     
     
     /**
-     *
      * @see core_Manager::act_Add()
      */
     function act_Add()
     {
         Request::setProtected(array('classId', 'objectId'));
-        
         return parent::act_Add();
     }
     
@@ -217,10 +224,38 @@ class planning_AssetResourcesFolders extends core_Manager
         
         // Допустимите папки
         $suggestions = doc_FolderResources::getFolderSuggestions($forType);
-        $form->setOptions('folderId', $suggestions);
-        
-        // По дефолт е папката на неопределения център
-        $defFolderId = planning_Centers::getUndefinedFolderId();
-        $form->setDefault('folderId', keylist::fromArray(array($defFolderId => $defFolderId)));
+        $form->setOptions('folderId', array('' => '') + $suggestions);
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'delete' && isset($rec)){
+    		if(!$mvc->fetchField("#classId = {$rec->classId} AND #objectId = {$rec->objectId} AND #id != '{$rec->id}'")){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Добавяне на дефолтна папка за обект
+     * 
+     * @param int $classId       - ид на класа
+     * @param int $objectId      - ид на обекта
+     * @param int|NULL $folderId - дефолтна папка
+     * @return int|void
+     */
+    public static function addDefaultFolder($classId, $objectId, $folderId = NULL)
+    {
+    	if(self::fetch("#classId = {$classId} AND #objectId = {$objectId}")) return;
+    	
+    	$defFolderId = (isset($folderId)) ? $folderId : planning_Centers::getUndefinedFolderId();
+    	$rec = (object)array('classId' => $classId, 'objectId' => $objectId, 'folderId' => $defFolderId);
+    	
+    	return self::save($rec);
     }
 }

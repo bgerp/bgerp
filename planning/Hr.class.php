@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     0.12
  */
@@ -181,7 +181,7 @@ class planning_Hr extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($rec->personId) {
+        if (isset($rec->personId)) {
             $personState = crm_Persons::fetchField($rec->personId, 'state');
             $row->ROW_ATTR['class'] = "state-{$personState}";
             $row->personId = crm_Persons::getHyperlink($rec->personId, TRUE);
@@ -190,6 +190,7 @@ class planning_Hr extends core_Master
                 $row->code = ht::createHint($row->code, "Лицето вече не е в група 'Служители", 'warning', FALSE);
             }
         }
+        
     	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";
     }
     
@@ -336,5 +337,14 @@ class planning_Hr extends core_Master
     	$link = ht::createHint($link, $name, 'img/16/vcard.png', FALSE);
     	
     	return $link;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	planning_AssetResourcesFolders::addDefaultFolder($mvc->getClassId(), $rec->id);
     }
 }
