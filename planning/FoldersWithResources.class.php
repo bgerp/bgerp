@@ -108,7 +108,4 @@ class planning_FoldersWithResources extends core_Manager
 			}
 		}
 	}
-	
-	
-	//public static function canAdd
 }

@@ -121,7 +121,7 @@ class planning_AssetResources extends core_Master
     	$this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden');
     	$this->FLD('quantity', 'int', 'caption=Kоличество,notNull,value=1');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
-    	$this->FNC('folderId', 'int', 'silent,input=hidden');
+    	$this->FNC('folderId', 'int', 'silent,caption=Папка,input=hidden');
     	
     	// TODO - ще се премахне след като минат миграциите
     	$this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments, input=none, column=none, single=none');
@@ -145,11 +145,18 @@ class planning_AssetResources extends core_Master
     		$form->setDefault('name', $daTitle);
     		$form->info = tr('От') . " " . accda_Da::getHyperLink($rec->protocolId, TRUE);
     	}
+    	
+    	if(empty($rec->id)){
+    		$suggestions = doc_FolderResources::getFolderSuggestions($forType);
+    		$form->setField('folderId', 'mandatory,input');
+    		$form->setOptions('folderId', array('' => '') + $suggestions);
+    		$form->setDefault('folderId', planning_Centers::getUndefinedFolderId());
+    	}
     }
     
     
     /**
-     * След преобразуване на записа в четим за хора вид
+     * След преобразуване на записа в четим за хора видplanning_Centers::getUndefinedFolderId()
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
