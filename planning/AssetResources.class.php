@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -186,9 +186,7 @@ class planning_AssetResources extends core_Master
     		
     		// Проверка на папката
     		if(isset($rec->folderId)){
-    			$Cover = doc_Folders::getCover($rec->folderId);
-    			$resourceTypes = $Cover->getResourceTypeArray();
-    			if(!isset($resourceTypes['assets'])){
+    			if(!self::canFolderHaveAsset($rec->folderId)){
     				$requiredRoles = 'no_one';
     			}
     		}
@@ -238,9 +236,7 @@ class planning_AssetResources extends core_Master
     	
     	// Ако папката не поддържа ресурси оборудване да не се връща нищо
     	if(isset($folderId)){
-    		$Cover = doc_Folders::getCover($folderId);
-    		$optionsourceTypes = $Cover->getResourceTypeArray();
-    		if(!isset($resourceTypes['assets'])) return $options;
+    		if(!self::canFolderHaveAsset($folderId)) return $options;
     	}
     	
     	$fQuery = planning_AssetResourcesFolders::getQuery();
@@ -369,5 +365,20 @@ class planning_AssetResources extends core_Master
     protected static function on_AfterCreate($mvc, $rec)
     {
     	planning_AssetResourcesFolders::addDefaultFolder($mvc->getClassId(), $rec->id, $rec->folderId, $rec->users);
+    }
+    
+    
+    /**
+     * Може ли в папката да се добавя оборудване
+     * 
+     * @param int $folderId
+     * @return boolean
+     */
+    public static function canFolderHaveAsset($folderId)
+    {
+    	$Cover = doc_Folders::getCover($folderId);
+    	$resourceTypes = $Cover->getResourceTypeArray();
+    	
+    	return isset($resourceTypes['assets']);
     }
 }
