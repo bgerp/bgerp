@@ -285,18 +285,25 @@ class planning_Hr extends core_Master
     	if(!isset($resourceTypes['hr'])) return $options;
     	
     	$emplGroupId = crm_Groups::getIdFromSysId('employees');
+    	
+    	$classId = self::getClassId();
+    	$fQuery = planning_AssetResourcesFolders::getQuery();
+    	$fQuery->where("#classId = {$classId} AND #folderId = {$folderId}");
+    	$fQuery->show('objectId');
+    	$objectIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
+    	
     	$query = static::getQuery();
     	$query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
     	$query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
     	$query->like("groupList", "|{$emplGroupId}|");
     	$query->where("#state != 'rejected' && #state != 'closed'");
-    	
-    	$query->EXT('fObjectId', 'planning_AssetResourcesFolders', 'externalName=objectId');
-    	$query->EXT('fClassId', 'planning_AssetResourcesFolders', 'externalName=classId');
-    	$query->where("#fObjectId = #id");
-    	$query->where(array("#fClassId = '[#1#]'", self::getClassId()));
-    	
     	$query->show("personId,code");
+    	
+    	if(count($objectIds)){
+    		$query->in('id', $objectIds);
+    	} else {
+    		$query->where("1=2");
+    	}
     	
     	while($rec = $query->fetch()){
     		$options[$rec->personId] = $rec->code;

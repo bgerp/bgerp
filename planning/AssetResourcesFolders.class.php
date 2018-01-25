@@ -229,19 +229,6 @@ class planning_AssetResourcesFolders extends core_Manager
     
     
     /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-    	if($action == 'delete' && isset($rec)){
-    		if(!$mvc->fetchField("#classId = {$rec->classId} AND #objectId = {$rec->objectId} AND #id != '{$rec->id}'")){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
-    }
-    
-    
-    /**
      * Добавяне на дефолтна папка за обект
      * 
      * @param int $classId       - ид на класа
