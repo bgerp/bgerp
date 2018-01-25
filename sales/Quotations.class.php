@@ -580,7 +580,9 @@ class sales_Quotations extends core_Master
     		 
     		if(isset($rec->bankAccountId)){
     			$ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
-    			$url = bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId);
+    			if(!Mode::isReadOnly()){
+    				$url = bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId);
+    			}
     			$row->bankAccountId = ht::createLink($ownAccount->iban, $url);
     		}
     		
