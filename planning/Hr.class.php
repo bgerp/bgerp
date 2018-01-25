@@ -272,10 +272,10 @@ class planning_Hr extends core_Master
     /**
      * Връща всички служители, избрани като ресурси в папката
      * 
-     * @param int $folderId   - ид на папка
-     * @return array $options - масив със служители
+     * @param int $folderId - ид на папка, NULL за всички
+     * @return array $options  
      */
-    public static function getEmployees($folderId)
+    public static function getByFolderId($folderId)
     {
     	$options = array();
     	

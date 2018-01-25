@@ -249,7 +249,7 @@ class doc_FolderResources extends core_Manager
 			$typeTitle = 'служителите';
 			$form->FLD('select', 'keylist(mvc=crm_Persons,select=name)', "caption=Служители");
 			$options = crm_Persons::getEmployeesOptions();
-			$default = array_keys(planning_Hr::getEmployees($folderId));
+			$default = array_keys(planning_Hr::getByFolderId($folderId));
 		}
 		
 		// Задаване на полетата от формата
