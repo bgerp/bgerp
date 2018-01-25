@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     0.12
  */
-class planning_Hr extends core_Manager
+class planning_Hr extends core_Master
 {
 	
 	
@@ -73,13 +73,19 @@ class planning_Hr extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,personId,folders,createdOn,createdBy';
+    public $listFields = 'code,personId,createdOn,createdBy';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'personId, code, folders';
+    public $searchFields = 'personId, code';
+    
+    
+    /**
+     * Детайли
+     */
+    public $details = 'planning_AssetResourcesFolders';
     
     
     /**
@@ -89,7 +95,9 @@ class planning_Hr extends core_Manager
     {
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory,caption=Лице');
         $this->FLD('code', 'varchar', 'caption=Код');
-        $this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments');
+        
+        // TODO - ще се премахне след като минат миграциите
+        $this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments, input=none, column=none, single=none');
         
         $this->setDbIndex('code');
         $this->setDbUnique('personId');
@@ -108,14 +116,6 @@ class planning_Hr extends core_Manager
     		$form->setField('personId', 'input');
     		$form->setOptions('personId', array('' => '') + crm_Persons::getEmployeesOptions(TRUE, TRUE));
     	}
-    
-    	// Допустимите папки
-    	$suggestions = doc_FolderResources::getFolderSuggestions('hr');
-    	$form->setSuggestions('folders', array('' => '') + $suggestions);
-    	
-    	// По дефолт е избрана папката на неопределения център
-    	$defFolderId = planning_Centers::getUndefinedFolderId();
-    	$form->setDefault('folders', keylist::fromArray(array($defFolderId => $defFolderId)));
     }
     
     
@@ -126,10 +126,6 @@ class planning_Hr extends core_Manager
     {
     	if(empty($rec->code)){
     		$rec->code = self::getDefaultCode($rec->personId);
-    	}
-    	
-    	if(empty($rec->folders)){
-    		$rec->folders = keylist::addKey('', planning_Centers::getUndefinedFolderId());
     	}
     }
     
@@ -185,15 +181,16 @@ class planning_Hr extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$personState = crm_Persons::fetchField($rec->personId, 'state');
-    	$row->ROW_ATTR['class'] = "state-{$personState}";
+        if ($rec->personId) {
+            $personState = crm_Persons::fetchField($rec->personId, 'state');
+            $row->ROW_ATTR['class'] = "state-{$personState}";
+            $row->personId = crm_Persons::getHyperlink($rec->personId, TRUE);
+            
+            if(!crm_Persons::isInGroup($rec->personId, 'employees')){
+                $row->code = ht::createHint($row->code, "Лицето вече не е в група 'Служители", 'warning', FALSE);
+            }
+        }
     	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";
-    	$row->personId = crm_Persons::getHyperlink($rec->personId, TRUE);
-    	$row->folders = doc_Folders::getVerbalLinks($rec->folders, TRUE);
-    	
-    	if(!crm_Persons::isInGroup($rec->personId, 'employees')){
-    		$row->code = ht::createHint($row->code, "Лицето вече не е в група 'Служители", 'warning', FALSE);
-    	}
     }
     
     
@@ -291,7 +288,13 @@ class planning_Hr extends core_Manager
     	$query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
     	$query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
     	$query->like("groupList", "|{$emplGroupId}|");
-    	$query->where("LOCATE('|{$folderId}|', #folders) AND (#state != 'rejected' && #state != 'closed')");
+    	$query->where("#state != 'rejected' && #state != 'closed'");
+    	
+    	$query->EXT('fObjectId', 'planning_AssetResourcesFolders', 'externalName=objectId');
+    	$query->EXT('fClassId', 'planning_AssetResourcesFolders', 'externalName=classId');
+    	$query->where("#fObjectId = #id");
+    	$query->where(array("#fClassId = '[#1#]'", self::getClassId()));
+    	
     	$query->show("personId,code");
     	
     	while($rec = $query->fetch()){

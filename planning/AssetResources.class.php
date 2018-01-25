@@ -56,7 +56,7 @@ class planning_AssetResources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Оборудване,code,groupId,protocolId=ДА,folders,quantity=К-во,createdOn,createdBy,state';
+    public $listFields = 'name=Оборудване,code,groupId,protocolId=ДА,quantity=К-во,createdOn,createdBy,state';
 
     
     /**
@@ -93,13 +93,13 @@ class planning_AssetResources extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'name, code, groupId, folders, protocolId';
+    public $searchFields = 'name, code, groupId, protocolId';
     
     
     /**
      * Детайли
      */
-    public $details = 'planning_AssetResourcesNorms';
+    public $details = 'planning_AssetResourcesFolders';
     
     
     /**
@@ -119,10 +119,12 @@ class planning_AssetResources extends core_Master
     	$this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent');
     	$this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
     	$this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden');
-    	$this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments');
     	$this->FLD('quantity', 'int', 'caption=Kоличество,notNull,value=1');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     	$this->FNC('folderId', 'int', 'silent,input=hidden');
+    	
+    	// TODO - ще се премахне след като минат миграциите
+    	$this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments, input=none, column=none, single=none');
     	
     	$this->setDbUnique('code');
     	$this->setDbUnique('protocolId');
@@ -143,34 +145,6 @@ class planning_AssetResources extends core_Master
     		$form->setDefault('name', $daTitle);
     		$form->info = tr('От') . " " . accda_Da::getHyperLink($rec->protocolId, TRUE);
     	}
-    	
-    	// Ако има избрана папка по-дефолт скрива се полето за папки
-    	if(isset($rec->folderId)){
-    		$form->setField('folders', 'input=none');
-    	} else {
-    		
-    		// Допустимите папки
-    		$suggestions = doc_FolderResources::getFolderSuggestions('assets');
-    		$form->setSuggestions('folders', array('' => '') + $suggestions);
-    		
-    		// По дефолт е папката на неопределения център
-    		$defFolderId = planning_Centers::getUndefinedFolderId();
-    		$form->setDefault('folders', keylist::fromArray(array($defFolderId => $defFolderId)));
-    	}
-    }
-    
-    
-    /**
-     * Преди запис
-     */
-    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-    	if(empty($rec->folders)){
-    		
-    		// Ако няма папки се взима подадената папка или тази на неопределения център
-    		$folderId = isset($rec->folderId) ? $rec->folderId : planning_Centers::getUndefinedFolderId();
-    		$rec->folders = keylist::addKey('', $folderId);
-    	}
     }
     
     
@@ -181,7 +155,6 @@ class planning_AssetResources extends core_Master
     {
     	$row->groupId = planning_AssetGroups::getHyperlink($rec->groupId, TRUE);
     	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";
-    	$row->folders = doc_Folders::getVerbalLinks($rec->folders, TRUE);
     	
     	if(isset($fields['-single'])){
     		$row->SingleIcon = ht::createElement("img", array('src' => sbf(str_replace('/16/', '/32/', $mvc->singleIcon), ""), 'alt' => ''));
@@ -261,13 +234,16 @@ class planning_AssetResources extends core_Master
     		if(!isset($resourceTypes['assets'])) return $res;
     	}
     	
-    	$query = self::getQuery();
-    	$query->where("#state != 'closed'");
+    	$fQuery = planning_AssetResourcesFolders::getQuery();
     	if(isset($folderId)){
-    		$query->where("LOCATE('|{$folderId}|', #folders)");
+    	    $fQuery->where(array("#folderId = '[#1#]'", $folderId));
     	}
     	
-    	while($rec = $query->fetch()){
+    	$fQuery->where(array("#classId = '[#1#]'", self::getClassId()));
+    	
+    	while($fRec = $fQuery->fetch()) {
+    	    $rec = self::fetch($fRec->objectId);
+    	    if ($rec->state == 'rejected') continue;
     		$res[$rec->id] = self::getRecTitle($rec, FALSE);
     	}
     	
@@ -311,7 +287,7 @@ class planning_AssetResources extends core_Master
     	$tpl = new core_ET("");
     	
     	// Рендиране на таблицата с оборудването
-    	$data->listFields = arr::make("name=Оборудване,folders=Папки,quantity=К-во,createdOn=Създадено->На,createdBy=Създадено->От,state=Състояние");
+    	$data->listFields = arr::make("name=Оборудване,quantity=К-во,createdOn=Създадено->На,createdBy=Създадено->От,state=Състояние");
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
     	$tpl->append($table->get($data->rows, $data->listFields));
