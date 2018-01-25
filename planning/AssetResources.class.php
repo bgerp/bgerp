@@ -26,7 +26,7 @@ class planning_AssetResources extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_State2, plg_Search, plg_SaveAndNew,plg_Sorting';
+    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_State2, plg_Search,plg_Sorting';
     
     
     /**
@@ -183,11 +183,20 @@ class planning_AssetResources extends core_Master
     				}
     			}
     		}
+    		
+    		// Проверка на папката
+    		if(isset($rec->folderId)){
+    			$Cover = doc_Folders::getCover($rec->folderId);
+    			$resourceTypes = $Cover->getResourceTypeArray();
+    			if(!isset($resourceTypes['assets'])){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
     	}
     	
     	// Ако е използван в група, не може да се изтрива
     	if($action == 'delete' && isset($rec->id)){
-    		if(isset($rec->lastUsedOn) || planning_AssetResourcesNorms::fetchField("#classId = {$mvc->getClassId()} AND #objectId = '{$rec->id}'")){
+    		if(isset($rec->lastUsedOn) || planning_AssetResourcesNorms::fetchField("#classId = {$mvc->getClassId()} AND #objectId = '{$rec->id}'") || planning_AssetResourcesFolders::fetchField("#classId = {$mvc->getClassId()} AND #objectId = '{$rec->id}'")){
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -357,7 +366,7 @@ class planning_AssetResources extends core_Master
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	planning_AssetResourcesFolders::addDefaultFolder($mvc->getClassId(), $rec->id, $rec->folderId, $rec->users);
     }
