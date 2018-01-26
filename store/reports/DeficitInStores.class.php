@@ -195,29 +195,26 @@ class store_reports_DeficitInStores extends frame2_driver_TableData {
 						}
 					}
 					
-					// //Премахване на нестандартнитв артикули
+					// Премахване на нестандартнитв артикули
 					
-					// if (is_array($grDetails['name'])) {
-					
-					// foreach ($grDetails['name'] as $k=>$v){
-					
-					// if ($grDetails['code'][$k]){
-					
-					// $isPublic = (cat_Products::fetch(cat_Products::getByCode($grDetails['code'][$k])->productId)->isPublic);
-					// }
-					
-					// if (!$grDetails['code'][$k] || $isPublic == 'no'){
-					
-					// unset($grDetails['code'][$k]);
-					// unset($grDetails['name'][$k]);
-					// unset($grDetails['minQuantity'][$k]);
-					// unset($grDetails['maxQuantity'][$k]);
-					
-					// }
-					
-					// }
-					
-					// }
+					if (is_array ( $grDetails ['name'] )) {
+						
+						foreach ( $grDetails ['name'] as $k => $v ) {
+							
+							if ($grDetails ['code'] [$k]) {
+								
+								$isPublic = (cat_Products::fetch ( cat_Products::getByCode ( $grDetails ['code'] [$k] )->productId )->isPublic);
+							}
+							
+							if (! $grDetails ['code'] [$k] || $isPublic == 'no') {
+								
+								unset ( $grDetails ['code'] [$k] );
+								unset ( $grDetails ['name'] [$k] );
+								unset ( $grDetails ['minQuantity'] [$k] );
+								unset ( $grDetails ['maxQuantity'] [$k] );
+							}
+						}
+					}
 					
 					// Ограничава броя на артикулите за добавяне
 					
@@ -405,7 +402,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData {
 					
 					foreach ( $bommMaterials as $material ) {
 						
-						if (! array_key_exists ( $jobsProdId, $bommsMaterials )) {
+						if (! array_key_exists ( $material->productId, $bommsMaterials )) {
 							
 							$bommsMaterials [$material->productId] = 
 
@@ -425,7 +422,6 @@ class store_reports_DeficitInStores extends frame2_driver_TableData {
 				}
 			}
 		}
-		
 		/*
 		 * От продуктите по експедиционни нареждания
 		 * изваждаме продуктите за които има задание за производство ????
@@ -447,73 +443,18 @@ class store_reports_DeficitInStores extends frame2_driver_TableData {
 		}
 		
 		/*
-		 * Ако има повтарящи се артикули в материалите за призводство
-		 * и експедиционните нареждания се обединяват количествата
-		 */
-		
-		if (is_array ( $bommMaterials )) {
-			foreach ( $bommsMaterials as $k => $v ) {
-				
-				if (is_array ( $shipmentProducts )) {
-					foreach ( $shipmentProducts as $skey => $sv ) {
-						
-						if ($k == $skey) {
-							
-							$bommsMaterials [$k]->quantity = $v->quantity + $sv->quantity;
-							
-							unset ( $shipmentProducts [$skey] );
-						}
-					}
-				}
-			}
-		}
-		
-		/*
 		 * Масив с всички необходими материали
 		 */
-		// $bommsMaterials=array(12=>array('productId'=>'12','quantity'=>'34'),17=>array('productId'=>'17','quantity'=>'64'),21=>array('productId'=>'21','quantity'=>'344'));
 		
-		$neseseryMaterials = $bommsMaterials;
+		$neseseryMaterialsId = array ();
+		$bommsMaterialsId = array_keys ( $bommsMaterials );
+		
+		$neseseryMaterialsId = array_merge ( $neseseryMaterialsId, $bommsMaterialsId );
 		
 		foreach ( $shipmentProducts as $v ) {
-			
-			array_push ( $neseseryMaterials, $v );
-		}
-		
-		foreach ( $neseseryMaterials as $v ) {
-			if (! $tempN) {
-				$tempN [] = $v;
+			if (in_array ( $v->productId, $neseseryMaterialsId ))
 				continue;
-			}
-			foreach ( $tempN as $vt ) {
-				
-				if ($v->productId == $vt->productId) {
-					$v->quantity += $vt->quantity;
-				}
-			}
-			$tempN [] = $v;
-		}
-		$neseseryMaterials = $tempN;
-		
-		/*
-		 * Необходимите количества се коригират с вече заявените за доставка
-		 */
-		if (is_array ( $neseseryMaterials )) {
-			foreach ( $neseseryMaterials as $kn => $vn ) {
-				
-				if (is_array ( $receiptProducts )) {
-					foreach ( $receiptProducts as $skey => $sv ) {
-						
-						if ($vn->productId == $sv->productId) {
-							
-							if ($vn->quantity - $sv->quantity > 0) {
-								
-								$neseseryMaterials [$kn]->quantity = $vn->quantity - $sv->quantity;
-							}
-						}
-					}
-				}
-			}
+			array_push ( $neseseryMaterialsId, $v->productId );
 		}
 		
 		$products = (json_decode ( $rec->additional, false ));
@@ -547,9 +488,9 @@ class store_reports_DeficitInStores extends frame2_driver_TableData {
 			
 			foreach ( $selectedProductsId as $v ) {
 				
-				foreach ( $neseseryMaterials as $vk ) {
+				foreach ( $neseseryMaterialsId as $vk ) {
 					
-					if ($v == $vk->productId) {
+					if ($v == $vk) {
 						$temp [] = $v;
 					}
 				}
@@ -588,7 +529,6 @@ class store_reports_DeficitInStores extends frame2_driver_TableData {
 							'storeId' => $rec->storeId,
 							'quantity' => $quantity,
 							'code' => $products->code [$key],
-							'neseseryQuantity' => '',
 							'shipmentQuantity' => $shipmentProducts [$id]->quantity,
 							'jobsQuantity' => $bommsMaterials [$id]->quantity,
 							'receiptQuantity' => $receiptProducts [$id]->quantity 
