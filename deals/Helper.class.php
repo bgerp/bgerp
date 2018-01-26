@@ -472,7 +472,8 @@ abstract class deals_Helper
      */
     public static function getPackMeasure($measureId, $quantityInPack, $packRec = NULL)
     {
-        if($quantityInPack < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 0.001))){
+        $qP = $quantityInPack;
+    	if($quantityInPack < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 0.001))){
 			$quantityInPack *= 1000;
 			$measureId = $downMeasureId;
 		} elseif($quantityInPack > 1000 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 1000))){
@@ -481,9 +482,10 @@ abstract class deals_Helper
 		}
 		
 		$hint = FALSE;
+		
 		if(is_object($packRec)){
 			$originalQuantityInPack = $packRec->quantity;
-			$difference = round(abs($quantityInPack - $originalQuantityInPack) / $originalQuantityInPack, 2);
+			$difference = round(abs($qP - $originalQuantityInPack) / $originalQuantityInPack, 2);
 			if($difference > 0.1){
 				$hint = TRUE;
 			}
