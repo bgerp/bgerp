@@ -143,12 +143,6 @@ class support_Systems extends core_Master
     var $searchFields = 'name, description';
     
     
-    /**
-     * Детайла, на модела
-     */
-    var $details = 'support_Components';
-    
-    
 	/**
      * Описание на модела (таблицата)
      */

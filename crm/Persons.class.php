@@ -3082,11 +3082,11 @@ class crm_Persons extends core_Master
      */
     public static function on_AfterGetSingleIcon($mvc, &$res, $id)
     {
-    	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
-    		if($extRec->overdueSales == 'yes'){
-    			$res = 'img/16/red-vcard.png';
-    		}
-    	}
+    	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
+            if ($extRec->overdueSales == 'yes') {
+                $res = 'img/16/stop-hand.png';
+            }
+        }
     }
 
     /**
@@ -3100,7 +3100,7 @@ class crm_Persons extends core_Master
     {
         if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
             if($extRec->overdueSales == 'yes'){
-                $res = "<span class='dangerTitle'>{$res}</span>";
+                $res = "<span class='dangerTitle'>{$res} " . tr("с просрочия") . "</span>";
             }
         }
     }

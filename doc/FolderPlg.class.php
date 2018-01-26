@@ -967,6 +967,8 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterGetResourceTypeArray($mvc, &$res, $rec)
     {
+    	$rec = $mvc->fetchRec($rec);
+    	
     	// Ако има папка и тя е избрана, че може да има ресурси към нея добавям я
     	if(!isset($res) && isset($rec->folderId)){
     		if($types = planning_FoldersWithResources::fetchField("#folderId={$rec->folderId}", 'type')){

@@ -580,7 +580,9 @@ class sales_Quotations extends core_Master
     		 
     		if(isset($rec->bankAccountId)){
     			$ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
-    			$url = bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId);
+    			if(!Mode::isReadOnly()){
+    				$url = bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId);
+    			}
     			$row->bankAccountId = ht::createLink($ownAccount->iban, $url);
     		}
     		
@@ -592,7 +594,6 @@ class sales_Quotations extends core_Master
     				$placeId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : NULL;
     				
     				$deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, NULL, $placeId, $mvc);
-    				$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще бъде записан при активиране');
     			}
     		}
     		
@@ -845,18 +846,6 @@ class sales_Quotations extends core_Master
     protected static function on_AfterActivation($mvc, &$rec)
     {
     	$updateFields = array();
-		
-		// Запис на адреса
-		if(empty($rec->deliveryAdress) && isset($rec->deliveryTermId)){
-			
-			$rec->tplLang = $mvc->pushTemplateLg($rec->template);
-			$locationId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : NULL;
-			$rec->deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, NULL, $locationId, $mvc);
-			$updateFields[] = 'deliveryAdress';
-			
-			core_Lg::pop($rec->tplLang);
-		}
-		
 		
 		// Ако няма дата попълваме текущата след активиране
 		if(empty($rec->date)){

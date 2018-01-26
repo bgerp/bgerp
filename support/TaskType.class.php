@@ -35,7 +35,7 @@ class support_TaskType extends core_Mvc
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%, silent, after=title');
-        $fieldset->FLD('componentId', 'key(mvc=support_Components,select=name,allowEmpty)', 'caption=Компонент, after=typeId, refreshForm, silent');
+        $fieldset->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурс, after=typeId, refreshForm, silent');
         $fieldset->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, input=hidden, silent');
         
         $fieldset->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input=none');
@@ -93,7 +93,7 @@ class support_TaskType extends core_Mvc
     {
         $form->setField('systemId', 'input=hidden');
         $form->setField('typeId', 'input');
-        $form->setField('componentId', 'input=none');
+        $form->setField('assetResourceId', 'input=none');
         $form->setField('name', 'input');
         $form->setField('email', 'input');
         $form->setField('url', 'input=hidden, silent');
@@ -190,6 +190,8 @@ class support_TaskType extends core_Mvc
      */
     public static function on_AfterPrepareEditForm($Driver, $mvc, &$res, $data)
     {
+        $rec = $data->form->rec;
+        
         $systemId = Request::get('systemId', 'key(mvc=support_Systems, select=name)');
         
         if (!$systemId && $data->form->rec->folderId) {
@@ -200,6 +202,8 @@ class support_TaskType extends core_Mvc
             }
         }
         
+        $foldersArr = array();
+        
         // Ограничаваме избора на компоненти и типове, само до тези, които ги има в системата
         if ($systemId) {
             $allSystemsArr = array();
@@ -207,20 +211,16 @@ class support_TaskType extends core_Mvc
                 $allSystemsArr = support_Systems::getSystems($systemId);
             }
             
-            $componentsArr = array();
             $typesArr = array();
             
             if (!empty($allSystemsArr)) {
-                $componentQuery = support_Components::getQuery();
                 
-                $componentQuery->orWhereArr('systemId', $allSystemsArr);
-                
-                if ($data->form->rec->componentId) {
-                    $componentQuery->orWhere(array("#id = '[#1#]'", $data->form->rec->componentId));
-                }
-                
-                while ($cRec = $componentQuery->fetch()) {
-                    $componentsArr[$cRec->id] = $cRec->name;
+                foreach ($allSystemsArr as $sId) {
+                    $sRec = support_Systems::fetch($sId);
+                    
+                    if (!$sRec->folderId) continue;
+                    
+                    $foldersArr[$sRec->folderId] = $sRec->folderId;
                 }
                 
                 $allowedTypesArr = support_Systems::getAllowedFieldsArr($allSystemsArr);
@@ -233,12 +233,6 @@ class support_TaskType extends core_Mvc
                     $typesArr[$allowedType] = support_IssueTypes::fetchField($allowedType, 'type');
                 }
             }
-            
-            if (!empty($componentsArr)) {
-                $componentsArr = array_unique($componentsArr);
-                asort($componentsArr);
-            }
-            $data->form->setOptions('componentId', $componentsArr);
             
             if (!empty($typesArr)) {
                 $typesArr = array_unique($typesArr);
@@ -257,12 +251,36 @@ class support_TaskType extends core_Mvc
             }
         }
         
+        if (empty($foldersArr)) {
+            $foldersArr[$rec->folderId] = $rec->folderId;
+        }
+        
+        $assetResArr = array();
+        if (!empty($foldersArr)) {
+            foreach ($foldersArr as $folderId) {
+                $assetResArr += planning_AssetResources::getByFolderId($folderId);
+            }
+            if (!empty($assetResArr)) {
+                asort($assetResArr);
+            }
+        }
+        $data->form->setOptions('assetResourceId', $assetResArr);
+        
         if ($data->form->cmd == 'refresh') {
             // При избор на компонент, да са избрани споделените потребители, които са отговорници
-            if ($data->form->rec->componentId) {
-                $maintainers = support_Components::fetchField($data->form->rec->componentId, 'maintainers');
+            if ($data->form->rec->assetResourceId) {
+                
+                $assetId = planning_AssetResources::fetchField($data->form->rec->assetResourceId, 'id');
+                
+                if ($assetId) {
+                    $maintainers = planning_AssetResourceFolders::fetchField(array("#classId = '[#1#]' AND #objectId = '[#2#]' AND #folderId = '[#3#]'", planning_AssetResources::getClassId(), $assetId, $rec->folderId), 'users');
+                }
+                
                 $maintainers = keylist::removeKey($maintainers, core_Users::getCurrent());
-                $data->form->setDefault('sharedUsers', $maintainers);
+                
+                if ($maintainers) {
+                    $data->form->setDefault('sharedUsers', $maintainers);
+                }
             }
         }
         
@@ -313,8 +331,12 @@ class support_TaskType extends core_Mvc
      */
     public static function on_AfterSave($Driver, $mvc, &$id, $rec)
     {
-        if ($rec->componentId) {
-            support_Components::markAsUsed($rec->componentId);
+        if ($rec->assetResourceId) {
+            $nRec = new stdClass();
+            $nRec->id = $rec->assetResourceId;
+            $nRec->lastUsedOn = dt::now();
+            
+            planning_AssetResources::save($nRec, 'lastUsedOn');
         }
         
         if (core_Users::getCurrent() < 1) {
@@ -343,8 +365,8 @@ class support_TaskType extends core_Mvc
             $resArr['systemId'] =  array('name' => tr('Система'), 'val' => "[#systemId#]");
         }
         
-        if ($row->componentId) {
-            $resArr['componentId'] =  array('name' => tr('Компонент'), 'val' => "[#componentId#]");
+        if ($row->assetResourceId) {
+            $resArr['assetResourceId'] =  array('name' => tr('Ресурс'), 'val' => "[#assetResourceId#]");
         }
         
         if ($row->typeId) {

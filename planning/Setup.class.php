@@ -117,6 +117,7 @@ class planning_Setup extends core_ProtoSetup
     		'planning_ObjectResources',
     		'planning_Tasks',
     		'planning_AssetResources',
+            'planning_AssetResourceFolders',
     		'planning_ProductionTaskDetails',
     		'planning_ProductionTaskProducts',
     		'planning_TaskSerials',
@@ -129,7 +130,8 @@ class planning_Setup extends core_ProtoSetup
     		'migrate::deleteAssets',
     		'migrate::deleteNorms',
             'migrate::transferCenters',
-            'migrate::removeUnusedRole'
+            'migrate::removeUnusedRole',
+            'migrate::folderToDetails'
         );
 
         
@@ -545,6 +547,38 @@ class planning_Setup extends core_ProtoSetup
         $rId = core_Roles::fetchByName('jobMaster');
         if ($rId) {
             core_Roles::removeRoles(array($rId));
+        }
+    }
+    
+    
+    /**
+     * Миграция за прехвърляне на папките в детайл
+     */
+    public static function folderToDetails()
+    {
+        // Очаква предишната миграция да е била успешна
+        $mData = core_Packs::getConfig('core')->_data;
+        expect($mData['migration_planning_transferCenters'] === TRUE);
+        
+        foreach (array('planning_AssetResources', 'planning_Hr') as $clsName) {
+            $clsInst = cls::get($clsName);
+            $query = $clsInst->getQuery();
+            $query->where("#folders IS NOT NULL");
+            
+            while ($rec = $query->fetch()) {
+                $fArr = type_Keylist::toArray($rec->folders);
+                
+                if (empty($fArr)) continue;
+                
+                foreach ($fArr as $fId) {
+                    $dRec = new stdClass();
+                    $dRec->objectId = $rec->id;
+                    $dRec->classId = $clsInst->getClassId();
+                    $dRec->folderId = $fId;
+                    
+                    planning_AssetResourceFolders::save($dRec, NULL, 'IGNORE');
+                }
+            }
         }
     }
 }
