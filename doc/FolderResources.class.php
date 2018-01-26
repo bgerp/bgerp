@@ -89,7 +89,7 @@ class doc_FolderResources extends core_Manager
 		$data->recs = $data->rows = array();
 		$Detail = cls::get($DetailName);
 		
-		$fQuery = planning_AssetResourcesFolders::getQuery();
+		$fQuery = planning_AssetResourceFolders::getQuery();
 		$fQuery->where("#classId = {$Detail->getClassId()} AND #folderId = {$folderId}");
 		$fQuery->show('objectId');
 		$objectIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
@@ -116,10 +116,10 @@ class doc_FolderResources extends core_Manager
     	while($dRec = $query->fetch()){
     		$data->recs[$dRec->id] = $dRec;
     		$row = $DetailName::recToVerbal($dRec);
-    		$fRec = planning_AssetResourcesFolders::fetch("#classId = '{$Detail->getClassId()}' AND #objectId = {$dRec->id} AND #folderId = {$folderId}", 'users');
+    		$fRec = planning_AssetResourceFolders::fetch("#classId = '{$Detail->getClassId()}' AND #objectId = {$dRec->id} AND #folderId = {$folderId}", 'users');
     		
     		if(!empty($fRec->users)){
-    			$row->users = planning_AssetResourcesFolders::recToVerbal($fRec, 'users')->users;
+    			$row->users = planning_AssetResourceFolders::recToVerbal($fRec, 'users')->users;
     		}
     		
     		$data->rows[$dRec->id] = $row;
@@ -265,7 +265,7 @@ class doc_FolderResources extends core_Manager
 			$selected = keylist::toArray($form->rec->select);
 			$removeArr = array_diff_key($default, $selected);
 			
-			$Folders = cls::get('planning_AssetResourcesFolders');
+			$Folders = cls::get('planning_AssetResourceFolders');
 			// Избраните се обновява департамента им
 			foreach ($selected as $id => $name){
 				$r = (object)array('classId' => $classId, 'objectId' => $id, 'folderId' => $folderId);
@@ -290,7 +290,7 @@ class doc_FolderResources extends core_Manager
 					$delId = planning_Hr::fetchField("#personId = {$rId}");
 				}
 				
-				planning_AssetResourcesFolders::delete("#classId = {$classId} AND #objectId = {$delId} AND #folderId = {$folderId}");
+				planning_AssetResourceFolders::delete("#classId = {$classId} AND #objectId = {$delId} AND #folderId = {$folderId}");
 			}
 			
 			followRetUrl(NULL, 'Информацията е обновена успешно');

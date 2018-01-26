@@ -11,8 +11,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_AssetResourcesFolders extends core_Manager
+class planning_AssetResourceFolders extends core_Manager
 {
+    
+    
+    /**
+     * 
+     */
+    public $oldClassName = 'planning_AssetResourcesFolders';
     
     
     /**
@@ -145,7 +151,7 @@ class planning_AssetResourcesFolders extends core_Manager
         
         // Рендираме общия лейаут
         $tpl = new ET("
-            <div class='clearfix21 {$className}'>
+            <div class='clearfix21 planning_AssetResourceFolders'>
                 [#ListPagerTop#]
                 [#ListTable#]
                 [#ListPagerBottom#]
@@ -203,13 +209,12 @@ class planning_AssetResourcesFolders extends core_Manager
     /**
      * Преди показване на форма за добавяне/промяна
      * 
-     * @param planning_AssetResourcesFolders $mvc
+     * @param planning_AssetResourceFolders $mvc
      * @param stdClass $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
-        $rec = $form->rec;
         
         $forType = NULL;
         $clsId = Request::get('classId', 'int');

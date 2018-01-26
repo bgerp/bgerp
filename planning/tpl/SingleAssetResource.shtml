@@ -34,7 +34,7 @@
     </div>
     <fieldset class="detail-info">
         <legend class="groupTitle">|Папки|*</legend>
-           [#planning_AssetResourcesFolders#]
+           [#planning_AssetResourceFolders#]
     </fieldset>
     </div>
     [#DETAILS#]

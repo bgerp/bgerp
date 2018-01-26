@@ -99,7 +99,7 @@ class planning_AssetResources extends core_Master
     /**
      * Детайли
      */
-    public $details = 'planning_AssetResourcesFolders';
+    public $details = 'planning_AssetResourceFolders';
     
     
     /**
@@ -201,7 +201,7 @@ class planning_AssetResources extends core_Master
     	
     	// Ако е използван в група, не може да се изтрива
     	if($action == 'delete' && isset($rec->id)){
-    		if(isset($rec->lastUsedOn) || planning_AssetResourcesNorms::fetchField("#classId = {$mvc->getClassId()} AND #objectId = '{$rec->id}'") || planning_AssetResourcesFolders::fetchField("#classId = {$mvc->getClassId()} AND #objectId = '{$rec->id}'")){
+    		if(isset($rec->lastUsedOn) || planning_AssetResourcesNorms::fetchField("#classId = {$mvc->getClassId()} AND #objectId = '{$rec->id}'") || planning_AssetResourceFolders::fetchField("#classId = {$mvc->getClassId()} AND #objectId = '{$rec->id}'")){
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -246,7 +246,7 @@ class planning_AssetResources extends core_Master
     		if(!self::canFolderHaveAsset($folderId)) return $options;
     	}
     	
-    	$fQuery = planning_AssetResourcesFolders::getQuery();
+    	$fQuery = planning_AssetResourceFolders::getQuery();
     	if(isset($folderId)){
     	    $fQuery->where(array("#folderId = '[#1#]'", $folderId));
     	}
@@ -255,7 +255,11 @@ class planning_AssetResources extends core_Master
     	
     	while($fRec = $fQuery->fetch()) {
     	    $rec = self::fetch($fRec->objectId);
+    	    
+    	    if (!$rec) continue;
+    	    
     	    if ($rec->state == 'rejected') continue;
+    	    
     		$options[$rec->id] = self::getRecTitle($rec, FALSE);
     	}
     	
@@ -371,7 +375,7 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-    	planning_AssetResourcesFolders::addDefaultFolder($mvc->getClassId(), $rec->id, $rec->folderId, $rec->users);
+    	planning_AssetResourceFolders::addDefaultFolder($mvc->getClassId(), $rec->id, $rec->folderId, $rec->users);
     }
     
     

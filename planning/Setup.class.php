@@ -117,7 +117,7 @@ class planning_Setup extends core_ProtoSetup
     		'planning_ObjectResources',
     		'planning_Tasks',
     		'planning_AssetResources',
-            'planning_AssetResourcesFolders',
+            'planning_AssetResourceFolders',
     		'planning_ProductionTaskDetails',
     		'planning_ProductionTaskProducts',
     		'planning_TaskSerials',
@@ -576,7 +576,7 @@ class planning_Setup extends core_ProtoSetup
                     $dRec->classId = $clsInst->getClassId();
                     $dRec->folderId = $fId;
                     
-                    planning_AssetResourcesFolders::save($dRec, NULL, 'IGNORE');
+                    planning_AssetResourceFolders::save($dRec, NULL, 'IGNORE');
                 }
             }
         }

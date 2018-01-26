@@ -39,8 +39,6 @@
                 </fieldset>
 
                 <div>
-                    <br>
-                    |Компоненти|*:
                     <!--ET_BEGIN DETAILS-->
                     <div class='details'>
                         [#DETAILS#]

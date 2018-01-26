@@ -85,7 +85,7 @@ class planning_Hr extends core_Master
     /**
      * Детайли
      */
-    public $details = 'planning_AssetResourcesFolders';
+    public $details = 'planning_AssetResourceFolders';
     
     
     /**
@@ -287,7 +287,7 @@ class planning_Hr extends core_Master
     	$emplGroupId = crm_Groups::getIdFromSysId('employees');
     	
     	$classId = self::getClassId();
-    	$fQuery = planning_AssetResourcesFolders::getQuery();
+    	$fQuery = planning_AssetResourceFolders::getQuery();
     	$fQuery->where("#classId = {$classId} AND #folderId = {$folderId}");
     	$fQuery->show('objectId');
     	$objectIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
@@ -352,6 +352,6 @@ class planning_Hr extends core_Master
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-    	planning_AssetResourcesFolders::addDefaultFolder($mvc->getClassId(), $rec->id);
+    	planning_AssetResourceFolders::addDefaultFolder($mvc->getClassId(), $rec->id);
     }
 }
