@@ -63,9 +63,9 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 	 * @param core_Fieldset $fieldset        	
 	 */
 	public function addFields(core_Fieldset &$fieldset) {
-		$fieldset->FLD ( 'selfPriceTolerance', 'double', 'caption=Отклонение от себестойност->Толеранс под себестойност,unit= %,after=title,single=none1' );
-		$fieldset->FLD ( 'sellPriceToleranceDown', 'double', 'caption=Отклонение от продажна цена по политика->Толеранс под цена,unit= %,after=selfPriceTolerance,single=none1y' );
-		$fieldset->FLD ( 'sellPriceToleranceUp', 'double', 'caption=Отклонение от продажна цена по политика->Толеранс над цена,unit= %,after=sellPriceToleranceDown,single=none1' );
+		$fieldset->FLD ( 'selfPriceTolerance', 'double', 'caption=Отклонение от себестойност->Толеранс под себестойност,unit= %,after=title,single=none' );
+		$fieldset->FLD ( 'sellPriceToleranceDown', 'double', 'caption=Отклонение от продажна цена по политика->Толеранс под цена,unit= %,after=selfPriceTolerance,single=none' );
+		$fieldset->FLD ( 'sellPriceToleranceUp', 'double', 'caption=Отклонение от продажна цена по политика->Толеранс над цена,unit= %,after=sellPriceToleranceDown,single=none' );
 		$fieldset->FLD ( 'from', 'date(smartTime)', 'caption=Отчетен период->От,after=sellPriceToleranceUp,single=none1,mandatory' );
 		$fieldset->FLD ( 'to', 'date(smartTime)', 'caption=Отчетен период->До,after=from,single=none1,mandatory' );
 		$fieldset->FLD ( 'dealers', 'users(rolesForAll=ceo|rep_cat, rolesForTeams=ceo|manager|rep_acc|rep_cat)', 'caption=Дилъри,placeholder=Всички,after=to' );
@@ -161,7 +161,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 				
 				$productCatPriceUp = $productCatPrice + ($productCatPrice * $rec->sellPriceToleranceUp) / 100;
 				
-				if ($saleProducts->price > $productCatPriceUp) {
+				if ($productCatPrice && ($saleProducts->price > $productCatPriceUp)) {
 					
 					$productCatPriceUpFlag = TRUE;
 				} else {
@@ -178,7 +178,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 				
 				$productCatPriceDown = $productCatPrice - ($productCatPrice * $rec->sellPriceToleranceDown) / 100;
 				
-				if ($saleProducts->price < $productCatPriceDown) {
+				if ($productCatPrice && ($saleProducts->price < $productCatPriceDown)) {
 					
 					$productCatPriceDownFlag = TRUE;
 				} else {
@@ -195,7 +195,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 				
 				$selfPriceDown = $selfPrice - ($selfPrice * $rec->selfPriceTolerance) / 100;
 				
-				if ($saleProducts->price < $selfPriceDown) {
+				if ($selfPrice && ($saleProducts->price < $selfPriceDown)) {
 					
 					$selfDownFlag = TRUE;
 				} else {
@@ -219,7 +219,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 						'selfPriceDown' => $selfPriceDown,
 						'productCatPriceDown' => $productCatPriceDown,
 						'productCatPriceUp' => $productCatPriceUp,
-						'catPrice'=>$productCatPrice,
+						'catPrice' => $productCatPrice,
 						'price' => $saleProducts->price 
 				);
 			}
@@ -287,60 +287,56 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 			
 			// Ако продажната цена е над продажната цена по политика(отчита се толеранса)
 			if (($rec->sellPriceToleranceUp || (! $rec->sellPriceToleranceUp && is_numeric ( $rec->sellPriceToleranceUp )))) {
-			
+				
 				$expProductCatPriceUp = $expProductCatPrice + ($expProductCatPrice * $rec->sellPriceToleranceUp) / 100;
-			
-				if ($expProducts->price > $expProductCatPriceUp) {
-						
+				
+				if ($expProductCatPrice && ($expProducts->price > $expProductCatPriceUp)) {
+					
 					$productCatPriceUpFlag = TRUE;
 				} else {
-						
+					
 					$productCatPriceUpFlag = FALSE;
 				}
 			} else {
-			
+				
 				$expProductCatPriceUp = 'не се търси';
 			}
-
 			
 			// Ако продажната цена е под продажната цена по политика(отчита се толеранса)
 			if (($rec->sellPriceToleranceDown || (! $rec->sellPriceToleranceDown && is_numeric ( $rec->sellPriceToleranceDown )))) {
-					
+				
 				$expProductCatPriceDown = $expProductCatPrice - ($expProductCatPrice * $rec->sellPriceToleranceDown) / 100;
+				
+				if ($expProductCatPrice && ($expProducts->price < $expProductCatPriceDown)) {
 					
-				if ($expProducts->price < $expProductCatPriceDown) {
-			
 					$productCatPriceDownFlag = TRUE;
 				} else {
-			
+					
 					$productCatPriceDownFlag = FALSE;
 				}
 			} else {
-					
-				$expProductCatPriceDown ='не се търси';
+				
+				$expProductCatPriceDown = 'не се търси';
 			}
-			
 			
 			// Ако продажната цена е под себестойност(отчита се толеранса)
 			if (($rec->selfPriceTolerance || (! $rec->selfPriceTolerance && is_numeric ( $rec->selfPriceTolerance )))) {
-					
+				
 				$expSelfPriceDown = $expSelfPrice - ($expSelfPrice * $rec->selfPriceTolerance) / 100;
+				
+				if ($expSelfPrice && ($expProducts->price < $expSelfPriceDown)) {
 					
-				if ($expProducts->price < $expSelfPriceDown) {
-						
 					$selfDownFlag = TRUE;
 				} else {
-						
+					
 					$selfDownFlag = FALSE;
 				}
 			} else {
-					
-				$expSelfPriceDown ='не се търси';
+				
+				$expSelfPriceDown = 'не се търси';
 			}
 			
-			
-			
-			if ($selfDownFlag || $productCatPriceDownFlag || $productCatPriceUpFlag)  {
+			if ($selfDownFlag || $productCatPriceDownFlag || $productCatPriceUpFlag) {
 				
 				$expRecs [] = ( object ) array (
 						'saleId' => $saleId,
@@ -348,14 +344,14 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 						'measure' => cat_Products::fetchField ( $expProductId, 'measureId' ),
 						'quantity' => $expProducts->quantity,
 						'containerId' => $expProducts->containerId,
-						'isPublic' => $isPublic, 
+						'isPublic' => $isPublic,
 						'selfPriceDown' => $expSelfPriceDown,
 						'productCatPriceDown' => $expProductCatPriceDown,
 						'productCatPriceUp' => $expProductCatPriceUp,
-						'catPrice'=>$expProductCatPrice,
-						'price' => $expProducts->price
-						
-				);
+						'catPrice' => $expProductCatPrice,
+						'price' => $expProducts->price 
+				)
+				;
 			}
 		}
 		
@@ -388,7 +384,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 				array_push ( $recs, $v );
 			}
 		}
-		//bp($recs);
+		
 		return $recs;
 	}
 	
@@ -417,14 +413,6 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 			$fld->FLD ( 'selfPrice', 'double', 'caption=Себестойност,smartCenter' );
 			$fld->FLD ( 'catPrice', 'double', 'caption=Цена по политика,smartCenter' );
 		} else {
-			$fld->FLD ( 'saleId', 'varchar', 'caption=Сделка' );
-			$fld->FLD ( 'productId', 'varchar', 'caption=Артикул' );
-			$fld->FLD ( 'deviation', 'varchar', 'caption=Отклонение,tdClass=centered' );
-			$fld->FLD ( 'measure', 'varchar', 'caption=Мярка,tdClass=centered' );
-			$fld->FLD ( 'quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter' );
-			$fld->FLD ( 'soldPrice', 'double', 'caption=Прод. цена,smartCenter' );
-			$fld->FLD ( 'selfPrice', 'double', 'caption=Себестойност,smartCenter' );
-			$fld->FLD ( 'catPrice', 'double', 'caption=Каталожна цена,smartCenter' );
 		}
 		
 		return $fld;
@@ -441,8 +429,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 	 */
 	protected function detailRecToVerbal($rec, &$dRec) {
 		
-		//bp($dRec);
-		
+		// bp($dRec);
 		$Int = cls::get ( 'type_Int' );
 		
 		$row = new stdClass ();
@@ -450,31 +437,58 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 		if ($dRec->selfPrice > $dRec->price) {
 			$marker = ( double ) (($dRec->price - $dRec->selfPrice) / $dRec->price);
 		}
-// 		if ($dRec->price > $dRec->catPrice) {
-// 			if ($dRec->catPrice > 0) {
-// 				$marker = - 1 * ( double ) (($dRec->catPrice - $dRec->price) / $dRec->catPrice);
-// 			}
-// 		}
-	//	if ($dRec->saleId == 15 && $dRec->productId == 12)bp((is_numeric($dRec->productCatPriceDown) && ($dRec->price < $dRec->productCatPriceDown )));
-		if ($dRec->productCatPriceDown){
+		// if ($dRec->price > $dRec->catPrice) {
+		// if ($dRec->catPrice > 0) {
+		// $marker = - 1 * ( double ) (($dRec->catPrice - $dRec->price) / $dRec->catPrice);
+		// }
+		// }
+		// if ($dRec->saleId == 15 && $dRec->productId == 12)bp((is_numeric($dRec->productCatPriceDown) && ($dRec->price < $dRec->productCatPriceDown )));
+		
+		if ($dRec->productCatPriceDown) {
 			
-			if (is_numeric($dRec->productCatPriceDown) && ($dRec->price < $dRec->productCatPriceDown )){
+			if (is_numeric ( $dRec->productCatPriceDown ) && ($dRec->price < $dRec->productCatPriceDown)) {
 				
 				$marker = ( double ) (($dRec->price - $dRec->productCatPriceDown) / $dRec->price);
-				if ($dRec->productCatPriceDown != 0){
-				$row->deviationDownCatPrice =core_Type::getByName ( 'percent' )->toVerbal ( $marker );
-				$row->deviationDownCatPrice = ht::styleIfNegative ( $row->deviationDownCatPrice, $marker );
+				if ($dRec->productCatPriceDown != 0) {
+					$row->deviationDownCatPrice = core_Type::getByName ( 'percent' )->toVerbal ( $marker );
+					$row->deviationDownCatPrice = ht::styleIfNegative ( $row->deviationDownCatPrice, $marker );
 				}
-				if (($dRec->productCatPriceDown == 0)){
+				if (($dRec->productCatPriceDown == 0)) {
 					$row->deviationDownCatPrice = 'няма политика';
 				}
+			}
+		}
+		
+		if ($dRec->productCatPriceUp) {
 				
+			if (is_numeric ( $dRec->productCatPriceUp ) && ($dRec->price > $dRec->productCatPriceUp)) {
+		
+				$marker = ( double ) (($dRec->price - $dRec->productCatPriceUp) / $dRec->price);
+				if ($dRec->productCatPriceUp != 0) {
+					$row->deviationUpCatPrice = core_Type::getByName ( 'percent' )->toVerbal ( $marker );
+					$row->deviationUpCatPrice = ht::styleIfNegative ( $row->deviationUpCatPrice, $marker );
+				}
+				if (($dRec->productCatPriceUp == 0)) {
+					$row->deviationUpCatPrice = 'няма политика';
+				}
 			}
-			
-			
-		}else{
-				$row->deviationDownCatPrice = $dRec->productCatPriceDown;
+		}
+		
+		if ($dRec->selfPriceDown) {
+		
+			if (is_numeric ( $dRec->selfPriceDown ) && ($dRec->price > $dRec->selfPriceDown)) {
+		
+				$marker = ( double ) (($dRec->price - $dRec->selfPriceDown) / $dRec->price);
+				if ($dRec->selfPriceDown != 0) {
+					$row->deviationDownSelf = core_Type::getByName ( 'percent' )->toVerbal ( $marker );
+					$row->deviationDownSelf = ht::styleIfNegative ( $row->deviationDownSelf, $marker );
+				}
+				if (($dRec->deviationDownSelf == 0)) {
+					$row->deviationDownCatPrice = 'няма политика';
+				}
 			}
+		}
+		
 		
 		
 		$row->deviation = core_Type::getByName ( 'percent' )->toVerbal ( $marker );
