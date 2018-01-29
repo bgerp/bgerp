@@ -124,6 +124,7 @@ abstract class deals_PaymentDocument extends core_Master {
 			$rec->modifiedOn = dt::now();
 			$rec->modifiedBy = core_Users::getCurrent();
 			$this->save_($rec, 'fromContainerId,modifiedOn,modifiedBy');
+			deals_Helper::updateAutoPaymentTypeInThread($rec->threadId);
 			
 			followRetUrl(NULL, 'Промяната е записана успешно');
 		}
@@ -136,7 +137,6 @@ abstract class deals_PaymentDocument extends core_Master {
     	$tpl = $this->renderWrapping($form->renderHtml());
     	core_Form::preventDoubleSubmission($tpl, $form);
 
-		
     	return $tpl;
 	}
 	
