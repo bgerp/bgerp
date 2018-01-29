@@ -147,6 +147,7 @@ class planning_AssetResources extends core_Master
     	}
     	
     	if(empty($rec->id)){
+    		$form->FNC('users', 'userList', 'caption=Потребители,input,after=folderId');
     		$suggestions = doc_FolderResources::getFolderSuggestions($forType);
     		$form->setField('folderId', 'mandatory,input');
     		$form->setOptions('folderId', array('' => '') + $suggestions);
@@ -234,8 +235,8 @@ class planning_AssetResources extends core_Master
     /**
      * Избор на наличното оборудване в подадената папка
      * 
-     * @param int|NULL $folderId - ид на папка, NULL за всички
-     * @return array $res        - налично оборудване
+     * @param int $folderId - ид на папка
+     * @return array $option    - налично оборудване
      */
     public static function getByFolderId($folderId = NULL)
     {
@@ -247,20 +248,14 @@ class planning_AssetResources extends core_Master
     	}
     	
     	$fQuery = planning_AssetResourceFolders::getQuery();
-    	if(isset($folderId)){
-    	    $fQuery->where(array("#folderId = '[#1#]'", $folderId));
-    	}
-    	
+    	$fQuery->where(array("#folderId = '[#1#]'", $folderId));
     	$fQuery->where(array("#classId = '[#1#]'", self::getClassId()));
     	
     	while($fRec = $fQuery->fetch()) {
-    	    $rec = self::fetch($fRec->objectId);
-    	    
-    	    if (!$rec) continue;
-    	    
-    	    if ($rec->state == 'rejected') continue;
-    	    
-    		$options[$rec->id] = self::getRecTitle($rec, FALSE);
+    	    if($rec = self::fetch($fRec->objectId)){
+    	    	if($rec->state == 'rejected') continue;
+    	    	$options[$rec->id] = self::getRecTitle($rec, FALSE);
+    	    }
     	}
     	
     	return $options;

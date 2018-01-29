@@ -135,6 +135,12 @@ class planning_Tasks extends core_Master
 	
 	
 	/**
+	 * Кой може да го активира?
+	 */
+	public $canActivate = 'ceo, taskPlanning';
+	
+	
+	/**
 	 * Кой може да го редактира?
 	 */
 	public $canEdit = 'ceo, taskPlanning';
@@ -983,6 +989,10 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+    	$data->listFilter->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване');
+    	$data->listFilter->showFields .= ',assetId';
+    	$data->listFilter->input('assetId');
+    	
     	// Филтър по всички налични департаменти
     	$departmentOptions = hr_Departments::makeArray4Select('name', "type = 'workshop' AND #state != 'rejected'");
     	
@@ -1002,15 +1012,6 @@ class planning_Tasks extends core_Master
     		}
     		
     		$data->listFilter->input('departmentId');
-    	}
-    	
-    	// Добавяне на оборудването към филтъра
-    	$fixedAssets = planning_AssetResources::getByFolderId();
-    	if(count($fixedAssets)){
-    		$data->listFilter->FLD('assetId', 'int', 'caption=Оборудване');
-    		$data->listFilter->setOptions('assetId', array('' => '') + $fixedAssets);
-    		$data->listFilter->showFields .= ',departmentId,assetId';
-    		$data->listFilter->input('assetId');
     	}
     	
     	// Филтър по департамент
