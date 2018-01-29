@@ -235,8 +235,8 @@ class planning_AssetResources extends core_Master
     /**
      * Избор на наличното оборудване в подадената папка
      * 
-     * @param int|NULL $folderId - ид на папка, NULL за всички
-     * @return array $res        - налично оборудване
+     * @param int $folderId - ид на папка
+     * @return array $option    - налично оборудване
      */
     public static function getByFolderId($folderId = NULL)
     {
@@ -248,9 +248,7 @@ class planning_AssetResources extends core_Master
     	}
     	
     	$fQuery = planning_AssetResourceFolders::getQuery();
-    	if(isset($folderId)){
-    	    $fQuery->where(array("#folderId = '[#1#]'", $folderId));
-    	}
+    	$fQuery->where(array("#folderId = '[#1#]'", $folderId));
     	$fQuery->where(array("#classId = '[#1#]'", self::getClassId()));
     	
     	while($fRec = $fQuery->fetch()) {
