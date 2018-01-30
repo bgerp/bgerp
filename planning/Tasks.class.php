@@ -588,6 +588,7 @@ class planning_Tasks extends core_Master
 	 */
 	public static function canAddToFolder($folderId)
 	{
+		return TRUE;
 		if(!Request::get('originId', 'int')) return FALSE;
 		
 		// Може да се добавя само в папка на 'Департамент'
@@ -611,12 +612,16 @@ class planning_Tasks extends core_Master
 			}
 		}
 		
-		if($action == 'add' && isset($rec->originId)){
-			// Може да се добавя само към активно задание
-			if($origin = doc_Containers::getDocument($rec->originId)){
-				if(!$origin->isInstanceOf('planning_Jobs')){
-					$requiredRoles = 'no_one';
+		if($action == 'add'){
+			if(isset($rec->originId)){
+				// Може да се добавя само към активно задание
+				if($origin = doc_Containers::getDocument($rec->originId)){
+					if(!$origin->isInstanceOf('planning_Jobs')){
+						$requiredRoles = 'no_one';
+					}
 				}
+			} elseif($rec->folderId){
+				$requiredRoles = 'no_one';
 			}
 		}
 		
