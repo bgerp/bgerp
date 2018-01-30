@@ -18,7 +18,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo';
+    public $canSelectDriver = 'ceo,powerUser';
 
     /**
      * Полета от таблицата за скриване, ако са празни
@@ -102,18 +102,23 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $recArt = cat_Products::fetch($jobses->productId);
             
             $resArr = doc_Linked::getRecsForType('doc', $recArt->containerId, FALSE);
+           
             
             foreach ($resArr as $d) {
                 
                 if ($d->inType != 'doc')
                     continue; // да се съгласува //
+                $Document = doc_Containers::getDocument($d->inVal);
+               
+                if (core_Users::getCurrent() != $d->credatedBy) {
                 
-                $doc = doc_Containers::getDocument($d->inVal);
+                    if (!$Document->haveRightFor('single',$rec->createdBy)) continue;
+                }
                 
-                if (! $doc->isInstanceOf('cal_Tasks'))
+                if (! $Document->isInstanceOf('cal_Tasks'))
                     continue;
                 
-                $task = cal_Tasks::fetch($doc->that);
+                $task = cal_Tasks::fetch($Document->that);
                 
                 $assign = keylist::toArray($task->assign);
                 
