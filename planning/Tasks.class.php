@@ -835,8 +835,8 @@ class planning_Tasks extends core_Master
 		
 		if(isset($rec->id)){
 			$taskClassId = planning_Tasks::getClassId();
-			$haveDetail = !empty(planning_ProductionTaskDetails::fetch("#type = 'production' AND #taskId = {$rec->id}"));
-			$haveParams = !empty(cat_products_Params::fetchField("#classId = '{$taskClassId}' AND #productId = {$rec->id}"));
+			$haveDetail = planning_ProductionTaskDetails::fetch("#type = 'production' AND #taskId = {$rec->id}");
+			$haveParams = cat_products_Params::fetchField("#classId = '{$taskClassId}' AND #productId = {$rec->id}");
 				
 			if($haveDetail || $haveParams){
 				$form->setReadOnly('productId');
