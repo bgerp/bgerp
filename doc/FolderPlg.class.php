@@ -107,7 +107,13 @@ class doc_FolderPlg extends core_Plugin
 		        $attr['ef_icon'] = '/img/16/page_go.png';
 		        $attr['title'] = 'Екшън лог на потребителя';
                 
-                $logUrl = array('log_Data', 'list', 'class' => $mvc->className, 'object' => $data->rec->id, 'Cmd[refresh]' => TRUE, 'ret_url' => TRUE);
+		        $id = $data->rec->id;
+		        
+		        if (!$id && $data->masterData) {
+		            $id = $data->masterData->rec->id;
+		        }
+		        
+		        $logUrl = array('log_Data', 'list', 'class' => $mvc->className, 'object' => $id, 'Cmd[refresh]' => TRUE, 'ret_url' => TRUE);
                 
                 $data->ActionLog->actionLogLink = ht::createLink(tr("Още..."), $logUrl, FALSE, $attr);  
         }
@@ -967,6 +973,8 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterGetResourceTypeArray($mvc, &$res, $rec)
     {
+    	$rec = $mvc->fetchRec($rec);
+    	
     	// Ако има папка и тя е избрана, че може да има ресурси към нея добавям я
     	if(!isset($res) && isset($rec->folderId)){
     		if($types = planning_FoldersWithResources::fetchField("#folderId={$rec->folderId}", 'type')){

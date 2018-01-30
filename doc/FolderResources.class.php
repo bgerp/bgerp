@@ -87,12 +87,24 @@ class doc_FolderResources extends core_Manager
 	{
 		$folderId = $data->masterData->rec->folderId;
 		$data->recs = $data->rows = array();
-    	$query = $DetailName::getQuery();
-    	if($DetailName == 'planning_Hr'){
-    		$query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
-    		$query->where("#state != 'rejected' && #state != 'closed'");
-    	}
-    	$query->where("LOCATE('|{$folderId}|', #folders)");
+		$Detail = cls::get($DetailName);
+		
+		$fQuery = planning_AssetResourceFolders::getQuery();
+		$fQuery->where("#classId = {$Detail->getClassId()} AND #folderId = {$folderId}");
+		$fQuery->show('objectId');
+		$objectIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
+		
+		$query = $Detail->getQuery();
+		if(count($objectIds)){
+			$query->in("id", $objectIds);
+		} else {
+			$query->where("1=2");
+		}
+		
+		if($DetailName == 'planning_Hr'){
+			$query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
+		}
+		
     	$query->orderBy("state");
     	
     	// Подготовка на пейджъра
@@ -103,12 +115,20 @@ class doc_FolderResources extends core_Manager
     	// Извличане на записите
     	while($dRec = $query->fetch()){
     		$data->recs[$dRec->id] = $dRec;
-    		$data->rows[$dRec->id] = $DetailName::recToVerbal($dRec);
+    		$row = $DetailName::recToVerbal($dRec);
+    		$fRec = planning_AssetResourceFolders::fetch("#classId = '{$Detail->getClassId()}' AND #objectId = {$dRec->id} AND #folderId = {$folderId}", 'users');
+    		
+    		if(!empty($fRec->users)){
+    			$row->users = planning_AssetResourceFolders::recToVerbal($fRec, 'users')->users;
+    		}
+    		
+    		$data->rows[$dRec->id] = $row;
     	}
     	
     	// Подготовка на полетата за показване
-    	$listFields = ($DetailName == 'planning_Hr') ? "code=Код,personId=Служител,created=Създаване" : "name=Оборудване,code=Код,groupId=Вид,created=Създаване";
+    	$listFields = ($DetailName == 'planning_Hr') ? "code=Код,personId=Служител,users=Потребители,created=Създаване" : "name=Оборудване,code=Код,users=Потребители,created=Създаване";
     	$data->listFields = arr::make($listFields, TRUE);
+    	$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields);
     	
     	$type = ($DetailName == 'planning_AssetResources') ? 'asset' : 'employee';
     	if($this->haveRightFor('selectresource', (object)array('folderId' => $folderId, 'type' => $type))){
@@ -212,6 +232,7 @@ class doc_FolderResources extends core_Manager
 		
 		// Ако се променят оборудванията
 		if($type == 'asset'){
+			$classId = planning_AssetResources::getClassId();
 			$this->currentTab = 'Ресурси->Оборудване';
 			$typeTitle = 'оборудванията';
 			$form->FLD('select', 'keylist(mvc=planning_AssetResources,select=name)', "caption=Оборудване");
@@ -220,61 +241,56 @@ class doc_FolderResources extends core_Manager
 			while($aRec = $aQuery->fetch()){
 				$recTitle = planning_AssetResources::getRecTitle($aRec, FALSE);
 				$options[$aRec->id] = $recTitle;
-				
-				if(keylist::isIn($folderId, $aRec->folders) || is_null($aRec->folders)){
-					$default[$aRec->id] = $recTitle;
-				}
 			}
+			$default = array_keys(planning_AssetResources::getByFolderId($folderId));
 		} else {
+			$classId = planning_Hr::getClassId();
 			$this->currentTab = 'Ресурси->Служители';
-			
 			$typeTitle = 'служителите';
 			$form->FLD('select', 'keylist(mvc=crm_Persons,select=name)', "caption=Служители");
 			$options = crm_Persons::getEmployeesOptions();
-			$dQuery = planning_Hr::getQuery();
-			$dQuery->where("LOCATE('|{$folderId}|', #folders)");
-			$dQuery->show('personId');
-			$default = arr::extractValuesFromArray($dQuery->fetchAll(), 'personId');
+			$default = array_keys(planning_Hr::getByFolderId($folderId));
 		}
 		
 		// Задаване на полетата от формата
 		$form->title = "Промяна на {$typeTitle} към|* " . doc_Folders::getCover($folderId)->getFormTitleLink();;
 		$form->setSuggestions('select', $options);
+		
+		$default = array_combine($default, $default);
 		$form->setDefault('select', keylist::fromArray($default));
 		$form->input();
 		
 		// При събмит на формата
 		if($form->isSubmitted()){
 			$selected = keylist::toArray($form->rec->select);
+			$removeArr = array_diff_key($default, $selected);
 			
+			$Folders = cls::get('planning_AssetResourceFolders');
 			// Избраните се обновява департамента им
 			foreach ($selected as $id => $name){
-				if($type == 'asset'){
-					$eRec = planning_AssetResources::fetch($id);
-					$eRec->folders = keylist::addKey($eRec->folders, $folderId);
-					planning_AssetResources::save($eRec);
-				} else {
-					if($pRec = planning_Hr::fetch("#personId = {$id}")){
-						$pRec->folders = keylist::addKey($pRec->folders, $folderId);
-						planning_Hr::save($pRec);
-					} else {
-						planning_Hr::save((object)array("personId" => $id, 'folders' => keylist::addKey('', $folderId), 'code' => planning_Hr::getDefaultCode($id)));
+				$r = (object)array('classId' => $classId, 'objectId' => $id, 'folderId' => $folderId);
+				if($type != 'asset'){
+					$hId = planning_Hr::fetchField("#personId = {$id}");
+					if(empty($hId)){
+						$hId = planning_Hr::save((object)array("personId" => $id, 'code' => planning_Hr::getDefaultCode($id)));
 					}
+					$r->objectId = $hId;
+				}
+				
+				if($Folders->isUnique($r, $fields)){
+					$Folders->save($r);
 				}
 			}
 				
 			// Махане на съществуващите
 			$removeArr = array_diff_key($default, $selected);
 			foreach ($removeArr as $rId => $rName){
-				if($type == 'asset'){
-					$eRec = planning_AssetResources::fetch($rId);
-					$eRec->folders = keylist::removeKey($eRec->folders, $folderId);
-					planning_AssetResources::save($eRec);
-				} else {
-					$eRec = planning_Hr::fetch("#personId = {$rId}");
-					$eRec->folders = keylist::removeKey($eRec->folders, $folderId);
-					planning_Hr::save($eRec);
+				$delId = $rId;
+				if($type != 'asset'){
+					$delId = planning_Hr::fetchField("#personId = {$rId}");
 				}
+				
+				planning_AssetResourceFolders::delete("#classId = {$classId} AND #objectId = {$delId} AND #folderId = {$folderId}");
 			}
 			
 			followRetUrl(NULL, 'Информацията е обновена успешно');

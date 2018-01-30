@@ -8,11 +8,11 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     0.12
  */
-class planning_Hr extends core_Manager
+class planning_Hr extends core_Master
 {
 	
 	
@@ -73,13 +73,19 @@ class planning_Hr extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,personId,folders,createdOn,createdBy';
+    public $listFields = 'code,personId,createdOn,createdBy';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'personId, code, folders';
+    public $searchFields = 'personId, code';
+    
+    
+    /**
+     * Детайли
+     */
+    public $details = 'planning_AssetResourceFolders';
     
     
     /**
@@ -89,7 +95,9 @@ class planning_Hr extends core_Manager
     {
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory,caption=Лице');
         $this->FLD('code', 'varchar', 'caption=Код');
-        $this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments');
+        
+        // TODO - ще се премахне след като минат миграциите
+        $this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments, input=none, column=none, single=none');
         
         $this->setDbIndex('code');
         $this->setDbUnique('personId');
@@ -108,14 +116,6 @@ class planning_Hr extends core_Manager
     		$form->setField('personId', 'input');
     		$form->setOptions('personId', array('' => '') + crm_Persons::getEmployeesOptions(TRUE, TRUE));
     	}
-    
-    	// Допустимите папки
-    	$suggestions = doc_FolderResources::getFolderSuggestions('hr');
-    	$form->setSuggestions('folders', array('' => '') + $suggestions);
-    	
-    	// По дефолт е избрана папката на неопределения център
-    	$defFolderId = planning_Centers::getUndefinedFolderId();
-    	$form->setDefault('folders', keylist::fromArray(array($defFolderId => $defFolderId)));
     }
     
     
@@ -126,10 +126,6 @@ class planning_Hr extends core_Manager
     {
     	if(empty($rec->code)){
     		$rec->code = self::getDefaultCode($rec->personId);
-    	}
-    	
-    	if(empty($rec->folders)){
-    		$rec->folders = keylist::addKey('', planning_Centers::getUndefinedFolderId());
     	}
     }
     
@@ -185,15 +181,17 @@ class planning_Hr extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$personState = crm_Persons::fetchField($rec->personId, 'state');
-    	$row->ROW_ATTR['class'] = "state-{$personState}";
+        if (isset($rec->personId)) {
+            $personState = crm_Persons::fetchField($rec->personId, 'state');
+            $row->ROW_ATTR['class'] = "state-{$personState}";
+            $row->personId = crm_Persons::getHyperlink($rec->personId, TRUE);
+            
+            if(!crm_Persons::isInGroup($rec->personId, 'employees')){
+                $row->code = ht::createHint($row->code, "Лицето вече не е в група 'Служители", 'warning', FALSE);
+            }
+        }
+        
     	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";
-    	$row->personId = crm_Persons::getHyperlink($rec->personId, TRUE);
-    	$row->folders = doc_Folders::getVerbalLinks($rec->folders, TRUE);
-    	
-    	if(!crm_Persons::isInGroup($rec->personId, 'employees')){
-    		$row->code = ht::createHint($row->code, "Лицето вече не е в група 'Служители", 'warning', FALSE);
-    	}
     }
     
     
@@ -274,10 +272,10 @@ class planning_Hr extends core_Manager
     /**
      * Връща всички служители, избрани като ресурси в папката
      * 
-     * @param int $folderId   - ид на папка
-     * @return array $options - масив със служители
+     * @param int $folderId - ид на папка, NULL за всички
+     * @return array $options  
      */
-    public static function getEmployees($folderId)
+    public static function getByFolderId($folderId)
     {
     	$options = array();
     	
@@ -287,12 +285,25 @@ class planning_Hr extends core_Manager
     	if(!isset($resourceTypes['hr'])) return $options;
     	
     	$emplGroupId = crm_Groups::getIdFromSysId('employees');
+    	
+    	$classId = self::getClassId();
+    	$fQuery = planning_AssetResourceFolders::getQuery();
+    	$fQuery->where("#classId = {$classId} AND #folderId = {$folderId}");
+    	$fQuery->show('objectId');
+    	$objectIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
+    	
     	$query = static::getQuery();
     	$query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
     	$query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
     	$query->like("groupList", "|{$emplGroupId}|");
-    	$query->where("LOCATE('|{$folderId}|', #folders) AND (#state != 'rejected' && #state != 'closed')");
+    	$query->where("#state != 'rejected' && #state != 'closed'");
     	$query->show("personId,code");
+    	
+    	if(count($objectIds)){
+    		$query->in('id', $objectIds);
+    	} else {
+    		$query->where("1=2");
+    	}
     	
     	while($rec = $query->fetch()){
     		$options[$rec->personId] = $rec->code;
@@ -333,5 +344,40 @@ class planning_Hr extends core_Manager
     	$link = ht::createHint($link, $name, 'img/16/vcard.png', FALSE);
     	
     	return $link;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	planning_AssetResourceFolders::addDefaultFolder($mvc->getClassId(), $rec->id);
+    }
+    
+    
+    /**
+     * Обръща масив от потребители в имена с техните кодове
+     * 
+     * @param mixed $arr - масив или кейлист
+     * @param boolean $withLinks
+     * @return array $arr
+     */
+    public static function getPersonsCodesArr($arr, $withLinks = FALSE)
+    {
+    	$arr = (keylist::isKeylist($arr)) ? keylist::toArray($arr) : $arr;
+    	$arr = array_keys($arr);
+    	
+    	$res = array();
+    	if(is_array($arr)){
+    		foreach ($arr as $id){
+    			$rec = planning_Hr::fetch("#personId = {$id}");
+    			if(empty($rec)) continue;
+    			$code = ($withLinks === TRUE) ? self::getCodeLink($id) : $rec->code;
+    			$res[$id] = $code;
+    		}
+    	}
+    	
+    	return $res;
     }
 }
