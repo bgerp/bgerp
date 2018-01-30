@@ -35,12 +35,13 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      */
     protected $hashField = 'productId';
 
+    
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
      * @var varchar
      */
-    protected $newFieldToCheck;
+    protected $newFieldToCheck = 'productId';
 
     /**
      * По-кое поле да се групират листовите данни
@@ -114,14 +115,17 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 
                 $task = cal_Tasks::fetch($doc->that);
                 
-                $assign = explode('|', trim($task->assign, '|'));
+                $assign = keylist::toArray($task->assign);
                 
-                $assignedUsers = explode('|', trim($rec->assignedUsers, '|'));
-                
+               // keylist::isIn($key, $list)
+               //keylist::toArray($value)
+                $assignedUsers = keylist::toArray($rec->assignedUsers);
+               
+                $assignedUsersFlag = FALSE;
                 foreach ($assign as $user) {
                     
                     if (in_array($user, $assignedUsers)) {
-                        $assignedUsersFlag = TRUE;
+                        $assignedUsersFlag = TRUE;break;
                     }
                 }
                 
@@ -136,7 +140,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                         );
                     }
                 }
-                $assignedUsersFlag = FALSE;
+                
             }
         }
         
