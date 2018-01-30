@@ -33,7 +33,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      * @see uiext_Labels
      * @var varchar
      */
-    protected $hashField = 'productId';
+    protected $hashField = 'productId , jobsId';
 
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
@@ -59,7 +59,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 'caption=Нотифициране->Потребители,mandatory,single=none');
+        $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 'caption=Отговорници,mandatory,single=none,after = title');
     }
 
     /**
@@ -98,12 +98,51 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
          */
         while ($jobses = $jobsQuery->fetch()) {
             
-                   
+            $jobsProdId = $jobses->productId;
+            
+            $jobsesId = $jobses->id;
+            
+            // Връзки към задачи от задание
+            $resArrJobses = doc_Linked::getRecsForType('doc', $jobses->containerId, FALSE);
+         
+            foreach ($resArrJobses as $d) {
+            
+                if ($d->inType != 'doc')
+                    continue;
+                $Document = doc_Containers::getDocument($d->inVal);
+            
+                if (core_Users::getCurrent() != $d->credatedBy) {
+            
+                    if (! $Document->haveRightFor('single', $rec->createdBy))
+                        continue;
+                }
+            
+                if (! $Document->isInstanceOf('cal_Tasks'))
+                    continue;
+            
+                $task = cal_Tasks::fetch($Document->that);
+            
+                $assignedUsers = keylist::toArray($rec->assignedUsers);
+            
+               
+            
+                if (keylist::isIn($assignedUsers, $task->assign)) {
+            
+                    $recs[$jobsProdId][$jobsesId] = (object) array(
+            
+                        'productId' => $jobsProdId,
+                        'jobsId' => $jobses->id
+                    );
+                }
+            }
+              
+            
+            //Връзки към задачи от артикул
             $recArt = cat_Products::fetch($jobses->productId);
-            
-            $resArr = doc_Linked::getRecsForType('doc', $recArt->containerId, FALSE);
-            
-            foreach ($resArr as $d) {
+           
+            $resArrProduct = doc_Linked::getRecsForType('doc', $recArt->containerId, FALSE);
+          
+            foreach ($resArrProduct as $d) {
                 
                 if ($d->inType != 'doc')
                     continue;
@@ -122,11 +161,11 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
                 
-                $jobsProdId = $jobses->productId;
+               // $jobsProdId = $jobses->productId;
                 
                 if (keylist::isIn($assignedUsers, $task->assign)) {
                     
-                    $recs[$jobsProdId] = (object) array(
+                    $recs[$jobsProdId][$jobsesId] = (object) array(
                         
                         'productId' => $jobsProdId,
                         'jobsId' => $jobses->id
@@ -134,7 +173,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 }
             }
         }
-        
+    //bp($recs);
         return $recs;
     }
 
@@ -155,12 +194,12 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             $fld->FLD('jobsId', 'varchar', 'caption=Задание');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            // $fld->FLD('state', 'varchar', 'caption=Статус,smartCenter');
+          
         } else {
             
             $fld->FLD('jobsId', 'varchar', 'caption=Задание,tdClass=centered');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('state', 'varchar', 'caption=Статус,smartCenter');
+           
         }
         
         return $fld;
@@ -177,20 +216,25 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+
+      //  bp($dRec);
+        
         $isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
         
         $row = new stdClass();
-        
-        if (isset($dRec->productId)) {
-            $row->productId = ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : cat_Products::getLinkToSingle_($dRec->productId, 'name');
+
+        foreach ($dRec as $v){
+      
+        if (isset($v->productId)) {
+            $row->productId = ($isPlain) ? cat_Products::getVerbal($v->productId, 'name') : cat_Products::getLinkToSingle_($v->productId, 'name');
         }
         
-        if (isset($dRec->jobsId)) {
-            $row->jobsId = ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : planning_Jobs::getLinkToSingle_($dRec->jobsId);
+        if (isset($v->jobsId)) {
+            $row->jobsId = ($isPlain) ? cat_Products::getVerbal($v->productId, 'name') : planning_Jobs::getLinkToSingle_($v->jobsId);
         }
-        
+         }
         return $row;
     }
 }
