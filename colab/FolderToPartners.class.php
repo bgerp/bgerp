@@ -8,8 +8,8 @@
  *
  * @category  bgerp
  * @package   colab
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -26,7 +26,7 @@ class colab_FolderToPartners extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, doc_Wrapper, plg_RowTools';
+    public $loadList = 'plg_Created, doc_Wrapper, plg_RowTools2';
     
     
      /**
@@ -75,12 +75,6 @@ class colab_FolderToPartners extends core_Manager
      * Заглавие в единствено число
      */
     public $singleTitle = "Споделен партньор";
-    
-        
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
@@ -169,19 +163,21 @@ class colab_FolderToPartners extends core_Manager
     {
         if(!$data->isCurrent) return;
 
-        $data->partners = array();
+        $data->rows = array();
         $folderId = $data->masterData->rec->folderId;
         if ($folderId) {
             $query = self::getQuery();
+            $query->EXT('lastLogin', 'core_Users', 'externalName=lastLoginTime,externalKey=contractorId');
+            $query->where("#folderId = {$folderId}");
+            $query->orderBy('lastLogin', "DESC");
             
             $rejectedArr = array();
-            
             $count = 1;
-            while($rec = $query->fetch("#folderId = {$folderId}")) {
+            while($rec = $query->fetch()) {
                 $uRec = core_Users::fetch($rec->contractorId);
                 if($uRec->state != 'rejected') {
-                    $data->partners[$rec->contractorId] = self::recToVerbal($rec);
-                    $data->partners[$rec->contractorId]->count = cls::get('type_Int')->toVerbal($count);
+                    $data->rows[$rec->contractorId] = self::recToVerbal($rec);
+                    $data->rows[$rec->contractorId]->count = cls::get('type_Int')->toVerbal($count);
                     $count++;
                 } else {
                     
@@ -192,8 +188,8 @@ class colab_FolderToPartners extends core_Manager
             
             if (!empty($rejectedArr)) {
                 foreach ($rejectedArr as $contractorId => $rejectedRow) {
-                    $data->partners[$contractorId] = $rejectedRow;
-                    $data->partners[$contractorId]->count = cls::get('type_Int')->toVerbal($count);
+                    $data->rows[$contractorId] = $rejectedRow;
+                    $data->rows[$contractorId]->count = cls::get('type_Int')->toVerbal($count);
                     $count++;
                 }
             }
@@ -253,23 +249,14 @@ class colab_FolderToPartners extends core_Manager
     	$row->names .= " (" . crm_Profiles::createLink($rec->contractorId) . ") ";
     	$row->names .= core_Users::getVerbal($rec->contractorId, 'lastLoginTime');
     	
-    	$restoreLink = '';
-    	
-    	if ($rec->RestoreLink) {
-    	    $pId = crm_Profiles::getProfileId($rec->contractorId);
-            $restoreLink = '';
-            
-            if ($pId) {
+    	if($rec->RestoreLink) {
+            if($pId = crm_Profiles::getProfileId($rec->contractorId)) {
                 if (crm_Profiles::haveRightFor('restore', $pId)) {
-                    
-                    $restoreLink = ht::createLink('', 
-                        array('crm_Profiles', 'restore', $pId, 'ret_url' => TRUE), 
-                        tr('Наистина ли желаете да възстановите потребителя|*?'), 'id=btnRestore, ef_icon = img/16/restore.png,title=Възстановяване на профила на споделен партньор');
+                    core_RowToolbar::createIfNotExists($row->_rowTools);
+                    $row->_rowTools->addLink('Възстановяване', array('crm_Profiles', 'restore', $pId, 'ret_url' => TRUE), "warning=Наистина ли желаете да възстановите потребителя|*?,ef_icon = img/16/restore.png,title=Възстановяване на профила на споделен партньор,id=rst{$rec->id}");
                 }
             }
     	}
-    	
-    	$row->names .= "<span style='margin-left:10px'>{$restoreLink}{$row->tools}</span>";
     }
     
     
@@ -281,19 +268,19 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function renderPartners($data, &$tpl)
     {
-		//if(!cls::haveInterface('crm_ContragentAccRegIntf', $data->masterMvc)) return;
-  
 		$me = cls::get(get_called_class());
 		
 		$dTpl = getTplFromFile('colab/tpl/PartnerDetail.shtml');
 		
 		// Подготвяме таблицата с данните извлечени от журнала
 		$table = cls::get('core_TableView');
-		$details = $table->get($data->partners, 'count=№,names=Свързани');
+		
+		$data->listFields = arr::make('count=№,names=Свързани');
+		$me->invoke('BeforeRenderListTable', array($dTpl, &$data));
+		$details = $table->get($data->rows, $data->listFields);
 		$dTpl->append($details, 'TABLE_PARTNERS');
         
 		$folderId = $data->masterData->rec->folderId;
-		
 		$btns = new core_ET("");
 		
 		// Добавяме бутон за свързване на папка с партньор, ако имаме права
