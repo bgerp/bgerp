@@ -66,6 +66,12 @@ class colab_FolderToPartners extends core_Manager
     
     
     /**
+     * Кой има право да изтрива потребителите, създадени от системата?
+    */
+    public $canDeletesysdata = 'officer';
+    
+    
+    /**
      * Заглавие
      */
     public $title = "Споделени партньори";
