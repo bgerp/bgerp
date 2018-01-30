@@ -225,6 +225,7 @@ class planning_Tasks extends core_Master
 		$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
 		$this->FLD('additionalFields', 'blob(serialize, compress)', 'caption=Данни,input=none');
 		$this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks)', 'caption=Произвеждане->Оборудване,after=packagingId');
+		$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Произвеждане->Служители,after=fixedAssets');
 		$this->FLD('inputInTask', 'int', 'caption=Произвеждане->Влагане в,input=none,after=indTime');
 	
 		$this->setDbIndex('inputInTask');
@@ -413,6 +414,11 @@ class planning_Tasks extends core_Master
 			$row->tId = $rec->id;
 		}
 		
+		if(!empty($rec->employees)){
+			$row->employees = planning_Hr::getPersonsCodesArr($rec->employees, TRUE);
+			$row->employees = implode(', ', $row->employees);
+		}
+		
 		return $row;
 	}
 	
@@ -503,6 +509,7 @@ class planning_Tasks extends core_Master
 																		   <!--ET_BEGIN inputInTask--><tr><td style='font-weight:normal'>|Влагане в|*:</td> <td>[#inputInTask#]</td></tr><!--ET_END inputInTask-->
 																		   <!--ET_BEGIN storeId--><tr><td style='font-weight:normal'>|Склад|*:</td> <td>[#storeId#]</td></tr><!--ET_END storeId-->
 																		   <!--ET_BEGIN fixedAssets--><tr><td style='font-weight:normal'>|Оборудване|*:</td> <td>[#fixedAssets#]</td></tr><!--ET_END fixedAssets-->
+																		   <!--ET_BEGIN employees--><tr><td style='font-weight:normal'>|Служители|*:</td> <td>[#employees#]</td></tr><!--ET_END employees-->
 																		   <tr><td colspan='2'>[#progressBar#] [#progress#]</td></tr>
 																		   </table>"));
 		$packagingId = cat_UoM::getTitleById($rec->packagingId);
@@ -808,35 +815,43 @@ class planning_Tasks extends core_Master
 			}
 		}
 		
+		foreach (array('fixedAssets' => 'planning_AssetResources', 'employees' => 'planning_Hr') as $field => $Det){
+			$arr = $Det::getByFolderId($rec->folderId);
+			if(!empty($rec->{$field})){
+				$alreadyIn = keylist::toArray($rec->{$field});
+				foreach ($alreadyIn as $fId){
+					if(!array_key_exists($fId, $arr)){
+						$arr[$fId] = $Det::getTitleById($fId, FALSE);
+					}
+				}
+			}
+			
+			if(count($arr)){
+				$form->setSuggestions($field, array('' => '') + $arr);
+			} else {
+				$form->setField($field, 'input=none');
+			}
+		}
+		
 		if(isset($rec->id)){
 			$taskClassId = planning_Tasks::getClassId();
-			if(planning_ProductionTaskDetails::fetch("#type = 'production' AND #taskId = {$rec->id}") || cat_products_Params::fetchField("#classId = '{$taskClassId}' AND #productId = {$rec->id}")){
+			$haveDetail = !empty(planning_ProductionTaskDetails::fetch("#type = 'production' AND #taskId = {$rec->id}"));
+			$haveParams = !empty(cat_products_Params::fetchField("#classId = '{$taskClassId}' AND #productId = {$rec->id}"));
+				
+			if($haveDetail || $haveParams){
 				$form->setReadOnly('productId');
 				$form->setReadOnly('packagingId');
-		
-				if($data->action != 'clone' && !empty($rec->fixedAssets)){
-					$form->setReadOnly('fixedAssets');
+			}
+				
+			if($haveDetail && $data->action != 'clone'){
+				if(!empty($rec->fixedAssets)){
+					$form->setField('fixedAssets', 'input=none');
+				}
+				
+				if(!empty($rec->employees)){
+					$form->setField('employees', 'input=hidden');
 				}
 			}
-		}
-		
-		// Наличното оборудване в папката
-		$fixedAssets = planning_AssetResources::getByFolderId($rec->folderId);
-		
-		// Подсигуряване че вече избраното оборудване присъства в опциите винаги
-		if(isset($rec->fixedAssets)){
-			$alreadyIn = keylist::toArray($rec->fixedAssets);
-			foreach ($alreadyIn as $fId){
-				if(!array_key_exists($fId, $fixedAssets)){
-					$fixedAssets[$fId] = planning_AssetResources::getTitleById($fId, FALSE);
-				}
-			}
-		}
-		
-		if(count($fixedAssets)){
-			$form->setSuggestions('fixedAssets', array('' => '') + $fixedAssets);
-		} else {
-			$form->setField('fixedAssets', 'input=none');
 		}
 	}
 	
