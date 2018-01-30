@@ -898,7 +898,9 @@ class planning_Tasks extends core_Master
 		
 		// Ако потребителя може да добавя операция от съответния тип, ще показваме бутон за добавяне
 		if($this->haveRightFor('add', (object)array('originId' => $containerId))){
-			$data->addUrlArray = array('planning_Jobs', 'selectTaskAction', 'originId' => $containerId, 'ret_url' => TRUE);
+			if(!Mode::isReadOnly()){
+				$data->addUrlArray = array('planning_Jobs', 'selectTaskAction', 'originId' => $containerId, 'ret_url' => TRUE);
+			}
 		}
 	}
 	
