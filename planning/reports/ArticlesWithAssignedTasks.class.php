@@ -35,7 +35,6 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      */
     protected $hashField = 'productId';
 
-    
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
@@ -99,20 +98,21 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
          */
         while ($jobses = $jobsQuery->fetch()) {
             
+                   
             $recArt = cat_Products::fetch($jobses->productId);
             
             $resArr = doc_Linked::getRecsForType('doc', $recArt->containerId, FALSE);
-           
             
             foreach ($resArr as $d) {
                 
                 if ($d->inType != 'doc')
-                    continue; // да се съгласува //
+                    continue;
                 $Document = doc_Containers::getDocument($d->inVal);
-               
-                if (core_Users::getCurrent() != $d->credatedBy) {
                 
-                    if (!$Document->haveRightFor('single',$rec->createdBy)) continue;
+                if (core_Users::getCurrent() != $d->credatedBy) {
+                    
+                    if (! $Document->haveRightFor('single', $rec->createdBy))
+                        continue;
                 }
                 
                 if (! $Document->isInstanceOf('cal_Tasks'))
@@ -120,32 +120,18 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 
                 $task = cal_Tasks::fetch($Document->that);
                 
-                $assign = keylist::toArray($task->assign);
-                
-               // keylist::isIn($key, $list)
-               //keylist::toArray($value)
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
-               
-                $assignedUsersFlag = FALSE;
-                foreach ($assign as $user) {
-                    
-                    if (in_array($user, $assignedUsers)) {
-                        $assignedUsersFlag = TRUE;break;
-                    }
-                }
                 
                 $jobsProdId = $jobses->productId;
-                if ($assignedUsersFlag) {
-                    if (! array_key_exists($jobsProdId, $recs)) {
-                        
-                        $recs[$jobsProdId] = (object) array(
-                            
-                            'productId' => $jobsProdId,
-                            'jobsId' => $jobses->id
-                        );
-                    }
-                }
                 
+                if (keylist::isIn($assignedUsers, $task->assign)) {
+                    
+                    $recs[$jobsProdId] = (object) array(
+                        
+                        'productId' => $jobsProdId,
+                        'jobsId' => $jobses->id
+                    );
+                }
             }
         }
         
