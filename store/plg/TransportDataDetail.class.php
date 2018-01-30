@@ -30,8 +30,8 @@ class store_plg_TransportDataDetail extends core_Plugin
 		setIfNot($mvc->packagingFld, 'packagingId');
 		setIfNot($mvc->quantityFld, 'quantity');
 		
-		$mvc->FLD($mvc->weightField, 'cat_type_Weight', 'input=none,caption=Транспортнa информация->Тегло,forceField,autohide');
-		$mvc->FLD($mvc->volumeField, 'cat_type_Volume', 'input=none,caption=Транспортнa информация->Обем,forceField,autohide');
+		$mvc->FLD($mvc->weightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Тегло,forceField,autohide');
+		$mvc->FLD($mvc->volumeField, 'cat_type_Volume', 'input=none,caption=Логистична информация->Обем,forceField,autohide');
 	}
 	
 	

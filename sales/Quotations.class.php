@@ -256,17 +256,16 @@ class sales_Quotations extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-       $form = $data->form;
-       $form->setField('deliveryAdress', array('placeholder' => 'Държава, Пощенски код'));
-       $rec = &$data->form->rec;
-       
-       // При клониране
-       if($data->action == 'clone'){
-       	
-       		// Ако няма reff взимаме хендлъра на оригиналния документ
-	       	if(empty($rec->reff)){
-	       		$rec->reff = $mvc->getHandle($rec->id);
-	       	}
+    	$form = $data->form;
+    	$form->setField('deliveryAdress', array('placeholder' => 'Държава, Пощенски код'));
+    	$rec = &$data->form->rec;
+    	
+    	// При клониране
+    	if($data->action == 'clone'){
+    		// Ако няма reff взимаме хендлъра на оригиналния документ
+    		if(empty($rec->reff)){
+    			$rec->reff = $mvc->getHandle($rec->id);
+    		}
 	       	
 	       	// Инкрементираме reff-а на оригинална
 	       	$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
@@ -277,19 +276,19 @@ class sales_Quotations extends core_Master
        $form->setDefault('contragentClassId', $contragentClassId);
        $form->setDefault('contragentId', $contragentId);
        
-       if(isset($form->rec->id)){
-       		if($mvc->sales_QuotationsDetails->fetch("#quotationId = {$form->rec->id}")){
-       			foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId', 'deliveryPlaceId') as $fld){
-       				$form->setReadOnly($fld);
-       			}
-       		}
-       }
-      
        $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
-    	if(count($locations)){
+       if(count($locations)){
        		$form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
        } else {
        		$form->setReadOnly('deliveryPlaceId');
+       }
+       
+       if(isset($form->rec->id)){
+			if($mvc->sales_QuotationsDetails->fetch("#quotationId = {$form->rec->id}")){
+       			foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId', 'deliveryPlaceId', 'deliveryAdress') as $fld){
+       				$form->setReadOnly($fld);
+       			}
+       		}
        }
       
        if(isset($rec->originId) && $data->action != 'clone' && empty($form->rec->id)){
@@ -580,7 +579,9 @@ class sales_Quotations extends core_Master
     		 
     		if(isset($rec->bankAccountId)){
     			$ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
-    			$url = bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId);
+    			if(!Mode::isReadOnly()){
+    				$url = bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId);
+    			}
     			$row->bankAccountId = ht::createLink($ownAccount->iban, $url);
     		}
     		
@@ -592,7 +593,6 @@ class sales_Quotations extends core_Master
     				$placeId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : NULL;
     				
     				$deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, NULL, $placeId, $mvc);
-    				$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще бъде записан при активиране');
     			}
     		}
     		
@@ -845,18 +845,6 @@ class sales_Quotations extends core_Master
     protected static function on_AfterActivation($mvc, &$rec)
     {
     	$updateFields = array();
-		
-		// Запис на адреса
-		if(empty($rec->deliveryAdress) && isset($rec->deliveryTermId)){
-			
-			$rec->tplLang = $mvc->pushTemplateLg($rec->template);
-			$locationId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : NULL;
-			$rec->deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, NULL, $locationId, $mvc);
-			$updateFields[] = 'deliveryAdress';
-			
-			core_Lg::pop($rec->tplLang);
-		}
-		
 		
 		// Ако няма дата попълваме текущата след активиране
 		if(empty($rec->date)){

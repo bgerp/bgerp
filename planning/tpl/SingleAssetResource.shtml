@@ -15,12 +15,6 @@
                 </li>
                 <!--ET_END protocolId-->
                 
-                <!--ET_BEGIN folders-->
-                <li class="info">
-                    <span class="gray-title">|Папки|*: </span> [#folders#]
-                </li>
-                <!--ET_END folders-->
-                
                 <!--ET_BEGIN quantity-->
                 <li class="info">
                     <span class="gray-title">|Количество|*: </span> [#quantity#]
@@ -38,9 +32,10 @@
             </ul>
         </fieldset>
     </div>
-    <div style='margin-top:20px'>
-           [#planning_AssetResourcesNorms#]
-    </div>
+    <fieldset class="detail-info">
+        <legend class="groupTitle">|Папки|*</legend>
+           [#planning_AssetResourceFolders#]
+    </fieldset>
     </div>
     [#DETAILS#]
 </div>

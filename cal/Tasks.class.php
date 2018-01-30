@@ -351,6 +351,8 @@ class cal_Tasks extends embed_Manager
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
+        $data->form->setField($mvc->driverClassField, 'input=hidden');
+        
         Request::setProtected(array('srcId', 'srcClass'));
         
         $data->form->FNC('SrcId', 'int', 'input=hidden, silent');
@@ -389,7 +391,7 @@ class cal_Tasks extends embed_Manager
      * 
      * @param cal_Tasks $mvc
      * @param object $res
-     * @param object $data
+     * @param object $form
      * 
      * @see doc_plg_SelectFolder
      */

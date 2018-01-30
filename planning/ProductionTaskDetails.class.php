@@ -229,7 +229,7 @@ class planning_ProductionTaskDetails extends core_Detail
     	}
     	
     	// Връща служителите избрани в папката
-    	$employees = planning_Hr::getEmployees($masterRec->folderId);
+    	$employees = planning_Hr::getPersonsCodesArr($masterRec->employees);
     	if(count($employees)){
     		$form->setSuggestions('employees', $employees);
     	} else {
