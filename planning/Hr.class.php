@@ -354,4 +354,30 @@ class planning_Hr extends core_Master
     {
     	planning_AssetResourceFolders::addDefaultFolder($mvc->getClassId(), $rec->id);
     }
+    
+    
+    /**
+     * Обръща масив от потребители в имена с техните кодове
+     * 
+     * @param mixed $arr - масив или кейлист
+     * @param boolean $withLinks
+     * @return array $arr
+     */
+    public static function getPersonsCodesArr($arr, $withLinks = FALSE)
+    {
+    	$arr = (keylist::isKeylist($arr)) ? keylist::toArray($arr) : $arr;
+    	$arr = array_keys($arr);
+    	
+    	$res = array();
+    	if(is_array($arr)){
+    		foreach ($arr as $id){
+    			$rec = planning_Hr::fetch("#personId = {$id}");
+    			if(empty($rec)) continue;
+    			$code = ($withLinks === TRUE) ? self::getCodeLink($id) : $rec->code;
+    			$res[$id] = $code;
+    		}
+    	}
+    	
+    	return $res;
+    }
 }
