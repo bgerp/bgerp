@@ -320,7 +320,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		
 		$operation = ($mvc->getBatchMovementDocument($rec) == 'out') ? 'out' : 'in';
 		if($mvc instanceof core_Detail){
-			$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},containerId,{$mvc->Master->valiorFld},state");
+			$Master = $mvc->getMasterMvc($rec);
+			$masterRec = $Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},containerId,{$mvc->Master->valiorFld},state");
 			$Master = $mvc->Master;
 		} else {
 			$masterRec = $rec;
