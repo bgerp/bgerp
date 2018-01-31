@@ -3086,7 +3086,7 @@ class crm_Persons extends core_Master
     	
     	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
             if ($extRec->overdueSales == 'yes') {
-                $res = 'img/16/stop-hand.png';
+                $res = 'img/16/stop-sign.png';
             }
         }
     }
