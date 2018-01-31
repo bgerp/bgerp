@@ -1241,6 +1241,19 @@ class pos_Receipts extends core_Master {
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
     	
+    	// Ако е забранено продаването на неналични артикули да се проверява
+    	$notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
+    	if($notInStockChosen != 'yes'){
+    		$pointId = $this->fetchField($receiptId, 'pointId');
+    		$quantityInStock = pos_Stocks::getQuantity($rec->productId, $pointId);
+    		$quantityInStock -= $rec->quantity;
+    		
+    		if($quantityInStock < 0){
+    			core_Statuses::newStatus("Артикулът не е в наличност", 'error');
+    			return $this->pos_ReceiptDetails->returnError($receiptId);
+    		}
+    	}
+    	
     	// Намираме дали този проект го има въведен
     	$sameProduct = $this->pos_ReceiptDetails->findSale($rec->productId, $rec->receiptId, $rec->value);
     	if($sameProduct) {
