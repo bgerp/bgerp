@@ -33,9 +33,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      * @see uiext_Labels
      * @var varchar
      */
-    protected $hashField = 'productId';
+    protected $hashField = 'productId , jobsId';
 
-    
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
@@ -60,7 +59,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 'caption=Нотифициране->Потребители,mandatory,single=none');
+        $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 'caption=Отговорници,mandatory,after = title');
     }
 
     /**
@@ -99,20 +98,23 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
          */
         while ($jobses = $jobsQuery->fetch()) {
             
-            $recArt = cat_Products::fetch($jobses->productId);
+            $jobsProdId = $jobses->productId;
             
-            $resArr = doc_Linked::getRecsForType('doc', $recArt->containerId, FALSE);
-           
+            $jobsesId = $jobses->id;
             
-            foreach ($resArr as $d) {
+            // Връзки към задачи от задание
+            $resArrJobses = doc_Linked::getRecsForType('doc', $jobses->containerId, FALSE);
+            
+            foreach ($resArrJobses as $d) {
                 
                 if ($d->inType != 'doc')
-                    continue; // да се съгласува //
+                    continue;
                 $Document = doc_Containers::getDocument($d->inVal);
-               
-                if (core_Users::getCurrent() != $d->credatedBy) {
                 
-                    if (!$Document->haveRightFor('single',$rec->createdBy)) continue;
+                if (core_Users::getCurrent() != $d->credatedBy) {
+                    
+                    if (! $Document->haveRightFor('single', $rec->createdBy))
+                        continue;
                 }
                 
                 if (! $Document->isInstanceOf('cal_Tasks'))
@@ -120,32 +122,50 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 
                 $task = cal_Tasks::fetch($Document->that);
                 
-                $assign = keylist::toArray($task->assign);
-                
-               // keylist::isIn($key, $list)
-               //keylist::toArray($value)
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
-               
-                $assignedUsersFlag = FALSE;
-                foreach ($assign as $user) {
+                
+                if (keylist::isIn($assignedUsers, $task->assign)) {
                     
-                    if (in_array($user, $assignedUsers)) {
-                        $assignedUsersFlag = TRUE;break;
-                    }
-                }
-                
-                $jobsProdId = $jobses->productId;
-                if ($assignedUsersFlag) {
-                    if (! array_key_exists($jobsProdId, $recs)) {
+                    $recs[$jobsesId] = (object) array(
                         
-                        $recs[$jobsProdId] = (object) array(
-                            
-                            'productId' => $jobsProdId,
-                            'jobsId' => $jobses->id
-                        );
-                    }
+                        'productId' => $jobsProdId,
+                        'jobsId' => $jobses->id
+                    );
+                }
+            }
+            
+            // Връзки към задачи от артикул
+            $recArt = cat_Products::fetch($jobses->productId);
+            
+            $resArrProduct = doc_Linked::getRecsForType('doc', $recArt->containerId, FALSE);
+            
+            foreach ($resArrProduct as $d) {
+                
+                if ($d->inType != 'doc')
+                    continue;
+                $Document = doc_Containers::getDocument($d->inVal);
+                
+                if (core_Users::getCurrent() != $d->credatedBy) {
+                    
+                    if (! $Document->haveRightFor('single', $rec->createdBy))
+                        continue;
                 }
                 
+                if (! $Document->isInstanceOf('cal_Tasks'))
+                    continue;
+                
+                $task = cal_Tasks::fetch($Document->that);
+                
+                $assignedUsers = keylist::toArray($rec->assignedUsers);
+                
+                if (keylist::isIn($assignedUsers, $task->assign)) {
+                    
+                    $recs[$jobsesId] = (object) array(
+                        
+                        'productId' => $jobsProdId,
+                        'jobsId' => $jobses->id
+                    );
+                }
             }
         }
         
@@ -169,12 +189,10 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             $fld->FLD('jobsId', 'varchar', 'caption=Задание');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            // $fld->FLD('state', 'varchar', 'caption=Статус,smartCenter');
         } else {
             
             $fld->FLD('jobsId', 'varchar', 'caption=Задание,tdClass=centered');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('state', 'varchar', 'caption=Статус,smartCenter');
         }
         
         return $fld;

@@ -588,6 +588,7 @@ class planning_Tasks extends core_Master
 	 */
 	public static function canAddToFolder($folderId)
 	{
+		return TRUE;
 		if(!Request::get('originId', 'int')) return FALSE;
 		
 		// Може да се добавя само в папка на 'Департамент'
@@ -611,12 +612,16 @@ class planning_Tasks extends core_Master
 			}
 		}
 		
-		if($action == 'add' && isset($rec->originId)){
-			// Може да се добавя само към активно задание
-			if($origin = doc_Containers::getDocument($rec->originId)){
-				if(!$origin->isInstanceOf('planning_Jobs')){
-					$requiredRoles = 'no_one';
+		if($action == 'add'){
+			if(isset($rec->originId)){
+				// Може да се добавя само към активно задание
+				if($origin = doc_Containers::getDocument($rec->originId)){
+					if(!$origin->isInstanceOf('planning_Jobs')){
+						$requiredRoles = 'no_one';
+					}
 				}
+			} elseif($rec->folderId){
+				$requiredRoles = 'no_one';
 			}
 		}
 		
@@ -802,15 +807,16 @@ class planning_Tasks extends core_Master
 			}
 				
 			// Подаване на формата на драйвера на артикула, ако иска да добавя полета
-			$Driver = cat_Products::getDriver($rec->productId);
-			$Driver->addTaskFields($rec->productId, $form);
-		
-			// Попълване на полетата с данните от драйвера
-			$driverFields = planning_Tasks::getFieldsFromProductDriver($rec->productId);
+			if($Driver = cat_Products::getDriver($rec->productId)){
+				$Driver->addTaskFields($rec->productId, $form);
 				
-			foreach ($driverFields as $name => $f){
-				if(isset($rec->additionalFields[$name])){
-					$rec->{$name} = $rec->additionalFields[$name];
+				// Попълване на полетата с данните от драйвера
+				$driverFields = planning_Tasks::getFieldsFromProductDriver($rec->productId);
+				
+				foreach ($driverFields as $name => $f){
+					if(isset($rec->additionalFields[$name])){
+						$rec->{$name} = $rec->additionalFields[$name];
+					}
 				}
 			}
 		}
@@ -878,6 +884,18 @@ class planning_Tasks extends core_Master
 		while($rec = $query->fetch()){
 			$data->recs[$rec->id] = $rec;
 			$row = planning_Tasks::recToVerbal($rec, $fields);
+			
+			$subArr = array();
+			if(!empty($row->fixedAssets)){
+				$subArr[] = tr('Оборудване:|* ') . $row->fixedAssets;
+			}
+			if(!empty($row->employees)){
+				$subArr[] = tr('Служители:|* ') . $row->employees;
+			}
+			if(count($subArr)){
+				$row->title .= "<br><small>" . implode('<br>', $subArr) . "</small>";
+			}
+			
 			$row->modified = $row->modifiedOn . " " . tr('от||by') . " " . $row->modifiedBy;
 			$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
 			$data->rows[$rec->id] = $row;

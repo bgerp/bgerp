@@ -3082,6 +3082,8 @@ class crm_Persons extends core_Master
      */
     public static function on_AfterGetSingleIcon($mvc, &$res, $id)
     {
+    	if(core_Users::isContractor()) return;
+    	
     	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
             if ($extRec->overdueSales == 'yes') {
                 $res = 'img/16/stop-hand.png';
@@ -3089,6 +3091,7 @@ class crm_Persons extends core_Master
         }
     }
 
+    
     /**
      * След взимане на заглавието за единичния изглед
      *
@@ -3098,9 +3101,11 @@ class crm_Persons extends core_Master
      */
     public static function on_AfterGetSingleTitle($mvc, &$res, $id)
     {
-        if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+    	if(core_Users::isContractor()) return;
+    	
+    	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
             if($extRec->overdueSales == 'yes'){
-                $res = "<span class='dangerTitle'>{$res} " . tr("с просрочия") . "</span>";
+                $res = "<span class='dangerTitle'>{$res}</span>";
             }
         }
     }
