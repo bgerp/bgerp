@@ -3945,7 +3945,6 @@ function runHljs() {
 }
 
 
-
 /**
  * Функция, която редиректва към определена страница, може да се
  * използва с efae
@@ -4092,6 +4091,42 @@ function render_Sound(data){
 
 		}, 500);
 	}
+}
+
+
+/**
+* Функция, скролва потребителя до статуса за логване
+* Може да се комбинира с efae
+ */
+function render_forceLoginToSubmit(data)
+{
+	forceLoginToSubmit = data.force;
+	
+	if (forceLoginToSubmit) {
+		jQuery("form").bind('submit', function(event, data) {
+			if (forceLoginToSubmit) {
+				
+				scrollToElem('editStatus');
+				
+		        // Блокиране на събмита, ако няма промени и за определено време
+		        event.preventDefault();
+		        
+		        return false;
+			}
+	    });
+	}
+}
+
+
+/**
+ * Скролване до елемента
+ * 
+ * @param docId
+ */
+function scrollToElem(docId) {
+	$('html, body').animate({
+        scrollTop: $("#" + docId).offset().top - $(window).height() + $(this).height()
+    }, 500);
 }
 
 
@@ -4653,7 +4688,7 @@ Experta.prototype.log = function(txt) {
         // Показваме съобщението
         console.log(txt);
     }
-};
+}; 
 
 
 /**
