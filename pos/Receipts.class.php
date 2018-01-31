@@ -1246,9 +1246,7 @@ class pos_Receipts extends core_Master {
     	if($notInStockChosen != 'yes'){
     		$pointId = $this->fetchField($receiptId, 'pointId');
     		$quantityInStock = pos_Stocks::getQuantity($rec->productId, $pointId);
-    		$quantityInStock -= $rec->quantity;
-    		
-    		if($quantityInStock < 0){
+    		if($quantityInStock <= 0){
     			core_Statuses::newStatus("Артикулът не е в наличност", 'error');
     			return $this->pos_ReceiptDetails->returnError($receiptId);
     		}
