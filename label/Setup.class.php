@@ -68,8 +68,10 @@ class label_Setup extends core_ProtoSetup
     {   
         $html = parent::install();
         
+        $html .= core_Roles::addOnce('seeLabel');
+        
         // Добавяме роля
-        $html .= core_Roles::addOnce('label');
+        $html .= core_Roles::addOnce('label', 'seeLabel');
         
         // Добавяме роля за master
         $html .= core_Roles::addOnce('labelMaster', 'label');
