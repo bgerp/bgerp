@@ -59,7 +59,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 'caption=Отговорници,mandatory,after = title');
+        $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 
+            'caption=Отговорници,mandatory,after = title');
     }
 
     /**
@@ -70,7 +71,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      * @param embed_Manager $Embedder            
      * @param stdClass $data            
      */
-    protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
+    protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, 
+        embed_Manager $Embedder, &$data)
     {
         $form = &$data->form;
     }
@@ -129,7 +131,10 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                     $recs[$jobsesId] = (object) array(
                         
                         'productId' => $jobsProdId,
-                        'jobsId' => $jobses->id
+                        'jobsId' => $jobses->id,
+                        'folderId' => $jobses->folderId,
+                        'containerId' => $jobses->containerId,
+                        'linkFrom' => 'task'
                     );
                 }
             }
@@ -163,7 +168,10 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                     $recs[$jobsesId] = (object) array(
                         
                         'productId' => $jobsProdId,
-                        'jobsId' => $jobses->id
+                        'jobsId' => $jobses->id,
+                        'folderId' => $jobses->folderId,
+                        'containerId' => $jobses->containerId,
+                        'linkFrom' => 'task'
                     );
                 }
             }
@@ -189,6 +197,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             $fld->FLD('jobsId', 'varchar', 'caption=Задание');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
+            $fld->FLD('btn', 'varchar', 'caption=Връзка');
         } else {
             
             $fld->FLD('jobsId', 'varchar', 'caption=Задание,tdClass=centered');
@@ -215,22 +224,54 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         
         $row = new stdClass();
         
-        if (isset($dRec->productId)) {
-            $row->productId = ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : cat_Products::getLinkToSingle_($dRec->productId, 'name');
-        }
+        $Jobs = doc_Containers::getDocument($dRec->containerId);
         
-        if (isset($dRec->jobsId)) {
-            $row->jobsId = ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : planning_Jobs::getLinkToSingle_($dRec->jobsId);
+        $handle = $Jobs->getHandle();
+        
+        $folder = doc_Folders::fetch($dRec->folderId)->title;
+        
+        $singleUrl = $Jobs->getUrlWithAccess($Jobs->getInstance(), $Jobs->that);
+        
+        $row->jobsId = planning_Jobs::getLinkToSingle_($dRec->jobsId) .
+             '<div class="quiet small">' . doc_Folders::getLink($dRec->folderId) . ' >>  ' . ht::createLink(
+                "#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}") . "</div>";
+        
+        $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
+        
+        // Добавяме бутон за създаване на задача
+        
+        if ($dRec->containerId && doc_Linked::haveRightFor('addlink')) {
+            
+            Request::setProtected(
+                array(
+                    'inType',
+                    'foreignId'
+                ));
+            
+            $doc = doc_Containers::getDocument($dRec->containerId);
+            
+            if ($doc->haveRightFor('single')) {
+                
+                $row->btn = ht::createBtn('Връзка', 
+                    array(
+                        'doc_Linked',
+                        'Link',
+                        'foreignId' => $dRec->containerId,
+                        'inType' => 'doc',
+                        'ret_url' => TRUE
+                    ), FALSE, FALSE, 'ef_icon = img/16/doc_tag.png, title=Връзка към документа');
+            }
         }
         
         return $row;
     }
-    
+
     /**
      * Връща следващите три дати, когато да се актуализира справката
      *
-     * @param stdClass $rec - запис
-     * @return array|FALSE  - масив с три дати или FALSE ако не може да се обновява
+     * @param stdClass $rec
+     *            - запис
+     * @return array|FALSE - масив с три дати или FALSE ако не може да се обновява
      */
     public function getNextRefreshDates($rec)
     {
@@ -241,8 +282,11 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         $d2 = $date->format('Y-m-d H:i:s');
         $date->add(new DateInterval('P0DT0H5M0S'));
         $d3 = $date->format('Y-m-d H:i:s');
-    
-        return array($d1, $d2, $d3);
+        
+        return array(
+            $d1,
+            $d2,
+            $d3
+        );
     }
-    
 }
