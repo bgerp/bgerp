@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -42,9 +42,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     public static function on_CalcQuantity(core_Mvc $mvc, $rec)
     {
-    	if (empty($rec->quantityInPack) || empty($rec->packQuantity)) {
-    		return;
-    	}
+    	if (empty($rec->quantityInPack) || empty($rec->packQuantity)) return;
     
     	$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     }
@@ -64,7 +62,11 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	$products = $mvc->getProducts($masterRec);
 		expect(count($products));
 			
-		if (empty($rec->id)) {
+		if(isset($rec->productId) && !array_key_exists($rec->productId, $products)){
+			$products[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+		}
+		
+		if(empty($rec->id)) {
 			$data->form->setField('productId', "removeAndRefreshForm=packPrice|packagingId");
 			$data->form->setOptions('productId', array('' => ' ') + $products);
 		} else {
@@ -193,8 +195,10 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
-    		if($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft'){
-    			$requiredRoles = 'no_one';
+    		if(!($mvc instanceof store_DocumentPackagingDetail)){
+    			if($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft'){
+    				$requiredRoles = 'no_one';
+    			}
     		}
     	}
     }

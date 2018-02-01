@@ -893,11 +893,12 @@ class planning_Tasks extends core_Master
 				$subArr[] = tr('Служители:|* ') . $row->employees;
 			}
 			if(count($subArr)){
-				$row->title .= "<br><small>" . implode('<br>', $subArr) . "</small>";
+				$row->info = "<small>" . implode(' &nbsp; ', $subArr) . "</small>";
 			}
 			
 			$row->modified = $row->modifiedOn . " " . tr('от||by') . " " . $row->modifiedBy;
 			$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
+			
 			$data->rows[$rec->id] = $row;
 		}
 	}
@@ -933,10 +934,10 @@ class planning_Tasks extends core_Master
 		// Ако няма намерени записи, не се рендира нищо
 		// Рендираме таблицата с намерените задачи
 		$table = cls::get('core_TableView', array('mvc' => $this));
-		$fields = 'title=Операция,progress=Прогрес,folderId=Папка,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано';
+		$fields = 'title=Операция,progress=Прогрес,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
 		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
 		$this->invoke('BeforeRenderListTable', array($tpl, &$data));
-		 
+		
 		$tpl = $table->get($data->rows, $data->listFields);
 		 
 		// Имали бутони за добавяне
