@@ -3985,7 +3985,7 @@ class doc_DocumentPlg extends core_Plugin
                     $keyArr += log_Data::getObjectRecs($mvc, $rec->id, NULL, $str, $limit);
                 }
                 
-                if ($keyArr) {
+                if (!empty($keyArr)) {
                     $rowArr = log_Data::getRows($keyArr, array('actTime', 'userId'));
                     $lastFromStr = '';
                     foreach ($rowArr as $row) {
