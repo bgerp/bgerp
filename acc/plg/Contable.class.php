@@ -762,7 +762,7 @@ class acc_plg_Contable extends core_Plugin
     	$message = "{$currUserNick} |контира|* \"|{$docTitle}|*\" |в нишка|* \"{$folderTitle}\"";
     	foreach ($userArr as $uId) {
     	    
-    	    if (!$mvc->haveRightFor('single', $rec->id)) continue;
+    	    if (!$mvc->haveRightFor('single', $rec->id, $uId)) continue;
     	    
     		bgerp_Notifications::add($message, array($mvc, 'single', $rec->id), $uId);
     	}
