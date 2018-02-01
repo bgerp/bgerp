@@ -3982,7 +3982,7 @@ class doc_DocumentPlg extends core_Plugin
             if ($showArr) {
                 $keyArr = array();
                 foreach ($showArr as $str => $limit) {
-                    $keyArr += log_Data::getObjectRecs($mvc, $rec->id, NULL, 'Документът се връща в чернова', $limit);
+                    $keyArr += log_Data::getObjectRecs($mvc, $rec->id, NULL, $str, $limit);
                 }
                 
                 if ($keyArr) {
