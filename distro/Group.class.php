@@ -147,7 +147,7 @@ class distro_Group extends core_Master
      */
     function description()
     {
-        $this->FLD('title', 'varchar(128,ci)', 'caption=Заглавие, mandatory, width=100%');
+        $this->FLD('title', 'varchar(128,ci)', 'caption=Заглавие, mandatory, width=100%, silent');
         $this->FLD('repos', 'keylist(mvc=distro_Repositories, select=name, where=#state !\\= \\\'rejected\\\', select2MinItems=6)', 'caption=Хранилища, mandatory, width=100%, maxColumns=3');
     }
     
@@ -599,7 +599,7 @@ class distro_Group extends core_Master
     {
         // Използваме заглавието на първия документ в нишката или на originId
         $rec = $data->form->rec;
-        if (!$rec->id) {
+        if (!$rec->id && !$rec->title) {
             
             $cid = NULL;
             
