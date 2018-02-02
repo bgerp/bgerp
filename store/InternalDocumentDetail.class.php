@@ -123,6 +123,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		if(!isset($rec->packPrice)){
     			$autoPrice = TRUE;
     			$Policy = cls::get('price_ListToCustomers');
+    			
     			$packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity * $rec->quantityInPack, $masterRec->valior, $currencyRate, $rec->chargeVat)->price;
     			if(isset($packPrice)){
     				$rec->packPrice = $packPrice * $rec->quantityInPack;
