@@ -184,7 +184,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
 	private static function getPackagingProducts($onlyCount = FALSE)
 	{
 		$groupId = cat_Groups::fetchField("#sysId = 'packagings'", 'id');
-		$where = "LOCATE('|{$groupId}|', #groups) AND #state = 'active'";
+		$where = "LOCATE('|{$groupId}|', #groups) AND #state = 'active' AND #canStore = 'yes'";
 		if($onlyCount === TRUE) return cat_Products::count($where);
 		
 		$options = array();

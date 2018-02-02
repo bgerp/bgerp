@@ -557,14 +557,11 @@ class planning_Jobs extends core_Master
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     		$rec->isEdited = TRUE;
     		
-    		$weight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
-    		if(!empty($weight)){
-    			$rec->brutoWeight = $weight;
-    			$rec->weight = $weight / $rec->quantity;
-    		} else {
-    			$rec->brutoWeight = NULL;
-    			$rec->weight = NULL;
-    		}
+    		$brutoWeight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
+    		$rec->brutoWeight = (!empty($brutoWeight)) ? $brutoWeight : NULL;
+    		
+    		$nettoWeight = cat_Products::convertToUom($rec->productId, 'kg');
+    		$rec->weight = (!empty($nettoWeight)) ? $nettoWeight : NULL;
     	}
     }
     
