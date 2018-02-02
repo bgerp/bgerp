@@ -166,7 +166,7 @@ class colab_DocumentLog extends core_Manager
                     
                     $viewCntLink = ht::createElement('span', $attr, "<span>" . $viewCnt . "</span>", TRUE);
                     
-                    $viewCntLink = '<div class="pluginCountButtonNub"><s></s><i></i></div>' . $viewCntLink;
+                    $viewCntLink = '<div class="pluginCountButtonNub"></div>' . $viewCntLink;
                     
                     $elemId = self::getElemId($containerId);
                     
