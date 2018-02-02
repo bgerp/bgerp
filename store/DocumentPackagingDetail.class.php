@@ -130,14 +130,26 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     			$requiredRoles = 'no_one';
     		} elseif(isset($rec->documentClassId) && isset($rec->documentId)){
     			$Document = new core_ObjectReference($rec->documentClassId, $rec->documentId);
-    			$state = $Document->fetchField('state');
+    			$dRec = $Document->fetch('state,contragentClassId,contragentId');
+    			$isCons = cond_Parameters::getParameter($dRec->contragentClassId, $dRec->contragentId, 'consignmentContragents');
+    			
     			if(!$Document->isInstanceOf('store_DocumentMaster')){
     				$requiredRoles = 'no_one';
-    			} elseif($state != 'draft'){
+    			} elseif($isCons !== 'yes'){
+    				$requiredRoles = 'no_one';
+    			} elseif($dRec->state != 'draft'){
     				$requiredRoles = 'no_one';
     			} elseif(!self::getPackagingProducts(TRUE)){
     				$requiredRoles = 'no_one';
     			}
+    		}
+    	}
+    	
+    	// Да не може да се променя ако документа не е чернова
+    	if(($action == 'edit' || $action == 'delete') && isset($rec->documentClassId) && isset($rec->documentId)){
+    		$Document = new core_ObjectReference($rec->documentClassId, $rec->documentId);
+    		if($Document->fetchField('state') != 'draft'){
+    			$requiredRoles = 'no_one';
     		}
     	}
     }

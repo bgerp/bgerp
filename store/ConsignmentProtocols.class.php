@@ -400,9 +400,13 @@ class store_ConsignmentProtocols extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-    	$folderClass = doc_Folders::fetchCoverClassName($folderId);
-    
-    	return cls::haveInterface('crm_ContragentAccRegIntf', $folderClass);
+    	$Cover = doc_Folders::getCover($folderId);
+    	if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+    		$isCons = cond_Parameters::getParameter($Cover->getClassId(), $Cover->that, 'consignmentContragents');
+    		return ($isCons == 'yes');
+    	}
+    	
+    	return FALSE;
     }
     
     
