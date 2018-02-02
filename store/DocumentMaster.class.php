@@ -343,6 +343,14 @@ abstract class store_DocumentMaster extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
+    	
+    	if(store_DocumentPackagingDetail::haveRightFor('add', (object)array('documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id))){
+    		
+    		$btnIn = ht::createBtn("Предаване (Амбалаж)", array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'type' => 'out','ret_url' => TRUE), FALSE, FALSE, 'title=Предаване на амбалаж,ef_icon=img/16/lorry_add.png');
+    		$btnOut = ht::createBtn("Приемане (Амбалаж)", array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'type' => 'in','ret_url' => TRUE), FALSE, FALSE, 'title=Приемане на амбалаж,ef_icon=img/16/lorry_add.png');
+    		$tpl->append($btnIn, 'PACKAGING_BTNS');
+    		$tpl->append($btnOut, 'PACKAGING_BTNS');
+    	}
    }
 
 

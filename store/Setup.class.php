@@ -67,6 +67,7 @@ class store_Setup extends core_ProtoSetup
     var  $managers = array(
             'store_Stores',
             'store_Products',
+    		'store_DocumentPackagingDetail',
             'store_ShipmentOrders',
             'store_ShipmentOrderDetails',
     		'store_Receipts',

@@ -49,9 +49,11 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         }
         
         $origin = $this->class->getOrigin($rec);
+        $packRecs = store_DocumentPackagingDetail::getRecs($this->class, $rec->id);
+        
         
         // Всяка СР трябва да има поне един детайл
-        if (count($rec->details) > 0) {
+        if (count($rec->details) > 0 || count($packRecs) > 0) {
         	
         	if($rec->isReverse == 'yes'){
         		
@@ -103,6 +105,10 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             	if(!empty($dRec->quantity)){
                 	$error = FALSE;
                 }
+            }
+            
+            if(!count($rec->details)){
+            	$error = FALSE;
             }
         }
         
@@ -181,6 +187,12 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                 		array($origin->className, $origin->that),
                 ),
             );
+        }
+       
+        $class = ($reverse) ? cls::get('store_ShipmentOrders') : $this->class;
+        $entries2 = store_DocumentPackagingDetail::getEntries($class, $rec, $reverse);
+        if(count($entries2)){
+        	$entries = array_merge($entries, $entries2);
         }
         
         return $entries;
