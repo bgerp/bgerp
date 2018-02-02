@@ -99,7 +99,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
          * Масив с артикули по задания за производство
          */
         while ($jobses = $jobsQuery->fetch()) {
-            
+           
             $jobsProdId = $jobses->productId;
             
             $jobsesId = $jobses->id;
@@ -141,7 +141,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                             'containerId' => $jobses->containerId,
                             'tasksFolderId' => $task->folderId,
                             'tasksContainerId' => $task->containerId,
-                            'linkFrom' => 'job'
+                            'linkFrom' => 'job',
+                            'deliveryDate'=>$jobses->deliveryDate
                         );
                     } else {
                         
@@ -193,7 +194,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                             'containerId' => $jobses->containerId,
                             'tasksFolderId' => $task->folderId,
                             'tasksContainerId' => $task->containerId,
-                            'linkFrom' => 'art'
+                            'linkFrom' => 'job',
+                            'deliveryDate'=>$jobses->deliveryDate
                         );
                     } else {
                         
@@ -207,9 +209,19 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             }
         }
         
+        usort($recs, array($this, 'orderByPayDate'));
+       
         return $recs;
     }
-
+    
+    //Подреждане на масива по поле в обекта
+    function orderByPayDate($a, $b)
+    {
+    
+        return $a->deliveryDate > $b->deliveryDate;
+    }
+    
+    
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
