@@ -401,7 +401,7 @@ class marketing_Inquiries2 extends embed_Manager
     protected static function on_AfterCreate($mvc, $rec)
     {
     	// Изпращане на нотифициращ имейл само ако създателя не е контрактор
-    	if(!core_Users::isContractor($rec->createdBy)){
+    	if($rec->createdBy == core_Users::ANONYMOUS_USER || empty($rec->createdBy)){
     		$mvc->sendNotificationEmailQueue[$rec->id] = $rec;
     	}
     	
