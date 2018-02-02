@@ -272,7 +272,7 @@ class crm_ext_ContragentInfo extends core_manager
     	// За всички контрагенти
     	foreach ($contragentClasses as $classId){
     		$saveArray = array();
-    		$exRecs = $existing[$classId];
+    		$exRecs = (array_key_exists($classId, $existing)) ? $existing[$classId] : array();
 	    	
     		// За всички неоттеглени контрагенти
 	    	$ContragentClass = cls::get($classId);
