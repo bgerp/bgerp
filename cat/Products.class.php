@@ -160,7 +160,7 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Кой може да добавя?
+     * Кой може да затваря?
      */
     public $canClose = 'cat,ceo';
     
@@ -483,7 +483,7 @@ class cat_Products extends embed_Manager {
     		
     		$form->setDefault('name', $sourceRec->title);
     		foreach ($fields as $name => $fld){
-    			$form->setDefault($name, $sourceRec->driverRec[$name]);
+    			$form->rec->{$name} = $sourceRec->driverRec[$name];
     		}
     	}
     	
@@ -566,7 +566,8 @@ class cat_Products extends embed_Manager {
     		if(isset($rec->folderId)){
     			$Cover = doc_Folders::getCover($rec->folderId);
     			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
-    				while(cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
+    				$cond = ($form->_cloneForm !== TRUE) ? "AND #id != '{$rec->id}'" : "";
+    				while(cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' {$cond}", $rec->name), 'id')){
     					$rec->name = str::addIncrementSuffix($rec->name, 'v', 2);
     				}
     			} elseif($Cover->getProductType() == 'template' && empty($rec->code)){
@@ -1369,6 +1370,7 @@ class cat_Products extends embed_Manager {
     	
     	// Частните артикули излизат преди публичните
     	if(count($private)){
+    		krsort($private);
     		$private = array('pr' => (object)array('group' => TRUE, 'title' => tr('Нестандартни'))) + $private;
     		
     		if($reverseOrder === TRUE){
@@ -1505,41 +1507,53 @@ class cat_Products extends embed_Manager {
     /**
      * Връща транспортното тегло за подаденото количество и опаковка
      * 
-     * @param int $productId   - ид на продукт
-     * @param int $packagingId - ид на опаковка
-     * @param int $quantity    - общо количество
-     * @return double|NULL     - теглото на единица от продукта
+     * @param int $productId - ид на продукт
+     * @param int $quantity  - общо количество
+     * @return double|NULL   - транспортното тегло за к-то на артикула
      */
-    public static function getWeight($productId, $packagingId = NULL, $quantity)
+    public static function getTransportWeight($productId, $quantity)
     {
     	// За нескладируемите не се изчислява транспортно тегло
     	if(cat_Products::fetchField($productId, 'canStore') != 'yes') return NULL;
     	
-    	// Първо се гледа най-голямата опаковка за която има Бруто тегло
+    	// Ако драйвера връща транспортно тегло, то е с приоритет
+    	if($Driver = static::getDriver($productId)){
+    		$rec = self::fetchRec($productId);
+    		$weight = $Driver->getTransportWeight($rec, $quantity);
+    		if(!empty($weight)) return $weight;
+    	}
+    	
+    	// Колко е нетото за 1-ца от артикула в килограми
+    	$netto = self::convertToUom($productId, 'kg');
+    	if(empty($netto)) return NULL;
+    	
+    	// Колко е нетото за търсеното количество
+    	$weight = $netto * $quantity;
+    	
+    	// Обикаляне на всички опаковки със зададена тара
+    	$foundTare = FALSE;
     	$packQuery = cat_products_Packagings::getQuery();
-    	$packQuery->where("#productId = '{$productId}'");
-    	$packQuery->where("#netWeight IS NOT NULL AND #tareWeight IS NOT NULL");
-    	$packQuery->orderBy('quantity', "DESC");
-    	$packQuery->limit(1);
-    	$packQuery->show('netWeight,tareWeight,quantity');
-    	$packRec = $packQuery->fetch();
-    	
-    	if(is_object($packRec)){
+    	$packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+    	$packQuery->where("#productId = '{$productId}' AND #type = 'packaging' AND #tareWeight IS NOT NULL");
+    	$packQuery->show('quantity,tareWeight');
+    	while($packRec = $packQuery->fetch()){
     		
-    		// Ако има такава количеството се преизчислява в нея
-    		$brutoWeight = $packRec->netWeight + $packRec->tareWeight;
-    		$quantity /= $packRec->quantity;
+    		// Какво е отношението на търсеното к-во към това в опаковката
+    		$coeficient = $quantity / $packRec->quantity;
     		
-    		// Връща се намереното тегло
-    		$weight = $brutoWeight * $quantity;
-    		return round($weight, 2);
+    		// Ако е много малко, тарата на опаковката се пропуска
+    		if(round($coeficient, 2) < 0.5) continue;
+    		
+    		// Ако е достатъчно, тарата се добавя към нетното тегло, умножена по коефицента
+    		$coeficient = ceil($coeficient);
+    		$tare = $packRec->tareWeight * $coeficient;
+    		$foundTare = TRUE;
+    		
+    		$weight += $tare;
     	}
     	
-    	// Ако няма транспортно тегло от опаковката гледа се от артикула
-    	if($weight = static::getParams($productId, 'transportWeight')){
-    		$weight *= $quantity;
-    		return round($weight, 2);
-    	}
+    	// Ако има намерена поне една тара, транспортното тегло се връща
+    	if($foundTare === TRUE) return round($weight, 2);
     	
     	return NULL;
     }
@@ -1548,16 +1562,22 @@ class cat_Products extends embed_Manager {
 	/**
      * Връща транспортния обем за подаденото количество и опаковка
      * 
-     * @param int $productId   - ид на продукт
-     * @param int $packagingId - ид на опаковка
-     * @param int $quantity    - общо количество
-     * @return double - теглото на единица от продукта
+     * @param int $productId - ид на продукт
+     * @param int $quantity  - общо количество
+     * @return double        - теглото на единица от продукта
      */
-    public static function getVolume($productId, $packagingId = NULL, $quantity)
+    public static function getTransportVolume($productId, $quantity)
     {
     	// За нескладируемите не се изчислява транспортно тегло
     	if(cat_Products::fetchField($productId, 'canStore') != 'yes') return NULL;
     	 
+    	// Ако драйвера връща транспортно тегло, то е с приоритет
+    	if($Driver = static::getDriver($productId)){
+    		$rec = self::fetchRec($productId);
+    		$volume = $Driver->getTransportVolume($rec, $quantity);
+    		if(!empty($volume)) return $volume;
+    	}
+    	
     	// Първо се гледа най-голямата опаковка за която има габаритни размери
     	$packQuery = cat_products_Packagings::getQuery();
     	$packQuery->where("#productId = '{$productId}'");
@@ -1975,6 +1995,11 @@ class cat_Products extends embed_Manager {
     				$document = doc_Containers::getDocument($rec->originId);
     				if(!$document->haveInterface('marketing_InquiryEmbedderIntf')){
     					$res = 'no_one';
+    				} elseif(isset($rec->threadId)){
+    					$originThreadId = $document->fetchField('threadId');
+    					if($originThreadId != $rec->threadId){
+    						$res = 'no_one';
+    					}
     				}
     			}
     		}
@@ -2000,7 +2025,7 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
     	// Ако има чернова оферта към нея, бутон за редакция
-    	if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    	if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'", 'id')){
     		if(sales_Quotations::haveRightFor('edit', $qRec)){
     			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/edit.png,title=Редактиране на оферта');
     		}
@@ -2057,68 +2082,89 @@ class cat_Products extends embed_Manager {
      */
     public function cron_closePrivateProducts()
     {
-    	// Намираме датата на начало на последния затворен период, Ако няма - операцията пропада
-    	if(!$lastClosedPeriodRec = acc_Periods::getLastClosedPeriod()) return;
+    	// Последните изчислени периода
+    	$periods = acc_Periods::getCalcedPeriods(TRUE, 3);
+    	if(!count($periods)) return;
     	
-    	// Намираме всички частни артикули
+    	$oldestPeriod = acc_Periods::fetch(min(array_keys($periods)));
+    	
+    	// Намираме всички нестандартни артикули
     	$productQuery = cat_Products::getQuery();
-    	$productQuery->where("#isPublic = 'no'");
+    	$productQuery->where("#isPublic != 'yes'");
     	$productQuery->show('id');
     	$products = array_keys($productQuery->fetchAll());
     	
     	// Ако няма, не правим нищо
     	if(!count($products)) return;
+    	log_System::add('cat_Products', "Private products count:" . count($products));
     	
-    	// Намираме отворените пера, създадени преди посочената дата, които са към частни артикули
+    	// Намират се отворените пера, създадени преди посочената дата, които са на нестандартни артикули
     	$iQuery = acc_Items::getQuery();
-    	$iQuery->where("#createdOn < '{$lastClosedPeriodRec->start}'");
+    	$iQuery->where("#createdOn < '{$oldestPeriod->start}'");
     	$iQuery->where("#state = 'active'");
     	$iQuery->where("#classId = {$this->getClassId()}");
     	$iQuery->in("objectId", $products);
-    	$iQuery->show('id');
-    	$productItems = array();
+    	$iQuery->show('id,objectId');
+    	$productItems = $objectIds = array();
     	while($iRec = $iQuery->fetch()){
     		$productItems[$iRec->id] = $iRec->id;
+    		$objectIds[$iRec->id] = $iRec->objectId;
     	}
     	
-    	// Ако няма отворени пера, отговарящи на условията не правим нищо
+    	// Ако няма отворени пера, отговарящи на условията не се прави нищо
     	if(!count($productItems)) return;
-    	
-    	// Намираме баланса преди началото на последно затворения баланс
-    	$balanceBefore = cls::get('acc_Balances')->getBalanceBefore($lastClosedPeriodRec->start);
+    	log_System::add('cat_Products', "Item products count:" . count($productItems));
     	
     	// Оставяме само записите където участват перата на частните артикули на произволно място
     	$bQuery = acc_BalanceDetails::getQuery();
-    	acc_BalanceDetails::filterQuery($bQuery, $balanceBefore->id, '301,302,304,305,306,309,321,323,330,333', $productItems);
-    	$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
+    	acc_BalanceDetails::filterQuery($bQuery, NULL, '321,323,60020,60201,61101,701,703');
     	
-    	// Групираме всички пера на частни артикули използвани в баланса
+    	$balances = array();
+    	foreach ($periods as $pId => $name){
+    		$balances[] = acc_Balances::fetchField("#periodId = {$pId}");
+    	}
+    	
+    	$bQuery->in('balanceId', $balances);
+    	$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
+    	$bQuery->show("ent1Id,ent2Id,ent3Id");
+    	$bQuery->groupBy("ent1Id,ent2Id,ent3Id");
+    	
+    	log_System::add('cat_Products', "Details in:" . implode(',', $balances));
+    	log_System::add('cat_Products', "Balance Recs:" . $bQuery->count());
+    	
     	$itemsInBalanceBefore = array();
     	while($bRec = $bQuery->fetch()){
     		foreach (range(1, 3) as $i){
-    			if(!empty($bRec->{"ent{$i}Id"}) && in_array($bRec->{"ent{$i}Id"}, $productItems)){
+    			if(!empty($bRec->{"ent{$i}Id"})){
     				$itemsInBalanceBefore[$bRec->{"ent{$i}Id"}] = $bRec->{"ent{$i}Id"};
     			}
     		}
     	}
     	
-    	// Оставяме само тез пера, които не се срещат в предходния затворен баланс
-    	if(!empty($itemsInBalanceBefore)){
-    		foreach ($itemsInBalanceBefore as $index => $itemId){
-    			unset($productItems[$index]);
+    	if(!is_array($itemsInBalanceBefore)) return;
+    	
+    	foreach ($productItems as $key => $itemId){
+    		if(array_key_exists($itemId, $itemsInBalanceBefore)){
+    			unset($productItems[$key]);
     		}
     	}
+    	
+    	log_System::add('cat_Products', "Items to Close count:" . count($productItems));
     	
     	// Ако не са останали пера за затваряне
     	if(!count($productItems)) return;
     	
-    	// Затваряме останалите пера
+    	$toSave = array();
     	foreach ($productItems as $itemId){
-    		$pRec = cat_Products::fetch(acc_Items::fetchField($itemId, 'objectId'));
+    		$pRec = cat_Products::fetch($objectIds[$itemId], 'id,state');
     		$pRec->state = 'closed';
-    		$this->save($pRec);
-    		acc_Items::logWrite("Затворено е перо", $itemId);
+    		$toSave[] = $pRec;
     	}
+    	
+    	$this->saveArray($toSave, 'id,state');
+    	$this->closeItems = $toSave;
+    	
+    	log_System::add('cat_Products', "END close items:" . count($toSave));
     }
     
     
@@ -2841,7 +2887,7 @@ class cat_Products extends embed_Manager {
      * които автоматично се добавят към условията на договора
      * 
      * @param stdClass $rec   - ид/запис на артикул
-     * @param string $docType - тип на документа sale/purchase
+     * @param string $docType - тип на документа sale/purchase/quotation
      * @param string|NULL $lg - език
      */
     public static function getConditions($rec, $docType, $lg = NULL)
@@ -3151,5 +3197,66 @@ class cat_Products extends embed_Manager {
     		core_Statuses::newStatus("Артикулът не може да бъде оттеглен, докато се използва в активни договори", 'error');
     		return FALSE;
     	}
+    }
+    
+    
+    /**
+     * Колко е 1-ца от артикула в посочената мярка
+     * 
+     * @param int $productId - ид на артикула
+     * @param mixed $uom     - мярка
+     * @return NULL|double   - конвертираната стойност или NULL ако не може
+     */
+    public static function convertToUom($productId, $uom)
+    {
+    	// В коя мярка ще се преобразува 1-ца от артикила
+    	expect($measureId = self::fetchField($productId, 'measureId'));
+    	expect($toUomId = cat_UoM::fetchBySinonim($uom)->id);
+    	
+    	// Ако основната мярка е подадената, то стойноста е 1
+    	if($toUomId == $measureId) return 1;
+    	
+    	// Извличане на мерките от същата група, като на $toUomId
+    	$sameTypeMeasures = cat_UoM::getSameTypeMeasures($toUomId);
+    	unset($sameTypeMeasures['']);
+    	
+    	// Ако основната мярка е от същата група, конвертира се към $toUomId
+    	if(array_key_exists($measureId, $sameTypeMeasures)){
+    		$res = cat_UoM::convertValue(1, $measureId, $toUomId);
+    		return $res;
+    	}
+    	
+    	// Ако артикула, има доп. мярка, която е от същата група като на $toUomId
+    	$pQuery = cat_products_Packagings::getQuery();
+    	$pQuery->where("#productId = {$productId}");
+    	$pQuery->in("packagingId", array_keys($sameTypeMeasures));
+    	$pQuery->orderBy('id', 'ASC');
+    	$pQuery->show('quantity,packagingId');
+    	while($pRec = $pQuery->fetch()){
+    		
+    		// Връща се отношението и за 1-ца към $toUomId
+    		if($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)){
+    			$res = $res / $pRec->quantity;
+    			
+    			return $res;
+    		}
+    	}
+    	
+    	// Ако търсената мярка е от групата на килограмите
+    	$kgUom = cat_UoM::fetchBySysId('kg')->id;
+    	$kgUoms = cat_UoM::getSameTypeMeasures($kgUom);
+    	
+    	// Взима се стойност от параметрите на артикула
+    	if(array_key_exists($toUomId, $kgUoms)){
+    		if($paramValue = self::getParams($productId, 'weight')){
+    			$res = cat_UoM::convertValue($paramValue, 'gr', $toUomId);
+    			return $res;
+    		} elseif($paramValue = self::getParams($productId, 'weightKg')){
+    			return $paramValue;
+    		}
+    	}
+    	
+    	// Ако се е стигнало до тук, не може да се конвертира
+    	return NULL;
     }
 }

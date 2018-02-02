@@ -284,7 +284,7 @@ class cond_DeliveryTerms extends core_Master
     		
     		if(empty($adress)){
     			$ownCompany = crm_Companies::fetchOurCompany();
-    			$adress = cls::get('crm_Companies')->getFullAdress($ownCompany->id, TRUE)->getContent();
+    			$adress = cls::get('crm_Companies')->getFullAdress($ownCompany->id, TRUE, NULL, FALSE)->getContent();
     		}
     	} elseif(($rec->address == 'receiver' && $isSale === TRUE) || ($rec->address == 'supplier' && $isSale === FALSE)){
     		if(!empty($locationId)){

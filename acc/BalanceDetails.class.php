@@ -1364,7 +1364,9 @@ class acc_BalanceDetails extends core_Detail
         }
         
         // ... само детайлите от последния баланс
-        $query->where("#balanceId = {$balanceId}");
+        if(isset($balanceId)){
+        	$query->where("#balanceId = {$balanceId}");
+        }
         
         // Перата които може да са на произволна позиция
         $itemsAll = arr::make($itemsAll);

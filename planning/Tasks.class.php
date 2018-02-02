@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Производствени операции
@@ -135,6 +135,12 @@ class planning_Tasks extends core_Master
 	
 	
 	/**
+	 * Кой може да го активира?
+	 */
+	public $canActivate = 'ceo, taskPlanning';
+	
+	
+	/**
 	 * Кой може да го редактира?
 	 */
 	public $canEdit = 'ceo, taskPlanning';
@@ -219,6 +225,7 @@ class planning_Tasks extends core_Master
 		$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
 		$this->FLD('additionalFields', 'blob(serialize, compress)', 'caption=Данни,input=none');
 		$this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks)', 'caption=Произвеждане->Оборудване,after=packagingId');
+		$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Произвеждане->Служители,after=fixedAssets');
 		$this->FLD('inputInTask', 'int', 'caption=Произвеждане->Влагане в,input=none,after=indTime');
 	
 		$this->setDbIndex('inputInTask');
@@ -407,6 +414,11 @@ class planning_Tasks extends core_Master
 			$row->tId = $rec->id;
 		}
 		
+		if(!empty($rec->employees)){
+			$row->employees = planning_Hr::getPersonsCodesArr($rec->employees, TRUE);
+			$row->employees = implode(', ', $row->employees);
+		}
+		
 		return $row;
 	}
 	
@@ -497,6 +509,7 @@ class planning_Tasks extends core_Master
 																		   <!--ET_BEGIN inputInTask--><tr><td style='font-weight:normal'>|Влагане в|*:</td> <td>[#inputInTask#]</td></tr><!--ET_END inputInTask-->
 																		   <!--ET_BEGIN storeId--><tr><td style='font-weight:normal'>|Склад|*:</td> <td>[#storeId#]</td></tr><!--ET_END storeId-->
 																		   <!--ET_BEGIN fixedAssets--><tr><td style='font-weight:normal'>|Оборудване|*:</td> <td>[#fixedAssets#]</td></tr><!--ET_END fixedAssets-->
+																		   <!--ET_BEGIN employees--><tr><td style='font-weight:normal'>|Служители|*:</td> <td>[#employees#]</td></tr><!--ET_END employees-->
 																		   <tr><td colspan='2'>[#progressBar#] [#progress#]</td></tr>
 																		   </table>"));
 		$packagingId = cat_UoM::getTitleById($rec->packagingId);
@@ -575,6 +588,7 @@ class planning_Tasks extends core_Master
 	 */
 	public static function canAddToFolder($folderId)
 	{
+		return TRUE;
 		if(!Request::get('originId', 'int')) return FALSE;
 		
 		// Може да се добавя само в папка на 'Департамент'
@@ -598,12 +612,16 @@ class planning_Tasks extends core_Master
 			}
 		}
 		
-		if($action == 'add' && isset($rec->originId)){
-			// Може да се добавя само към активно задание
-			if($origin = doc_Containers::getDocument($rec->originId)){
-				if(!$origin->isInstanceOf('planning_Jobs')){
-					$requiredRoles = 'no_one';
+		if($action == 'add'){
+			if(isset($rec->originId)){
+				// Може да се добавя само към активно задание
+				if($origin = doc_Containers::getDocument($rec->originId)){
+					if(!$origin->isInstanceOf('planning_Jobs')){
+						$requiredRoles = 'no_one';
+					}
 				}
+			} elseif($rec->folderId){
+				$requiredRoles = 'no_one';
 			}
 		}
 		
@@ -789,48 +807,57 @@ class planning_Tasks extends core_Master
 			}
 				
 			// Подаване на формата на драйвера на артикула, ако иска да добавя полета
-			$Driver = cat_Products::getDriver($rec->productId);
-			$Driver->addTaskFields($rec->productId, $form);
-		
-			// Попълване на полетата с данните от драйвера
-			$driverFields = planning_Tasks::getFieldsFromProductDriver($rec->productId);
+			if($Driver = cat_Products::getDriver($rec->productId)){
+				$Driver->addTaskFields($rec->productId, $form);
 				
-			foreach ($driverFields as $name => $f){
-				if(isset($rec->additionalFields[$name])){
-					$rec->{$name} = $rec->additionalFields[$name];
+				// Попълване на полетата с данните от драйвера
+				$driverFields = planning_Tasks::getFieldsFromProductDriver($rec->productId);
+				
+				foreach ($driverFields as $name => $f){
+					if(isset($rec->additionalFields[$name])){
+						$rec->{$name} = $rec->additionalFields[$name];
+					}
 				}
+			}
+		}
+		
+		foreach (array('fixedAssets' => 'planning_AssetResources', 'employees' => 'planning_Hr') as $field => $Det){
+			$arr = $Det::getByFolderId($rec->folderId);
+			if(!empty($rec->{$field})){
+				$alreadyIn = keylist::toArray($rec->{$field});
+				foreach ($alreadyIn as $fId){
+					if(!array_key_exists($fId, $arr)){
+						$arr[$fId] = $Det::getTitleById($fId, FALSE);
+					}
+				}
+			}
+			
+			if(count($arr)){
+				$form->setSuggestions($field, array('' => '') + $arr);
+			} else {
+				$form->setField($field, 'input=none');
 			}
 		}
 		
 		if(isset($rec->id)){
 			$taskClassId = planning_Tasks::getClassId();
-			if(planning_ProductionTaskDetails::fetch("#type = 'production' AND #taskId = {$rec->id}") || cat_products_Params::fetchField("#classId = '{$taskClassId}' AND #productId = {$rec->id}")){
+			$haveDetail = planning_ProductionTaskDetails::fetch("#type = 'production' AND #taskId = {$rec->id}");
+			$haveParams = cat_products_Params::fetchField("#classId = '{$taskClassId}' AND #productId = {$rec->id}");
+				
+			if($haveDetail || $haveParams){
 				$form->setReadOnly('productId');
 				$form->setReadOnly('packagingId');
-		
-				if($data->action != 'clone' && !empty($rec->fixedAssets)){
-					$form->setReadOnly('fixedAssets');
+			}
+				
+			if($haveDetail && $data->action != 'clone'){
+				if(!empty($rec->fixedAssets)){
+					$form->setField('fixedAssets', 'input=none');
+				}
+				
+				if(!empty($rec->employees)){
+					$form->setField('employees', 'input=hidden');
 				}
 			}
-		}
-		
-		// Наличното оборудване в папката
-		$fixedAssets = planning_AssetResources::getByFolderId($rec->folderId);
-		
-		// Подсигуряване че вече избраното оборудване присъства в опциите винаги
-		if(isset($rec->fixedAssets)){
-			$alreadyIn = keylist::toArray($rec->fixedAssets);
-			foreach ($alreadyIn as $fId){
-				if(!array_key_exists($fId, $fixedAssets)){
-					$fixedAssets[$fId] = planning_AssetResources::getTitleById($fId, FALSE);
-				}
-			}
-		}
-		
-		if(count($fixedAssets)){
-			$form->setSuggestions('fixedAssets', array('' => '') + $fixedAssets);
-		} else {
-			$form->setField('fixedAssets', 'input=none');
 		}
 	}
 	
@@ -857,8 +884,21 @@ class planning_Tasks extends core_Master
 		while($rec = $query->fetch()){
 			$data->recs[$rec->id] = $rec;
 			$row = planning_Tasks::recToVerbal($rec, $fields);
+			
+			$subArr = array();
+			if(!empty($row->fixedAssets)){
+				$subArr[] = tr('Оборудване:|* ') . $row->fixedAssets;
+			}
+			if(!empty($row->employees)){
+				$subArr[] = tr('Служители:|* ') . $row->employees;
+			}
+			if(count($subArr)){
+				$row->info = "<small>" . implode(' &nbsp; ', $subArr) . "</small>";
+			}
+			
 			$row->modified = $row->modifiedOn . " " . tr('от||by') . " " . $row->modifiedBy;
 			$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
+			
 			$data->rows[$rec->id] = $row;
 		}
 	}
@@ -877,7 +917,9 @@ class planning_Tasks extends core_Master
 		
 		// Ако потребителя може да добавя операция от съответния тип, ще показваме бутон за добавяне
 		if($this->haveRightFor('add', (object)array('originId' => $containerId))){
-			$data->addUrlArray = array('planning_Jobs', 'selectTaskAction', 'originId' => $containerId, 'ret_url' => TRUE);
+			if(!Mode::isReadOnly()){
+				$data->addUrlArray = array('planning_Jobs', 'selectTaskAction', 'originId' => $containerId, 'ret_url' => TRUE);
+			}
 		}
 	}
 	
@@ -892,10 +934,10 @@ class planning_Tasks extends core_Master
 		// Ако няма намерени записи, не се рендира нищо
 		// Рендираме таблицата с намерените задачи
 		$table = cls::get('core_TableView', array('mvc' => $this));
-		$fields = 'title=Операция,progress=Прогрес,folderId=Папка,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано';
+		$fields = 'title=Операция,progress=Прогрес,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
 		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
 		$this->invoke('BeforeRenderListTable', array($tpl, &$data));
-		 
+		
 		$tpl = $table->get($data->rows, $data->listFields);
 		 
 		// Имали бутони за добавяне
@@ -983,6 +1025,10 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+    	$data->listFilter->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване');
+    	$data->listFilter->showFields .= ',assetId';
+    	$data->listFilter->input('assetId');
+    	
     	// Филтър по всички налични департаменти
     	$departmentOptions = hr_Departments::makeArray4Select('name', "type = 'workshop' AND #state != 'rejected'");
     	
@@ -1002,15 +1048,6 @@ class planning_Tasks extends core_Master
     		}
     		
     		$data->listFilter->input('departmentId');
-    	}
-    	
-    	// Добавяне на оборудването към филтъра
-    	$fixedAssets = planning_AssetResources::getByFolderId();
-    	if(count($fixedAssets)){
-    		$data->listFilter->FLD('assetId', 'int', 'caption=Оборудване');
-    		$data->listFilter->setOptions('assetId', array('' => '') + $fixedAssets);
-    		$data->listFilter->showFields .= ',departmentId,assetId';
-    		$data->listFilter->input('assetId');
     	}
     	
     	// Филтър по департамент
@@ -1159,5 +1196,15 @@ class planning_Tasks extends core_Master
     	$batchName = str::removeWhitespaces($batchName);
     	
     	return $batchName;
+    }
+    
+    
+    /**
+     * В кои корици може да се вкарва документа
+     * @return array - интерфейси, които трябва да имат кориците
+     */
+    public static function getCoversAndInterfacesForNewDoc()
+    {
+    	return array('folderClass' => 'planning_Centers');
     }
 }

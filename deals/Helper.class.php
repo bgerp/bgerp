@@ -389,7 +389,7 @@ abstract class deals_Helper
 	 * 				->formInfo - информация за формата
 	 * 				->warning - предупреждението
 	 */
-	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId)
+	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId, &$foundQuantity = NULL)
 	{
 		if(empty($packQuantity)){
 			$packQuantity = 1;
@@ -407,6 +407,7 @@ abstract class deals_Helper
 		$storeName = store_Stores::getTitleById($storeId);
 		$verbalQuantity = $Double->toVerbal($quantity);
 		$verbalQuantity = ht::styleIfNegative($verbalQuantity, $quantity);
+		$foundQuantity = $quantity;
 		
 		$text = "|Разполагаемо в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";
 		if(!empty($stRec->reservedQuantity)){
@@ -457,10 +458,10 @@ abstract class deals_Helper
 	 */
 	public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack)
 	{
-		if(cat_products_Packagings::getPack($productId, $packagingId)){
+		if($packRec = cat_products_Packagings::getPack($productId, $packagingId)){
 			if(cat_UoM::fetchField($packagingId, 'showContents') !== 'no'){
 				$measureId = cat_Products::fetchField($productId, 'measureId');
-                $packagingRow .= ' ' . self::getPackMeasure($measureId, $quantityInPack);
+                $packagingRow .= ' ' . self::getPackMeasure($measureId, $quantityInPack, $packRec);
 			}
 		}
 	}
@@ -469,14 +470,25 @@ abstract class deals_Helper
     /**
      * Връща описание на опаковка, заедно с количеството в нея
      */
-    public static function getPackMeasure($measureId, $quantityInPack)
+    public static function getPackMeasure($measureId, $quantityInPack, $packRec = NULL)
     {
-        if($quantityInPack < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 0.001))){
+        $qP = $quantityInPack;
+    	if($quantityInPack < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 0.001))){
 			$quantityInPack *= 1000;
 			$measureId = $downMeasureId;
 		} elseif($quantityInPack > 1000 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 1000))){
 			$quantityInPack /= 1000;
 			$measureId = $downMeasureId;
+		}
+		
+		$hint = FALSE;
+		
+		if(is_object($packRec)){
+			$originalQuantityInPack = $packRec->quantity;
+			$difference = round(abs($qP - $originalQuantityInPack) / $originalQuantityInPack, 2);
+			if($difference > 0.1){
+				$hint = TRUE;
+			}
 		}
 		
         if($quantityInPack == 1) {
@@ -485,11 +497,16 @@ abstract class deals_Helper
 		    $quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInPack) . ' ';
         }
 		
-		$shortUomName = cat_UoM::getShortName($measureId);
-		$res = ' <small class="quiet">' . $quantityInPack . tr($shortUomName) . '</small>';
-		$res = "<span class='nowrap'>{$res}</span>";
-
-        return $res;
+        if($hint === TRUE){
+        	$quantityInPack = ht::createHint($quantityInPack, 'Има отклонение спрямо очакваното', 'warning', TRUE, 'width=12px,height=12px');
+        }
+        
+        $tpl = new core_ET("<span class='nowrap'>&nbsp;<small class='quiet'>[#quantityInPack#] [#shortUomName#]</small></span>");
+		$tpl->append(tr(cat_UoM::getShortName($measureId)), 'shortUomName');
+		$tpl->append($quantityInPack, 'quantityInPack');
+		$tpl->removeBlocks();
+		
+        return $tpl;
     }
 	
 	
@@ -1000,6 +1017,10 @@ abstract class deals_Helper
 		$type = ($Master instanceof purchase_Purchases) ? 'purchase' : (($Master instanceof sales_Quotations) ? 'quotation' : 'sale');
 		$allProducts = $productConditions = array();
 		
+		if(!empty($lg)){
+			core_Lg::push($lg);
+		}
+		
 		while($dRec = $dQuery->fetch()){
 			
 			// Опит за намиране на условията
@@ -1045,6 +1066,10 @@ abstract class deals_Helper
 				}
 				$val .= $valSuffix; 
 			}
+		}
+		
+		if(!empty($lg)){
+			core_Lg::pop();
 		}
 		
 		return $res;
@@ -1128,9 +1153,9 @@ abstract class deals_Helper
 		// Ако няма тегло взима се 'live'
 		if(!isset($value)){
 			if($type == 'weight'){
-				$value = cat_Products::getWeight($productId, $packagingId, $quantity);
+				$value = cat_Products::getTransportWeight($productId, $quantity);
 			} else {
-				$value = cat_Products::getVolume($productId, $packagingId, $quantity);
+				$value = cat_Products::getTransportVolume($productId, $quantity);
 			}
 			
 			if(isset($value)){

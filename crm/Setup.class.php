@@ -81,6 +81,22 @@ class crm_Setup extends core_ProtoSetup
     
     
     /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+    		array(
+    				'systemId' => "Gather_contragent_info",
+    				'description' => "Събиране на информация за контрагентите",
+    				'controller' => "crm_ext_ContragentInfo",
+    				'action' => "GatherInfo",
+    				'period' => 720,
+    				'offset' => 70,
+    				'timeLimit' => 300
+    		),
+    );
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(

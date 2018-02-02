@@ -167,7 +167,7 @@ class marketing_Inquiries2 extends embed_Manager
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'title';
+    public $fieldsNotToClone = 'title,proto';
     
     
     /**
@@ -615,7 +615,7 @@ class marketing_Inquiries2 extends embed_Manager
     		} else {
     			// Създаване на нов артикул от запитването
     			if(cat_Products::haveRightFor('add', (object)array('folderId' => $rec->folderId, 'threadId' => $rec->threadId))){
-    				$url = array('cat_Products', 'add', "innerClass" => $rec->innerClass, "originId" => $rec->containerId, 'proto' => $rec->proto, 'ret_url' => TRUE);
+    				$url = array('cat_Products', 'add', "innerClass" => $rec->innerClass, "originId" => $rec->containerId, 'ret_url' => TRUE);
     				if(doc_Folders::getCover($rec->folderId)->haveInterface('crm_ContragentAccRegIntf')){
     					$url['folderId'] = $rec->folderId; 
     					$url['threadId'] = $rec->threadId;

@@ -172,12 +172,6 @@ class planning_Jobs extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId';
-
-    
-    /**
-     * Роли за виждане на всички потребители при филтриране на задания
-     */
-    public $filterRolesForAll = 'jobMaster';
     
     
 	/**
@@ -321,6 +315,17 @@ class planning_Jobs extends core_Master
     	}
     	
     	$form->setDefault('packagingId', key($packs));
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	// По-хубаво заглавие на формата
+    	$rec = $data->form->rec;
+    	$data->form->title = core_Detail::getEditTitle('cat_Products', $rec->productId, $mvc->singleTitle, $rec->id);
     }
     
     
@@ -533,13 +538,6 @@ class planning_Jobs extends core_Master
     			$form->setWarning('department', 'В Заданието липсва избран ц-р на дейност и ще бъде записано в нишката');
     		}
     		
-    		$weight = cat_Products::getWeight($rec->productId, NULL, $rec->quantity);
-    		$rec->brutoWeight = ($weight) ? $weight : NULL;
-    			
-    		// Колко е еденичното тегло
-    		$weight = cat_Products::getParams($rec->productId, 'transportWeight');
-    		$rec->weight = ($weight) ? $weight * $rec->quantity : NULL;
-    		
     		if($rec->dueDate < dt::today()){
     			$form->setWarning('dueDate', 'Падежът е в миналото');
     		}
@@ -558,6 +556,15 @@ class planning_Jobs extends core_Master
     		$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     		$rec->isEdited = TRUE;
+    		
+    		$weight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
+    		if(!empty($weight)){
+    			$rec->brutoWeight = $weight;
+    			$rec->weight = $weight / $rec->quantity;
+    		} else {
+    			$rec->brutoWeight = NULL;
+    			$rec->weight = NULL;
+    		}
     	}
     }
     
@@ -579,7 +586,7 @@ class planning_Jobs extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $rec
      */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
     	if($rec->isEdited === TRUE && isset($rec->id) && $rec->_isClone !== TRUE){
     		self::addToHistory($rec->history, 'edited', $rec->modifiedOn, $rec->modifiedBy);

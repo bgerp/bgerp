@@ -2240,6 +2240,9 @@ function replaceFormData(frm, data)
 	// Забраняваме отново кеширането при зареждане по ajax
 	$.ajaxSetup ({cache: false});
 
+    // Пушваме ново URL
+    history.pushState(null, null, data.url);
+
 	var newParams = $('form').serializeArray();
 	var paramsArray = [];
 
@@ -3942,7 +3945,6 @@ function runHljs() {
 }
 
 
-
 /**
  * Функция, която редиректва към определена страница, може да се
  * използва с efae
@@ -4093,6 +4095,42 @@ function render_Sound(data){
 
 
 /**
+* Функция, скролва потребителя до статуса за логване
+* Може да се комбинира с efae
+ */
+function render_forceLoginToSubmit(data)
+{
+	forceLoginToSubmit = data.force;
+	
+	if (forceLoginToSubmit) {
+		jQuery("form").bind('submit', function(event, data) {
+			if (forceLoginToSubmit) {
+				
+				scrollToElem('editStatus');
+				
+		        // Блокиране на събмита, ако няма промени и за определено време
+		        event.preventDefault();
+		        
+		        return false;
+			}
+	    });
+	}
+}
+
+
+/**
+ * Скролване до елемента
+ * 
+ * @param docId
+ */
+function scrollToElem(docId) {
+	$('html, body').animate({
+        scrollTop: $("#" + docId).offset().top - $(window).height() + $(this).height()
+    }, 500);
+}
+
+
+/**
  * изтрива бащата на зададения елемент
  */
 function removeParentTag(el) {
@@ -4208,19 +4246,6 @@ function showToast(data) {
 }
 
 
-/**
- * Рендира новото изображение за превю на картина
- * 
- * @param object data - Обект с необходимите стойности
- * data.data-url
- * data.src
- * data.width
- * data.height
- * data.fh
- */
-function render_setNewFilePreview(data) {
-	console.log(data);
-}
 var oldImageSrc, oldImageWidth, oldImageHeight;
 function changeZoomImage(el) {
     if($(el).attr("data-zoomed") == "no") {
@@ -4245,6 +4270,7 @@ function changeZoomImage(el) {
         }
     }
 }
+
 
 /**
  * Experta - Клас за функции на EF
@@ -4662,7 +4688,7 @@ Experta.prototype.log = function(txt) {
         // Показваме съобщението
         console.log(txt);
     }
-};
+}; 
 
 
 /**

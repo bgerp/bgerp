@@ -795,8 +795,10 @@ class crm_Companies extends core_Master
             if($rec->folderName) {  
                 $row->title = $row->name;
             }
+            
+            // Разширяване на $row
+            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec);
         }
-        
         
         // Дали има права single' а на тазу фирма
         $canSingle = static::haveRightFor('single', $rec);
@@ -885,8 +887,8 @@ class crm_Companies extends core_Master
         
         // Ако се редактира текущата фирма, генерираме лог от данните
         if (crm_Setup::BGERP_OWN_COMPANY_ID == $rec->id) {
-            $mvc->prepareCompanyLogo();
             hr_Departments::forceFirstDepartment($rec->name);
+            $mvc->prepareCompanyLogo();
         }
     }
     
@@ -2374,4 +2376,39 @@ class crm_Companies extends core_Master
     }
 
 
+    /**
+     * След взимане на иконката за единичния изглед
+     * 
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param int $id
+     */
+    public static function on_AfterGetSingleIcon($mvc, &$res, $id)
+    {
+    	if(core_Users::isContractor()) return;
+    	
+    	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+    		if($extRec->overdueSales == 'yes'){
+    			$res = 'img/16/stop-sign.png';
+    		}
+    	}
+    }
+
+    /**
+     * След взимане на заглавието за единичния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param int $id
+     */
+    public static function on_AfterGetSingleTitle($mvc, &$res, $id)
+    {
+        if(core_Users::isContractor()) return;
+        
+    	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+            if($extRec->overdueSales == 'yes'){
+                $res = "<span class='dangerTitle'>{$res}</span>";
+            }
+        }
+    }
 }

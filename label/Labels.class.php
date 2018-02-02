@@ -61,7 +61,7 @@ class label_Labels extends core_Master
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'label, admin, ceo';
+	public $canSingle = 'label, admin, ceo, seeLabel';
     
     
     /**

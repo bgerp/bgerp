@@ -18,38 +18,6 @@ class acc_plg_Contable extends core_Plugin
     
     
     /**
-     * Масив с класове и съответните роли, които се изискват за private single на документа
-     */
-    protected static $rolesAllMap = array(
-            'purchase_Invoices' => 'invoiceAll',
-            'sales_Invoices' => 'invoiceAll',
-            'sales_Proformas' => 'invoiceAll',
-            'store_ShipmentOrders' => 'storeAll',
-            'store_Receipts' => 'storeAll',
-            'store_Transfers' => 'storeAll',
-            'store_ConsignmentProtocols' => 'storeAll',
-            'store_InventoryNotes' => 'storeAll',
-            'purchase_Services' => 'storeAll',
-            'sales_Services' => 'storeAll',
-            'bank_IncomeDocuments' => 'bankAll',
-            'bank_SpendingDocuments' => 'bankAll',
-            'bank_ExchangeDocument' => 'bankAll',
-            'bank_InternalMoneyTransfer' => 'bankAll',
-            'cash_Pko' => 'cashAll',
-            'cash_Rko' => 'cashAll',
-            'cash_InternalMoneyTransfer' => 'cashAll',
-            'cash_ExchangeDocument' => 'cashAll',
-            'sales_Sales' => 'saleAll',
-            'purchase_Purchases' => 'purchaseAll',
-            'planning_DirectProductionNote' => 'planningAll',
-            'planning_ConsumptionNotes' => 'planningAll',
-            'planning_ReturnNotes' => 'planningAll',
-            'planning_Jobs' => 'planningAll',
-            'planning_Tasks' => 'planningAll',
-    );
-    
-    
-    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -446,8 +414,8 @@ class acc_plg_Contable extends core_Plugin
         
         // Проверка за права за частния сингъл
         if ($action == 'viewpsingle') {
-            $rolesAll = self::$rolesAllMap[$mvc->className];
-            if (!haveRole($rolesAll, $userId)) {
+            $rolesAll = acc_plg_DocumentSummary::$rolesAllMap[$mvc->className];
+            if (!$rolesAll || !haveRole($rolesAll, $userId)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -794,7 +762,7 @@ class acc_plg_Contable extends core_Plugin
     	$message = "{$currUserNick} |контира|* \"|{$docTitle}|*\" |в нишка|* \"{$folderTitle}\"";
     	foreach ($userArr as $uId) {
     	    
-    	    if (!$mvc->haveRightFor('single', $rec->id)) continue;
+    	    if (!$mvc->haveRightFor('single', $rec->id, $uId)) continue;
     	    
     		bgerp_Notifications::add($message, array($mvc, 'single', $rec->id), $uId);
     	}

@@ -12,38 +12,53 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Избор на данни на Форма за CV
+ * @title     Детайли на Форма за CV
  */
 
 
-class workpreff_WorkPreff extends core_Manager
+class workpreff_WorkPreff extends core_Master
 {
-
 
     public $title = "Избор";
 
     public $loadList = 'plg_RowTools2,plg_Sorting, hr_Wrapper';
+    
+    /**
+     * Детайла, на модела
+     */
+    public $details = 'workpreff_WorkPreffDetails';
 
     function description()
+
     {
 
-        $this->FLD('name', 'varchar(255,ci)', 'caption=Предпочитания->Възможности,class=contactData,mandatory,remember=info,silent,export=Csv');
+        $this->FLD('name', 'varchar', 'caption=Предпочитания->Възможности,class=contactData,mandatory,remember=info,silent');
         $this->FLD('type', 'enum(set=Фиксиране, enum=Избор)', 'notNull,caption=Тип на избора,maxRadio=2,after=name');
-        $this->FLD('choice', 'text', 'caption=Информация->Предложения за избор,class=contactData,mandatory,remember=info,silent,removeAndRefreshForm, export=Csv');
-      //  $this->FLD('typeOfPosition', 'keylist()', 'caption=Тип на позицията,class=contactData,mandatory,remember=info,silent,removeAndRefreshForm');
+        $this->FLD('typeOfPosition', 'set(adm=Администрация,man=Производство, log=Логистика,sall=Продажби)', 'caption=Тип на позицията,mandatory');
+      
 
     }
-    public $options = array('A','B','C');
-    public $name = 'typeOfPosition';
+   
 
-    function setOptions($name,$options)
+  public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        bp($options);
-
-        $this->setField($name, array('options' => $options));
+    	
+    	$form = $data->form;
+    	
+ 
+   
     }
 
+    public static function on_AfterInputeditForm($mvc, &$form)
+    {
+		 
+      
 
+      
+
+
+    }
+    
 
 
     /**
@@ -52,33 +67,48 @@ class workpreff_WorkPreff extends core_Manager
      */
     public static function getOptionsForChoice()
     {
-       $query = self::getQuery();
+    	
+    	$parts=array();
+       
+    	$detQuery = workpreff_WorkPreffDetails::getQuery();
+    	
+    	while ($detail = $detQuery->fetch()){
+    		
+    		$detArr[$detail->id]=$detail;
+    	}
+    
+    	$query = self::getQuery();
 
         while ($rec = $query->fetch()){
-
-            $partsTemp = '';
-
-            $parts = explode("\n", $rec->choice);
-            $count = count($parts);
-
-            foreach ($parts as $part) {
-
-               $partsTemp .= "$part".',';
-
-            }
-
+        	
+        $typeOfPosition = explode(',', $rec->typeOfPosition);
+        
+        
+        if (is_array($detArr)){
+        	
+		  foreach ($detArr as $v){
+		  
+		  	if($rec->id == $v->choiceId){
+		  	
+		  		$parts[$v->id]=$v->name;
+		  		
+		  	}
+		  	
+		  }
+        }
             $workPreffOptions[$rec->id] = (object)array(
 
                 'id' => $rec->id,
                 'type' => $rec->type,
-                'parts' => trim($partsTemp,','),
                 'name' => $rec->name,
-                'count' => $count,
+            	'parts' => $parts,	
+                'count' => count($parts),
+            	'typeOfPosition' =>$typeOfPosition,
 
             );
-
+            
+            $parts=array();
         }
-
 
         if (!$workPreffOptions){
 

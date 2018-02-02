@@ -108,6 +108,10 @@
                 <div class="groupList">
                     [#info#]
                 </div>
+                [#crm/tpl/ContragentInfoBlock.shtml#]
+                <!--ET_BEGIN CloseTime-->
+                <div>|Затваряне на нишките|*: |Автоматично след|* [#CloseTime#]</div>
+                <!--ET_END CloseTime-->
             </fieldset>
             <!--ET_END info-->
             [#DETAILS#]

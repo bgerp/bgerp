@@ -100,7 +100,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		}
 		
 		if($masterRec->type === 'dc_note'){
-			$data->form->info = tr('|*<div style="color:#333;margin-top:3px;margin-bottom:12px">|Моля въведете крайното количество|* <b>|или|*</b> |сума след промяната|* <br><small>( |системата автоматично ще изчисли и попълни разликата в известието|* )</small></div>');
+			$data->form->info = tr('|*<div style="color:#333;margin-top:3px;margin-bottom:12px">|Моля, въведете крайното количество|* <b>|или|*</b> |цена след промяната|* <br><small>( |системата автоматично ще изчисли и попълни разликата в известието|* )</small></div>');
 			$data->form->setField('quantity', 'caption=|Крайни|* (|след известието|*)->К-во');
 			$data->form->setField('packPrice', 'caption=|Крайни|* (|след известието|*)->Цена');
 			
@@ -590,8 +590,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			// При редакция, ако е променена опаковката слагаме преудпреждение
 			if($rec->id){
 				$oldRec = $mvc->fetch($rec->id);
-				if($oldRec && $rec->packagingId != $oldRec->packagingId && trim($rec->packPrice) == trim($oldRec->packPrice)){
-					$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената.|*<br />| Сигурни ли сте, че зададената цена отговаря на новата опаковка?");
+				if($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && trim($rec->packPrice) == trim($oldRec->packPrice)){
+					$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената|*.<br />|Сигурни ли сте, че зададената цена отговаря на новата опаковка|*?");
 				}
 			}
 			

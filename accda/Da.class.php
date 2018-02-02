@@ -12,7 +12,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Дълготрайни активи
+ * @title     Пускане в експлоатация на ДА
  */
 class accda_Da extends core_Master
 {
@@ -154,10 +154,12 @@ class accda_Da extends core_Master
     	$this->FLD('num', 'varchar(32)', 'caption=Наш номер, mandatory');
         $this->FLD('serial', 'varchar', 'caption=Сериен номер');
         
-        $this->FLD('info', 'text', 'caption=Описание,column=none,width=400px');
-        $this->FLD('origin', 'text', 'caption=Произход,column=none,width=400px');
-        $this->FLD('location', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,column=none,width=400px');
+        $this->FLD('info', 'richtext(rows=3)', 'caption=Описание,column=none,width=400px');
+        $this->FLD('origin', 'richtext(rows=3)', 'caption=Произход,column=none,width=400px');
         $this->FLD('amortNorm', 'percent', 'caption=ГАН,hint=Годишна амортизационна норма,notNull');
+        $this->FLD('location', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,column=none,width=400px,silent,refreshForm');
+        $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Координати');
+        $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
         
         $this->setDbUnique('num');
     }
@@ -209,6 +211,34 @@ class accda_Da extends core_Master
     	} else {
     		$form->setReadOnly('location');
     	}
+    	
+    	// Опитваме се да определим координатите от локацията
+    	if ($form->cmd == 'refresh') {
+    	    if ($form->rec->location && !$form->rec->gpsCoords) {
+    	        $lRec = crm_Locations::fetch($form->rec->location);
+    	        if ($lRec && $lRec->gpsCoords) {
+    	            $form->rec->gpsCoords = $lRec->gpsCoords;
+    	        }
+    	    }
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след въвеждането на данните от заявката във формата
+     * 
+     * @param accda_Da $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, $form)
+    {
+        $rec = $form->rec;
+        if(!$rec->gpsCoords && $rec->image){
+            if($gps = exif_Reader::getGps($rec->image)){
+                // Ако има GPS коодинати в снимката ги извличаме
+                $rec->gpsCoords = $gps['lat'] . ", " . $gps['lon'];
+            }
+        }
     }
     
     
@@ -291,6 +321,10 @@ class accda_Da extends core_Master
                 }
             }
         }
+        
+        if (!$data->rec->gpsCoords) {
+            $data->row->gpsCoords = NULL;
+        }
     }
     
     
@@ -351,12 +385,15 @@ class accda_Da extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-    	if(planning_AssetResources::haveRightFor('add', (object)array('protocolId' => $data->rec->id))){
-    		$data->toolbar->addBtn('Оборудване', array('planning_AssetResources', 'add', 'protocolId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/add.png,title=Създаване на ново оборудване');
+    	$rec = $data->rec;
+    	
+    	$folderId = planning_AssetResources::canFolderHaveAsset($rec->folderId) ? $rec->folderId : NULL;
+    	if(planning_AssetResources::haveRightFor('add', (object)array('protocolId' => $rec->id, 'folderId' => $folderId))){
+    		$data->toolbar->addBtn('Оборудване', array('planning_AssetResources', 'add', 'protocolId' => $rec->id, 'folderId' => $folderId), 'ef_icon = img/16/add.png,title=Създаване на ново оборудване');
     	}
     
-    	if($hRecId = planning_AssetResources::fetchField("#protocolId = {$data->rec->id}", 'id')){
-    		$data->toolbar->addBtn('Оборудване', array('planning_AssetResources', 'edit', 'id' => $hRecId, 'ret_url' => TRUE), 'ef_icon = img/16/edit-icon.png,title=Редактиране на оборудване');
+    	if($hRecId = planning_AssetResources::fetchField("#protocolId = {$rec->id}", 'id')){
+    		$data->toolbar->addBtn('Оборудване', array('planning_AssetResources', 'single', $hRecId, 'ret_url' => TRUE), 'ef_icon = img/16/equipment.png,title=Към оборудването');
     	}
     }
 }

@@ -680,9 +680,10 @@ class frame2_Reports extends embed_Manager
                 $changeAbleFields = type_Set::toArray($changeFields);
 				
     			// Може да се клонира/редактира ако може да се избере драйвера и има посочени полета за промяна
-    			if(!($userId == $createdBy || (keylist::isIn($userId, $sharedUsers) && count($changeAbleFields)))){
-
-    				$requiredRoles = 'no_one';
+    			if(!haveRole('ceo', $userId)){
+    				if(!($userId == $createdBy || (keylist::isIn($userId, $sharedUsers) && count($changeAbleFields)))){
+    					$requiredRoles = 'no_one';
+    				}
     			}
     		}
     	}

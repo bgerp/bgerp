@@ -82,10 +82,12 @@ class doc_plg_SelectFolder extends core_Plugin
                 $folderId = doc_UnsortedFolders::forceCoverAndFolder($pRec);
             }
         }
-
- 
+        
+        // Подготовка на формата за избор на папка
+        $form = cls::get('core_Form');
+        
         // Генериране на форма за основание
-        $form = self::prepareSelectForm($mvc);
+        $mvc->prepareSelectForm($form);
         
         // Добавяме не-котнролните променливи
         $allParams = Request::getParams();
@@ -124,16 +126,13 @@ class doc_plg_SelectFolder extends core_Plugin
     /**
      * Подготвя формата за избор на папка, за новия документ от клас $mvc
      */
-    static function prepareSelectForm($mvc)
+    static function on_AfterPrepareSelectForm($mvc, &$res, &$form)
     {
-    	// Подготовка на формата за избор на папка
-    	$form = cls::get('core_Form');
-
         // Вземаме масив с възможноите корици, които могат да приемат документ от дадения $mvc
     	$coverArr = self::getAllowedCovers($mvc);
         
         $coverKeys = implode(',', array_keys($coverArr));
-
+        
         $form->FLD('folderId', 'key2(mvc=doc_Folders, allowEmpty, restrictViewAccess=yes)', 'caption=Папка,class=w100 clearSelect');
         $form->setFieldTypeParams('folderId', array('where' => "#coverClass IN ({$coverKeys})"));
         $form->setField('folderId', array('attr' => array('onchange' => 'clearSelect(this, "clearSelect");')));
@@ -180,8 +179,7 @@ class doc_plg_SelectFolder extends core_Plugin
         }
         
         $form->toolbar->addBtn('Отказ', self::getRetUrl($mvc), 'ef_icon=img/16/cancel.png, title=Отказ');
-
-
+        
         return $form;
     }
     

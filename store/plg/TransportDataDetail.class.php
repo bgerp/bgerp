@@ -30,8 +30,8 @@ class store_plg_TransportDataDetail extends core_Plugin
 		setIfNot($mvc->packagingFld, 'packagingId');
 		setIfNot($mvc->quantityFld, 'quantity');
 		
-		$mvc->FLD($mvc->weightField, 'cat_type_Weight', 'input=none,caption=Транспортнa информация->Тегло,forceField,autohide');
-		$mvc->FLD($mvc->volumeField, 'cat_type_Volume', 'input=none,caption=Транспортнa информация->Обем,forceField,autohide');
+		$mvc->FLD($mvc->weightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Тегло,forceField,autohide');
+		$mvc->FLD($mvc->volumeField, 'cat_type_Volume', 'input=none,caption=Логистична информация->Обем,forceField,autohide');
 	}
 	
 	
@@ -148,7 +148,7 @@ class store_plg_TransportDataDetail extends core_Plugin
 	public function on_AfterGetWeight($mvc, &$res, $productId, $packagingId, $quantity, $weight = NULL)
 	{
 		if(!isset($weight)){
-			$weight = cat_Products::getWeight($productId, $packagingId, $quantity);
+			$weight = cat_Products::getTransportWeight($productId, $quantity);
 			$weight = deals_Helper::roundPrice($weight, 3);
 		}
 		
@@ -169,7 +169,7 @@ class store_plg_TransportDataDetail extends core_Plugin
 	public function on_AfterGetVolume($mvc, &$res, $productId, $packagingId, $quantity, $volume = NULL)
 	{
 		if(!isset($volume)){
-			$volume = cat_Products::getVolume($productId, $packagingId, $quantity);
+			$volume = cat_Products::getTransportVolume($productId, $quantity);
 			$volume = deals_Helper::roundPrice($volume, 3);
 		}
 		

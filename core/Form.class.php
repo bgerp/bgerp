@@ -848,8 +848,27 @@ class core_Form extends core_FieldSet
     /**
      * Подготвя шаблона за инпут-полетата
      */
-    function renderFieldsLayout($fields, $vars)
+    function renderFieldsLayout($fields1, $vars)
     {
+        // Подреждане на полетата на формата
+        $fields = $res = array();
+
+        foreach($fields1 as $name => $field) {
+            list($group, $caption) = explode('->', $field->caption);
+            if(!$caption) {
+                $group = 'autoGroup' . $i++;
+            } else {
+                $group = tr($group);
+            }
+            $res[$group][$name] = $field;
+        }
+
+        foreach($res as $group => $fArr) {
+            foreach($fArr as $name => $field) {
+                $fields[$name] = $field;
+            }
+        }
+
     	if ($this->fieldsLayout) return new ET($this->fieldsLayout);
         
         if($this->view == 'horizontal') {
@@ -1173,7 +1192,25 @@ class core_Form extends core_FieldSet
         "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->", $tpl);
         $res->html = str_replace("</form>", '', $ajaxPage->getContent()) . '</form>';
         $res->html = substr($res->html, strpos($res->html, '<form'));
-
+        $fields = $this->selectFields("#silent == 'silent'");
+        
+        $sf = array();
+        foreach($fields as $name => $field) {
+            $sf[$name] = $this->rec->{$name};
+        }
+        
+        $getArr = Request::getParams('_GET');
+        unset($getArr['virtual_url']);
+        unset($getArr['App']);
+        unset($getArr['Ctr']);
+        unset($getArr['Act']);
+        
+        if (!empty($getArr)) {
+            $sf += $getArr;
+        }
+        
+        $res->url = toUrl($sf);
+        
         core_App::getJson($res);
     }
 

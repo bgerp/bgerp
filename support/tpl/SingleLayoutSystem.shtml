@@ -6,25 +6,39 @@
                 <div class="block_title [#STATE_CLASS#] special-title">
                     [#SingleIcon#]|* [#name#]
                 </div>
-                <!--ET_BEGIN prototype-->
                 <fieldset class="detail-info">
-                    <legend class="groupTitle">|Прототип|*</legend>
+                    <legend class="groupTitle">|Информация|*</legend>
                     <div class="groupList">
-                        <div>[#prototype#]</div>
+                        <table>
+                            <!--ET_BEGIN prototype-->
+                            <tr>
+                                <td class='dt'>|Прототип|*:</td>
+                                <td> [#prototype#]</td>
+                            </tr>
+                            <!--ET_END prototype-->
+                            <!--ET_BEGIN allowedTypes-->
+                            <tr>
+                                <td class='dt'>|Позволени типове|*:</td>
+                                <td> [#allowedTypes#]</td>
+                            </tr>
+                            <!--ET_END allowedTypes-->
+                            <!--ET_BEGIN locationId-->
+                            <tr>
+                                <td class='dt'>|Локация|*:</td>
+                                <td> [#locationId#]</td>
+                            </tr>
+                            <!--ET_END locationId-->
+                            <!--ET_BEGIN CloseTime-->
+                            <tr>
+                                <td class='dt'>|Затваряне на нишките|*:</td>
+                                <td>|Автоматично след|* [#CloseTime#]</td>
+                            </tr>
+                            <!--ET_END CloseTime-->
+                        </table>
                     </div>
                 </fieldset>
-                <!--ET_END prototype-->
-                <!--ET_BEGIN allowedTypes-->
-                <fieldset class="detail-info">
-                    <legend class="groupTitle">|Позволени типове|*</legend>
-                    <div class="groupList">
-                        [#allowedTypes#]
-                    </div>
-                </fieldset>
-                <!--ET_END allowedTypes-->
+
                 <div>
-                    <br>
-                    |Компоненти|*:
                     <!--ET_BEGIN DETAILS-->
                     <div class='details'>
                         [#DETAILS#]

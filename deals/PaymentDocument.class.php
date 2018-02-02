@@ -124,6 +124,9 @@ abstract class deals_PaymentDocument extends core_Master {
 			$rec->modifiedOn = dt::now();
 			$rec->modifiedBy = core_Users::getCurrent();
 			$this->save_($rec, 'fromContainerId,modifiedOn,modifiedBy');
+			deals_Helper::updateAutoPaymentTypeInThread($rec->threadId);
+			doc_DocumentCache::cacheInvalidation($rec->containerId);
+			$this->logWrite("Отнасяне към фактура|* '{$invoices[$rec->fromContainerId]}'", $rec->id);
 			
 			followRetUrl(NULL, 'Промяната е записана успешно');
 		}
@@ -136,7 +139,6 @@ abstract class deals_PaymentDocument extends core_Master {
     	$tpl = $this->renderWrapping($form->renderHtml());
     	core_Form::preventDoubleSubmission($tpl, $form);
 
-		
     	return $tpl;
 	}
 	

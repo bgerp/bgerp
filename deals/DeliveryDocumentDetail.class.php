@@ -28,8 +28,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	 */
 	public static function setDocumentFields($mvc)
 	{
-		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|batch');
-		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка,smartCenter,tdClass=small-field nowrap,after=productId,mandatory,silent,removeAndRefreshForm=packPrice|discount,input=hidden');
+		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|batch|baseQuantity');
+		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка,smartCenter,tdClass=small-field nowrap,after=productId,mandatory,silent,removeAndRefreshForm=packPrice|discount|baseQuantity,input=hidden');
 		$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
 		$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
 		$mvc->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
@@ -37,7 +37,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$mvc->FNC('packQuantity', 'double', 'caption=Количество,smartCenter,input=input');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
 		$mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
-		$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
+		$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки');
 	}
 	
 	
@@ -101,6 +101,18 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				$form->setField('packQuantity', "unit={$measureShort}");
 			} else {
 				$form->setField('packagingId', 'input');
+				
+				// Показване на допълнителна мярка
+				if(isset($rec->packagingId)){
+					$pType = cat_UoM::fetchField($rec->packagingId, 'type');
+					if($pType == 'uom' && $rec->packagingId != $productInfo->productRec->measureId){
+						$form->setField('baseQuantity', 'input');
+						$measureShort = cat_UoM::getShortName($productInfo->productRec->measureId);
+						$form->setField('baseQuantity', "unit={$measureShort}");
+					} else {
+						$form->setField('baseQuantity', 'input=none');
+					}
+				}
 			}
 		}
 		
@@ -119,6 +131,15 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	
 			// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
 			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+			
+			if(!empty($rec->baseQuantity)){
+				if(empty($rec->packQuantity)){
+					$rec->packQuantity = $rec->baseQuantity * $rec->quantityInPack;
+				} else {
+					$rec->quantityInPack = $rec->baseQuantity / $rec->packQuantity;
+				}
+			}
+			
 			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 	
 			if (!isset($rec->packPrice)) {
@@ -192,8 +213,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			// При редакция, ако е променена опаковката слагаме преудпреждение
 			if($rec->id){
 				$oldRec = $mvc->fetch($rec->id);
-				if($oldRec && $rec->packagingId != $oldRec->packagingId && trim($rec->packPrice) == trim($oldRec->packPrice)){
-					$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената.|*<br />| Сигурни ли сте, че зададената цена отговаря на новата опаковка?");
+				if($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && trim($rec->packPrice) == trim($oldRec->packPrice)){
+					$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената|*.<br />|Сигурни ли сте, че зададената цена отговаря на новата опаковка|*?");
 				}
 			}
 		}

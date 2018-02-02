@@ -117,6 +117,7 @@ class planning_Setup extends core_ProtoSetup
     		'planning_ObjectResources',
     		'planning_Tasks',
     		'planning_AssetResources',
+            'planning_AssetResourceFolders',
     		'planning_ProductionTaskDetails',
     		'planning_ProductionTaskProducts',
     		'planning_TaskSerials',
@@ -128,7 +129,9 @@ class planning_Setup extends core_ProtoSetup
     		'migrate::deleteTaskCronUpdate',
     		'migrate::deleteAssets',
     		'migrate::deleteNorms',
-    		'migrate::transferCenters',
+            'migrate::transferCenters',
+            'migrate::removeUnusedRole',
+            'migrate::folderToDetails'
         );
 
         
@@ -141,8 +144,7 @@ class planning_Setup extends core_ProtoSetup
     		array('taskPlanning', 'taskWorker'),
     		array('planning', 'taskPlanning'),
     		array('planningMaster', 'planning'),
-    		array('job'),
-    		array('jobMaster', 'job'),
+    		array('job')
     );
 
     
@@ -157,7 +159,7 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,planning_interface_ImportFromLastBom";
+    var $defClasses = "planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,planning_interface_ImportFromLastBom";
     
     
     /**
@@ -534,5 +536,49 @@ class planning_Setup extends core_ProtoSetup
     	while($hRec = $hQuery->fetch()){
     		$Hr->save($hRec, 'folders');
     	}
+    }
+    
+    
+    /**
+     * Миграция за премахване на ненужна роля
+     */
+    public static function removeUnusedRole()
+    {
+        $rId = core_Roles::fetchByName('jobMaster');
+        if ($rId) {
+            core_Roles::removeRoles(array($rId));
+        }
+    }
+    
+    
+    /**
+     * Миграция за прехвърляне на папките в детайл
+     */
+    public static function folderToDetails()
+    {
+        // Очаква предишната миграция да е била успешна
+        $mData = core_Packs::getConfig('core')->_data;
+        expect($mData['migration_planning_transferCenters'] === TRUE);
+        
+        foreach (array('planning_AssetResources', 'planning_Hr') as $clsName) {
+            $clsInst = cls::get($clsName);
+            $query = $clsInst->getQuery();
+            $query->where("#folders IS NOT NULL");
+            
+            while ($rec = $query->fetch()) {
+                $fArr = type_Keylist::toArray($rec->folders);
+                
+                if (empty($fArr)) continue;
+                
+                foreach ($fArr as $fId) {
+                    $dRec = new stdClass();
+                    $dRec->objectId = $rec->id;
+                    $dRec->classId = $clsInst->getClassId();
+                    $dRec->folderId = $fId;
+                    
+                    planning_AssetResourceFolders::save($dRec, NULL, 'IGNORE');
+                }
+            }
+        }
     }
 }

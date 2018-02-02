@@ -396,10 +396,12 @@ class core_Classes extends core_Manager
             if($load) {
                 $inst = cls::get($rec->name);
             }
-            if(!$load || $inst->deprecated) {
+            if(!$load) {
                 $rec->state = 'closed';
                 self::save($rec);
                 $res .= "<li style='color:red;'>Деактивиран беше класа {$rec->name} защото липсва кода му.</li>";
+            } elseif($inst->deprecated) {
+                $res .= "<li style='color:green;'>Деактивиран беше класа {$rec->name} защото е пенсиониран.</li>";
             } else {
                 core_Classes::add($rec->name);
             }

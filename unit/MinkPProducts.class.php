@@ -75,7 +75,6 @@ class unit_MinkPProducts extends core_Manager {
         $browser->setValue('Продукти', 7);
         $browser->press('Запис');
        
-        //return $browser->getHtml();
     }
     
     /**
@@ -105,7 +104,6 @@ class unit_MinkPProducts extends core_Manager {
             $browser->setValue('packagingId', 'стек');
             $browser->setValue('quantity', '100');
             $browser->setValue('isBase', 'yes');
-            $browser->setValue('netWeight[lP]', '0.015');
             $browser->setValue('tareWeight[lP]', '0.002');
             $browser->setValue('sizeWidth[lP]', '0.27');
             $browser->setValue('sizeHeight[lP]', '0.10');

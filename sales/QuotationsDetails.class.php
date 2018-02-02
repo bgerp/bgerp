@@ -84,7 +84,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'price,discount,amount';
+    public $priceFields = 'packPrice,discount,amount';
   	
   	
     /**
@@ -104,7 +104,7 @@ class sales_QuotationsDetails extends doc_Detail {
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'price,tolerance,term,weight';
+    public $fieldsNotToClone = 'packPrice,tolerance,term,weight';
     
     
   	/**
@@ -169,8 +169,9 @@ class sales_QuotationsDetails extends doc_Detail {
      * @param stdClass $masterRec
      * @return void;
      */
-    public static function calcLivePrice($rec, $masterRec)
+    public static function calcLivePrice($rec, $masterRec, $force = FALSE)
     {
+    	if($force !== TRUE && !haveRole('seePrice,ceo')) return;
     	$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $rec->date, $masterRec->currencyRate, $masterRec->chargeVat, NULL, FALSE);
     	
     	if(isset($policyInfo->price)){
@@ -252,6 +253,10 @@ class sales_QuotationsDetails extends doc_Detail {
     		if(!isset($onlyNotOptionalRec->price)){
     			$notDefinedAmount = TRUE;
     		}
+    	}
+    	
+    	if(!haveRole('seePrice,ceo')){
+    		$data->noTotal = TRUE;
     	}
     	
     	if(empty($data->noTotal) && count($notOptional)){
@@ -400,6 +405,21 @@ class sales_QuotationsDetails extends doc_Detail {
     }
     
     
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+    	if(!empty($data->form->rec->id) || $data->form->cmd == 'save_new_row') {
+    		$data->form->toolbar->addSbBtn('Запис в нов ред', 'save_new_row', NULL, array('id'=>'saveInNewRec', 'order'=>'9.99955', 'ef_icon'=>'img/16/save_and_new.png', 'title'=>'Запиши в нов ред'));
+    	}
+    }
+    
+    
 	/**
      * Извиква се след въвеждането на данните от Request във формата
      */
@@ -436,6 +456,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	if($form->isSubmitted()){
+    		
     		if(!isset($form->rec->packQuantity)){
     			$form->rec->defQuantity = TRUE;
     			$form->setDefault('packQuantity', deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
@@ -461,7 +482,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			    }
     			    
     				if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
-    					if($sameProduct->id != $rec->id){
+    					if($sameProduct->id != $rec->id || $form->cmd == 'save_new_row'){
     						$form->setError('packQuantity', 'Избраният продукт вече фигурира с това количество');
     						return;
     					}
@@ -490,13 +511,17 @@ class sales_QuotationsDetails extends doc_Detail {
     				$price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
     				$rec->price  = $price;
     			}
+    			
+    			if($form->cmd == 'save_new_row'){
+    				unset($rec->id);
+    			}
     		}
     	
     		// При редакция, ако е променена опаковката слагаме преудпреждение
     		if($rec->id){
     			$oldRec = $mvc->fetch($rec->id);
-    			if($oldRec && $rec->packagingId != $oldRec->packagingId && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)){
-    				$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената.|*<br />| Сигурни ли сте, че зададената цена отговаря на  новата опаковка!");
+    			if($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)){
+    				$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената|*.<br />|Сигурни ли сте, че зададената цена отговаря на  новата опаковка|*?");
     			}
     		}
     		
@@ -622,7 +647,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$row->packPrice = ht::createHint($row->packPrice, 'Цената е динамично изчислена. Ще бъде записана при активиране', 'notice', FALSE, 'width=14px,height=14px');
     		}
     		
-    		if(!isset($data->recs[$i]->price)){
+    		if(!isset($data->recs[$i]->price) && haveRole('seePrice,ceo')){
     			$row->packPrice = '???';
     			$row->amount = '???';
     		}
@@ -905,6 +930,12 @@ class sales_QuotationsDetails extends doc_Detail {
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	
+    	if($rec->quantityInPack != 1){
+    		$row->totalQuantity = $Double->toVerbal($rec->quantity);
+    		$shortUom = cat_Uom::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
+    		$row->totalQuantity .= " " . tr($shortUom);
+    	}
+    	
     	// Показваме подробната информация за опаковката при нужда
     	deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
     	$row->amount = $Double->toVerbal($rec->amount);
@@ -931,7 +962,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	// Показване на теглото при определени условия
     	if($rec->showMode == 'detailed' || ($rec->showMode == 'auto' && cat_Products::fetchField($rec->productId, 'isPublic') == 'no')){
     		
-    		// Показва се теглото, само ако мярката не е прозиводна на килограм
+    		// Показва се теглото, само ако мярката не е производна на килограм
     		$kgMeasures = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
     		if(!array_key_exists($rec->packagingId, $kgMeasures)){
     			$row->weight = deals_Helper::getWeightRow($rec->productId, $rec->packagingId, $rec->quantity, $rec->weight);

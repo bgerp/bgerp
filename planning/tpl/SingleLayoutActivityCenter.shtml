@@ -26,6 +26,9 @@
 	                <!--ET_BEGIN startingOn-->
 	                <div>|Започва на|*: <b>[#startingOn#]</b></div>
 	                <!--ET_END startingOn-->
+					<!--ET_BEGIN CloseTime-->
+					<div>|Затваряне на нишките|*: <b>|Автоматично след|* [#CloseTime#]</b></div>
+					<!--ET_END CloseTime-->
 	            </div>
 	        </fieldset>
 	        [#Assets#]

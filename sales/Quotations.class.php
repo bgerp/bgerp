@@ -221,8 +221,8 @@ class sales_Quotations extends core_Master
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)','caption=Плащане->ДДС,oldFieldName=vat');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale');
-        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,hint=Изберете локация или въведете нова');
-        $this->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Адрес,placeholder=Ако е празно се взима според условието на доставка');
+        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
+        $this->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Място');
         
 		$this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData');
         $this->FLD('person', 'varchar', 'caption=Получател->Име, changable, class=contactData');
@@ -256,16 +256,16 @@ class sales_Quotations extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-       $form = $data->form;
-       $rec = &$data->form->rec;
-       
-       // При клониране
-       if($data->action == 'clone'){
-       	
-       		// Ако няма reff взимаме хендлъра на оригиналния документ
-	       	if(empty($rec->reff)){
-	       		$rec->reff = $mvc->getHandle($rec->id);
-	       	}
+    	$form = $data->form;
+    	$form->setField('deliveryAdress', array('placeholder' => 'Държава, Пощенски код'));
+    	$rec = &$data->form->rec;
+    	
+    	// При клониране
+    	if($data->action == 'clone'){
+    		// Ако няма reff взимаме хендлъра на оригиналния документ
+    		if(empty($rec->reff)){
+    			$rec->reff = $mvc->getHandle($rec->id);
+    		}
 	       	
 	       	// Инкрементираме reff-а на оригинална
 	       	$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
@@ -276,16 +276,20 @@ class sales_Quotations extends core_Master
        $form->setDefault('contragentClassId', $contragentClassId);
        $form->setDefault('contragentId', $contragentId);
        
+       $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
+       if(count($locations)){
+       		$form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
+       } else {
+       		$form->setReadOnly('deliveryPlaceId');
+       }
+       
        if(isset($form->rec->id)){
-       		if($mvc->sales_QuotationsDetails->fetch("#quotationId = {$form->rec->id}")){
-       			foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId', 'deliveryPlaceId') as $fld){
+			if($mvc->sales_QuotationsDetails->fetch("#quotationId = {$form->rec->id}")){
+       			foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId', 'deliveryPlaceId', 'deliveryAdress') as $fld){
        				$form->setReadOnly($fld);
        			}
        		}
        }
-      
-       $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
-       $form->setSuggestions('deliveryPlaceId',  array('' => '') + $locations);
       
        if(isset($rec->originId) && $data->action != 'clone' && empty($form->rec->id)){
        	
@@ -432,6 +436,15 @@ class sales_Quotations extends core_Master
 	    			$form->setWarning('date,validFor', 'Валидноста на офертата е преди текущата дата');
 	    		}
 	    	}
+	    	
+	    	// Проверка за валидност на адресите
+	    	if(!empty($rec->deliveryPlaceId) && !empty($rec->deliveryAdress)){
+	    		$form->setError('deliveryPlaceId,deliveryAdress', 'Не може двете полета да са едновременно попълнени');
+	    	} elseif(!empty($rec->deliveryAdress)){
+	    		if(!drdata_Address::parsePlace($rec->deliveryAdress)){
+	    			$form->setError('deliveryAdress', 'Адресът трябва да съдържа държава и пощенски код');
+	    		}
+	    	}
 		}
     }
     
@@ -563,18 +576,12 @@ class sales_Quotations extends core_Master
     				$row->others .= "<li>{$cond}</li>";
     			}
     		}
-    		
-    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
-    			if($rec->deliveryPlaceId){
-    				if($placeId = crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id')){
-    					$row->deliveryPlaceId = ht::createLinkRef($row->deliveryPlaceId, array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
-    				}
-    			}
-    		}
     		 
     		if(isset($rec->bankAccountId)){
     			$ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
-    			$url = bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId);
+    			if(!Mode::isReadOnly()){
+    				$url = bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId);
+    			}
     			$row->bankAccountId = ht::createLink($ownAccount->iban, $url);
     		}
     		
@@ -583,8 +590,9 @@ class sales_Quotations extends core_Master
     			$deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
     		} else {
     			if(isset($rec->deliveryTermId)){
+    				$placeId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : NULL;
+    				
     				$deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, NULL, $placeId, $mvc);
-    				$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще бъде записан при активиране');
     			}
     		}
     		
@@ -836,35 +844,7 @@ class sales_Quotations extends core_Master
      */
     protected static function on_AfterActivation($mvc, &$rec)
     {
-    	if($rec->deliveryPlaceId){
-		    if(!crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id')){
-		    	$newLocation = (object)array(
-		    						'title'         => $rec->deliveryPlaceId,
-		    						'countryId'     => $rec->contragentCountryId,
-		    						'pCode'         => $rec->pcode,
-		    						'place'         => $rec->place,
-		    						'contragentCls' => $rec->contragentClassId,
-		    						'contragentId'  => $rec->contragentId,
-		    						'type'          => 'correspondence');
-		    		
-		    	// Ако локацията я няма в системата я записваме
-		    	crm_Locations::save($newLocation);
-		    }
-		}
-		
-		$updateFields = array();
-		
-		// Запис на адреса
-		if(empty($rec->deliveryAdress) && isset($rec->deliveryTermId)){
-			
-			$locationId = ($newLocation) ? $newLocation->id : NULL;
-			$rec->tplLang = $mvc->pushTemplateLg($rec->template);
-			$rec->deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, NULL, $locationId, $mvc);
-			$updateFields[] = 'deliveryAdress';
-			
-			core_Lg::pop($rec->tplLang);
-		}
-		
+    	$updateFields = array();
 		
 		// Ако няма дата попълваме текущата след активиране
 		if(empty($rec->date)){
@@ -992,6 +972,7 @@ class sales_Quotations extends core_Master
     					'note'				 => $rec->others,
     					'originId'			 => $rec->containerId,
     					'template'			 => $templateId,
+    					'deliveryAdress'	 => $rec->deliveryAdress,
     					'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
     	);
     	
@@ -1536,7 +1517,7 @@ class sales_Quotations extends core_Master
     	$dQuery->where("#price IS NULL || #tolerance IS NULL || #term IS NULL || #weight IS NULL");
     	while($dRec = $dQuery->fetch()){
     		if(!isset($dRec->price)){
-    			sales_QuotationsDetails::calcLivePrice($dRec, $rec);
+    			sales_QuotationsDetails::calcLivePrice($dRec, $rec, TRUE);
     			
     			if(!isset($dRec->price)){
     				$error[] = cat_Products::getTitleById($dRec->productId);
@@ -1559,7 +1540,7 @@ class sales_Quotations extends core_Master
     		}
     		
     		if(!isset($dRec->weight)){
-    			$dRec->weight = cat_Products::getWeight($dRec->productId, $dRec->packagingId, $dRec->quantity);
+    			$dRec->weight = cat_Products::getTransportWeight($dRec->productId, $dRec->quantity);
     		}
     		
     		$saveRecs[] = $dRec;

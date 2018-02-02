@@ -179,8 +179,8 @@ class tcost_FeeZones extends core_Master
     public function getTransportFee($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
     	// Колко е еденичното транспортно тегло на артикула
-    	$weightRow = cat_Products::getWeight($productId, $packagingId, $quantity);
-    	$volumeRow = cat_Products::getVolume($productId, $packagingId, $quantity);
+    	$weightRow = cat_Products::getTransportWeight($productId, $quantity);
+    	$volumeRow = cat_Products::getTransportVolume($productId, $quantity);
     	
     	// Ако теглото е 0 и няма обем, да не се изчислява транспорт
     	if(empty($weightRow) && isset($weightRow) && empty($volumeRow)) return;

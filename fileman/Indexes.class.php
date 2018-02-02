@@ -577,6 +577,8 @@ class fileman_Indexes extends core_Manager
      */
     static function deleteIndexesForData($dataId)
     {
+        if (!$dataId) return ;
+        
         // Изтриваме всички записи със съответното dataId
         fileman_Indexes::delete(array("#dataId = [#1#]", $dataId));
         
