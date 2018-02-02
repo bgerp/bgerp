@@ -611,7 +611,7 @@ class planning_Jobs extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->title = $mvc->getLink($rec->id);
+    	$row->title = ($fields['-single']) ? $mvc->getRecTitle($rec) : $mvc->getLink($rec->id);
     	$row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
     	$Double = core_Type::getByName('double(smartRound)');
     	
