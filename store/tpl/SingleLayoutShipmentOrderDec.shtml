@@ -142,7 +142,7 @@
    <div class='footerDocBlock'   style="border-top: none !important">
       <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
    </div>
-</div>
+
 
 <div style='margin-top:20px'>
    <a href="javascript:toggleDisplay([#id#])"  style="font-weight:bold; background-image:url([#iconPlus#]);"
@@ -172,4 +172,5 @@
       </table>
       <div class='clearfix21'></div>
    </div>
+</div>
 </div>
