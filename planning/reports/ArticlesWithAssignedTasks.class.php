@@ -261,9 +261,9 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         // class="state-draft document-handler///
         // class="{'$state'}-handler"///
         
-        $row->jobsId = planning_Jobs::getHyperlink($dRec->jobsId);
-        
         if ($dRec->linkFrom == 'job') {
+            
+            $row->jobsId = planning_Jobs::getHyperlink($dRec->jobsId) . '<br>';
             
             foreach ($tasksContainerIdArr as $k => $v) {
                 
@@ -279,17 +279,22 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 $folder = doc_Folders::fetch($tasksFolderIdArr[$k])->title;
                 
                 $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
-                // quiet small///state-{$state}-handler
                 
-                $row->jobsId .= '<div class=" quiet small">' . $folderLink . ' »  ' .
+                $row->jobsId .= "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" .
                      ht::createLink("#{$handle}", $singleUrl, FALSE, 
-                        "ef_icon={$Document->singleIcon}") . "</div>";
+                        "ef_icon={$Document->singleIcon}") . "</span>" . ' »  ' .
+                     "<span class= 'quiet small'>" . $folderLink . "</span>" . "</div>";
             }
+            
+            $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
         }
-        $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
         
         if ($dRec->linkFrom == 'art') {
             
+            $row->jobsId = planning_Jobs::getHyperlink($dRec->jobsId);
+            
+            $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name') . '<br>';
+            
             foreach ($tasksContainerIdArr as $k => $v) {
                 
                 $folderLink = doc_Folders::recToVerbal(
@@ -304,11 +309,13 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 $folder = doc_Folders::fetch($tasksFolderIdArr[$k])->title;
                 
                 $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
-                // quiet small///state-{$state}-handler
                 
-                $row->productId .= '<div class=" quiet small">' . $folderLink . ' »  ' .
+                // {$state}-draft document-handler
+                
+                $row->productId .= "<div ><span class= 'state-{$state} document-handler' >" .
                      ht::createLink("#{$handle}", $singleUrl, FALSE, 
-                        "ef_icon={$Document->singleIcon}") . "</div>";
+                        "ef_icon={$Document->singleIcon}") . "</span>" . ' »  ' .
+                     "<span class= 'quiet small'>" . $folderLink . "</span></div>";
             }
         }
         
