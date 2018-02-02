@@ -299,7 +299,6 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
-		$class = ($rec->type = 'in') ? 'packaging-send' : 'packaging-received';
-		$row->type = "<div class='{$class}'>{$row->type}</div>";
+		$row->type = "<div class='centered'>{$row->type}</div>";
 	}
 }
