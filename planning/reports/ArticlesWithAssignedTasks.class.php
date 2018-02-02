@@ -28,6 +28,11 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     protected $filterEmptyListFields;
 
     /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_Sorting';
+
+    /**
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
@@ -61,6 +66,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     {
         $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 
             'caption=Отговорници,mandatory,after = title');
+        $fieldset->FLD('typeOfSorting', 'enum(up=Възходящо,down=Низходящо)', 
+            'caption=Подредени,maxRadio=2,columns=2,mandatory,after=title');
     }
 
     /**
@@ -141,7 +148,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                             'containerId' => $jobses->containerId,
                             'tasksFolderId' => $task->folderId,
                             'tasksContainerId' => $task->containerId,
-                            'linkFrom' => 'job'
+                            'linkFrom' => 'job',
+                            'deliveryDate' => $jobses->deliveryDate
                         );
                     } else {
                         
@@ -193,7 +201,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                             'containerId' => $jobses->containerId,
                             'tasksFolderId' => $task->folderId,
                             'tasksContainerId' => $task->containerId,
-                            'linkFrom' => 'art'
+                            'linkFrom' => 'art',
+                            'deliveryDate' => $jobses->deliveryDate
                         );
                     } else {
                         
@@ -207,7 +216,30 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             }
         }
         
+        if ($rec->typeOfSorting == 'up') {
+            
+            $sorting = 'orderByPayDateUp';
+        } else {
+            
+            $sorting = 'orderByPayDateDown';
+        }
+        
+        usort($recs, array( $this, "$sorting"));
+        
         return $recs;
+    }
+    
+    // Подреждане на масива по поле в обекта
+    function orderByPayDateUp($a, $b)
+    {
+       
+        return $a->deliveryDate > $b->deliveryDate;
+    }
+
+    function orderByPayDateDown($a, $b)
+    {
+       
+        return $a->deliveryDate < $b->deliveryDate;
     }
 
     /**
@@ -280,10 +312,10 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 
                 $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
                 
-                $row->jobsId .= "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" .
-                     ht::createLink("#{$handle}", $singleUrl, FALSE, 
-                        "ef_icon={$Document->singleIcon}") . "</span>" . ' »  ' .
-                     "<span class= 'quiet small'>" . $folderLink . "</span>" . "</div>";
+                $row->jobsId .= "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" . ht::createLink(
+                    "#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}") .
+                     "</span>" . ' »  ' . "<span class= 'quiet small'>" . $folderLink . "</span>" .
+                     "</div>";
             }
             
             $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
@@ -312,10 +344,10 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 
                 // {$state}-draft document-handler
                 
-                $row->productId .= "<div ><span class= 'state-{$state} document-handler' >" .
-                     ht::createLink("#{$handle}", $singleUrl, FALSE, 
-                        "ef_icon={$Document->singleIcon}") . "</span>" . ' »  ' .
-                     "<span class= 'quiet small'>" . $folderLink . "</span></div>";
+                $row->productId .= "<div ><span class= 'state-{$state} document-handler' >" . ht::createLink(
+                    "#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}") .
+                     "</span>" . ' »  ' . "<span class= 'quiet small'>" . $folderLink .
+                     "</span></div>";
             }
         }
         
