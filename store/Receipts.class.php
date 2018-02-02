@@ -124,7 +124,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Детайла, на модела
      */
-    public $details = 'store_ReceiptDetails' ;
+    public $details = 'store_ReceiptDetails,store_DocumentPackagingDetail' ;
     
 
     /**

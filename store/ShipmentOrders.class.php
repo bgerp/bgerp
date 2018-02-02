@@ -126,7 +126,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Детайла, на модела
      */
-    public $details = 'store_ShipmentOrderDetails' ;
+    public $details = 'store_ShipmentOrderDetails,store_DocumentPackagingDetail';
     
 
     /**

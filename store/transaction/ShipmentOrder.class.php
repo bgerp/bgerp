@@ -17,6 +17,8 @@
  */
 class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
 {
+	
+	
     /**
      * 
      * @var sales_Sales
@@ -54,7 +56,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         $entries = array();
         
         $rec = $this->fetchShipmentData($id, $error);
-            
+       
         if(Mode::get('saveTransaction')){
         	if($error === TRUE){
         		acc_journal_RejectRedirect::expect(FALSE, "Трябва да има поне един ред с ненулево количество|*!");
@@ -62,9 +64,10 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         }
         
         $origin = $this->class->getOrigin($rec);
-        
+        $packRecs = store_DocumentPackagingDetail::getRecs($this->class, $rec->id);
+       
         // Всяко ЕН трябва да има поне един детайл
-        if (count($rec->details) > 0) {
+        if (count($rec->details) > 0 || count($packRecs) > 0) {
             
         	if($rec->isReverse == 'yes'){
         		
@@ -98,8 +101,13 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
     	$entries = $this->getTakingPart($rec, $origin, $reverse);
     	
     	// Записите от тип 2 (експедиция)
-    	
     	$entries = array_merge($entries, $this->getDeliveryPart($rec, $origin, $reverse));
+    	$class = ($reverse) ? cls::get('store_Receipts') : $this->class;
+    	$entries2 = store_DocumentPackagingDetail::getEntries($class, $rec, $reverse);
+    	
+    	if(count($entries2)){
+    		$entries = array_merge($entries, $entries2);
+    	}
     	
     	return $entries;
     }
@@ -131,6 +139,10 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
                 if(!empty($dRec->quantity)){
                 	$error = FALSE;
                 }
+            }
+            
+            if(!count($rec->details)){
+            	$error = FALSE;
             }
         }
         
