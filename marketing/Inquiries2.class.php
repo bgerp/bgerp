@@ -425,6 +425,7 @@ class marketing_Inquiries2 extends embed_Manager
     		foreach ($mvc->sendNotificationEmailQueue as $rec){
     		    try {
     		        $mvc->isSended = $mvc->sendNotificationEmail($rec);
+    		        cat_Products::logDebug("Изпратен имейл за запитване създадено от '{$rec->createdBy}'", $rec->id);
     		    } catch (core_exception_Expect $e) {
                     self::logErr("Грешка при изпращане", $rec->id);
                     reportException($e);
