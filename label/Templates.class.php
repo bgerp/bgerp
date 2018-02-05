@@ -97,7 +97,7 @@ class label_Templates extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy, state';
+    public $listFields = 'id, title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy, state';
 
     
     /**

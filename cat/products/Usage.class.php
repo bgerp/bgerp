@@ -45,6 +45,7 @@ class cat_products_Usage extends core_Manager
 		// Промяна на таба взависимост дали артикула е стандартен или не
 		if($data->isPublic === TRUE){
 			if($data->jobData->notManifacturable === TRUE && !count($data->jobData->rows)) return;
+			if(!haveRole('ceo,planning,job')) return;
 			$data->Tab = 'top';
 			$data->TabCaption = 'Задания';
 			if(!$prepareTab || $prepareTab != 'Usage') return;
