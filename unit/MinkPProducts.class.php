@@ -160,7 +160,7 @@ class unit_MinkPProducts extends core_Manager {
         $browser->setValue('name', 'Плик 7 л');
         $browser->setValue('code', 'plik7');
         $browser->setValue('measureId', 'брой');
-        $browser->setValue('Ценова група » Промоция', 15);
+        $browser->setValue('Ценова група » Промоция', True);
         $browser->press('Запис');
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
