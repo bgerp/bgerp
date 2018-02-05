@@ -459,7 +459,7 @@ class sales_PrimeCostByDocument extends core_Manager
 	 * @param double $value
 	 * @param boolean $isRejected
 	 */
-	private static function addIndicatorToArray(&$result, $valior, $personId, $docId, $docClassId, $indicatorId, $value, $isRejected)
+	public static function addIndicatorToArray(&$result, $valior, $personId, $docId, $docClassId, $indicatorId, $value, $isRejected)
 	{
 		$key = "{$personId}|{$docClassId}|{$docId}|{$valior}|{$indicatorId}";
 		
