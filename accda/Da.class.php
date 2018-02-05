@@ -212,12 +212,21 @@ class accda_Da extends core_Master
     		$form->setReadOnly('location');
     	}
     	
-    	// Опитваме се да определим координатите от локацията
     	if ($form->cmd == 'refresh') {
+    	    
+    	    // Опитваме се да определим координатите от локацията
     	    if ($form->rec->location && !$form->rec->gpsCoords) {
     	        $lRec = crm_Locations::fetch($form->rec->location);
     	        if ($lRec && $lRec->gpsCoords) {
     	            $form->rec->gpsCoords = $lRec->gpsCoords;
+    	        }
+    	    }
+    	    
+    	    // Добавяме снимка от артикула
+    	    if ($form->rec->productId  && !$form->rec->image) {
+    	        $pRec = cat_Products::fetch($form->rec->productId);
+    	        if ($pRec && $pRec->photo) {
+    	            $form->rec->image = $pRec->photo;
     	        }
     	    }
     	}

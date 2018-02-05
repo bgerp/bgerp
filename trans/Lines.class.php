@@ -268,14 +268,14 @@ class trans_Lines extends core_Master
 	/**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
 	    	
 	    	$rec->isRepeated = 'no';
-	    	if($rec->start < dt::now()){
-	    		$form->setError('start', 'Не може да се създаде линия в миналото!');
+	    	if($rec->start < dt::today()){
+	    		$form->setError('start', 'Не може да се създаде линия за предишен ден!');
 	    	}
     	}
     }
@@ -284,7 +284,7 @@ class trans_Lines extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-single'])){
 	    	
@@ -326,7 +326,7 @@ class trans_Lines extends core_Master
     /**
      * След подготовка на сингъла
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$data->row->weight = (!empty($data->weight)) ? cls::get('cat_type_Weight')->toVerbal($data->weight) : "<span class='quiet'>N/A</span>";
     	$data->row->volume = (!empty($data->volume)) ? cls::get('cat_type_Volume')->toVerbal($data->volume) : "<span class='quiet'>N/A</span>";

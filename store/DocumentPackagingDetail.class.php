@@ -86,6 +86,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
 		$this->FLD('documentClassId', 'class', 'column=none,notNull,silent,input=hidden,mandatory');
 		$this->FLD('documentId', 'int', 'column=none,notNull,silent,input=hidden,mandatory');
 		parent::setFields($this);
+		$this->setField('amount', 'smartCenter');
 		$this->FLD('type', 'enum(in=Приемане,out=Предаване)', 'column=none,notNull,silent,mandatory,caption=Действие,after=productId,input=hidden');
 		$this->setDbUnique('documentClassId,documentId,productId,packagingId,type');
 	}
