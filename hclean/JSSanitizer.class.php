@@ -57,6 +57,9 @@ class hclean_JSSanitizer extends core_Manager
         // Вземаме съдържанието на линка
         $content = static::getHtmlFromLink($htmlLink);
         
+        $content = preg_replace('/\\xA0|\\x00/', '', $content);
+        $content = trim($content);
+        
         $content = i18n_Charset::convertToUtf8($content, array(), TRUE);
         
         // Конфигурационни константи
@@ -68,11 +71,12 @@ class hclean_JSSanitizer extends core_Manager
           $content = csstoinline_ToInline::inlineCssFromHtmlLink($content);
         }
         
-
         $content = i18n_Charset::convertToUtf8($content, '', TRUE);
-     
+        
+        $content = html_entity_decode($content);
+        
         $content = preg_replace("/(<![\[\-][^>]*>)/i", "", $content);
-
+        
         // Преобразуваме HTML' а в текст, който може да се използва в променливи на JS
         $jsHtml = static::htmlToJsText($content);
         

@@ -186,6 +186,9 @@ span.all-users{
     transition: background-color linear 500ms;
 }
 
+.select2-container--default .select2-results>.select2-results__options {
+    max-height: 300px;
+}
 @-moz-document url-prefix() { 
 	.narrow .color-preview {
 		vertical-align: -2px;

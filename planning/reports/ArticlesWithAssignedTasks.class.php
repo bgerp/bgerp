@@ -28,6 +28,11 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     protected $filterEmptyListFields;
 
     /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_Sorting';
+
+    /**
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
@@ -59,7 +64,10 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 'caption=Отговорници,mandatory,single=none,after = title');
+        $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 
+            'caption=Отговорници,mandatory,after = title');
+        $fieldset->FLD('typeOfSorting', 'enum(up=Възходящо,down=Низходящо)', 
+            'caption=Подредени,maxRadio=2,columns=2,mandatory,after=title');
     }
 
     /**
@@ -70,7 +78,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      * @param embed_Manager $Embedder            
      * @param stdClass $data            
      */
-    protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
+    protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, 
+        embed_Manager $Embedder, &$data)
     {
         $form = &$data->form;
     }
@@ -107,6 +116,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             foreach ($resArrJobses as $d) {
                 
+                $linkFrom = 'job';
+                
                 if ($d->inType != 'doc')
                     continue;
                 $Document = doc_Containers::getDocument($d->inVal);
@@ -122,15 +133,36 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 
                 $task = cal_Tasks::fetch($Document->that);
                 
+                if ($task->state == 'rejected')
+                    continue;
+                
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
                 
                 if (keylist::isIn($assignedUsers, $task->assign)) {
                     
-                    $recs[$jobsesId] = (object) array(
+                    if (! array_key_exists($jobsesId, $recs)) {
                         
-                        'productId' => $jobsProdId,
-                        'jobsId' => $jobses->id
-                    );
+                        $recs[$jobsesId] = (object) array(
+                            
+                            'productId' => $jobsProdId,
+                            'jobsId' => $jobses->id,
+                            'folderId' => $jobses->folderId,
+                            'containerId' => $jobses->containerId,
+                            'tasksFolderId' => $task->folderId,
+                            'tasksContainerId' => $task->containerId,
+                            'linkFrom' => $linkFrom,
+                            'deliveryDate' => $jobses->deliveryDate
+                        );
+                    } else {
+                        
+                        $obj = &$recs[$jobsesId];
+                        
+                        $obj->tasksFolderId .= ',' . $task->folderId;
+                        
+                        $obj->tasksContainerId .= ',' . $task->containerId;
+                        
+                        $obj->linkFrom .= ',' . $linkFrom;
+                    }
                 }
             }
             
@@ -141,6 +173,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             foreach ($resArrProduct as $d) {
                 
+                $linkFrom = 'art';
+                
                 if ($d->inType != 'doc')
                     continue;
                 $Document = doc_Containers::getDocument($d->inVal);
@@ -156,20 +190,65 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 
                 $task = cal_Tasks::fetch($Document->that);
                 
+                if ($task->state == 'rejected')
+                    continue;
+                
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
                 
                 if (keylist::isIn($assignedUsers, $task->assign)) {
                     
-                    $recs[$jobsesId] = (object) array(
+                    if (! array_key_exists($jobsesId, $recs)) {
                         
-                        'productId' => $jobsProdId,
-                        'jobsId' => $jobses->id
-                    );
+                        $recs[$jobsesId] = (object) array(
+                            
+                            'productId' => $jobsProdId,
+                            'jobsId' => $jobses->id,
+                            'folderId' => $jobses->folderId,
+                            'containerId' => $jobses->containerId,
+                            'tasksFolderId' => $task->folderId,
+                            'tasksContainerId' => $task->containerId,
+                            'linkFrom' => $linkFrom,
+                            'deliveryDate' => $jobses->deliveryDate
+                        );
+                    } else {
+                        
+                        $obj = &$recs[$jobsesId];
+                        
+                        $obj->tasksFolderId .= ',' . $task->folderId;
+                        
+                        $obj->tasksContainerId .= ',' . $task->containerId;
+                        
+                        $obj->linkFrom .= ',' . $linkFrom;
+                    }
                 }
             }
         }
         
+        if ($rec->typeOfSorting == 'up') {
+            
+            $sorting = 'orderByPayDateUp';
+        } else {
+            
+            $sorting = 'orderByPayDateDown';
+        }
+        
+        usort($recs, array(
+            $this,
+            "$sorting"
+        ));
+        
         return $recs;
+    }
+    
+    // Подреждане на масива по поле в обекта
+    function orderByPayDateUp($a, $b)
+    {
+        return $a->deliveryDate > $b->deliveryDate;
+    }
+
+    function orderByPayDateDown($a, $b)
+    {
+        return $a->deliveryDate < $b->deliveryDate;
     }
 
     /**
@@ -189,6 +268,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             $fld->FLD('jobsId', 'varchar', 'caption=Задание');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
+            $fld->FLD('btn', 'varchar', 'caption=Връзка');
         } else {
             
             $fld->FLD('jobsId', 'varchar', 'caption=Задание,tdClass=centered');
@@ -215,14 +295,109 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         
         $row = new stdClass();
         
-        if (isset($dRec->productId)) {
-            $row->productId = ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : cat_Products::getLinkToSingle_($dRec->productId, 'name');
+        $tasksContainerIdArr = explode(',', $dRec->tasksContainerId);
+        
+        $tasksFolderIdArr = explode(',', $dRec->tasksFolderId);
+        
+        $linkFromArr = explode(',', $dRec->linkFrom);
+        
+        $row->jobsId = planning_Jobs::getHyperlink($dRec->jobsId) . '<br>';
+        
+        foreach ($tasksContainerIdArr as $k => $v) {
+            
+            if ($linkFromArr[$k] != 'job')
+                continue;
+            
+            $folderLink = doc_Folders::recToVerbal(doc_Folders::fetch($tasksFolderIdArr[$k]))->title;
+            
+            $Task = doc_Containers::getDocument($v);
+            
+            $state = cal_Tasks::fetch($Task->that)->state;
+            
+            $handle = $Task->getHandle();
+            
+            $folder = doc_Folders::fetch($tasksFolderIdArr[$k])->title;
+            
+            $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
+            
+            $row->jobsId .= "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" . ht::createLink(
+                "#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}") . "</span>" .
+                 ' »  ' . "<span class= 'quiet small'>" . $folderLink . "</span>" . "</div>";
         }
         
-        if (isset($dRec->jobsId)) {
-            $row->jobsId = ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : planning_Jobs::getLinkToSingle_($dRec->jobsId);
+        $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name') . '<br>';
+        
+        foreach ($tasksContainerIdArr as $k => $v) {
+            
+            if ($linkFromArr[$k] != 'art')
+                continue;
+            
+            $folderLink = doc_Folders::recToVerbal(doc_Folders::fetch($tasksFolderIdArr[$k]))->title;
+            
+            $Task = doc_Containers::getDocument($v);
+            
+            $state = cal_Tasks::fetch($Task->that)->state;
+            
+            $handle = $Task->getHandle();
+            
+            $folder = doc_Folders::fetch($tasksFolderIdArr[$k])->title;
+            
+            $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
+            
+            $row->productId .= "<div ><span class= 'state-{$state} document-handler' >" . ht::createLink(
+                "#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}") . "</span>" .
+                 ' »  ' . "<span class= 'quiet small'>" . $folderLink . "</span></div>";
+        }
+        
+        // Добавяме бутон за създаване на задача
+        
+        if ($dRec->containerId && doc_Linked::haveRightFor('addlink')) {
+            
+            Request::setProtected(
+                array(
+                    'inType',
+                    'foreignId'
+                ));
+            
+            $doc = doc_Containers::getDocument($dRec->containerId);
+            
+            if ($doc->haveRightFor('single')) {
+                
+                $row->btn = ht::createBtn('Връзка', 
+                    array(
+                        'doc_Linked',
+                        'Link',
+                        'foreignId' => $dRec->containerId,
+                        'inType' => 'doc',
+                        'ret_url' => TRUE
+                    ), FALSE, FALSE, 'ef_icon = img/16/doc_tag.png, title=Връзка към документа');
+            }
         }
         
         return $row;
+    }
+
+    /**
+     * Връща следващите три дати, когато да се актуализира справката
+     *
+     * @param stdClass $rec
+     *            - запис
+     * @return array|FALSE - масив с три дати или FALSE ако не може да се обновява
+     */
+    public function getNextRefreshDates($rec)
+    {
+        $date = new DateTime(dt::now());
+        $date->add(new DateInterval('P0DT0H5M0S'));
+        $d1 = $date->format('Y-m-d H:i:s');
+        $date->add(new DateInterval('P0DT0H5M0S'));
+        $d2 = $date->format('Y-m-d H:i:s');
+        $date->add(new DateInterval('P0DT0H5M0S'));
+        $d3 = $date->format('Y-m-d H:i:s');
+        
+        return array(
+            $d1,
+            $d2,
+            $d3
+        );
     }
 }

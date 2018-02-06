@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  * 
- * @see acc_TransactionSourceIntf
+ * @see label_SequenceIntf
  *
  */
 class planning_interface_TaskLabel
@@ -124,6 +124,14 @@ class planning_interface_TaskLabel
 		$params = cat_Params::getParamNameArr($params, TRUE);
 		$res = array_merge($res, $params);
 	
+		// Ако от драйвера идват още параметри, добавят се с приоритет
+		if($Driver = cat_Products::getDriver($rec->productId)){
+			$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
+			if(count($additionalFields)){
+				$res = $additionalFields + $res;
+			}
+		}
+		
 		// Генериране на превю на артикула за етикети
 		$previewWidth = planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH');
 		$previewHeight = planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT');
@@ -146,14 +154,6 @@ class planning_interface_TaskLabel
 	
 		$res['SIZE_UNIT'] = 'cm';
 		$res['DATE'] = dt::mysql2verbal(dt::today(), 'm/y');
-	
-		// Ако от драйвера идват още параметри, добавят се с приоритет
-		if($Driver = cat_Products::getDriver($rec->productId)){
-			$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
-			if(count($additionalFields)){
-				$res = $additionalFields + $res;
-			}
-		}
 	
 		// Връщане на масива, нужен за отпечатването на един етикет
 		return $res;

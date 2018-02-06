@@ -1799,6 +1799,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public function act_ChooseDraft()
     {
     	$this->requireRightFor('edit');
+    	expect(core_Users::isPowerUser());
     	$contragentClassId = Request::get('contragentClassId', 'int');
     	$contragentId = Request::get('contragentId', 'int');
     	

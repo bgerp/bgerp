@@ -1245,6 +1245,22 @@ class pos_Receipts extends core_Master {
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
     	
+    	// Ако е забранено продаването на неналични артикули да се проверява
+    	$notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
+    	if($notInStockChosen != 'yes'){
+    		$pointId = $this->fetchField($receiptId, 'pointId');
+    		$quantityInStock = pos_Stocks::getQuantity($rec->productId, $pointId);
+    		
+    		$pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
+    		$quantityInPack = ($pRec) ? $pRec->quantity : 1;
+    		$quantityInStock -= $rec->quantity * $quantityInPack;
+    		
+    		if($quantityInStock < 0){
+    			core_Statuses::newStatus("Артикулът не е в наличност", 'error');
+    			return $this->pos_ReceiptDetails->returnError($receiptId);
+    		}
+    	}
+    	
     	// Намираме дали този проект го има въведен
     	$sameProduct = $this->pos_ReceiptDetails->findSale($rec->productId, $rec->receiptId, $rec->value);
     	if($sameProduct) {
@@ -1320,7 +1336,7 @@ class pos_Receipts extends core_Master {
 	    	
 	    	$this->requireRightFor('terminal', $rec);
 	    	$html = $this->getResultsTable($searchString, $rec);
-	    } else {
+    	} else {
     		$html = ' ';
     		$rec = NULL;
     	}
@@ -1366,22 +1382,20 @@ class pos_Receipts extends core_Master {
     	$conf = core_Packs::getConfig('pos');
     	$data->showParams = $conf->POS_RESULT_PRODUCT_PARAMS;
     	
-    	// Намираме всички продаваеми продукти, за анонимния клиент
-    	$sellable = cls::get('cat_Products')->getProducts($data->rec->contragentClass, $data->rec->contragentObjectId, $data->rec->valior, 'canSell');
+    	$folderId = cls::get($data->rec->contragentClass)->fetchField($data->rec->contragentObjectId, 'folderId');
+    	$pQuery = cat_Products::getQuery();
+    	$pQuery->where("#canSell = 'yes' AND #state = 'active'");
+    	$pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = {$folderId})");
+    	$pQuery->where(array("#searchKeywords LIKE '%[#1#]%'", $data->searchString));
+    	$pQuery->show('id,name,isPublic,code');
+    	$pQuery->limit($this->maxSearchProducts);
+    	$sellable = $pQuery->fetchAll();
     	if(!count($sellable)) return;
     	
     	$Policy = cls::get('price_ListToCustomers');
     	$Products = cls::get('cat_Products');
     	
     	foreach ($sellable as $id => $name){
-    		if(is_object($name)) continue;
-    		
-    		// Показваме само до определена бройка
-    		if($count >= $this->maxSearchProducts) break;
-    		
-    		// Ако продукта не отговаря на търсения стринг, го пропускаме
-    		if(!$pRec = $Products->fetch(array("#id = {$id} AND #searchKeywords LIKE '%[#1#]%'", $data->searchString))) continue;
-    		
     		$pInfo = cat_Products::getProductInfo($id);
     		
     		$packs = $Products->getPacks($id);

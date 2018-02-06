@@ -557,14 +557,11 @@ class planning_Jobs extends core_Master
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     		$rec->isEdited = TRUE;
     		
-    		$weight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
-    		if(!empty($weight)){
-    			$rec->brutoWeight = $weight;
-    			$rec->weight = $weight / $rec->quantity;
-    		} else {
-    			$rec->brutoWeight = NULL;
-    			$rec->weight = NULL;
-    		}
+    		$brutoWeight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
+    		$rec->brutoWeight = (!empty($brutoWeight)) ? $brutoWeight : NULL;
+    		
+    		$nettoWeight = cat_Products::convertToUom($rec->productId, 'kg');
+    		$rec->weight = (!empty($nettoWeight)) ? $nettoWeight : NULL;
     	}
     }
     
@@ -614,7 +611,7 @@ class planning_Jobs extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->title = $mvc->getLink($rec->id);
+    	$row->title = ($fields['-single']) ? $mvc->getRecTitle($rec) : $mvc->getLink($rec->id);
     	$row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
     	$Double = core_Type::getByName('double(smartRound)');
     	
@@ -951,7 +948,7 @@ class planning_Jobs extends core_Master
     	if($rec->state == 'closed'){
     		$count = 0;
     		$tQuery = planning_Tasks::getQuery();
-    		$tQuery->where("#originId = {$rec->containerId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped'");
+    		$tQuery->where("#originId = '{$rec->containerId}' AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped'");
     		while($tRec = $tQuery->fetch()){
     			$tRec->state = 'closed';
     			cls::get('planning_Tasks')->save_($tRec, 'state');

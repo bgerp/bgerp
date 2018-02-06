@@ -208,6 +208,7 @@ class cat_Groups extends core_Manager
     			$rec->parentId = $parentId;
     		}
     	}
+    	$rec->productCnt = 0;
     }
     
     
