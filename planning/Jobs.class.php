@@ -948,7 +948,7 @@ class planning_Jobs extends core_Master
     	if($rec->state == 'closed'){
     		$count = 0;
     		$tQuery = planning_Tasks::getQuery();
-    		$tQuery->where("#originId = {$rec->containerId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped'");
+    		$tQuery->where("#originId = '{$rec->containerId}' AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped'");
     		while($tRec = $tQuery->fetch()){
     			$tRec->state = 'closed';
     			cls::get('planning_Tasks')->save_($tRec, 'state');

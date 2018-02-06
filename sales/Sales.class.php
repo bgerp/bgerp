@@ -789,6 +789,10 @@ class sales_Sales extends deals_DealMaster
     	// Проверка на екшъна за създаване на артикул към продажба
     	if($action == 'createsaleforproduct'){
     		$res = $mvc->getRequiredRoles('add', $rec, $userId);
+    		if(core_Users::isContractor($userId)){
+    			$res = 'no_one';
+    		}
+    		
     		if(isset($rec) && $res != 'no_one'){
     			if(empty($rec->productId) || empty($rec->folderId)){
     				$res = 'no_one';
