@@ -567,6 +567,18 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * Кои плейсхолдъри немогат да се предефинират от потребителя
+     *
+     * @param int $id
+     * @return array
+     */
+    public function getReadOnlyPlaceholders($id)
+    {
+    	return array();
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
