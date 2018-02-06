@@ -607,8 +607,7 @@ class marketing_Inquiries2 extends embed_Manager
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
-    	 
-    	if($rec->state == 'active'){
+    	if($rec->state == 'active' && !core_Users::isContractor()){
     
     		if($pId = cat_Products::fetchField("#originId = {$rec->containerId} AND #state = 'active'")){
     			$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
@@ -633,8 +632,7 @@ class marketing_Inquiries2 extends embed_Manager
     		}
     		
     		// Ако е настроено да се изпраща нотифициращ имейл, добавяме бутона за препращане
-    		$conf = core_Packs::getConfig('marketing');
-    		if($mvc->haveRightFor('add') && $conf->MARKETING_INQUIRE_TO_EMAIL && $conf->MARKETING_INQUIRE_FROM_EMAIL){
+    		if($mvc->haveRightFor('sendemail', $rec)){
     			$data->toolbar->addBtn('Препращане', array($mvc, 'send', $rec->id), array('ef_icon'=> "img/16/email_forward.png", 'warning' => "Сигурни ли сте, че искате да препратите имейла на|* '{$conf->MARKETING_INQUIRE_TO_EMAIL}'",'title' => "Препращане на имейла със запитването към|* '{$conf->MARKETING_INQUIRE_TO_EMAIL}'"));
     		}
     	}
@@ -654,7 +652,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$msg = '|Успешно препращане';
     	try {
     	    $this->sendNotificationEmail($rec);
-    	    $this->logWrite('Препращане', $rec->id);
+    	    $this->logWrite('Ръчно препращане на имейл', $rec->id);
     	} catch (core_exception_Expect $e) {
             $this->logErr("Грешка при изпращане", $rec->id);
             reportException($e);
@@ -696,6 +694,19 @@ class marketing_Inquiries2 extends embed_Manager
     		$cover = doc_Folders::getCover($rec->folderId);
     		if(!$cover->instance instanceof crm_Companies || $rec->state != 'active'){
     			$res = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'sendemail'){
+    		$res = $mvc->getRequiredRoles('add', $rec, $userId);
+    		
+    		if(core_Users::isContractor()){
+    			$res = 'no_one';
+    		} else {
+    			$conf = core_Packs::getConfig('marketing');
+    			if(empty($conf->MARKETING_INQUIRE_TO_EMAIL) || empty($conf->MARKETING_INQUIRE_FROM_EMAIL)){
+    				$res = 'no_one';
+    			}
     		}
     	}
     }
