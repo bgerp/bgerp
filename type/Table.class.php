@@ -65,6 +65,10 @@ class type_Table extends type_Blob {
         	}
             
             $attr[$field] = array('name' => $name . '[' . $field . '][]');
+            
+            // При натискане на ентер да се добавя нов ред
+            $attr[$field]['onkeypress'] = "if (event && (event.which == 13)) { $('#dblRow_{$name}').click(); $('#table_table :input').focus(); return false;}";
+            
             if($fObj->width) {
                 $attr[$field]['style'] .= ";width:{$fObj->width}";
             }
@@ -151,7 +155,7 @@ class type_Table extends type_Blob {
         $tpl = str_replace("\n", "", $tpl);
     
         $id = 'table_' . $name;
-        $btn = ht::createElement('input', array('type' => 'button', 'value' => '+ ' . tr('Нов ред||Add row'), 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));  
+        $btn = ht::createElement('input', array('id' => 'dblRow_' . $name, 'type' => 'button', 'value' => '+ ' . tr('Нов ред||Add row'), 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));  
         
         $attrTable = array();
         $attrTable['class'] = 'listTable typeTable ' . $attrTable['class'];
