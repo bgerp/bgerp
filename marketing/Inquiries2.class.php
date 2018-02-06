@@ -644,10 +644,10 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public function act_Send()
     {
+    	$this->requireRightFor('sendemail');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
-    	
-    	$this->requireRightFor('add');
+    	$this->requireRightFor('sendemail', $rec);
     	
     	$msg = '|Успешно препращане';
     	try {
