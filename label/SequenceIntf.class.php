@@ -73,4 +73,16 @@ class label_SequenceIntf
     {
     	return $this->class->canSelectTemplate($id, $templateId);
     }
+    
+    
+    /**
+     * Кои плейсхолдъри немогат да се предефинират от потребителя
+     *
+     * @param int $id
+     * @return array
+     */
+    public function getReadOnlyPlaceholders($id)
+    {
+    	return $this->class->getReadOnlyPlaceholders($id);
+    }
 }
