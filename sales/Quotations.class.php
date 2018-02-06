@@ -328,7 +328,7 @@ class sales_Quotations extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
 	    if($data->rec->state == 'active'){
-	    	if(sales_Sales::haveRightFor('add', (object)array('folderId' => $data->rec->folderId))){
+	    	if($mvc->haveRightFor('salefromquotation', (object)array('folderId' => $data->rec->folderId))){
 	    		$items = $mvc->getItems($data->rec->id);
 	    		
 	    		// Ако има поне един опционален артикул или има варианти на задължителните, бутона сочи към екшън за определяне на количествата
@@ -801,6 +801,13 @@ class sales_Quotations extends core_Master
     			}
     		}
     	}
+    	
+    	if($action == 'salefromquotation'){
+    		$res = sales_Sales::getRequiredRoles('add', $rec, $userId);
+    		if(core_Users::isContractor($userId)){
+    			$res = 'no_one';
+    		}
+    	}
     }
     
     
@@ -992,12 +999,12 @@ class sales_Quotations extends core_Master
      */
     function act_CreateSale()
     {
-    	sales_Sales::requireRightFor('add');
+    	$this->requireRightFor('salefromquotation');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetchRec($id));
     	expect($rec->state = 'active');
     	expect($items = $this->getItems($id));
-    	
+    	$this->requireRightFor('salefromquotation', (object)array('folderId' => $rec->folderId));
     	$force = Request::get('force', 'int');
     	
     	// Ако не форсираме нова продажба
@@ -1039,11 +1046,11 @@ class sales_Quotations extends core_Master
      */
     public function act_FilterProductsForSale()
     {
-    	sales_Sales::requireRightFor('add');
+    	$this->requireRightFor('salefromquotation');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'active');
-    	sales_Sales::requireRightFor('add', (object)array('folderId' => $rec->folderId));
+    	$this->requireRightFor('salefromquotation', (object)array('folderId' => $rec->folderId));
     	
     	// Подготовка на формата за филтриране на данните
     	$form = $this->getFilterForm($rec->id, $id);
