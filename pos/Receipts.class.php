@@ -1408,7 +1408,7 @@ class pos_Receipts extends core_Master {
     		if(empty($price->price)) continue;
     		$vat = $Products->getVat($id);
     		$obj = (object)array('productId'   => $id, 
-    							 'measureId'   => $pRec->measureId,
+    							 'measureId'   => $pInfo->productRec->measureId,
     							 'price'       => $price->price * $perPack, 
     							 'photo'       => $pRec->photo,
     							 'packagingId' => $packId,
