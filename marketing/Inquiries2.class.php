@@ -536,6 +536,7 @@ class marketing_Inquiries2 extends embed_Manager
                 );
                 
                 doclog_Documents::flushActions();
+                marketing_Inquiries2::logWrite('АВТОМАТИЧНО изпращане на имейл', $rec->id);
     		} else {
     		    marketing_Inquiries2::logErr('Грешка при изпращане', $rec->id);
     		}
