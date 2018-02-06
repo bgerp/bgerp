@@ -1156,7 +1156,7 @@ class core_Users extends core_Manager
                                 'id' => self::SYSTEM_USER,
                                 'nick' => core_Setup::get('SYSTEM_NICK'),
                                 'state' => 'active',
-                                'names' => tr('Системата')
+                                'names' => core_Setup::get('SYSTEM_NAME')
                             );
         } elseif(($cond == self::ANONYMOUS_USER) && is_numeric($cond)) {
             $res = (object) array(
