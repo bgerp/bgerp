@@ -67,7 +67,7 @@ class type_Table extends type_Blob {
             $attr[$field] = array('name' => $name . '[' . $field . '][]');
             
             // При натискане на ентер да се добавя нов ред
-            $attr[$field]['onkeypress'] = "if (event && (event.which == 13)) { $('#dblRow_{$name}').click(); $('#table_table :input').focus(); return false;}";
+            $attr[$field]['onkeypress'] = "if (event && (event.which == 13)) { $('#dblRow_{$name}').click(); $('#table_{$name} :input').focus(); return false;}";
             
             if($fObj->width) {
                 $attr[$field]['style'] .= ";width:{$fObj->width}";
