@@ -178,9 +178,10 @@ class label_Labels extends core_Master
              if ($classId && $objId) {
              	  $clsInst = cls::getInterface('label_SequenceIntf', $classId);
              	
-                  $arr = (array)$clsInst->getLabelPlaceholders($objId);
-                  $readOnlyArr = $dataArr = arr::make($arr, TRUE);
-                    
+                  $arr = (array)$clsInst->getLabelData($objId, 0);
+                  $dataArr = arr::make($arr, TRUE);
+                  $readOnlyArr = $clsInst->getReadOnlyPlaceholders($objId);
+                 
                   $form->setDefault('classId', $objId);
                   $form->setDefault('objId', $classId);
                     
@@ -191,9 +192,8 @@ class label_Labels extends core_Master
          } else {
              // Полетата, които идват от обекта, да не могат да се редактират
              if ($rec->classId && $rec->objId) {
-                  $clsInst = cls::getInterface('label_SequenceIntf', $rec->classId);
-                  $readOnlyArr = (array)$clsInst->getLabelPlaceholders($rec->objId);
-                  $readOnlyArr = arr::make($readOnlyArr, TRUE);
+             	$clsInst = cls::getInterface('label_SequenceIntf', $rec->classId);
+             	$readOnlyArr = $clsInst->getReadOnlyPlaceholders($rec->objId);
              }
         }
         
@@ -354,8 +354,8 @@ class label_Labels extends core_Master
         	$form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getFormTitleLink($objId);
         	
             $intfInst = cls::getInterface('label_SequenceIntf', $classId);
-            $labelDataArr = (array) $intfInst->getLabelPlaceholders($objId);
-            $labelDataArr = arr::make($labelDataArr, TRUE);
+            $labelDataArr = (array) $intfInst->getLabelData($objId, 0);
+            $labelDataArr = arr::make(array_keys($labelDataArr), TRUE);
         }
        
         // Добавяме функционално поле
@@ -371,7 +371,6 @@ class label_Labels extends core_Master
             foreach ($templates as $tRec){
                 $template = label_Templates::getTemplate($tRec->id);
                 $templatePlaceArr = label_Templates::getPlaceHolders($template);
-                
                 $cnt = 0;
                 
                 foreach ($templatePlaceArr as $key => $v) {
@@ -381,7 +380,7 @@ class label_Labels extends core_Master
                         $cnt++;
                     }
                 }
-                
+               
                 // Оцветяваме имената на шаблоните, в зависимост от съвпаданието на плейсхолдерите
                 $percent = 0;
                 $lCnt = count($labelDataArr);
@@ -526,8 +525,6 @@ class label_Labels extends core_Master
         
         // Ако няма запис
         if (!$rec) {
-            
-            // Вземаме записа
             $rec = static::fetch($data->Label->id);
         }
         
@@ -597,7 +594,9 @@ class label_Labels extends core_Master
                 
                 foreach ($labelDataArr as $key => $val) {
                     $key = label_TemplateFormats::getPlaceholderFieldName($key);
-                    $params[$key] = $val;
+                    if(empty($params[$key]) || $key == $val){
+                    	$params[$key] = $val;
+                    }
                 }
             }
             
