@@ -597,14 +597,14 @@ class label_Labels extends core_Master
                 $readOnlyArr = $intfInst->getReadOnlyPlaceholders($rec->objId);
                 
                 foreach ($labelDataArr as $key => $val) {
-                    $key = label_TemplateFormats::getPlaceholderFieldName($key);
-                    
-                    if(!array_key_exists($key, $params)){
-                    	$params[$key] = $val;
+                    $keyNormalized = label_TemplateFormats::getPlaceholderFieldName($key);
+                   
+                    if(!array_key_exists($keyNormalized, $params)){
+                    	$params[$keyNormalized] = $val;
                     }
                     
                     if(array_key_exists($key, $readOnlyArr)){
-                    	$params[$key] = $val;
+                    	$params[$keyNormalized] = $val;
                     }
                 }
             }
