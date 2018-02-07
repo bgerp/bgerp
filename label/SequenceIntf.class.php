@@ -23,18 +23,6 @@ class label_SequenceIntf
     
     
     /**
-     * Връща масив с плейсхолдърите, които ще се попълват от getLabelData
-     * 
-     * @param integer $id
-     * @return array
-     */
-    public function getLabelPlaceholders($id)
-    {
-    	return $this->class->getLabelPlaceholders($id);
-    }
-    
-    
-    /**
      * Връща масив с данни за плейсхолдърите на етикет
      * 
      * @param integer $id
