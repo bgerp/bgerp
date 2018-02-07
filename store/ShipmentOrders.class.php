@@ -487,7 +487,6 @@ class store_ShipmentOrders extends store_DocumentMaster
      *
      * @param int $id - ид на store_ShipmentOrders
      * @param number $labelNo - номер на етикета
-     *
      * @return array $res - данни за етикетите
      *
      * @see label_SequenceIntf
@@ -522,11 +521,26 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * Кои плейсхолдъри немогат да се предефинират от потребителя
+     *
+     * @param int $id
+     * @return array
+     * 
+     * @see label_SequenceIntf
+     */
+    public function getReadOnlyPlaceholders($id)
+    {
+    	$arr = arr::make(array('Текущ_етикет', 'BARCODE'), TRUE);
+    
+    	return $arr;
+    }
+    
+    
+    /**
      * Броя на етикетите, които могат да се отпечатат
      *
      * @param integer $id
      * @param string $allowSkip
-     *
      * @return integer
      *
      * @see label_SequenceIntf
