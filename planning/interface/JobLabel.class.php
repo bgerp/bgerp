@@ -69,12 +69,6 @@ class planning_interface_JobLabel
 			}
 		}
 		
-		//$preview = cat_Products::getPreview($rec->productId);
-		
-		if(!empty($preview)){
-			//$res['PREVIEW'] = $preview;
-		}
-		
 		return $res;
 	}
 	
