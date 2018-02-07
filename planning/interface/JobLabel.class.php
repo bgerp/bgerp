@@ -97,6 +97,8 @@ class planning_interface_JobLabel
 	 */
 	public function getEstimateCnt($id, &$allowSkip)
 	{
+		$allowSkip = TRUE;
+		
 		return NULL;
 	}
 }
