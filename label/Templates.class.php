@@ -360,24 +360,29 @@ class label_Templates extends core_Master
         
         // Добавяме бутон
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $form->FNC('fClassId', 'class(interface=label_SequenceIntf, allowEmpty,select=title)', 'caption=Източник');
         
-        $form->showFields = 'search';
+        $form->showFields = 'search,fClassId';
         if(!core_Request::get('Rejected', 'int')){
         	$form->FNC('fState', 'enum(, draft=Чернови, active=Използвани)', 'caption=Всички, allowEmpty,autoFilter');
         	$form->showFields .= ', fState';
         	
         	// Инпутваме полетата
-        	$form->input('fState', 'silent');
+        	$form->input('fState,fClassId', 'silent');
         }
         
-        // Подреждаме по състояние
+        // Подреждане по състояние
         $data->query->orderBy('#state=ASC');
         
         // Подреждаме по дата на създаване
         $data->query->orderBy('#createdOn=DESC');
 
-        if ($state = $data->listFilter->rec->fState) {
+        if($state = $data->listFilter->rec->fState) {
             $data->query->where(array("#state = '[#1#]'", $state));
+        }
+        
+        if($classId = $data->listFilter->rec->fClassId) {
+        	$data->query->where(array("#classId = '[#1#]'", $classId));
         }
     }
     
