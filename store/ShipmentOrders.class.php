@@ -498,9 +498,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$res = array();
     	$res['NOMER'] = $rec->id;
 
-        if($labelNo == 0) $labelNo = 1;
-
-    	$res['Текущ_етикет'] = $labelNo;
+    	$res['Текущ_етикет'] = ($labelNo == 0) ? 'Текущ_етикет' : $labelNo;
     	$logisticData = $this->getLogisticData($rec);
     	$res['DESTINATION'] = "{$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toCountry']}";
     	
@@ -517,22 +515,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$res['DATE'] = dt::mysql2verbal(dt::today(), 'd/m/y');
     	
     	return $res;
-    }
-    
-    
-    /**
-     * Кои плейсхолдъри немогат да се предефинират от потребителя
-     *
-     * @param int $id
-     * @return array
-     * 
-     * @see label_SequenceIntf
-     */
-    public function getReadOnlyPlaceholders($id)
-    {
-    	$arr = arr::make(array('Текущ_етикет', 'BARCODE'), TRUE);
-    
-    	return $arr;
     }
     
     
@@ -560,10 +542,14 @@ class store_ShipmentOrders extends store_DocumentMaster
      *
      * @param int $id
      * @return array
+     * 
+     * @see label_SequenceIntf
      */
     public function getReadOnlyPlaceholders($id)
     {
-    	return array();
+    	$arr = arr::make(array('Текущ_етикет'), TRUE);
+    	
+    	return $arr;
     }
     
     
