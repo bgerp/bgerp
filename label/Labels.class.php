@@ -351,9 +351,12 @@ class label_Labels extends core_Master
         if ($classId && $objId) {
         	$form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getFormTitleLink($objId);
         	
+        	// Взимане на данни от шаблона
             $intfInst = cls::getInterface('label_SequenceIntf', $classId);
-            $labelDataArr = (array) $intfInst->getLabelData($objId, 0);
+            $labelDataArr = $intfInst->getLabelData($objId, 0);
+            $readOnlyArr = $intfInst->getReadOnlyPlaceholders($objId, 0);
             $labelDataArr = arr::make(array_keys($labelDataArr), TRUE);
+			$labelDataArr = array_diff_key($labelDataArr, $readOnlyArr);
         }
        
         // Добавяме функционално поле
@@ -386,11 +389,11 @@ class label_Labels extends core_Master
                     $percent = ($cnt / $lCnt) * 100;
                 }
                
-                $dataColor = '#000000';
+                $dataColor = '#f2c167';
                 if ($percent >= 90) {
-                    $dataColor = '#00ff00';
+                    $dataColor = '#a0f58d';
                 } elseif ($percent <= 10) {
-                    $dataColor = '#999999';
+                    $dataColor = '#f35c5c';
                 }
 
                 $opt = new stdClass();
@@ -400,14 +403,16 @@ class label_Labels extends core_Master
                 $optArr[$tRec->id] = $opt;
             }
             
-            $form->setOptions('selectTemplateId', array('' => '') + $optArr);
-            
             if (count($optArr) == 1) {
                 $redirect = TRUE;
             }
+            
+            // Сортиране по цвят
+            usort($optArr, function($a, $b){ return strcmp($a->attr['data-color'], $b->attr['data-color']);});
+            $form->setOptions('selectTemplateId', array('' => '') + $optArr);
         }
         
-        // Въвеждаме полето
+        // Въвеждане на полето
         $form->input('selectTemplateId');
         
         // Ако формата е изпратена без грешки
