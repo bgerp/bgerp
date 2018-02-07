@@ -483,31 +483,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
-     * Връща масив с плейсхолдърите, които ще се попълват от getLabelData
-     *
-     * @param mixed $id - ид или запис
-     * @return array $fields - полета за етикети
-     */
-    public function getLabelPlaceholders($id)
-    {
-    	$rec = $this->fetchRec($id);
-    	$fields = array('NOMER', 'DESTINATION', 'DATE', 'Текущ_етикет');
-    	$allowSkip = FALSE;
-    	if($this->getEstimateCnt($id, $allowSkip)){
-    		$fields[] = 'Общо_етикети';
-    	}
-    	
-    	if(isset($rec->lineId)){
-    		if($forwarderId = trans_Lines::fetchField($rec->lineId, 'forwarderId')){
-    			$fields[] = 'SPEDITOR';
-    		}
-    	}
-    	
-    	return $fields;
-    }
-    
-    
-    /**
      * Връща данни за етикети
      *
      * @param int $id - ид на store_ShipmentOrders

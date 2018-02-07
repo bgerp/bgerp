@@ -39,41 +39,6 @@ class planning_interface_TaskLabel
 	
 	
 	/**
-	 * Връща масив с плейсхолдърите, които ще се попълват от getLabelData
-	 *
-	 * @param mixed $id - ид или запис
-	 * @return array $fields - полета за етикети
-	 */
-	public function getLabelPlaceholders($id)
-	{
-		expect($rec = planning_Tasks::fetchRec($id));
-		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY', 'ИЗГЛЕД', 'PREVIEW', 'SIZE_UNIT', 'DATE', 'SIMPLE_NAME', 'PRODUCT_CODE');
-		expect($origin = doc_Containers::getDocument($rec->originId));
-		$jobRec = $origin->fetch();
-		if(isset($jobRec->saleId)){
-			$fields[] = 'ORDER';
-			$fields[] = 'COUNTRY';
-		}
-	
-		// Извличане на всички параметри на артикула
-		$params = planning_Tasks::getTaskProductParams($rec, TRUE);
-	
-		$params = array_keys(cat_Params::getParamNameArr($params, TRUE));
-		$fields = array_merge($fields, $params);
-	
-		// Добавяне на допълнителни плейсхолдъри от драйвера на артикула
-		if($Driver = cat_Products::getDriver($rec->productId)){
-			$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
-			if(count($additionalFields)){
-				$fields = array_merge($fields, array_keys($additionalFields));
-			}
-		}
-	
-		return $fields;
-	}
-	
-	
-	/**
 	 * Връща данни за етикети
 	 *
 	 * @param int $id - ид на задача
@@ -104,6 +69,8 @@ class planning_interface_TaskLabel
 			$paddLength = planning_Setup::get('SERIAL_STRING_PAD');
 			$serial = str_pad($serial, $paddLength, '0', STR_PAD_LEFT);
 			$res['BARCODE'] = $serial;
+		} else {
+			$res['BARCODE'] = 'BARCODE';
 		}
 	
 		// Информация за артикула
@@ -176,5 +143,19 @@ class planning_interface_TaskLabel
 		$rec = planning_Tasks::fetch($id);
 	
 		return $rec->plannedQuantity;
+	}
+	
+	
+	/**
+	 * Кои плейсхолдъри немогат да се предефинират от потребителя
+	 * 
+	 * @param int $id
+	 * @return array
+	 */
+	public function getReadOnlyPlaceholders($id)
+	{
+		$arr = arr::make(array('PREVIEW', 'BARCODE'), TRUE);
+		
+		return $arr;
 	}
 }
