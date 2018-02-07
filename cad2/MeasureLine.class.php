@@ -62,8 +62,11 @@ class cad2_MeasureLine  extends cad2_Shape {
             $By = $My;
             $dist = abs($dist);
         }
-        
+        $fontMultiplayer = 2;
+        $dist += $fontMultiplayer;
+
         $svg->openGroup();
+        $svg->setAttr('stroke-width', 0.2);
 
         $A = new cad2_Vector($Ax, $Ay);
         $B = new cad2_Vector($Bx, $By);
@@ -104,7 +107,7 @@ class cad2_MeasureLine  extends cad2_Shape {
         $ab = new cad2_Vector($B1->x - $A1->x, $B1->y - $A1->y);
         $text = $measureText ? $measureText . ' mm' : round($ab->r). ' mm';
 
-        $width = 0.3 * strlen($text) * ($svg->getAttr('font-size') / 10);
+        $width = 0.3 * strlen($text) * ($fontMultiplayer * $svg->getAttr('font-size') / 10);
 
         $ab1 = $svg->p($ab->a, -$width);
         $td = $svg->p($ab->a + pi()/2, -2);

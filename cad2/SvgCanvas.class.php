@@ -62,7 +62,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
         $this->setAttr('stroke', 'black');
         $this->setAttr('stroke-width', 0.2);
         $this->setAttr('fill', 'none');
-        $this->setAttr('font-size', 40); 
+        $this->setAttr('font-size', 40);
         $this->setAttr('font-family', 'Courier');
 	}
 
@@ -348,7 +348,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
     /**
      * Изписва текст
      */
-    public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE, $link = NULL)
+    public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE, $link = NULL, $multiply = 2)
     {
         $this->closePath(FALSE);
 
@@ -392,7 +392,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
 		}
 
         if( $size = $this->getAttr('font-size') ) {
-            $size = ($size / 10) * $this->pixPerMm;
+            $size = ($multiply * $size / 10) * $this->pixPerMm;
 			$tx->attr['font-size'] = $size;
 		}
         
