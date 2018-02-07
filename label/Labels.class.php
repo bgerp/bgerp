@@ -594,17 +594,22 @@ class label_Labels extends core_Master
                 core_Lg::push($lang);
                 $labelDataArr = (array) $intfInst->getLabelData($rec->objId, $lDataNo++);
                 core_Lg::pop();
+                $readOnlyArr = $intfInst->getReadOnlyPlaceholders($rec->objId);
                 
                 foreach ($labelDataArr as $key => $val) {
                     $key = label_TemplateFormats::getPlaceholderFieldName($key);
-                    if(empty($params[$key]) || $key == $val){
+                    
+                    if(!array_key_exists($key, $params)){
+                    	$params[$key] = $val;
+                    }
+                    
+                    if(array_key_exists($key, $readOnlyArr)){
                     	$params[$key] = $val;
                     }
                 }
             }
             
             $copyId = 1;
-            
             if ($updatePrintCnt) {
                 $params[$currPrintCntField]++;
             }
