@@ -167,10 +167,11 @@ class label_Labels extends core_Master
         if (!$rec->id) {
              // id на шаблона
              $templateId = Request::get('templateId', 'int');
-                
+             $lang = label_Templates::fetchField($templateId, 'lang');
+             
              // Ако не е избрано id на шаблона
              if (!$templateId) redirect(array($mvc, 'selectTemplate'));
-                
+             
              // Ако се създава етикет от обект, използваме неговите данни
              Request::setProtected('classId, objId');
              $classId = Request::get('classId');
@@ -178,7 +179,10 @@ class label_Labels extends core_Master
              if ($classId && $objId) {
              	  $clsInst = cls::getInterface('label_SequenceIntf', $classId);
              	
+             	  core_Lg::push($lang);
                   $arr = (array)$clsInst->getLabelData($objId, 0);
+                  core_Lg::pop();
+                  
                   $dataArr = arr::make($arr, TRUE);
                   $readOnlyArr = $clsInst->getReadOnlyPlaceholders($objId);
                  
@@ -233,8 +237,7 @@ class label_Labels extends core_Master
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	$data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на етикет от шаблон|* ';
-    	$data->form->title .= '"' . label_Templates::getVerbal($data->form->rec->templateId, 'title') . '"';
+    	$data->form->title = core_Detail::getEditTitle('label_Templates', $data->form->rec->templateId, $mvc->singleTitle, $data->form->rec->id);
     }
     
     
