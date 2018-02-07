@@ -402,14 +402,14 @@ class label_Labels extends core_Master
                 
                 $optArr[$tRec->id] = $opt;
             }
+           
+            // Сортиране по цвят
+            uasort($optArr, function($a, $b){ return strcmp($a->attr['data-color'], $b->attr['data-color']);});
+            $form->setOptions('selectTemplateId', array('' => '') + $optArr);
             
             if (count($optArr) == 1) {
                 $redirect = TRUE;
             }
-            
-            // Сортиране по цвят
-            usort($optArr, function($a, $b){ return strcmp($a->attr['data-color'], $b->attr['data-color']);});
-            $form->setOptions('selectTemplateId', array('' => '') + $optArr);
         }
         
         // Въвеждане на полето
