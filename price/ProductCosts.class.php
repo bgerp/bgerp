@@ -279,7 +279,8 @@ class price_ProductCosts extends core_Manager
     				foreach ($purchaseProducts[$purRec->requestId] as $o1){
     					$itemId = acc_Items::fetchItem('cat_Products', $o1->productId)->id;
     					$amount = acc_Balances::getBlAmounts($entries, '321', 'debit', '60201', array(NULL, $itemId, NULL))->amount;
-    					$o1->price += ($amount / $o1->quantity);
+    					$val = (empty($o1->quantity)) ? 0 : ($amount / $o1->quantity);
+    					$o1->price += $val;
     				}
     			}
     			
