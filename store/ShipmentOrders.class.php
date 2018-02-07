@@ -508,10 +508,9 @@ class store_ShipmentOrders extends store_DocumentMaster
     	}
     	
     	if(isset($rec->lineId)){
-    		if($forwarderId = trans_Lines::fetchField($rec->lineId, 'forwarderId')){
-    			$res['SPEDITOR'] = crm_Companies::getVerbal($forwarderId, 'name');
-    		}
+    		$res['SPEDITOR'] = trans_Lines::getTitleById($rec->lineId);
     	}
+    	
     	$res['DATE'] = dt::mysql2verbal(dt::today(), 'd/m/y');
     	
     	return $res;
