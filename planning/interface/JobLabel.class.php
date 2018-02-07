@@ -99,6 +99,6 @@ class planning_interface_JobLabel
 	{
 		$allowSkip = TRUE;
 		
-		return NULL;
+		return 1;
 	}
 }
