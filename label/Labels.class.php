@@ -354,7 +354,7 @@ class label_Labels extends core_Master
         	// Взимане на данни от шаблона
             $intfInst = cls::getInterface('label_SequenceIntf', $classId);
             $labelDataArr = $intfInst->getLabelData($objId, 0);
-            $readOnlyArr = $intfInst->getReadOnlyPlaceholders($objId, 0);
+            $readOnlyArr = $intfInst->getReadOnlyPlaceholders($objId);
             $labelDataArr = arr::make(array_keys($labelDataArr), TRUE);
 			$labelDataArr = array_diff_key($labelDataArr, $readOnlyArr);
         }
