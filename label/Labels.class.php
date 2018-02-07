@@ -311,12 +311,7 @@ class label_Labels extends core_Master
         			unset($row->_rowTools);
         		}
         		
-        		$intfInst = cls::get($rec->classId);
-        		if(($intfInst instanceof core_Master) && $intfInst->haveRightFor('single', $rec->objId)) {
-        			$row->Object = $intfInst->getLinkToSingle($rec->objId);
-        		} else {
-        			$row->Object = $intfInst->title;
-        		}
+        		$row->Object = cls::get($rec->classId)->getHyperlink($rec->objId, TRUE);
         	} else {
         		$row->Object = tr('Проблем при зареждането на класа');
         	}
