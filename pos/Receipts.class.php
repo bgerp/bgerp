@@ -1409,10 +1409,14 @@ class pos_Receipts extends core_Master {
     		$vat = $Products->getVat($id);
     		$obj = (object)array('productId'   => $id, 
     							 'measureId'   => $pInfo->productRec->measureId,
-    							 'price'       => $price->price * $perPack, 
-    							 'photo'       => $pRec->photo,
+    							 'price'       => $price->price * $perPack,
     							 'packagingId' => $packId,
     							 'vat'	       => $vat);
+    		
+    		$photo = cat_Products::getParams($id, 'preview');
+    		if(!empty($photo)){
+    			$obj->photo = $photo;
+    		}
     		
     		if(isset($pInfo->meta['canStore'])){
     			$obj->stock = pos_Stocks::getQuantity($id, $data->rec->pointId);
