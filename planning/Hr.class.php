@@ -365,10 +365,11 @@ class planning_Hr extends core_Master
      */
     public static function getPersonsCodesArr($arr, $withLinks = FALSE)
     {
-    	$arr = (keylist::isKeylist($arr)) ? keylist::toArray($arr) : arr::make($arr, TRUE);
-    	$arr = array_keys($arr);
+        $res = array();
+        $arr = (keylist::isKeylist($arr)) ? keylist::toArray($arr) : arr::make($arr, TRUE);
+    	if(empty($arr)) return $res;
     	
-    	$res = array();
+    	$arr = array_keys($arr);
     	if(is_array($arr)){
     		foreach ($arr as $id){
     			$rec = planning_Hr::fetch("#personId = {$id}");
