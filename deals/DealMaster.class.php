@@ -420,7 +420,7 @@ abstract class deals_DealMaster extends deals_DealBase
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
         if(!Request::get('Rejected', 'int')){
-        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,notInvoiced=Нефактурирани,closedWith=Приключени с други сделки)', 'caption=Състояние');
+        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки)', 'caption=Състояние');
 	        $data->listFilter->setDefault('type', 'active');
 			$data->listFilter->showFields .= ',type';
 		}
@@ -436,9 +436,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			if($filter->type) {
 				switch($filter->type){
 					case "clAndAct":
-						$closedDealsArr = $mvc->getDealsClosedWithOtherDeals();
-						$closedDealsArr = implode(',', $closedDealsArr);
-						$data->query->where("#state = 'active' OR (#state = 'closed' AND #id NOT IN ($closedDealsArr))");
+						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case "all":
 						break;
@@ -453,8 +451,6 @@ abstract class deals_DealMaster extends deals_DealBase
 						break;
 					case "closed":
 						$data->query->where("#state = 'closed'");
-						$closedDealsArr = $mvc->getDealsClosedWithOtherDeals();
-						$data->query->notIn("id", $closedDealsArr);
 						break;
 					case 'paid':
 						$data->query->where("#paymentState = 'paid' OR #paymentState = 'repaid'");
@@ -486,7 +482,19 @@ abstract class deals_DealMaster extends deals_DealBase
 					case 'closedWith':
 						$closedDealsArr = $mvc->getDealsClosedWithOtherDeals();
 						$data->query->where("#state = 'closed'");
-						$data->query->in('id', $closedDealsArr);
+						if(count($closedDealsArr)){
+							$data->query->in('id', $closedDealsArr);
+						} else {
+							$data->query->where("1=2");
+						}
+						break;
+					case 'unionDeals':
+						$data->query->where("#state = 'active' OR #state = 'closed'");
+						$data->query->where("#closedDocuments != '' AND #closedDocuments IS NOT NULL");
+						break;
+					case 'notUnionDeals':
+						$data->query->where("#state = 'active' OR #state = 'closed'");
+						$data->query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
 						break;
 				}
 			}
