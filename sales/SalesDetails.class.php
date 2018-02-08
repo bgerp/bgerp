@@ -216,42 +216,6 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
-     * Приготвя информация за нестандартните артикули и техните задания
-     * 
-     * @param stdClass $rec
-     * @param stdClass $masterRec
-     * @return void|stdClass
-     */
-    public static function prepareJobInfo($rec, $masterRec)
-    {
-    	$res = array();
-    	$jQuery = planning_Jobs::getQuery();
-    	$jQuery->where("#productId = {$rec->productId}");
-    	$jQuery->where("#saleId IS NULL OR #saleId = {$masterRec->id}");
-    	$jQuery->XPR('order', 'int', "(CASE #state WHEN 'draft' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'wakeup' THEN 4 WHEN 'closed' THEN 5 ELSE 3 END)");
-		$jQuery->orderBy('order', 'ASC');
-    	
-    	while($jRec = $jQuery->fetch()){
-    		$row = (object)array('quantity' => 0, 'quantityFromTasks' => 0, 'quantityProduced' => 0);
-    		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-    		$row->ROW_ATTR['class'] = "state-{$jRec->state}";
-    		
-    		$Double = cls::get('type_Double', (object)array('params' => array('smartRound' => TRUE)));
-    		$row->quantity = $Double->toVerbal($jRec->quantity);
-    		
-			$row->quantityFromTasks = $Double->toVerbal(planning_Tasks::getProducedQuantityForJob($jRec->id));
-			$row->quantityProduced = $Double->toVerbal($jRec->quantityProduced);
-    		$row->dueDate = cls::get('type_Date')->toVerbal($jRec->dueDate);
-    		$row->jobId = planning_Jobs::getLink($jRec->id, 0);
-    		
-    		$res[$jRec->id] = $row;
-    	}
-    	
-    	return $res;
-    }
-    
-    
-    /**
      * Изпълнява се преди клониране
      */
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
