@@ -32,7 +32,7 @@ class hr_IndicatorsSourceIntf
 	 */
     public function getIndicatorValues($timeline) 
     {
-        return $this->class->getSalaryIndicators($timeline);
+        return $this->class->getIndicatorValues($timeline);
     }
 
 
