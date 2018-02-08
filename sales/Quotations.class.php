@@ -1650,6 +1650,6 @@ class sales_Quotations extends core_Master
     {
     	$createdBy = self::fetchField($id, 'createdBy');
     	
-    	return ($createdBy == core_Users::isSystemUser()) ? 'opened' : NULL;
+    	return ($createdBy == core_Users::SYSTEM_USER) ? 'opened' : NULL;
     }
 }
