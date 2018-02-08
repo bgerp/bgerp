@@ -589,11 +589,6 @@ class planning_Tasks extends core_Master
 	public static function canAddToFolder($folderId)
 	{
 		return TRUE;
-		if(!Request::get('originId', 'int')) return FALSE;
-		
-		// Може да се добавя само в папка на 'Департамент'
-		$Cover = doc_Folders::getCover($folderId);
-		return ($Cover->haveInterface('planning_ActivityCenterIntf'));
 	}
 	
 	
