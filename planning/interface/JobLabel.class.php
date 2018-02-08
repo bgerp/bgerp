@@ -52,11 +52,13 @@ class planning_interface_JobLabel
 	{
 		$res = array();
 		expect($rec = planning_Jobs::fetchRec($id));
-		$pRec = cat_Products::fetch($rec->productId, 'code');
+		$pRec = cat_Products::fetch($rec->productId, 'code,measureId');
 		
 		$res['JOB'] = $rec->id;
 		$res['CODE'] = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
 		$res['QUANTITY'] = $rec->quantity;
+		$res['MEASURE_ID'] = tr(cat_UoM::getShortName($pRec->measureId));
+		
 		if(isset($rec->saleId)){
 			$res['ORDER'] = $rec->saleId;
 		}
