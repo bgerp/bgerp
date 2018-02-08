@@ -36,6 +36,7 @@ class jqdatepick_Plugin extends core_Plugin {
         $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick.css", "CSS", TRUE);
         $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.plugin.min.js", "JS", TRUE);
         $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick.js", "JS", TRUE);
+        $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick.ext.js", "JS", TRUE);
         $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick-" . core_Lg::getCurrent() . ".js", "JS", TRUE);
 
         // custom стилове за плъгина
@@ -43,6 +44,6 @@ class jqdatepick_Plugin extends core_Plugin {
         
         $alignment = Mode::is('screenMode', 'narrow') ? 'top' : 'bottom';
         
-        jquery_Jquery::run($tpl, "$('#" . $attr['id'] . "').datepick({dateFormat: 'dd.mm.yyyy', alignment: '{$alignment}'});");
+        jquery_Jquery::run($tpl, "$('#" . $attr['id'] . "').datepick({ renderer: $.datepick.weekOfYearRenderer, dateFormat: 'dd.mm.yyyy', alignment: '{$alignment}'});");
     }
 }
