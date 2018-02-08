@@ -991,7 +991,7 @@ class sales_Sales extends deals_DealMaster
     	
     	$jQuery = planning_Jobs::getQuery();
     	$jQuery->in("productId", array_keys($manifacturableProducts));
-    	$jQuery->where("#saleId IS NULL OR #saleId = {$rec->id}");
+    	$jQuery->where("#saleId = {$rec->id}");
     	$jQuery->XPR('order', 'int', "(CASE #state WHEN 'draft' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'wakeup' THEN 4 WHEN 'closed' THEN 5 ELSE 3 END)");
     	$jQuery->orderBy('order', 'ASC');
     	
