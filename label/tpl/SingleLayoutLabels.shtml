@@ -11,7 +11,12 @@
     <!--ET_BEGIN printedCnt-->
 	<div><span class="quiet">|Отпечатъци|*: </span> [#printedCnt#] </div>
 	<!--ET_END printedCnt-->
-	<div style='margin-bottom: 10px;'><span class="quiet">|Шаблон|*: </span> [#templateId#] </div>
-	<div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+	<div style='margin-bottom: 5px;'><span class="quiet">|Шаблон|*: </span> [#templateId#] </div>
+	
+	<!--ET_BEGIN Object-->
+	<div style='margin-bottom: 5px;'><span class="quiet">|Източник|*: </span> [#Object#] </div>
+	<!--ET_END Object-->
+	
+	<div style='margin-bottom: 5px;'><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
 	<div><span class="quiet">|Модифициранe|*: </span> |от|* [#modifiedBy#] |на|* [#modifiedOn#]</div>
 </div>
