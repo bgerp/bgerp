@@ -636,14 +636,20 @@ class label_Templates extends core_Master
     						$params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '160', 'Height' => '60', 'Rotation' => 'yes');
     						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
     					} else {
-    						$type = ($placeholder == 'PREVIEW') ? 'html' : 'caption';
-    						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type);
+    						$type = 'caption';
+    						$params = array();
+    						if($placeholder == 'PREVIEW'){
+    							$type = ($placeholder == 'PREVIEW') ? 'image' : 'caption';
+    							$params = array('Width' => planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH'), 'Height' => planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT'));
+    						}
+    						
+    						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type, $params);
     					}
     				}
     			}
-    			$modified ++;
+    			$modified++;
     		} else {
-    			$skipped ++;
+    			$skipped++;
     		}
     	}
     	core_Users::cancelSystemUser();

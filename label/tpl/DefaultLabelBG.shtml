@@ -106,8 +106,8 @@
             </div>
             <span class="bold"> [#QUANTITY#]</span>
         </td>
-
-    </tr><tr><td class="description">
+    </tr>
+    <tr><td class="description">
         <div class="details-label">
             <span class="small left">размер</span>
             <span class="small right">[#SIZE_UNIT#]</span>
