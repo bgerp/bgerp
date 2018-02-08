@@ -98,7 +98,8 @@ class planning_interface_JobLabel
 	public function getEstimateCnt($id, &$allowSkip)
 	{
 		$allowSkip = TRUE;
+		$rec = $this->class->fetch($id);
 		
-		return 1;
+		return $rec->packQuantity;
 	}
 }
