@@ -102,6 +102,12 @@ class planning_interface_TaskLabel
 		$res['SIZE_UNIT'] = 'cm';
 		$res['DATE'] = dt::mysql2verbal(dt::today(), 'm/y');
 	
+		// Превюто от операцията е с приоритет
+		$previewParamId = cat_Params::fetchIdBySysId('preview');
+		if($prevValue = cat_products_Params::fetchField("#classId = {$this->class->getClassId()} AND #productId = {$rec->id} AND #paramId = {$previewParamId}", 'paramValue')){
+			$res['PREVIEW'] = $prevValue;
+		}
+		
 		// Връщане на масива, нужен за отпечатването на един етикет
 		return $res;
 	}
