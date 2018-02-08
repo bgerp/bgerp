@@ -98,26 +98,6 @@ class planning_interface_TaskLabel
 				$res = $additionalFields + $res;
 			}
 		}
-		
-		// Генериране на превю на артикула за етикети
-		$previewWidth = planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH');
-		$previewHeight = planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT');
-	
-		// Ако в задачата има параметър за изглед, взима се той
-		$previewParamId = cat_Params::fetchIdBySysId('preview');
-		if($prevValue = cat_products_Params::fetchField("#classId = {$this->class->getClassId()} AND #productId = {$rec->id} AND #paramId = {$previewParamId}", 'paramValue')){
-			$Fancybox = cls::get('fancybox_Fancybox');
-			$preview = $Fancybox->getImage($prevValue, array($previewWidth, $previewHeight), array('550', '550'))->getContent();
-		} else {
-				
-			// Иначе се взима от дефолтния параметър
-			$preview = cat_Products::getPreview($rec->productId, array($previewWidth, $previewHeight));
-		}
-	
-		if(!empty($preview)){
-			$res['ИЗГЛЕД'] = $preview;
-			$res['PREVIEW'] = $preview;
-		}
 	
 		$res['SIZE_UNIT'] = 'cm';
 		$res['DATE'] = dt::mysql2verbal(dt::today(), 'm/y');
@@ -154,7 +134,7 @@ class planning_interface_TaskLabel
 	 */
 	public function getReadOnlyPlaceholders($id)
 	{
-		$arr = arr::make(array('PREVIEW', 'BARCODE'), TRUE);
+		$arr = arr::make(array('BARCODE'), TRUE);
 		
 		return $arr;
 	}
