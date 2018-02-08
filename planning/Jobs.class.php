@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Задания за производство
@@ -277,6 +277,8 @@ class planning_Jobs extends core_Master
     	}
     	
     	if(isset($rec->saleId)){
+    		$form->setDefault('dueDate', $mvc->getDefaultDueDate($rec->productId, $rec->saleId));
+    		
     		$saleRec = sales_Sales::fetch($rec->saleId);
     		$dRec = sales_SalesDetails::fetch("#saleId = {$rec->saleId} AND #productId = {$rec->productId}");
     		$form->setDefault('packagingId', $dRec->packagingId);
@@ -315,6 +317,28 @@ class planning_Jobs extends core_Master
     	}
     	
     	$form->setDefault('packagingId', key($packs));
+    }
+    
+    
+    /**
+     * Дефолтна дата на падеж
+     * 
+     * @param int $productId - ид на артикул
+     * @param int $saleId    - ид на сделка
+     * @return NULL|date     - дефолтния падеж
+     */
+    private static function getDefaultDueDate($productId, $saleId)
+    {
+    	if(empty($saleId)) return NULL;
+    	$sQuery = sales_SalesDetails::getQuery();
+    	$sQuery->where("#productId = {$productId} AND #saleId = {$saleId}");
+    	$sQuery->XPR('max', 'double', 'MAX(#term)');
+    	$sQuery->show('max');
+    	$max = $sQuery->fetch()->max;
+    	
+    	if(empty($max)) return NULL;
+    	
+    	return dt::addSecs($max, dt::today(), FALSE);
     }
     
     
