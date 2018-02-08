@@ -103,6 +103,8 @@ class auto_handler_CreateQuotationFromInquiry {
     		
     		core_Users::cancelSystemUser();
     	}
+    	
+    	doc_Threads::doUpdateThread($marketingRec->threadId);
     }
     
     

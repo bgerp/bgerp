@@ -1641,4 +1641,15 @@ class sales_Quotations extends core_Master
     	 
     	return $this->save($rec, 'modifiedOn,modifiedBy,searchKeywords');
     }
+    
+    
+    /**
+     * Състояние на нишката
+     */
+    public static function getThreadState($id)
+    {
+    	$createdBy = self::fetchField($id, 'createdBy');
+    	
+    	return ($createdBy == core_Users::isSystemUser()) ? 'opened' : NULL;
+    }
 }
