@@ -2090,4 +2090,15 @@ abstract class deals_DealMaster extends deals_DealBase
     		$res['deliveryAdress'] = 'deliveryAdress';
     	}
     }
+    
+    
+    /**
+     * Връща иконата за сметката
+     */
+    public function getIcon($id)
+    {
+    	$closedDocuments = $this->fetchField($id, 'closedDocuments');
+    
+    	return (empty($closedDocuments)) ? $this->singleIcon : $this->singleIconFocCombinedDeals;
+    }
 }

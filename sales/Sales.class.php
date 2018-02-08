@@ -165,6 +165,12 @@ class sales_Sales extends deals_DealMaster
 
     
     /**
+     * Икона за единичния изглед на обединяващите договори
+     */
+    public $singleIconFocCombinedDeals = 'img/16/shopping_carts.png';
+    
+    
+    /**
      * Поле в което се замества шаблона от doc_TplManager
      */
     public $templateFld = 'SINGLE_CONTENT';
