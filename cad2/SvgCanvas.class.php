@@ -348,7 +348,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
     /**
      * Изписва текст
      */
-    public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE, $link = NULL, $multiply = 2)
+    public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE, $link = NULL)
     {
         $this->closePath(FALSE);
 
@@ -392,7 +392,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
 		}
 
         if( $size = $this->getAttr('font-size') ) {
-            $size = ($multiply * $size / 10) * $this->pixPerMm;
+            $size = ($size / 10) * $this->pixPerMm;
 			$tx->attr['font-size'] = $size;
 		}
         
