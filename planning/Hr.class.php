@@ -365,7 +365,7 @@ class planning_Hr extends core_Master
      */
     public static function getPersonsCodesArr($arr, $withLinks = FALSE)
     {
-    	$arr = (keylist::isKeylist($arr)) ? keylist::toArray($arr) : $arr;
+    	$arr = (keylist::isKeylist($arr)) ? keylist::toArray($arr) : arr::make($arr, TRUE);
     	$arr = array_keys($arr);
     	
     	$res = array();
