@@ -349,7 +349,8 @@ abstract class deals_DealMaster extends deals_DealBase
         if(!empty($rec->reff)){
         	$title .= "/{$rec->reff}";
         } elseif(isset($rec->productIdWithBiggestAmount)){
-        	$pName = mb_substr($rec->productIdWithBiggestAmount, 0, 20);
+        	$length = sales_Setup::get('PROD_NAME_LENGTH');
+        	$pName = mb_substr($rec->productIdWithBiggestAmount, 0, $length);
         	$title .= "/{$pName}";
         }
         
