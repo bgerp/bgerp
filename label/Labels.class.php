@@ -601,7 +601,7 @@ class label_Labels extends core_Master
                 $labelDataArr = (array) $intfInst->getLabelData($rec->objId, $lDataNo++);
                 core_Lg::pop();
                 $readOnlyArr = $intfInst->getReadOnlyPlaceholders($rec->objId);
-                core_Mode::push('prepareLabel', TRUE);
+                core_Mode::pop('prepareLabel');
                 
                 foreach ($labelDataArr as $key => $val) {
                     $keyNormalized = label_TemplateFormats::getPlaceholderFieldName($key);
