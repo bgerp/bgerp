@@ -463,7 +463,7 @@ class sales_Quotations extends core_Master
     					$price = deals_Helper::getPurePrice($price, $vat, $rec->currencyRate, $rec->chargeVat);
     				}
     				sales_Quotations::addRow($rec->id, $originRec->id, $quantity, $originRec->measureId, $price);
-    			} catch(Exception $e){
+    			} catch(core_exception_Expect $e){
     				reportException($e);
     		
     				if(haveRole('debug')){

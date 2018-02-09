@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class label_exception_Redirect extends acc_journal_Exception
+class label_exception_Redirect extends core_exception_Expect
 {
 	
 	
@@ -26,8 +26,8 @@ class label_exception_Redirect extends acc_journal_Exception
 	 */
 	public static function expect($condition, $message, $options = array())
 	{
-		$Exception = (!core_Users::isSystemUser()) ? 'label_exception_Redirect' : 'acc_journal_Exception';
-		
-		if (!(boolean)$condition) throw new $Exception($message, $options);
+		if (!(boolean)$condition) {
+			throw new static($message, $options);
+		}
 	}
 }
