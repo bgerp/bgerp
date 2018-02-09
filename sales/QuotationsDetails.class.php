@@ -931,8 +931,10 @@ class sales_QuotationsDetails extends doc_Detail {
     	$Double->params['decimals'] = 2;
     	
     	if($rec->quantityInPack != 1){
-    		$row->totalQuantity = $Double->toVerbal($rec->quantity);
-    		$shortUom = cat_Uom::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
+    		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+    		$totalQuantity = cat_UoM::round($measureId, $rec->quantity);
+    		$row->totalQuantity = core_Type::getByName('double(smartRound)')->toVerbal($totalQuantity);
+    		$shortUom = cat_Uom::getShortName($measureId);
     		$row->totalQuantity .= " " . tr($shortUom);
     	}
     	
