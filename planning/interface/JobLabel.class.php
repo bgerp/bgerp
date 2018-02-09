@@ -74,8 +74,8 @@ class planning_interface_JobLabel
 		
 		$packRec = self::getDefaultPackRec($rec->productId, $selectedPackagingArr);
 		if(!Mode::is('prepareLabel') && count($selectedPackagingArr)){
-			$msg = 'Артикула трябва да поддържа някоя от опаковките|*: ';
-			$msg .= core_Type::getByName('keylist(mvc=cat_UoM,select=name)')->toVerbal(keylist::fromArray($selectedPackagings));
+			$msg = 'Артикулът трябва да поддържа някоя от опаковките|*: ';
+			$msg .= core_Type::getByName('keylist(mvc=cat_UoM,select=name)')->toVerbal(keylist::fromArray($selectedPackagingArr));
 			label_exception_Redirect::expect($packRec, $msg);
 		}
 		
