@@ -145,7 +145,7 @@ class planning_interface_JobLabel
 		$rec = $this->class->fetch($id);
 		
 		$packRec = self::getDefaultPackRec($rec->productId, $selectedPackagingArr);
-		$res = (empty($packRec)) ? $rec->quantity : $packRec->quantity;
+		$res = (empty($packRec)) ? $rec->quantity : round($rec->quantity / $packRec->quantity, 2);
 		
 		return $res;
 	}
