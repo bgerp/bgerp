@@ -351,12 +351,16 @@ class label_Labels extends core_Master
         if ($classId && $objId) {
         	$form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getFormTitleLink($objId);
         	
-        	// Взимане на данни от шаблона
-            $intfInst = cls::getInterface('label_SequenceIntf', $classId);
-            $labelDataArr = $intfInst->getLabelData($objId, 0);
-            $readOnlyArr = $intfInst->getReadOnlyPlaceholders($objId);
-            $labelDataArr = arr::make(array_keys($labelDataArr), TRUE);
-			$labelDataArr = array_diff_key($labelDataArr, $readOnlyArr);
+        	try{
+				// Взимане на данни от шаблона
+				$intfInst = cls::getInterface('label_SequenceIntf', $classId);
+				$labelDataArr = $intfInst->getLabelData($objId, 0);
+				$readOnlyArr = $intfInst->getReadOnlyPlaceholders($objId);
+				$labelDataArr = arr::make(array_keys($labelDataArr), TRUE);
+				$labelDataArr = array_diff_key($labelDataArr, $readOnlyArr);
+			} catch (label_exception_Redirect $e){
+				followRetUrl(NULL, $e->getMessage(), 'error');
+			}
         }
        
         // Добавяме функционално поле
@@ -591,10 +595,13 @@ class label_Labels extends core_Master
                 $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
                 
                 $lang = label_Templates::fetchField($rec->templateId, 'lang');
+
+                core_Mode::push('prepareLabel', TRUE);
                 core_Lg::push($lang);
                 $labelDataArr = (array) $intfInst->getLabelData($rec->objId, $lDataNo++);
                 core_Lg::pop();
                 $readOnlyArr = $intfInst->getReadOnlyPlaceholders($rec->objId);
+                core_Mode::push('prepareLabel', TRUE);
                 
                 foreach ($labelDataArr as $key => $val) {
                     $keyNormalized = label_TemplateFormats::getPlaceholderFieldName($key);
