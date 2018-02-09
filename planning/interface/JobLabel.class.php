@@ -38,6 +38,21 @@ class planning_interface_JobLabel
 	}
 	
 	
+	private static function getDefaultPackRec($productId, &$selectedPackagingArr)
+	{
+		$selectedPackagings = planning_Setup::get('LABEL_DEFAULT_PACKAGINGS');
+		$selectedPackagingArr = keylist::toArray($selectedPackagings);
+		if(!count($selectedPackagingArr)) return NULL;
+		
+		$query = cat_products_Packagings::getQuery();
+		$query->where("#productId = {$productId}");
+		$query->in("packagingId", $selectedPackagingArr);
+		$query->limit(1);
+		
+		return $query->fetch();
+	}
+	
+	
 	/**
 	 * Връща данни за етикети
 	 *
@@ -56,8 +71,21 @@ class planning_interface_JobLabel
 		
 		$res['JOB'] = $rec->id;
 		$res['CODE'] = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
-		$res['QUANTITY'] = $rec->quantity;
-		$res['MEASURE_ID'] = tr(cat_UoM::getShortName($pRec->measureId));
+		
+		$packRec = self::getDefaultPackRec($rec->productId, $selectedPackagingArr);
+		if(!Mode::is('prepareLabel') && count($selectedPackagingArr)){
+			$msg = 'Артикула трябва да поддържа някоя от опаковките|*: ';
+			$msg .= core_Type::getByName('keylist(mvc=cat_UoM,select=name)')->toVerbal(keylist::fromArray($selectedPackagings));
+			label_exception_Redirect::expect($packRec, $msg);
+		}
+		
+		if(empty($packRec)){
+			$res['MEASURE_ID'] = tr(cat_UoM::getShortName($pRec->measureId));
+			$res['QUANTITY'] = $rec->quantity;
+		} else {
+			$res['QUANTITY'] = $packRec->quantity;
+			$res['MEASURE_ID'] =  tr(cat_UoM::getShortName($packRec->packagingId));
+		}
 		
 		if(isset($rec->saleId)){
 			$res['ORDER'] = $rec->saleId;
@@ -109,6 +137,9 @@ class planning_interface_JobLabel
 		$allowSkip = TRUE;
 		$rec = $this->class->fetch($id);
 		
-		return $rec->packQuantity;
+		$packRec = self::getDefaultPackRec($rec->productId, $selectedPackagingArr);
+		$res = (empty($packRec)) ? $rec->quantity : $packRec->quantity;
+		
+		return $res;
 	}
 }
