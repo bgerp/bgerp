@@ -42,7 +42,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	/**
 	 * Полета свързани с цени
 	 */
-	public $priceFields = 'amount';
+	public $priceFields = 'amount,amountVerbal';
 	
 	
 	/**

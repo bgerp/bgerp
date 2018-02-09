@@ -70,7 +70,6 @@
     clear: both;
 }
 </style>
-
 <div class="label-holder">
     <table cellpadding="0">
         <tr>
@@ -82,9 +81,7 @@
             </td>
         </tr>
         <tr>
-            <td class="top-descr no-border-left">
-                [#ORDER#]
-            </td>
+            <td class="top-descr no-border-left">[#ORDER#]</td>
             <td colspan="2" class="top-descr">
                 [#MATERIAL#]
             </td>

@@ -112,6 +112,12 @@ class purchase_Purchases extends deals_DealMaster
 
 
     /**
+     * Икона за единичния изглед на обединяващите договори
+     */
+    public $singleIconFocCombinedDeals = 'img/16/shopping_carts_blue.png';
+    
+    
+    /**
      * Лейаут на единичния изглед 
      */
     public $singleLayoutFile = 'purchase/tpl/SingleLayoutPurchase.shtml';

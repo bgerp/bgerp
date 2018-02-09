@@ -56,7 +56,7 @@ class label_TemplateFormats extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'label_Wrapper, plg_RowTools';
+    public $loadList = 'label_Wrapper, plg_RowTools, plg_SaveAndNew';
     
     
     /**
@@ -102,7 +102,7 @@ class label_TemplateFormats extends core_Detail
     {
         $this->FLD('templateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон');
         $this->FLD('placeHolder', 'varchar', 'caption=Плейсхолдер, title=Име на плейсхолдер, mandatory');
-        $this->FLD('type', 'enum(' . self::$typeEnumOpt . ')', 'caption=Тип, silent, mandatory');
+        $this->FLD('type', 'enum(' . self::$typeEnumOpt . ')', 'caption=Тип, silent, mandatory, remember');
         $this->FLD('formatParams', 'blob(serialize, compress)', 'caption=Параметри, title=Параметри за конвертиране на шаблона, input=none');
         
         $this->setDbUnique('templateId, placeHolder');

@@ -634,6 +634,7 @@ class marketing_Inquiries2 extends embed_Manager
     		
     		// Ако е настроено да се изпраща нотифициращ имейл, добавяме бутона за препращане
     		if($mvc->haveRightFor('sendemail', $rec)){
+    			$conf = core_Packs::getConfig('marketing');
     			$data->toolbar->addBtn('Препращане', array($mvc, 'send', $rec->id), array('ef_icon'=> "img/16/email_forward.png", 'warning' => "Сигурни ли сте, че искате да препратите имейла на|* '{$conf->MARKETING_INQUIRE_TO_EMAIL}'",'title' => "Препращане на имейла със запитването към|* '{$conf->MARKETING_INQUIRE_TO_EMAIL}'"));
     		}
     	}

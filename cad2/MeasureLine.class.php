@@ -62,8 +62,9 @@ class cad2_MeasureLine  extends cad2_Shape {
             $By = $My;
             $dist = abs($dist);
         }
-        
+
         $svg->openGroup();
+        $svg->setAttr('stroke-width', 0.2);
 
         $A = new cad2_Vector($Ax, $Ay);
         $B = new cad2_Vector($Bx, $By);
