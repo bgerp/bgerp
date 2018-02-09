@@ -360,12 +360,16 @@ class label_Templates extends core_Master
         
         // Добавяме бутон
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $form->FNC('fClassId', 'class(interface=label_SequenceIntf, allowEmpty,select=title)', 'caption=Източник');
+        $sourceOptions = array('-1' => 'Без източник') + core_Classes::getOptionsByInterface('label_SequenceIntf', 'title');
+        
+        $form->FNC('fClassId', 'varchar', 'caption=Източник');
+        $form->setOptions('fClassId', array('' => '') + $sourceOptions);
         
         $form->showFields = 'search,fClassId';
         if(!core_Request::get('Rejected', 'int')){
-        	$form->FNC('fState', 'enum(, draft=Чернови, active=Използвани)', 'caption=Всички, allowEmpty,autoFilter');
+        	$form->FNC('fState', 'enum(, active=Използвани, closed=Затворени)', 'caption=Всички, allowEmpty,autoFilter');
         	$form->showFields .= ', fState';
+        	$form->setDefault('fState', 'active');
         	
         	// Инпутваме полетата
         	$form->input('fState,fClassId', 'silent');
@@ -382,7 +386,11 @@ class label_Templates extends core_Master
         }
         
         if($classId = $data->listFilter->rec->fClassId) {
-        	$data->query->where(array("#classId = '[#1#]'", $classId));
+        	if($classId == '-1'){
+        		$data->query->where("#classId IS NULL");
+        	} else {
+        		$data->query->where(array("#classId = '[#1#]'", $classId));
+        	}
         }
     }
     
