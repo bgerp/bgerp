@@ -61,6 +61,13 @@ class planning_interface_JobLabel
 		
 		if(isset($rec->saleId)){
 			$res['ORDER'] = $rec->saleId;
+			
+			$lg = core_Lg::getCurrent();
+			if($lg != 'bg'){
+				$sRec = sales_Sales::fetch($rec->saleId);
+				$countryId = cls::get($sRec->contragentClassId)->fetchField($sRec->contragentId, 'country');
+				$res['OTHER'] = drdata_Countries::fetchField($countryId, 'letterCode2') . " " . date("m/y");
+			}
 		}
 		
 		// Ако от драйвера идват още параметри, добавят се с приоритет
