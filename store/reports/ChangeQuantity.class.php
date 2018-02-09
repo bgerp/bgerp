@@ -197,7 +197,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         if(!empty($rec->group)){
-        	$row->group = core_Type::getByName('keylist(mvc=cat_Groups,select=name)')->toVerbal($rec->group);
+        	$row->group = implode(' ', cat_Groups::getLinks($rec->group));
         }
     }
 
