@@ -38,6 +38,13 @@ class planning_interface_JobLabel
 	}
 	
 	
+	/**
+	 * Коя е дефолтната опаковка за етикетите на заданията
+	 * 
+	 * @param int $productId
+	 * @param array $selectedPackagingArr
+	 * @return stdClass|NULL
+	 */
 	private static function getDefaultPackRec($productId, &$selectedPackagingArr)
 	{
 		$selectedPackagings = planning_Setup::get('LABEL_DEFAULT_PACKAGINGS');
