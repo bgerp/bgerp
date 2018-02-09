@@ -39,41 +39,6 @@ class planning_interface_TaskLabel
 	
 	
 	/**
-	 * Връща масив с плейсхолдърите, които ще се попълват от getLabelData
-	 *
-	 * @param mixed $id - ид или запис
-	 * @return array $fields - полета за етикети
-	 */
-	public function getLabelPlaceholders($id)
-	{
-		expect($rec = planning_Tasks::fetchRec($id));
-		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY', 'ИЗГЛЕД', 'PREVIEW', 'SIZE_UNIT', 'DATE', 'SIMPLE_NAME', 'PRODUCT_CODE');
-		expect($origin = doc_Containers::getDocument($rec->originId));
-		$jobRec = $origin->fetch();
-		if(isset($jobRec->saleId)){
-			$fields[] = 'ORDER';
-			$fields[] = 'COUNTRY';
-		}
-	
-		// Извличане на всички параметри на артикула
-		$params = planning_Tasks::getTaskProductParams($rec, TRUE);
-	
-		$params = array_keys(cat_Params::getParamNameArr($params, TRUE));
-		$fields = array_merge($fields, $params);
-	
-		// Добавяне на допълнителни плейсхолдъри от драйвера на артикула
-		if($Driver = cat_Products::getDriver($rec->productId)){
-			$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
-			if(count($additionalFields)){
-				$fields = array_merge($fields, array_keys($additionalFields));
-			}
-		}
-	
-		return $fields;
-	}
-	
-	
-	/**
 	 * Връща данни за етикети
 	 *
 	 * @param int $id - ид на задача
@@ -104,6 +69,8 @@ class planning_interface_TaskLabel
 			$paddLength = planning_Setup::get('SERIAL_STRING_PAD');
 			$serial = str_pad($serial, $paddLength, '0', STR_PAD_LEFT);
 			$res['BARCODE'] = $serial;
+		} else {
+			$res['BARCODE'] = 'BARCODE';
 		}
 	
 		// Информация за артикула
@@ -131,30 +98,16 @@ class planning_interface_TaskLabel
 				$res = $additionalFields + $res;
 			}
 		}
-		
-		// Генериране на превю на артикула за етикети
-		$previewWidth = planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH');
-		$previewHeight = planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT');
-	
-		// Ако в задачата има параметър за изглед, взима се той
-		$previewParamId = cat_Params::fetchIdBySysId('preview');
-		if($prevValue = cat_products_Params::fetchField("#classId = {$this->class->getClassId()} AND #productId = {$rec->id} AND #paramId = {$previewParamId}", 'paramValue')){
-			$Fancybox = cls::get('fancybox_Fancybox');
-			$preview = $Fancybox->getImage($prevValue, array($previewWidth, $previewHeight), array('550', '550'))->getContent();
-		} else {
-				
-			// Иначе се взима от дефолтния параметър
-			$preview = cat_Products::getPreview($rec->productId, array($previewWidth, $previewHeight));
-		}
-	
-		if(!empty($preview)){
-			$res['ИЗГЛЕД'] = $preview;
-			$res['PREVIEW'] = $preview;
-		}
 	
 		$res['SIZE_UNIT'] = 'cm';
 		$res['DATE'] = dt::mysql2verbal(dt::today(), 'm/y');
 	
+		// Превюто от операцията е с приоритет
+		$previewParamId = cat_Params::fetchIdBySysId('preview');
+		if($prevValue = cat_products_Params::fetchField("#classId = {$this->class->getClassId()} AND #productId = {$rec->id} AND #paramId = {$previewParamId}", 'paramValue')){
+			$res['PREVIEW'] = $prevValue;
+		}
+		
 		// Връщане на масива, нужен за отпечатването на един етикет
 		return $res;
 	}
@@ -176,5 +129,19 @@ class planning_interface_TaskLabel
 		$rec = planning_Tasks::fetch($id);
 	
 		return $rec->plannedQuantity;
+	}
+	
+	
+	/**
+	 * Кои плейсхолдъри немогат да се предефинират от потребителя
+	 * 
+	 * @param int $id
+	 * @return array
+	 */
+	public function getReadOnlyPlaceholders($id)
+	{
+		$arr = arr::make(array('BARCODE'), TRUE);
+		
+		return $arr;
 	}
 }

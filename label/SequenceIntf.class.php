@@ -23,18 +23,6 @@ class label_SequenceIntf
     
     
     /**
-     * Връща масив с плейсхолдърите, които ще се попълват от getLabelData
-     * 
-     * @param integer $id
-     * @return array
-     */
-    public function getLabelPlaceholders($id)
-    {
-    	return $this->class->getLabelPlaceholders($id);
-    }
-    
-    
-    /**
      * Връща масив с данни за плейсхолдърите на етикет
      * 
      * @param integer $id
@@ -72,5 +60,17 @@ class label_SequenceIntf
     public function canSelectTemplate($id, $templateId)
     {
     	return $this->class->canSelectTemplate($id, $templateId);
+    }
+    
+    
+    /**
+     * Кои плейсхолдъри немогат да се предефинират от потребителя
+     *
+     * @param int $id
+     * @return array
+     */
+    public function getReadOnlyPlaceholders($id)
+    {
+    	return $this->class->getReadOnlyPlaceholders($id);
     }
 }

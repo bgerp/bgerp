@@ -1096,12 +1096,13 @@ class core_String
     /**
      * Маха всички празни стрингове от стринга
      * 
-     * @param varchar $string
-     * @return varchar $string
+     * @param varchar $string  - стринг в който да се замести
+     * @param varchar $replace - стринг за заместване
+     * @return varchar
      */
-    public static function removeWhitespaces($string)
+    public static function removeWhitespaces($string, $replace = '')
     {
-    	return preg_replace('/\s+/', '', $string);
+    	return preg_replace('/\s+/', $replace, $string);
     }
     
     

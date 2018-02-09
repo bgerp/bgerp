@@ -241,10 +241,8 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
 	/**
 	 * Метод по реализация на определянето на движението генерирано от реда
 	 *
-	 * @param core_Mvc $mvc
-	 * @param string $res
 	 * @param stdClass $rec
-	 * @return void
+	 * @return string
 	 */
 	public function getBatchMovementDocument($rec)
 	{

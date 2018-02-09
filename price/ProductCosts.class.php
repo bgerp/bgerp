@@ -78,7 +78,7 @@ class price_ProductCosts extends core_Manager
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
     	$this->FLD('type', 'enum(accCost=Складова,
-    							 lastDelivery=Последна доставка,
+    							 lastDelivery=Последна доставка (+разходи),
     							 activeDelivery=Текуща поръчка,
     							 lastQuote=Последна оферта,
     							 bom=Последна рецепта)', 'caption=Тип');

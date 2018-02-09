@@ -77,6 +77,7 @@ class label_Setup extends core_ProtoSetup
         $html .= core_Roles::addOnce('labelMaster', 'label');
         
         $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Принтиране на етикети от задания за производство', 'label_plg_Print', 'planning_Jobs', 'private');
         $html .= $Plugins->installPlugin('Принтиране на етикети от задачи за производство', 'label_plg_Print', 'planning_Tasks', 'private');
         $html .= $Plugins->installPlugin('Принтиране на етикети от ЕН-та', 'label_plg_Print', 'store_ShipmentOrders', 'private');
         
