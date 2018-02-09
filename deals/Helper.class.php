@@ -473,13 +473,7 @@ abstract class deals_Helper
     public static function getPackMeasure($measureId, $quantityInPack, $packRec = NULL)
     {
         $qP = $quantityInPack;
-    	if($quantityInPack < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 0.001))){
-			$quantityInPack *= 1000;
-			$measureId = $downMeasureId;
-		} elseif($quantityInPack > 1000 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 1000))){
-			$quantityInPack /= 1000;
-			$measureId = $downMeasureId;
-		}
+        $quantityInPack = cat_UoM::round($measureId, $quantityInPack);
 		
 		$hint = FALSE;
 		
@@ -491,12 +485,7 @@ abstract class deals_Helper
 			}
 		}
 		
-        if($quantityInPack == 1) {
-		    $quantityInPack = '';
-        } else {
-		    $quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInPack) . ' ';
-        }
-		
+		$quantityInPack = ($quantityInPack == 1) ? '' : core_Type::getByName('double(smartRound)')->toVerbal($quantityInPack) . ' ';
         if($hint === TRUE){
         	$quantityInPack = ht::createHint($quantityInPack, 'Има отклонение спрямо очакваното', 'warning', TRUE, 'width=12px,height=12px');
         }
