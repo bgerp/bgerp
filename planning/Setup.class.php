@@ -44,6 +44,12 @@ defIfNot('PLANNING_UNDEFINED_CENTER_DISPLAY_NAME', 'Неопределен');
 
 
 /**
+ * Дефолтни опаковки за принтиране на етикет от задания
+ */
+defIfNot('PLANNING_LABEL_DEFAULT_PACKAGINGS', '');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -99,6 +105,7 @@ class planning_Setup extends core_ProtoSetup
     		'PLANNING_CONSUMPTION_USE_AS_RESOURCE'   => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
     		'PLANNING_PRODUCTION_NOTE_REJECTION'     => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
     		'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределенен център на дейност->Име'),
+    		'PLANNING_LABEL_DEFAULT_PACKAGINGS'      => array('keylist(mvc=cat_UoM,select=name,allowEmpty)', 'optionsFunc=cat_UoM::getPackagingOptions,caption=Дефолти на етикети от задания->Опаковки'),
     );
     
     

@@ -63,15 +63,43 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         }
         
 	    if (self::canShowTab($fRec->fileHnd, 'html')) {
-	        $htmlUrl = toUrl(array('fileman_webdrv_Office', 'html', $fRec->fileHnd), TRUE);
-	        	
-	        // Таб за информация
-	        $tabsArr['html'] = (object)
-	        array(
-	                'title' => 'HTML',
-	                'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("HTML") . "</div> <iframe src='{$htmlUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-	                'order' => 3,
-	        );
+	        
+	        $content = fileman_Indexes::getInfoContentByFh($fRec->fileHnd, 'html');
+	        
+	        if (($content === FALSE) || (is_object($content) && $content->errorProc)) {
+	            $htmlUrl = toUrl(array('fileman_webdrv_Office', 'html', $fRec->fileHnd), TRUE);
+	            
+	            // Таб за информация
+	            $tabsArr['html'] = (object)
+	            array(
+	                    'title' => 'HTML',
+	                    'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("HTML") . "</div> <iframe src='{$htmlUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+	                    'order' => 3,
+	            );
+	            
+	            return $tabsArr;
+	        }
+	        
+	        $fName = $fRec->fileHnd . rand();
+	        
+	        $path = fileman::getTempDir() . "/{$fName}.html";
+	        
+	        @file_put_contents($path, $content);
+	        
+	        // Вземаме съдържанието на таба за HTML
+	        $htmlPart = static::getHtmlTabTpl($path);
+	        
+	        if (trim($htmlPart)) {
+	            // Таб за информация
+	            $tabsArr['html'] = (object)
+	            array(
+	                    'title' => 'HTML',
+	                    'html'  => $htmlPart,
+	                    'order' => 3,
+	            );
+	        }
+	        
+	        @unlink($path);
 	    }
 
         return $tabsArr;

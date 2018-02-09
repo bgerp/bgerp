@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Задания за производство
@@ -21,7 +21,7 @@ class planning_Jobs extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf,hr_IndicatorsSourceIntf';
+    public $interfaces = 'doc_DocumentIntf,hr_IndicatorsSourceIntf,label_SequenceIntf=planning_interface_JobLabel';
     
     
     /**
@@ -277,6 +277,8 @@ class planning_Jobs extends core_Master
     	}
     	
     	if(isset($rec->saleId)){
+    		$form->setDefault('dueDate', $mvc->getDefaultDueDate($rec->productId, $rec->saleId));
+    		
     		$saleRec = sales_Sales::fetch($rec->saleId);
     		$dRec = sales_SalesDetails::fetch("#saleId = {$rec->saleId} AND #productId = {$rec->productId}");
     		$form->setDefault('packagingId', $dRec->packagingId);
@@ -315,6 +317,28 @@ class planning_Jobs extends core_Master
     	}
     	
     	$form->setDefault('packagingId', key($packs));
+    }
+    
+    
+    /**
+     * Дефолтна дата на падеж
+     * 
+     * @param int $productId - ид на артикул
+     * @param int $saleId    - ид на сделка
+     * @return NULL|date     - дефолтния падеж
+     */
+    private static function getDefaultDueDate($productId, $saleId)
+    {
+    	if(empty($saleId)) return NULL;
+    	$sQuery = sales_SalesDetails::getQuery();
+    	$sQuery->where("#productId = {$productId} AND #saleId = {$saleId}");
+    	$sQuery->XPR('max', 'double', 'MAX(#term)');
+    	$sQuery->show('max');
+    	$max = $sQuery->fetch()->max;
+    	
+    	if(empty($max)) return NULL;
+    	
+    	return dt::addSecs($max, dt::today(), FALSE);
     }
     
     
@@ -557,14 +581,11 @@ class planning_Jobs extends core_Master
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     		$rec->isEdited = TRUE;
     		
-    		$weight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
-    		if(!empty($weight)){
-    			$rec->brutoWeight = $weight;
-    			$rec->weight = $weight / $rec->quantity;
-    		} else {
-    			$rec->brutoWeight = NULL;
-    			$rec->weight = NULL;
-    		}
+    		$brutoWeight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
+    		$rec->brutoWeight = (!empty($brutoWeight)) ? $brutoWeight : NULL;
+    		
+    		$nettoWeight = cat_Products::convertToUom($rec->productId, 'kg');
+    		$rec->weight = (!empty($nettoWeight)) ? $nettoWeight : NULL;
     	}
     }
     
@@ -614,7 +635,7 @@ class planning_Jobs extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->title = $mvc->getLink($rec->id);
+    	$row->title = ($fields['-single']) ? $mvc->getRecTitle($rec) : $mvc->getLink($rec->id);
     	$row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
     	$Double = core_Type::getByName('double(smartRound)');
     	
@@ -951,7 +972,7 @@ class planning_Jobs extends core_Master
     	if($rec->state == 'closed'){
     		$count = 0;
     		$tQuery = planning_Tasks::getQuery();
-    		$tQuery->where("#originId = {$rec->containerId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped'");
+    		$tQuery->where("#originId = '{$rec->containerId}' AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped'");
     		while($tRec = $tQuery->fetch()){
     			$tRec->state = 'closed';
     			cls::get('planning_Tasks')->save_($tRec, 'state');

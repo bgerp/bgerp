@@ -963,9 +963,10 @@ class bgerp_Notifications extends core_Manager
             expect($userId = core_Users::getCurrent());
         }
         
+        $now = dt::now();
+        
         $Notifications = cls::get('bgerp_Notifications');
-
-
+        
         // Намираме времето на последния запис
         $query = $Notifications->getQuery();
         $query->where("#userId = $userId");
@@ -977,8 +978,14 @@ class bgerp_Notifications extends core_Manager
         $query->orderBy("#modifiedOnTop", 'DESC');
         
         $lastRec = $query->fetch();
+        $lRecModifiedOnTop = $lastRec->modifiedOnTop;
         
-        $lastModifiedOnKey = $lastRec->modifiedOnTop;
+        // Ако времето на промяна съвпада с текущото
+        if ($lRecModifiedOnTop >= $now) {
+            $lRecModifiedOnTop = dt::subtractSecs(3, $lRecModifiedOnTop);
+        }
+        
+        $lastModifiedOnKey = $lRecModifiedOnTop;
         $lastModifiedOnKey .= '|' . $lastRec->id;
         
         $modifiedBefore = dt::subtractSecs(180);
@@ -990,7 +997,14 @@ class bgerp_Notifications extends core_Manager
         $cQuery->orderBy('modifiedOn', 'DESC');
         $cQuery->orderBy('lastTime', 'DESC');
         if ($cLastRec = $cQuery->fetch()) {
-            $lastModifiedOnKey .= '|' . $lastRec->lastTime;
+            $lRecLastTime = $lastRec->lastTime;
+            
+            // Ако времето на промяна съвпада с текущото
+            if ($lRecLastTime >= $now) {
+                $lRecLastTime = dt::subtractSecs(3, $lRecLastTime);
+            }
+            
+            $lastModifiedOnKey .= '|' . $lRecLastTime;
             $lastModifiedOnKey .= '|' . $cLastRec->id;
         }
         
@@ -999,7 +1013,7 @@ class bgerp_Notifications extends core_Manager
         list($tpl, $modifiedOnKey) = core_Cache::get('Notifications', $key);
         
         if(!$tpl || $modifiedOnKey != $lastModifiedOnKey) {
-
+            
             // Създаваме обекта $data
             $data = new stdClass();
             
@@ -1013,7 +1027,7 @@ class bgerp_Notifications extends core_Manager
             
             $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
             
-            $data->query->XPR('modifiedOnTop', 'datetime', "IF((((#modifiedOn > '{$modifiedBefore}') || (#state = 'active') || (#lastTime > '{$modifiedBefore}'))), IF(((#state = 'active') || (#lastTime > #modifiedOn)), #modifiedOn, #lastTime), NULL)");
+            $data->query->XPR('modifiedOnTop', 'datetime', "IF((((#modifiedOn >= '{$modifiedBefore}') || (#state = 'active') || (#lastTime >= '{$modifiedBefore}'))), IF(((#state = 'active') || (#lastTime > #modifiedOn)), #modifiedOn, #lastTime), NULL)");
             $data->query->orderBy("modifiedOnTop", "DESC");
             
             $data->query->orderBy("modifiedOn=DESC");
@@ -1022,8 +1036,8 @@ class bgerp_Notifications extends core_Manager
                 $data->query->where("#state = 'active'");
                 
                 // Нотификациите, модифицирани в скоро време да се показват
-                $data->query->orWhere("#modifiedOn > '{$modifiedBefore}'");
-                $data->query->orWhere("#lastTime > '{$modifiedBefore}'");
+                $data->query->orWhere("#modifiedOn >= '{$modifiedBefore}'");
+                $data->query->orWhere("#lastTime >= '{$modifiedBefore}'");
             }
             
             // Подготвяме филтрирането

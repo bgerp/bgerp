@@ -97,7 +97,7 @@ class label_Templates extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy, state';
+    public $listFields = 'id, title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy, state';
 
     
     /**
@@ -147,7 +147,7 @@ class label_Templates extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('sizes', 'varchar(128)', 'caption=Размери, mandatory, width=100%');
-        $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Интерфейс');
+        $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Източник');
         $this->FLD('template', 'html', 'caption=Шаблон->HTML');
         $this->FLD('css', 'text', 'caption=Шаблон->CSS');
         $this->FLD('sysId', 'varchar', 'input=none');
@@ -360,24 +360,37 @@ class label_Templates extends core_Master
         
         // Добавяме бутон
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $sourceOptions = array('-1' => 'Без източник') + core_Classes::getOptionsByInterface('label_SequenceIntf', 'title');
         
-        $form->showFields = 'search';
+        $form->FNC('fClassId', 'varchar', 'caption=Източник');
+        $form->setOptions('fClassId', array('' => '') + $sourceOptions);
+        
+        $form->showFields = 'search,fClassId';
         if(!core_Request::get('Rejected', 'int')){
-        	$form->FNC('fState', 'enum(, draft=Чернови, active=Използвани)', 'caption=Всички, allowEmpty,autoFilter');
+        	$form->FNC('fState', 'enum(, active=Използвани, closed=Затворени)', 'caption=Всички, allowEmpty,autoFilter');
         	$form->showFields .= ', fState';
+        	$form->setDefault('fState', 'active');
         	
         	// Инпутваме полетата
-        	$form->input('fState', 'silent');
+        	$form->input('fState,fClassId', 'silent');
         }
         
-        // Подреждаме по състояние
+        // Подреждане по състояние
         $data->query->orderBy('#state=ASC');
         
         // Подреждаме по дата на създаване
         $data->query->orderBy('#createdOn=DESC');
 
-        if ($state = $data->listFilter->rec->fState) {
+        if($state = $data->listFilter->rec->fState) {
             $data->query->where(array("#state = '[#1#]'", $state));
+        }
+        
+        if($classId = $data->listFilter->rec->fClassId) {
+        	if($classId == '-1'){
+        		$data->query->where("#classId IS NULL");
+        	} else {
+        		$data->query->where(array("#classId = '[#1#]'", $classId));
+        	}
         }
     }
     
@@ -614,6 +627,7 @@ class label_Templates extends core_Master
     	$res = '';
     	$modified = $skipped = 0;
     	$array = array('defaultTpl' => array('title' => 'Базов шаблон за етикети', 'path' => 'label/tpl/DefaultLabelBG.shtml', 'lang' => 'bg', 'class' => 'planning_Tasks', 'sizes' => array('100', '72')),
+    			       'defaultTplJob' => array('title' => 'Етикети от задания', 'path' => 'label/tpl/DefaultLabelJob.shtml', 'lang' => 'bg', 'class' => 'planning_Jobs', 'sizes' => array('100', '72')),
     				   'defaultTplEn' => array('title' => 'Default label template', 'path' => 'label/tpl/DefaultLabelEN.shtml', 'lang' => 'en', 'class' => 'planning_Tasks', 'sizes' => array('100', '72')),
     			       'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
     	);
@@ -631,14 +645,20 @@ class label_Templates extends core_Master
     						$params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '160', 'Height' => '60', 'Rotation' => 'yes');
     						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
     					} else {
-    						$type = ($placeholder == 'PREVIEW') ? 'html' : 'caption';
-    						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type);
+    						$type = 'caption';
+    						$params = array();
+    						if($placeholder == 'PREVIEW'){
+    							$type = ($placeholder == 'PREVIEW') ? 'image' : 'caption';
+    							$params = array('Width' => planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH'), 'Height' => planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT'));
+    						}
+    						
+    						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type, $params);
     					}
     				}
     			}
-    			$modified ++;
+    			$modified++;
     		} else {
-    			$skipped ++;
+    			$skipped++;
     		}
     	}
     	core_Users::cancelSystemUser();

@@ -62,7 +62,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
         $this->setAttr('stroke', 'black');
         $this->setAttr('stroke-width', 0.2);
         $this->setAttr('fill', 'none');
-        $this->setAttr('font-size', 40); 
+        $this->setAttr('font-size', 40);
         $this->setAttr('font-family', 'Courier');
 	}
 

@@ -381,6 +381,7 @@ class core_Classes extends core_Manager
         self::rebuild();
     }
     
+
     
     /**
      * Прецизира информацията за интерфейсите на всички 'активни' класове
@@ -389,7 +390,8 @@ class core_Classes extends core_Manager
     static function rebuild()
     {
         $query = self::getQuery();
-        
+        $res = "<li>Обновяване на информацията за класовете</li>";
+
         while($rec = $query->fetch("#state = 'active'")) {
             
             $load = cls::load($rec->name, TRUE);
@@ -398,10 +400,12 @@ class core_Classes extends core_Manager
             }
             if(!$load) {
                 $rec->state = 'closed';
-                self::save($rec);
+                self::save($rec, 'state');
                 $res .= "<li style='color:red;'>Деактивиран беше класа {$rec->name} защото липсва кода му.</li>";
             } elseif($inst->deprecated) {
                 $res .= "<li style='color:green;'>Деактивиран беше класа {$rec->name} защото е пенсиониран.</li>";
+                $rec->state = 'closed';
+                self::save($rec, 'state');
             } else {
                 core_Classes::add($rec->name);
             }

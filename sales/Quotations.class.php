@@ -192,7 +192,7 @@ class sales_Quotations extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'date';
+    public $fieldsNotToClone = 'reff, date';
     
     
     /**
@@ -259,24 +259,12 @@ class sales_Quotations extends core_Master
     	$form = $data->form;
     	$form->setField('deliveryAdress', array('placeholder' => 'Държава, Пощенски код'));
     	$rec = &$data->form->rec;
-    	
-    	// При клониране
-    	if($data->action == 'clone'){
-    		// Ако няма reff взимаме хендлъра на оригиналния документ
-    		if(empty($rec->reff)){
-    			$rec->reff = $mvc->getHandle($rec->id);
-    		}
-	       	
-	       	// Инкрементираме reff-а на оригинална
-	       	$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
-       }
        
-       $contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
-       $contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
-       $form->setDefault('contragentClassId', $contragentClassId);
-       $form->setDefault('contragentId', $contragentId);
-       
-       $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
+    	$contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
+    	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
+    	$form->setDefault('contragentClassId', $contragentClassId);
+    	$form->setDefault('contragentId', $contragentId);
+        $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
        if(count($locations)){
        		$form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
        } else {
@@ -328,7 +316,7 @@ class sales_Quotations extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
 	    if($data->rec->state == 'active'){
-	    	if(sales_Sales::haveRightFor('add', (object)array('folderId' => $data->rec->folderId))){
+	    	if($mvc->haveRightFor('salefromquotation', (object)array('folderId' => $data->rec->folderId))){
 	    		$items = $mvc->getItems($data->rec->id);
 	    		
 	    		// Ако има поне един опционален артикул или има варианти на задължителните, бутона сочи към екшън за определяне на количествата
@@ -801,6 +789,13 @@ class sales_Quotations extends core_Master
     			}
     		}
     	}
+    	
+    	if($action == 'salefromquotation'){
+    		$res = sales_Sales::getRequiredRoles('add', $rec, $userId);
+    		if(core_Users::isContractor($userId)){
+    			$res = 'no_one';
+    		}
+    	}
     }
     
     
@@ -965,7 +960,6 @@ class sales_Quotations extends core_Master
     	// Подготвяме данните на мастъра на генерираната продажба
     	$fields = array('currencyId'         => $rec->currencyId,
     					'currencyRate'       => $rec->currencyRate,
-    					'reff'       		 => ($rec->reff) ? $rec->reff : $this->getHandle($rec->id),
     					'paymentMethodId'    => $rec->paymentMethodId,
     					'deliveryTermId'     => $rec->deliveryTermId,
     					'chargeVat'          => $rec->chargeVat,
@@ -992,12 +986,12 @@ class sales_Quotations extends core_Master
      */
     function act_CreateSale()
     {
-    	sales_Sales::requireRightFor('add');
+    	$this->requireRightFor('salefromquotation');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetchRec($id));
     	expect($rec->state = 'active');
     	expect($items = $this->getItems($id));
-    	
+    	$this->requireRightFor('salefromquotation', (object)array('folderId' => $rec->folderId));
     	$force = Request::get('force', 'int');
     	
     	// Ако не форсираме нова продажба
@@ -1039,11 +1033,11 @@ class sales_Quotations extends core_Master
      */
     public function act_FilterProductsForSale()
     {
-    	sales_Sales::requireRightFor('add');
+    	$this->requireRightFor('salefromquotation');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'active');
-    	sales_Sales::requireRightFor('add', (object)array('folderId' => $rec->folderId));
+    	$this->requireRightFor('salefromquotation', (object)array('folderId' => $rec->folderId));
     	
     	// Подготовка на формата за филтриране на данните
     	$form = $this->getFilterForm($rec->id, $id);
@@ -1633,5 +1627,16 @@ class sales_Quotations extends core_Master
     	$rec = $this->fetchRec($id);
     	 
     	return $this->save($rec, 'modifiedOn,modifiedBy,searchKeywords');
+    }
+    
+    
+    /**
+     * Състояние на нишката
+     */
+    public static function getThreadState($id)
+    {
+    	$createdBy = self::fetchField($id, 'createdBy');
+    	
+    	return ($createdBy == core_Users::SYSTEM_USER) ? 'opened' : NULL;
     }
 }

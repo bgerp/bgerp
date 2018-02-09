@@ -40,7 +40,7 @@ class accda_Da extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, accda_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary, plg_Printing, plg_Clone, doc_DocumentPlg, plg_Search,
-                     bgerp_plg_Blank, acc_plg_Registry, plg_Sorting, plg_SaveAndNew, plg_Search, doc_plg_SelectFolder';
+                     bgerp_plg_Blank, acc_plg_Registry, plg_Sorting, plg_SaveAndNew, plg_Search, doc_plg_SelectFolder,change_Plugin';
     
     
     /**
@@ -142,6 +142,12 @@ class accda_Da extends core_Master
     
     
     /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'info,origin,location,gpsCoords,image,title';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -212,12 +218,21 @@ class accda_Da extends core_Master
     		$form->setReadOnly('location');
     	}
     	
-    	// Опитваме се да определим координатите от локацията
     	if ($form->cmd == 'refresh') {
+    	    
+    	    // Опитваме се да определим координатите от локацията
     	    if ($form->rec->location && !$form->rec->gpsCoords) {
     	        $lRec = crm_Locations::fetch($form->rec->location);
     	        if ($lRec && $lRec->gpsCoords) {
     	            $form->rec->gpsCoords = $lRec->gpsCoords;
+    	        }
+    	    }
+    	    
+    	    // Добавяме снимка от артикула
+    	    if ($form->rec->productId  && !$form->rec->image) {
+    	        $pRec = cat_Products::fetch($form->rec->productId);
+    	        if ($pRec && $pRec->photo) {
+    	            $form->rec->image = $pRec->photo;
     	        }
     	    }
     	}

@@ -167,6 +167,12 @@ defIfNot('CORE_SYSTEM_NICK', '@system');
 
 
 /**
+ * Име на системния потребител
+ */
+defIfNot('CORE_SYSTEM_NAME', 'Системата');
+
+
+/**
  * Потребителя, който ще се използва за първи администратор в системата
  */
 defIfNot('CORE_FIRST_ADMIN', '');
@@ -257,8 +263,10 @@ class core_Setup extends core_ProtoSetup {
 
            'EF_APP_TITLE'   => array ('varchar(16)', 'caption=Наименование на приложението->Име'),
             
-           'CORE_SYSTEM_NICK'   => array ('varchar(16)', 'caption=Ник на системния потребител->Ник'),
-            
+           'CORE_SYSTEM_NICK'   => array ('varchar(16)', 'caption=Системен потребител->Ник'),
+
+           'CORE_SYSTEM_NAME'   => array ('varchar(16)', 'caption=Системен потребител->Име'),
+
            'CORE_FIRST_ADMIN'   => array ('user(roles=admin, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Главен администратор на системата->Потребител'),
        
            'CORE_LOGIN_INFO'   => array ('varchar', 'caption=Информация във формата за логване->Текст'),

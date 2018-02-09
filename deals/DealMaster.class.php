@@ -60,7 +60,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime';
+	public $fieldsNotToClone = 'reff,valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime';
 	
 	
 	/**
@@ -236,18 +236,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		$form->setField('deliveryAdress', array('placeholder' => 'Държава, Пощенски код'));
 		$rec = $form->rec;
 		
-		// При клониране
-		if($data->action == 'clone'){
-			 
-			// Ако няма reff взимаме хендлъра на оригиналния документ
-			if(empty($rec->reff)){
-				$rec->reff = $mvc->getHandle($rec->id);
-			}
-			 
-			// Инкрементираме reff-а на оригинална
-			$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
-		}
-		
 		if(empty($form->rec->id)){
 			$form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
 		}
@@ -349,7 +337,8 @@ abstract class deals_DealMaster extends deals_DealBase
         if(!empty($rec->reff)){
         	$title .= "/{$rec->reff}";
         } elseif(isset($rec->productIdWithBiggestAmount)){
-        	$pName = mb_substr($rec->productIdWithBiggestAmount, 0, 20);
+        	$length = sales_Setup::get('PROD_NAME_LENGTH');
+        	$pName = mb_substr($rec->productIdWithBiggestAmount, 0, $length);
         	$title .= "/{$pName}";
         }
         
@@ -419,7 +408,7 @@ abstract class deals_DealMaster extends deals_DealBase
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
         if(!Request::get('Rejected', 'int')){
-        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,notInvoiced=Нефактурирани,closedWith=Приключени с други сделки)', 'caption=Състояние');
+        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки)', 'caption=Състояние');
 	        $data->listFilter->setDefault('type', 'active');
 			$data->listFilter->showFields .= ',type';
 		}
@@ -435,9 +424,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			if($filter->type) {
 				switch($filter->type){
 					case "clAndAct":
-						$closedDealsArr = $mvc->getDealsClosedWithOtherDeals();
-						$closedDealsArr = implode(',', $closedDealsArr);
-						$data->query->where("#state = 'active' OR (#state = 'closed' AND #id NOT IN ($closedDealsArr))");
+						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case "all":
 						break;
@@ -452,8 +439,6 @@ abstract class deals_DealMaster extends deals_DealBase
 						break;
 					case "closed":
 						$data->query->where("#state = 'closed'");
-						$closedDealsArr = $mvc->getDealsClosedWithOtherDeals();
-						$data->query->notIn("id", $closedDealsArr);
 						break;
 					case 'paid':
 						$data->query->where("#paymentState = 'paid' OR #paymentState = 'repaid'");
@@ -485,7 +470,19 @@ abstract class deals_DealMaster extends deals_DealBase
 					case 'closedWith':
 						$closedDealsArr = $mvc->getDealsClosedWithOtherDeals();
 						$data->query->where("#state = 'closed'");
-						$data->query->in('id', $closedDealsArr);
+						if(count($closedDealsArr)){
+							$data->query->in('id', $closedDealsArr);
+						} else {
+							$data->query->where("1=2");
+						}
+						break;
+					case 'unionDeals':
+						$data->query->where("#state = 'active' OR #state = 'closed'");
+						$data->query->where("#closedDocuments != '' AND #closedDocuments IS NOT NULL");
+						break;
+					case 'notUnionDeals':
+						$data->query->where("#state = 'active' OR #state = 'closed'");
+						$data->query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
 						break;
 				}
 			}
@@ -565,11 +562,6 @@ abstract class deals_DealMaster extends deals_DealBase
 	
         if($rec->makeInvoice != 'no' && !empty($rec->amountInvoiced)){
         	$subTitle .= ", " . tr('Факт:') . " {$row->amountInvoiced} ({$row->amountToInvoice})";
-        }
-        
-        if(!empty($rec->reff)){
-        	$reff = cls::get('type_Varchar')->toVerbal($rec->reff);
-        	$subTitle .= ", " . tr('Реф:') . " {$reff}";
         }
         
         return $subTitle;
@@ -1800,6 +1792,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public function act_ChooseDraft()
     {
     	$this->requireRightFor('edit');
+    	expect(core_Users::isPowerUser());
     	$contragentClassId = Request::get('contragentClassId', 'int');
     	$contragentId = Request::get('contragentId', 'int');
     	
@@ -2088,5 +2081,16 @@ abstract class deals_DealMaster extends deals_DealBase
     	if(!empty($rec->deliveryLocationId)){
     		$res['deliveryAdress'] = 'deliveryAdress';
     	}
+    }
+    
+    
+    /**
+     * Връща иконата за сметката
+     */
+    public function getIcon($id)
+    {
+    	$closedDocuments = $this->fetchField($id, 'closedDocuments');
+    
+    	return (empty($closedDocuments)) ? $this->singleIcon : $this->singleIconFocCombinedDeals;
     }
 }

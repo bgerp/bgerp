@@ -78,7 +78,7 @@ class price_ProductCosts extends core_Manager
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
     	$this->FLD('type', 'enum(accCost=Складова,
-    							 lastDelivery=Последна доставка,
+    							 lastDelivery=Последна доставка (+разходи),
     							 activeDelivery=Текуща поръчка,
     							 lastQuote=Последна оферта,
     							 bom=Последна рецепта)', 'caption=Тип');
@@ -279,7 +279,8 @@ class price_ProductCosts extends core_Manager
     				foreach ($purchaseProducts[$purRec->requestId] as $o1){
     					$itemId = acc_Items::fetchItem('cat_Products', $o1->productId)->id;
     					$amount = acc_Balances::getBlAmounts($entries, '321', 'debit', '60201', array(NULL, $itemId, NULL))->amount;
-    					$o1->price += ($amount / $o1->quantity);
+    					$val = (empty($o1->quantity)) ? 0 : ($amount / $o1->quantity);
+    					$o1->price += $val;
     				}
     			}
     			

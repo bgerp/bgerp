@@ -21,7 +21,7 @@
 		clearText: 'изчисти', clearStatus: 'изчисти актуалната дата',
 		closeText: 'затвори', closeStatus: 'затвори без промени',
 		yearStatus: 'покажи друга година', monthStatus: 'покажи друг месец',
-		weekText: 'Wk', weekStatus: 'седмица от месеца',
+		weekText: 'Сд', weekStatus: 'седмица от месеца',
 		dayStatus: 'Избери D, M d', defaultStatus: 'Избери дата',
 		isRTL: false
 	};

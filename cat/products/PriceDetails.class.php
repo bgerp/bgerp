@@ -46,7 +46,7 @@ class cat_products_PriceDetails extends core_Manager
      */
 	public function preparePrices($data)
     {
-    	if(!haveRole($this->canSeeprices) || $data->masterData->rec->state == 'template' || $data->masterData->rec->brState == 'template'){
+    	if($data->masterData->rec->state == 'template' || $data->masterData->rec->brState == 'template'){
     		$data->hide = TRUE;
     		return;
     	}
@@ -67,10 +67,12 @@ class cat_products_PriceDetails extends core_Manager
     	$vatData = clone $data;
     	
     	$this->preparePriceInfo($listsData);
-    	$this->VatGroups->prepareVatGroups($vatData);
-    	
     	$data->listsData = $listsData;
-    	$data->vatData = $vatData;
+    	
+    	if(haveRole($this->canSeeprices)){
+    		$this->VatGroups->prepareVatGroups($vatData);
+    		$data->vatData = $vatData;
+    	}
     }
     
     
@@ -83,7 +85,10 @@ class cat_products_PriceDetails extends core_Manager
     	
     	$tpl = getTplFromFile('cat/tpl/PriceDetails.shtml');
     	$tpl->append($this->renderPriceInfo($data->listsData), 'PriceList');
-    	$tpl->append($this->VatGroups->renderVatGroups($data->vatData), 'VatGroups');
+    	
+    	if(isset($data->vatData)){
+    		$tpl->append($this->VatGroups->renderVatGroups($data->vatData), 'VatGroups');
+    	}
     	
     	return $tpl;
     }
