@@ -219,17 +219,17 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		}
 
 		if(isset($dRec->indicatorId)) {
-		    $row->indicator = hr_IndicatorNames::fetchField($dRec->indicatorId,'name');
+		    $row->indicator = hr_IndicatorNames::fetchField($dRec->indicatorId, 'name');
 		}
 
 	    if(isset($dRec->value)) {
-		    $row->value = $Double->toVerbal($dRec->value);
-		  
-		    if(!$isPlain){
-		    	$row->value = ht::styleIfNegative($row->value, $dRec->value);
-		    }
-		    
 		    if(!$isPlain && !Mode::isReadOnly()){
+		    	$row->value = $Double->toVerbal($dRec->value);
+		    	
+		    	if(!$isPlain){
+		    		$row->value = ht::styleIfNegative($row->value, $dRec->value);
+		    	}
+		    	
 		    	$start = acc_Periods::fetchField($rec->periods, 'start');
 		    	$date = new DateTime($start);
 		    	$startMonth = $date->format('Y-m-01');
@@ -250,6 +250,8 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		    	if($haveRight !== TRUE){
 		    		core_Request::removeProtected('period,personId,indicatorId,force');
 		    	}
+		    } else {
+		    	$row->value = frame_CsvLib::toCsvFormatDouble($dRec->value);
 		    }
 	    }
 		

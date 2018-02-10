@@ -39,6 +39,28 @@ class planning_interface_JobLabel
 	
 	
 	/**
+	 * Коя е дефолтната опаковка за етикетите на заданията
+	 * 
+	 * @param int $productId
+	 * @param array $selectedPackagingArr
+	 * @return stdClass|NULL
+	 */
+	private static function getDefaultPackRec($productId, &$selectedPackagingArr)
+	{
+		$selectedPackagings = planning_Setup::get('LABEL_DEFAULT_PACKAGINGS');
+		$selectedPackagingArr = keylist::toArray($selectedPackagings);
+		if(!count($selectedPackagingArr)) return NULL;
+		
+		$query = cat_products_Packagings::getQuery();
+		$query->where("#productId = {$productId}");
+		$query->in("packagingId", $selectedPackagingArr);
+		$query->limit(1);
+		
+		return $query->fetch();
+	}
+	
+	
+	/**
 	 * Връща данни за етикети
 	 *
 	 * @param int $id - ид на задача
@@ -52,13 +74,35 @@ class planning_interface_JobLabel
 	{
 		$res = array();
 		expect($rec = planning_Jobs::fetchRec($id));
-		$pRec = cat_Products::fetch($rec->productId, 'code');
+		$pRec = cat_Products::fetch($rec->productId, 'code,measureId');
 		
 		$res['JOB'] = $rec->id;
 		$res['CODE'] = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
-		$res['QUANTITY'] = $rec->quantity;
+		
+		$packRec = self::getDefaultPackRec($rec->productId, $selectedPackagingArr);
+		if(!Mode::is('prepareLabel') && count($selectedPackagingArr)){
+			$msg = 'Артикулът трябва да поддържа някоя от опаковките|*: ';
+			$msg .= core_Type::getByName('keylist(mvc=cat_UoM,select=name)')->toVerbal(keylist::fromArray($selectedPackagingArr));
+			label_exception_Redirect::expect($packRec, $msg);
+		}
+		
+		if(empty($packRec)){
+			$res['MEASURE_ID'] = tr(cat_UoM::getShortName($pRec->measureId));
+			$res['QUANTITY'] = $rec->quantity;
+		} else {
+			$res['QUANTITY'] = $packRec->quantity;
+			$res['MEASURE_ID'] =  tr(cat_UoM::getShortName($packRec->packagingId));
+		}
+		
 		if(isset($rec->saleId)){
 			$res['ORDER'] = $rec->saleId;
+			
+			$lg = core_Lg::getCurrent();
+			if($lg != 'bg'){
+				$sRec = sales_Sales::fetch($rec->saleId);
+				$countryId = cls::get($sRec->contragentClassId)->fetchField($sRec->contragentId, 'country');
+				$res['OTHER'] = drdata_Countries::fetchField($countryId, 'letterCode2') . " " . date("m/y");
+			}
 		}
 		
 		// Ако от драйвера идват още параметри, добавят се с приоритет
@@ -98,7 +142,11 @@ class planning_interface_JobLabel
 	public function getEstimateCnt($id, &$allowSkip)
 	{
 		$allowSkip = TRUE;
+		$rec = $this->class->fetch($id);
 		
-		return 1;
+		$packRec = self::getDefaultPackRec($rec->productId, $selectedPackagingArr);
+		$res = (empty($packRec)) ? $rec->quantity : round($rec->quantity / $packRec->quantity, 2);
+		
+		return $res;
 	}
 }

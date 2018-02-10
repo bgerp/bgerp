@@ -469,10 +469,18 @@ class fileman_Indexes extends core_Manager
         $rec->createdBy = $params['createdBy'];
         $rec->content = static::prepareContent($params['content']);
         
-        // Ако новата стойност не е грешка, презаписваме предишната
         $saveType = 'IGNORE';
-        if (!is_object($params['content']) && !empty($params['content'])) {
-            $saveType = 'REPLACE';
+        
+        // Ако новата стойност не е грешка, презаписваме предишната
+        if (!is_object($params['content'])) {
+            if (!empty($params['content'])) {
+                $saveType = 'REPLACE';
+            } else {
+                $fRec = self::fetch(array("#dataId = '[#1#]' AND #type = '[#2#]'", $rec->dataId, $rec->type));
+                if (!$fRec || !static::decodeContent($fRec->content)) {
+                    $saveType = 'REPLACE';
+                }
+            }
         }
         
         $saveId = static::save($rec, NULL, $saveType);
@@ -757,37 +765,41 @@ class fileman_Indexes extends core_Manager
                 // И ако отговора на условията, извличаме текстовата част с OCR
                 $content = self::getTextForIndex($hnd);
                 $minSize = self::$ocrIndexArr[$ext];
-                if (($content === FALSE || !trim($content)) && isset($minSize) && ($dRec->fileLen > $minSize) && ($dRec->fileLen < self::$ocrMax)) {
-                    
-                    $filemanOcr = fileman_Setup::get('OCR');
-                    
-                    if (!$filemanOcr || !cls::load($filemanOcr, TRUE)) continue;
-                    
-                    $intf = cls::getInterface('fileman_OCRIntf', $filemanOcr);
-                    
-                    if (!$intf) continue;
-                    if (!$intf->canExtract($fRec)) continue;
-                    if (!$intf->haveTextForOcr($fRec)) continue;
-                    
-                    try {
-                        $intf->getTextByOcr($fRec);
-                    } catch (ErrorException $e) {
-                        reportException($e);
-                    }
-                    
-                    // Изчакваме докато завърши обработката
-                    $lockId = fileman_webdrv_Generic::getLockId('textOcr', $dId);
-                    while (core_Locks::isLocked($lockId)) {
-                        if (dt::now() >= $endOn) {
-                            $break = TRUE;
-                            break;
+                
+                $ocrText = fileman_Indexes::getInfoContentByFh($hnd, 'textOcr');
+                if ($ocrText === FALSE) {
+                    if (($content === FALSE || !trim($content)) && isset($minSize) && ($dRec->fileLen > $minSize) && ($dRec->fileLen < self::$ocrMax)) {
+                        
+                        $filemanOcr = fileman_Setup::get('OCR');
+                        
+                        if (!$filemanOcr || !cls::load($filemanOcr, TRUE)) continue;
+                        
+                        $intf = cls::getInterface('fileman_OCRIntf', $filemanOcr);
+                        
+                        if (!$intf) continue;
+                        if (!$intf->canExtract($fRec)) continue;
+                        if (!$intf->haveTextForOcr($fRec)) continue;
+                        
+                        try {
+                            $intf->getTextByOcr($fRec);
+                        } catch (ErrorException $e) {
+                            reportException($e);
                         }
-                        usleep(500000);
+                        
+                        // Изчакваме докато завърши обработката
+                        $lockId = fileman_webdrv_Generic::getLockId('textOcr', $dId);
+                        while (core_Locks::isLocked($lockId)) {
+                            if (dt::now() >= $endOn) {
+                                $break = TRUE;
+                                break;
+                            }
+                            usleep(500000);
+                        }
+                        
+                        $content = self::getTextForIndex($hnd);
+                        
+                        fileman_Data::logDebug('OCR обработка на данни', $dRec->id);
                     }
-                    
-                    $content = self::getTextForIndex($hnd);
-                    
-                    fileman_Data::logDebug('OCR обработка на данни', $dRec->id);
                 }
             }
             

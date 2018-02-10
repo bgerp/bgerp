@@ -192,7 +192,7 @@ class sales_Quotations extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'date';
+    public $fieldsNotToClone = 'reff, date';
     
     
     /**
@@ -259,24 +259,12 @@ class sales_Quotations extends core_Master
     	$form = $data->form;
     	$form->setField('deliveryAdress', array('placeholder' => 'Държава, Пощенски код'));
     	$rec = &$data->form->rec;
-    	
-    	// При клониране
-    	if($data->action == 'clone'){
-    		// Ако няма reff взимаме хендлъра на оригиналния документ
-    		if(empty($rec->reff)){
-    			$rec->reff = $mvc->getHandle($rec->id);
-    		}
-	       	
-	       	// Инкрементираме reff-а на оригинална
-	       	$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
-       }
        
-       $contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
-       $contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
-       $form->setDefault('contragentClassId', $contragentClassId);
-       $form->setDefault('contragentId', $contragentId);
-       
-       $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
+    	$contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
+    	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
+    	$form->setDefault('contragentClassId', $contragentClassId);
+    	$form->setDefault('contragentId', $contragentId);
+        $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
        if(count($locations)){
        		$form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
        } else {
@@ -475,7 +463,7 @@ class sales_Quotations extends core_Master
     					$price = deals_Helper::getPurePrice($price, $vat, $rec->currencyRate, $rec->chargeVat);
     				}
     				sales_Quotations::addRow($rec->id, $originRec->id, $quantity, $originRec->measureId, $price);
-    			} catch(Exception $e){
+    			} catch(core_exception_Expect $e){
     				reportException($e);
     		
     				if(haveRole('debug')){
@@ -972,7 +960,6 @@ class sales_Quotations extends core_Master
     	// Подготвяме данните на мастъра на генерираната продажба
     	$fields = array('currencyId'         => $rec->currencyId,
     					'currencyRate'       => $rec->currencyRate,
-    					'reff'       		 => ($rec->reff) ? $rec->reff : $this->getHandle($rec->id),
     					'paymentMethodId'    => $rec->paymentMethodId,
     					'deliveryTermId'     => $rec->deliveryTermId,
     					'chargeVat'          => $rec->chargeVat,
@@ -1650,6 +1637,6 @@ class sales_Quotations extends core_Master
     {
     	$createdBy = self::fetchField($id, 'createdBy');
     	
-    	return ($createdBy == core_Users::isSystemUser()) ? 'opened' : NULL;
+    	return ($createdBy == core_Users::SYSTEM_USER) ? 'opened' : NULL;
     }
 }

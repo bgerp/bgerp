@@ -771,9 +771,13 @@ class email_Setup extends core_ProtoSetup
             $begin = 1;
         }
         
+        $pKey = 'checkMailBox|' . $accId;
+        
         if ($begin >= $end) {
             
             email_Accounts::logNotice('Приключи проверката на имейл кутията', $accId);
+            
+            core_Permanent::remove($pKey);
             
             return ;
         }
@@ -816,14 +820,13 @@ class email_Setup extends core_ProtoSetup
         
         core_Locks::release($lockKey);
         
-        $pKey = 'checkMailBox|' . $accRec->id;
         $emlStatus = $accRec->id . '|' . $begin . '|' . $end;
         
         core_Permanent::set($pKey, $emlStatus, 100000);
         
         $mp = $accId;
-        if ($mp > 10) {
-            $mp = rand(1, 10);
+        if ($mp == 1 || $mp > 5) {
+            $mp = rand(1, 5);
         }
         
         $callOn = dt::addSecs(60 * $mp);

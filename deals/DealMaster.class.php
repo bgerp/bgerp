@@ -60,7 +60,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime';
+	public $fieldsNotToClone = 'reff,valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime';
 	
 	
 	/**
@@ -235,18 +235,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		$form->setDefault('valior', dt::now());
 		$form->setField('deliveryAdress', array('placeholder' => 'Държава, Пощенски код'));
 		$rec = $form->rec;
-		
-		// При клониране
-		if($data->action == 'clone'){
-			 
-			// Ако няма reff взимаме хендлъра на оригиналния документ
-			if(empty($rec->reff)){
-				$rec->reff = $mvc->getHandle($rec->id);
-			}
-			 
-			// Инкрементираме reff-а на оригинална
-			$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
-		}
 		
 		if(empty($form->rec->id)){
 			$form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
@@ -574,11 +562,6 @@ abstract class deals_DealMaster extends deals_DealBase
 	
         if($rec->makeInvoice != 'no' && !empty($rec->amountInvoiced)){
         	$subTitle .= ", " . tr('Факт:') . " {$row->amountInvoiced} ({$row->amountToInvoice})";
-        }
-        
-        if(!empty($rec->reff)){
-        	$reff = cls::get('type_Varchar')->toVerbal($rec->reff);
-        	$subTitle .= ", " . tr('Реф:') . " {$reff}";
         }
         
         return $subTitle;
@@ -1834,7 +1817,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Подготвяме и показваме формата за избор на чернова оферта, ако има чернови
     	$me = get_called_class();
     	$form = cls::get('core_Form');
-    	$form->title = "|Прехвърляне в|* " . mb_strtolower($this->singleTitle);
+    	
     	$form->FLD('dealId', "key(mvc={$me},select=id,allowEmpty)", "caption={$this->singleTitle},mandatory");
     	$form->setOptions('dealId', $options);
     	
@@ -1848,6 +1831,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$quotationId = Request::get('quotationId', 'int');
     	$rejectUrl = toUrl(array('sales_Quotations', 'single', $quotationId));
+    	$form->title = "|Прехвърляне в|* " . mb_strtolower($this->singleTitle) . " " . tr('на') . " " . cls::get('sales_Quotations')->getFormTitleLink($quotationId);
     	
     	$forceUrl = $retUrl;
     	$forceUrl['force'] = TRUE;

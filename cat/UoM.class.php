@@ -176,20 +176,18 @@ class cat_UoM extends core_Manager
     
     
     /**
-     * Ф-я закръгляща количество спрямо основната мярка на даден артикул, Ако е пдоадена опаковка
-     * спрямо нея
+     * ф-я закръгляща к-то в подадената опаковка, ако к-то е много-малко или много
+     * голямо и има по точна мярка се закръгля към нея
      * 
-     * @param double $quantity - к-то което ще закръгляме
-     * @param int $productId - ид на артикула
-     * @return double - закръгленото количество
+     * @param int $uomId
+     * @param double $quantity
+     * @return double $res
      */
-    public static function round($quantity, $productId)
+    public static function round(&$uomId, $quantity)
     {
     	// Коя е основната мярка на артикула
-    	$uomId = cat_Products::fetchField($productId, 'measureId');
-    	
-    	// Имали зададено закръгляне
-    	$round = static::fetchField($uomId, 'round');
+    	expect($rec = self::fetch($uomId));
+    	$round = $rec->round;
     	
     	// Ако няма
     	if(!isset($round)){
@@ -222,6 +220,14 @@ class cat_UoM extends core_Manager
     			$round = 0;
     		}
     	}
+    	
+   		if($quantity < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($uomId, 0.001))){
+			$quantity *= 1000;
+			$uomId = $downMeasureId;
+		} elseif($quantityInPack > 1000 && ($downMeasureId = cat_UoM::getMeasureByRatio($uomId, 1000))){
+			$quantity /= 1000;
+			$uomId = $downMeasureId;
+		}
     	
     	$res = round($quantity, $round);
     	

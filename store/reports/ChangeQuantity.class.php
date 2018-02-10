@@ -3,14 +3,13 @@
 
 
 /**
- * Мениджър на отчети за продукти по групи
- *
+ * Драйвер на отчет за Промяна по разполагаемо количество
  *
  *
  * @category  extrapack
  * @package   store
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Склад » Промяна по разполагаемо количество
@@ -23,23 +22,6 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo, acc, rep_acc,rep_store, store';
-
-    
-    /**
-     * Полета от таблицата за скриване, ако са празни
-     *
-     * @var int
-     */
-    //protected $filterEmptyListFields = 'deliveryTime';
-
-    
-    /**
-     * Полета за хеширане на таговете
-     *
-     * @see uiext_Labels
-     * @var varchar
-     */
-    protected $hashField = '$recIndic';
     
     
     /**
@@ -65,19 +47,6 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
 	{
 	    $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=title,single=none');
 	}
-      
-
-    /**
-	 * Преди показване на форма за добавяне/промяна.
-	 *
-	 * @param frame2_driver_Proto $Driver $Driver
-	 * @param embed_Manager $Embedder
-	 * @param stdClass $data
-	 */
-	protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
-	{
-
-	}
     
 	
 	/**
@@ -94,9 +63,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
 
 	    // Обръщаме се към трудовите договори
 		$query = store_Products::getQuery();
-		
 		$query->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
-		//$query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
 
 		if (isset($rec->group)) {
 		    $query->likeKeylist("groupMat", $rec->group);
@@ -148,10 +115,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
     	    }
     	}
     	
-    	usort($recs, function($a, $b) { 
-    	    
-    	    return ($a->changeQuantity > $b->changeQuantity) ? 1 : -1;
-    	});
+    	usort($recs, function($a, $b) {return ($a->changeQuantity > $b->changeQuantity) ? 1 : -1;});
 
 		return $recs;
 	}
@@ -169,7 +133,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
 		$fld = cls::get('core_FieldSet');
 	
 		if($export === FALSE){
-    		$fld->FLD('kod', 'varchar','caption=Код');
+    		$fld->FLD('kod', 'varchar','caption=Код,smartCenter');
     		$fld->FLD('productId', 'varchar', 'caption=Артикул');
     		$fld->FLD('measure', 'varchar', 'caption=Мярка');
     		$fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Наличност');
@@ -200,32 +164,20 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
 	{
-		$isPlain = Mode::is('text', 'plain');
-		$Int = cls::get('type_Int');
-
-		$Double = cls::get('type_Double');
-		$Double->params['decimals'] = 2;
-
 		$row = new stdClass();
+		$isPlain = Mode::is('text', 'plain');
 
-
-	    if(isset($dRec->kod)) {
-		    $row->kod = $dRec->kod;
-		}
-
-		if(isset($dRec->productId)) {
-		    $row->productId =  cat_Products::getShortHyperlink($dRec->productId);
-		}
-		
-		if(isset($dRec->measure)) {
-		    $row->measure = cat_UoM::fetchField($dRec->measure,'shortName');
-		}
+		$row->kod = (!empty($dRec->kod)) ? core_Type::getByName('varchar')->toVerbal($dRec->kod) : "Art{$dRec->productId}";
+		$row->productId =  ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : cat_Products::getShortHyperlink($dRec->productId);
+		$row->measure = cat_UoM::getShortName($dRec->measure);
 
 		foreach(array('quantity', 'reservedQuantity', 'freeQuantity', 'changeQuantity') as $fld) {
-		    $row->{$fld} = $Double->toVerbal($dRec->{$fld});
-		    
-		    if($dRec->{$fld} < 0){
-		        $row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
+		    if(!$isPlain){
+		    	$row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
+		    	$row->{$fld} = (empty($dRec->{$fld})) ? "<span class='quiet'>{$row->{$fld}}</span>" : $row->{$fld};
+		    	$row->{$fld} = ht::styleIfNegative($row->{$fld}, $dRec->{$fld});
+		    } else {
+		    	$row->{$fld} = frame_CsvLib::toCsvFormatDouble($dRec->{$fld});
 		    }
 		}
 
@@ -244,20 +196,8 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
 	 */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-        $groArr = array();
-        $groupbyArr = array();
-
-        $row->groupBy = $groupbyArr[$rec->groupBy];
-        
-        if(isset($rec->group)){
-            // избраната позиция
-            $groups = keylist::toArray($rec->group);
-            foreach ($groups as &$g) {
-                $gro = cat_Groups::fetchField("#id = '{$g}'", 'name');
-                array_push($groArr, $gro);
-            }
-        
-            $row->group = implode(', ', $groArr);
+        if(!empty($rec->group)){
+        	$row->group = implode(' ', cat_Groups::getLinks($rec->group));
         }
     }
 
