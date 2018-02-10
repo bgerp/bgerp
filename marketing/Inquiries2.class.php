@@ -75,7 +75,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Заглавие, name, company, email, folderId, createdOn, createdBy';
+    public $listFields = 'title=Заглавие, personNames, company, email, folderId, createdOn, createdBy';
     
     
     /**
@@ -117,7 +117,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId, name, title, company, email, place';
+    public $searchFields = 'folderId, personNames, title, company, email, place';
     
     
     /**
@@ -196,7 +196,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$this->FLD('quantity2', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
     	$this->FLD('quantity3', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
     	$this->FLD('company', 'varchar(255)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=50');
-    	$this->FLD('name', 'varchar(255)', 'caption=Контактни данни->Лице,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,mandatory');
+    	$this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Лице,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,mandatory,oldFieldName=name');
     	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,formOrder=52,contragentDataField=countryId,mandatory');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,hint=Вашият имейл||Your email,formOrder=53,mandatory');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
@@ -262,7 +262,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$cu = core_Users::getCurrent('id', FALSE);
     	if(isset($cu) && !core_Users::isPowerUser()){
     		$uRec = core_Users::fetch($cu);
-    		$form->setDefault('name', $uRec->names);
+    		$form->setDefault('personNames', $uRec->names);
     		$form->setDefault('email', $uRec->email);
     	}
     	
@@ -302,6 +302,12 @@ class marketing_Inquiries2 extends embed_Manager
     			}
     		}
     	}
+
+        if(haveRole('powerUser')) {
+            $form->setField('personNames', 'mandatory=unsetValue');
+            $form->setField('country', 'mandatory=unsetValue');
+            $form->setField('email', 'mandatory=unsetValue');
+        }
     }
     
     
@@ -329,7 +335,9 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	 
     	if (!Mode::is('text', 'plain') && !Mode::is('text', 'xhtml')){
-    		$row->email = "<div class='email'>{$row->email}</div>";
+            if($rec->email) {
+    		    $row->email = "<div class='email'>{$row->email}</div>";
+            }
     		$row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
     	}
 
@@ -592,7 +600,7 @@ class marketing_Inquiries2 extends embed_Manager
  
     	$Driver = $this->getDriver($rec->id);
     	 
-    	$name = $this->getFieldType('name')->toVerbal((($rec->company) ? $rec->company : $rec->name));
+    	$name = $this->getFieldType('personNames')->toVerbal((($rec->company) ? $rec->company : $rec->personNames));
     	
     	$subject = "{$name} / $rec->title";
     	 
@@ -629,7 +637,7 @@ class marketing_Inquiries2 extends embed_Manager
     		// Ако може да се създава лица от запитването се слага бутон
     		if($mvc->haveRightFor('makeperson', $rec)){
     			$companyId = doc_Folders::fetchCoverId($rec->folderId);
-    			$data->toolbar->addBtn('Визитка на лице', array('crm_Persons', 'add', 'name' => $rec->name, 'buzCompanyId' => $companyId, 'country' => $rec->country), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
+    			$data->toolbar->addBtn('Визитка на лице', array('crm_Persons', 'add', 'name' => $rec->personNames, 'buzCompanyId' => $companyId, 'country' => $rec->country), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
     		}
     		
     		// Ако е настроено да се изпраща нотифициращ имейл, добавяме бутона за препращане
@@ -777,21 +785,13 @@ class marketing_Inquiries2 extends embed_Manager
     			$pState = cat_Products::fetchField($pId, 'state');
     			if($pState != 'rejected' && $pState != 'closed'){
     				$name = cat_Products::getTitleById($pId, FALSE);
-                    $sort[$pId] = cat_Products::fetchField($pId, 'code');
     			} else {
     				unset($proto[$pId]);
     			}
     		}
-
-            // Сортиране на продуктите по код
-            asort($sort);
-            $res = array();
-            foreach($sort as $pId => $code) {
-                $res[$pId] = $proto[$pId];
-            }
-            $proto = $res;
     	}
-    	
+
+        asort($proto);
 
     	if($lg = Request::get('Lg')){
     		cms_Content::setLang($lg);
@@ -993,7 +993,7 @@ class marketing_Inquiries2 extends embed_Manager
     		$form->title .= " |в|*" . doc_Folders::recToVerbal(doc_Folders::fetch($form->rec->folderId))->title;
     
     		// Слагаме името на лицето, ако не е извлечено
-    		$form->setDefault('name', $personRec->name);
+    		$form->setDefault('personNames', $personRec->name);
     	}
     	 
     	// Ако няма потребител, но има бисквитка зареждаме данни от нея
@@ -1061,6 +1061,9 @@ class marketing_Inquiries2 extends embed_Manager
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
+        // Допълваме данните само при създаване
+        if($rec->id) return;
+
     	// Ако има оригинална дата на създаване, подменяме нея с текущата
     	if(isset($rec->oldCreatedOn)){
     		$rec->createdOn = $rec->oldCreatedOn;
@@ -1072,6 +1075,15 @@ class marketing_Inquiries2 extends embed_Manager
     	if($rec->state != 'rejected'){
     		$rec->state = 'active';
     	}
+      
+        if(!strlen($rec->title)) {
+            $Driver = cls::get($rec->innerClass);
+            if($Driver) {
+                if($title = $Driver->getProductTitle($rec)) {
+                    $rec->title = $title;
+                }
+            }
+        }
     }
     
     
@@ -1091,7 +1103,7 @@ class marketing_Inquiries2 extends embed_Manager
         
         $contrData = new stdClass();
         
-        $contrData->person = $rec->name;
+        $contrData->person = $rec->personNames;
         $contrData->company = $rec->company;
         $contrData->tel = $rec->tel;
         $contrData->pCode = $rec->pCode;

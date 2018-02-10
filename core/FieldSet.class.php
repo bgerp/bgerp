@@ -215,7 +215,11 @@ class core_FieldSet extends core_BaseClass
                     continue;
                 }
                 if($member) {
-                    $this->fields[$name]->{$member} = $value;
+                    if($value == 'unsetValue') {
+                        unset($this->fields[$name]->{$member});
+                    } else {
+                        $this->fields[$name]->{$member} = $value;
+                    }
                 }
             }
             
