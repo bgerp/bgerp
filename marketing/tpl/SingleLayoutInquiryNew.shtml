@@ -73,7 +73,7 @@
             <!--ET_END country-->
             <tr>
                 <td>|Лице|*</td>
-                <td>[#name#]</td>
+                <td>[#personNames#]</td>
             </tr>
             <tr>
                 <td>|Имейли|*</td>

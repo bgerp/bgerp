@@ -602,9 +602,9 @@ class sales_QuotationsDetails extends doc_Detail {
     	
     	// Подготвяме бутоните за добавяне на нов артикул
 		if($this->haveRightFor('add', (object)array('quotationId' => $data->masterId))){
-    		$products = cat_Products::getProducts($data->masterData->rec->contragentClassId, $data->masterData->rec->contragentId, $data->masterData->rec->date, 'canSell');
+    	    $products = cat_Products::getProducts($data->masterData->rec->contragentClassId, $data->masterData->rec->contragentId, $data->masterData->rec->date, 'canSell', NULL, 1);
     		if(!count($products)){
-    			$error = "error=Няма продаваеми артикули,";
+    		    $error = "error=Няма продаваеми артикули,";
     		}
     	
     		$data->addNotOptionalBtn = ht::createBtn('Артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'no', 'ret_url' => TRUE), FALSE, FALSE, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");

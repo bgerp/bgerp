@@ -695,7 +695,9 @@ class cad2_SvgCanvas extends cad2_Canvas {
                     $x1 = $x + cos(deg2rad($rotation+90))*$height;
                     $y1 = $y + sin(deg2rad($rotation+90))*$height;
                     
-                    $alpha = atan($height/$width);
+                    if($width != 0) {
+                        $alpha = atan($height/$width);
+                    }
                     $l = sqrt($width*$width + $height*$height);
 
                     $x2 = $x + cos(deg2rad($rotation)+$alpha)*$l;
