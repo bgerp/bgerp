@@ -115,4 +115,27 @@ class hr_IndicatorNames extends core_Manager
     	
     	return $name;
     }
+    
+    
+    /**
+     * Имената на индикаторите като опции
+     * 
+     * @return array $suggestions
+     */
+    public static function getFormulaSuggestions()
+    {
+    	$suggestions = array();
+    	$names = hr_Indicators::getIndicatorNames();
+    	
+    	foreach($names as $class => $nArr) {
+    		foreach($nArr as $n) {
+    			$n = '$' . $n;
+    			$suggestions[$n] = $n;
+    		}
+    	}
+    	
+    	$suggestions["$" . 'BaseSalary'] = "$" . 'BaseSalary';
+    	
+    	return $suggestions;
+    }
 }
