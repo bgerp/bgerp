@@ -108,7 +108,7 @@ class cad2_MeasureLine  extends cad2_Shape {
         $width = 0.3 * strlen($text) * ($svg->getAttr('font-size') / 10);
 
         $ab1 = $svg->p($ab->a, -$width);
-        $td = $svg->p($ab->a + pi()/2, -2);
+        $td = $svg->p($ab->a + pi()/2, -2.5);
         if(rad2deg($ab->a) > (90 - 0.001) && rad2deg($ab->a) < (270 - 0.001)) {
             $svg->writeText(($B1->x + $A1->x)/2 - $ab1->x - $td->x,  ($B1->y + $A1->y)/2 - $ab1->y - $td->y, $text, rad2deg($ab->a - pi()), TRUE);
         } else {
