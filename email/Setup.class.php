@@ -798,6 +798,25 @@ class email_Setup extends core_ProtoSetup
             
             if ($imapConn->connect() !== FALSE) {
                 
+				// За да не гърми с warning при надвишаване на броя имейли
+                $numMsg = $imapConn->getStatistic('messages');
+                if (isset($numMsg) && $end != $numMsg) {
+                    
+                    email_Accounts::logDebug("Променен брой имейли от {$end} на {$numMsg}", $accId);
+                    
+                    $end = $numMsg;
+                }
+                if ($begin >= $end) {
+                    
+                    email_Accounts::logNotice('Приключи проверката на имейл кутията', $accId);
+                    
+                    core_Permanent::remove($pKey);
+                    
+                    core_Locks::release($lockKey);
+                    
+                    return ;
+                }
+                
                 $Incomings = cls::get('email_Incomings');
                 
                 for ($i = $begin; $i < $end && ($deadline > time()); $i++) {
