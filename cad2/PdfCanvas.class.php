@@ -232,8 +232,6 @@ class cad2_PdfCanvas extends cad2_Canvas {
 	}
 
 
-
-
     /**
      * Отваря нова група
      */
@@ -355,6 +353,17 @@ class cad2_PdfCanvas extends cad2_Canvas {
     {
     }
 
+
+    /**
+     * Връща добавката за X и Y
+     */
+    public function getAddXY()
+    {
+        $addX = -$this->minX + $this->paddingLeft;
+        $addY = -$this->minY + $this->paddingTop;
+
+        return array($addX, $addY);
+    }
 
  	
     /**
