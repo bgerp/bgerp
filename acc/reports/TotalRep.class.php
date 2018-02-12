@@ -138,8 +138,6 @@ class acc_reports_TotalRep extends frame2_driver_TableData
 	protected function getTableFieldSet($rec, $export = FALSE)
 	{
 		$fld = cls::get('core_FieldSet');
-	
-	 
 	    $fld->FLD('period', 'varchar','caption=Период');
 	    $fld->FLD('speed', 'double', 'caption=Резултат');
 	 
@@ -157,13 +155,11 @@ class acc_reports_TotalRep extends frame2_driver_TableData
 	protected function detailRecToVerbal($rec, &$dRec)
 	{ 
 		$isPlain = Mode::is('text', 'plain');
-		$Int = cls::get('type_Int');
-		$Date = cls::get('type_Date');
 		$Double = cls::get('type_Double');
 		$Double->params['decimals'] = 2;
 		$row = new stdClass();
 
-	    $row->speed = $Double->toVerbal($dRec->speed);
+	    $row->speed = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->speed) : $Double->toVerbal($dRec->speed);
 	    $row->period = $dRec->period;
         
         if($row->period == $key = date("m/Y")) {
