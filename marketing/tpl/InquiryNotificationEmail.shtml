@@ -24,7 +24,7 @@
     <!--ET_BEGIN country-->
     |Държава|*: [#country#]<br>
     <!--ET_END country-->
-    |Лице|*: [#name#]<br>
+    |Лице|*: [#personNames#]<br>
     |Имейл|*: [#email#]<br>
     <!--ET_BEGIN tel-->
     |Телефони|*: [#tel#]<br>

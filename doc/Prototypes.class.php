@@ -327,9 +327,11 @@ class doc_Prototypes extends core_Manager
     	// Ако има записи, се връщат ид-та на документите
     	while($rec = $query->fetch()){
     		$title = (strpos($rec->title, '||') !== FALSE) ? tr($rec->title) : $rec->title;
-    		$arr[$rec->docId] = $title;
+    		$arr[$rec->docId] = trim($title);
     	}
     	
+        arsort($arr);
+
     	// Връщане на намерените шаблони
     	return $arr;
     }

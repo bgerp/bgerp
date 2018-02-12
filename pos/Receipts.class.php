@@ -1330,6 +1330,7 @@ class pos_Receipts extends core_Master {
     	$this->requireRightFor('terminal');
     	
     	if($searchString = Request::get('searchString')){
+    		
     		if(!$id = Request::get('receiptId')) return array();
     		
 	    	if(!$rec = $this->fetch($id)) return array();
@@ -1385,7 +1386,7 @@ class pos_Receipts extends core_Master {
     	$folderId = cls::get($data->rec->contragentClass)->fetchField($data->rec->contragentObjectId, 'folderId');
     	$pQuery = cat_Products::getQuery();
     	$pQuery->where("#canSell = 'yes' AND #state = 'active'");
-    	$pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = {$folderId})");
+    	$pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
     	$pQuery->where(array("#searchKeywords LIKE '%[#1#]%'", $data->searchString));
     	$pQuery->show('id,name,isPublic,code');
     	$pQuery->limit($this->maxSearchProducts);

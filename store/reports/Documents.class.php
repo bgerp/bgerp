@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Драйвер за складови документи
  *
@@ -8,7 +9,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Логистика » Складови документи
@@ -339,14 +340,14 @@ class store_reports_Documents extends frame2_driver_TableData
 		}
 		
 		if(is_array($dRec->linked) && count($dRec->linked)){
-			$linked = "<table class='small no-border'>";
+			$linkedArr = array();
 			foreach ($dRec->linked as $cId){
 				$Document = doc_Containers::getDocument($cId);
-				$link = ($isPlain) ? "#" .$Document->getHandle(): $Document->getLink(0);
-				$linked .= "<tr><td>{$link}<td></tr>";
+				$link = ($isPlain) ? "#" .$Document->getHandle() : $Document->getLink(0)->getContent();
+				$linkedArr[] = ($isPlain) ? $link : "<tr><td>{$link}<td></tr>";
 			}
-			$linked .= "</table>";
-			$row->linked = $linked;
+			
+			$row->linked = ($isPlain) ? implode(' ', $linkedArr) : "<table class='small no-border'>" . implode('', $linkedArr) . "</table>";
 		}
 		
 		if(is_array($dRec->stores)){

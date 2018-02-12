@@ -1818,7 +1818,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Подготвяме и показваме формата за избор на чернова оферта, ако има чернови
     	$me = get_called_class();
     	$form = cls::get('core_Form');
-    	$form->title = "|Прехвърляне в|* " . mb_strtolower($this->singleTitle);
+    	
     	$form->FLD('dealId', "key(mvc={$me},select=id,allowEmpty)", "caption={$this->singleTitle},mandatory");
     	$form->setOptions('dealId', $options);
     	
@@ -1832,6 +1832,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$quotationId = Request::get('quotationId', 'int');
     	$rejectUrl = toUrl(array('sales_Quotations', 'single', $quotationId));
+    	$form->title = "|Прехвърляне в|* " . mb_strtolower($this->singleTitle) . " " . tr('на') . " " . cls::get('sales_Quotations')->getFormTitleLink($quotationId);
     	
     	$forceUrl = $retUrl;
     	$forceUrl['force'] = TRUE;
