@@ -115,6 +115,8 @@ class doc_Linked extends core_Manager
         $this->FLD('state', 'enum(active=Активно, rejected=Оттеглено)', 'caption=Състояние, input=none');
         
         $this->setDbUnique('outType, outVal, inType, inVal');
+        $this->setDbIndex('outType, outVal');
+        $this->setDbIndex('inType, inVal');
     }
     
     
@@ -138,8 +140,8 @@ class doc_Linked extends core_Manager
         
         $query->limit($limit);
         
-        $query->where(array("#outType = '[#1#]' AND #outVal = '[#2#]'", $type, $id));
-        $query->orWhere(array("#inType = '[#1#]' AND #inVal = '[#2#]'", $type, $id));
+        $query->setUnion(array("#outType = '[#1#]' AND #outVal = '[#2#]'", $type, $id));
+        $query->setUnion(array("#inType = '[#1#]' AND #inVal = '[#2#]'", $type, $id));
         
         $query->orderBy('createdOn', 'DESC');
         
