@@ -5413,7 +5413,10 @@ row-fluid {
 	}
 }
 
-
+.labelBreak {
+	page-break-after: auto;
+	page-break-inside: avoid;
+}
 /*стилове за принтиране*/
 @media print{
 	.wide .singleView {
