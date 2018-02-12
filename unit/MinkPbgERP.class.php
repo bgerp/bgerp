@@ -1034,7 +1034,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('inqDescription', 'Торбички');
         $browser->setValue('measureId', 'брой');
         $browser->setValue('quantity1', '1000');
-        $browser->setValue('name', 'Peter Neumann');
+        $browser->setValue('personNames', 'Peter Neumann');
         $browser->setValue('country', 'Германия');
         $browser->setValue('email', 'pneumann@gmail.com');
         $browser->press('Чернова');
@@ -1045,13 +1045,11 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Оферта');
         
         $browser->setValue('Цена', '3,1234');
-        //$browser->setValue('row1[cR]', '3,1234');
         $browser->setValue('validFor', '10 дни');
         $browser->press('Чернова');
         $browser->press('Артикул');
         $browser->setValue('productId', 'Артикул по запитване');
         $browser->press('Refresh');
-        //$browser->refresh('Запис');
         $browser->setValue('packQuantity', 100);
         $browser->setValue('packPrice', 4);
         $browser->press('Запис');
@@ -1098,12 +1096,13 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('packPrice', 100);
         // Записване на артикула
         $browser->press('Запис');
+        
         // Активиране на офертата
         $browser->press('Активиране');
         $browser->press('Продажба');
         ////Опционален артикул - не сработва
-        ////$browser->setValue('9|yes|9|1', 1);
-        //echo $browser->getHtml();
+        //return $browser->getHtml();
+        //$browser->setValue('autoElement7018_2',1);
         $browser->press('Създай');
         $browser->press('Активиране');
         //return $browser->getHtml();
