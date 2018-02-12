@@ -559,7 +559,18 @@ class cad2_SvgCanvas extends cad2_Canvas {
     }
 
 
+    /**
+     * Връща добавката за X и Y
+     */
+    public function getAddXY()
+    {
+        $addX = (-$this->minX + $this->paddingLeft) / $this->pixPerMm;
+        $addY = (-$this->minY + $this->paddingTop) / $this->pixPerMm;
+
+        return array($addX, $addY);
+    }
  	
+
     /**
      * Връща XML текста на SVG чертежа
      */
