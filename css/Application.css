@@ -4873,6 +4873,10 @@ only screen and (max-width: 320px) {
     margin: 0;
     width: 95%; }
 
+.labelBreak {
+  page-break-after: auto;
+  page-break-inside: avoid; }
+
 /*
  * стилове за принтиране
  */
