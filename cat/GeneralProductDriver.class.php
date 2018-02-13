@@ -353,4 +353,25 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		return $this->getParams(cat_Products::getClassId(), $id, 'term');
 	}
+	
+	
+	/**
+	 * Връща масив с допълнителните плейсхолдъри при печат на етикети
+	 *
+	 * @param mixed $rec              - ид или запис на артикул
+	 * @param mixed $labelSourceClass - клас източник на етикета
+	 * @return array                  - Допълнителните полета при печат на етикети
+	 * 		[Плейсхолдър] => [Стойност]
+	 */
+	public function getAdditionalLabelData($rec, $labelSourceClass = NULL)
+	{
+		$res = array();
+		
+		$preview = cat_Products::getParams($rec, 'preview');
+		if(!empty($preview)){
+			$res['PREVIEW'] = $preview;
+		}
+		
+		return $res;
+	}
 }
