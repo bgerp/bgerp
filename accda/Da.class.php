@@ -389,6 +389,10 @@ class accda_Da extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->handler = $mvc->getLink($rec->id, 0);
+    	
+    	if ($rec->image) {
+    	    $row->imgThumb = fancybox_Fancybox::getImage($rec->image, array(790, 790), array(1200, 1200));
+    	}
     }
     
     
