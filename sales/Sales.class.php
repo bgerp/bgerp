@@ -841,7 +841,7 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	// Слагаме iframe заради касовата бележка, ако не принтираме
-    	if(!Mode::is('printing')){
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
     		$tpl->append("<iframe name='iframe_a' style='display:none'></iframe>");
     		
     		if(is_array($data->jobs) === TRUE){
