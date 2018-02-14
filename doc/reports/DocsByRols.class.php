@@ -202,17 +202,12 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-
-        $cntx = 0;
-
-        $cnty = 0;
-
-        //  $Int = cls::get('type_Int');
+    	$isPlain = Mode::is('text', 'plain');
+    	$cnty = $cntx = 0;
 
         $row = new stdClass();
-
         $row->person = crm_Profiles::createLink($dRec['user']);
-
+		
         $vClassArr = array();
         $vClsNameArr = array();
         foreach ($dRec['classes'] as $key => $value){
@@ -280,9 +275,13 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
             $cnty++;
 
         }
-
         $row->document.='</table>';
-
+        
+        if($isPlain){
+        	$row->person = strip_tags($row->person);
+        	$row->document = strip_tags($row->document);
+        }
+        
         $row->value = $cntx . ' от ' . $cnty;
 
         return $row;

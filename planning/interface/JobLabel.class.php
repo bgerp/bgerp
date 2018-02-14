@@ -78,6 +78,7 @@ class planning_interface_JobLabel
 		
 		$res['JOB'] = $rec->id;
 		$res['CODE'] = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
+		$res['NAME'] = cat_Products::getVerbal($rec->productId, 'name');
 		
 		$packRec = self::getDefaultPackRec($rec->productId, $selectedPackagingArr);
 		if(!Mode::is('prepareLabel') && count($selectedPackagingArr)){

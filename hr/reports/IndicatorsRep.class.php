@@ -64,6 +64,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		$fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title)', 'caption=Месец,after=title');
 		$fieldset->FLD('indocators', 'keylist(mvc=hr_IndicatorNames,select=name,allowEmpty)', 'caption=Индикатори,after=periods');
 		$fieldset->FLD('personId', 'type_UserList', 'caption=Потребител,after=indocators');
+		$fieldset->FLD('formula', 'text(rows=2)', 'caption=Формула,after=indocators,single=none');
 	}
       
 
@@ -80,6 +81,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	    
         $periodToday = acc_Periods::fetchByDate(dt::now());
         $form->setDefault('periods', $periodToday->id);
+        $form->setSuggestions('formula', hr_IndicatorNames::getFormulaSuggestions());
 	}
     
 	
@@ -116,35 +118,60 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	    	$query->in('indicatorId', $indicators);
 	    }
 	    
+	    $context = array();
+	    $personNames = array();
+	    
 	    // за всеки един индикатор
 	    while($recIndic = $query->fetch()){
 	    	$key = "{$recIndic->personId}|{$recIndic->indicatorId}";
+	    	$keyContext = "{$recIndic->personId}|formula";
 	    	
 	        // Добавя се към масива, ако го няма
-	        if(!array_key_exists($key, $recs)) { 
-	        	$personName = crm_Persons::fetchField($recIndic->personId, 'name');
+	        if(!array_key_exists($key, $recs)) {
+	        	if(!array_key_exists($recIndic->personId, $personNames)){
+	        		$personNames[$recIndic->personId] = str::utf2ascii(crm_Persons::fetchField($recIndic->personId, 'name'));
+	        	}
+	        	
 	        	$recs[$key]= (object) array ('num'         => 0,
 	                						 'date'        => $recIndic->date,
 	                						 'docId'       => $recIndic->docId,
 	                						 'person'      => $recIndic->personId,
 	                						 'indicatorId' => $recIndic->indicatorId,
 	                						 'value'       => $recIndic->value,
-	            							 'personName'  => $personName, 
+	            							 'personName'  => $personNames[$recIndic->personId], 
 	            );
 	        } else {
 	            $obj = &$recs[$key];
 	            $obj->value += $recIndic->value;
 	        }  
+	        
+	        $iName = hr_IndicatorNames::fetchField($recIndic->indicatorId, 'name');
+	        
+	        $context[$recIndic->personId]["$" . $iName] += $recIndic->value;
 	    }
 	    
-	    // Сортиране по име
-	    arr::orderA($recs, 'personName');
-	   
+	    if(!empty($rec->formula)){
+	    	foreach ($context as $pId => $arr){
+	    		$recs["{$pId}|formula"] = (object)array('person' => $pId, 'personName' => $personNames[$pId], 'indicatorId' => 'formula', 'context' => $arr);
+	    	}
+	    }
+	    
+	    // Ако има такива сортираме ги по име
+	    uasort($recs, function($a, $b){
+	    	if($a->personName == $b->personName) {
+	    		return ($a->indicatorId < $b->indicatorId) ? -1 : 1;
+	    	}
+	    	
+	    	return (strnatcasecmp($a->personName, $b->personName) < 0) ? -1 : 1;
+	    });
+	    
 	    $num = 1;
         $total = array();
 	    foreach($recs as $r) {
 	        $r->num = $num;
 	        $num++;
+	        
+	        if($r->indicatorId == 'formula') continue;
             $total[$r->indicatorId] += $r->value;
 	    }
 	    
@@ -219,10 +246,25 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		}
 
 		if(isset($dRec->indicatorId)) {
-		    $row->indicator = hr_IndicatorNames::fetchField($dRec->indicatorId, 'name');
+			if($dRec->indicatorId != 'formula'){
+				$row->indicator = hr_IndicatorNames::fetchField($dRec->indicatorId, 'name');
+			} elseif($rec->formula) {
+				$row->indicator = tr('Формула');
+				$newContext = self::fillMissingIndicators($dRec->context, $rec->formula);
+				
+				uksort($newContext, "str::sortByLengthReverse");
+				$expr = strtr($rec->formula, $newContext);
+				
+				if(str::prepareMathExpr($expr) === FALSE) {
+					$row->value = '<small style="font-style:italic;color:red;">' . tr("Невъзможно изчисление") . '</small>';
+				} else {
+					$value = str::calcMathExpr($expr, $success);
+					$row->value = $Double->toVerbal($value);
+				}
+			}
 		}
 
-	    if(isset($dRec->value)) {
+	    if(isset($dRec->value) && empty($row->value)) {
 		    if(!$isPlain && !Mode::isReadOnly()){
 		    	$row->value = $Double->toVerbal($dRec->value);
 		    	
@@ -259,6 +301,30 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	}
 	
 	
+	/**
+	 * Допълване на липсващите индикатори от формулата с такива със стойност 0
+	 * 
+	 * @param array $context
+	 * @param string $formula
+	 * @return array $arr
+	 */
+	private static function fillMissingIndicators($context, $formula)
+	{
+		$arr = array();
+		$formulaIndicators = hr_Indicators::getIndicatorsInFormula($formula);
+		if(!count($formulaIndicators)) return $arr;
+		
+		foreach($formulaIndicators as $name){
+			$key = "$" . $name;
+			if(!array_key_exists($key, $context)){
+				$context[$key] = 0;
+			}
+		}
+		
+		return $context;
+	}
+	
+	
     /**
 	 * След вербализирането на данните
 	 *
@@ -285,5 +351,33 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             // избраният месец
             $row->month = acc_Periods::fetchField("#id = '{$rec->periods}'", 'title');
         }
+        
+        if(isset($rec->formula)){
+        	$row->formula = core_Type::getByName('text')->toVerbal($rec->formula);
+        }
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param core_ET $tpl
+     * @param stdClass $data
+     */
+    protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
+    {
+    	$fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
+								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Формула|*</b></small></legend>
+							    <!--ET_BEGIN formula--><small>[#formula#]</small></div><!--ET_END formula--></fieldset><!--ET_END BLOCK-->"));
+    
+    	foreach (array('indocators', 'formula') as $fld){
+    		if(isset($data->rec->{$fld})){
+    			$fieldTpl->append($data->row->{$fld}, $fld);
+    		}
+    	}
+    
+    	$tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
 }

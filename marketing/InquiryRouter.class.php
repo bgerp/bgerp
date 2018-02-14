@@ -25,7 +25,7 @@ class marketing_InquiryRouter extends core_Manager
 		// Ако има компания
 		if(empty($rec->company)){
 			try{
-				expect($rec->name, $rec);
+				expect($rec->personNames, $rec);
 			} catch(core_exception_Expect $e){
 				reportException($e);
 				$this->logErr('Липсва име за контактни данни');
@@ -74,11 +74,11 @@ class marketing_InquiryRouter extends core_Manager
 		if($folderId) return $folderId;
 		
 		// Ако има лице във визитника от същата държава
-		$folderId = marketing_Router::routeByPerson($rec->name, $rec->country, $inCharge);
+		$folderId = marketing_Router::routeByPerson($rec->personNames, $rec->country, $inCharge);
 		if($folderId) return $folderId;
 		
 		// Форсиране на папка и запис във визитника на лице с посочените данни
-		return marketing_Router::forcePersonFolder($rec->name, $rec->email, $rec->country, $rec->tel, $rec->pCode, $rec->place, $rec->address, $inCharge);
+		return marketing_Router::forcePersonFolder($rec->personNames, $rec->email, $rec->country, $rec->tel, $rec->pCode, $rec->place, $rec->address, $inCharge);
 	}
 	
 	

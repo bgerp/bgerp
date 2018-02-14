@@ -830,7 +830,8 @@ class planning_Jobs extends core_Master
     			
     			// Ако се създава към продажба, тя трябва да е активна
     			if(!empty($rec->saleId)){
-    				if(sales_Sales::fetchField($rec->saleId, "state") != 'active'){
+    				$saleState = sales_Sales::fetchField($rec->saleId, "state");
+    				if($saleState != 'active' && $saleState != 'closed'){
     					$res = 'no_one';
     				}
     			}

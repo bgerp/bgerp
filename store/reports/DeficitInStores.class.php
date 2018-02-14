@@ -569,7 +569,6 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         
         if ($export === FALSE) {
-            
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
             if ($rec->typeOfQuantity == 'TRUE') {
@@ -583,6 +582,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
             $fld->FLD('jobsQuantity', 'double', 'caption=Количество->Необходимо->За производство,smartCenter');
             $fld->FLD('deliveryQuatity', 'double', 'caption=Количество->За доставка,smartCenter');
         } else {
+        	$fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
@@ -611,23 +611,29 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         $row = new stdClass();
         
         if (isset($dRec->productId)) {
-            $row->productId = cat_Products::getShortHyperlink($dRec->productId);
+        	if($isPlain){
+        		$code = cat_Products::getVerbal($dRec->productId, 'code');
+        		$row->code = ($code) ? $code : "Art{$dRec->productId}"; 
+        		$row->productId = cat_Products::getVerbal($dRec->productId, 'name');
+        	} else {
+        		$row->productId = cat_Products::getShortHyperlink($dRec->productId);
+        	}
         }
         
         if (isset($dRec->quantity)) {
-            $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
+            $row->quantity = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->quantity) : core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
         }
         
         if (isset($dRec->receiptQuantity)) {
-            $row->receiptQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->receiptQuantity);
+            $row->receiptQuantity = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->receiptQuantity) : core_Type::getByName('double(decimals=2)')->toVerbal($dRec->receiptQuantity);
         }
         
         if (isset($dRec->jobsQuantity)) {
-            $row->jobsQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->jobsQuantity);
+            $row->jobsQuantity = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->jobsQuantity) : core_Type::getByName('double(decimals=2)')->toVerbal($dRec->jobsQuantity);
         }
         
         if (isset($dRec->shipmentQuantity)) {
-            $row->shipmentQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->shipmentQuantity);
+            $row->shipmentQuantity = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->shipmentQuantity) : core_Type::getByName('double(decimals=2)')->toVerbal($dRec->shipmentQuantity);
         }
         
         if (isset($dRec->storeId)) {
@@ -641,7 +647,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         }
         
         if (isset($dRec->neseseryQuantity)) {
-            $row->neseseryQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->neseseryQuantity);
+            $row->neseseryQuantity = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->neseseryQuantity) : core_Type::getByName('double(decimals=2)')->toVerbal($dRec->neseseryQuantity);
         }
         
         if ($dRec->quantity < 0) {
@@ -651,7 +657,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         $deliveryQuantity = ($dRec->shipmentQuantity + $dRec->jobsQuantity) - ($dRec->receiptQuantity + $dRec->quantity);
         
         if ($deliveryQuantity > 0) {
-            $row->deliveryQuatity = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryQuantity);
+            $row->deliveryQuatity = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($deliveryQuantity) : core_Type::getByName('double(decimals=2)')->toVerbal($deliveryQuantity);
         }
         
         if ($deliveryQuantity <= 0) {
