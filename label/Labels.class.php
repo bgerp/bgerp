@@ -323,6 +323,19 @@ class label_Labels extends core_Master
     
     
     /**
+     * Изпълнява се след подготвянето на тулбара в листовия изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+    	// Документа не може да се създава  в нова нишка, ако е възоснова на друг
+		if(!empty($data->toolbar->buttons['btnAdd'])){
+			$data->toolbar->removeBtn('btnAdd');
+			$data->toolbar->addBtn('Нов запис', array($mvc, 'selectTemplate'), "ef_icon=img/16/star_2.png,title=Добавяне на нов етикет");
+		}
+    }
+    
+    
+    /**
      * Екшън за избор на шаблон
      */
     function act_SelectTemplate()
@@ -346,7 +359,7 @@ class label_Labels extends core_Master
         
         // Вземаме формата към този модел
         $form = $this->getForm();
-        $form->title = "Избор на шаблон";
+        $form->title = "Избор на шаблон за етикет";
         
         if ($classId && $objId) {
         	$form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getFormTitleLink($objId);
@@ -364,7 +377,7 @@ class label_Labels extends core_Master
         }
        
         // Добавяме функционално поле
-        $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\')', 'caption=Шаблон,mandatory');
+        $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\',allowEmpty)', 'caption=Шаблон,mandatory');
         
         $redirect = FALSE;
         $optArr = array();
