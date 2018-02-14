@@ -837,9 +837,9 @@ class doc_Containers extends core_Manager
         }
         
         // Дали документа се активира в момента, и кой го активира
-        if(empty($rec->activatedBy) && $rec->state != 'draft' && $rec->state != 'rejected') {
+        if(!isset($rec->activatedBy) && $rec->state != 'draft' && $rec->state != 'rejected') {
             
-            $rec->activatedBy = core_Users::getCurrent();
+            $rec->activatedBy = (int)core_Users::getCurrent();
             
             if (!$updateAll) {
                 $updateField['activatedBy'] = 'activatedBy';
