@@ -87,13 +87,8 @@ class planning_interface_JobLabel
 			label_exception_Redirect::expect($packRec, $msg);
 		}
 		
-		if(empty($packRec)){
-			$res['MEASURE_ID'] = tr(cat_UoM::getShortName($pRec->measureId));
-			$res['QUANTITY'] = $rec->quantity;
-		} else {
-			$res['QUANTITY'] = $packRec->quantity;
-			$res['MEASURE_ID'] =  tr(cat_UoM::getShortName($packRec->packagingId));
-		}
+		$res['MEASURE_ID'] = tr(cat_UoM::getShortName($pRec->measureId));
+		$res['QUANTITY'] = (empty($packRec)) ? $rec->quantity : $packRec->quantity;
 		
 		if(isset($rec->saleId)){
 			$res['ORDER'] = $rec->saleId;
