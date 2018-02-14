@@ -79,6 +79,8 @@ class planning_interface_JobLabel
 		$res['JOB'] = $rec->id;
 		$res['CODE'] = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
 		$res['NAME'] = cat_Products::getVerbal($rec->productId, 'name');
+		$res['DATE'] = date("m/y");
+		$res['PREVIEW'] = NULL;
 		
 		$packRec = self::getDefaultPackRec($rec->productId, $selectedPackagingArr);
 		if(!Mode::is('prepareLabel') && count($selectedPackagingArr)){
@@ -97,7 +99,7 @@ class planning_interface_JobLabel
 			if($lg != 'bg'){
 				$sRec = sales_Sales::fetch($rec->saleId);
 				$countryId = cls::get($sRec->contragentClassId)->fetchField($sRec->contragentId, 'country');
-				$res['OTHER'] = drdata_Countries::fetchField($countryId, 'letterCode2') . " " . date("m/y");
+				$res['OTHER'] = drdata_Countries::fetchField($countryId, 'letterCode2') . " " . $res['DATE'];
 			}
 		}
 		
