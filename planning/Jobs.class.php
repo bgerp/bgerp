@@ -59,7 +59,7 @@ class planning_Jobs extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'dueDate,quantity,notes,tolerance';
+    public $changableFields = 'dueDate,quantity,notes,tolerance,sharedUsers';
     
     
     /**
@@ -132,13 +132,13 @@ class planning_Jobs extends core_Master
     /**
      * Шаблон за единичен изглед
      */
-    public $singleLayoutFile = 'planning/tpl/SingleLayoutJob.shtml';//SingleLayoutJobEP
+    public $singleLayoutFile = 'planning/tpl/SingleLayoutJob.shtml';
     
     
     /**
      * Поле за дата по което ще филтрираме
      */
-    public $filterDateField = 'createdOn, dueDate,deliveryDate,modifiedOn';
+    public $filterDateField = 'createdOn,dueDate,deliveryDate,modifiedOn';
     
     
     /**
