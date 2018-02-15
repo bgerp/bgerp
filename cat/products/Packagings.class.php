@@ -96,7 +96,7 @@ class cat_products_Packagings extends core_Detail
         $this->FLD('quantity', 'double(Min=0,smartRound)', 'input,caption=Количество,mandatory,smartCenter');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
         $this->FLD('eanCode', 'gs1_TypeEan', 'caption=EAN');
-        $this->FNC('templateId', 'key(mvc=cat_PackParams)', 'caption=Параметри->Шаблон,silent,removeAndRefreshForm=tareWeight|sizeWidth|sizeHeight|sizeDepth,autohide');
+        $this->FNC('templateId', 'key(mvc=cat_PackParams)', 'caption=Параметри->Шаблон,silent,removeAndRefreshForm=tareWeight|sizeWidth|sizeHeight|sizeDepth,autohide,class=w50');
         $this->FLD('sizeWidth', 'cat_type_Size(min=0)', 'caption=Параметри->Ширина,autohide');
         $this->FLD('sizeHeight', 'cat_type_Size(min=0)', 'caption=Параметри->Височина,autohide');
         $this->FLD('sizeDepth', 'cat_type_Size(min=0)', 'caption=Параметри->Дълбочина,autohide');
