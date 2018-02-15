@@ -280,7 +280,7 @@ class label_Prints extends core_Master
                             
                             $end += $cRec->labelsCnt;
                             if ($cRec->end) {
-                                $cRec->end = $end;
+                                $cRec->end = min(array($end, $form->rec->end));
                             }
                             $saveArr[] = $cRec;
                         } else {
