@@ -139,6 +139,15 @@ class planning_interface_JobLabel
 	 */
 	public function getEstimateCnt($id, &$allowSkip)
 	{
-		return NULL;
+		$allowSkip = TRUE;
+		$rec = $this->class->fetch($id);
+		
+		$packRec = self::getDefaultPackRec($rec->productId, $selectedPackagingArr);
+		$quantity = (empty($packRec)) ? $rec->quantity : round($rec->quantity / $packRec->quantity, 2);
+		
+		$res = ceil($quantity + 1);
+		if($res % 2 == 1) $res++;
+		
+		return $res;
 	}
 }
