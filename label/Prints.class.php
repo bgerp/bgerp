@@ -286,7 +286,10 @@ class label_Prints extends core_Master
                         } else {
                             $cRec->begin = $form->rec->begin;
                             $cRec->labelsCnt = $allPirntsCnt / $cCnt;
-                            $saveArr[] = $cRec;
+                            
+                            if ($cRec->labelsCnt) {
+                                $saveArr[] = $cRec;
+                            }
                             
                             break;
                         }
