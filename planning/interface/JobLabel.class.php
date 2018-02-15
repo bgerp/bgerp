@@ -76,7 +76,7 @@ class planning_interface_JobLabel
 		expect($rec = planning_Jobs::fetchRec($id));
 		$pRec = cat_Products::fetch($rec->productId, 'code,measureId');
 		
-		$res['JOB'] = $rec->id;
+		$res['JOB'] = mb_strtoupper(planning_Jobs::getHandle($rec->id));
 		$res['CODE'] = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
 		$res['NAME'] = cat_Products::getVerbal($rec->productId, 'name');
 		$res['DATE'] = date("m/y");

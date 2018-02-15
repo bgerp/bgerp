@@ -56,7 +56,7 @@ class planning_interface_TaskLabel
 		$jobRec = $origin->fetch();
 	
 		// Информация за артикула и заданието
-		$res['JOB'] = "#" . $origin->getHandle();
+		$res['JOB'] = mb_strtoupper($origin->getHandle());
 		$res['NAME'] = cat_Products::getTitleById($rec->productId);
 		
 		$pRec = cat_Products::fetch($rec->productId, 'name,code');
