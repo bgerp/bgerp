@@ -1042,7 +1042,7 @@ class type_Richtext extends type_Blob
             $this->_htmlBoard[$titlePlace] = $title;    
         }
             
-        if($title{0} != ' ') {
+        if($title{0} != ' ' && !Mode::is('text', 'xhtml')) {
             
             $bgPlace = $this->getPlace();
             $thumb = new thumb_Img(array("https://plus.google.com/_/favicon?domain={$domain}", 16, 16, 'url', 'isAbsolute' => Mode::isReadOnly()));
