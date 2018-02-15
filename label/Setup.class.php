@@ -2,6 +2,12 @@
 
 
 /**
+ * Максимален брой отпечатвания заедно
+ */
+defIfNot('LABEL_MAX_PRINT_CNT', 0);
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с label
  *
@@ -58,6 +64,14 @@ class label_Setup extends core_ProtoSetup
         'label_CounterItems',
         'label_Prints',
         'migrate::addDefaultMedia'
+    );
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+            'LABEL_MAX_PRINT_CNT' => array('int(min=0)', 'caption=Максимален брой отпечатвания заедно->Брой, customizeBy=label, autohide'),
     );
     
         
