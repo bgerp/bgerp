@@ -123,7 +123,7 @@ class label_Prints extends core_Master
         
         $this->FLD('printedCnt', 'int', 'caption=Брой отпечатвания, mandatory, notNull, input=none');
         
-        $this->FLD('labelsCnt', 'int(min=1, max=500)', 'caption=Брой етикети, mandatory');
+        $this->FLD('labelsCnt', 'int(min=1, max=200)', 'caption=Брой етикети, mandatory');
         $this->FLD('copiesCnt', 'int(min=1, max=50)', 'caption=Брой копия, value=1, mandatory');
         
         $this->FLD('begin', 'int(min=1)', 'caption=Начало, allowEmpty, input=hidden');
@@ -195,7 +195,7 @@ class label_Prints extends core_Master
             if ($form->isSubmitted()) {
                 
                 // Ако излезем над разрешената стойност
-                if ($form->rec->end > $estCnt) {
+                if (isset($estCnt) && $form->rec->end > $estCnt) {
                     $errMsg = "|Надвишавате допустимата бройка|* - {$estCnt}";
                     if ($allowSkip) {
                         $form->setWarning('end', $errMsg);
