@@ -517,7 +517,8 @@ class eshop_Products extends core_Master
     public static function getUrl($rec, $canonical = FALSE)
     {   
         $gRec = eshop_Groups::fetch($rec->groupId);
-
+		if(empty($gRec->menuId)) return array();
+		
         $mRec = cms_Content::fetch($gRec->menuId);
         
         $lg = $mRec->lang;
