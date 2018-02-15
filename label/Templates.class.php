@@ -83,6 +83,12 @@ class label_Templates extends core_Master
     
     
     /**
+     * Кой има право да клонира системни данни?
+     */
+    public $canClonesysdata = 'ceo, powerUser';
+    
+    
+    /**
      * Кой има право да го изтрие?
      */
     public $canDelete = 'no_one';
