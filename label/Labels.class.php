@@ -389,23 +389,21 @@ class label_Labels extends core_Master
             foreach ($templates as $tRec){
                 $template = label_Templates::getTemplate($tRec->id);
                 $templatePlaceArr = label_Templates::getPlaceHolders($template);
-                $cnt = 0;
                 
-                foreach ($templatePlaceArr as $key => $v) {
-                    $key = label_TemplateFormats::getPlaceholderFieldName($key);
-                   
-                    if (isset($labelDataArr[$key])) {
-                        $cnt++;
-                    }
+                $cnt = 0;
+                foreach ($labelDataArr as $key => $v) {
+                	if (isset($templatePlaceArr[$key])) {
+                		$cnt++;
+                	}
                 }
                
                 // Оцветяваме имената на шаблоните, в зависимост от съвпаданието на плейсхолдерите
                 $percent = 0;
-                $lCnt = count($labelDataArr);
+                $lCnt = count($templatePlaceArr);
                 if ($lCnt) {
                     $percent = ($cnt / $lCnt) * 100;
                 }
-               
+                
                 $dataColor = '#f2c167';
                 if ($percent >= 90) {
                     $dataColor = '#a0f58d';
