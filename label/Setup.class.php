@@ -4,7 +4,7 @@
 /**
  * Максимален брой отпечатвания заедно
  */
-defIfNot('LABEL_MAX_PRINT_CNT', 0);
+defIfNot('LABEL_MAX_PRINT_CNT', 200);
 
 
 /**
