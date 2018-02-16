@@ -59,7 +59,7 @@ class planning_Jobs extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'dueDate,quantity,notes,tolerance';
+    public $changableFields = 'dueDate,quantity,notes,tolerance,sharedUsers';
     
     
     /**
@@ -132,13 +132,13 @@ class planning_Jobs extends core_Master
     /**
      * Шаблон за единичен изглед
      */
-    public $singleLayoutFile = 'planning/tpl/SingleLayoutJob.shtml';//SingleLayoutJobEP
+    public $singleLayoutFile = 'planning/tpl/SingleLayoutJob.shtml';
     
     
     /**
      * Поле за дата по което ще филтрираме
      */
-    public $filterDateField = 'createdOn, dueDate,deliveryDate,modifiedOn';
+    public $filterDateField = 'createdOn,dueDate,deliveryDate,modifiedOn';
     
     
     /**
@@ -662,7 +662,7 @@ class planning_Jobs extends core_Master
     		}
     	}
     	
-    	if($fields['-list']){
+    	if(isset($fields['-list'])){
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     		
     		if($rec->quantityNotStored > 0){
@@ -677,12 +677,12 @@ class planning_Jobs extends core_Master
     	}
     	 
     	if(isset($rec->saleId)){
-    		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
-    		$saleRec = sales_Sales::fetch($rec->saleId, 'folderId,deliveryAdress');
-    		$row->saleFolderId = doc_Folders::recToVerbal(doc_Folders::fetch($saleRec->folderId))->title;
+    		$row->saleId = sales_Sales::getlink($rec->saleId);
+    		$saleRec = sales_Sales::fetch($rec->saleId, 'folderId,deliveryAdress,state');
     		if(!empty($saleRec->deliveryAdress)){
     			$row->saleDeliveryAddress = core_Type::getByName('varchar')->toVerbal($saleRec->deliveryAdress);
     		}
+    		$row->saleId = "<span class='state-{$saleRec->state}'>{$row->saleId}</span>";
     	}
     	
     	$row->measureId = cat_UoM::getShortName($rec->packagingId);

@@ -74,14 +74,18 @@
     <table cellpadding="0">
         <tr>
             <td class="top-descr no-border-left no-border-top">
-                [#JOB#] 
+                <div class="details-label">
+                    <span class="small left">code</span>
+                    <div class="clearfix21"></div>
+                    [#CODE#]
+                </div>
             </td>
             <td colspan="2" class="top-descr no-border-top">
                 [#NAME#]
             </td>
         </tr>
         <tr>
-            <td class="top-descr no-border-left">[#ORDER#]</td>
+            <td class="top-descr no-border-left">[#JOB#]</td>
             <td colspan="2" class="top-descr">
                 [#MATERIAL#]
             </td>

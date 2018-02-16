@@ -63,6 +63,18 @@ defIfNot('CAT_AUTO_LIST_ALLOWED_GROUPS', '');
 
 
 /**
+ * Начален брояч на баркодовете
+ */
+defIfNot('CAT_PACKAGING_AUTO_BARCODE_BEGIN', '');
+
+
+/**
+ * Kраен брояч на баркодовете
+ */
+defIfNot('CAT_PACKAGING_AUTO_BARCODE_END', '');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -175,6 +187,8 @@ class cat_Setup extends core_ProtoSetup
             'CAT_AUTO_LIST_PRODUCT_COUNT'           => array("int(min=1)", 'caption=Списъци от последно продавани артикули->Брой'),
             'CAT_AUTO_LIST_ALLOWED_GROUPS'          => array("keylist(mvc=cat_Groups,select=name)", 'caption=Списъци от последно продавани артикули->Групи'),
             'CAT_SHOW_BOM_IN_PRODUCT'               => array("enum(auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)", 'caption=Показване на рецептата в описанието на артикула->Показване'),
+            'CAT_PACKAGING_AUTO_BARCODE_BEGIN'      => array("gs1_TypeEan", 'caption=Автоматични баркодове на опаковките->Начало'),
+            'CAT_PACKAGING_AUTO_BARCODE_END'        => array("gs1_TypeEan", 'caption=Автоматични баркодове на опаковките->Край'),
     );
 
     

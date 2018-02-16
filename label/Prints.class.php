@@ -123,8 +123,8 @@ class label_Prints extends core_Master
         
         $this->FLD('printedCnt', 'int', 'caption=Брой отпечатвания, mandatory, notNull, input=none');
         
-        $this->FLD('labelsCnt', 'int(min=1, max=500)', 'caption=Брой етикети, mandatory');
-        $this->FLD('copiesCnt', 'int(min=1, max=50)', 'caption=Брой копия, value=1, mandatory');
+        $this->FLD('labelsCnt', 'int(min=1, max=10000)', 'caption=Брой етикети, mandatory');
+        $this->FLD('copiesCnt', 'int(min=1, max=1000)', 'caption=Брой копия, value=1, mandatory');
         
         $this->FLD('begin', 'int(min=1)', 'caption=Начало, allowEmpty, input=hidden');
         $this->FLD('end', 'int(min=1)', 'caption=Край, allowEmpty, input=hidden');
@@ -188,6 +188,10 @@ class label_Prints extends core_Master
                 $estCnt = $lRec->params[$oName];
             }
             
+            if (isset($estCnt)) {
+                $estCnt = min(array($estCnt, $form->fields['labelsCnt']->type->params['max']));
+            }
+            
             $form->setDefault('labelsCnt', $estCnt);
             $form->setDefault('begin', 1);
             $form->setDefault('end', $estCnt);
@@ -195,7 +199,7 @@ class label_Prints extends core_Master
             if ($form->isSubmitted()) {
                 
                 // Ако излезем над разрешената стойност
-                if ($form->rec->end > $estCnt) {
+                if (isset($estCnt) && $form->rec->end > $estCnt) {
                     $errMsg = "|Надвишавате допустимата бройка|* - {$estCnt}";
                     if ($allowSkip) {
                         $form->setWarning('end', $errMsg);
@@ -226,6 +230,88 @@ class label_Prints extends core_Master
         
         // Ако няма грешки, записваме и редиректваме към листовия изглед
         if ($form->isSubmitted()) {
+            
+            // Ако е зададено максимален брой отпечатвания на хит
+            $limitPerLabel = label_Setup::get('MAX_PRINT_CNT');
+            
+            $allPrintCntWithTol = 1.1 * $allPirntsCnt;
+            if (!$form->rec->id && ($limitPerLabel > 0) && ($allPrintCntWithTol > $limitPerLabel) && ($limitPerLabel > $labelsCnt)) {
+                
+                $lDel = $allPirntsCnt % $limitPerLabel;
+                
+                if ($lDel && (($limitPerLabel * 0.1) > $lDel)) {
+                    $limitPerLabel += $lDel;
+                }
+                
+                $cCnt = $form->rec->copiesCnt ? $form->rec->copiesCnt : 1;
+                
+                // Опитваме се да определим най-добрата бройка за отпечатване
+                $mCnt = 0;
+                while (($limitPerLabel % $labelsCnt) || ($limitPerLabel % $cCnt)) {
+                    
+                    if ($mCnt++ > 1000) {
+                        break;
+                    }
+                    
+                    $limitPerLabel++;
+                }
+                
+                // Разделяме медията в зависимост от бройката
+                if ($allPrintCntWithTol > $limitPerLabel) {
+                    
+                    $mCnt = 0;
+                    $saveArr = array();
+                    
+                    $end = 0;
+                    
+                    while (TRUE) {
+                        
+                        $cRec = clone $form->rec;
+                        
+                        if ($allPirntsCnt >= $limitPerLabel) {
+                            $allPirntsCnt -= $limitPerLabel;
+                            
+                            $cRec->labelsCnt = $limitPerLabel / $cCnt;
+                            
+                            if (isset($form->rec->begin)) {
+                                $form->rec->begin += $cRec->labelsCnt;
+                            }
+                            
+                            
+                            $end += $cRec->labelsCnt;
+                            if ($cRec->end) {
+                                $cRec->end = min(array($end, $form->rec->end));
+                            }
+                            $saveArr[] = $cRec;
+                        } else {
+                            $cRec->begin = $form->rec->begin;
+                            $cRec->labelsCnt = $allPirntsCnt / $cCnt;
+                            
+                            if ($cRec->labelsCnt) {
+                                $saveArr[] = $cRec;
+                            }
+                            
+                            break;
+                        }
+                        
+                        if ($mCnt++ > 10000) {
+                            break;
+                        }
+                    }
+                }
+                
+                // Ако медията за отпечатване ще се разделя на части
+                if (!empty($saveArr)) {
+                    
+                    $saveArrCnt = count($saveArr);
+                    foreach ($saveArr as $sRec) {
+                        self::save($sRec);
+                    }
+                    
+                    return new Redirect(array($this, 'list'), "|Добавени|* {$saveArrCnt} |броя отпечатвания");
+                }
+            }
+            
             $id = $this->save($form->rec);
             
             return new Redirect(array($this, 'list', 'saveId' => $id));

@@ -5703,6 +5703,11 @@ row-fluid {
 	   border: none;
 	   padding: 0;
 	   width: 100%;
+		background: none;
+		.small {
+			line-height: 1.5em;
+			font-size: 0.85em !important;
+		}
 	   .top-table {
 	       border-collapse: collapse;
 	       td{
@@ -5762,6 +5767,14 @@ row-fluid {
 	}
 	.miniText {
 		font-size: 0.65em;
+	}
+	h3.richtext-title {
+		padding: 20px 0 !important;
+		margin-bottom: 0;
+		font-size: 1.1em;
+	}
+	.em-holder .top-table td {
+		border: none !important;
 	}
 }
 

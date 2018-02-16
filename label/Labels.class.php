@@ -189,8 +189,14 @@ class label_Labels extends core_Master
                   $form->setDefault('classId', $objId);
                   $form->setDefault('objId', $classId);
                     
-                  $title = cls::get($classId)->getHandle($objId);
-                  $title = "#{$title}/" . dt::mysql2verbal(dt::now(), 'd.m.y H:i:s');
+                  $cls = cls::get($classId);
+                  if(method_exists($cls, 'getRecTitle')){
+                  	$title = $cls->getRecTitle($objId);
+                  } else {
+                  	$title = $cls->getHandle($objId);
+                  	$title = "#{$title}/" . dt::mysql2verbal(dt::now(), 'd.m.y H:i:s');
+                  }
+                  
                   $form->setDefault('title', $title);
               }
          } else {
@@ -323,6 +329,19 @@ class label_Labels extends core_Master
     
     
     /**
+     * Изпълнява се след подготвянето на тулбара в листовия изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+    	// Документа не може да се създава  в нова нишка, ако е възоснова на друг
+		if(!empty($data->toolbar->buttons['btnAdd'])){
+			$data->toolbar->removeBtn('btnAdd');
+			$data->toolbar->addBtn('Нов запис', array($mvc, 'selectTemplate'), "ef_icon=img/16/star_2.png,title=Добавяне на нов етикет");
+		}
+    }
+    
+    
+    /**
      * Екшън за избор на шаблон
      */
     function act_SelectTemplate()
@@ -346,7 +365,7 @@ class label_Labels extends core_Master
         
         // Вземаме формата към този модел
         $form = $this->getForm();
-        $form->title = "Избор на шаблон";
+        $form->title = "Избор на шаблон за етикет";
         
         if ($classId && $objId) {
         	$form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getFormTitleLink($objId);
@@ -364,7 +383,7 @@ class label_Labels extends core_Master
         }
        
         // Добавяме функционално поле
-        $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\')', 'caption=Шаблон,mandatory');
+        $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\',allowEmpty)', 'caption=Шаблон,mandatory');
         
         $redirect = FALSE;
         $optArr = array();
@@ -376,23 +395,21 @@ class label_Labels extends core_Master
             foreach ($templates as $tRec){
                 $template = label_Templates::getTemplate($tRec->id);
                 $templatePlaceArr = label_Templates::getPlaceHolders($template);
-                $cnt = 0;
                 
-                foreach ($templatePlaceArr as $key => $v) {
-                    $key = label_TemplateFormats::getPlaceholderFieldName($key);
-                   
-                    if (isset($labelDataArr[$key])) {
-                        $cnt++;
-                    }
+                $cnt = 0;
+                foreach ($labelDataArr as $key => $v) {
+                	if (isset($templatePlaceArr[$key])) {
+                		$cnt++;
+                	}
                 }
                
                 // Оцветяваме имената на шаблоните, в зависимост от съвпаданието на плейсхолдерите
                 $percent = 0;
-                $lCnt = count($labelDataArr);
+                $lCnt = count($templatePlaceArr);
                 if ($lCnt) {
                     $percent = ($cnt / $lCnt) * 100;
                 }
-               
+                
                 $dataColor = '#f2c167';
                 if ($percent >= 90) {
                     $dataColor = '#a0f58d';

@@ -315,7 +315,6 @@ sales_ClosedDeals,list,bg,"Тук се съдържа списък на всич
 sales_ClosedDeals,edit,bg,Това е форма за редактиране/добавяне на документ за приключване на продажба. За повече информация прочетете: [link=http://www.bgerp.com/Bg/Targovia-Prodajbi/]Продажби » Сделки[/link]
 sales_Routes,list,bg,Тук се съдържа списък на всички търговски маршрути. За повече информация прочетете: [link=http://www.bgerp.com/Bg/Targovia-Prodajbi/]Продажби » Сделки[/link]
 sales_Routes,edit,bg,Това е форма за редактиране/добавяне на търговски маршрут. За повече информация прочетете: [link=http://www.bgerp.com/Bg/Targovia-Prodajbi/]Продажби » Сделки[/link]
-sales_SaleRequests,list,bg,Заявката в bgERP е документ
 marketing_Inquiries2,list,bg,Тук се съдържа списък на всички запитвания. За повече информация прочетете [link=https://bgerp.com/Bg/Targovia-Marketing/]Търговия » Маркетинг[/link]
 marketing_Inquiries2,edit,bg,Това е форма за редактиране/добавяне на запитване.
 pos_Points,list,bg,Тук се съдържа списък на всички Точки на продажба (POS). За повече информация прочетете: [link=http://www.bgerp.com/Bg/%D0%A2%D0%BE%D1%87%D0%BA%D0%B8-%D0%9D%D0%B0-%D0%9F%D1%80%D0%BE%D0%B4%D0%B0%D0%B6%D0%B1%D0%B0/]Търговия » POS[/link]

@@ -499,7 +499,7 @@ class eshop_Groups extends core_Master
             $data->menuId = $menuId = self::fetch($groupId)->menuId;
         }
         
-        $query->where("#menuId = {$menuId}");
+        $query->where("#menuId = '{$menuId}'");
         
         $l = new stdClass();
         $l->selected = ($groupId == NULL &&  $productId == NULL);

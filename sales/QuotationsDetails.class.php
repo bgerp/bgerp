@@ -104,7 +104,7 @@ class sales_QuotationsDetails extends doc_Detail {
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'packPrice,tolerance,term,weight';
+    public $fieldsNotToClone = 'price,packPrice,tolerance,term,weight';
     
     
   	/**

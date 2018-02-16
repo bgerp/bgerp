@@ -153,7 +153,7 @@
                                         <table class='centered special-borders' style='float:right;'>
                                             <tr>
                                                 <td class='centered'>Съставил:</td>
-                                                <td class='centered' style="padding-top: 45px;"><span class="sign_names nowrap">[#username#]</span></td>
+                                                <td class='centered' style="padding-top: 45px !important;"><span class="sign_names nowrap">[#username#]</span></td>
                                             </tr>
                                         </table>
                                     </td>

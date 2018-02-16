@@ -77,7 +77,11 @@
 
 <div class="label-holder">
     <table cellpadding="0"><tr><td class="top-descr no-border-left no-border-top bold">
-        [#JOB#] [#DATE#]
+        <div class="details-label">
+            <span class="small left">код</span>
+            <div class="clearfix21"></div>
+            [#CODE#]
+        </div>
     </td>
         <td colspan="2" class="top-descr no-border-top bold">
             [#NAME#] 
@@ -88,7 +92,7 @@
             </div>
         </td>
     </tr><tr><td class="top-descr no-border-left bold">
-        [#ORDER#]
+        [#JOB#] [#DATE#]
     </td>
         <td colspan="2" class="top-descr bold">
             [#MATERIAL#]
