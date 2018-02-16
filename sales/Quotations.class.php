@@ -166,9 +166,9 @@ class sales_Quotations extends core_Master
         'email' 		      => 'lastDocUser|lastDoc|clientData',
     	'tel' 			      => 'lastDocUser|lastDoc|clientData',
         'fax' 			      => 'lastDocUser|lastDoc|clientData',
-        'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
-        'pCode' 		      => 'lastDocUser|lastDoc|clientData',
-    	'place' 		      => 'lastDocUser|lastDoc|clientData',
+        'contragentCountryId' => 'clientData',
+        'pCode' 		      => 'clientData',
+    	'place' 		      => 'clientData',
     	'address' 		      => 'clientData',
     	'template' 		      => 'lastDocUser|lastDoc|defMethod',
     );
