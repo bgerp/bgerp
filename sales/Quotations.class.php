@@ -955,7 +955,16 @@ class sales_Quotations extends core_Master
      */
     private function createSale($rec)
     {
-    	$templateId = sales_Sales::getDefaultTemplate((object)array('folderId' => $rec->folderId));
+    	$Sales = cls::get('sales_Sales');
+    	$templateId = cond_plg_DefaultValues::getFromLastDocument($Sales, $rec->folderId, 'template');
+    	
+    	if(empty($templateId)){
+    		$templateId = cond_plg_DefaultValues::getFromLastDocument($Sales, $rec->folderId, 'template', FALSE);
+    	}
+    	
+    	if(empty($templateId)){
+    		$templateId = sales_Sales::getDefaultTemplate((object)array('folderId' => $rec->folderId));
+    	}
     	
     	// Подготвяме данните на мастъра на генерираната продажба
     	$fields = array('currencyId'         => $rec->currencyId,
