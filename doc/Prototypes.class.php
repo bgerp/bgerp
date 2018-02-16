@@ -330,7 +330,7 @@ class doc_Prototypes extends core_Manager
     		$arr[$rec->docId] = trim($title);
     	}
     	
-        arsort($arr);
+        asort($arr);
 
     	// Връщане на намерените шаблони
     	return $arr;
