@@ -5205,6 +5205,8 @@ only screen and (max-width: 320px) {
     padding: 20px 0 !important;
     margin-bottom: 0;
     font-size: 1.1em; }
+  .printing .em-holder .top-table td {
+    border: none !important; }
 
 .narrow .printing .document {
   width: 850px; }
