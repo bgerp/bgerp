@@ -189,8 +189,14 @@ class label_Labels extends core_Master
                   $form->setDefault('classId', $objId);
                   $form->setDefault('objId', $classId);
                     
-                  $title = cls::get($classId)->getHandle($objId);
-                  $title = "#{$title}/" . dt::mysql2verbal(dt::now(), 'd.m.y H:i:s');
+                  $cls = cls::get($classId);
+                  if(method_exists($cls, 'getRecTitle')){
+                  	$title = $cls->getRecTitle($objId);
+                  } else {
+                  	$title = $cls->getHandle($objId);
+                  	$title = "#{$title}/" . dt::mysql2verbal(dt::now(), 'd.m.y H:i:s');
+                  }
+                  
                   $form->setDefault('title', $title);
               }
          } else {
