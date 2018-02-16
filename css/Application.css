@@ -5154,7 +5154,11 @@ only screen and (max-width: 320px) {
     margin: 5px 0;
     border: none;
     padding: 0;
-    width: 100%; }
+    width: 100%;
+    background: none; }
+    .printing .antetka .small {
+      line-height: 1.5em;
+      font-size: 0.85em !important; }
     .printing .antetka .top-table {
       border-collapse: collapse; }
       .printing .antetka .top-table td {
@@ -5197,6 +5201,10 @@ only screen and (max-width: 320px) {
     font-size: 0.85em; }
   .printing .miniText {
     font-size: 0.65em; }
+  .printing h3.richtext-title {
+    padding: 20px 0 !important;
+    margin-bottom: 0;
+    font-size: 1.1em; }
 
 .narrow .printing .document {
   width: 850px; }
