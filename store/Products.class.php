@@ -154,12 +154,18 @@ class store_Products extends core_Detail
     	$data->listFilter->setOptions('order', $orderOptions);
     	$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
     	
-    	$stores = cls::get('store_Stores')->makeArray4Select('name', "#state != 'rejected'");
-    	$data->listFilter->setOptions('storeId', array('' => '') + $stores);
-    	$data->listFilter->setField('storeId', 'autoFilter');
-    	if(count($stores) == 1){
-    		$data->listFilter->setDefault('storeId', key($stores));
-    	}
+        if(!$data->listFilter->getFieldType('storeId')->params['isReadOnly'] && $data->listFilter->rec->storeId) {
+            $stores = cls::get('store_Stores')->makeArray4Select('name', "#state != 'rejected'");
+            $data->listFilter->setOptions('storeId', array('' => '') + $stores);
+            $data->listFilter->setField('storeId', 'autoFilter');
+            if(count($stores) == 1){
+                $data->listFilter->setDefault('storeId', key($stores));
+            }
+        }
+
+        if($storeId = store_Stores::getCurrent('id', FALSE)) {
+            $data->listFilter->setDefault('storeId', $storeId);
+        }
     	
     	// Подготвяме в заявката да може да се търси по полета от друга таблица
     	$data->query->EXT('keywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');

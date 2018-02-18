@@ -98,7 +98,7 @@ class rack_Movements extends core_Manager
     /**
      * Брой записи на страница
      */
-    var $listItemsPerPage = 50;
+    var $listItemsPerPage = 20;
     
     
     /**

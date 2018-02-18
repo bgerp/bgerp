@@ -137,7 +137,18 @@ class rack_Pallets extends core_Manager
         
         if($rec->productId) {
             $bestPos = self::getBestPos($rec->productId);
-            $form->setSuggestions('positionTo', array('' => '', $bestPos => $bestPos)); 
+            $form->setSuggestions('positionTo', array('' => '', $bestPos => $bestPos));
+            $form->setField('positionTo', 'placeholder=' . $bestPos);
+        } 
+
+        if($rec->position) {
+            $form->setField('positionTo', 'placeholder=На пода');
+        } else {
+            $form->setField('positionTo', 'placeholder=' . $bestPos);
+        }
+
+        if($movementCreate = Mode::get('movementCreate')) {
+            $form->setDefault('movementCreate', $movementCreate);
         }
 
         // Дефолт за последното количество
@@ -265,6 +276,11 @@ class rack_Pallets extends core_Manager
             $rec = $form->rec;
             
             $rec->storeId = store_Stores::getCurrent();
+            
+            // Ако и двете позиции не са сетнати, приемаме, че палета ще се качва на позицията по подразбиране
+            if(!$rec->position && !$rec->positionTo) {
+                $rec->positionTo = self::getBestPos($rec->productId);
+            }
 
             if($rec->positionTo && ($rec->exPosition != $rec->positionTo)) {
                 
@@ -281,6 +297,10 @@ class rack_Pallets extends core_Manager
 
                     $form->setError('positionTo', $error);
                 }
+            }
+
+            if($rec->movementCreate) {
+                Mode::setPermanent('movementCreate', $rec->movementCreate);
             }
         }
     }
@@ -358,10 +378,25 @@ class rack_Pallets extends core_Manager
             if($rec->movementCreate == 'on') {
                 $mRec->state = 'pending';
             } else {
+                
                 // Моментален запис на позицията
                 $rec->position = $rec->positionTo;
                 $mvc->save_($rec, 'position');
                 $mRec->state = 'closed';
+            }
+
+            if($mRec->state == 'closed') {
+                if($mRec->positionTo) {
+                    status_Messages::newStatus("|Нова позиция|*: {$mRec->positionTo}");
+                } else {
+                    status_Messages::newStatus("|Сваляне на пода");
+                }
+            } else {
+                if($mRec->positionTo) {
+                    status_Messages::newStatus("|Зададено движение към|* {$mRec->positionTo}");
+                } else {
+                    status_Messages::newStatus("|Зададено движение за сваляне на пода");
+                }
             }
 
             rack_Movements::save($mRec);
