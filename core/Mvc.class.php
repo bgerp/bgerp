@@ -313,6 +313,8 @@ class core_Mvc extends core_FieldSet
         $rec = $id;
         if (!is_object($rec)) {
             $rec = static::fetch($id, $fields, $cache);
+        } elseif(!$cache) {
+            $rec = static::fetch($id->id, $fields, $cache);
         }
         
         return $rec;

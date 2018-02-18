@@ -583,6 +583,10 @@ class doc_Linked extends core_Manager
             }
         }
         
+        if ($form->cmd != 'refresh') {
+            doc_Linked::showLinkedInForm($form, $originFId, $type);
+        }
+        
         $form->title = "Свързване на файлове и документи с|* " . $clsInst->getLinkToSingle($fId);
         
         // Добавяне на бутони

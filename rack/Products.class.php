@@ -25,7 +25,7 @@ class rack_Products extends store_Products
     /**
      * Плъгини за зареждане
      */
-   // var $loadList = 'plg_Created, rack_Wrapper, plg_RowTools2';
+     //var $loadList = 'plg_Created, rack_Wrapper, plg_RowTools2';
     
     
     /**
@@ -128,5 +128,33 @@ class rack_Products extends store_Products
             }
         }
     }
+
+   
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $storeId = store_Stores::getCurrent();
+        $data->listFilter->rec->storeId = $storeId;
+    	$data->listFilter->setReadonly('storeId');
+    }
+
+
+    
+    /**
+     * Избягване скриването на бутоните в rowTools2
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareListTitle($mvc, $data)
+    {
+    	$data->masterMvc = TRUE;
+    }
+
 
 }

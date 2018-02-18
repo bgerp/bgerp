@@ -76,8 +76,11 @@ class planning_interface_JobLabel
 		expect($rec = planning_Jobs::fetchRec($id));
 		$pRec = cat_Products::fetch($rec->productId, 'code,measureId');
 		
-		$res['JOB'] = $rec->id;
+		$res['JOB'] = mb_strtoupper(planning_Jobs::getHandle($rec->id));
 		$res['CODE'] = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
+		$res['NAME'] = cat_Products::getVerbal($rec->productId, 'name');
+		$res['DATE'] = date("m/y");
+		$res['PREVIEW'] = NULL;
 		
 		$packRec = self::getDefaultPackRec($rec->productId, $selectedPackagingArr);
 		if(!Mode::is('prepareLabel') && count($selectedPackagingArr)){
@@ -86,13 +89,8 @@ class planning_interface_JobLabel
 			label_exception_Redirect::expect($packRec, $msg);
 		}
 		
-		if(empty($packRec)){
-			$res['MEASURE_ID'] = tr(cat_UoM::getShortName($pRec->measureId));
-			$res['QUANTITY'] = $rec->quantity;
-		} else {
-			$res['QUANTITY'] = $packRec->quantity;
-			$res['MEASURE_ID'] =  tr(cat_UoM::getShortName($packRec->packagingId));
-		}
+		$res['MEASURE_ID'] = tr(cat_UoM::getShortName($pRec->measureId));
+		$res['QUANTITY'] = (empty($packRec)) ? $rec->quantity : $packRec->quantity;
 		
 		if(isset($rec->saleId)){
 			$res['ORDER'] = $rec->saleId;
@@ -101,7 +99,7 @@ class planning_interface_JobLabel
 			if($lg != 'bg'){
 				$sRec = sales_Sales::fetch($rec->saleId);
 				$countryId = cls::get($sRec->contragentClassId)->fetchField($sRec->contragentId, 'country');
-				$res['OTHER'] = drdata_Countries::fetchField($countryId, 'letterCode2') . " " . date("m/y");
+				$res['OTHER'] = drdata_Countries::fetchField($countryId, 'letterCode2') . " " . $res['DATE'];
 			}
 		}
 		
@@ -145,7 +143,11 @@ class planning_interface_JobLabel
 		$rec = $this->class->fetch($id);
 		
 		$packRec = self::getDefaultPackRec($rec->productId, $selectedPackagingArr);
-		$res = (empty($packRec)) ? $rec->quantity : round($rec->quantity / $packRec->quantity, 2);
+		$quantity = (empty($packRec)) ? $rec->quantity : round($rec->quantity / $packRec->quantity, 2);
+		
+		$quantity *= 1.1;
+		$res = ceil($quantity + 1);
+		if($res % 2 == 1) $res++;
 		
 		return $res;
 	}

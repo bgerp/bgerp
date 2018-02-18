@@ -473,7 +473,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	// Ако артикула е създаден от източник
-    	if(isset($rec->originId)){
+    	if(isset($rec->originId) && $form->cmd != 'refresh'){
     		$document = doc_Containers::getDocument($rec->originId);
     	
     		// Задаваме за дефолти полетата от източника

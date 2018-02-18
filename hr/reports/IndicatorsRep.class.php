@@ -250,9 +250,10 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 				$row->indicator = hr_IndicatorNames::fetchField($dRec->indicatorId, 'name');
 			} elseif($rec->formula) {
 				$row->indicator = tr('Формула');
+				$newContext = self::fillMissingIndicators($dRec->context, $rec->formula);
 				
-				uksort($dRec->context, "str::sortByLengthReverse");
-				$expr = strtr($rec->formula, $dRec->context);
+				uksort($newContext, "str::sortByLengthReverse");
+				$expr = strtr($rec->formula, $newContext);
 				
 				if(str::prepareMathExpr($expr) === FALSE) {
 					$row->value = '<small style="font-style:italic;color:red;">' . tr("Невъзможно изчисление") . '</small>';
@@ -297,6 +298,30 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	    }
 		
 		return $row;
+	}
+	
+	
+	/**
+	 * Допълване на липсващите индикатори от формулата с такива със стойност 0
+	 * 
+	 * @param array $context
+	 * @param string $formula
+	 * @return array $arr
+	 */
+	private static function fillMissingIndicators($context, $formula)
+	{
+		$arr = array();
+		$formulaIndicators = hr_Indicators::getIndicatorsInFormula($formula);
+		if(!count($formulaIndicators)) return $arr;
+		
+		foreach($formulaIndicators as $name){
+			$key = "$" . $name;
+			if(!array_key_exists($key, $context)){
+				$context[$key] = 0;
+			}
+		}
+		
+		return $context;
 	}
 	
 	

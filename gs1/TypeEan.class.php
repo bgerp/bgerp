@@ -1,5 +1,6 @@
 <?php
 
+
 cls::load('type_Varchar');
 
 
@@ -9,10 +10,10 @@ cls::load('type_Varchar');
  * При грешно подаден такъв изкарва и подсказка с правилно изчисления код
  *
  *
- * @category  vendors
+ * @category  bgerp
  * @package   gs1
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -25,6 +26,7 @@ class gs1_TypeEan extends type_Varchar
      */
     var $dbFieldLen = 18;
     
+    
 
     /**
      * Празната стойност има смисъл на NULL
@@ -33,17 +35,99 @@ class gs1_TypeEan extends type_Varchar
 
 
     /**
+     * Колко символа е дълго полето в базата
+     */
+    const AUTO_GENERETE_STRING = 'AUTO';
+    
+    
+    /**
+     * Кеш на рейнджа
+     */
+    private $autoRange = array();
+    
+    
+    /**
      * Инициализиране на обекта
      */
     function init($params = array())
     {
         parent::init($params);
         $this->params['size'] = $this->params[0] = 18;
+        
+        // Добавяне на опция за автоматично генериране на ЕАН код
+        if(isset($this->params['mvc'])){
+        	$mvcName = $this->params['mvc'];
+        	expect(cls::get($mvcName));
+        	expect($this->params['field']);
+        	expect(method_exists($mvcName, 'getEanRange'));
+        	$range = $mvcName::getEanRange();
+        	
+        	if(count($range)){
+        		$this->autoRange = $range;
+        		$this->suggestions = array(''=> '', self::AUTO_GENERETE_STRING => tr('Автоматично'));
+        	}
+        }
     }
     
     
     /**
-     * Към 12-цифрен номер, добавя 13-та цифра за да го направи EAN13 код
+     * Обръща във вътрешен формат
+     */
+    function fromVerbal_($value)
+    {
+    	// Ако има рейндж за генерирания баркод
+    	if(count($this->autoRange)){
+    		
+    		// И е въведена специалната стойност, замества се с автоматичния баркод
+        	if($value == self::AUTO_GENERETE_STRING){
+        		$value = $this->getAutoNumber($this->params['mvc'], $this->params['field']);
+        	}
+        }
+    	
+    	$value = parent::fromVerbal_($value);
+        
+        return $value;
+    }
+    
+    
+    /**
+     * Автоматично генериран еан код
+     *
+     * @return string
+     */
+    protected function getAutoNumber($mvc, $field)
+    {
+    	expect($range = $mvc::getEanRange());
+    	expect(count($range));
+    	
+    	$min = $range[0];
+    	$max = $range[1];
+    	
+    	// Най-големия баркод
+    	$query = $mvc::getQuery();
+    	$query->XPR('maxEan', 'int', "MAX(#{$field})");
+    	$query->between($field, $min, $max);
+    	if(!$maxEan = $query->fetch()->maxEan){
+    		$maxEan = $min;
+    	}
+    	
+    	// От максималния баркод в посочения рейндж, се маха контролната сума
+    	// и се инкрементира, докато се получи валиден свободен ЕАН код.
+    	$maxEan = substr($maxEan, 0, -1);
+    	$newEan = str::increment($maxEan);
+    	$newEan = $this->eanCheckDigit($newEan);
+    	while($mvc::fetchField(array("#{$field} = '[#1#]'", $newEan))){
+    		$newEan = substr($newEan, 0, -1);
+    		$newEan = str::increment($maxEan);
+    		$newEan = $this->eanCheckDigit($newEan);
+    	}
+    	 
+    	return $newEan;
+    }
+    
+    
+    /**
+     * Към 12-цифрен номер, добавя 13-та цифра за д''а го направи EAN13 код
      * @param string $digits - 12-те или 7-те цифри на кода
      * @param int $n - дали проверяваме за ЕАН8 или ЕАН13, ЕАН13 е по дефолт
      * @return string - правилния ЕАН8 или ЕАН13 код
@@ -64,6 +148,7 @@ class gs1_TypeEan extends type_Varchar
 		$totalSum = $evenSum + $oddSum;
         $nextTen = (ceil($totalSum / 10)) * 10;
         $checkDigit = $nextTen - $totalSum;
+        
         return $digits . $checkDigit;
     }
     
@@ -125,6 +210,9 @@ class gs1_TypeEan extends type_Varchar
     function isValid($value)
     {
         if(!trim($value)) return array('value' => '');
+        if(count($this->autoRange)){
+        	if($value == self::AUTO_GENERETE_STRING) return array('value' => $value);
+        }
         
         $res = new stdClass();
     	if (preg_match("/[^0-9]/", $value)) {
@@ -175,6 +263,6 @@ class gs1_TypeEan extends type_Varchar
         	}
         }
        
-        return (array) $res;
+        return (array)$res;
     }
 }
