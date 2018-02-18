@@ -97,7 +97,7 @@ class rack_Pallets extends core_Manager
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden,column=none');
         $this->FLD('productId', 'key(mvc=store_Products, select=productId,allowEmpty)', 'caption=Продукт,silent,remember,refreshForm,mandatory,smartCenter');
-        $this->FLD('quantity', 'int', 'caption=Количество,mandatory');
+        $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory');
         $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter');
@@ -355,7 +355,7 @@ class rack_Pallets extends core_Manager
             $mRec->storeId = $rec->storeId;
             $mRec->note = $rec->movementInfo;
 
-            if($rec->movementCreate) {
+            if($rec->movementCreate == 'on') {
                 $mRec->state = 'pending';
             } else {
                 // Моментален запис на позицията
