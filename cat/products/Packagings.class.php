@@ -95,8 +95,8 @@ class cat_products_Packagings extends core_Detail
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка,mandatory,smartCenter,removeAndRefreshForm=quantity,silent');
         $this->FLD('quantity', 'double(Min=0,smartRound)', 'input,caption=Количество,mandatory,smartCenter');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
-        $this->FLD('eanCode', 'gs1_TypeEan', 'caption=EAN');
-        $this->FNC('templateId', 'key(mvc=cat_PackParams)', 'caption=Параметри->Шаблон,silent,removeAndRefreshForm=tareWeight|sizeWidth|sizeHeight|sizeDepth,autohide');
+        $this->FLD('eanCode', 'gs1_TypeEan(mvc=cat_products_Packagings,field=eanCode)', 'caption=EAN');
+        $this->FNC('templateId', 'key(mvc=cat_PackParams)', 'caption=Параметри->Шаблон,silent,removeAndRefreshForm=tareWeight|sizeWidth|sizeHeight|sizeDepth,autohide,class=w50');
         $this->FLD('sizeWidth', 'cat_type_Size(min=0)', 'caption=Параметри->Ширина,autohide');
         $this->FLD('sizeHeight', 'cat_type_Size(min=0)', 'caption=Параметри->Височина,autohide');
         $this->FLD('sizeDepth', 'cat_type_Size(min=0)', 'caption=Параметри->Дълбочина,autohide');
@@ -104,6 +104,21 @@ class cat_products_Packagings extends core_Detail
         
         $this->setDbUnique('productId,packagingId');
         $this->setDbIndex('productId');
+    }
+    
+    
+    /**
+     * Интервала на автоматичните баркодове
+     * 
+     * @return array - начало и край на баркодовете
+     */
+    public static function getEanRange()
+    {
+    	$begin = cat_Setup::get('PACKAGING_AUTO_BARCODE_BEGIN');
+    	$end = cat_Setup::get('PACKAGING_AUTO_BARCODE_END');
+    	if(empty($begin) || empty($end)) return array();
+    	
+    	return array('0' => $begin, '1' => $end);
     }
     
     

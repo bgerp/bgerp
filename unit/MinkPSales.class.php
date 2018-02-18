@@ -630,8 +630,9 @@ class unit_MinkPSales extends core_Manager {
         
         // Клониране
         $browser->press('Клониране');
+        $browser->setValue('reff', 'Клониран договор');
         $browser->press('Запис');
-        if(strpos($browser->gettext(), 'Ваш реф: MinkPv2')) {
+        if(strpos($browser->gettext(), 'Клониран договор')) {
         } else {
             return unit_MinkPbgERP::reportErr('Неуспешно клониране', 'warning');
         }    

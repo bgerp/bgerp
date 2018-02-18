@@ -17,7 +17,8 @@
         <p>1. . . . . . . . . . . . . . . . . . . .</p>
         <p>2. . . . . . . . . . . . . . . . . . . .</p>
         <p>3. . . . . . . . . . . . . . . . . . . .</p>
-        <p>[#gpsCoords#]</p>
+        <!--ET_BEGIN imgThumb--><p>[#imgThumb#]</p><!--ET_END imgThumb-->
+        <!--ET_BEGIN gpsCoords--><p>[#gpsCoords#]</p><!--ET_END gpsCoords-->
         <br>
         <div class="sign-holder">
             <table>

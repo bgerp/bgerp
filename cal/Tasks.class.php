@@ -3037,6 +3037,7 @@ class cal_Tasks extends embed_Manager
         if ($form->isSubmitted()) {
             
             $form->rec->state = 'active';
+            $form->rec->activatedBy = (int)core_Users::getCurrent();
             
             if ($systemId){
                 $form->rec->folderId = support_Systems::forceCoverAndFolder($systemId);

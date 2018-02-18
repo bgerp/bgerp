@@ -360,19 +360,16 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
             $fld->FLD('documentId', 'varchar', 'caption=Документ');
             $fld->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума,smartCenter');
-            $fld->FLD('payDate', 'varchar', 'caption=Срок-> за плащане');
+            $fld->FLD('payDate', 'varchar', 'caption=Срок->за плащане');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-           // $fld->FLD('createdBy', 'double(smartRound,decimals=2)', 'caption=Създател,smartCenter');
             $fld->FLD('created', 'varchar', 'caption=Създаване,smartCenter');
-
         } else {
-
             $fld->FLD('documentId', 'varchar', 'caption=Документ');
             $fld->FLD('amountDeal', 'varchar', 'caption=Сума');
             $fld->FLD('payDate', 'varchar', 'caption=Срок за плащане');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута');
-            $fld->FLD('createdBy', 'varchar', 'caption=Създаване');
-
+            $fld->FLD('createdOn', 'varchar', 'caption=Създаване->На');
+            $fld->FLD('createdBy', 'varchar', 'caption=Създаване->От');
         }
 
         return $fld;
@@ -381,47 +378,45 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
     protected function detailRecToVerbal($rec, &$dRec)
     {
-
-        $isPlain = Mode::is('text', 'plain');
+		$isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
         $Double = core_Type::getByName('double(smartRound)');
         $Date = cls::get('type_Date');
 
         $row = new stdClass();
 
-
-
         if (isset($dRec->documentId)) {
-            $clsName = $dRec->className;
-            $row->documentId = $clsName::getLink($dRec->documentId, 0);
-            $row->documentId = $clsName::getLinkToSingle($dRec->documentId);
+        	$clsName = $dRec->className;
+        	$row->documentId = ($isPlain) ? "#" . $clsName::getHandle($dRec->documentId) : $clsName::getLink($dRec->documentId, 0);
         }
 
         if(isset($dRec->createdBy)) {
-
             $row->createdBy = crm_Profiles::createLink($dRec->createdBy);
-            $row->createdOn = $Date->toVerbal($dRec->createdOn);
+            $row->createdOn = ($isPlain) ? frame_CsvLib::toCsvFormatData($dRec->createdOn) : $Date->toVerbal($dRec->createdOn);
         }
-
-
-
-        $hint =($dRec->ownAccount)?bank_OwnAccounts::getTitleById($dRec->ownAccount) :cash_Cases::getTitleById($dRec->peroCase) ;
+        
+        $hint =($dRec->ownAccount) ? bank_OwnAccounts::getTitleById($dRec->ownAccount) :cash_Cases::getTitleById($dRec->peroCase) ;
         $hint = $hint?$hint:'не посочена';
-
+		
+        $row->created = $row->createdOn . ' от '. $row->createdBy;
+        
         if (isset($dRec->amountDeal)) {
-
-            $row->amountDeal =core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal);
-
-            $row->amountDeal = ht::createHint($row->amountDeal, "$hint", 'notice');
+			if($isPlain){
+				$row->amountDeal = frame_CsvLib::toCsvFormatDouble($dRec->amountDeal);
+				$row->payDate = ($dRec->payDate) ? frame_CsvLib::toCsvFormatData($dRec->payDate) : 'не посочен';
+				$row->createdOn = frame_CsvLib::toCsvFormatData($dRec->createdOn);
+				$row->createdBy = strip_tags($row->createdBy);
+			} else {
+				$row->amountDeal = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal);
+				$row->amountDeal = ht::createHint($row->amountDeal, "$hint", 'notice');
+				$row->payDate = ($dRec->payDate) ? $Date->toVerbal($dRec->payDate) : 'не посочен';
+			}
         }
-            $row->payDate =($dRec->payDate)? $Date->toVerbal($dRec->payDate):'не посочен';
 
         if(isset($dRec->currencyId)) {
             $row->currencyId = currency_Currencies::getCodeById($dRec->currencyId);
         }
-
-        $row->created = $row->createdOn.' от '.$row->createdBy;
-
+        
         return $row;
     }
 

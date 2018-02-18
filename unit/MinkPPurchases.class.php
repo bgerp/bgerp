@@ -1453,9 +1453,9 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->click('Информация за перото');
         
         // ID на покупка 1, за да се избере при разпр. на разход 
-        $purId = "69";
-        $purId = $purId .'.17';
-        
+        $purId = "68";
+        //$purId = $purId .'.16';
+        $purId = '16';
         //Покупка 2 - услуги
         //Отваряне папката на фирмата
         $browser = $this->SetFirm();

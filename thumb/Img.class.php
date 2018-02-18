@@ -24,6 +24,11 @@ defIfNot('PNGQUANT_CMD', 'pngquant --quality=65-80 --ext .png --force [#path#]')
 class thumb_Img
 {
     
+    /**
+     * Масив със забраненете разширения за файловете
+     */
+    protected $blockedExtArr = array('ade' => 'ade', 'adp' => 'adp', 'bat' => 'bat', 'chm' => 'chm', 'cmd' => 'cmd', 'com' => 'com', 'cpl' => 'cpl', 'exe' => 'exe', 'hta' => 'hta', 'ins' => 'ins', 'isp' => 'isp', 'jar' => 'jar', 'js' => 'js', 'jse' => 'jse', 'lib' => 'lib', 'lnk' => 'lnk', 'mde' => 'mde', 'msc' => 'msc', 'msi' => 'msi', 'msp' => 'msp', 'mst' => 'mst', 'nsh' => 'nsh', 'pif' => 'pif', 'scr' => 'scr', 'sct' => 'sct', 'shb' => 'shb', 'sys' => 'sys', 'vb' => 'vb', 'vbe' => 'vbe', 'vbs' => 'vbs', 'vxd' => 'vxd', 'wsc' => 'wsc', 'wsf' => 'wsf', 'wsh' => 'wsh');
+    
     
     /**
      * Масив с позволените разширения за генериране на thumbnail
@@ -443,6 +448,11 @@ class thumb_Img
             
             if($this->format == 'jpeg' || empty($this->format)) {
                 $this->format = 'jpg';
+            }
+            
+            $lFormat = strtolower($this->format);
+            if ($this->blockedExtArr[$lFormat]) {
+                $this->format = 'png';
             }
         }
         

@@ -530,8 +530,11 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
     	$rec = $this->fetchRec($id);
     	$count = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
-    	$count = ($count) ? $count : NULL;
-    	 
+    	if($count){
+    		$count = ceil($count);
+    		if($count % 2 == 1) $count++;
+    	}
+    	
     	return $count;
     }
     

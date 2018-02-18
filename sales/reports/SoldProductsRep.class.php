@@ -414,7 +414,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 				'quantityLast' 
 		) as $fld ) {
 			$row->{$fld} = ($isPlain) ? frame_CsvLib::toCsvFormatDouble ( $dRec->{$fld} ) : $Double->toVerbal ( $dRec->{$fld} );
-			if ($dRec->{$fld} < 0) {
+			if ($dRec->{$fld} < 0 && !$isPlain) {
 				$row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
 			}
 		}
