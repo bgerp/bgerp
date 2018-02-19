@@ -27,7 +27,7 @@ class store_Products extends core_Detail
     /**
      * Заглавие
      */
-    public $title = 'Продукти';
+    public $title = 'Наличности';
     
     
     /**
@@ -70,6 +70,12 @@ class store_Products extends core_Detail
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'storeId';
+    
+    
+    /**
+     * Задължително филтър по склад
+     */
+    protected $mandatoryStoreFilter = FALSE;
     
     
     /**
@@ -154,18 +160,24 @@ class store_Products extends core_Detail
     	$data->listFilter->setOptions('order', $orderOptions);
     	$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
     	
-        if(!$data->listFilter->getFieldType('storeId')->params['isReadOnly'] && $data->listFilter->rec->storeId) {
-            $stores = cls::get('store_Stores')->makeArray4Select('name', "#state != 'rejected'");
-            $data->listFilter->setOptions('storeId', array('' => '') + $stores);
-            $data->listFilter->setField('storeId', 'autoFilter');
-            if(count($stores) == 1){
-                $data->listFilter->setDefault('storeId', key($stores));
-            }
-        }
-
-        if($storeId = store_Stores::getCurrent('id', FALSE)) {
-            $data->listFilter->setDefault('storeId', $storeId);
-        }
+    	$stores = cls::get('store_Stores')->makeArray4Select('name', "#state != 'rejected'");
+    	$data->listFilter->setOptions('storeId', array('' => '') + $stores);
+    	$data->listFilter->setField('storeId', 'autoFilter');
+    	
+    	if($mvc->mandatoryStoreFilter === TRUE){
+    		$storeId = store_Stores::getCurrent();
+    		$data->listFilter->setDefault('storeId', $storeId);
+    		$data->listFilter->setReadonly('storeId');
+    	} else {
+    		if(count($stores) == 1){
+    			$data->listFilter->setDefault('storeId', key($stores));
+    		}
+    		
+    		if($storeId = store_Stores::getCurrent('id', FALSE)) {
+    			$data->listFilter->setDefault('storeId', $storeId);
+    		}
+    		
+    	}
     	
     	// Подготвяме в заявката да може да се търси по полета от друга таблица
     	$data->query->EXT('keywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
@@ -190,16 +202,18 @@ class store_Products extends core_Detail
         if($rec = $data->listFilter->rec){
         	
         	// И е избран склад, търсим склад
-        	if(isset($rec->storeId)){
-        		$selectedStoreName = store_Stores::getHyperlink($rec->storeId, TRUE);
-        		$data->title = "|Наличности в склад|* <b style='color:green'>{$selectedStoreName}</b>";
-        		$data->query->where("#storeId = {$rec->storeId}");
-        	} elseif(count($stores)){
-        		// Под всички складове се разбира само наличните за избор от потребителя
-        		$data->query->in("storeId", array_keys($stores));
-        	} else {
-        		// Ако няма налични складове за избор не вижда нищо
-        		$data->query->where("1 = 2");
+        	if(!isset($data->masterMvc)){
+        		if(isset($rec->storeId)){
+        			$selectedStoreName = store_Stores::getHyperlink($rec->storeId, TRUE);
+        			$data->title = "|Наличности в склад|* <b style='color:green'>{$selectedStoreName}</b>";
+        			$data->query->where("#storeId = {$rec->storeId}");
+        		} elseif(count($stores)){
+        			// Под всички складове се разбира само наличните за избор от потребителя
+        			$data->query->in("storeId", array_keys($stores));
+        		} else {
+        			// Ако няма налични складове за избор не вижда нищо
+        			$data->query->where("1 = 2");
+        		}
         	}
         	
         	// Ако се търси по ключови думи, търсим по тези от външното поле
