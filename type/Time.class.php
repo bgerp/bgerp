@@ -276,7 +276,7 @@ class type_Time extends type_Varchar {
         			break;
         		case 'days':
         			$v = $v / (24 * 60 * 60);
-        			$suffix = tr('дн.');
+        			$suffix = tr('дни');
         			break;
         		case 'hours':
         			$v = $v / (60 * 60);
