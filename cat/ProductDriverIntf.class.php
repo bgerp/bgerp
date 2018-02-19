@@ -1,5 +1,7 @@
 <?php
 
+
+
 /**
  * Интерфейс за създаване на отчети от различни източници в системата
  *
@@ -398,5 +400,17 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	public function getTransportVolume($rec, $quantity)
 	{
 		return $this->class->getTransportVolume($rec, $quantity);
+	}
+	
+	
+	/**
+	 * Генерира сериен номер за артикула (ако артикула е складируем)
+	 *
+	 * @param mixed $id
+	 * @return int|NULL
+	 */
+	public function generateSerial($id)
+	{
+		return $this->class->generateSerial($id);
 	}
 }

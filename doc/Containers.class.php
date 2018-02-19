@@ -1058,7 +1058,6 @@ class doc_Containers extends core_Manager
             // Ако е избран вид документ за който да се спре или дава нотификация
             $pSettingsNotifyArr = core_Settings::fetchUsers($pSettingsKey);
             $globalNotifyStr = doc_Setup::get('NOTIFY_NEW_DOC_TYPE');
-            $globalNotifyStrStop = doc_Setup::get('STOP_NOTIFY_NEW_DOC_TYPE');
             
             $clsId = $docMvc->getClassId();
             
@@ -1075,16 +1074,6 @@ class doc_Containers extends core_Manager
                 if (isset($settingsArr[$clsId])) {
                     $usersArr[$oUserId] = $oUserId;
                 }
-                
-                // Ако няма да се нотифицира за съответния документ, премахваме потребителя
-                $settingsStop =  $pSettingsNotifyArr[$oUserId]['DOC_STOP_NOTIFY_NEW_DOC_TYPE'];
-                if (!isset($settingsStop)) {
-                    $settingsStop = $globalNotifyStrStop;
-                }
-                $settingsStopArr = type_Keylist::toArray($settingsStop);
-                if (isset($settingsStopArr[$clsId])) {
-                    unset($usersArr[$oUserId]);
-                }
             }
             
             // Ако е зададено в настройките на папката
@@ -1097,6 +1086,23 @@ class doc_Containers extends core_Manager
             
             // Ако е зададено в настройките на нишката
             self::prepareUsersArrForNotifications($usersArr, doc_Threads::getSettingsKey($rec->threadId), 'notify', $rec->threadId);
+            
+            // Ако е зададено за някои документи да не се получава нотификация - спираме ги
+            $globalNotifyStrStop = doc_Setup::get('STOP_NOTIFY_NEW_DOC_TYPE');
+            foreach ((array)$oUsersArr as $oUserId) {
+                
+                if ($oUserId < 1) continue;
+                
+                // Ако няма да се нотифицира за съответния документ, премахваме потребителя
+                $settingsStop =  $pSettingsNotifyArr[$oUserId]['DOC_STOP_NOTIFY_NEW_DOC_TYPE'];
+                if (!isset($settingsStop)) {
+                    $settingsStop = $globalNotifyStrStop;
+                }
+                $settingsStopArr = type_Keylist::toArray($settingsStop);
+                if (isset($settingsStopArr[$clsId])) {
+                    unset($usersArr[$oUserId]);
+                }
+            }
         }
         
         // Ако няма потребители за нотифирциране
