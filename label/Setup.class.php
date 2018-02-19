@@ -74,21 +74,23 @@ class label_Setup extends core_ProtoSetup
             'LABEL_MAX_PRINT_CNT' => array('int(min=0)', 'caption=Максимален брой отпечатвания заедно->Брой, customizeBy=label, autohide'),
     );
     
-        
+
+    /**
+     * Роли за достъп до модула
+     */
+    public $roles = array(
+    		array('seeLabel'),
+    		array('label', 'seeLabel'),
+    		array('labelMaster', 'label'),
+    );
+    
+    
     /**
      * Инсталиране на пакета
      */
     function install()
     {   
         $html = parent::install();
-        
-        $html .= core_Roles::addOnce('seeLabel');
-        
-        // Добавяме роля
-        $html .= core_Roles::addOnce('label', 'seeLabel');
-        
-        // Добавяме роля за master
-        $html .= core_Roles::addOnce('labelMaster', 'label');
         
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Принтиране на етикети от задания за производство', 'label_plg_Print', 'planning_Jobs', 'private');
