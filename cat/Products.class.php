@@ -3259,4 +3259,26 @@ class cat_Products extends embed_Manager {
     	// Ако се е стигнало до тук, не може да се конвертира
     	return NULL;
     }
+    
+    
+    /**
+     * Генерира сериен номер за артикула (ако артикула е складируем)
+     *
+     * @param mixed $id    
+     * @return int|NULL 
+     */
+    public static function generateSerial($id)
+    {
+    	$canStore = self::fetchRec($id, 'canStore')->canStore;
+    	if($canStore == 'yes'){
+    		
+    		// Ако има драйвър, питаме него за стойността
+    		if($Driver = static::getDriver($id)){
+    			return $Driver->generateSerial($id);
+    		}
+    	}
+    
+    	// Ако няма връщаме празен масив
+    	return NULL;
+    }
 }
