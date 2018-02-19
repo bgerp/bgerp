@@ -67,6 +67,12 @@ class rack_Products extends store_Products
     public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity=Количество->Общо,quantityNotOnPallets,quantityOnPallets,storeId=Склад';
 
 
+    /**
+     * Задължително филтър по склад
+     */
+    protected $mandatoryStoreFilter = TRUE;
+    
+    
      /**
      * Описание на модела (таблицата)
      */
@@ -129,22 +135,7 @@ class rack_Products extends store_Products
         }
     }
 
-   
-    /**
-     * Подготовка на филтър формата
-     *
-     * @param core_Mvc $mvc
-     * @param StdClass $data
-     */
-    protected static function on_AfterPrepareListFilter($mvc, $data)
-    {
-        $storeId = store_Stores::getCurrent();
-        $data->listFilter->rec->storeId = $storeId;
-    	$data->listFilter->setReadonly('storeId');
-    }
 
-
-    
     /**
      * Избягване скриването на бутоните в rowTools2
      *
@@ -155,6 +146,4 @@ class rack_Products extends store_Products
     {
     	$data->masterMvc = TRUE;
     }
-
-
 }
