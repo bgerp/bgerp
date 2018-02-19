@@ -108,7 +108,7 @@ class sales_PrimeCostByDocument extends core_Manager
 		if(isset($rec->primeCost)){
 			$delta = $rec->sellCost - $rec->primeCost;
 			if($dPercent = sales_Setup::get('DELTA_MIN_PERCENT')){
-				$delta = max($delta, $delta * $dPercent);
+				$delta = max($delta, $rec->sellCost * $dPercent);
 			}
 			
 			$rec->delta = $delta * $rec->quantity;
