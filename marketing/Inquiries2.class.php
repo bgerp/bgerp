@@ -767,6 +767,7 @@ class marketing_Inquiries2 extends embed_Manager
     function act_New()
     {
         Mode::set('showBulletin', FALSE);
+        Request::setProtected('title,drvId,protos,moq,quantityCount,lg,measureId');
         
     	$this->requireRightFor('new');
     	expect($drvId = Request::get('drvId', 'int'));
@@ -800,6 +801,7 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	$form = $this->prepareForm($drvId);
     	$form->FLD('moq', 'double', 'input=hidden,silent');
+    	$form->FLD('drvId', 'class', 'input=hidden,silent');
     	$form->FLD('quantityCount', 'double', 'input=hidden,silent');
     	
     	$form->input(NULL, 'silent');
