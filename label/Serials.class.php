@@ -84,7 +84,7 @@ class label_Serials extends core_Manager
 	{
 		if(isset($rec->sourceClassId) && isset($rec->sourceObjectId)){
 			$SourceClass = cls::get($rec->sourceClassId);
-			$row->sourceObjectId = (method_exists($SourceClass, 'getLink')) ? $SourceClass->getLink($rec->sourceObjectId, 0) : $SourceClass->getTitleById($rec->sourceObjectId);
+			$row->sourceObjectId = (cls::haveInterface('doc_DocumentIntf', $SourceClass)) ? $SourceClass->getLink($rec->sourceObjectId, 0) : $SourceClass->getTitleById($rec->sourceObjectId);
 		}
 	}
 	
@@ -117,6 +117,7 @@ class label_Serials extends core_Manager
 		expect((empty($sourceClassId) && empty($sourceObjectId)) || (!empty($sourceClassId) && !empty($sourceObjectId)));
 		if(isset($sourceClassId)){
 			expect(cls::haveInterface('label_SequenceIntf', $sourceClassId));
+			$sourceClassId = cls::get($sourceClassId)->getClassId();
 		}
 		
 		$rec = (object)array('serial' => $serial, 'sourceClassId' => $sourceClassId, 'sourceObjectId' => $sourceObjectId);
