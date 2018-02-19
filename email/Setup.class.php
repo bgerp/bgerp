@@ -368,7 +368,8 @@ class email_Setup extends core_ProtoSetup
             'migrate::repairSalutations',
             'migrate::repairDelayTime',
             'migrate::fieldDeleteAfterRetrieval',
-            'migrate::checkMailBox'
+            'migrate::checkMailBox',
+            'migrate::removeDearSirs',
         );
     
 
@@ -850,5 +851,14 @@ class email_Setup extends core_ProtoSetup
         
         $callOn = dt::addSecs(60 * $mp);
         core_CallOnTime::setCall('email_Setup', 'checkMailBox', $emlStatus, $callOn);
+    }
+    
+    
+    /**
+     * Премахва "Dear Sirs," от поздравите
+     */
+    public static function removeDearSirs()
+    {
+        email_Salutations::delete("LOWER(#salutation) LIKE 'dear sirs%'");
     }
 }
