@@ -582,7 +582,7 @@ class store_Products extends core_Detail
     	$docs = array();
     	foreach (array('store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId') as $Detail => $storeField){
     		$Detail = cls::get($Detail);
-    		expect($Detail->productFieldName, $Detail);
+    		expect($Detail->productFld, $Detail);
     		
     		$Master = $Detail->Master;
     		$dQuery = $Detail->getQuery();
@@ -590,7 +590,7 @@ class store_Products extends core_Detail
     		$dQuery->EXT('storeId', $Master->className, "externalName={$storeField},externalKey={$Detail->masterKey}");
     		$dQuery->EXT('state', $Master->className, "externalName=state,externalKey={$Detail->masterKey}");
     		$dQuery->where("#state = 'pending'");
-    		$dQuery->where("#{$Detail->productFieldName} = {$rec->productId}");
+    		$dQuery->where("#{$Detail->productFld} = {$rec->productId}");
     		$dQuery->where("#storeId = {$rec->storeId}");
     		$dQuery->groupBy('containerId');
     		$dQuery->show('containerId');

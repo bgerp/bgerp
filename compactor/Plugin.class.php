@@ -98,9 +98,21 @@ class compactor_Plugin extends core_Plugin
         
         $compactFile = str_replace(EF_SBF_PATH . "/", '', $compactFilePath);
         array_unshift($filesArr, $compactFile);
- 
-        if(!file_exists($compactFilePath)) {
-
+        
+        $force = FALSE;
+        
+        // Ако файлът е компактиран преди един ден - регенерирам го
+        if (file_exists($compactFilePath)) {
+            $cFileTime = @filemtime($compactFilePath);
+            if ($cFileTime) {
+                $cBeforeSec = dt::mysql2timestamp() - $cFileTime;
+                if ($cBeforeSec > 86400) {
+                    $force = TRUE;
+                }
+            }
+        }
+        
+        if ($force || !file_exists($compactFilePath)) {
             // Подготвяме сбора на съдържанието на всички файлове
             foreach($contentFilePathsArr as $filePath) {
                 $content = file_get_contents($filePath);
