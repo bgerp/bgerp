@@ -568,6 +568,8 @@ class store_Products extends core_Detail
     	$docs = array();
     	foreach (array('store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId') as $Detail => $storeField){
     		$Detail = cls::get($Detail);
+    		expect($Detail->productFieldName, $Detail);
+    		
     		$Master = $Detail->Master;
     		$dQuery = $Detail->getQuery();
     		$dQuery->EXT('containerId', $Master->className, "externalName=containerId,externalKey={$Detail->masterKey}");
