@@ -106,7 +106,12 @@ class sales_PrimeCostByDocument extends core_Manager
 	protected static function on_CalcDelta(core_Mvc $mvc, $rec)
 	{
 		if(isset($rec->primeCost)){
-			$rec->delta = ($rec->sellCost - $rec->primeCost) * $rec->quantity;
+			$delta = $rec->sellCost - $rec->primeCost;
+			if($dPercent = sales_Setup::get('DELTA_MIN_PERCENT')){
+				$delta = max($delta, $delta * $dPercent);
+			}
+			
+			$rec->delta = $delta * $rec->quantity;
 		}
 	}
 	

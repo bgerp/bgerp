@@ -171,17 +171,35 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	        $r->num = $num;
 	        $num++;
 	        
-	        if($r->indicatorId == 'formula') continue;
-            $total[$r->indicatorId] += $r->value;
+	        if($r->indicatorId == 'formula') {
+	        	if(!array_key_exists($r->indicatorId, $total)){
+	        		$total[$r->indicatorId] = $r->context;
+	        	} else {
+	        		if(is_array($r->context)){
+	        			foreach ($r->context as $k => $v){
+	        				$total[$r->indicatorId][$k] += $v;
+	        			}
+	        		}
+	        	}
+	        } else {
+	        	$total[$r->indicatorId] += $r->value;
+	        }
 	    }
 	    
         foreach($total as $ind => $val) {
             $r = new stdClass();
             $r->person = 0;
             $r->indicatorId = $ind;
-            $r->value = $val;
+            
+            if(is_array($val)){
+            	$r->context = $val;
+            } else {
+            	$r->value = $val;
+            }
+            
             $num++;
             $r->num = $num;
+            
             $recs['0|' . $ind] = $r;
         }
         
