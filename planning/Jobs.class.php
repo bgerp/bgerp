@@ -679,6 +679,7 @@ class planning_Jobs extends core_Master
     	if(isset($rec->saleId)){
     		$row->saleId = sales_Sales::getlink($rec->saleId);
     		$saleRec = sales_Sales::fetch($rec->saleId, 'folderId,deliveryAdress,state');
+    		$row->saleFolderId = doc_Folders::recToVerbal(doc_Folders::fetch($saleRec->folderId))->title;
     		if(!empty($saleRec->deliveryAdress)){
     			$row->saleDeliveryAddress = core_Type::getByName('varchar')->toVerbal($saleRec->deliveryAdress);
     		}
