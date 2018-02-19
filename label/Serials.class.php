@@ -29,15 +29,9 @@ class label_Serials extends core_Manager
 	
 	
 	/**
-	 * Кой има право да променя?
+	 * Кой има право да пише?
 	 */
-	public $canEdit = 'no_one';
-	
-	
-	/**
-	 * Кой има право да добавя?
-	 */
-	public $canAdd = 'no_one';
+	public $canWrite = 'no_one';
 	
 	
 	/**
@@ -70,7 +64,7 @@ class label_Serials extends core_Manager
 	function description()
 	{
 		$this->FLD('serial', 'bigint', 'caption=Сериен №,mandatory');
-		$this->FLD('sourceClassId', 'class(interface=label_SequenceIntf)', 'caption=Източник->Клас');
+		$this->FLD('sourceClassId', 'class(interface=label_SequenceIntf,select=title)', 'caption=Източник->Клас');
 		$this->FLD('sourceObjectId', 'int', 'caption=Източник->Обект');
 		
 		$this->setDbUnique('serial');
@@ -99,7 +93,7 @@ class label_Serials extends core_Manager
 	public static function generateSerial($sourceClassId = NULL, $sourceObjectId = NULL)
 	{
 		$serial = self::getRand();
-		self::asignSerial($serial, $sourceClassId, $sourceObjectId);
+		self::assignSerial($serial, $sourceClassId, $sourceObjectId);
 		
 		return $serial;
 	}
@@ -112,7 +106,7 @@ class label_Serials extends core_Manager
 	 * @param mixed $sourceClassId      - клас на обекта
 	 * @param int|NULL $sourceObjectId  - ид на обекта
 	 */
-	public static function asignSerial($serial, $sourceClassId = NULL, $sourceObjectId = NULL)
+	public static function assignSerial($serial, $sourceClassId = NULL, $sourceObjectId = NULL)
 	{
 		expect((empty($sourceClassId) && empty($sourceObjectId)) || (!empty($sourceClassId) && !empty($sourceObjectId)));
 		if(isset($sourceClassId)){
@@ -152,5 +146,28 @@ class label_Serials extends core_Manager
 		$res = self::fetch(array("#serial = '[#1#]'", $serial));
 		
 		return (!empty($res)) ? $res : NULL;
+	}
+	
+	
+	/**
+	 * Подготовка на филтър формата
+	 */
+	protected static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+		$data->listFilter->view = 'horizontal';
+		$data->listFilter->showFields = 'serial,sourceClassId';
+		$data->listFilter->setFieldTypeParams('sourceClassId', 'allowEmpty');
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+		$data->listFilter->input();
+	
+		if($fRec = $data->listFilter->rec){
+			if(!empty($fRec->serial)){
+				$data->query->where(array("#serial LIKE '%[#1#]%'", $fRec->serial));
+			}
+			
+			if(!empty($fRec->sourceClassId)){
+				$data->query->where("#sourceClassId = '{$fRec->sourceClassId}'");
+			}
+		}
 	}
 }
