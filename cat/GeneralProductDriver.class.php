@@ -374,18 +374,4 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		return $res;
 	}
-	
-	
-	/**
-	 * Генерира сериен номер за артикула (ако артикула е складируем)
-	 *
-	 * @param mixed $id
-	 * @return int|NULL
-	 */
-	public function generateSerial($id)
-	{
-		$rec = cat_Products::fetchRec($id);
-		
-		return label_Serials::generateSerial('cat_Products', $rec->id);
-	}
 }

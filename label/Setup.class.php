@@ -63,6 +63,7 @@ class label_Setup extends core_ProtoSetup
         'label_Counters',
         'label_CounterItems',
         'label_Prints',
+    	'label_Serials',
         'migrate::addDefaultMedia'
     );
     
