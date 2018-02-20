@@ -662,6 +662,17 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public static function getRecBySerial($serial)
     {
-    	return cat_Serials::getRecBySerial($serial);
+    	if($sRec = cat_Serials::getRecBySerial($serial)){
+    		if(cls::load($sRec->sourceClassId, TRUE)){
+    			$Source = cls::get($sRec->sourceClassId);
+    			if($Source->getField('productId', FALSE)){
+    				if($productId = $Source->fetchField($sRec->sourceObjectId, 'productId')){
+    					return cat_Products::fetch($productId);
+    				}
+    			}
+    		}
+    	}
+    	
+    	return NULL;
     }
 }
