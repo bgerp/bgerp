@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Параметри на опаковките
@@ -33,31 +33,31 @@ class cat_PackParams extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Search, plg_State2, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Search, plg_State2, plg_SaveAndNew, plg_Sorting';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'cat,ceo';
+    public $canEdit = 'packEdit,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'cat,ceo';
+    public $canAdd = 'packEdit,ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'cat,ceo,sales,purchase';
+	public $canList = 'packEdit,ceo,sales,purchase';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    public $canDelete = 'cat,ceo';
+    public $canDelete = 'packEdit,ceo';
     
     
     /**
@@ -113,7 +113,7 @@ class cat_PackParams extends core_Manager
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$options = cat_UoM::getPackagingOptions();
@@ -127,7 +127,7 @@ class cat_PackParams extends core_Manager
      * @param int $packagingId - ид на опаковка
      * @return array $array    - масив с шаблони на опаковки
      */
-    public static function getPackaginTemplates($packagingId)
+    public static function getTemplates($packagingId)
     {
     	$array = array();
     	$uomType = cat_UoM::fetchField($packagingId, 'type');
@@ -141,7 +141,8 @@ class cat_PackParams extends core_Manager
     		if(empty($rec->title)){
     			$row = self::recToVerbal($rec, 'packagingId,sizeWidth,sizeHeight,sizeDepth,tareWeight');
     			$title = new core_ET("[#packagingId#] <!--ET_BEGIN sizeWidth-->[#sizeWidth#]|<!--ET_END sizeWidth--><!--ET_BEGIN sizeHeight-->[#sizeHeight#]|<!--ET_END sizeHeight--><!--ET_BEGIN sizeDepth-->[#sizeDepth#]|<!--ET_END sizeDepth-->[#tareWeight#]");
-    			$title = $title->placeObject($row);
+    			$title = $title->placeObject($row)->getContent();
+    			$title = trim($title, '|');
     		}
     		
     		$array[$rec->id] = $title;
@@ -167,5 +168,14 @@ class cat_PackParams extends core_Manager
     	if($self->isUnique($rec, $fields, $exRec)){
     		$self->save($rec);
     	}
+    }
+    
+    
+    /**
+     * След като се поготви заявката за модела
+     */
+    protected static function on_AfterGetQuery($mvc, $query)
+    {
+    	$query->orderBy('title,sizeWidth,sizeHeight,sizeDepth');
     }
 }

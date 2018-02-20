@@ -346,7 +346,7 @@ class cat_products_Packagings extends core_Detail
 		if(isset($rec->packagingId)){
 			
 			// Намиране на наличните шаблони
-			$packTemplateOptions = cat_PackParams::getPackaginTemplates($rec->packagingId);
+			$packTemplateOptions = cat_PackParams::getTemplates($rec->packagingId);
 			if(count($packTemplateOptions)){
 				$form->setField('templateId', 'input');
 				$form->setOptions('templateId', array('' => '') + $packTemplateOptions);
