@@ -66,14 +66,14 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('selfPriceTolerance', 'double', 
-            'caption=Отклонение от себестойност->Толеранс под себестойност,unit= %,after=title,single=none');
+            'caption=Отклонение от себестойност->Толеранс под себестойност,unit= %,after=title');
         $fieldset->FLD('sellPriceToleranceDown', 'double', 
-            'caption=Отклонение от продажна цена по политика->Толеранс под цена,unit= %,after=selfPriceTolerance,single=none');
+            'caption=Отклонение от продажна цена по политика->Толеранс под цена,unit= %,after=selfPriceTolerance');
         $fieldset->FLD('sellPriceToleranceUp', 'double', 
-            'caption=Отклонение от продажна цена по политика->Толеранс над цена,unit= %,after=sellPriceToleranceDown,single=none');
+            'caption=Отклонение от продажна цена по политика->Толеранс над цена,unit= %,after=sellPriceToleranceDown');
         $fieldset->FLD('from', 'date(smartTime)', 
-            'caption=Отчетен период->От,after=sellPriceToleranceUp,single=none1,mandatory');
-        $fieldset->FLD('to', 'date(smartTime)', 'caption=Отчетен период->До,after=from,single=none1,mandatory');
+            'caption=Отчетен период->От,after=sellPriceToleranceUp,mandatory');
+        $fieldset->FLD('to', 'date(smartTime)', 'caption=Отчетен период->До,after=from,mandatory');
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|rep_cat, rolesForTeams=ceo|manager|rep_acc|rep_cat)', 
             'caption=Дилъри,placeholder=Всички,after=to');
         $fieldset->FLD('articleType', 'enum(all=Всички,yes=Стандартни,no=Нестандартни)', 
@@ -435,7 +435,11 @@ protected function getTableFieldSet($rec, $export = FALSE)
         $fld->FLD('catPrice', 'double', 'caption=Цена по политика,smartCenter');
         $fld->FLD('deviationDownSelf', 'varchar', 'caption=Отклонение->Под себестойност,tdClass=centered');
         $fld->FLD('deviationCatPrice', 'varchar', 'caption=Отклонение->Спрямо политика,tdClass=centered');
-    } else {}
+    } else {
+        
+        
+        
+    }
     
     return $fld;
 }
@@ -455,9 +459,7 @@ protected function detailRecToVerbal($rec, &$dRec)
     
     $row = new stdClass();
     
-    if ($dRec->selfPrice > $dRec->price) {
-        $marker = (double) (($dRec->price - $dRec->selfPrice) / $dRec->price);
-    }
+    $marker = '';
     
     if ($dRec->catPrice) {
         
@@ -490,19 +492,19 @@ protected function detailRecToVerbal($rec, &$dRec)
     }
     
     if (isset($dRec->saleId)) {
-        $row->saleId = sales_Sales::getLinkToSingle($dRec->saleId);
+        $row->saleId = sales_Sales::getLinkToSingle_($dRec->saleId);
     }
     
     if (isset($dRec->productId)) {
-        $row->productId = cat_Products::getShortHyperlink($dRec->productId);
+        $row->productId =($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : cat_Products::getShortHyperlink($dRec->productId);
     }
     
     if (isset($dRec->quantity)) {
-        $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
+        $row->quantity = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->quantity) :core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
     }
     
     if (isset($dRec->price)) {
-        $row->price = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->price);
+        $row->price = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->price) :core_Type::getByName('double(decimals=2)')->toVerbal($dRec->price);
     }
     
     if (isset($dRec->measure)) {
@@ -510,12 +512,78 @@ protected function detailRecToVerbal($rec, &$dRec)
     }
     
     if (isset($dRec->selfPrice)) {
-        $row->selfPrice = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->selfPrice);
+        $row->selfPrice =  ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->selfPrice) :core_Type::getByName('double(decimals=2)')->toVerbal($dRec->selfPrice);
     }
     
     if (isset($dRec->catPrice)) {
-        $row->catPrice = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->catPrice);
+        $row->catPrice = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->catPrice) :core_Type::getByName('double(decimals=2)')->toVerbal($dRec->catPrice);
     }
     return $row;
 }
+
+/**
+ * След рендиране на единичния изглед
+ *
+ * @param cat_ProductDriver $Driver
+ * @param embed_Manager $Embedder
+ * @param core_ET $tpl
+ * @param stdClass $data
+ */
+protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data) {
+    $fieldTpl = new core_ET ( tr ( "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
+								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+							    <small><div><!--ET_BEGIN from-->|Период: От|*: [#from#]<!--ET_END from--></div></small>
+                                <small><div><!--ET_BEGIN to-->|Период: До|*: [#to#]<!--ET_END to--></div></small>
+                                <small><div><!--ET_BEGIN dealers-->|Групи|*: [#dealers#]<!--ET_END dealers--></div></small>
+                                <small><div><!--ET_BEGIN selfPriceTolerance-->|Толеранс под себестойност|*: [#selfPriceTolerance#]<!--ET_END selfPriceTolerance--></div></small>
+                                <small><div><!--ET_BEGIN sellPriceToleranceDown-->|Толеранс под политика|*: [#sellPriceToleranceDown#]<!--ET_END sellPriceToleranceDown--></div></small>
+                                <small><div><!--ET_BEGIN sellPriceToleranceUp-->|Толеранс над политика|*: [#sellPriceToleranceUp#]<!--ET_END sellPriceToleranceUp--></div></small>
+                                </fieldset><!--ET_END BLOCK-->" ) );
+
+    if (isset ( $data->rec->from )) {
+        $fieldTpl->append ( $data->row->from, 'from' );
+    }
+
+    if (isset ( $data->rec->to )) {
+        $fieldTpl->append ( $data->row->to, 'to' );
+    }
+
+    if (isset ( $data->rec->group )) {
+        $fieldTpl->append ( $data->row->group, 'group' );
+    }
+
+    if (isset ( $data->rec->selfPriceTolerance )) {
+        $fieldTpl->append ( core_Type::getByName('percent')->toVerbal(($data->row->selfPriceTolerance)/100), 'selfPriceTolerance' );
+    }
+    
+    if (isset ( $data->rec->sellPriceToleranceDown )) {
+        $fieldTpl->append ( core_Type::getByName('percent')->toVerbal(($data->row->sellPriceToleranceDown)/100), 'sellPriceToleranceDown' );
+    }
+    
+    if (isset ( $data->rec->sellPriceToleranceUp )) {
+        $fieldTpl->append ( core_Type::getByName('percent')->toVerbal(($data->row->sellPriceToleranceUp)/100), 'sellPriceToleranceUp' );
+    }
+
+    $tpl->append ( $fieldTpl, 'DRIVER_FIELDS' );
+}
+
+/**
+ * Кои полета да са скрити във вътрешното показване
+ *
+ * @param core_Master $mvc
+ * @param NULL|array $res
+ * @param object $rec
+ * @param object $row
+ */
+public static function on_AfterGetHideArrForLetterHead($mvc, &$res, $rec, $row)
+{
+    $res = arr::make($res);
+
+    $res['external']['selfPriceTolerance'] = TRUE;
+    
+  //bp($res['external']);  
+}
+
+
+
 }
