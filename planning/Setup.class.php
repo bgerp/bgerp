@@ -127,7 +127,6 @@ class planning_Setup extends core_ProtoSetup
             'planning_AssetResourceFolders',
     		'planning_ProductionTaskDetails',
     		'planning_ProductionTaskProducts',
-    		'planning_TaskSerials',
     		'planning_AssetGroups',
     		'planning_AssetResourcesNorms',
     		'planning_Centers',
@@ -206,11 +205,6 @@ class planning_Setup extends core_ProtoSetup
     	$query = doc_Containers::getQuery();
     	$query->where("#docClass = {$taskClassId}");
     	$query->delete();
-    	
-    	$Serials = cls::get('planning_TaskSerials');
-    	$Serials->fillSearchKeywordsOnSetup = FALSE;
-    	$Serials->setupMvc();
-    	$Serials->truncate();
     	
     	$Assets = cls::get('planning_AssetResources');
     	$Assets->fillSearchKeywordsOnSetup = FALSE;
