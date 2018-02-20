@@ -563,6 +563,8 @@ class planning_ProductionTaskDetails extends core_Detail
     		
     		$data->listFilter->class = 'simpleForm';
     		$data->listFilter->showFields = 'search,fixedAsset,employees';
+    		
+    		$data->listFilter->setOptions('fixedAsset', array('' => '') + planning_AssetResources::getByFolderId());
     		$data->listFilter->setOptions('employees', array('' => '') + crm_Persons::getEmployeesOptions());
     		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     		$data->listFilter->input("");
