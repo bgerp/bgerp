@@ -411,7 +411,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 * @param mixed $sourceObjectId - ид на обект
 	 * @return string $serial       - генериран сериен номер
 	 */
-	public static function generateSerial($id, $sourceClassId = NULL, $sourceObjectId = NULL)
+	public function generateSerial($id, $sourceClassId = NULL, $sourceObjectId = NULL)
 	{
 		return $this->class->generateSerial($id, $sourceClassId, $sourceObjectId);
 	}
@@ -425,7 +425,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 * @param mixed $sourceClassId     - клас на обекта
 	 * @param int|NULL $sourceObjectId - ид на обекта
 	 */
-	public static function assignSerial($id, $serial, $sourceClassId = NULL, $sourceObjectId = NULL)
+	public function assignSerial($id, $serial, $sourceClassId = NULL, $sourceObjectId = NULL)
 	{
 		return $this->class->assignSerial($id, $serial, $sourceClassId, $sourceObjectId);
 	}
@@ -437,7 +437,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 * @param int $serial
 	 * @return stdClass|NULL
 	 */
-	public static function getRecBySerial($serial)
+	public function getRecBySerial($serial)
 	{
 		return $this->class->getRecBySerial($serial);
 	}
