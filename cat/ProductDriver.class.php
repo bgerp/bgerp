@@ -634,6 +634,6 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
     	$rec = cat_Products::fetchRec($id);
     
-    	return label_Serials::generateSerial('cat_Products', $rec->id);
+    	return cat_Serials::generateSerial('cat_Products', $rec->id);
     }
 }

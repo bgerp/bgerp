@@ -3,17 +3,23 @@
 
 
 /**
- * Серийни номера 
+ * Серийни номера на артикулите
  * 
  * @category  bgerp
- * @package   label
+ * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class label_Serials extends core_Manager
+class cat_Serials extends core_Manager
 {
+	
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'label_Serials';
 	
 	
 	/**
@@ -115,6 +121,7 @@ class label_Serials extends core_Manager
 		}
 		
 		$rec = (object)array('serial' => $serial, 'sourceClassId' => $sourceClassId, 'sourceObjectId' => $sourceObjectId);
+		
 		return self::save($rec);
 	}
 	
