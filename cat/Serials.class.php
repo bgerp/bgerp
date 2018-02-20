@@ -43,7 +43,7 @@ class cat_Serials extends core_Manager
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'label, admin, ceo';
+	public $canList = 'cat, admin, ceo';
 	
 	
 	/**
