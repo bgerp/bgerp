@@ -250,27 +250,4 @@ class planning_TaskSerials extends core_Manager
 		// Връщаме резултата
 		return $error;
 	}
-	
-	
-	/**
-	 * Връща серийния номер като линк, ако е от друга операция
-	 * 
-	 * @param int $taskId                    - в коя операция ще се показва
-	 * @param string $serial                 - серийния номер
-	 * @return core_ET|string $serialVerbal  - серийния номер като линк, или вербалното му представяне
-	 */
-	public static function getLink($taskId, $serial)
-	{
-		$serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
-		$paddLength = planning_Setup::get('SERIAL_STRING_PAD');
-		$serialVerbal = str_pad($serialVerbal, $paddLength, '0', STR_PAD_LEFT);
-		if(Mode::isReadOnly()) return $serialVerbal;
-		
-		// Линк към прогреса филтриран по сериен номер
-		if(planning_ProductionTaskDetails::haveRightFor('list')){
-			$serialVerbal = ht::createLink($serialVerbal, array('planning_ProductionTaskDetails', 'list', 'search' => $serial), FALSE, "title=Към историята на серийния номер");
-		}
-		
-		return $serialVerbal;
-	}
 }

@@ -34,7 +34,7 @@ defIfNot('PLANNING_PRODUCTION_NOTE_REJECTION', 'no');
 /**
  * До колко символа да е серийния номер на произвеодствените операции
  */
-defIfNot('PLANNING_SERIAL_STRING_PAD', '10');
+defIfNot('PLANNING_SERIAL_STRING_PAD', '12');
 
 
 /**
