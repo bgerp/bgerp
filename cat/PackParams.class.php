@@ -148,6 +148,8 @@ class cat_PackParams extends core_Manager
     		$array[$rec->id] = $title;
     	}
     	
+    	usort($array, function($a, $b) {return strcmp($a, $b);});
+    	
     	return $array;
     }
     
