@@ -126,6 +126,17 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	    	$key = "{$recIndic->personId}|{$recIndic->indicatorId}";
 	    	$keyContext = "{$recIndic->personId}|formula";
 	    	
+	    	// Пропускат се индикаторите от оттеглени документи
+	    	if(isset($recIndic->docClass) && isset($recIndic->docId)){
+	    		if(cls::load($recIndic->docClass, TRUE)){
+	    			$Doc = cls::get($recIndic->docClass);
+	    			if($Doc->getField('state', FALSE)){
+	    				$state = $Doc->fetchField($recIndic->docId, 'state');
+	    				if($state == 'rejected') continue;
+	    			}
+	    		}
+	    	}
+	    	
 	        // Добавя се към масива, ако го няма
 	        if(!array_key_exists($key, $recs)) {
 	        	if(!array_key_exists($recIndic->personId, $personNames)){
