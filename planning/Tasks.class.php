@@ -761,7 +761,7 @@ class planning_Tasks extends core_Master
 					}
 				
 					if(isset($v)){
-						$form->setSuggestions("paramcat{$pId}", array('' => '', $v => $v));
+						$form->setSuggestions("paramcat{$pId}", array('' => '', "{$v}" => "{$v}"));
 					}
 				
 					$rec->params["paramcat{$pId}"] = (object)array('paramId' => $pId);

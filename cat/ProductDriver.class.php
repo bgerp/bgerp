@@ -622,4 +622,18 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
     	return NULL;
     }
+    
+    
+    /**
+     * Генерира сериен номер за артикула (ако артикула е складируем)
+     *
+     * @param mixed $id
+     * @return int|NULL
+     */
+    public function generateSerial($id)
+    {
+    	$rec = cat_Products::fetchRec($id);
+    
+    	return label_Serials::generateSerial('cat_Products', $rec->id);
+    }
 }
