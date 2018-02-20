@@ -55,7 +55,7 @@ class cat_Serials extends core_Manager
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'label_Wrapper, plg_Created, plg_Sorting';
+	public $loadList = 'cat_Wrapper, plg_Created, plg_Sorting';
 	
 	
 	/**
