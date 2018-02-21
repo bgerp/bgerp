@@ -23,12 +23,6 @@ class cat_Serials extends core_Manager
 	
 	
 	/**
-	 * Кой е максималния сериен номер
-	 */
-	const LABEL_MAX_SERIAL = 999999999999;
-	
-	
-	/**
 	 * Заглавие на модела
 	 */
 	public $title = 'Серийни номера';
@@ -133,9 +127,9 @@ class cat_Serials extends core_Manager
 	 */
 	public static function getRand()
 	{
-		$serial = rand(1, self::LABEL_MAX_SERIAL);
-		while(self::fetchField(array("#serial = [#1#]", $serial))){
-			$serial = rand(1, self::LABEL_MAX_SERIAL);
+		$serial = str::getRand('#############');
+		while(self::fetchField(array("#serial = [#1#]", $serial)) || cat_products_Packagings::fetchField(array("#eanCode = [#1#]", $serial))){
+			$serial = str::getRand('#############');
 		}
 		
 		return $serial;
