@@ -66,14 +66,14 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('selfPriceTolerance', 'double', 
-            'caption=Отклонение от себестойност->Толеранс под себестойност,unit= %,after=title');
+            'caption=Отклонение от себестойност->Толеранс под себестойност,unit= %,after=title,single=none');
         $fieldset->FLD('sellPriceToleranceDown', 'double', 
-            'caption=Отклонение от продажна цена по политика->Толеранс под цена,unit= %,after=selfPriceTolerance');
+            'caption=Отклонение от продажна цена по политика->Толеранс под цена,unit= %,after=selfPriceTolerance,single=none');
         $fieldset->FLD('sellPriceToleranceUp', 'double', 
-            'caption=Отклонение от продажна цена по политика->Толеранс над цена,unit= %,after=sellPriceToleranceDown');
+            'caption=Отклонение от продажна цена по политика->Толеранс над цена,unit= %,after=sellPriceToleranceDown,single=none');
         $fieldset->FLD('from', 'date(smartTime)', 
-            'caption=Отчетен период->От,after=sellPriceToleranceUp,mandatory');
-        $fieldset->FLD('to', 'date(smartTime)', 'caption=Отчетен период->До,after=from,mandatory');
+            'caption=Отчетен период->От,after=sellPriceToleranceUp,mandatory,single=none');
+        $fieldset->FLD('to', 'date(smartTime)', 'caption=Отчетен период->До,after=from,mandatory,single=none');
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|rep_cat, rolesForTeams=ceo|manager|rep_acc|rep_cat)', 
             'caption=Дилъри,placeholder=Всички,after=to');
         $fieldset->FLD('articleType', 'enum(all=Всички,yes=Стандартни,no=Нестандартни)', 
@@ -94,6 +94,14 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
         $rec = $form->rec;
         
         $form->setDefault('articleType', 'all');
+        
+        $form->setDefault('selfPriceTolerance', 1);
+        
+        $form->setDefault('sellPriceToleranceDown', 1);
+        
+        $form->setDefault('sellPriceToleranceUp', 1);
+        
+        
     }
 
     /**
@@ -153,9 +161,14 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
             }
             
             // Себестойност: ако има по политика "себестойност", ако не: от драйвера, ако не: по рецептура
-            $selfPrice = cat_Products::getSelfValue($sallProductId);
+            $selfPrice = cat_Products::getSelfValue($sallProductId,NULL,$saleProducts->quantity,NULL);
             
             $isPublic = $saleProducts->isPublic;
+            
+         if($rec->articleType != 'all'){
+             
+             if ($rec->articleType != $isPublic)continue;
+         }
             
             // цена на артикула за клиента по политика или каталог
             $contragentFuturePrice = cls::get('price_ListToCustomers')->getPriceInfo($saleProducts->contragentClassId, 
@@ -193,8 +206,8 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
                 
                 $productCatPriceDown = $productCatPrice - ($productCatPrice * $rec->sellPriceToleranceDown) / 100;
                 
-                if ($productCatPrice && ($saleProducts->price < $productCatPriceDown)) {
-                    
+                if ($productCatPrice && ((double)$saleProducts->price < $productCatPriceDown)) {
+              
                     $productCatPriceDownFlag = TRUE;
                 } else {
                     
@@ -289,7 +302,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
             }
             
             // Себестойност: ако има по политика "себестойност", ако не: от драйвера, ако не: по рецептура
-            $expSelfPrice = cat_Products::getSelfValue($expProductId);
+            $expSelfPrice = cat_Products::getSelfValue($expProductId,NULL,$expProducts->quantity,NULL);
             
             // цена на артикула за клиента
             $contragentFuturePrice = cls::get('price_ListToCustomers')->getPriceInfo($expProducts->contragentClassId, 
@@ -305,6 +318,11 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
             }
             
             $isPublic = $saleProducts->isPublic;
+            
+            if($rec->articleType != 'all'){
+                 
+                if ($rec->articleType != $isPublic)continue;
+            }
             
             // Ако продажната цена е над продажната цена по политика(отчита се толеранса)
             if (($rec->sellPriceToleranceUp || (! $rec->sellPriceToleranceUp && is_numeric($rec->sellPriceToleranceUp)))) {
@@ -491,10 +509,19 @@ protected function detailRecToVerbal($rec, &$dRec)
         }
     }
     
-    if (isset($dRec->saleId)) {
-        $row->saleId = sales_Sales::getLinkToSingle_($dRec->saleId);
-    }
+    $Sale=doc_Containers::getDocument(sales_Sales::fetch($dRec->saleId)->containerId);
+    $handle = $Sale->getHandle();
+    $folder = ((sales_Sales::fetch($dRec->saleId)->folderId));
+    $folderLink = doc_Folders::recToVerbal(doc_Folders::fetch($folder))->title;
+    $singleUrl = $Sale->getUrlWithAccess($Sale->getInstance(), $Sale->that);
     
+    if (isset($dRec->saleId)) {
+        $row->saleId = "<div ><span class= 'state-{$state} document-handler' >" .
+                 ht::createLink("#{$handle}", $singleUrl, FALSE, 
+                    "ef_icon={$Document->singleIcon}") . "</span>" . ' »  ' .
+                 "<span class= 'quiet small'>" . $folderLink . "</span></div>";
+    }
+  
     if (isset($dRec->productId)) {
         $row->productId =($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : cat_Products::getShortHyperlink($dRec->productId);
     }
@@ -532,36 +559,32 @@ protected function detailRecToVerbal($rec, &$dRec)
 protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data) {
     $fieldTpl = new core_ET ( tr ( "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <small><div><!--ET_BEGIN from-->|Период: От|*: [#from#]<!--ET_END from--></div></small>
-                                <small><div><!--ET_BEGIN to-->|Период: До|*: [#to#]<!--ET_END to--></div></small>
+							    <small><div><!--ET_BEGIN from-->|Отчетен период От|*: [#from#]<!--ET_END from--></div></small>
+                                <small><div><!--ET_BEGIN to-->|Отчетен период До|*: [#to#]<!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN dealers-->|Групи|*: [#dealers#]<!--ET_END dealers--></div></small>
                                 <small><div><!--ET_BEGIN selfPriceTolerance-->|Толеранс под себестойност|*: [#selfPriceTolerance#]<!--ET_END selfPriceTolerance--></div></small>
-                                <small><div><!--ET_BEGIN sellPriceToleranceDown-->|Толеранс под политика|*: [#sellPriceToleranceDown#]<!--ET_END sellPriceToleranceDown--></div></small>
+                                <small><div><!--ET_BEGIN sellPriceTTRUEoleranceDown-->|Толеранс под политика|*: [#sellPriceToleranceDown#]<!--ET_END sellPriceToleranceDown--></div></small>
                                 <small><div><!--ET_BEGIN sellPriceToleranceUp-->|Толеранс над политика|*: [#sellPriceToleranceUp#]<!--ET_END sellPriceToleranceUp--></div></small>
                                 </fieldset><!--ET_END BLOCK-->" ) );
 
     if (isset ( $data->rec->from )) {
-        $fieldTpl->append ( $data->row->from, 'from' );
+        $fieldTpl->append ( $data->rec->from, 'from' );
     }
 
     if (isset ( $data->rec->to )) {
-        $fieldTpl->append ( $data->row->to, 'to' );
-    }
-
-    if (isset ( $data->rec->group )) {
-        $fieldTpl->append ( $data->row->group, 'group' );
+        $fieldTpl->append ( $data->rec->to, 'to' );
     }
 
     if (isset ( $data->rec->selfPriceTolerance )) {
-        $fieldTpl->append ( core_Type::getByName('percent')->toVerbal(($data->row->selfPriceTolerance)/100), 'selfPriceTolerance' );
+        $fieldTpl->append ( core_Type::getByName('percent')->toVerbal(($data->rec->selfPriceTolerance)/100), 'selfPriceTolerance' );
     }
     
     if (isset ( $data->rec->sellPriceToleranceDown )) {
-        $fieldTpl->append ( core_Type::getByName('percent')->toVerbal(($data->row->sellPriceToleranceDown)/100), 'sellPriceToleranceDown' );
+        $fieldTpl->append ( core_Type::getByName('percent')->toVerbal(($data->rec->sellPriceToleranceDown)/100), 'sellPriceToleranceDown' );
     }
     
     if (isset ( $data->rec->sellPriceToleranceUp )) {
-        $fieldTpl->append ( core_Type::getByName('percent')->toVerbal(($data->row->sellPriceToleranceUp)/100), 'sellPriceToleranceUp' );
+        $fieldTpl->append ( core_Type::getByName('percent')->toVerbal(($data->rec->sellPriceToleranceUp)/100), 'sellPriceToleranceUp' );
     }
 
     $tpl->append ( $fieldTpl, 'DRIVER_FIELDS' );
@@ -575,13 +598,13 @@ protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embe
  * @param object $rec
  * @param object $row
  */
-public static function on_AfterGetHideArrForLetterHead($mvc, &$res, $rec, $row)
-{
+public static function on_AfterGetHideArrForLetterHead(frame2_driver_Proto $Driver, embed_Manager $Embedd, &$res, $rec, $row)
+{ 
     $res = arr::make($res);
 
     $res['external']['selfPriceTolerance'] = TRUE;
     
-  //bp($res['external']);  
+
 }
 
 
