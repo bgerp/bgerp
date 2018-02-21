@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   trans
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -47,7 +47,7 @@ class trans_Lines extends core_Master
     /**
      * Кой може да променя активирани записи
      */
-    var $canChangerec = 'ceo, trans';
+    public $canChangerec = 'ceo, trans';
     
     
     /**
@@ -95,7 +95,7 @@ class trans_Lines extends core_Master
     /**
      * Кой има право да пише?
      */
-    var $canWrite = 'ceo, trans';
+    public $canWrite = 'ceo, trans';
 
 
     /**
@@ -452,6 +452,7 @@ class trans_Lines extends core_Master
         $res .= core_Cron::addOnce($rec);
     }
 
+    
     /**
      * Връща броя на документите в посочената линия
      * Може да се филтрират по #state и да се ограничат до maxDocs
