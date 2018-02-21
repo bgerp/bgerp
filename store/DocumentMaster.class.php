@@ -592,6 +592,12 @@ abstract class store_DocumentMaster extends core_Master
     	while($dRec = $query->fetch()){
     		$dRec->rowNumb = $i;
     		$arr[$dRec->id] = $this->prepareLineRows($dRec);
+    		
+    		if(Mode::is('printing') && isset($this->layoutFileInLine)){
+    			Mode::push('renderHtmlInLine', TRUE);
+    			$arr[$dRec->id]->documentHtml = $this->getInlineDocumentBody($dRec->id);
+    			Mode::pop('renderHtmlInLine');
+    		}
     		$i++;
     		
     		if(!empty($dRec->weight) && $masterData->weight !== FALSE){
@@ -614,6 +620,18 @@ abstract class store_DocumentMaster extends core_Master
     }
 
 
+    /**
+     * Променяме шаблона в зависимост от мода
+     */
+    protected static function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	if(Mode::is('renderHtmlInLine') && isset($mvc->layoutFileInLine)){
+    		$data->singleLayout = getTplFromFile($mvc->layoutFileInLine);
+    		unset($data->_selectTplForm);
+    	}
+    }
+    
+    
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */

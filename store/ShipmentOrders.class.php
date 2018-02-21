@@ -186,6 +186,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * Шаблон за изглед при рендиране в транспортна линия
+     */
+    public $layoutFileInLine = 'store/tpl/ShortShipmentOrder.class.php';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -350,7 +356,11 @@ class store_ShipmentOrders extends store_DocumentMaster
     	if(count($data->shipmentOrders)){
     		$table = cls::get('core_TableView');
     		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCount=Палети,collection=Инкасиране,address=@Адрес";
-    		$fields = core_TableView::filterEmptyColumns($data->shipmentOrders, $fields, 'collection,palletCount');
+    		if(Mode::is('printing')){
+    			$fields .= ',documentHtml=@';
+    		}
+    		
+    		$fields = core_TableView::filterEmptyColumns($data->shipmentOrders, $fields, 'collection,palletCount,documentHtml');
     		
     		return $table->get($data->shipmentOrders, $fields);
     	}
