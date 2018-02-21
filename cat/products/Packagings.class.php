@@ -103,6 +103,7 @@ class cat_products_Packagings extends core_Detail
         $this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Параметри->Тара,autohide');
         
         $this->setDbUnique('productId,packagingId');
+        $this->setDbIndex('eanCode');
         $this->setDbIndex('productId');
     }
     
