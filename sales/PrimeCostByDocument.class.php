@@ -369,7 +369,7 @@ class sales_PrimeCostByDocument extends core_Manager
 		
 		if($dPercent = sales_Setup::get('DELTA_MIN_PERCENT')){
 			foreach ($indicatorRecs as &$r1){
-				$r1->delta = max($r1->delta, $r1->sellCost * $dPercent);
+				$r1->delta = max($r1->delta, ($r1->sellCost * $r1->quantity * $dPercent));
 			}
 		}
 		
