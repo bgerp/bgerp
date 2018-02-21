@@ -764,7 +764,8 @@ div.productImage {
 .document .listTable .mergedDetails  {
 	.no-border td {
 		border: none !important;
-		vertical-align: top;
+		vertical-align: top !important;
+		padding: 1px;
 	}
 	div > table.listTable>thead>tr>th  {
 		background: none !important;
