@@ -2,4 +2,7 @@
     [#store_ShipmentOrderDetails#]
     <div class="lines"></div>
 </div>
-[#store_DocumentPackagingDetail#]
+<div class="mergedDetails">
+    [#store_DocumentPackagingDetail#]
+    <div class="lines"></div>
+</div>
