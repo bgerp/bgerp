@@ -80,6 +80,8 @@ class cat_Serials extends core_Manager
 			$SourceClass = cls::get($rec->sourceClassId);
 			$row->sourceObjectId = (cls::haveInterface('doc_DocumentIntf', $SourceClass)) ? $SourceClass->getLink($rec->sourceObjectId, 0) : $SourceClass->getTitleById($rec->sourceObjectId);
 		}
+		
+		$row->serial = core_Type::getByName('varchar')->toVerbal(str_pad($rec->serial, 13, '0', STR_PAD_LEFT));
 	}
 	
 	
