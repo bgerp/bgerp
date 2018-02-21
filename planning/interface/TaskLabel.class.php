@@ -67,7 +67,7 @@ class planning_interface_TaskLabel
 		if($labelNo != 0){
 			//$serial = planning_TaskSerials::force($id, $labelNo);
 			//$paddLength = planning_Setup::get('SERIAL_STRING_PAD');
-			//$serial = str_pad($serial, $paddLength, '0', STR_PAD_LEFT);
+			//$serial = str_pad($serial, 13, '0', STR_PAD_LEFT);
 			$res['BARCODE'] = $serial;
 		} else {
 			$res['BARCODE'] = 'BARCODE';

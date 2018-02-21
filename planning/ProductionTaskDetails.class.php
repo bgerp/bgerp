@@ -117,7 +117,7 @@ class planning_ProductionTaskDetails extends core_Detail
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'productId,type,serial,fixedAsset,employees,notes';
+    public $searchFields = 'productId,type,fixedAsset,employees,notes';
     
     
     /**
@@ -319,13 +319,17 @@ class planning_ProductionTaskDetails extends core_Detail
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	$canStore = cat_Products::fetchField($rec->productId, 'canStore');
-    	if($canStore == 'yes' && $rec->type == 'production'){
-    		if(empty($rec->serial)){
+    	if($canStore == 'yes'){
+    		if($rec->type == 'production' && empty($rec->serial)){
     			if($Driver = cat_Products::getDriver($rec->productId)){
     				$rec->serial = $Driver->generateSerial($rec->productId, 'planning_Tasks', $rec->taskId);
     				$rec->serialType = 'generated';
-    				$rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial);
     			}
+    		}
+    		
+    		if(!empty($rec->serial)){
+    			$padded = str_pad($rec->serial, 13, '0', STR_PAD_LEFT);
+    			$rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial) . ' ' . plg_Search::normalizeText($padded);
     		}
     	}
     }
@@ -434,14 +438,13 @@ class planning_ProductionTaskDetails extends core_Detail
      */
     public static function getLink($taskId, $serial)
     {
-    	$serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
-    	$paddLength = planning_Setup::get('SERIAL_STRING_PAD');
-    	$serialVerbal = str_pad($serialVerbal, $paddLength, '0', STR_PAD_LEFT);
+    	$paddedSerial = str_pad($serial, 13, '0', STR_PAD_LEFT);
+    	$serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($paddedSerial);
     	if(Mode::isReadOnly()) return $serialVerbal;
     
     	// Линк към прогреса филтриран по сериен номер
     	if(planning_ProductionTaskDetails::haveRightFor('list')){
-    		$serialVerbal = ht::createLink($serialVerbal, array('planning_ProductionTaskDetails', 'list', 'search' => $serial), FALSE, "title=Към историята на серийния номер");
+    		$serialVerbal = ht::createLink($serialVerbal, array('planning_ProductionTaskDetails', 'list', 'search' => $paddedSerial), FALSE, "title=Към историята на серийния номер");
     	}
     
     	return $serialVerbal;
