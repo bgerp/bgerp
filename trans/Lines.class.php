@@ -236,6 +236,11 @@ class trans_Lines extends core_Master
     	if($data->rec->state == 'closed' && $data->rec->start >= dt::today()){
     		$data->toolbar->addBtn('Активиране', $changeUrl, 'ef_icon=img/16/lock_unlock.png,warning=Искате ли да активирате линията?,title=Отваряне на линията');
     	}
+
+    	if($mvc->haveRightFor('single', $data->rec)){
+    		$url = array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'Width' => 'yes');
+    		$data->toolbar->addBtn('Печат (Подробен)', $url, "id=w{$attr['id']},target=_blank,row=2", 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
+    	}
     }
     
     

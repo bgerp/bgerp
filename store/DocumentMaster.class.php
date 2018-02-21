@@ -570,7 +570,7 @@ abstract class store_DocumentMaster extends core_Master
     	 
     	$row->storeId = store_Stores::getHyperlink($rec->storeId);
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
-    	$row->docId = $this->getLink($rec->id, 0);
+    	$row->docId = (!Mode::is('printing')) ? $this->getLink($rec->id, 0) : "#" . $this->getHandle($rec->id);
     	
     	return $row;
     }
@@ -593,7 +593,7 @@ abstract class store_DocumentMaster extends core_Master
     		$dRec->rowNumb = $i;
     		$arr[$dRec->id] = $this->prepareLineRows($dRec);
     		
-    		if(Mode::is('printing') && isset($this->layoutFileInLine)){
+    		if(Mode::is('printing') && Request::get('Width') && isset($this->layoutFileInLine)){
     			Mode::push('renderHtmlInLine', TRUE);
     			$arr[$dRec->id]->documentHtml = $this->getInlineDocumentBody($dRec->id);
     			Mode::pop('renderHtmlInLine');
