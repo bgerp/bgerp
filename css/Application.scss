@@ -746,31 +746,34 @@ div.productImage {
 	   top: -1px;
 	}
 }
-// подробно показване на вложени детайли
-.document .mergedDetailsholder table.listTable>thead>tr>th{
-	background: none !important;
-	font-weight:normal;
-	font-size: 0.8em;
-}
-
-.document .mergedDetailsholder table.listTable>tbody>tr>td{
-	background: #fff !important;
-}
-
-.document table.listTable>tbody>tr>td.mergedDetailWideTD {
-	padding: 0 !important;
-}
-
-.document .listTable .mergedDetails  {
-	.no-border td {
-		border: none !important;
-		vertical-align: top !important;
-		padding: 1px;
-	}
-	div > table.listTable>thead>tr>th  {
+// подробно показване на вложени детайли при принтиране
+.printing {
+	.document .mergedDetailsholder table.listTable>thead>tr>th{
 		background: none !important;
+		font-weight:normal;
+		font-size: 0.8em;
+	}
+
+	.document .mergedDetailsholder table.listTable>tbody>tr>td{
+		background: #fff !important;
+	}
+
+	.document table.listTable>tbody>tr>td.mergedDetailWideTD {
+		padding: 0 !important;
+	}
+
+	.document .listTable .mergedDetails  {
+		.no-border td {
+			border: none !important;
+			vertical-align: top !important;
+			padding: 1px;
+		}
+		div > table.listTable>thead>tr>th  {
+			background: none !important;
+		}
 	}
 }
+
 // край на подробно показване на вложени детайли
 
 .products-table .rowtoolsGroup.modal-toolbar.iw-contextMenu {
