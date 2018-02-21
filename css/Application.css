@@ -665,6 +665,21 @@ div.productImage {
     position: relative;
     top: -1px; }
 
+  .printing .document .mergedDetailsholder table.listTable>thead>tr>th {
+    background: none !important;
+    font-weight: normal;
+    font-size: 0.8em; }
+  .printing .document .mergedDetailsholder table.listTable>tbody>tr>td {
+    background: white !important; }
+  .printing .document table.listTable>tbody>tr>td.mergedDetailWideTD {
+    padding: 0 !important; }
+    .printing .document .listTable .mergedDetails .no-border td {
+      border: none !important;
+      vertical-align: top !important;
+      padding: 1px; }
+    .printing .document .listTable .mergedDetails div > table.listTable>thead>tr>th {
+      background: none !important; }
+
 .products-table .rowtoolsGroup.modal-toolbar.iw-contextMenu {
   max-width: 200px; }
 

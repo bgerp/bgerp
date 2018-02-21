@@ -248,7 +248,9 @@ class planning_AssetResources extends core_Master
     	}
     	
     	$fQuery = planning_AssetResourceFolders::getQuery();
-    	$fQuery->where(array("#folderId = '[#1#]'", $folderId));
+    	if(isset($folderId)){
+    		$fQuery->where(array("#folderId = '[#1#]'", $folderId));
+    	}
     	$fQuery->where(array("#classId = '[#1#]'", self::getClassId()));
     	
     	while($fRec = $fQuery->fetch()) {

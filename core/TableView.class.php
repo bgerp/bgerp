@@ -229,8 +229,14 @@ class core_TableView extends core_BaseClass
                    
                     $colspan++;
                 } else {
+                	$tdClass = $attr = '';
+                	if($this->mvc->fields[$place]->tdClass) {
+                		$tdClass = $this->mvc->fields[$place]->tdClass;
+                		$attr = " class=\"{$tdClass}\"";
+                	}
+                	
                     // Допълнителни цели редове, ако колоната няма заглавие
-                    $addRows .= "<tr [#ROW_ATTR#]><td colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
+                    $addRows .= "<tr [#ROW_ATTR#]><td {$attr} colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
                 }
             }
         }
