@@ -3,23 +3,23 @@
 
 
 /**
- * Серийни номера 
+ * Серийни номера на артикулите
  * 
  * @category  bgerp
- * @package   label
+ * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class label_Serials extends core_Manager
+class cat_Serials extends core_Manager
 {
 	
 	
 	/**
-	 * Кой е максималния сериен номер
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
-	const LABEL_MAX_SERIAL = 999999999999;
+	public $oldClassName = 'label_Serials';
 	
 	
 	/**
@@ -37,7 +37,7 @@ class label_Serials extends core_Manager
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'label, admin, ceo';
+	public $canList = 'cat, admin, ceo';
 	
 	
 	/**
@@ -49,7 +49,7 @@ class label_Serials extends core_Manager
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'label_Wrapper, plg_Created, plg_Sorting';
+	public $loadList = 'cat_Wrapper, plg_Created, plg_Sorting';
 	
 	
 	/**
@@ -80,6 +80,8 @@ class label_Serials extends core_Manager
 			$SourceClass = cls::get($rec->sourceClassId);
 			$row->sourceObjectId = (cls::haveInterface('doc_DocumentIntf', $SourceClass)) ? $SourceClass->getLink($rec->sourceObjectId, 0) : $SourceClass->getTitleById($rec->sourceObjectId);
 		}
+		
+		$row->serial = core_Type::getByName('varchar')->toVerbal(str_pad($rec->serial, 13, '0', STR_PAD_LEFT));
 	}
 	
 	
@@ -115,6 +117,7 @@ class label_Serials extends core_Manager
 		}
 		
 		$rec = (object)array('serial' => $serial, 'sourceClassId' => $sourceClassId, 'sourceObjectId' => $sourceObjectId);
+		
 		return self::save($rec);
 	}
 	
@@ -126,9 +129,9 @@ class label_Serials extends core_Manager
 	 */
 	public static function getRand()
 	{
-		$serial = rand(1, self::LABEL_MAX_SERIAL);
-		while(self::fetchField(array("#serial = [#1#]", $serial))){
-			$serial = rand(1, self::LABEL_MAX_SERIAL);
+		$serial = str::getRand('#############');
+		while(self::fetchField(array("#serial = [#1#]", $serial)) || cat_products_Packagings::fetchField(array("#eanCode = [#1#]", $serial))){
+			$serial = str::getRand('#############');
 		}
 		
 		return $serial;

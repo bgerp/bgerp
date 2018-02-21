@@ -570,7 +570,7 @@ abstract class store_DocumentMaster extends core_Master
     	 
     	$row->storeId = store_Stores::getHyperlink($rec->storeId);
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
-    	$row->docId = $this->getLink($rec->id, 0);
+    	$row->docId = (!Mode::is('printing')) ? $this->getLink($rec->id, 0) : "#" . $this->getHandle($rec->id);
     	
     	return $row;
     }
@@ -592,6 +592,12 @@ abstract class store_DocumentMaster extends core_Master
     	while($dRec = $query->fetch()){
     		$dRec->rowNumb = $i;
     		$arr[$dRec->id] = $this->prepareLineRows($dRec);
+    		
+    		if(Mode::is('printing') && Request::get('Width') && isset($this->layoutFileInLine)){
+    			Mode::push('renderHtmlInLine', TRUE);
+    			$arr[$dRec->id]->documentHtml = $this->getInlineDocumentBody($dRec->id);
+    			Mode::pop('renderHtmlInLine');
+    		}
     		$i++;
     		
     		if(!empty($dRec->weight) && $masterData->weight !== FALSE){
@@ -614,6 +620,18 @@ abstract class store_DocumentMaster extends core_Master
     }
 
 
+    /**
+     * Променяме шаблона в зависимост от мода
+     */
+    protected static function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	if(Mode::is('renderHtmlInLine') && isset($mvc->layoutFileInLine)){
+    		$data->singleLayout = getTplFromFile($mvc->layoutFileInLine);
+    		unset($data->_selectTplForm);
+    	}
+    }
+    
+    
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */

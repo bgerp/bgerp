@@ -404,13 +404,41 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Генерира сериен номер за артикула (ако артикула е складируем)
-	 *
-	 * @param mixed $id
-	 * @return int|NULL
+	 * Връща сериен номер според източника
+	 * 
+	 * @param mixed $id             - ид или запис на артикул
+	 * @param mixed $sourceClassId  - клас
+	 * @param mixed $sourceObjectId - ид на обект
+	 * @return string $serial       - генериран сериен номер
 	 */
-	public function generateSerial($id)
+	public function generateSerial($id, $sourceClassId = NULL, $sourceObjectId = NULL)
 	{
-		return $this->class->generateSerial($id);
+		return $this->class->generateSerial($id, $sourceClassId, $sourceObjectId);
+	}
+	
+	
+	/**
+	 * Регистрира дадения сериен номер, към обекта (ако има)
+	 *
+	 * @param mixed $id                - ид или запис на артикул
+	 * @param mixed $serial            - сериен номер
+	 * @param mixed $sourceClassId     - клас на обекта
+	 * @param int|NULL $sourceObjectId - ид на обекта
+	 */
+	public function assignSerial($id, $serial, $sourceClassId = NULL, $sourceObjectId = NULL)
+	{
+		return $this->class->assignSerial($id, $serial, $sourceClassId, $sourceObjectId);
+	}
+	
+	
+	/**
+	 * Записа на артикула отговарящ на серийния номер
+	 *
+	 * @param int $serial
+	 * @return stdClass|NULL
+	 */
+	public function getRecBySerial($serial)
+	{
+		return $this->class->getRecBySerial($serial);
 	}
 }
