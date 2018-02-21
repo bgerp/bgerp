@@ -1,0 +1,5 @@
+<div class="mergedDetails">
+    [#store_ShipmentOrderDetails#]
+    <div class="lines"></div>
+</div>
+[#store_DocumentPackagingDetail#]

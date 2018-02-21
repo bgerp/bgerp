@@ -746,6 +746,32 @@ div.productImage {
 	   top: -1px;
 	}
 }
+// подробно показване на вложени детайли
+.document .mergedDetailsholder table.listTable>thead>tr>th{
+	background: none !important;
+	font-weight:normal;
+	font-size: 0.8em;
+}
+
+.document .mergedDetailsholder table.listTable>tbody>tr>td{
+	background: #fff !important;
+}
+
+.document table.listTable>tbody>tr>td.mergedDetailWideTD {
+	padding: 0 !important;
+}
+
+.document .listTable .mergedDetails  {
+	.no-border td {
+		border: none !important;
+		vertical-align: top;
+	}
+	div > table.listTable>thead>tr>th  {
+		background: none !important;
+	}
+}
+// край на подробно показване на вложени детайли
+
 .products-table .rowtoolsGroup.modal-toolbar.iw-contextMenu {
 	max-width: 200px;
 }
@@ -777,24 +803,24 @@ div.productImage {
 }
 
 .groupList .small-padding .productGroupInfo {
-	padding-top:10px !important; 
-	text-decoration:underline; 
+	padding-top:10px !important;
+	text-decoration:underline;
 	padding-left:0;
 }
 
 
 .colorName {
-	position: relative; 
+	position: relative;
 	top: -2px;
 }
 
 .colorBox {
 	border:solid 1px #333;
-	margin:0px 2px 2px 5px; 
-	height: 14px; 
-	width: 14px; 
+	margin:0px 2px 2px 5px;
+	height: 14px;
+	width: 14px;
 	display: inline-block;
-	position: relative; 
+	position: relative;
 	top: 2px;
 }
 
@@ -848,7 +874,7 @@ div.productImage {
 
 .product-component-list .componentTitle{
 	font-weight: bold;
-	
+
 }
 .product-component-list .level0.product-component-title {
     td{
@@ -872,7 +898,7 @@ div.productImage {
        td{
         padding: 4px 0;
     }
-     
+
 }
 .product-component-list .level4.product-component-title {
      color: #555;
@@ -923,7 +949,7 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
     background-repeat:no-repeat;
     background-position: 3px center;
 }
- 
+
 div.telephone {
 	background-image: url('../img/16/telephone2.png');
 }
@@ -991,8 +1017,8 @@ div.mobile {
 }
 
 .document-handler {
-    font-size: 0.8em; 
-    border-radius:3px; 
+    font-size: 0.8em;
+    border-radius:3px;
     border:solid 1px #bbb;
     padding:2px;
     display:inline-block;
@@ -1023,11 +1049,11 @@ div.acc-detail {
 .acc_ArticleDetails .listTable th{
     white-space: nowrap;
 }
- 
+
 .wide .acc_ArticleDetails .horizontal .formToolbar{
     float: none;
 }
- 
+
 .accCell{
    padding-left: 15px !important;
 }
@@ -1093,7 +1119,7 @@ div.acc-detail {
 }
 
 .acc-footer {
-	text-align: right; 
+	text-align: right;
 	margin-top: 20px;
 	font-size: 1.1em;
 	font-weight: bold;
@@ -1175,7 +1201,7 @@ table.listTable > tbody > tr {
 		      margin-top: 10px;
 		    }
 		}
-		table.listTable{		    
+		table.listTable{
 			th{
 				background-color: #eee;
 				border: none !important;
@@ -1293,7 +1319,7 @@ table.listTable > tbody > tr {
 		    width:1%;
 		}
     }
-    
+
 }
 
 .portal.planning table.listTable th {
@@ -1308,7 +1334,7 @@ table.listTable > tbody > tr {
 }
 
 .narrow .portal .listRows {
-	font-size:0.9em;	
+	font-size:0.9em;
 }
 
 .narrow .portal .legend .addTask {
@@ -1320,7 +1346,7 @@ td.portal-date {
 	white-space:nowrap;
 }
 
-.detail-info.portal table.listTable { 
+.detail-info.portal table.listTable {
 	font-size:1em;
 	.frontToolip img{
 		height: 14px;
@@ -1384,8 +1410,8 @@ td.portal-date {
 
 a.tUnsighted {
     font-weight: bold;
-     
-     
+
+
     &:hover {
         color: #e70 !important;
     }
@@ -1413,7 +1439,7 @@ a.tOld {
 		text-align: center;
         font-size: 0.8em;
 	}
-    
+
 }
 
 
@@ -1463,7 +1489,7 @@ a.tOld {
 		line-height: 120%;
 		.richtext {
 			display: inline;
-			color: #000;	
+			color: #000;
 		}
 	}
 	.listTable {

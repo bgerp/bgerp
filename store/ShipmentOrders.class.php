@@ -188,7 +188,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Шаблон за изглед при рендиране в транспортна линия
      */
-    public $layoutFileInLine = 'store/tpl/ShortShipmentOrder.class.php';
+    public $layoutFileInLine = 'store/tpl/ShortShipmentOrder.shtml';
     
     
     /**
