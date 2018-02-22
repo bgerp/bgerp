@@ -4,7 +4,7 @@
 /**
  * Какъв да е десетичният разделител на числата при експорт в csv
  */
-defIfNot('FRAME_TYPE_DECIMALS_SEP', 'dot');
+defIfNot('FRAME_TYPE_DECIMALS_SEP', 'comma');
 
 
 /**
