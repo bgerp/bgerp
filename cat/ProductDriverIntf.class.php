@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -440,5 +440,29 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	public function getRecBySerial($serial)
 	{
 		return $this->class->getRecBySerial($serial);
+	}
+	
+	
+	/**
+	 * Канонизиране генерирания номер
+	 *
+	 * @param string $serial
+	 * @return string
+	 */
+	public function canonizeSerial($id, $serial)
+	{
+		return $this->class->canonizeSerial($id, $serial);
+	}
+	
+	
+	/**
+	 * Проверяване на серийния номер
+	 *
+	 * @param string $serial
+	 * @return string
+	 */
+	public function checkSerial($id, $serial, &$error)
+	{
+		return $this->class->checkSerial($id, $serial, $error);
 	}
 }

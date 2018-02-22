@@ -634,7 +634,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @param mixed $sourceObjectId - ид на обект
 	 * @return string $serial       - генериран сериен номер
 	 */
-	public static function generateSerial($id, $sourceClassId = NULL, $sourceObjectId = NULL)
+	public function generateSerial($id, $sourceClassId = NULL, $sourceObjectId = NULL)
     {
     	return cat_Serials::generateSerial($sourceClassId, $sourceObjectId);
     }
@@ -648,7 +648,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      * @param mixed $sourceClassId     - клас на обекта
      * @param int|NULL $sourceObjectId - ид на обекта
      */
-    public static function assignSerial($id, $serial, $sourceClassId = NULL, $sourceObjectId = NULL)
+    public function assignSerial($id, $serial, $sourceClassId = NULL, $sourceObjectId = NULL)
     {
     	return cat_Serials::assignSerial($serial, $sourceClassId, $sourceObjectId);
     }
@@ -660,7 +660,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      * @param int $serial
      * @return stdClass|NULL
      */
-    public static function getRecBySerial($serial)
+    public function getRecBySerial($serial)
     {
     	if($sRec = cat_Serials::getRecBySerial($serial)){
     		if(cls::load($sRec->sourceClassId, TRUE)){
@@ -674,5 +674,29 @@ abstract class cat_ProductDriver extends core_BaseClass
     	}
     	
     	return NULL;
+    }
+    
+    
+    /**
+     * Канонизиране генерирания номер
+     *
+     * @param string $serial
+     * @return string
+     */
+    public function canonizeSerial($id, $serial)
+    {
+    	return cat_Serials::canonize($serial);
+    }
+    
+    
+    /**
+     * Проверяване на серийния номер
+     *
+     * @param string $serial
+     * @return string
+     */
+    public function checkSerial($id, $serial, &$error)
+    {
+    	return cat_Serials::check($serial, $error);
     }
 }
