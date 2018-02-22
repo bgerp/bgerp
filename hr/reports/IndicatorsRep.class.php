@@ -281,15 +281,16 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 				$row->indicator = tr('Формула');
 				$newContext = self::fillMissingIndicators($dRec->context, $rec->formula);
 				
-                $success = FALSE;
 				if(($expr = str::prepareMathExpr($rec->formula, $newContext)) !== FALSE) {
 					$value = str::calcMathExpr($expr, $success);
                 }
 
                 if($success !== FALSE) {
-					$row->value = '<b>' . $Double->toVerbal($value) . '</b>';
+                	$value = $Double->toVerbal($value);
+					$row->value = ($isPlain) ?  $value : "<b>{$value}</b>";
 				} else {
-					$row->value = '<small style="font-style:italic;color:red;">' . tr("Невъзможно изчисление") . '</small>';
+					$value = tr("Невъзможно изчисление");
+					$row->value = (!$isPlain) ? "<small style='font-style:italic;color:red;'>{$value}</small>" : $value;
 				}
 			}
 		}

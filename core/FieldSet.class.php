@@ -685,4 +685,22 @@ class core_FieldSet extends core_BaseClass
     		}
     	}
     }
+    
+    
+    /**
+     * Връща масив от имената на полетата с техните кепшъни
+     * 
+     * @param string $where
+     * @return array $fieldsArr
+     */
+    public function getFieldArr($where = "")
+    {
+    	$fields = $this->selectFields($where);
+    	$fieldsArr = array();
+    	foreach($fields as $name => $fld){
+    		$fieldsArr[$name] = $fld->caption;
+    	}
+    	
+    	return $fieldsArr;
+    }
 }
