@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Драйвер за готовност за експедиция на документи
  *
@@ -8,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Логистика » Готовност за експедиция
@@ -417,11 +418,15 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 				$dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
 						
 				$dueDates = $this->getSaleDueDates($sRec);
-						
+				if(isset($dueDates['minDel'])){
+					$dueDates['minDel'] = dt::verbal2mysql($dueDates['minDel'], TRUE);
+					$minDel = min($minDel, $dueDates['minDel']);
+				}
+				
 				$add = TRUE;
 				if(isset($rec->horizon)){
 					$horizon = dt::addSecs($rec->horizon);
-					$compareDate = isset($dueDates['min']) ? $dueDates['min'] : (isset($dueDates['max']) ? $dueDates['max'] : (isset($delTime) ? $delTime : NULL));
+					$compareDate = isset($dueDates['min']) ? $dueDates['min'] : (isset($dueDates['max']) ? $dueDates['max'] : (isset($minDel) ? $minDel : NULL));
 					if(!empty($compareDate) && $compareDate > $horizon){
 						$add = FALSE;
 					}
@@ -545,12 +550,20 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		$jQuery->where("#saleId = {$saleRec->id} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup' OR #state = 'closed')");
 		$jQuery->XPR('max', 'int', "MAX(#dueDate)");
 		$jQuery->XPR('min', 'int', "MIN(#dueDate)");
-		$jQuery->show('min,max');
+		$jQuery->XPR('maxDel', 'int', "MAX(#deliveryDate)");
+		$jQuery->XPR('minDel', 'int', "MIN(#deliveryDate)");
+		
+		$jQuery->show('min,max,maxDel,minDel');
 		
 		$fRec = $jQuery->fetch();
 		if(isset($fRec->min) || isset($fRec->max)){
 			$dates['min'] = $fRec->min;
 			$dates['max'] = $fRec->max;
+		}
+		
+		if(isset($fRec->minDel) || isset($fRec->maxDel)){
+			$dates['minDel'] = $fRec->minDel;
+			$dates['maxDel'] = $fRec->maxDel;
 		}
 		
 		return $dates;
