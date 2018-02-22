@@ -328,8 +328,10 @@ class planning_ProductionTaskDetails extends core_Detail
     		}
     		
     		if(!empty($rec->serial)){
-    			$padded = str_pad($rec->serial, 13, '0', STR_PAD_LEFT);
-    			$rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial) . ' ' . plg_Search::normalizeText($padded);
+    			if($Driver = cat_Products::getDriver($rec->productId)){
+    				$rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
+    			}
+    			$rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial);
     		}
     	}
     }
@@ -362,6 +364,8 @@ class planning_ProductionTaskDetails extends core_Detail
     	
     	if($res['productId'] != $productId){
     		$res['error'] = "Серийния номер е към друг артикул|* " . cat_Products::getHyperlink($res['productId'], TRUE);
+    	} elseif(!$Driver->checkSerial($productId, $serial, $error)){
+    		$res['error'] = $error;
     	}
     	
     	return $res;
@@ -438,13 +442,12 @@ class planning_ProductionTaskDetails extends core_Detail
      */
     public static function getLink($taskId, $serial)
     {
-    	$paddedSerial = str_pad($serial, 13, '0', STR_PAD_LEFT);
-    	$serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($paddedSerial);
+    	$serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
     	if(Mode::isReadOnly()) return $serialVerbal;
     
     	// Линк към прогреса филтриран по сериен номер
     	if(planning_ProductionTaskDetails::haveRightFor('list')){
-    		$serialVerbal = ht::createLink($serialVerbal, array('planning_ProductionTaskDetails', 'list', 'search' => $paddedSerial), FALSE, "title=Към историята на серийния номер");
+    		$serialVerbal = ht::createLink($serialVerbal, array('planning_ProductionTaskDetails', 'list', 'search' => $serialVerbal), FALSE, "title=Към историята на серийния номер");
     	}
     
     	return $serialVerbal;
@@ -533,9 +536,6 @@ class planning_ProductionTaskDetails extends core_Detail
     			$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
     		}
     	}
-    	
-    	// Махане на кошчето
-    	$data->toolbar->removeBtn('binBtn');
     }
 
 
@@ -563,7 +563,6 @@ class planning_ProductionTaskDetails extends core_Detail
     	} else {
     		$data->listFilter->setField('type', 'input=none');
     		unset($data->listFields['modified']);
-    		
     		$data->listFilter->class = 'simpleForm';
     		$data->listFilter->showFields = 'search,fixedAsset,employees';
     		
@@ -722,7 +721,6 @@ class planning_ProductionTaskDetails extends core_Detail
     	$query = self::getQuery();
     	$query->XPR('sum', 'double', 'SUM(#quantity)');
     	$query->where("#taskId = {$rec->taskId} AND #productId = {$rec->productId} AND #fixedAsset = '{$rec->fixedAsset}' AND #id != '{$rec->id}' AND #state = 'active'");
-    	
     	$query->show('sum');
     	$sum = $query->fetch()->sum;
     	
