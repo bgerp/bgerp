@@ -2385,6 +2385,9 @@ ul.history {
     ul.history .action.pdf b {
       background-color: #888888;
       color: white; }
+    ul.history .action.link b {
+      background-color: #999999;
+      color: white; }
     ul.history .action.changed b {
       background-color: #660000; }
     ul.history .action.forward b {

@@ -130,7 +130,11 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
         
         $query->EXT('containerId', 'sales_Sales', 'externalName=containerId,externalKey=saleId');
         
+        $query->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
+        
         $query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        
+        $query->where("#state != 'rejected'");
         
         $query->where(
             array(
@@ -267,6 +271,10 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
         $expQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         
         $expQuery->EXT('containerId', 'store_ShipmentOrders', 'externalName=containerId,externalKey=shipmentId');
+        
+        $expQuery->EXT('state', 'store_ShipmentOrders', 'externalName=state,externalKey=shipmentId');
+        
+        $expQuery->where("#state != 'rejected'");
         
         $expQuery->where(
             array(
