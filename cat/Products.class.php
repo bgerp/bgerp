@@ -37,7 +37,7 @@ class cat_Products extends embed_Manager {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,acc_RegistryDefaultCostIntf';
+    public $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,acc_RegistryDefaultCostIntf,export_DetailExportCsvIntf';
     
     
     /**
@@ -2935,33 +2935,52 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     *
+     *
+     * @return string
+     */
+    function getExportMasterFieldName()
+    {
+        
+        return 'productId';
+    }
+    
+    
+    /**
+     *
+     *
+     * @return array
+     */
+    function getExportFieldsNameFromMaster()
+    {
+        
+        return array('productId' => 'code', 'packQuantity', 'packagingId', 'packPrice', 'batch');
+    }
+    
+    /**
      * 
      * 
-     * @param core_Mvc $mvc
+     * @param core_Mvc $masterMvc
      * @param integer $id
      * @param core_FieldSet $csvFields
      * 
      * @return array
      */
-    public static function getRecsForExportInExternal($mvc, $mRec, &$csvFields, $activatedBy)
+    public function getRecsForExportInDetails($masterMvc, $mRec, &$csvFields, $activatedBy)
     {
         expect($mRec);
         
         $canSeePrice = haveRole('seePrice', $activatedBy);
         $pStrName = 'price';
         
-        $detArr = arr::make($mvc->details);
+        $detArr = arr::make($masterMvc->details);
         
         expect(!empty($detArr));
         
         $recs = array();
         
-        if (strpos($mvc->exportInExternalField, '=')) {
-            list($exportFStr, $exportFCls) = explode('=', $mvc->exportInExternalField);
-        } else {
-            $exportFStr = $mvc->exportInExternalField;
-            $exportFCls = NULL;
-        }
+        $exportFStr = $this->getExportMasterFieldName();
+        $exportFCls = get_called_class();
         
         foreach ($detArr as $dName) {
             if (!cls::load($dName, TRUE)) continue;
@@ -2988,7 +3007,7 @@ class cat_Products extends embed_Manager {
             }
             
             // Подготвяме полетата, които ще се експортират
-            $exportArr = arr::make($mvc->exportInExternalFieldAll, TRUE);
+            $exportArr = arr::make($this->getExportFieldsNameFromMaster(), TRUE);
             
             // За бачовете - ако не е инсталиран пакета - премахваме полето
             if ($exportArr['batch'] && !core_Packs::isInstalled('batch')) {
@@ -3082,7 +3101,7 @@ class cat_Products extends embed_Manager {
                 }
                 
                 // За добавяне на бачовете
-                if ($fFieldsArr['batch'] && $mvc->storeFieldName && $mRec->{$mvc->storeFieldName}) {
+                if ($fFieldsArr['batch'] && $masterMvc->storeFieldName && $mRec->{$masterMvc->storeFieldName}) {
                     
                     $Def = batch_Defs::getBatchDef($dRec->{$dInst->productFld});
                     if ($recs[$dRec->id] && isset($recs[$dRec->id]->packQuantity) && $Def) {
