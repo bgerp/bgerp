@@ -388,23 +388,25 @@ class planning_ProductionTaskDetails extends core_Detail
     	if(isset($rec->serial)){
     		$row->serial = "<b>{$row->serial}</b>";
     	}
-    	 
+    	
     	$row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : 'row-removed'));
     	if($rec->state == 'rejected'){
     		$row->ROW_ATTR['title'] = tr('Оттеглено от') . " " . core_Users::getVerbal($rec->modifiedBy, 'nick');
     	}
     	
-    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
-    	$measureId = cat_Products::fetchField($rec->productId, 'measureId');
-    	$shortUom = cat_UoM::getShortName($measureId);
-    	$packagingId = $measureId;
+    	$pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,name');
+    	$code = cat_Products::getVerbal($pRec, 'code');
+    	$code = ht::createHint($code, cat_Products::getVerbal($pRec, 'name'), 'notice', FALSE);
+    	$row->productId = ht::createLinkRef($code, cat_Products::getSingleUrlArray($rec->productId));
+    	$shortUom = cat_UoM::getShortName($pRec->measureId);
+    	$packagingId = $pRec->measureId;
     	
     	$foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
     	if(!empty($foundRec)){
     		$packagingId = $foundRec->packagingId;
     	}
     	
-    	if($measureId != $packagingId){
+    	if($pRec->measureId != $packagingId){
     		$packagingId = cat_UoM::getShortName($packagingId);
     		$row->type .= " " . tr($packagingId);
     	} elseif($rec->type == 'production'){
