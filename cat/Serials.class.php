@@ -3,7 +3,7 @@
 
 
 /**
- * Серийни номера на артикулите
+ * Генерирани номера на артикули
  * 
  * @category  bgerp
  * @package   cat
@@ -25,7 +25,7 @@ class cat_Serials extends core_Manager
 	/**
 	 * Заглавие на модела
 	 */
-	public $title = 'Серийни номера';
+	public $title = 'Генерирани номера';
 	
 	
 	/**
@@ -37,7 +37,7 @@ class cat_Serials extends core_Manager
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'cat, admin, ceo';
+	public $canList = 'debug';
 	
 	
 	/**
@@ -63,7 +63,7 @@ class cat_Serials extends core_Manager
 	 */
 	function description()
 	{
-		$this->FLD('serial', 'bigint', 'caption=Сериен №,mandatory');
+		$this->FLD('serial', 'bigint', 'caption=Генериран №,mandatory');
 		$this->FLD('sourceClassId', 'class(interface=label_SequenceIntf,select=title)', 'caption=Източник->Клас');
 		$this->FLD('sourceObjectId', 'int', 'caption=Източник->Обект');
 		
@@ -86,7 +86,7 @@ class cat_Serials extends core_Manager
 	
 	
 	/**
-	 * Връща сериен номер според източника, и го регистрира в модела
+	 * Връща генериран номер според източника, и го регистрира в модела
 	 * 
 	 * @param string $sourceClassId  - клас
 	 * @param string $sourceObjectId - ид на обект
@@ -102,9 +102,9 @@ class cat_Serials extends core_Manager
 	
 	
 	/**
-	 * Регистрира дадения сериен номер, към обекта (ако има)
+	 * Регистрира дадения генериран номер, към обекта (ако има)
 	 * 
-	 * @param string $serial            - сериен номер
+	 * @param string $serial            - генериран номер
 	 * @param mixed $sourceClassId      - клас на обекта
 	 * @param int|NULL $sourceObjectId  - ид на обекта
 	 */
@@ -123,7 +123,7 @@ class cat_Serials extends core_Manager
 	
 	
 	/**
-	 * Връща рандом НЕ-записан сериен номер
+	 * Връща рандом НЕ-записан генериран номер
 	 * 
 	 * @return int $serial
 	 */
