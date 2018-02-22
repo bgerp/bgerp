@@ -88,9 +88,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	{
 		$fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Търговци,after=title,single=none');
 		$fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,after=dealers,single=none');
-		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=countries');
+		$fieldset->FLD('ignore', 'enum(,yes=Да)', 'caption=Без избраните,after=countries,single=none');
+		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=ignore');
 		$fieldset->FLD('horizon', 'time(uom=days,Min=0)', 'caption=Падиращи до,after=precision');
-		$fieldset->FLD('orderBy', 'enum(readiness=Готовност,contragents=Клиенти,execDate=Срок за изпълнение,dueDate=Дата на падеж)', 'caption=Подредба,after=precision');
+		$fieldset->FLD('orderBy', 'enum(readiness=Готовност,contragents=Клиенти,execDate=Срок за изпълнение,dueDate=Дата на падеж)', 'caption=Подредба,after=horizon');
 	}
 	
 	
@@ -135,6 +136,24 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		// Ако текущия потребител е търговец добавя се като избран по дефолт
 		if(haveRole('sales') && empty($form->rec->id)){
 			$form->setDefault('dealers', keylist::addKey('', core_Users::getCurrent()));
+		}
+	}
+	
+	
+	/**
+	 * При събмитване на формата
+	 *
+	 * @param frame2_driver_Proto $Driver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param core_Form $form
+	 */
+	protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
+	{
+		if(!$form->isSubmitted()) return;
+		
+		$rec = &$form->rec;
+		if($rec->ignore == 'yes' && empty($rec->countries)){
+			$form->setError('countries,ignore', 'Трябва да има избрани държави, за изключване');
 		}
 	}
 	
@@ -310,12 +329,17 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	{
 		$fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>|Държави|*: [#countries#]</div><!--ET_END countries--><!--ET_BEGIN horizon-->|Падиращи до|* [#horizon#]<!--ET_END horizon--></small></fieldset><!--ET_END BLOCK-->"));
+							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>[#COUNTRY_CAPTION#]: [#countries#]</div><!--ET_END countries--><!--ET_BEGIN horizon-->|Падиращи до|* [#horizon#]<!--ET_END horizon--></small></fieldset><!--ET_END BLOCK-->"));
 		
 		foreach (array('dealers', 'countries', 'horizon') as $fld){
 			if(isset($data->rec->{$fld})){
 				$fieldTpl->append($data->row->{$fld}, $fld);
 			}
+		}
+		
+		if(isset($data->rec->countries)){
+			$countryCaption = ($data->rec->ignore == 'yes') ? tr('Без държави') : tr('Държави');
+			$fieldTpl->append($countryCaption, 'COUNTRY_CAPTION');
 		}
 		
 		$tpl->append($fieldTpl, 'DRIVER_FIELDS');
@@ -371,7 +395,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 			// Ако има филтър по държава
 			if($cCount){
 				$contragentCountryId = cls::get($sRec->contragentClassId)->fetchField($sRec->contragentId, 'country');
-				if(!array_key_exists($contragentCountryId, $countries)) continue;
+				if($rec->ignore == 'yes'){
+					if(array_key_exists($contragentCountryId, $countries)) continue;
+				} else {
+					if(!array_key_exists($contragentCountryId, $countries)) continue;
+				}
 			}
 				
 			// Изчислява се готовността
