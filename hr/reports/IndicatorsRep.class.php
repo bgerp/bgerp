@@ -129,7 +129,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	        // Добавя се към масива, ако го няма
 	        if(!array_key_exists($key, $recs)) {
 	        	if(!array_key_exists($recIndic->personId, $personNames)){
-	        		$personNames[$recIndic->personId] = str::utf2ascii(crm_Persons::fetchField($recIndic->personId, 'name'));
+	        		$personNames[$recIndic->personId] = mb_strtolower(trim(crm_Persons::fetchField($recIndic->personId, 'name')));
 	        	}
 	        	
 	        	$recs[$key]= (object) array ('num'         => 0,
@@ -159,10 +159,10 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	    // Ако има такива сортираме ги по име
 	    uasort($recs, function($a, $b){
 	    	if($a->personName == $b->personName) {
-	    		return ($a->indicatorId < $b->indicatorId) ? -1 : 1;
+	    		return $a->indicatorId < $b->indicatorId ? -1 : 1;
 	    	}
 	    	
-	    	return (strnatcasecmp($a->personName, $b->personName) < 0) ? -1 : 1;
+	    	return $a->personName < $b->personName ? -1 : 1;
 	    });
 	    
 	    $num = 1;
@@ -252,14 +252,15 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 				$row->indicator = tr('Формула');
 				$newContext = self::fillMissingIndicators($dRec->context, $rec->formula);
 				
-				uksort($newContext, "str::sortByLengthReverse");
-				$expr = strtr($rec->formula, $newContext);
-				
-				if(str::prepareMathExpr($expr) === FALSE) {
-					$row->value = '<small style="font-style:italic;color:red;">' . tr("Невъзможно изчисление") . '</small>';
-				} else {
+                $success = FALSE;
+				if(($expr = str::prepareMathExpr($rec->formula, $newContext)) !== FALSE) {
 					$value = str::calcMathExpr($expr, $success);
-					$row->value = $Double->toVerbal($value);
+                }
+
+                if($success) {
+					$row->value = '<b>' . $Double->toVerbal($value) . '</b>';
+				} else {
+					$row->value = '<small style="font-style:italic;color:red;">' . tr("Невъзможно изчисление") . '</small>';
 				}
 			}
 		}
@@ -353,7 +354,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         }
         
         if(isset($rec->formula)){
-        	$row->formula = core_Type::getByName('text')->toVerbal($rec->formula);
+        	$row->formula = '<b>' . core_Type::getByName('text')->toVerbal($rec->formula) . '</b>';
         }
     }
     
