@@ -1,7 +1,8 @@
 .document .line-header {
-  padding: 5px;
+  padding: 5px !important;
   color: white;
   background-color: #777777;
+  border: 1px solid #777777;
   font-weight: bold; }
 
 .document .details .shipment-th {
@@ -21,6 +22,6 @@
 
 .printing .document .line-header {
   color: #333333;
-  background-color: none;
+  background: none;
   padding: 5px 0; }
 

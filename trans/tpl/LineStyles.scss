@@ -1,7 +1,8 @@
 .document .line-header{
-	padding: 5px;
+	padding: 5px !important;
 	color: #fff;
 	background-color: #777;
+	border: 1px solid #777;
 	font-weight:bold;
 }
 
@@ -25,6 +26,6 @@
 
 .printing .document .line-header {
 	color: #333;
-    background-color: none;
+    background: none;
     padding: 5px 0;
 }

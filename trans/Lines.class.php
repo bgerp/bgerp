@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   trans
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -47,7 +47,7 @@ class trans_Lines extends core_Master
     /**
      * Кой може да променя активирани записи
      */
-    var $canChangerec = 'ceo, trans';
+    public $canChangerec = 'ceo, trans';
     
     
     /**
@@ -95,7 +95,7 @@ class trans_Lines extends core_Master
     /**
      * Кой има право да пише?
      */
-    var $canWrite = 'ceo, trans';
+    public $canWrite = 'ceo, trans';
 
 
     /**
@@ -235,6 +235,11 @@ class trans_Lines extends core_Master
     	
     	if($data->rec->state == 'closed' && $data->rec->start >= dt::today()){
     		$data->toolbar->addBtn('Активиране', $changeUrl, 'ef_icon=img/16/lock_unlock.png,warning=Искате ли да активирате линията?,title=Отваряне на линията');
+    	}
+
+    	if($mvc->haveRightFor('single', $data->rec)){
+    		$url = array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'Width' => 'yes');
+    		$data->toolbar->addBtn('Печат (Подробен)', $url, "id=w{$attr['id']},target=_blank,row=2", 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
     	}
     }
     
@@ -452,6 +457,7 @@ class trans_Lines extends core_Master
         $res .= core_Cron::addOnce($rec);
     }
 
+    
     /**
      * Връща броя на документите в посочената линия
      * Може да се филтрират по #state и да се ограничат до maxDocs

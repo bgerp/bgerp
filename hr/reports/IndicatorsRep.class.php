@@ -126,6 +126,17 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	    	$key = "{$recIndic->personId}|{$recIndic->indicatorId}";
 	    	$keyContext = "{$recIndic->personId}|formula";
 	    	
+	    	// Пропускат се индикаторите от оттеглени документи
+	    	if(isset($recIndic->docClass) && isset($recIndic->docId)){
+	    		if(cls::load($recIndic->docClass, TRUE)){
+	    			$Doc = cls::get($recIndic->docClass);
+	    			if($Doc->getField('state', FALSE)){
+	    				$state = $Doc->fetchField($recIndic->docId, 'state');
+	    				if($state == 'rejected') continue;
+	    			}
+	    		}
+	    	}
+	    	
 	        // Добавя се към масива, ако го няма
 	        if(!array_key_exists($key, $recs)) {
 	        	if(!array_key_exists($recIndic->personId, $personNames)){
@@ -171,17 +182,35 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	        $r->num = $num;
 	        $num++;
 	        
-	        if($r->indicatorId == 'formula') continue;
-            $total[$r->indicatorId] += $r->value;
+	        if($r->indicatorId == 'formula') {
+	        	if(!array_key_exists($r->indicatorId, $total)){
+	        		$total[$r->indicatorId] = $r->context;
+	        	} else {
+	        		if(is_array($r->context)){
+	        			foreach ($r->context as $k => $v){
+	        				$total[$r->indicatorId][$k] += $v;
+	        			}
+	        		}
+	        	}
+	        } else {
+	        	$total[$r->indicatorId] += $r->value;
+	        }
 	    }
 	    
         foreach($total as $ind => $val) {
             $r = new stdClass();
             $r->person = 0;
             $r->indicatorId = $ind;
-            $r->value = $val;
+            
+            if(is_array($val)){
+            	$r->context = $val;
+            } else {
+            	$r->value = $val;
+            }
+            
             $num++;
             $r->num = $num;
+            
             $recs['0|' . $ind] = $r;
         }
         

@@ -106,7 +106,8 @@ class sales_PrimeCostByDocument extends core_Manager
 	protected static function on_CalcDelta(core_Mvc $mvc, $rec)
 	{
 		if(isset($rec->primeCost)){
-			$rec->delta = ($rec->sellCost - $rec->primeCost) * $rec->quantity;
+			$delta = $rec->sellCost - $rec->primeCost;
+			$rec->delta = $delta * $rec->quantity;
 		}
 	}
 	
@@ -365,6 +366,12 @@ class sales_PrimeCostByDocument extends core_Manager
 		// Всички записи
 		$indicatorRecs = $iQuery->fetchAll();
 		core_App::setTimeLimit(count($indicatorRecs) * 0.8);
+		
+		if($dPercent = sales_Setup::get('DELTA_MIN_PERCENT')){
+			foreach ($indicatorRecs as &$r1){
+				$r1->delta = max($r1->delta, ($r1->sellCost * $r1->quantity * $dPercent));
+			}
+		}
 		
 		// Връщане на индикаторите за делта на търговеца и инициатора
 		$result1 = self::getDeltaIndicators($indicatorRecs, $masters, $personIds);

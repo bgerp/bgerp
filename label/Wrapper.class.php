@@ -28,5 +28,6 @@ class label_Wrapper extends plg_ProtoWrapper
         $this->TAB('label_Templates', 'Шаблони', 'label, admin, ceo');
         $this->TAB('label_Media', 'Медия', 'labelMaster, admin, ceo');
         $this->TAB('label_Counters', 'Брояч', 'label, admin, ceo');
+        
     }
 }

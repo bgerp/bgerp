@@ -125,7 +125,8 @@ class planning_interface_ImportTaskSerial extends planning_interface_ImportDrive
      */
     public function canSelectDriver(core_Manager $mvc, $masterId = NULL, $userId = NULL)
     {
-    	$res = $mvc instanceof planning_ReturnNoteDetails;
+    	//$res = $mvc instanceof planning_ReturnNoteDetails;
+    	$res = FALSE;
     	
     	return $res;
     }

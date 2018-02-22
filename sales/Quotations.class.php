@@ -1582,42 +1582,42 @@ class sales_Quotations extends core_Master
         
         if (!$rec) return $res;
         
+        $res = '';
+        
         if ($rec->reff) {
-            $res = $rec->reff . ' ' . $this->getHandle($id);
-        } else {
-            $dQuery = sales_QuotationsDetails::getQuery();
-            $dQuery->where(array("#quotationId = '[#1#]'", $id));
+            $res = $rec->reff . ' ';
+        }
+        
+        
+        $dQuery = sales_QuotationsDetails::getQuery();
+        $dQuery->where(array("#quotationId = '[#1#]'", $id));
+        
+        // Показваме кода на продукта с най високата сума
+        $maxAmount = NULL;
+        $productId = 0;
+        $pCnt = 0;
+        while($dRec = $dQuery->fetch()) {
+            $amount = $dRec->price * $dRec->quantity;
             
-            // Показваме кода на продукта с най-високата сума
-            $maxAmount = NULL;
-            $productId = 0;
-            $pCnt = 0;
-            while($dRec = $dQuery->fetch()) {
-                $amount = $dRec->price * $dRec->quantity;
+            if ($dRec->discount) {
+                $amount = $amount * (1 - $dRec->discount);
                 
-                if ($dRec->discount) {
-                    $amount = $amount * (1 - $dRec->discount);
-                    
-                }
-                
-                if (!isset($maxAmount) || ($amount > $maxAmount)) {
-                    $maxAmount = $amount;
-                    $productId = $dRec->productId;
-                }
-                
-                $pCnt++;
             }
             
-            $pCnt--;
-            if ($productId) {
-                $pRec = cat_products::fetch($productId);
-                cat_Products::setCodeIfEmpty($pRec);
-                
-                $res = $pRec->code;
-                
-                if ($pCnt > 0) {
-                    $res .= ' + ' . tr('още') . ' ' . $pCnt;
-                }
+            if (!isset($maxAmount) || ($amount > $maxAmount)) {
+                $maxAmount = $amount;
+                $productId = $dRec->productId;
+            }
+            
+            $pCnt++;
+        }
+        
+        $pCnt--;
+        if ($productId) {
+            $res .= cat_products::getTitleById($productId);
+            
+            if ($pCnt > 0) {
+                $res .= ' ' . tr('и още') . '...';
             }
         }
         
