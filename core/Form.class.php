@@ -1447,7 +1447,7 @@ class core_Form extends core_FieldSet
         	
         		if($fieldset->fields[$name]->autohide == 'any') continue;
         		if($fieldset->fields[$name]->autohide == 'autohide' || $fieldset->fields[$name]->autohide == $mode) {
-        			if(!$rec->{$name}) { 
+        			if(!$rec->{$name} || ($rec->{$name} == 'no') || ($rec->{$name} == 'none')) { 
                         continue;
                     }
         			$type = $fieldset->fields[$name]->type;
