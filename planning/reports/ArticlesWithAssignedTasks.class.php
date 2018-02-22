@@ -64,9 +64,10 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 
-            'caption=Отговорници,mandatory,after = title');
+        $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 'caption=Отговорници,mandatory,after = title');
         $fieldset->FLD('typeOfSorting', 'enum(up=Възходящо,down=Низходящо)', 
+            'caption=Подредени,maxRadio=2,columns=2,mandatory,after=title');
+        $fieldset->FLD('orderingDate', 'enum(activated=Дата на активиране,pay=Дата на падеж)', 
             'caption=Подредени,maxRadio=2,columns=2,mandatory,after=title');
     }
 
@@ -78,10 +79,13 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      * @param embed_Manager $Embedder            
      * @param stdClass $data            
      */
-    protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, 
-        embed_Manager $Embedder, &$data)
+    protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = &$data->form;
+        
+        $form->setDefault('typeOfSorting', 'up');
+        
+        $form->setDefault('orderingDate', 'activated');
     }
 
     /**
@@ -106,6 +110,23 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
          * Масив с артикули по задания за производство
          */
         while ($jobses = $jobsQuery->fetch()) {
+            
+            $deliveryDate = $jobses->deliveryDate;
+            
+            if (! $jobses->activatedOn) {
+                
+                foreach ($jobses->history as $v) {
+                    
+                    if ($v['action'] == 'Активиране');
+                    {
+                        
+                        $activatedDate = $v['date'];
+                    }
+                }
+            } else {
+                
+                $activatedDate = $jobses->activatedOn;
+            }
             
             $jobsProdId = $jobses->productId;
             
@@ -151,8 +172,10 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                             'tasksFolderId' => $task->folderId,
                             'tasksContainerId' => $task->containerId,
                             'linkFrom' => $linkFrom,
-                            'deliveryDate' => $jobses->deliveryDate
-                        );
+                            'deliveryDate' => $deliveryDate,
+                            'activatedDate' => $activatedDate
+                        )
+                        ;
                     } else {
                         
                         $obj = &$recs[$jobsesId];
@@ -208,7 +231,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                             'tasksFolderId' => $task->folderId,
                             'tasksContainerId' => $task->containerId,
                             'linkFrom' => $linkFrom,
-                            'deliveryDate' => $jobses->deliveryDate
+                            'deliveryDate' => $deliveryDate,
+                            'activatedDate' => $activatedDate
                         );
                     } else {
                         
@@ -224,23 +248,42 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             }
         }
         
-        if ($rec->typeOfSorting == 'up') {
+        // Подрежда по дата на падеж
+        if ($rec->orderingDate == 'pay') {
+            if ($rec->typeOfSorting == 'up') {
+                
+                $sorting = 'orderByPayDateUp';
+            } else {
+                
+                $sorting = 'orderByPayDateDown';
+            }
             
-            $sorting = 'orderByPayDateUp';
-        } else {
-            
-            $sorting = 'orderByPayDateDown';
+            usort($recs, array(
+                $this,
+                "$sorting"
+            ));
         }
         
-        usort($recs, array(
-            $this,
-            "$sorting"
-        ));
+        // Подрежда по дата на активиране
+        if ($rec->orderingDate == 'activated') {
+            if ($rec->typeOfSorting == 'up') {
+                
+                $sorting = 'orderByActivatedDateUp';
+            } else {
+                
+                $sorting = 'orderByActivatedDateDown';
+            }
+            
+            usort($recs, array(
+                $this,
+                "$sorting"
+            ));
+        }
         
         return $recs;
     }
     
-    // Подреждане на масива по поле в обекта
+    // Подреждане на масива по дата на падеж
     function orderByPayDateUp($a, $b)
     {
         return $a->deliveryDate > $b->deliveryDate;
@@ -249,6 +292,17 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     function orderByPayDateDown($a, $b)
     {
         return $a->deliveryDate < $b->deliveryDate;
+    }
+    
+    // Подреждане на масива по дата на активиране
+    function orderByActivatedDateUp($a, $b)
+    {
+        return $a->activatedDate > $b->activatedDate;
+    }
+
+    function orderByActivatedDateDown($a, $b)
+    {
+        return $a->activatedDate < $b->activatedDate;
     }
 
     /**
@@ -295,13 +349,25 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         
         $row = new stdClass();
         
+        if ($rec->orderingDate == 'activated') {
+            $typeOfDatеText = 'Активиран : ';
+            $typeOfDate = $dRec->activatedDate;
+        }
+        
+        if ($rec->orderingDate == 'pay') {
+            $typeOfDatеText = 'Падеж : ';
+            $typeOfDate = $dRec->deliveryDate;
+        }
+        
         $tasksContainerIdArr = explode(',', $dRec->tasksContainerId);
         
         $tasksFolderIdArr = explode(',', $dRec->tasksFolderId);
         
         $linkFromArr = explode(',', $dRec->linkFrom);
         
-        $row->jobsId = planning_Jobs::getHyperlink($dRec->jobsId) . '<br>';
+        $row->jobsId = planning_Jobs::getHyperlink($dRec->jobsId) . "<br>";
+        
+        $row->jobsId .= "<span class= 'small' >" . "$typeOfDatеText" . $Date->toVerbal($typeOfDate) . "</span>";
         
         foreach ($tasksContainerIdArr as $k => $v) {
             
@@ -321,8 +387,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
             
             $row->jobsId .= "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" . ht::createLink(
-                "#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}") . "</span>" .
-                 ' »  ' . "<span class= 'quiet small'>" . $folderLink . "</span>" . "</div>";
+                "#{$handle}", $singleUrl, FALSE, "ef_icon={$Task->singleIcon}") . "</span>" . ' »  ' .
+                 "<span class= 'quiet small'>" . $folderLink . "</span>" . "</div>";
         }
         
         $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name') . '<br>';
@@ -344,9 +410,9 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
             
-            $row->productId .= "<div ><span class= 'state-{$state} document-handler' >" . ht::createLink(
-                "#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}") . "</span>" .
-                 ' »  ' . "<span class= 'quiet small'>" . $folderLink . "</span></div>";
+            $row->productId .= "<div ><span class= 'state-{$state} document-handler' >" .
+                 ht::createLink("#{$handle}", $singleUrl, FALSE, "ef_icon={$Task->singleIcon}") . "</span>" . ' »  ' .
+                 "<span class= 'quiet small'>" . $folderLink . "</span></div>";
         }
         
         // Добавяме бутон за създаване на задача
@@ -375,6 +441,51 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         }
         
         return $row;
+    }
+
+    /**
+     * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
+     *
+     * @param stdClass $rec            
+     * @return boolean $res
+     */
+    public function canSendNotificationOnRefresh($rec)
+    {
+        // Намира се последните две версии
+        $query = frame2_ReportVersions::getQuery();
+        $query->where("#reportId = {$rec->id}");
+        $query->orderBy('id', 'DESC');
+        $query->limit(2);
+        
+        // Маха се последната
+        $all = $query->fetchAll();
+        unset($all[key($all)]);
+        
+        // Ако няма предпоследна, бие се нотификация
+        if (! count($all))
+            return TRUE;
+        $oldRec = $all[key($all)]->oldRec;
+        $dataRecsNew = $rec->data->recs;
+        $dataRecsOld = $oldRec->data->recs;
+        
+        if (! is_array($dataRecsOld))
+            return TRUE;
+        
+        if (is_array($dataRecsNew)) {
+            foreach ($dataRecsNew as $index => $new) {
+                $old = $dataRecsNew[$index];
+                
+                // Ако има нов документ - известяване
+                if (! array_key_exists($index, $dataRecsOld))
+                    return TRUE;
+                    
+                    // Ако има промяна в крайния срок - известяване
+                if ($new->dueDate != $old->dueDate)
+                    return TRUE;
+            }
+        }
+        
+        return FALSE;
     }
 
     /**

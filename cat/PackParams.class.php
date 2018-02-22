@@ -67,9 +67,9 @@ class cat_PackParams extends core_Manager
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие');
     	$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Опаковка,mandatory');
-    	$this->FLD('sizeWidth', 'cat_type_Size(min=0)', 'caption=Параметри->Ширина');
-    	$this->FLD('sizeHeight', 'cat_type_Size(min=0)', 'caption=Параметри->Височина');
-    	$this->FLD('sizeDepth', 'cat_type_Size(min=0)', 'caption=Параметри->Дълбочина');
+    	$this->FLD('sizeWidth', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Ширина');
+    	$this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Височина');
+    	$this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Дълбочина');
     	$this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Параметри->Тара');
     	
     	$this->setDbUnique('title,packagingId');

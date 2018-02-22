@@ -478,8 +478,6 @@ class planning_ProductionTaskProducts extends core_Detail
     			}
     		}
     	}
-    	 
-    	$data->toolbar->removeBtn('binBtn');
     }
     
     
