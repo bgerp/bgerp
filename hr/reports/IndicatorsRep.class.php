@@ -286,7 +286,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 					$value = str::calcMathExpr($expr, $success);
                 }
 
-                if($success) {
+                if($success !== FALSE) {
 					$row->value = '<b>' . $Double->toVerbal($value) . '</b>';
 				} else {
 					$row->value = '<small style="font-style:italic;color:red;">' . tr("Невъзможно изчисление") . '</small>';
