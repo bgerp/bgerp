@@ -1588,7 +1588,7 @@ class sales_Quotations extends core_Master
             $dQuery = sales_QuotationsDetails::getQuery();
             $dQuery->where(array("#quotationId = '[#1#]'", $id));
             
-            // Показваме кода на продукта с най високата сума
+            // Показваме кода на продукта с най-високата сума
             $maxAmount = NULL;
             $productId = 0;
             $pCnt = 0;
