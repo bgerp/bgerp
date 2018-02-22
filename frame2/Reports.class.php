@@ -811,8 +811,9 @@ class frame2_Reports extends embed_Manager
     	if(!count($csvExportRows)) followRetUrl(NULL, 'Няма данни за експортиране');
     	
     	// Създаване на csv-то
-    	$fields = $fields->getFieldArr();
-    	$csv = csv_Lib::createCsv($csvExportRows, NULL, $fields);
+    	$listFields = $fields->getFieldArr();
+    	$fields = new core_FieldSet();
+    	$csv = csv_Lib::createCsv($csvExportRows, $fields, $listFields);
     	$csv .= "\n";
     	
     	// Подсигуряване че енкодига е UTF8

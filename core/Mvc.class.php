@@ -856,11 +856,7 @@ class core_Mvc extends core_FieldSet
             $title = $inst->className;
         }
         
-        if(Mode::is('text', 'plain')) {
-            $link = $title;
-        } else {
-            $link = ht::createLink($title, array($me, 'list', $objId));
-        }
+        $link = $title;
         
         return $link;
     }

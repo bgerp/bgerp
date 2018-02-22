@@ -2766,6 +2766,10 @@ ul.history {
 			background-color:$quiet-gray;
 			color: #fff;
 		}
+        &.link b {
+            background-color: #999;
+            color: #fff;
+        }
 		&.changed b {
 			background-color: #600;
 		}
