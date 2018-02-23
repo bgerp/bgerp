@@ -72,7 +72,7 @@ class cat_PackParams extends core_Manager
     	$this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Дълбочина');
     	$this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Параметри->Тара');
     	
-    	$this->setDbUnique('title,packagingId');
+    	$this->setDbUnique('title,packagingId,sizeWidth,sizeHeight,sizeDepth,tareWeight');
     	$this->setDbIndex('packagingId');
     }
     
@@ -130,8 +130,6 @@ class cat_PackParams extends core_Manager
     public static function getTemplates($packagingId)
     {
     	$array = array();
-    	$uomType = cat_UoM::fetchField($packagingId, 'type');
-    	if($uomType != 'packaging') return $array;
     	
     	$query = self::getQuery();
     	$query->where("#packagingId = {$packagingId} AND #state != 'closed'");
@@ -148,7 +146,7 @@ class cat_PackParams extends core_Manager
     		$array[$rec->id] = $title;
     	}
     	
-    	usort($array, function($a, $b) {return strcmp($a, $b);});
+    	uasort($array, function($a, $b) {return strcmp($a, $b);});
     	
     	return $array;
     }
