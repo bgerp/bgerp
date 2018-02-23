@@ -463,7 +463,7 @@ class cat_products_Packagings extends core_Detail
         }
         
         if ($this->haveRightFor('add', (object)array('productId' => $data->masterId))) {
-            $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => getCurrentUrl() + array('#'=> get_class($this)));
+            $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => array('cat_Products', 'single', $data->masterId) + array('#'=> get_class($this)));
         }
         
         $data->listFields = arr::make($this->listFields, TRUE);
