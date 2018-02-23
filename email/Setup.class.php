@@ -803,7 +803,7 @@ class email_Setup extends core_ProtoSetup
                 $numMsg = $imapConn->getStatistic('messages');
                 if (isset($numMsg) && $end != $numMsg) {
                     
-                    email_Accounts::logDebug("Променен брой имейли от {$end} на {$numMsg}", $accId);
+                    email_Accounts::logDebug("Променен брой имейли за проверка от {$end} на {$numMsg}", $accId);
                     
                     $end = $numMsg;
                 }
