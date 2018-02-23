@@ -789,7 +789,7 @@ class email_Setup extends core_ProtoSetup
         
         sleep(7);
         
-        $deadline = time() + 50;
+        $deadline = time() + 40;
         
         $lockKey = 'Inbox:' . $accRec->id;
         
@@ -803,7 +803,7 @@ class email_Setup extends core_ProtoSetup
                 $numMsg = $imapConn->getStatistic('messages');
                 if (isset($numMsg) && $end != $numMsg) {
                     
-                    email_Accounts::logDebug("Променен брой имейли от {$end} на {$numMsg}", $accId);
+                    email_Accounts::logDebug("Променен брой имейли за проверка от {$end} на {$numMsg}", $accId);
                     
                     $end = $numMsg;
                 }

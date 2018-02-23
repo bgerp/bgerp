@@ -162,7 +162,7 @@ class export_Csv extends core_Mvc
         }
         
         if (!$lg) {
-            $lg = doc_Containers::getLanguage($mRec->containerId);
+            $lg = doc_Containers::getLanguage($cRec->containerId);
             
             if ($lg && !core_Lg::isGoodLg($lg)) {
                 $lg = 'en';

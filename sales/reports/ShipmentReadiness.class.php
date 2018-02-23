@@ -86,8 +86,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-		$fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Търговци,after=title,single=none');
-		$fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,after=dealers,single=none');
+		$fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Потребители,after=title,single=none');
+		$fieldset->FLD('dealerType', 'enum(,dealer=Търговец,inCharge=Отговорник на папка)', 'caption=Тип потребител,after=dealers,single=none');
+		$fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,after=dealerType,single=none');
 		$fieldset->FLD('ignore', 'enum(,yes=Да)', 'caption=Без избраните,after=countries,single=none');
 		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=ignore');
 		$fieldset->FLD('horizon', 'time(uom=days,Min=0)', 'caption=Падиращи до,after=precision');
@@ -150,10 +151,14 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
 	{
 		if(!$form->isSubmitted()) return;
-		
 		$rec = &$form->rec;
+		
 		if($rec->ignore == 'yes' && empty($rec->countries)){
 			$form->setError('countries,ignore', 'Трябва да има избрани държави, за изключване');
+		}
+		
+		if(empty($rec->dealers) && !empty($rec->dealerType)){
+			$form->setError('dealers,dealerType', 'Не са избрани потребители, за да е посочен тип');
 		}
 	}
 	
@@ -329,12 +334,17 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	{
 		$fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>[#COUNTRY_CAPTION#]: [#countries#]</div><!--ET_END countries--><!--ET_BEGIN horizon-->|Падиращи до|* [#horizon#]<!--ET_END horizon--></small></fieldset><!--ET_END BLOCK-->"));
+							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->[#CAPTION_DEALERS#]: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>[#COUNTRY_CAPTION#]: [#countries#]</div><!--ET_END countries--><!--ET_BEGIN horizon-->|Падиращи до|* [#horizon#]<!--ET_END horizon--></small></fieldset><!--ET_END BLOCK-->"));
 		
 		foreach (array('dealers', 'countries', 'horizon') as $fld){
 			if(isset($data->rec->{$fld})){
 				$fieldTpl->append($data->row->{$fld}, $fld);
 			}
+		}
+		
+		if(isset($data->rec->dealers)){
+			$caption = ($data->rec->dealerType == 'dealer') ? tr('Търговци') : (($data->rec->dealerType == 'inCharge') ? tr('Отговорници') : tr('Потребители'));
+			$fieldTpl->append($caption, 'CAPTION_DEALERS');
 		}
 		
 		if(isset($data->rec->countries)){
@@ -386,7 +396,17 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		$sQuery->EXT('inCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
 		if(count($dealers)){
 			$dealers = implode(',', $dealers);
-			$sQuery->where("#inCharge IN ({$dealers}) OR #dealerId IN ({$dealers})");
+			switch($rec->dealerType){
+				case 'dealer':
+					$sQuery->where("#dealerId IN ({$dealers})");
+					break;
+				case 'inCharge':
+					$sQuery->where("#inCharge IN ({$dealers})");
+					break;
+				default:
+					$sQuery->where("#inCharge IN ({$dealers}) OR #dealerId IN ({$dealers})");
+					break;
+			}
 		}
 		
 		// За всяка

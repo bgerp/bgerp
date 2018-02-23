@@ -2980,7 +2980,7 @@ class cat_Products extends embed_Manager {
         $recs = array();
         
         $exportFStr = $this->getExportMasterFieldName();
-        $exportFCls = get_called_class();
+        $exportFCls = cls::get(get_called_class());
         
         foreach ($detArr as $dName) {
             if (!cls::load($dName, TRUE)) continue;
@@ -2991,10 +2991,7 @@ class cat_Products extends embed_Manager {
             
             if (!$dInst->fields[$exportFStr]) continue;
             
-            if ($exportFCls) {
-                $exportFCls = cls::get($exportFCls);
-                if (!($exportFCls instanceof $dInst->fields[$exportFStr]->type->params['mvc'])) continue;
-            }
+            if (!($exportFCls instanceof $dInst->fields[$exportFStr]->type->params['mvc'])) continue;
             
             if (!$dInst->masterKey) continue;
             
