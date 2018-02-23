@@ -116,6 +116,8 @@ class cat_UoM extends core_Manager
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
+        $this->setDbIndex('baseUnitId');
+        $this->setDbIndex('sysId');
     }
     
     

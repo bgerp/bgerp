@@ -39,7 +39,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'packagingId=Наименование, quantity=К-во, code=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimention=Габарити, eanCode=';
+    public $listFields = 'packagingId=Наименование, quantity=К-во, code=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити, eanCode=';
 
     
     /**
@@ -403,6 +403,14 @@ class cat_products_Packagings extends core_Detail
                 $form->setReadOnly('packagingId');
                 $form->setReadOnly('quantity');
             }
+            
+            if(empty($rec->templateId)){
+            	foreach (array('sizeWidth', 'sizeHeight', 'sizeDepth', 'tareWeight') as $fld){
+            		if(!empty($rec->{$fld})){
+            			$form->setField($fld, 'input');
+            		}
+            	}
+            }
         }
     }
     
@@ -418,7 +426,7 @@ class cat_products_Packagings extends core_Detail
         	}
         }
         
-        $row->dimention = "{$row->sizeWidth} <span class='quiet'>x</span> {$row->sizeHeight} <span class='quiet'>x</span> {$row->sizeDepth}";
+        $row->dimension = "{$row->sizeWidth} <span class='quiet'>x</span> {$row->sizeHeight} <span class='quiet'>x</span> {$row->sizeDepth}";
         
         if(!empty($rec->eanCode)){
             $row->code = $row->eanCode;
@@ -462,8 +470,9 @@ class cat_products_Packagings extends core_Detail
             $data->rows[$rec->id] = self::recToVerbal($rec);
         }
         
+        $data->retUrl = (isset($data->retUrl)) ? $data->retUrl : cat_Products::getSingleUrlArray($data->masterId);
         if ($this->haveRightFor('add', (object)array('productId' => $data->masterId))) {
-            $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => array('cat_Products', 'single', $data->masterId) + array('#'=> get_class($this)));
+            $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => $data->retUrl);
         }
         
         $data->listFields = arr::make($this->listFields, TRUE);
@@ -630,22 +639,5 @@ class cat_products_Packagings extends core_Detail
 
         // Връщаме резултат
         return $isUsed;
-    }
-    
-    
-    /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-    {
-    	// Създаване на нов шаблон на опаковката при нужда
-    	$uomType = cat_UoM::fetchField($rec->packagingId, 'type');
-    	if($uomType == 'packaging'){
-    		cat_PackParams::sync($rec->packagingId, $rec->sizeWidth, $rec->sizeHeight, $rec->sizeDepth, $rec->tareWeight);
-    	}
     }
 }

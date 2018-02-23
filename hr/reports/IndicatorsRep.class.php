@@ -286,8 +286,8 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
                 }
 
                 if($success !== FALSE) {
-                	$value = $Double->toVerbal($value);
-					$row->value = ($isPlain) ?  $value : "<b>{$value}</b>";
+                	$valueVerbal = $Double->toVerbal($value);
+					$row->value = ($isPlain) ?  frame_CsvLib::toCsvFormatDouble($value) : "<b>{$valueVerbal}</b>";
 				} else {
 					$value = tr("Невъзможно изчисление");
 					$row->value = (!$isPlain) ? "<small style='font-style:italic;color:red;'>{$value}</small>" : $value;
