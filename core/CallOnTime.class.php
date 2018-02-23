@@ -254,6 +254,8 @@ class core_CallOnTime extends core_Manager
             } catch (core_exception_Expect $e) {
                 $res .= "Грешка при извикване на '{$rec->className}->callback_{$rec->methodName}'";
                 self::logErr("Грешка при извикване на функция", $rec->id);
+                
+                reportException($e);
             }
         }
         
