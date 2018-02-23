@@ -91,9 +91,9 @@ class cat_products_Packagings extends core_Detail
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
         $this->FLD('eanCode', 'gs1_TypeEan(mvc=cat_products_Packagings,field=eanCode)', 'caption=EAN');
         $this->FLD('templateId', 'key(mvc=cat_PackParams,select=title)', 'caption=Допълнително->Размери,silent,removeAndRefreshForm=tareWeight|sizeWidth|sizeHeight|sizeDepth,class=w50');
-        $this->FLD('sizeWidth', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Ширина,input=hidden');
-        $this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Височина,input=hidden');
-        $this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Дълбочина,input=hidden');
+        $this->FLD('sizeWidth', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Дължина,input=hidden');
+        $this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Широчина,input=hidden');
+        $this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Височина,input=hidden');
         $this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Допълнително->Тара,input=hidden');
         
         $this->setDbUnique('productId,packagingId');
