@@ -236,6 +236,14 @@ class core_CallOnTime extends core_Manager
         $query->where("#state != 'pending'");
         while ($rec = $query->fetch()) {
             
+			// Ако сме се доближили до края - да приключваме процеса
+            if (core_Cron::getTimeLeft() < 5) {
+                
+                self::logNotice('Приключен процес поради свършване на времето');
+                
+                break;
+            }
+            
             // Променяме състоянието, за да не може да се извика повторно
             $nRec = clone $rec;
             $nRec->state = 'pending';
