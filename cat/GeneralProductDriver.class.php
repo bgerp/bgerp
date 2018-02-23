@@ -374,4 +374,40 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		return $res;
 	}
+	
+	
+	/**
+	 * Връща транспортното тегло за подаденото количество
+	 *
+	 * @param mixed $rec    - ид или запис на продукт
+	 * @param int $quantity - общо количество
+	 * @return double|NULL  - транспортното тегло на общото количество
+	 */
+	public function getTransportWeight($rec, $quantity)
+	{
+		$weight = cat_Products::getParams($rec->id, 'transportWeight');
+		if($weight){
+			$weight *= $quantity;
+			return round($weight, 2);
+		}
+		
+		return NULL;
+	}
+	
+	
+	/**
+	 * Връща транспортния обем за подаденото количество
+	 *
+	 * @param mixed $rec     - ид или запис на артикул
+	 * @param int $quantity  - общо количество
+	 * @return double        - транспортния обем на общото количество
+	 */
+	public function getTransportVolume($rec, $quantity)
+	{
+		$volume = static::getParams($rec->id, 'transportVolume');
+    	if($volume){
+    		$volume *= $quantity;
+    		return round($volume, 2);
+    	}
+	}
 }

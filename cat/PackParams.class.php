@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър за параметрите на опаковките
+ * Мениджър за Размерите на опаковките
  *
  *
  * @category  bgerp
@@ -12,7 +12,7 @@
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Параметри на опаковките
+ * @title     Размер на опаковките
  */
 class cat_PackParams extends core_Manager
 {
@@ -21,19 +21,19 @@ class cat_PackParams extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Параметри на опаковките";
+    public $title = "Размери на опаковките";
     
     
     /**
      * Единично заглавие
      */
-    public $singleTitle = "Параметър на опаковка";
+    public $singleTitle = "Размер на опаковка";
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Search, plg_State2, plg_SaveAndNew, plg_Sorting';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Search, plg_State2, plg_SaveAndNew, plg_Sorting, plg_Created, plg_Modified';
     
     
     /**
@@ -67,12 +67,12 @@ class cat_PackParams extends core_Manager
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие');
     	$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Опаковка,mandatory');
-    	$this->FLD('sizeWidth', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Ширина');
-    	$this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Височина');
-    	$this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Дълбочина');
+    	$this->FLD('sizeWidth', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Дължина');
+    	$this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Широчина');
+    	$this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Височина');
     	$this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Параметри->Тара');
     	
-    	$this->setDbUnique('title,packagingId');
+    	$this->setDbUnique('title,packagingId,sizeWidth,sizeHeight,sizeDepth,tareWeight');
     	$this->setDbIndex('packagingId');
     }
     
@@ -130,8 +130,6 @@ class cat_PackParams extends core_Manager
     public static function getTemplates($packagingId)
     {
     	$array = array();
-    	$uomType = cat_UoM::fetchField($packagingId, 'type');
-    	if($uomType != 'packaging') return $array;
     	
     	$query = self::getQuery();
     	$query->where("#packagingId = {$packagingId} AND #state != 'closed'");
@@ -148,7 +146,7 @@ class cat_PackParams extends core_Manager
     		$array[$rec->id] = $title;
     	}
     	
-    	usort($array, function($a, $b) {return strcmp($a, $b);});
+    	uasort($array, function($a, $b) {return strcmp($a, $b);});
     	
     	return $array;
     }
