@@ -385,7 +385,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function getTransportWeight($rec, $quantity)
 	{
-		$weight = cat_Products::getParams($rec->id, 'transportWeight');
+		$weight = $this->getParams(cat_Products::getClassId(), $rec->id, 'transportWeight');
 		if($weight){
 			$weight *= $quantity;
 			return round($weight, 2);
@@ -404,7 +404,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function getTransportVolume($rec, $quantity)
 	{
-		$volume = static::getParams($rec->id, 'transportVolume');
+		$volume = $this->getParams(cat_Products::getClassId(), $rec->id, 'transportVolume');
     	if($volume){
     		$volume *= $quantity;
     		return round($volume, 2);
