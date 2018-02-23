@@ -639,7 +639,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		$shippedAmount = $dealInfo->get('deliveryAmount');
 		
 		// Ако доставеното по сделката е над 90% от сумата и, то тя се пропуска
-		if ($agreed && ($shippedAmount / $agreed > 0.9)) return NULL;
+		//if ($agreed && ($shippedAmount / $agreed > 0.9)) return NULL;
 		
 		$agreedProducts = $dealInfo->get('products');
 		$shippedProducts = $dealInfo->get('shippedProducts');
@@ -674,7 +674,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 					if(isset($shippedProducts[$pId])){
 						$produced = planning_Jobs::fetchField($closedJobId, 'quantityProduced');
 						if($shippedProducts[$pId]->quantity >= ($produced * 0.9)){
-							$ignore = TRUE;
+							$quantityInStore = store_Products::getQuantity($productRec->id);
+							if($quantityInStore <= 1){
+								$ignore = TRUE;
+							}
 						}
 					}
 				}
