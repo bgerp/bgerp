@@ -72,37 +72,38 @@ class cat_PackParams extends core_Manager
     	$this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Височина');
     	$this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Параметри->Тара');
     	
-    	$this->setDbUnique('title,packagingId,sizeWidth,sizeHeight,sizeDepth,tareWeight');
     	$this->setDbIndex('packagingId');
     }
     
     
     /**
      * Проверява дали посочения запис не влиза в конфликт с някой уникален
+     * 
      * @param: $rec stdClass записа, който ще се проверява
      * @param: $fields array|string полетата, които не уникални.
      * @return: bool
      */
     public function isUnique($rec, &$fields = array(), &$exRec = NULL)
     {
-    	$where = "#id != '{$rec->id}' AND #packagingId = '{$rec->packagingId}'";
-    	
-    	$where .= (!empty($rec->sizeWidth)) ? " AND #sizeWidth = {$rec->sizeWidth}" : " AND #sizeWidth IS NULL";
-    	$where .= (!empty($rec->sizeHeight)) ? " AND #sizeHeight = {$rec->sizeHeight}" : " AND #sizeHeight IS NULL";
-    	$where .= (!empty($rec->sizeDepth)) ? " AND #sizeDepth = {$rec->sizeDepth}" : " AND #sizeDepth IS NULL";
-    	$where .= (!empty($rec->tareWeight)) ? " AND #tareWeight = {$rec->tareWeight}" : " AND #tareWeight IS NULL";
-    	
     	if(!empty($rec->title)){
-    		$where = "({$where}) OR (#packagingId = '{$rec->packagingId}' AND #title = '{$rec->title}')";
+    		$where = "#id != '{$rec->id}' AND #packagingId = '{$rec->packagingId}' AND #title = '{$rec->title}'";
+    		$fields = array('title', 'packagingId');
+    	} else {
+    		$where = "#id != '{$rec->id}' AND #packagingId = '{$rec->packagingId}' AND (#title = '' OR #title IS NULL)";
+    		$where .= (!empty($rec->sizeWidth)) ? " AND #sizeWidth = {$rec->sizeWidth}" : " AND #sizeWidth IS NULL";
+    		$where .= (!empty($rec->sizeHeight)) ? " AND #sizeHeight = {$rec->sizeHeight}" : " AND #sizeHeight IS NULL";
+    		$where .= (!empty($rec->sizeDepth)) ? " AND #sizeDepth = {$rec->sizeDepth}" : " AND #sizeDepth IS NULL";
+    		$where .= (!empty($rec->tareWeight)) ? " AND #tareWeight = {$rec->tareWeight}" : " AND #tareWeight IS NULL";
+    		$fields = array('packagingId', 'sizeWidth', 'sizeHeight', 'sizeDepth', 'tareWeight');
     	}
     	
     	$res = $this->fetch($where);
     	if($res){
     		$exRec = $res;
-    		$fields = array('title', 'packagingId', 'sizeWidth', 'sizeHeight', 'sizeDepth', 'tareWeight');
     		return FALSE;
     	}
     
+    	unset($fields);
     	return TRUE;
     }
     
@@ -149,25 +150,6 @@ class cat_PackParams extends core_Manager
     	uasort($array, function($a, $b) {return strcmp($a, $b);});
     	
     	return $array;
-    }
-    
-    
-    /**
-     * Създаване на нов шаблон ако няма
-     *  
-     * @param int $packagingId   - опаковка
-     * @param double $sizeWidth  - широчина
-     * @param double $sizeHeight - височина
-     * @param double $sizeDepth  - дълбочина
-     * @param double $tareWeight - тара
-     */
-    public static function sync($packagingId, $sizeWidth, $sizeHeight, $sizeDepth, $tareWeight)
-    {
-    	$rec = (object)array('packagingId' => $packagingId, 'sizeWidth' => $sizeWidth, 'sizeHeight' => $sizeHeight, 'sizeDepth' => $sizeDepth, 'tareWeight' => $tareWeight);
-    	$self = cls::get(get_called_class());
-    	if($self->isUnique($rec, $fields, $exRec)){
-    		$self->save($rec);
-    	}
     }
     
     

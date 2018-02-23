@@ -403,6 +403,14 @@ class cat_products_Packagings extends core_Detail
                 $form->setReadOnly('packagingId');
                 $form->setReadOnly('quantity');
             }
+            
+            if(empty($rec->templateId)){
+            	foreach (array('sizeWidth', 'sizeHeight', 'sizeDepth', 'tareWeight') as $fld){
+            		if(!empty($rec->{$fld})){
+            			$form->setField($fld, 'input');
+            		}
+            	}
+            }
         }
     }
     
@@ -630,22 +638,5 @@ class cat_products_Packagings extends core_Detail
 
         // Връщаме резултат
         return $isUsed;
-    }
-    
-    
-    /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-    {
-    	// Създаване на нов шаблон на опаковката при нужда
-    	$uomType = cat_UoM::fetchField($rec->packagingId, 'type');
-    	if($uomType == 'packaging'){
-    		cat_PackParams::sync($rec->packagingId, $rec->sizeWidth, $rec->sizeHeight, $rec->sizeDepth, $rec->tareWeight);
-    	}
     }
 }
