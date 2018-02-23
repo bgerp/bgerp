@@ -789,7 +789,7 @@ class email_Setup extends core_ProtoSetup
         
         sleep(7);
         
-        $deadline = time() + 50;
+        $deadline = time() + 40;
         
         $lockKey = 'Inbox:' . $accRec->id;
         
