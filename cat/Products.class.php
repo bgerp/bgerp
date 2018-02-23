@@ -1598,12 +1598,6 @@ class cat_Products extends embed_Manager {
     		return round($volume, 2);
     	}
     	
-    	$volume = static::getParams($productId, 'transportVolume');
-    	if($volume){
-    		$volume *= $quantity;
-    		return round($volume, 2);
-    	}
-    	
     	return NULL;
     }
     

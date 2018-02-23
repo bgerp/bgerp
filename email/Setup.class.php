@@ -845,8 +845,8 @@ class email_Setup extends core_ProtoSetup
         core_Permanent::set($pKey, $emlStatus, 100000);
         
         $mp = $accId;
-        if ($mp == 1 || $mp > 5) {
-            $mp = rand(1, 5);
+        if ($mp == 1 || $mp > 10) {
+            $mp = rand(1, 10);
         }
         
         $callOn = dt::addSecs(60 * $mp);
