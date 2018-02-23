@@ -418,7 +418,7 @@ class cat_products_Packagings extends core_Detail
         	}
         }
         
-        $row->dimention = "{$row->sizeWidth} x {$row->sizeHeight} x {$row->sizeDepth}";
+        $row->dimention = "{$row->sizeWidth} <span class='quiet'>x</span> {$row->sizeHeight} <span class='quiet'>x</span> {$row->sizeDepth}";
         
         if(!empty($rec->eanCode)){
             $row->code = $row->eanCode;
@@ -426,11 +426,11 @@ class cat_products_Packagings extends core_Detail
         
         if($netWeight = cat_Products::convertToUom($rec->productId, 'kg')){
         	$netWeight = core_Type::getByName('cat_type_Weight')->toVerbal($netWeight * $rec->quantity);
-        	$row->weight = tr("|Нето|*: ") . $netWeight . "<br>";
+        	$row->weight = "<span class='quiet'>" . tr("Нето") . ": </span>" . $netWeight . "<br>";
         }
         
         if(!empty($rec->tareWeight)){
-            $row->weight .= tr("|Тара|*: {$row->tareWeight}");
+            $row->weight .= "<span class='quiet'>" . tr("Тара") . ": </span>" .  $row->tareWeight;
         }
         
         if($rec->isBase == 'yes'){
