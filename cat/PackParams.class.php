@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър за параметрите на опаковките
+ * Мениджър за Размерите на опаковките
  *
  *
  * @category  bgerp
@@ -12,7 +12,7 @@
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Параметри на опаковките
+ * @title     Размер на опаковките
  */
 class cat_PackParams extends core_Manager
 {
@@ -21,19 +21,19 @@ class cat_PackParams extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Параметри на опаковките";
+    public $title = "Размери на опаковките";
     
     
     /**
      * Единично заглавие
      */
-    public $singleTitle = "Параметър на опаковка";
+    public $singleTitle = "Размер на опаковка";
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Search, plg_State2, plg_SaveAndNew, plg_Sorting';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Search, plg_State2, plg_SaveAndNew, plg_Sorting, plg_Created, plg_Modified';
     
     
     /**
