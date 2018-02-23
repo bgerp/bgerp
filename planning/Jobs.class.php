@@ -954,6 +954,7 @@ class planning_Jobs extends core_Master
     	$data->packagingData->masterMvc = cls::get('cat_Products');
     	$data->packagingData->masterId = $data->rec->productId;
     	$data->packagingData->tpl = new core_ET("[#CONTENT#]");
+    	$data->packagingData->retUrl = planning_Jobs::getSingleUrlArray($data->rec->id);
     	cls::get('cat_products_Packagings')->preparePackagings($data->packagingData);
     	
     	$data->components = array();
