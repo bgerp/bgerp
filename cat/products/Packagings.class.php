@@ -394,7 +394,7 @@ class cat_products_Packagings extends core_Detail
         }
         
         $form->setDefault('isBase', 'no');
-        $unit = cat_Products::fetchField($rec->productId, 'measureId');
+        $unit = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
         $form->setField('quantity', "unit={$unit}");
         
         // Ако редактираме, но опаковката е използвана не може да се променя
