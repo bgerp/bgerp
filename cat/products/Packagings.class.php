@@ -95,8 +95,7 @@ class cat_products_Packagings extends core_Detail
         $this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Широчина,input=hidden');
         $this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Височина,input=hidden');
         $this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Допълнително->Тара,input=hidden');
-        $this->FNC('dimentions', 'varchar', 'caption=Параметри->Размери,smartCenter');
-
+        
         $this->setDbUnique('productId,packagingId');
         $this->setDbIndex('eanCode');
         $this->setDbIndex('productId');
@@ -428,14 +427,14 @@ class cat_products_Packagings extends core_Detail
         }
         
         if($rec->sizeWidth || $rec->sizeHeight || $rec->sizeDepth) {
-            $row->dimention = "{$row->sizeWidth} x {$row->sizeHeight} x {$row->sizeDepth}";
+            $row->dimension = "{$row->sizeWidth} <span class='quiet'>x</span> {$row->sizeHeight} <span class='quiet'>x</span> {$row->sizeDepth}";
         }
         
         if(!empty($rec->eanCode)){
             $row->code = $row->eanCode;
         }
         
-        if(cat_Products::fetch($rec->productId) && ($netWeight = cat_Products::convertToUom($rec->productId, 'kg'))){
+        if($netWeight = cat_Products::convertToUom($rec->productId, 'kg')){
         	$netWeight = core_Type::getByName('cat_type_Weight')->toVerbal($netWeight * $rec->quantity);
         	$row->weight = "<span class='quiet'>" . tr("Нето") . ": </span>" . $netWeight . "<br>";
         }
