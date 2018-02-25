@@ -568,7 +568,7 @@ abstract class store_DocumentMaster extends core_Master
     	$row->address = str_replace('<br>', ',', $row->address);
     	$row->address = "<span style='font-size:0.8em'>{$contragentTitle}, {$row->address}</span>";
     	 
-    	$row->storeId = store_Stores::getHyperlink($rec->storeId);
+    	$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
     	$row->docId = (!Mode::is('printing')) ? $this->getLink($rec->id, 0) : "#" . $this->getHandle($rec->id);
     	

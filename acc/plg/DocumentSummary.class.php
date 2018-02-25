@@ -206,7 +206,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listFilter->showFields .= 'from, to' . $showFilterDateField;
         
         if($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)){
-            $data->listFilter->FNC('users', "users(rolesForAll={$mvc->filterRolesForAll},rolesForTeams={$mvc->filterRolesForTeam})", 'caption=Потребители,silent,autoFilter,remember');
+            $data->listFilter->FNC('users', "users(rolesForAll={$mvc->filterRolesForAll},rolesForTeams={$mvc->filterRolesForTeam}, showClosedGroups)", 'caption=Потребители,silent,autoFilter,remember');
             $cKey = $mvc->className . core_Users::getCurrent();
             
             $haveUsers = FALSE;

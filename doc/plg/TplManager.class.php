@@ -461,7 +461,7 @@ class doc_plg_TplManager extends core_Plugin
     	if(!$rec->template) return;
     	 
     	$lang = doc_TplManager::fetchField($rec->template, 'lang');
-    	 
+    	
     	$res = $lang;
     }
     

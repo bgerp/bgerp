@@ -668,7 +668,7 @@ class planning_Jobs extends core_Master
     		if($rec->quantityNotStored > 0){
     			if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
     				core_RowToolbar::createIfNotExists($row->_rowTools);
-    				$row->_rowTools->addLink('Нов протокол', array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), array('order' => 19, 'ef_icon' => "img/16/page_paste.png", 'title' => "Създаване на протокол за производство"));
+    				$row->_rowTools->addLink('Произвеждане', array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), array('order' => 19, 'ef_icon' => "img/16/page_paste.png", 'title' => "Създаване на протокол за производство"));
     				$row->quantityNotStored = ht::createHint($row->quantityNotStored, 'Заданието очаква да се създаде протокол за производство', 'warning', FALSE);
     			}
     		}
@@ -954,6 +954,7 @@ class planning_Jobs extends core_Master
     	$data->packagingData->masterMvc = cls::get('cat_Products');
     	$data->packagingData->masterId = $data->rec->productId;
     	$data->packagingData->tpl = new core_ET("[#CONTENT#]");
+    	$data->packagingData->retUrl = planning_Jobs::getSingleUrlArray($data->rec->id);
     	cls::get('cat_products_Packagings')->preparePackagings($data->packagingData);
     	
     	$data->components = array();

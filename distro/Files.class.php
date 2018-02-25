@@ -442,7 +442,7 @@ class distro_Files extends core_Detail
                     $fRec = $this->getRecForFile($groupId, $name, $repoId);
                     
                     if ($fRec === FALSE) {
-                        $this->logWarning('Няма запис за файл, който да се редактира.');
+                        $this->logNotice('Няма запис за файл, който да се редактира');
                         
                         continue;
                     }

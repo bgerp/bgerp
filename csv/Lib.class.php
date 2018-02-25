@@ -560,7 +560,7 @@ class csv_Lib
         if(strlen($enclosure)) {
             $eArr = array($enclosure);
         } else {
-            $eArr = array("\"", "'", chr(8));
+            $eArr = array("\"" );
         }
 
         $nlCnt = substr_count($csv, $nl);
@@ -612,7 +612,7 @@ class csv_Lib
 
                 // Добавка за срещанията на ображдащия символ до разделител или нов ред
                 $deCntL = substr_count($csv, $d . $e) + substr_count($csv, $nl . $e);
-                $deCntR = substr_count($csv, $e . $d) +substr_count($csv, $e . $nl) ;
+                $deCntR = substr_count($csv, $e . $d) + substr_count($csv, $e . $nl);
                 $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * count($res);
                 $points -= ($deCntL > 0) && ($deCntL != $deCntR) * count($res);
          

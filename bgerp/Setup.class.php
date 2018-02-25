@@ -212,7 +212,6 @@ class bgerp_Setup extends core_ProtoSetup {
             'bgerp_Recently',
             'bgerp_Bookmark',
             'bgerp_LastTouch',
-            'bgerp_E',
             'bgerp_F',
         );
         
@@ -237,7 +236,7 @@ class bgerp_Setup extends core_ProtoSetup {
                   email,crm, cat, trans, price, blast,hr,lab,dec,sales,import2,planning,marketing,store,cash,bank,
                   budget,tcost,purchase,accda,permanent,sens2,cams,frame,frame2,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
-                  callcenter,social,hyphen,status,phpmailer,label,webkittopdf,jqcolorpicker";
+                  callcenter,social,hyphen,status,phpmailer,label,webkittopdf,jqcolorpicker,export";
         
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
         if (defined('EF_PRIVATE_PATH')) {

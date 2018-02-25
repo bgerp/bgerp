@@ -221,30 +221,57 @@ class bgerp_L extends core_Manager
                     break;
                 }
             }
-
+            
+            // Показване на линкове за сваляна на документа
             if (!haveRole('user')) {
-                $exportArr = array();
-                try {
-                    $exportArr = $doc->getExportUrl($mid);
-                } catch (core_exception_Expect $e) {
-                    reportException($e);
+                
+                $userId = $options['__userId'];
+                
+                $dLog = doclog_Documents::getAction();
+                if ($dLog->createdBy > 0) {
+                    $userId = $dLog->createdBy;
                 }
-
-                if (doc_PdfCreator::canConvert() || !empty($exportArr)) {
-                    $html->append("<div class='hideLink'>" . tr("Свали като") . ": ");
+                
+                if ($userId > 0) {
+                    $sudo = core_Users::sudo($userId);
                 }
-
-                if (doc_PdfCreator::canConvert()) {
-                    $html->append(ht::createLink('PDF', array($this, 'pdf', $cid, 'mid' => $mid, 'ret_url' => TRUE), NULL, array('class' => 'hideLink inlineLinks', 'ef_icon' => 'fileman/icons/16/pdf.png')));
-                    if(!empty($exportArr)) {
-                        $html->append( " | ");
+                
+                $exportArr = export_Export::getPossibleExports($doc->instance->getClassId(), $rec->id);
+                
+                if ($sudo) {
+                    core_Users::exitSudo();
+                }
+                
+                $exportLinkArr = array();
+                foreach ($exportArr as $clsId => $name) {
+                    $clsInst = cls::getInterface('export_ExportTypeIntf', $clsId);
+                    
+                    $eLink = $clsInst->getExternalExportLink($doc->instance->getClassId(), $rec->id, $mid);
+                    
+                    if ($eLink) {
+                        $exportLinkArr[] = $eLink;
                     }
                 }
-
-                if (!empty($exportArr)) {
-                    $html->append(ht::createLink('CSV', $exportArr, NULL, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/csv.png')));
+                
+                if (!empty($exportLinkArr)) {
+                    $html->append("<div class='hideLink'>" . tr("Свали като") . ": ");
+                    
+                    $isFirst = TRUE;
+                    foreach ($exportLinkArr as $link) {
+                        
+                        if (!$link) continue;
+                        
+                        if (!$isFirst) {
+                            $html->append( " | ");
+                        } else {
+                            $isFirst = FALSE;
+                        }
+                        
+                        $html->append($link);
+                    }
+                    
+                    $html->append("</div>");
                 }
-                $html->append("</div>");
             }
             
             return $html;

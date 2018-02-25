@@ -28,7 +28,7 @@ class cat_UoM extends core_Manager
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'cat,ceo';
+	public $canList = 'packEdit,ceo,sales,purchase';
 
 
 	/**
@@ -116,6 +116,8 @@ class cat_UoM extends core_Manager
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
+        $this->setDbIndex('baseUnitId');
+        $this->setDbIndex('sysId');
     }
     
     

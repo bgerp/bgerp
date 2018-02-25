@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -39,19 +39,13 @@ class cat_products_Packagings extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'packagingId=Наименование, quantity=К-во, code=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimention=Габарити, eanCode=';
+    public $listFields = 'packagingId=Наименование, quantity=К-во, code=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити, eanCode=';
 
     
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created';
-    
-    
-    /**
-     * Активния таб в случай, че wrapper-а е таб контрол.
-     */
-    public $tabName = 'cat_Products';
     
     
     /**
@@ -96,11 +90,11 @@ class cat_products_Packagings extends core_Detail
         $this->FLD('quantity', 'double(Min=0,smartRound)', 'input,caption=Количество,mandatory,smartCenter');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
         $this->FLD('eanCode', 'gs1_TypeEan(mvc=cat_products_Packagings,field=eanCode)', 'caption=EAN');
-        $this->FNC('templateId', 'key(mvc=cat_PackParams)', 'caption=Параметри->Шаблон,silent,removeAndRefreshForm=tareWeight|sizeWidth|sizeHeight|sizeDepth,autohide,class=w50');
-        $this->FLD('sizeWidth', 'cat_type_Size(min=0)', 'caption=Параметри->Ширина,autohide');
-        $this->FLD('sizeHeight', 'cat_type_Size(min=0)', 'caption=Параметри->Височина,autohide');
-        $this->FLD('sizeDepth', 'cat_type_Size(min=0)', 'caption=Параметри->Дълбочина,autohide');
-        $this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Параметри->Тара,autohide');
+        $this->FLD('templateId', 'key(mvc=cat_PackParams,select=title)', 'caption=Допълнително->Размери,silent,removeAndRefreshForm=tareWeight|sizeWidth|sizeHeight|sizeDepth,class=w50');
+        $this->FLD('sizeWidth', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Дължина,input=hidden');
+        $this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Широчина,input=hidden');
+        $this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Височина,input=hidden');
+        $this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Допълнително->Тара,input=hidden');
         $this->FNC('dimentions', 'varchar', 'caption=Параметри->Размери,smartCenter');
 
         $this->setDbUnique('productId,packagingId');
@@ -259,8 +253,8 @@ class cat_products_Packagings extends core_Detail
         
         // Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира опаковките
         if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec) && $requiredRoles != 'no_one'){
-            $productInfo = cat_Products::getProductInfo($rec->productId);
-            if(empty($productInfo->meta['canStore'])){
+            $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+            if($canStore != 'yes'){
                 $requiredRoles = 'no_one';
             }
         }
@@ -345,25 +339,6 @@ class cat_products_Packagings extends core_Detail
         $options = self::getRemainingOptions($rec->productId, $rec->id);
 		$form->setOptions('packagingId', array('' => '') + $options);
 		
-		if(isset($rec->packagingId)){
-			
-			// Намиране на наличните шаблони
-			$packTemplateOptions = cat_PackParams::getTemplates($rec->packagingId);
-			if(count($packTemplateOptions)){
-				$form->setField('templateId', 'input');
-				$form->setOptions('templateId', array('' => '') + $packTemplateOptions);
-		
-				// Зареждане на дефолтите от шаблоните
-				if(isset($rec->templateId)){
-					$pRec = cat_PackParams::fetch($rec->templateId);
-					$form->setDefault('sizeWidth', $pRec->sizeWidth);
-					$form->setDefault('sizeHeight', $pRec->sizeHeight);
-					$form->setDefault('sizeDepth', $pRec->sizeDepth);
-					$form->setDefault('tareWeight', $pRec->tareWeight);
-				}
-			}
-		}
-		
 		// Ако има дефолтни опаковки от драйвера
         if($Driver = cat_Products::getDriver($rec->productId)){
         	$defaults = $Driver->getDefaultPackagings($rec);
@@ -396,10 +371,31 @@ class cat_products_Packagings extends core_Detail
         	}
         }
         
-        $form->setDefault('isBase', 'no');
+        if(isset($rec->packagingId)){
+        	$uomType = cat_UoM::fetchField($rec->packagingId, 'type');
+        	if($uomType != 'uom'){
+        		
+        		// Намиране на наличните шаблони
+        		$packTemplateOptions = cat_PackParams::getTemplates($rec->packagingId);
+        		$form->setOptions('templateId', array('' => '') + $packTemplateOptions);
+        		
+        		if(count($packTemplateOptions)){
+        			// Зареждане на дефолтите от шаблоните
+        			if(isset($rec->templateId)){
+        				$pRec = cat_PackParams::fetch($rec->templateId);
+        				$form->setDefault('sizeWidth', $pRec->sizeWidth);
+        				$form->setDefault('sizeHeight', $pRec->sizeHeight);
+        				$form->setDefault('sizeDepth', $pRec->sizeDepth);
+        				$form->setDefault('tareWeight', $pRec->tareWeight);
+        			}
+        		}
+        	} else {
+        		$form->setField('templateId', 'input=none');
+        	}
+        }
         
-        $pInfo = cat_Products::getProductInfo($rec->productId);
-        $unit = cat_UoM::getShortName($pInfo->productRec->measureId);
+        $form->setDefault('isBase', 'no');
+        $unit = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
         $form->setField('quantity', "unit={$unit}");
         
         // Ако редактираме, но опаковката е използвана не може да се променя
@@ -408,11 +404,18 @@ class cat_products_Packagings extends core_Detail
                 $form->setReadOnly('packagingId');
                 $form->setReadOnly('quantity');
             }
+            
+            if(empty($rec->templateId)){
+            	foreach (array('sizeWidth', 'sizeHeight', 'sizeDepth', 'tareWeight') as $fld){
+            		if(!empty($rec->{$fld})){
+            			$form->setField($fld, 'input');
+            		}
+            	}
+            }
         }
     }
     
    
-    
     /**
      * След преобразуване на записа в четим за хора вид.
      */
@@ -434,11 +437,11 @@ class cat_products_Packagings extends core_Detail
         
         if(cat_Products::fetch($rec->productId) && ($netWeight = cat_Products::convertToUom($rec->productId, 'kg'))){
         	$netWeight = core_Type::getByName('cat_type_Weight')->toVerbal($netWeight * $rec->quantity);
-        	$row->weight = tr("|Нето|*: ") . $netWeight . "<br>";
+        	$row->weight = "<span class='quiet'>" . tr("Нето") . ": </span>" . $netWeight . "<br>";
         }
         
         if(!empty($rec->tareWeight)){
-            $row->weight .= tr("|Тара|*: {$row->tareWeight}");
+            $row->weight .= "<span class='quiet'>" . tr("Тара") . ": </span>" .  $row->tareWeight;
         }
         
         if($rec->isBase == 'yes'){
@@ -470,8 +473,9 @@ class cat_products_Packagings extends core_Detail
             $data->rows[$rec->id] = self::recToVerbal($rec);
         }
         
+        $data->retUrl = (isset($data->retUrl)) ? $data->retUrl : cat_Products::getSingleUrlArray($data->masterId);
         if ($this->haveRightFor('add', (object)array('productId' => $data->masterId))) {
-            $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => getCurrentUrl() + array('#'=> get_class($this)));
+            $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => $data->retUrl);
         }
         
         $data->listFields = arr::make($this->listFields, TRUE);
@@ -638,22 +642,5 @@ class cat_products_Packagings extends core_Detail
 
         // Връщаме резултат
         return $isUsed;
-    }
-    
-    
-    /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-    {
-    	// Създаване на нов шаблон на опаковката при нужда
-    	$uomType = cat_UoM::fetchField($rec->packagingId, 'type');
-    	if($uomType == 'packaging'){
-    		cat_PackParams::sync($rec->packagingId, $rec->sizeWidth, $rec->sizeHeight, $rec->sizeDepth, $rec->tareWeight);
-    	}
     }
 }

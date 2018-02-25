@@ -173,4 +173,38 @@ class cat_Serials extends core_Manager
 			}
 		}
 	}
+	
+	
+	/**
+	 * Канонизиране на генерирания номер
+	 * 
+	 * @param string $serial
+	 * @return string
+	 */
+	public static function canonize($serial)
+	{
+		return str_pad($serial, 13, '0', STR_PAD_LEFT);
+	}
+	
+	
+	/**
+	 * Проверяване на серийния номер
+	 *
+	 * @param string $serial
+	 * @return string
+	 */
+	public static function check($serial, &$error)
+	{
+		if(!type_Int::isInt($serial)) {
+			$error = 'Номера трябва да съдържа само цифри';
+			return FALSE;
+		}
+		
+		if(strlen($serial) > 13){
+			$error = 'Надвишава максималния брой цифри|* 13';
+			return FALSE;
+		}
+		
+		return TRUE;
+	}
 }

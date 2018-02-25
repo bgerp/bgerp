@@ -126,7 +126,7 @@ class planning_ProductionTaskDetails extends core_Detail
     public function description()
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
-    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,caption=Артикул,removeAndRefreshForm=serial|quantity,tdClass=productCell leftCol wrap');
+    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,caption=Артикул,removeAndRefreshForm=serial|quantity');
     	$this->FLD('type', 'enum(input=Влагане,production=Произв.,waste=Отпадък)', 'input=hidden,silent,tdClass=small-field nowrap');
     	$this->FLD('serial', 'varchar(32)', 'caption=Сер. №,smartCenter,focus,autocomplete=off');
     	$this->FLD('serialType', 'enum(existing=Стществуващ,generated=Генериран,printed=Отпечатан,unknown=Непознат)', 'caption=Тип на серийния номер,input=none');
@@ -328,8 +328,10 @@ class planning_ProductionTaskDetails extends core_Detail
     		}
     		
     		if(!empty($rec->serial)){
-    			$padded = str_pad($rec->serial, 13, '0', STR_PAD_LEFT);
-    			$rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial) . ' ' . plg_Search::normalizeText($padded);
+    			if($Driver = cat_Products::getDriver($rec->productId)){
+    				$rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
+    			}
+    			$rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->serial);
     		}
     	}
     }
@@ -362,6 +364,8 @@ class planning_ProductionTaskDetails extends core_Detail
     	
     	if($res['productId'] != $productId){
     		$res['error'] = "Серийния номер е към друг артикул|* " . cat_Products::getHyperlink($res['productId'], TRUE);
+    	} elseif(!$Driver->checkSerial($productId, $serial, $error)){
+    		$res['error'] = $error;
     	}
     	
     	return $res;
@@ -384,23 +388,25 @@ class planning_ProductionTaskDetails extends core_Detail
     	if(isset($rec->serial)){
     		$row->serial = "<b>{$row->serial}</b>";
     	}
-    	 
+    	
     	$row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : 'row-removed'));
     	if($rec->state == 'rejected'){
     		$row->ROW_ATTR['title'] = tr('Оттеглено от') . " " . core_Users::getVerbal($rec->modifiedBy, 'nick');
     	}
     	
-    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
-    	$measureId = cat_Products::fetchField($rec->productId, 'measureId');
-    	$shortUom = cat_UoM::getShortName($measureId);
-    	$packagingId = $measureId;
+    	$pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,name');
+    	$code = cat_Products::getVerbal($pRec, 'code');
+    	$code = ht::createHint($code, cat_Products::getVerbal($pRec, 'name'), 'notice', FALSE);
+    	$row->productId = ht::createLinkRef($code, cat_Products::getSingleUrlArray($rec->productId));
+    	$shortUom = cat_UoM::getShortName($pRec->measureId);
+    	$packagingId = $pRec->measureId;
     	
     	$foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
     	if(!empty($foundRec)){
     		$packagingId = $foundRec->packagingId;
     	}
     	
-    	if($measureId != $packagingId){
+    	if($pRec->measureId != $packagingId){
     		$packagingId = cat_UoM::getShortName($packagingId);
     		$row->type .= " " . tr($packagingId);
     	} elseif($rec->type == 'production'){
@@ -438,13 +444,12 @@ class planning_ProductionTaskDetails extends core_Detail
      */
     public static function getLink($taskId, $serial)
     {
-    	$paddedSerial = str_pad($serial, 13, '0', STR_PAD_LEFT);
-    	$serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($paddedSerial);
+    	$serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
     	if(Mode::isReadOnly()) return $serialVerbal;
     
     	// Линк към прогреса филтриран по сериен номер
     	if(planning_ProductionTaskDetails::haveRightFor('list')){
-    		$serialVerbal = ht::createLink($serialVerbal, array('planning_ProductionTaskDetails', 'list', 'search' => $paddedSerial), FALSE, "title=Към историята на серийния номер");
+    		$serialVerbal = ht::createLink($serialVerbal, array('planning_ProductionTaskDetails', 'list', 'search' => $serialVerbal), FALSE, "title=Към историята на серийния номер");
     	}
     
     	return $serialVerbal;
@@ -533,9 +538,6 @@ class planning_ProductionTaskDetails extends core_Detail
     			$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
     		}
     	}
-    	
-    	// Махане на кошчето
-    	$data->toolbar->removeBtn('binBtn');
     }
 
 
@@ -563,7 +565,6 @@ class planning_ProductionTaskDetails extends core_Detail
     	} else {
     		$data->listFilter->setField('type', 'input=none');
     		unset($data->listFields['modified']);
-    		
     		$data->listFilter->class = 'simpleForm';
     		$data->listFilter->showFields = 'search,fixedAsset,employees';
     		
@@ -722,7 +723,6 @@ class planning_ProductionTaskDetails extends core_Detail
     	$query = self::getQuery();
     	$query->XPR('sum', 'double', 'SUM(#quantity)');
     	$query->where("#taskId = {$rec->taskId} AND #productId = {$rec->productId} AND #fixedAsset = '{$rec->fixedAsset}' AND #id != '{$rec->id}' AND #state = 'active'");
-    	
     	$query->show('sum');
     	$sum = $query->fetch()->sum;
     	
