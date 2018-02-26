@@ -982,7 +982,7 @@ class bgerp_Notifications extends core_Manager
         
         // Ако времето на промяна съвпада с текущото
         if ($lRecModifiedOnTop >= $now) {
-            $lRecModifiedOnTop = dt::subtractSecs(3, $lRecModifiedOnTop);
+            $lRecModifiedOnTop = dt::subtractSecs(3, $now);
         }
         
         $lastModifiedOnKey = $lRecModifiedOnTop;
@@ -1001,7 +1001,7 @@ class bgerp_Notifications extends core_Manager
             
             // Ако времето на промяна съвпада с текущото
             if ($lRecLastTime >= $now) {
-                $lRecLastTime = dt::subtractSecs(3, $lRecLastTime);
+                $lRecLastTime = dt::subtractSecs(3, $now);
             }
             
             $lastModifiedOnKey .= '|' . $lRecLastTime;
