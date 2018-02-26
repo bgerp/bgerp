@@ -172,7 +172,6 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
 	{
-		$isPlain = Mode::is('text', 'plain');
 		$row = new stdClass();
 		$Document = doc_Containers::getDocument($dRec->containerId);
 		
@@ -182,9 +181,6 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		}
 		
 		$row->dealerId = self::$dealers[$dRec->dealerId];
-		if($isPlain){
-			$row->dealerId = strip_tags(($row->dealerId instanceof core_ET) ? $row->dealerId->getContent() : $row->dealerId);
-		}
 		
 		// Линк към контрагента
 		$key = "{$dRec->contragentClassId}|{$dRec->contragentId}";
@@ -192,18 +188,13 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 			self::$contragentNames[$key] = cls::get($dRec->contragentClassId)->getShortHyperlink($dRec->contragentId);
 		}
 		$row->contragentName = self::$contragentNames[$key];
-		if($isPlain){
-			$row->contragentName = strip_tags($row->contragentName);
-			$row->contragentName = str_replace('&nbsp;', ' ', $row->contragentName);
-			$row->contragentName = str_replace(';', '', $row->contragentName);
-		}
 		
 		// Линк към документа
 		$singleUrl = $Document->getSingleUrlArray();
 		$handle = $Document->getHandle();
 		
 		$row->document = "#{$handle}";
-		if(!Mode::isReadOnly() && !$isPlain){
+		if(!Mode::isReadOnly()){
 			$row->document = ht::createLink("#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}");
 			$dTable = $this->getSaleDetailTable($Document->that);
 			if(!empty($dTable)){
@@ -211,9 +202,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 			}
 		}
 		
-		$row->readiness = ($isPlain) ?  frame_CsvLib::toCsvFormatDouble($dRec->readiness * 100) : cls::get('type_Percent')->toVerbal($dRec->readiness);
+		$row->readiness = cls::get('type_Percent')->toVerbal($dRec->readiness);
 		
-		if(!Mode::isReadOnly() && !$isPlain){
+		if(!Mode::isReadOnly()){
 			$row->ROW_ATTR['class'] = "state-{$Document->fetchField('state')}";
 			
 			if($dRec->readiness == 0){
@@ -234,25 +225,19 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		
 		foreach (array('deliveryTime', 'dueDateMin', 'dueDateMax', 'execDate') as $dateFld){
 			if(isset($dRec->{$dateFld})){
-				if($isPlain){
-					$row->{$dateFld} = frame_CsvLib::toCsvFormatData($dRec->{$dateFld});
-				} else {
-					$DeliveryDate = new DateTime($dRec->{$dateFld});
-					$delYear = $DeliveryDate->format('Y');
-					$curYear = date('Y');
-					$mask = ($delYear == $curYear) ? 'd.M' : 'd.M.y';
-					$row->{$dateFld} = dt::mysql2verbal($dRec->{$dateFld}, $mask);
-				}
+				$DeliveryDate = new DateTime($dRec->{$dateFld});
+				$delYear = $DeliveryDate->format('Y');
+				$curYear = date('Y');
+				$mask = ($delYear == $curYear) ? 'd.M' : 'd.M.y';
+				$row->{$dateFld} = dt::mysql2verbal($dRec->{$dateFld}, $mask);
 			}
 		}
 		
-		if(!$isPlain){
-			if(isset($row->dueDateMin) && isset($row->dueDateMax)){
-				if($row->dueDateMin == $row->dueDateMax){
-					$row->dueDates = $row->dueDateMin;
-				} else {
-					$row->dueDates = "{$row->dueDateMin}-{$row->dueDateMax}";
-				}
+		if(isset($row->dueDateMin) && isset($row->dueDateMax)){
+			if($row->dueDateMin == $row->dueDateMax){
+				$row->dueDates = $row->dueDateMin;
+			} else {
+				$row->dueDates = "{$row->dueDateMin}-{$row->dueDateMax}";
 			}
 		}
 		
@@ -551,39 +536,53 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	protected function getTableFieldSet($rec, $export = FALSE)
 	{
 		$fld = cls::get('core_FieldSet');
+		$fld->FLD('dealerId', 'key(mvc=core_Users,select=nick)', 'smartCenter,caption=Търговец');
 		
 		if($export === FALSE){
-			$fld->FLD('dealerId', 'varchar', 'smartCenter,caption=Търговец');
 			$fld->FLD('contragentName', 'varchar', 'caption=Клиент');
 			
 			if($rec->orderBy != 'execDate'){
-				$fld->FLD('dueDates', 'varchar', 'tdClass=small centered,caption=Падеж');
+				$fld->FLD('dueDates', 'date', 'tdClass=small centered,caption=Падеж');
 			}
 			
 			if($rec->orderBy != 'dueDate'){
-				$fld->FLD('execDate', 'varchar', 'tdClass=small centered,caption=Изпълнение');
+				$fld->FLD('execDate', 'date', 'tdClass=small centered,caption=Изпълнение');
 			}
 			
 			$fld->FLD('document', 'varchar', 'caption=Документ');
 			$fld->FLD('readiness', 'double', 'caption=Готовност');
 		} else {
-			$fld->FLD('dealerId', 'varchar','caption=Търговец');
-			$fld->FLD('contragentName', 'varchar','caption=Клиент');
+			$fld->FLD('folderId', 'key(mvc=doc_Folders,select=title)','caption=Клиент');
 			
 			if($rec->orderBy != 'execDate'){
-				$fld->FLD('dueDateMin', 'varchar','caption=Падеж мин');
-				$fld->FLD('dueDateMax', 'varchar','caption=Падеж макс');
+				$fld->FLD('dueDateMin', 'date','caption=Падеж мин');
+				$fld->FLD('dueDateMax', 'date','caption=Падеж макс');
 			}
 				
 			if($rec->orderBy != 'dueDate'){
-				$fld->FLD('execDate', 'varchar','caption=Изпълнение');
+				$fld->FLD('execDate', 'date','caption=Изпълнение');
 			}
 			
 			$fld->FLD('document', 'varchar','caption=Документ');
-			$fld->FLD('readiness', 'varchar','caption=Готовност %');
+			$fld->FLD('readiness', 'percent','caption=Готовност %');
 		}
 		
 		return $fld;
+	}
+	
+	
+	/**
+	 * След подготовка на реда за експорт
+	 * 
+	 * @param frame2_driver_Proto $Driver
+	 * @param stdClass $res
+	 * @param stdClass $rec
+	 * @param stdClass $dRec
+	 */
+	protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+	{
+		$Document = doc_Containers::getDocument($dRec->containerId);
+		$res->document = "#" . $Document->getHandle();
 	}
 	
 	
