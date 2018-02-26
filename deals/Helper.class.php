@@ -1203,12 +1203,13 @@ abstract class deals_Helper
 	 * Връща масив с фактурите в треда
 	 * 
 	 * @param int $threadId            - ид на нишка
+	 * @param date|NULL $valior        - ф-рите до дата, или NULL за всички
 	 * @param boolean $showInvoices    - да се показват само обикновените ф-ри
 	 * @param boolean $showDebitNotes  - да се показват и ДИ
 	 * @param boolean $showCreditNotes - да се показват и КИ
 	 * @return array $invoices         - масив с ф-ри или броя намерени фактури
 	 */
-	public static function getInvoicesInThread($threadId, $showInvoices = TRUE, $showDebitNotes = TRUE, $showCreditNotes = TRUE)
+	public static function getInvoicesInThread($threadId, $valior = NULL, $showInvoices = TRUE, $showDebitNotes = TRUE, $showCreditNotes = TRUE)
 	{
 		$invoices = array();
 		
@@ -1218,6 +1219,10 @@ abstract class deals_Helper
 			$iQuery->where("#threadId = {$threadId} AND #state = 'active'");
 			$iQuery->orderBy('date,number,type,dealValue', 'ASC');
 			$iQuery->show('number,containerId');
+			
+			if(isset($valior)){
+				$iQuery->where("#date <= '{$valior}'");
+			}
 			
 			$whereArr = array();
 			if($showInvoices === TRUE){
@@ -1250,14 +1255,15 @@ abstract class deals_Helper
 	/**
 	 * Помощен метод връщащ разпределението на плащанията по фактури
 	 * 
-	 * @param int $threadId - ид на тред
-	 * @return array $paid  - масив с разпределените плащания
+	 * @param int $threadId     - ид на тред
+	 * @param date|NULL $valior - към коя дата
+	 * @return array $paid      - масив с разпределените плащания
 	 */
-	public static function getInvoicePayments($threadId)
+	public static function getInvoicePayments($threadId, $valior = NULL)
 	{
 		expect($threadId);
 		
-		$invoicesArr = self::getInvoicesInThread($threadId, TRUE, TRUE, TRUE);
+		$invoicesArr = self::getInvoicesInThread($threadId, $valior, TRUE, TRUE, TRUE);
 		if(!count($invoicesArr)) return array();
 	
 		$paid = $invoices = $payDocuments = array();
@@ -1266,6 +1272,9 @@ abstract class deals_Helper
 			$pQuery = $Pdoc->getQuery();
 			$pQuery->where("#threadId = {$threadId} AND #state = 'active'");
 			$pQuery->show('containerId,amountDeal,fromContainerId,isReverse,activatedOn,valior');
+			if(isset($valior)){
+				$pQuery->where("#valior <= '{$valior}'");
+			}
 			
 			while($pRec = $pQuery->fetch()){
 				$type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
@@ -1297,7 +1306,7 @@ abstract class deals_Helper
 			if(count($found)){
 				foreach ($found as $fId => $o){
 					$newInvoiceArr[$k]['current'] -= $o->amount;
-					$percent = min(round($o->amount / $newInvoiceArr[$k]['total'], 2), 1);
+					$percent = min(round($o->amount / $newInvoiceArr[$k]['total'], 4), 1);
 					$totalPercent -= $percent;
 				
 					$paid[$k][$fId] = (object)array('containerId' => $fId, 'percent' => $percent, 'type' => $o->type, 'isReverse' => $o->isReverse);

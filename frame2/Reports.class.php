@@ -1003,4 +1003,14 @@ class frame2_Reports extends embed_Manager
     		}
     	}
     }
+    
+    
+    function act_Test()
+    {
+    	$valior = '2018-02-28';
+    	$r = deals_Helper::getInvoicePayments(62057, $valior);
+    	
+    	
+    	bp($r);
+    }
 }
