@@ -982,11 +982,14 @@ class bgerp_Notifications extends core_Manager
         
         // Ако времето на промяна съвпада с текущото
         if ($lRecModifiedOnTop >= $now) {
-            $lRecModifiedOnTop = dt::subtractSecs(3, $now);
+            $lRecModifiedOnTop = dt::subtractSecs(5, $now);
         }
         
         $lastModifiedOnKey = $lRecModifiedOnTop;
         $lastModifiedOnKey .= '|' . $lastRec->id;
+        
+        // Инвалидиране на кеша след 5 минути
+        $lastModifiedOnKey .= '|' . (int)(dt::mysql2timestamp($lRecModifiedOnTop)/300);
         
         $modifiedBefore = dt::subtractSecs(180);
         
@@ -1001,7 +1004,7 @@ class bgerp_Notifications extends core_Manager
             
             // Ако времето на промяна съвпада с текущото
             if ($lRecLastTime >= $now) {
-                $lRecLastTime = dt::subtractSecs(3, $now);
+                $lRecLastTime = dt::subtractSecs(5, $now);
             }
             
             $lastModifiedOnKey .= '|' . $lRecLastTime;
