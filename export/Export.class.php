@@ -143,7 +143,7 @@ class export_Export extends core_Mvc
         }
         $suggestions = rtrim($suggestions, ',');
         
-        $form->FNC('type', "enum({$suggestions})", 'maxRadio=10, caption=Вид, input');
+        $form->FNC('type', "enum({$suggestions})", 'maxRadio=10, caption=Вид, input, mandatory');
         
         $form->input();
         
