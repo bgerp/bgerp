@@ -97,12 +97,12 @@ class type_Users extends type_Keylist
                 // Масива, където ще пълним опциите
                 $this->options = array();
                 
+                $removeClosedGroups = TRUE;
+                if ($this->params['showClosedGroups']) {
+                    $removeClosedGroups = FALSE;
+                }
+                
                 if(haveRole($this->params['rolesForAll'])) {
-                    
-                    $removeClosedGroups = TRUE;
-                    if ($this->params['showClosedGroups']) {
-                        $removeClosedGroups = FALSE;
-                    }
                     
                     // Показваме всички екипи
                     $teams = core_Roles::getRolesByType('team', 'keylist', $removeClosedGroups);
@@ -121,7 +121,7 @@ class type_Users extends type_Keylist
                     $this->options['all_users'] = $all;
                 } else {
                     // Показваме само екипите на потребителя
-                    $teams = core_Users::getUserRolesByType(NULL, 'team');
+                    $teams = core_Users::getUserRolesByType(NULL, 'team', 'keylist', $removeClosedGroups);
                 }
                 
                 $teams = keylist::toArray($teams);

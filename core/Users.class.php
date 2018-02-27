@@ -1656,7 +1656,7 @@ class core_Users extends core_Manager
     /**
      * Връща масив от роли, които са от посочения тип, за посочения потребител
      */
-    static function getUserRolesByType($userId = NULL, $type = NULL, $result = 'keylist')
+    static function getUserRolesByType($userId = NULL, $type = NULL, $result = 'keylist', $removeClosed = TRUE)
     {
         $roles = core_Users::getRoles($userId);
         
@@ -1665,11 +1665,17 @@ class core_Users extends core_Manager
         $roleQuery = core_Roles::getQuery();
 
         $roleQuery->orderBy("#role", 'ASC');
-
+        
+        $cond = '';
         if($type) {
-            $cond = "#type = '{$type}' AND #state != 'closed'";
+            $cond = "#type = '{$type}'";
+            if ($removeClosed) {
+                $cond .= " AND #state != 'closed'";
+            }
         } else {
-            $cond = "#state != 'closed'";
+            if ($removeClosed) {
+                $cond = "#state != 'closed'";
+            }
         }
         
         while($roleRec = $roleQuery->fetch($cond)) {
