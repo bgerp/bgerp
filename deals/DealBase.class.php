@@ -556,7 +556,6 @@ abstract class deals_DealBase extends core_Master
     	// Проверка за права
     	$this->requireRightFor('export', $rec);
     	$title = $this->title . " Поръчано/Доставено";
-    	$Double = cls::get('type_Double');
     	$csv = csv_Lib::createCsv($data->DealReportCsv, $data->reportTableMvc, $data->reportFields);
     
     	$fileName = str_replace(' ', '_', str::utf2ascii($title));
@@ -610,32 +609,31 @@ abstract class deals_DealBase extends core_Master
 		if(count($productIds)){
 			foreach ($productIds as $productId){
 				$pRec = cat_Products::fetch($productId, 'measureId,isPublic,code,name,canStore');
-				$row = new stdClass();
-				$row->code = cat_Products::getVerbal($pRec, 'code');
-				$row->measure = cat_UoM::getShortName($pRec->measureId);
-				$row->productId = cat_Products::getShortHyperLink($productId);
-				$blQuantity = $dealInfo->products[$productId]->quantity - $dealInfo->shippedProducts[$productId]->quantity;
-				$quantity = ($dealInfo->products[$productId]->quantity) ? $dealInfo->products[$productId]->quantity : 0;
-				$shipQuantity = ($dealInfo->shippedProducts[$productId]->quantity) ? $dealInfo->shippedProducts[$productId]->quantity : 0;
+				$expRec = (object)array('code'         => ($pRec->code) ? $pRec->code : "Art{$productId}",
+										'productId'    => $productId,
+										'measureId'    => $pRec->measureId,
+										'blQuantity'   => $dealInfo->products[$productId]->quantity - $dealInfo->shippedProducts[$productId]->quantity,
+										'quantity'     => ($dealInfo->products[$productId]->quantity) ? $dealInfo->products[$productId]->quantity : 0,
+										'shipQuantity' => ($dealInfo->shippedProducts[$productId]->quantity) ? $dealInfo->shippedProducts[$productId]->quantity : 0,
+				);
+				
+				$row = (object)array('code'      => core_Type::getByName('varchar')->toVerbal($expRec->code),
+									 'measureId'   => cat_UoM::getShortName($expRec->measureId),
+									 'productId' => cat_Products::getShortHyperLink($productId),
+				);
+				
 				if($pRec->canStore == 'yes'){
-					$inStock = store_Products::getQuantity($productId, NULL, TRUE);
-				} else {
-					unset($inStock);
+					$expRec->inStock = store_Products::getQuantity($productId, NULL, TRUE);
 				}
 				
-				$csvRow = clone $row;
-				$csvRow->productId = cat_Products::getVerbal($pRec, 'name');
-				
-				$row->productId = cat_Products::getShortHyperLink($productId);
 				foreach (array('quantity', 'shipQuantity', 'blQuantity', 'inStock') as $q){
-					if(!isset(${$q})) continue;
-					$csvRow->{$q} = frame_CsvLib::toCsvFormatDouble(${$q});
-					$row->{$q} = $Double->toVerbal(${$q});
-					$row->{$q} = (${$q} == 0) ? "<span class='quiet'>{$row->{$q}}</span>" : ht::styleIfNegative($row->{$q}, ${$q});
+					if(!isset($expRec->{$q})) continue;
+					$row->{$q} = $Double->toVerbal($expRec->{$q});
+					$row->{$q} = ($expRec->{$q} == 0) ? "<span class='quiet'>{$row->{$q}}</span>" : ht::styleIfNegative($row->{$q}, $expRec->{$q});
 				}
 				
 				$report[$productId] = $row;
-				$dealReportCSV[$productId] = $csvRow;
+				$dealReportCSV[$productId] = $expRec;
 			}
 		}
 
@@ -654,16 +652,16 @@ abstract class deals_DealBase extends core_Master
     	// проверяваме дали може да се сложи на страницата
     	$data->DealReport = array_slice ($report, $start, $end - $start + 1);
     	$data->DealReportCsv = $dealReportCSV;
-    	$data->reportFields = arr::make("code=Код,productId=Артикул,measure=Мярка,quantity=Количество->Поръчано,shipQuantity=Количество->Доставено,blQuantity=Количество->Остатък,inStock=Количество->Разполагаемо", TRUE);
+    	$data->reportFields = arr::make("code=Код,productId=Артикул,measureId=Мярка,quantity=Количество->Поръчано,shipQuantity=Количество->Доставено,blQuantity=Количество->Остатък,inStock=Количество->Разполагаемо", TRUE);
     	
     	$data->reportTableMvc = new core_Mvc;
     	$data->reportTableMvc->FLD('code', 'varchar');
-    	$data->reportTableMvc->FLD('productId', 'varchar');
-    	$data->reportTableMvc->FLD('measure', 'varchar', 'tdClass=accToolsCell nowrap');
-    	$data->reportTableMvc->FLD('quantity', 'varchar', 'tdClass=aright');
-    	$data->reportTableMvc->FLD('shipQuantity', 'varchar', 'tdClass=aright');
-    	$data->reportTableMvc->FLD('blQuantity', 'varchar', 'tdClass=aright');
-    	$data->reportTableMvc->FLD('inStock', 'varchar', 'tdClass=aright');
+    	$data->reportTableMvc->FLD('productId', 'key(mvc=cat_Products,select=name)');
+    	$data->reportTableMvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'tdClass=accToolsCell nowrap');
+    	$data->reportTableMvc->FLD('quantity', 'double', 'tdClass=aright');
+    	$data->reportTableMvc->FLD('shipQuantity', 'double', 'tdClass=aright');
+    	$data->reportTableMvc->FLD('blQuantity', 'double', 'tdClass=aright');
+    	$data->reportTableMvc->FLD('inStock', 'double', 'tdClass=aright');
 	}
     
     
