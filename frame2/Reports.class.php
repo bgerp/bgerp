@@ -812,11 +812,7 @@ class frame2_Reports extends embed_Manager
     	
     	// Създаване на csv-то
     	$listFields = $fields->getFieldArr();
-    	
-    	$params = array('decPoint' => html_entity_decode(frame2_Setup::get('CSV_DEC_POINT')), 
-    			        'dateFormat' => frame2_Setup::get('CSV_DATE_MASK'));
-    	
-    	$csv = csv_Lib::createCsv($csvRecs, $fields, NULL, $params);
+    	$csv = csv_Lib::createCsv($csvRecs, $fields);
     	$csv .= "\n";
     	
     	// Подсигуряване че енкодига е UTF8

@@ -1,19 +1,6 @@
 <?php
 
 
-
-/**
- * Какъв да е десетичният разделител на числата при експорт в csv
- */
-defIfNot('FRAME2_CSV_DEC_POINT', '&#44;');
-
-
-/**
- * Как да е форматирана датата
-*/
-defIfNot('FRAME2_CSV_DATE_MASK', 'd.m.Y');
-
-
 /**
  * class frame2_Setup
  *
@@ -82,15 +69,6 @@ class frame2_Setup extends core_ProtoSetup
      */
     var $menuItems = array(
     		array(2.56, 'Обслужване', 'Отчети', 'frame2_Reports', 'default', "report, ceo, admin"),
-    );
-    
-    
-    /**
-     * Описание на конфигурационните константи
-     */
-    var $configDescription = array(
-    		'FRAME2_CSV_DATE_MASK' => array ('enum(d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', 'caption=Екпорт във CSV->Дата, customizeBy=user'),
-    		'FRAME2_CSV_DEC_POINT' => array ('enum(.=Точка,&#44;=Запетая)', 'caption=Екпорт във CSV->Дробен знак, customizeBy=user'),
     );
     
     
