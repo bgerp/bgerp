@@ -801,19 +801,18 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	// Подготовка на данните
-    	$csvExportRows = $fields = array();
+    	$csvRecs = $fields = array();
     	if($Driver = $this->getDriver($rec)){
-    		$csvExportRows = $Driver->getCsvExportRows($rec);
+    		$csvRecs = $Driver->getCsvExportRecs($rec);
     		$fields = $Driver->getCsvExportFieldset($rec);
     	}
     	
     	// Проверка има ли данни за експорт
-    	if(!count($csvExportRows)) followRetUrl(NULL, 'Няма данни за експортиране');
+    	if(!count($csvRecs)) followRetUrl(NULL, 'Няма данни за експортиране');
     	
     	// Създаване на csv-то
     	$listFields = $fields->getFieldArr();
-    	$fields = new core_FieldSet();
-    	$csv = csv_Lib::createCsv($csvExportRows, $fields, $listFields);
+    	$csv = csv_Lib::createCsv($csvRecs, $fields);
     	$csv .= "\n";
     	
     	// Подсигуряване че енкодига е UTF8

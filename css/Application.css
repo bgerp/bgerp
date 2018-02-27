@@ -4875,6 +4875,8 @@ only screen and (max-width: 320px) {
     .external .hideLink.inlineLinks {
       margin-left: 0;
       display: inline-block; }
+  .external span.linkWithIcon {
+    padding-left: 23px !important; }
 
 .narrow .external div.hideLink {
   margin-top: 10px; }

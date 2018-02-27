@@ -296,9 +296,9 @@ class csv_Lib
         }
 
         setIfNot($csvDelimiter, $params['delimiter'], $delimiter);
-        setIfNot($decPoint, $params['decPoint'], html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', TRUE), ENT_COMPAT | ENT_HTML401, 'UTF-8'));
-        setIfNot($dateFormat, $params['dateFormat'], core_Setup::get('EF_DATE_FORMAT', TRUE));
-        setIfNot($datetimeFormat, $params['datetimeFormat'], 'd.m.y H:i');
+        setIfNot($decPoint, $params['decPoint'], html_entity_decode(csv_Setup::get('DEC_POINT'), ENT_COMPAT | ENT_HTML401, 'UTF-8'), html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', TRUE), ENT_COMPAT | ENT_HTML401, 'UTF-8'));
+        setIfNot($dateFormat, $params['dateFormat'], csv_Setup::get('DATE_MASK'), core_Setup::get('EF_DATE_FORMAT', TRUE));
+        setIfNot($datetimeFormat, $params['datetimeFormat'], csv_Setup::get('DATE_TIME_MASK'), 'd.m.y H:i');
         setIfNot($thousandsSep, $params['thousandsSep'], '');
         setIfNot($enclosure, $params['enclosure'], '"');
         setIfNot($decimals, $params['decimals'], 2);
@@ -560,7 +560,7 @@ class csv_Lib
         if(strlen($enclosure)) {
             $eArr = array($enclosure);
         } else {
-            $eArr = array("\"", "'", chr(8));
+            $eArr = array("\"" );
         }
 
         $nlCnt = substr_count($csv, $nl);
@@ -612,7 +612,7 @@ class csv_Lib
 
                 // Добавка за срещанията на ображдащия символ до разделител или нов ред
                 $deCntL = substr_count($csv, $d . $e) + substr_count($csv, $nl . $e);
-                $deCntR = substr_count($csv, $e . $d) +substr_count($csv, $e . $nl) ;
+                $deCntR = substr_count($csv, $e . $d) + substr_count($csv, $e . $nl);
                 $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * count($res);
                 $points -= ($deCntL > 0) && ($deCntL != $deCntR) * count($res);
          

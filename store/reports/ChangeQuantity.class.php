@@ -132,24 +132,13 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
 	{
 		$fld = cls::get('core_FieldSet');
 	
-		if($export === FALSE){
-    		$fld->FLD('kod', 'varchar','caption=Код,smartCenter');
-    		$fld->FLD('productId', 'varchar', 'caption=Артикул');
-    		$fld->FLD('measure', 'varchar', 'caption=Мярка');
-    		$fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Наличност');
-    		$fld->FLD('reservedQuantity', 'double', 'caption=Запазено');
-    		$fld->FLD('freeQuantity', 'double', 'caption=Разполагаемо');
-    		$fld->FLD('changeQuantity', 'double', 'caption=Промяна');
-
-		} else { 
-			$fld->FLD('kod', 'varchar','caption=Код');
-    		$fld->FLD('productId', 'varchar', 'caption=Артикул');
-    		$fld->FLD('measure', 'varchar', 'caption=Мярка');
-    		$fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Наличност');
-    		$fld->FLD('reservedQuantity', 'double', 'caption=Запазено');
-    		$fld->FLD('freeQuantity', 'double', 'caption=Разполагаемо');
-    		$fld->FLD('changeQuantity', 'double', 'caption=Промяна');
-		}
+		$fld->FLD('kod', 'varchar','caption=Код');
+    	$fld->FLD('productId', 'varchar', 'caption=Артикул');
+    	$fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
+    	$fld->FLD('quantity', 'double(smartRound)', 'caption=Наличност');
+    	$fld->FLD('reservedQuantity', 'double', 'caption=Запазено');
+    	$fld->FLD('freeQuantity', 'double', 'caption=Разполагаемо');
+    	$fld->FLD('changeQuantity', 'double', 'caption=Промяна');
 	
 		return $fld;
 	}
@@ -165,26 +154,34 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
 	protected function detailRecToVerbal($rec, &$dRec)
 	{
 		$row = new stdClass();
-		$isPlain = Mode::is('text', 'plain');
-
 		$row->kod = (!empty($dRec->kod)) ? core_Type::getByName('varchar')->toVerbal($dRec->kod) : "Art{$dRec->productId}";
-		$row->productId =  ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : cat_Products::getShortHyperlink($dRec->productId);
+		$row->productId = cat_Products::getShortHyperlink($dRec->productId);
 		$row->measure = cat_UoM::getShortName($dRec->measure);
 
 		foreach(array('quantity', 'reservedQuantity', 'freeQuantity', 'changeQuantity') as $fld) {
-		    if(!$isPlain){
-		    	$row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
-		    	$row->{$fld} = (empty($dRec->{$fld})) ? "<span class='quiet'>{$row->{$fld}}</span>" : $row->{$fld};
-		    	$row->{$fld} = ht::styleIfNegative($row->{$fld}, $dRec->{$fld});
-		    } else {
-		    	$row->{$fld} = frame_CsvLib::toCsvFormatDouble($dRec->{$fld});
-		    }
+		    $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
+		    $row->{$fld} = (empty($dRec->{$fld})) ? "<span class='quiet'>{$row->{$fld}}</span>" : $row->{$fld};
+		    $row->{$fld} = ht::styleIfNegative($row->{$fld}, $dRec->{$fld});
 		}
 
 		return $row;
 	}
     
     
+	/**
+	 * След подготовка на реда за експорт
+	 *
+	 * @param frame2_driver_Proto $Driver
+	 * @param stdClass $res
+	 * @param stdClass $rec
+	 * @param stdClass $dRec
+	 */
+	protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+	{
+		$res->kod = (!empty($dRec->kod)) ? $dRec->kod : "Art{$dRec->productId}";
+	}
+	
+	
     /**
 	 * След вербализирането на данните
 	 *

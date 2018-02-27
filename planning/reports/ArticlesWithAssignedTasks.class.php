@@ -1,8 +1,9 @@
 <?php
 
+
+
 /**
- * Мениджър на отчети относно 
- * задания за артикули с възложени задачи
+ * Мениджър на отчети относно задания за артикули с възложени задачи
  *
  * @category  bgerp
  * @package   planning
@@ -32,6 +33,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      */
     public $loadList = 'plg_Sorting';
 
+    
     /**
      * Полета за хеширане на таговете
      *
@@ -40,6 +42,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      */
     protected $hashField = 'productId , jobsId';
 
+    
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
@@ -47,16 +50,19 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      */
     protected $newFieldToCheck = 'productId';
 
+    
     /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField;
 
+    
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = '';
 
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -71,20 +77,18 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             'caption=Подредени,maxRadio=2,columns=2,mandatory,after=title');
     }
 
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param frame2_driver_Proto $Driver
-     *            $Driver
      * @param embed_Manager $Embedder            
      * @param stdClass $data            
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = &$data->form;
-        
         $form->setDefault('typeOfSorting', 'up');
-        
         $form->setDefault('orderingDate', 'activated');
     }
 
@@ -98,7 +102,6 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = NULL)
     {
         $recs = array();
-        
         $productsForJobs = array();
         
         $jobsQuery = planning_Jobs::getQuery();
@@ -289,6 +292,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         return $a->deliveryDate > $b->deliveryDate;
     }
 
+    
     function orderByPayDateDown($a, $b)
     {
         return $a->deliveryDate < $b->deliveryDate;
@@ -300,11 +304,13 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         return $a->activatedDate > $b->activatedDate;
     }
 
+    
     function orderByActivatedDateDown($a, $b)
     {
         return $a->activatedDate < $b->activatedDate;
     }
 
+    
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
@@ -318,15 +324,12 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         
-        if ($export === FALSE) {
-            
-            $fld->FLD('jobsId', 'varchar', 'caption=Задание');
-            $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('btn', 'varchar', 'caption=Връзка');
+        $fld->FLD('jobsId', 'varchar', 'caption=Задание');
+        $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+        if($export === FALSE) {
+        	$fld->FLD('btn', 'varchar', 'caption=Връзка');
         } else {
-            
-            $fld->FLD('jobsId', 'varchar', 'caption=Задание,tdClass=centered');
-            $fld->FLD('productId', 'varchar', 'caption=Артикул');
+        	$fld->FLD('tasks', 'varchar', 'caption=Задачи');
         }
         
         return $fld;
@@ -335,27 +338,24 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param stdClass $rec-
-     *            записа
-     * @param stdClass $dRec-
-     *            чистия запис
+     * @param stdClass $rec  - записа
+     * @param stdClass $dRec - чистия запис
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-        $isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
         
         $row = new stdClass();
         
         if ($rec->orderingDate == 'activated') {
-            $typeOfDatеText = 'Активиран : ';
+        	$typeOfDateText = 'Активиран : ';
             $typeOfDate = $dRec->activatedDate;
         }
         
         if ($rec->orderingDate == 'pay') {
-            $typeOfDatеText = 'Падеж : ';
+        	$typeOfDateText = 'Падеж : ';
             $typeOfDate = $dRec->deliveryDate;
         }
         
@@ -443,6 +443,29 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         return $row;
     }
 
+    
+    /**
+     * След подготовка на реда за експорт
+     *
+     * @param frame2_driver_Proto $Driver
+     * @param stdClass $res
+     * @param stdClass $rec
+     * @param stdClass $dRec
+     */
+    protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+    {
+    	$res->jobsId = planning_Jobs::getTitleById($dRec->jobsId);
+    	if(!empty($dRec->tasksContainerId)){
+    		$taskArr = array();
+    		$tasks = explode(',', $dRec->tasksContainerId);
+    		foreach ($tasks as $contId){
+    			$taskArr[] = "#" . doc_Containers::getDocument($contId)->getHandle();
+    		}
+    		$res->tasks = implode(', ', $taskArr);
+    	}
+    }
+    
+    
     /**
      * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
      *

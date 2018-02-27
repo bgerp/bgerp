@@ -113,8 +113,7 @@ abstract class deals_PaymentDocument extends core_Master {
 		$form->title = core_Detail::getEditTitle($this, $rec->id, 'информация', $rec->id);
 		$form->FLD('fromContainerId', 'int', 'caption=За фактура');
 		
-		$isReverse = ($rec->isReverse == 'yes');
-		$invoices = deals_Helper::getInvoicesInThread($rec->threadId, $isReverse);
+		$invoices = ($rec->isReverse == 'yes') ? deals_Helper::getInvoicesInThread($rec->threadId, NULL, FALSE, FALSE, TRUE) : deals_Helper::getInvoicesInThread($rec->threadId, NULL, TRUE, TRUE, FALSE);
 		$form->setOptions('fromContainerId', array('' => '') + $invoices);
 		$form->setDefault('fromContainerId', $rec->fromContainerId);
 		
@@ -155,8 +154,9 @@ abstract class deals_PaymentDocument extends core_Master {
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'selectinvoice' && isset($rec)){
-			$isReverse = ($rec->isReverse == 'yes');
-			if($rec->state == 'rejected' || !deals_Helper::getInvoicesInThread($rec->threadId, $isReverse)){
+			$hasInvoices = ($rec->isReverse == 'yes') ? deals_Helper::getInvoicesInThread($rec->threadId, NULL, FALSE, FALSE, TRUE) : deals_Helper::getInvoicesInThread($rec->threadId, NULL, TRUE, TRUE, FALSE);
+			
+			if($rec->state == 'rejected' || !$hasInvoices){
 				$requiredRoles = 'no_one';
 			}
 		}

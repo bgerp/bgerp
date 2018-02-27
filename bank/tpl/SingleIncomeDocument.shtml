@@ -95,6 +95,11 @@
                             </table>
                             </td>
                         </tr>
+                        <tr class='footerDocInfo'>
+                            <td colspan="2">
+                                <div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b></div>
+                            </td>
+                        </tr>
                     </table>
             </div>
     </div>

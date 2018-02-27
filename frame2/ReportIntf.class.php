@@ -114,9 +114,9 @@ class frame2_ReportIntf extends embed_DriverIntf
 	 * @param stdClass $rec
 	 * @return array
 	 */
-	public function getCsvExportRows($rec)
+	public function getCsvExportRecs($rec)
 	{
-		return $this->class->getCsvExportRows($rec);
+		return $this->class->getCsvExportRecs($rec);
 	}
 	
 	
