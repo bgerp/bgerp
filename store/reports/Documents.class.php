@@ -274,19 +274,15 @@ class store_reports_Documents extends frame2_driver_TableData
 	*/
 	protected function detailRecToVerbal($rec, &$dRec)
 	{
-		$isPlain = Mode::is('text', 'plain');
 		$row = new stdClass();
 		
 		$Document = doc_Containers::getDocument($dRec->containerId);
 		$row->createdBy = crm_Profiles::createLink($dRec->createdBy);
-		if($isPlain){
-			$row->createdBy = strip_tags(($row->createdBy instanceof core_ET) ? $row->createdBy->getContent() : $row->createdBy);
-		}
 		
 		$handle = $Document->getHandle();
 		$row->documentType = "#{$handle}";
 		
-		if(!Mode::isReadOnly() && !$isPlain){
+		if(!Mode::isReadOnly()){
 			$singleUrl = $Document->getSingleUrlArray();
 			if (empty($url) && frame2_Reports::haveRightFor('single', $rec->id) && $rec->state != 'rejected') {
 				$singleUrl = $Document->getUrlWithAccess($Document->getInstance(), $Document->that);
@@ -295,26 +291,19 @@ class store_reports_Documents extends frame2_driver_TableData
 			$row->documentType = ht::createLink("#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}");
 		}
 		
-		if(!Mode::isReadOnly() && !$isPlain){
+		if(!Mode::isReadOnly()){
 			$row->ROW_ATTR['class'] = "state-{$Document->fetchField('state')}";
 		}
 		
-		if($isPlain){
-			if(!empty($dRec->dueDate)){
-				$row->dueDate = frame_CsvLib::toCsvFormatData($dRec->dueDate);
-			}
-			$row->createdOn = frame_CsvLib::toCsvFormatData($dRec->createdOn);
-		} else {
-			if(!empty($dRec->dueDate)){
-				$DeliveryDate = new DateTime($dRec->dueDate);
-				$delYear = $DeliveryDate->format('Y');
-				$curYear = date('Y');
-				$mask = ($delYear == $curYear) ? 'd.M H:i' : 'd.M.y H:i';
-				$row->dueDate = dt::mysql2verbal($dRec->dueDate, $mask);
-			}
-			
-			$row->createdOn = core_Type::getByName('datetime(format=smartTime)')->toVerbal($dRec->createdOn);
+		if(!empty($dRec->dueDate)){
+			$DeliveryDate = new DateTime($dRec->dueDate);
+			$delYear = $DeliveryDate->format('Y');
+			$curYear = date('Y');
+			$mask = ($delYear == $curYear) ? 'd.M H:i' : 'd.M.y H:i';
+			$row->dueDate = dt::mysql2verbal($dRec->dueDate, $mask);
 		}
+			
+		$row->createdOn = core_Type::getByName('datetime(format=smartTime)')->toVerbal($dRec->createdOn);
 		
 		if(!empty($dRec->weight)){
 			$row->weight = core_Type::getByName('cat_type_Weight')->toVerbal($dRec->weight);
@@ -325,41 +314,63 @@ class store_reports_Documents extends frame2_driver_TableData
 		}
 		
 		if(!empty($dRec->lineId)){
-			if($isPlain){
-				$row->lineId = trans_Lines::getTitleById($dRec->lineId);
-			} else {
-				$row->lineId = trans_Lines::getHyperlink($dRec->lineId);
-			}
+			$row->lineId = trans_Lines::getHyperlink($dRec->lineId);
 		}
 		
-		if($isPlain){
-			$row->folderId = doc_Folders::getTitleById($dRec->folderId, FALSE);
-		} else {
-			$row->created = "{$row->createdOn} " . tr('от') . " {$row->createdBy}";
-			$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($dRec->folderId))->title;
-		}
+		$row->created = "{$row->createdOn} " . tr('от') . " {$row->createdBy}";
+		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($dRec->folderId))->title;
 		
 		if(is_array($dRec->linked) && count($dRec->linked)){
-			$linkedArr = array();
-			foreach ($dRec->linked as $cId){
-				$Document = doc_Containers::getDocument($cId);
-				$link = ($isPlain) ? "#" .$Document->getHandle() : $Document->getLink(0)->getContent();
-				$linkedArr[] = ($isPlain) ? $link : "<tr><td>{$link}<td></tr>";
-			}
-			
-			$row->linked = ($isPlain) ? implode(' ', $linkedArr) : "<table class='small no-border'>" . implode('', $linkedArr) . "</table>";
+			$row->linked = $this->getLinked($dRec);
 		}
 		
 		if(is_array($dRec->stores)){
-			$stores = array();
-			foreach ($dRec->stores as $storeId){
-				$link = store_Stores::getHyperlink($storeId, TRUE);
-				$stores[] = ($isPlain) ? store_Stores::getTitleById($storeId) : store_Stores::getHyperlink($storeId, TRUE);
-			}
-			$row->stores = implode(' » ', $stores);
+			$row->stores = $this->getStores($dRec);
 		}
 		
 		return $row;
+	}
+	
+	private function getLinked($dRec, $html = TRUE)
+	{
+		$linkedArr = array();
+		foreach ($dRec->linked as $cId){
+			$Document = doc_Containers::getDocument($cId);
+			$link = ($html) ? "#" .$Document->getHandle() : $Document->getLink(0)->getContent();
+			$linkedArr[] = ($html) ? $link : "<tr><td>{$link}<td></tr>";
+		}
+			
+		return ($html) ? implode(' ', $linkedArr) : "<table class='small no-border'>" . implode('', $linkedArr) . "</table>";
+	}
+	
+	private function getStores($dRec, $links = TRUE)
+	{
+		$stores = array();
+		foreach ($dRec->stores as $storeId){
+			$stores[] = ($links === FALSE) ? store_Stores::getTitleById($storeId) : store_Stores::getHyperlink($storeId, TRUE);
+		}
+		
+		return implode(' » ', $stores);
+	}
+	
+	
+	/**
+	 * След подготовка на реда за експорт
+	 *
+	 * @param frame2_driver_Proto $Driver
+	 * @param stdClass $res
+	 * @param stdClass $rec
+	 * @param stdClass $dRec
+	 */
+	protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+	{
+		if(is_array($dRec->stores)){
+			$res->stores = $Driver->getStores($dRec, FALSE);
+		}
+		
+		if(is_array($dRec->linked) && count($dRec->linked)){
+			$res->linked = $this->getLinked($dRec, FALSE);
+		}
 	}
 	
 	
@@ -380,20 +391,20 @@ class store_reports_Documents extends frame2_driver_TableData
 		}
 
 		if($export === FALSE){
-			$fld->FLD('dueDate', 'varchar', 'tdClass=small nowrap,caption=Срок');
+			$fld->FLD('dueDate', 'datetime', 'tdClass=small nowrap,caption=Срок');
 			$fld->FLD('weight', 'varchar', 'caption=Тегло,tdClass=small nowrap');
 			$fld->FLD('pallets', 'varchar', 'caption=Палети');
 			$fld->FLD('linked', 'varchar', 'caption=Задачи');
 			$fld->FLD('folderId', 'varchar', 'tdClass=small,caption=Папка');
-			$fld->FLD('created', 'datetime', 'caption=Създаване,tdClass=small nowrap');
+			$fld->FLD('created', 'varchar', 'caption=Създаване,tdClass=small nowrap');
 		} else {
-			$fld->FLD('dueDate', 'varchar', 'caption=Срок');
-			$fld->FLD('weight', 'varchar', 'caption=Тегло');
+			$fld->FLD('dueDate', 'datetime', 'caption=Срок');
+			$fld->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
 			$fld->FLD('pallets', 'varchar', 'caption=Палети');
 			$fld->FLD('linked', 'varchar', 'caption=Задачи');
-			$fld->FLD('folderId', 'varchar', 'tdClass=small,caption=Папка');
+			$fld->FLD('folderId', 'key(mvc=doc_Folders,select=title)', 'tdClass=small,caption=Папка');
 			$fld->FLD('createdOn', 'datetime', 'caption=Създаване->На');
-			$fld->FLD('createdBy', 'varchar', 'caption=Създаване->От');
+			$fld->FLD('createdBy', 'key(mvc=core_Users,select=nick)', 'caption=Създаване->От');
 		}
 		
 		return $fld;

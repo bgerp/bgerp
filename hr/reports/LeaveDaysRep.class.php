@@ -187,22 +187,12 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
 	{
 		$fld = cls::get('core_FieldSet');
 	
-		if($export === FALSE){
-			$fld->FLD('num', 'varchar','caption=№');
-			$fld->FLD('person', 'varchar', 'caption=Служител');
-	    	$fld->FLD('dateFrom', 'varchar', 'caption=Дата->От');
-		    $fld->FLD('dateTo', 'varchar', 'smartCenter,caption=Дата->До');
-	    	$fld->FLD('count', 'varchar', 'smartCenter,caption=Бр. дни');
-	    	$fld->FLD('type', 'varchar', 'smartCenter,caption=Вид');
-
-		} else {
-			$fld->FLD('num', 'varchar','caption=№');
-			$fld->FLD('person', 'varchar', 'caption=Служител');
-	    	$fld->FLD('dateFrom', 'varchar', 'caption=Дата->От');
-		    $fld->FLD('dateTo', 'varchar', 'smartCenter,caption=Дата->До');
-	    	$fld->FLD('count', 'varchar', 'smartCenter,caption=Бр. дни');
-	    	$fld->FLD('type', 'varchar', 'smartCenter,caption=Вид');
-		}
+		$fld->FLD('num', 'varchar','caption=№');
+		$fld->FLD('person', 'key(mvc=crm_Persons,select=name)', 'caption=Служител');
+	    $fld->FLD('dateFrom', 'date', 'caption=Дата->От');
+		$fld->FLD('dateTo', 'date', 'smartCenter,caption=Дата->До');
+	    $fld->FLD('count', 'int', 'smartCenter,caption=Бр. дни');
+	    $fld->FLD('type', 'enum(sickDay=Болничен,tripDay=Командировка,leaveDay=Отпуск)', 'smartCenter,caption=Вид');
 	
 		return $fld;
 	}
