@@ -239,7 +239,7 @@ class core_CallOnTime extends core_Manager
 			// Ако сме се доближили до края - да приключваме процеса
             if (core_Cron::getTimeLeft() < 5) {
                 
-                self::logNotice('Приключен процес поради свършване на времето');
+                self::logNotice('Спря процес, поради свършване на времето');
                 
                 break;
             }

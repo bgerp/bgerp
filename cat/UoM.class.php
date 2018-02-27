@@ -5,13 +5,11 @@
 /**
  * Клас 'cat_UoM' - мерни единици и опаковки
  *
- * Unit of Measures
- *
  *
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -28,32 +26,31 @@ class cat_UoM extends core_Manager
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'packEdit,ceo,sales,purchase';
+	public $canList = 'packEdit, ceo, sales, purchase';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'cat,ceo';
+	public $canSingle = 'cat, ceo';
 	
 	
 	/**
 	 * Кой може сменя състоянието
-	 * @see plg_State2
 	 */
-	public $canChangestate = 'cat,ceo';
+	public $canChangestate = 'cat, ceo';
 
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'cat,ceo';
+    public $canAdd = 'cat, ceo';
 
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'cat,ceo';
+    public $canEdit = 'cat, ceo';
   
 
     /**
@@ -75,9 +72,15 @@ class cat_UoM extends core_Manager
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'sysId';
+    
+    
+    /**
      * Полета за лист изгледа
      */
-    public $listFields = "id,name,shortName=Съкращение,sysId=System Id,state,round=Точност,showContents,defQuantity";
+    public $listFields = "id,name,shortName=Съкращение,sysId=System Id,round=Точност,showContents,defQuantity,state";
     
     
     /**
@@ -110,7 +113,7 @@ class cat_UoM extends core_Manager
         $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
         $this->FLD('sysId', 'varchar', 'caption=System Id,input=hidden');
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
-        $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка');
+        $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка,smartCenter');
         $this->FLD('defQuantity', 'double(smartRound)', 'caption=Показване в документи->Дефолтно к-во');
         $this->FLD('round', 'int', 'caption=Точност след десетичната запетая->Цифри');
         
@@ -336,8 +339,8 @@ class cat_UoM extends core_Manager
     
     
     /**
-     * Функция която конвертира стойност от една мярка в друга
-     * сродна мярка
+     * Функция която конвертира стойност от една мярка в друга сродна мярка
+     * 
      * @param double $value - Стойноста за конвертиране
      * @param int $from - Id на мярката от която ще обръщаме
      * @param int $to - Id на мярката към която конвертираме
@@ -399,8 +402,7 @@ class cat_UoM extends core_Manager
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-    	// Ако се импортира от csv файл, заместваме основната
-    	// единица с ид-то и от системата
+    	// Ако се импортира от csv файл, заместваме основната единица с ид-то и от системата
     	if(isset($rec->csv_baseUnitId) && strlen($rec->csv_baseUnitId) != 0){
     		$rec->baseUnitId = static::fetchField("#name = '{$rec->csv_baseUnitId}'", 'id');
     	}
@@ -625,7 +627,6 @@ class cat_UoM extends core_Manager
     		if(!isset($type)){
     			$curUrl = getCurrentUrl();
     			$curUrl['type'] = 'uom';
-    			
     			redirect($curUrl);
     		}
     	}
@@ -641,6 +642,7 @@ class cat_UoM extends core_Manager
     public static function isWeightMeasure($uomId)
     {
     	$kgUoms = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
+    	
     	return array_key_exists($uomId, $kgUoms);
     }
 }

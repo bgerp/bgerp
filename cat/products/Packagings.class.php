@@ -86,15 +86,15 @@ class cat_products_Packagings extends core_Detail
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка,mandatory,smartCenter,removeAndRefreshForm=quantity,silent');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка,mandatory,smartCenter,removeAndRefreshForm=quantity|tareWeight|sizeWidth|sizeHeight|sizeDepth,silent');
         $this->FLD('quantity', 'double(Min=0,smartRound)', 'input,caption=Количество,mandatory,smartCenter');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
         $this->FLD('eanCode', 'gs1_TypeEan(mvc=cat_products_Packagings,field=eanCode)', 'caption=EAN');
         $this->FLD('templateId', 'key(mvc=cat_PackParams,select=title)', 'caption=Допълнително->Размери,silent,removeAndRefreshForm=tareWeight|sizeWidth|sizeHeight|sizeDepth,class=w50');
-        $this->FLD('sizeWidth', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Дължина,input=hidden');
-        $this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Широчина,input=hidden');
-        $this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Височина,input=hidden');
-        $this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Допълнително->Тара,input=hidden');
+        $this->FLD('sizeWidth', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Дължина');
+        $this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Широчина');
+        $this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Височина');
+        $this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Допълнително->Тара');
         
         $this->setDbUnique('productId,packagingId');
         $this->setDbIndex('eanCode');
@@ -323,7 +323,7 @@ class cat_products_Packagings extends core_Detail
             $options += array('u' => (object)array('group' => TRUE, 'title' => tr('Мерки'))) + $uomArr;
         }
         
-        // Връщаме намерените опции
+        // Връщане на намерените опции
         return $options;
     }
 
@@ -351,7 +351,6 @@ class cat_products_Packagings extends core_Detail
         				
         				// За дава се избрана по дефолт
         				foreach (array('quantity', 'isBase', 'tareWeight', 'sizeWidth', 'sizeHeight', 'sizeDepth') as $fld){
-        					
         					if($def->justGuess === TRUE){
         						$form->setDefault($fld, $def->{$fld});
         					} else {
@@ -403,14 +402,6 @@ class cat_products_Packagings extends core_Detail
                 $form->setReadOnly('packagingId');
                 $form->setReadOnly('quantity');
             }
-            
-            if(empty($rec->templateId)){
-            	foreach (array('sizeWidth', 'sizeHeight', 'sizeDepth', 'tareWeight') as $fld){
-            		if(!empty($rec->{$fld})){
-            			$form->setField($fld, 'input');
-            		}
-            	}
-            }
         }
     }
     
@@ -426,7 +417,9 @@ class cat_products_Packagings extends core_Detail
         	}
         }
         
-        $row->dimension = "{$row->sizeWidth} <span class='quiet'>x</span> {$row->sizeHeight} <span class='quiet'>x</span> {$row->sizeDepth}";
+        if($rec->sizeWidth || $rec->sizeHeight || $rec->sizeDepth) {
+            $row->dimension = "{$row->sizeWidth} <span class='quiet'>x</span> {$row->sizeHeight} <span class='quiet'>x</span> {$row->sizeDepth}";
+        }
         
         if(!empty($rec->eanCode)){
             $row->code = $row->eanCode;
@@ -557,6 +550,19 @@ class cat_products_Packagings extends core_Detail
         return $bestRec;
     }
 
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	cat_PackParams::sync($rec->packagingId, $rec->sizeWidth, $rec->sizeHeight, $rec->sizeDepth, $rec->tareWeight);
+    }
+    
     
     /**
      * Дали в бизнес документите е използван артикула с посочената опаковка

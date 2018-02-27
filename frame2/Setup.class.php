@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class frame2_Setup
  *
@@ -48,12 +47,6 @@ class frame2_Setup extends core_ProtoSetup
      */
     var $info = "Динамични справки";
 
-
-    /**
-     * Описание на конфигурационните константи
-     */
-    var $configDescription = array();
-
     
     /**
      * Списък с мениджърите, които съдържа пакета
@@ -76,14 +69,6 @@ class frame2_Setup extends core_ProtoSetup
      */
     var $menuItems = array(
     		array(2.56, 'Обслужване', 'Отчети', 'frame2_Reports', 'default', "report, ceo, admin"),
-    );
-    
-    
-    /**
-     * Настройки за Cron
-     */
-    var $cronSettings = array(
-    	//@TODO
     );
     
     

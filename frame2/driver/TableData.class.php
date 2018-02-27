@@ -323,20 +323,30 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * @param stdClass $rec
 	 * @return array
 	 */
-	public function getCsvExportRows($rec)
+	public function getCsvExportRecs($rec)
 	{
-		$dRecs = $rec->data->recs;
-		$exportRows = array();
-	
-		Mode::push('text', 'plain');
-		if(is_array($dRecs)){
-			foreach ($dRecs as $key => $dRec){
-				$exportRows[$key] = $this->detailRecToVerbal($rec, $dRec);
+		$recs = array();
+		
+		if(is_array($rec->data->recs)){
+			foreach ($rec->data->recs as $dRec){
+				$recs[] = $this->getCsvRec($rec, $dRec);
 			}
 		}
-		Mode::pop('text');
+		
+		return $recs;
+	}
 	
-		return $exportRows;
+	
+	/**
+	 * Подготовка на реда за експорт във CSV
+	 * 
+	 * @param stdClass $rec
+	 * @param stdClass $dRec
+	 * @return stdClass
+	 */
+	public function getCsvRec_($rec, $dRec)
+	{
+		return $dRec;
 	}
 	
 	

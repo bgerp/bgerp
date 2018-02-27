@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Документи » Търсене в папка
@@ -136,16 +136,9 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	protected function getTableFieldSet($rec, $export = FALSE)
 	{
 		$fld = cls::get('core_FieldSet');
-	
-		if($export === FALSE){
-			$fld->FLD('string', 'varchar', 'caption=Дума');
-			$fld->FLD('diff', 'int', 'caption=Нови,tdClass=small-field');
-			$fld->FLD('count', 'int', 'smartCenter,caption=Резултат,tdClass=small-field');
-		} else {
-			$fld->FLD('string', 'varchar','caption=Дума');
-			$fld->FLD('count', 'int','caption=Резултат');
-			$fld->FLD('diff', 'int','caption=Нови');
-		}
+		$fld->FLD('string', 'varchar', 'caption=Дума');
+		$fld->FLD('diff', 'int', 'caption=Нови,tdClass=small-field');
+		$fld->FLD('count', 'int', 'smartCenter,caption=Резултат,tdClass=small-field');
 	
 		return $fld;
 	}
@@ -161,27 +154,57 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
 	{
-		$isPlain = Mode::is('text', 'plain');
+		$row = new stdClass();
+		$Int = cls::get('type_Int');
+		$row->string = cls::get('type_Varchar')->toVerbal($dRec->string);
+		$row->string = "<span style='font-weight:bold'>{$row->string}</span>";
+		
+		$row->count  = $Int->toVerbal($dRec->count);
+		if(doc_Threads::haveRightFor('list', (object)array('folderId' => $rec->folder))){
+			$row->count = ht::createLink($row->count, array('doc_Threads', 'list', 'folderId' => $rec->folder, 'search' => $dRec->string));
+		}
+		
+		$row->num = $Int->toVerbal($dRec->num);
+		$diff = $this->getDiff($rec, $dRec);
+		
+		if(!empty($diff)){
+			$row->diff = $Int->toVerbal($diff);
+			$color = ($diff < 0) ? 'red' : 'darkgreen';
+			$sign = ($diff < 0) ? '' : '+';
+			$row->diff = "<span style='color:{$color}'>{$sign}{$row->diff}</span>";
+		}
+		
+		return $row;
+	}
+	
+	
+	/**
+	 * След подготовка на реда за експорт
+	 *
+	 * @param frame2_driver_Proto $Driver
+	 * @param stdClass $res
+	 * @param stdClass $rec
+	 * @param stdClass $dRec
+	 */
+	protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+	{
+		$res->diff = $Driver->getDiff($rec, $dRec);
+	}
+	
+	
+	/**
+	 * Връща разликата
+	 *
+	 * @param stdClass $rec  - запис на отчета
+	 * @param stdClass $dRec - запис от детайла
+	 * @return double $diff  - разликата
+	 */
+	private function getDiff($rec, $dRec)
+	{
 		if(!isset(self::$versionData[$rec->id])){
 			self::$versionData[$rec->id] = $this->getVersionBeforeData($rec);
 		}
 		$oldData = self::$versionData[$rec->id];
-		
-		$row = new stdClass();
-		$Int = cls::get('type_Int');
-		$row->string = cls::get('type_Varchar')->toVerbal($dRec->string);
-		if(!$isPlain){
-			$row->string = "<span style='font-weight:bold'>{$row->string}</span>";
-		}
-		
-		$row->count  = $Int->toVerbal($dRec->count);
-		if(!$isPlain){
-			if(doc_Threads::haveRightFor('list', (object)array('folderId' => $rec->folder))){
-				$row->count = ht::createLink($row->count, array('doc_Threads', 'list', 'folderId' => $rec->folder, 'search' => $dRec->string));
-			}
-		}
-		
-		$row->num = $Int->toVerbal($dRec->num);
 		
 		// Ако има промяна спрямо старата версия, показват се промените
 		if(isset($oldData[$dRec->index])){
@@ -191,16 +214,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 			$diff = $dRec->count;
 		}
 		
-		if(!empty($diff)){
-			$row->diff = $Int->toVerbal($diff);
-			if(!$isPlain){
-				$color = ($diff < 0) ? 'red' : 'darkgreen';
-				$sign = ($diff < 0) ? '' : '+';
-				$row->diff = "<span style='color:{$color}'>{$sign}{$row->diff}</span>";
-			}
-		}
-		
-		return $row;
+		return $diff;
 	}
 	
 	

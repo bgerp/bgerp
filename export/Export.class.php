@@ -143,7 +143,7 @@ class export_Export extends core_Mvc
         }
         $suggestions = rtrim($suggestions, ',');
         
-        $form->FNC('type', "enum({$suggestions})", 'maxRadio=10, caption=Вид, input');
+        $form->FNC('type', "enum({$suggestions})", 'maxRadio=10, caption=Вид, input, mandatory');
         
         $form->input();
         
@@ -230,6 +230,6 @@ class export_Export extends core_Mvc
             return Request::forward(array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE));
         }
         
-        expect(FALSE);
+        followRetUrl(NULL, '|Няма данни за експорт', 'error');
     }
 }

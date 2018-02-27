@@ -130,10 +130,9 @@ class type_Double extends core_Type {
             $this->params['decPoint'] = html_entity_decode($conf->EF_NUMBER_DEC_POINT);
         }
 
-        if(!$this->params['thousandsSep']) {
+        if(!isset($this->params['thousandsSep'])) {
             $this->params['thousandsSep'] = html_entity_decode($conf->EF_NUMBER_THOUSANDS_SEP);
         }
-        
         
         if(!isset($this->params['decimals'])) {
             $this->params['decimals'] = $this->params['decimals'];

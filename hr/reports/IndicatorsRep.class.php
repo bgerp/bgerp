@@ -5,11 +5,9 @@
 /**
  * Мениджър на отчети за Индикаторите за ефективност
  *
- *
- *
  * @category  bgerp
  * @package   hr
- * @author    Gabriela Petrova <gab4eto@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -29,15 +27,6 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField = 'person';
-    
-    
-    /**
-     * Полета за хеширане на таговете
-     *
-     * @see uiext_Labels
-     * @var varchar
-     */
-    protected $hashField = '$recIndic';
     
     
     /**
@@ -228,12 +217,10 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	protected function getTableFieldSet($rec, $export = FALSE)
 	{
 		$fld = cls::get('core_FieldSet');
-	
 		$fld->FLD('num', 'varchar','caption=№');
 		$fld->FLD('person', 'varchar', 'caption=Служител');
-		$fld->FLD('indicator', 'varchar', 'caption=Показател');
-		$valueAttr = ($export === FALSE) ? 'smartCenter,caption=Стойност' : 'caption=Стойност';
-		$fld->FLD('value', 'double(smartRound,decimals=2)', $valueAttr);
+		$fld->FLD('indicatorId', 'varchar', 'caption=Показател');
+		$fld->FLD('value', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност');
 		
 		return $fld;
 	}
@@ -248,7 +235,6 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
 	{
-		$isPlain = Mode::is('text', 'plain');
 		$Int = cls::get('type_Int');
 		$Date = cls::get('type_Date');
 		$Double = cls::get('type_Double');
@@ -265,10 +251,6 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
                 $row->person = 'Общо';
             }
 		}
-		
-		if($isPlain){
-			$row->person = strip_tags(($row->person instanceof core_ET) ? $row->person->getContent() : $row->person);
-		}
 
 		if(isset($dRec->num)) {
 		    $row->num = $Int->toVerbal($dRec->num);
@@ -276,32 +258,19 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 
 		if(isset($dRec->indicatorId)) {
 			if($dRec->indicatorId != 'formula'){
-				$row->indicator = hr_IndicatorNames::fetchField($dRec->indicatorId, 'name');
+				$row->indicatorId = hr_IndicatorNames::fetchField($dRec->indicatorId, 'name');
 			} elseif($rec->formula) {
-				$row->indicator = tr('Формула');
-				$newContext = self::fillMissingIndicators($dRec->context, $rec->formula);
+				$row->indicatorId = tr('Формула');
 				
-				if(($expr = str::prepareMathExpr($rec->formula, $newContext)) !== FALSE) {
-					$value = str::calcMathExpr($expr, $success);
-                }
-
-                if($success !== FALSE) {
-                	$valueVerbal = $Double->toVerbal($value);
-					$row->value = ($isPlain) ?  frame_CsvLib::toCsvFormatDouble($value) : "<b>{$valueVerbal}</b>";
-				} else {
-					$value = tr("Невъзможно изчисление");
-					$row->value = (!$isPlain) ? "<small style='font-style:italic;color:red;'>{$value}</small>" : $value;
-				}
+				$value = $this->calcFormula($rec->formula, $dRec->context);
+				$row->value = (is_numeric($value)) ? "<b>" . $Double->toVerbal($value) . "</b>" : "<small style='font-style:italic;color:red;'>{$value}</small>";
 			}
 		}
 
 	    if(isset($dRec->value) && empty($row->value)) {
-		    if(!$isPlain && !Mode::isReadOnly()){
+		    if(!Mode::isReadOnly()){
 		    	$row->value = $Double->toVerbal($dRec->value);
-		    	
-		    	if(!$isPlain){
-		    		$row->value = ht::styleIfNegative($row->value, $dRec->value);
-		    	}
+		    	$row->value = ht::styleIfNegative($row->value, $dRec->value);
 		    	
 		    	$start = acc_Periods::fetchField($rec->periods, 'start');
 		    	$date = new DateTime($start);
@@ -323,12 +292,51 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		    	if($haveRight !== TRUE){
 		    		core_Request::removeProtected('period,personId,indicatorId,force');
 		    	}
-		    } else {
-		    	$row->value = frame_CsvLib::toCsvFormatDouble($dRec->value);
 		    }
 	    }
 		
 		return $row;
+	}
+	
+	
+	/**
+	 * Калкулира формулата
+	 * 
+	 * @param string $formula
+	 * @param array $context
+	 * @return varchar $value
+	 */
+	private function calcFormula($formula, $context)
+	{
+		$newContext = self::fillMissingIndicators($context, $formula);
+		if(($expr = str::prepareMathExpr($formula, $newContext)) !== FALSE) {
+			$value = str::calcMathExpr($expr, $success);
+		}
+		if($success === FALSE) {
+			$value = tr("Невъзможно изчисление");
+		}
+		
+		return $value;
+	}
+	
+	
+	/**
+	 * След подготовка на реда за експорт
+	 *
+	 * @param frame2_driver_Proto $Driver
+	 * @param stdClass $res
+	 * @param stdClass $rec
+	 * @param stdClass $dRec
+	 */
+	protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+	{
+		$res->person = ($dRec->person) ? crm_Persons::fetchField($dRec->person, 'name') : tr('Общо');
+		if($dRec->indicatorId != 'formula'){
+			$res->indicatorId = hr_IndicatorNames::getTitleById($dRec->indicatorId);
+		} else {
+			$res->indicatorId = tr('Формула');
+			$res->value = $Driver->calcFormula($rec->formula, $dRec->context);
+		}
 	}
 	
 	

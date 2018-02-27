@@ -500,24 +500,15 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
 
-        if($export === FALSE){
-
-            $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
-            $fld->FLD('minQuantity', 'double', 'caption=Минимално,smartCenter');
-            $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
-            $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
-        } else {
+        if($export !== FALSE){
         	$fld->FLD('code', 'varchar', 'caption=Код');
-            $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('measure', 'varchar', 'caption=Мярка');
-            $fld->FLD('quantity', 'varchar', 'caption=Количество');
-            $fld->FLD('minQuantity', 'varchar', 'caption=Минимално');
-            $fld->FLD('maxQuantity', 'varchar', 'caption=Максимално');
-            $fld->FLD('conditionQuantity', 'varchar', 'caption=Състояние');
-
         }
+        $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+        $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+        $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
+        $fld->FLD('minQuantity', 'double', 'caption=Минимално,smartCenter');
+        $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
+        $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
 
         return $fld;
 
@@ -533,32 +524,15 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-    	$isPlain = Mode::is('text', 'plain');
-        $Int = cls::get('type_Int');
+    	$Int = cls::get('type_Int');
 
         $row = new stdClass();
-
-        if(isset($dRec->productId)) {
-        	if($isPlain){
-        		$code = cat_Products::fetchField($dRec->productId, 'code');
-        		$row->code = (!empty($code)) ? $code : "Art{$dRec->productId}";
-        	}
-        	
-            $row->productId =  ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : cat_Products::getShortHyperlink($dRec->productId);
-        }
+        $row->productId = cat_Products::getShortHyperlink($dRec->productId);
 
         if(isset($dRec->quantity)) {
-        	if($isPlain){
-        		$row->quantity = frame_CsvLib::toCsvFormatDouble($dRec->quantity);
-        	} else {
-        		$row->quantity =  core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
-        		$row->quantity = ht::styleIfNegative($row->quantity, $dRec->quantity);
-        	}
+        	$row->quantity =  core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
+        	$row->quantity = ht::styleIfNegative($row->quantity, $dRec->quantity);
         }
-
-        if(isset($dRec->storeId)) {
-            $row->storeId = store_Stores::getShortHyperlink($dRec->storeId);
-        }else{$row->storeId ='Общо';}
 
         if(isset($dRec->measure)) {
             $row->measure = cat_UoM::fetchField($dRec->measure,'shortName');
@@ -569,11 +543,11 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
 
         if(isset($dRec->maxQuantity)) {
-            $row->maxQuantity =$Int->toVerbal($dRec->maxQuantity);
+            $row->maxQuantity = $Int->toVerbal($dRec->maxQuantity);
         }
 
         if((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))){
-        	$row->conditionQuantity = ($isPlain) ? $dRec->conditionQuantity : "<span style='color: $dRec->conditionColor'>{$dRec->conditionQuantity}</span>";
+        	$row->conditionQuantity = "<span style='color: $dRec->conditionColor'>{$dRec->conditionQuantity}</span>";
         }
 
         return $row;
@@ -581,11 +555,26 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
 
     /**
+     * След подготовка на реда за експорт
+     *
+     * @param frame2_driver_Proto $Driver
+     * @param stdClass $res
+     * @param stdClass $rec
+     * @param stdClass $dRec
+     */
+    protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+    {
+    	$code = cat_Products::fetchField($dRec->productId, 'code');
+    	$res->code = (!empty($code)) ? $code : "Art{$dRec->productId}";
+    }
+    
+    
+    /**
      *Изчиства повтарящи се стойности във формата
      * @param $arr
      * @return array
      */
-    static function removeRpeadValues ($arr)
+    static function removeRpeadValues($arr)
     {
         $tempArr = (array)$arr;
 
@@ -613,5 +602,4 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         return $arr;
 
     }
-
 }

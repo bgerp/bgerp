@@ -165,6 +165,7 @@ class email_UserInboxPlg extends core_Plugin
                 $pRec = crm_Persons::fetch($profRec->personId);
                 if($pRec) {
                     $data->form->setDefault('country', $pRec->country);
+                    $data->form->setreadonly('country');
                 }
             }
         } 

@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър за Размерите на опаковките
+ * Мениджър за размери на опаковките
  *
  *
  * @category  bgerp
@@ -12,7 +12,7 @@
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Размер на опаковките
+ * @title     Размери на опаковките
  */
 class cat_PackParams extends core_Manager
 {
@@ -34,6 +34,12 @@ class cat_PackParams extends core_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Search, plg_State2, plg_SaveAndNew, plg_Sorting, plg_Created, plg_Modified';
+    
+    
+    /**
+     * Кой може да променя състоянието
+     */
+    public $canChangestate = 'cat,ceo';
     
     
     /**
@@ -61,6 +67,12 @@ class cat_PackParams extends core_Manager
     
     
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'title,packagingId,sizeWidth,sizeHeight,sizeDepth,tareWeight,usage=Използване,state,modifiedOn,modifiedBy';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -73,6 +85,7 @@ class cat_PackParams extends core_Manager
     	$this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Параметри->Тара');
     	
     	$this->setDbIndex('packagingId');
+    	$this->setDbIndex('title');
     }
     
     
@@ -89,11 +102,8 @@ class cat_PackParams extends core_Manager
     		$where = "#id != '{$rec->id}' AND #packagingId = '{$rec->packagingId}' AND #title = '{$rec->title}'";
     		$fields = array('title', 'packagingId');
     	} else {
-    		$where = "#id != '{$rec->id}' AND #packagingId = '{$rec->packagingId}' AND (#title = '' OR #title IS NULL)";
-    		$where .= (!empty($rec->sizeWidth)) ? " AND #sizeWidth = {$rec->sizeWidth}" : " AND #sizeWidth IS NULL";
-    		$where .= (!empty($rec->sizeHeight)) ? " AND #sizeHeight = {$rec->sizeHeight}" : " AND #sizeHeight IS NULL";
-    		$where .= (!empty($rec->sizeDepth)) ? " AND #sizeDepth = {$rec->sizeDepth}" : " AND #sizeDepth IS NULL";
-    		$where .= (!empty($rec->tareWeight)) ? " AND #tareWeight = {$rec->tareWeight}" : " AND #tareWeight IS NULL";
+    		$where = "#id != '{$rec->id}' AND (#title = '' OR #title IS NULL) AND ";
+    		$where .= $this->getCompareCondition($rec);
     		$fields = array('packagingId', 'sizeWidth', 'sizeHeight', 'sizeDepth', 'tareWeight');
     	}
     	
@@ -105,6 +115,24 @@ class cat_PackParams extends core_Manager
     
     	unset($fields);
     	return TRUE;
+    }
+    
+    
+    /**
+     * Какво е условието за сравнение
+     * 
+     * @param stdClass $rec
+     * @return string $where
+     */
+    private function getCompareCondition($rec)
+    {
+    	$where = "#packagingId = '{$rec->packagingId}'";
+    	$where .= (!empty($rec->sizeWidth)) ? " AND #sizeWidth = {$rec->sizeWidth}" : " AND #sizeWidth IS NULL";
+    	$where .= (!empty($rec->sizeHeight)) ? " AND #sizeHeight = {$rec->sizeHeight}" : " AND #sizeHeight IS NULL";
+    	$where .= (!empty($rec->sizeDepth)) ? " AND #sizeDepth = {$rec->sizeDepth}" : " AND #sizeDepth IS NULL";
+    	$where .= (!empty($rec->tareWeight)) ? " AND #tareWeight = {$rec->tareWeight}" : " AND #tareWeight IS NULL";
+    	
+    	return $where;
     }
     
     
@@ -158,6 +186,64 @@ class cat_PackParams extends core_Manager
      */
     protected static function on_AfterGetQuery($mvc, $query)
     {
-    	$query->orderBy('title,sizeWidth,sizeHeight,sizeDepth');
+    	$query->orderBy('state,title,sizeWidth,sizeHeight,sizeDepth');
+    }
+    
+    
+    /**
+     * Създава нова уникална група параметри
+     * 
+     * @param int $packagingId
+     * @param double $sizeWidth
+     * @param double $sizeHeight
+     * @param double $sizeDepth
+     * @param double $tareWeight
+     * @return int
+     */
+    public static function sync($packagingId, $sizeWidth, $sizeHeight, $sizeDepth, $tareWeight)
+    {
+    	$rec = (object)array('packagingId' => $packagingId, 'sizeWidth' => $sizeWidth, 'sizeHeight' => $sizeHeight, 'sizeDepth' => $sizeDepth, 'tareWeight' => $tareWeight);
+    	$self = cls::get(get_called_class());
+    	if($self->isUnique($rec, $fields, $exRec)){
+    		$rec->state = 'closed';
+    		return $self->save($rec);
+    	}
+    	
+    	return $exRec->id;
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	$row->usage = core_Type::getByName('int')->toVerbal($mvc->getUsages($rec));
+    }
+    
+    
+    /**
+     * Ако няма записи не вади таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+    	$data->listTableMvc->FLD('usage', 'int');
+    }
+    
+    
+    /**
+     * Колко пъти има създадени продуктови опаковки с тези мерки
+     * 
+     * @param stdClass $rec
+     * @return int     
+     */
+    private function getUsages($rec)
+    {
+    	$packQuery = cat_products_Packagings::getQuery();
+    	$packQuery->XPR('count', 'int', 'count(#id)');
+    	$packQuery->where($this->getCompareCondition($rec));
+    	$rec = $packQuery->fetch();
+    	
+    	return ($rec) ? $rec->count : 0;
     }
 }

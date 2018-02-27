@@ -283,13 +283,14 @@ class bgerp_F extends core_Manager
      * 
      * 
      * @param string $key
+     * @param string $name
      * 
      * @return string
      */
-    public static function getShortLink($key)
+    public static function getShortLink($key, $name)
     {
         
-        return toUrl(array('F', 'G', $key), 'absolute');
+        return toUrl(array('F', 'G', $key, 'n' => $name), 'absolute', TRUE, array('n'));
     }
     
     
@@ -318,7 +319,9 @@ class bgerp_F extends core_Manager
         
         $expireOn = $rec->expireOn;
         
-        return self::getShortLink($rec->key);
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        return self::getShortLink($rec->key, $fRec->name);
     }
     
     
@@ -368,7 +371,7 @@ class bgerp_F extends core_Manager
             
             self::logWrite('Генериран линк', $rec->id);
             
-            $form->info .= "<b>" . tr('Линк|*: ') . "</b><span onmouseUp='selectInnerText(this);'>" . self::getShortLink($rec->key) . '</span>';
+            $form->info .= "<b>" . tr('Линк|*: ') . "</b><span onmouseUp='selectInnerText(this);'>" . self::getShortLink($rec->key, $fRec->name) . '</span>';
             
             $form->setField('validity', 'input=none');
             	
