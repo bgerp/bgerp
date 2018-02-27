@@ -369,7 +369,7 @@ class store_reports_Documents extends frame2_driver_TableData
 		}
 		
 		if(is_array($dRec->linked) && count($dRec->linked)){
-			$res->linked = $this->getLinked($dRec, FALSE);
+			$res->linked = $Driver->getLinked($dRec, FALSE);
 		}
 	}
 	
