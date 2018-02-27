@@ -1,14 +1,14 @@
 <?php
 
+
+
 /**
  * Мениджър на отчети на Платежни документи в състояние "заявка"
- *
- *
  *
  * @category  bgerp
  * @package   deals
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Продажби » Платежни документи в състояние 'заявка'
@@ -16,14 +16,8 @@
 
 class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 {
-    /**
-     *  cash_Pko
-     *  cash Rko
-     *  bank_SpendingDocuments
-     *  bank_IncomeDocuments
-     *  sales_Sales и purchase_Purchases ако в полето им contoActions има стойност `pay`
-     **/
-
+	
+	
     /**
      * Кой може да избира драйвъра
      */
@@ -48,12 +42,6 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
 
     /**
-     * По-кое поле да се групират листовите данни
-     */
-   // protected $groupByField = '';
-
-
-    /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'accountId,casesId,documentType,horizon';
@@ -72,6 +60,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=documentType');
     }
 
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -82,11 +71,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = &$data->form;
-        
-        
-
         $accounts = self::getContableAccounts($form->rec);
-
         $form->setOptions('accountId', array('' => '') + $accounts);
 
         $documents = array('cash_Pko','cash_Rko','bank_SpendingDocuments','bank_IncomeDocuments');
@@ -94,41 +79,17 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $docOptions = array();
 
         foreach ($documents as $className){
-
             $classId = $className::getClassId();
-            
             $docOptions[$classId] = core_Classes::getTitleById($classId, FALSE);
             
         }
 
         $form->setSuggestions('documentType',  $docOptions);
-
     }
-
     
     /**
-     * След рендиране на единичния изглед
-     *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager $Embedder
-     * @param core_Form $form
-     * @param stdClass $data
-     */
-    protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
-    {
-
-
-    	if ($form->isSubmitted()) {
-    		
-    		
-    	}
-    	
-    }
-
-
-
-        /**
      * Връща банковите сметки, които може да контира потребителя
+     * 
      * @return array $res
      */
     public static function getContableAccounts($rec)
@@ -153,6 +114,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         return $res;
     }
 
+    
     /**
      * Връща касите, които може да контира потребителя
      * @return array $res
@@ -164,9 +126,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $cu = (!empty($rec->createdBy)) ? $rec->createdBy : core_Users::getCurrent();
 
         $sQuery = cash_Cases::getQuery();
-
         $sQuery->where("#state != 'rejected'");
-
         while($sRec = $sQuery->fetch()){
 
             if(bgerp_plg_FLB::canUse('cash_Cases', $sRec, $cu,select)){
@@ -188,11 +148,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = NULL)
     {
-
-        $recs = array();
-        $bankRecs = array();
-        $caseRecs = array();
-        $docClasses = array();
+		$docClasses = $caseRecs = $bankRecs = $recs = array();
 
         $accountsId = isset($rec->accountId) ? array($rec->accountId => $rec->accountId) : array_keys(self::getContableAccounts($rec));
         
@@ -204,11 +160,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
      
         $both = (!isset($rec->accountId) && !isset($rec->caseId) ) || (isset($rec->accountId) && isset($rec->caseId) );
 
-
-
-        /*
-         * Банкови платежни документи
-         */
+        // Банкови платежни документи
         if ($both || isset($rec->accountId)){
 
         foreach (array('bank_SpendingDocuments', 'bank_IncomeDocuments') as $pDoc) {
@@ -239,7 +191,6 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                             continue;
                         }
-
                     }
                     
                     $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
@@ -333,10 +284,9 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                     }
                 }
-
             }
-
         }
+        
         $recs=$bankRecs+$caseRecs;
 
         usort($recs, array($this, 'orderByPayDate'));
@@ -345,72 +295,71 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
     }
 
+    
     function orderByPayDate($a, $b)
     {
 
         return $a->payDate > $b->payDate;
     }
 
+    
+    
+    /**
+     * Връща фийлдсета на таблицата, която ще се рендира
+     *
+     * @param stdClass $rec   - записа
+     * @param boolean $export - таблицата за експорт ли е
+     * @return core_FieldSet  - полетата
+     */
     protected function getTableFieldSet($rec, $export = FALSE)
     {
-
-        $fld = cls::get('core_FieldSet');
-
+		$fld = cls::get('core_FieldSet');
+		$fld->FLD('documentId', 'varchar', 'caption=Документ');
+		$fld->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума,smartCenter');
+		$fld->FLD('payDate', 'date', 'caption=Срок->за плащане');
+		$fld->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,smartCenter');
+		
         if($export === FALSE){
-
-            $fld->FLD('documentId', 'varchar', 'caption=Документ');
-            $fld->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума,smartCenter');
-            $fld->FLD('payDate', 'varchar', 'caption=Срок->за плащане');
-            $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
             $fld->FLD('created', 'varchar', 'caption=Създаване,smartCenter');
         } else {
-            $fld->FLD('documentId', 'varchar', 'caption=Документ');
-            $fld->FLD('amountDeal', 'varchar', 'caption=Сума');
-            $fld->FLD('payDate', 'varchar', 'caption=Срок за плащане');
-            $fld->FLD('currencyId', 'varchar', 'caption=Валута');
-            $fld->FLD('createdOn', 'varchar', 'caption=Създаване->На');
-            $fld->FLD('createdBy', 'varchar', 'caption=Създаване->От');
+            $fld->FLD('createdOn', 'datetime', 'caption=Създаване->На');
+            $fld->FLD('createdBy', 'key(mvc=core_Users,select=nick)', 'caption=Създаване->От');
         }
 
         return $fld;
-
     }
 
+    
+    /**
+     * Вербализиране на редовете, които ще се показват на текущата страница в отчета
+     *
+     * @param stdClass $rec  - записа
+     * @param stdClass $dRec - чистия запис
+     * @return stdClass $row - вербалния запис
+     */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-		$isPlain = Mode::is('text', 'plain');
-        $Int = cls::get('type_Int');
+		$Int = cls::get('type_Int');
         $Double = core_Type::getByName('double(smartRound)');
         $Date = cls::get('type_Date');
 
         $row = new stdClass();
-
-        if (isset($dRec->documentId)) {
-        	$clsName = $dRec->className;
-        	$row->documentId = ($isPlain) ? "#" . $clsName::getHandle($dRec->documentId) : $clsName::getLink($dRec->documentId, 0);
-        }
+        $row->documentId = cls::get($dRec->className)->getLink($dRec->documentId, 0);
 
         if(isset($dRec->createdBy)) {
             $row->createdBy = crm_Profiles::createLink($dRec->createdBy);
-            $row->createdOn = ($isPlain) ? frame_CsvLib::toCsvFormatData($dRec->createdOn) : $Date->toVerbal($dRec->createdOn);
+            $row->createdOn = $Date->toVerbal($dRec->createdOn);
         }
         
-        $hint =($dRec->ownAccount) ? bank_OwnAccounts::getTitleById($dRec->ownAccount) :cash_Cases::getTitleById($dRec->peroCase) ;
-        $hint = $hint?$hint:'не посочена';
+        $hint = ($dRec->ownAccount) ? bank_OwnAccounts::getTitleById($dRec->ownAccount) : cash_Cases::getTitleById($dRec->peroCase) ;
+        $hint = $hint ? $hint:'не посочена';
 		
         $row->created = $row->createdOn . ' от '. $row->createdBy;
         
         if (isset($dRec->amountDeal)) {
-			if($isPlain){
-				$row->amountDeal = frame_CsvLib::toCsvFormatDouble($dRec->amountDeal);
-				$row->payDate = ($dRec->payDate) ? frame_CsvLib::toCsvFormatData($dRec->payDate) : 'не посочен';
-				$row->createdOn = frame_CsvLib::toCsvFormatData($dRec->createdOn);
-				$row->createdBy = strip_tags($row->createdBy);
-			} else {
-				$row->amountDeal = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal);
-				$row->amountDeal = ht::createHint($row->amountDeal, "$hint", 'notice');
-				$row->payDate = ($dRec->payDate) ? $Date->toVerbal($dRec->payDate) : 'не посочен';
-			}
+			$row->amountDeal = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal);
+			$row->amountDeal = ht::createHint($row->amountDeal, "$hint", 'notice');
+			$row->payDate = ($dRec->payDate) ? $Date->toVerbal($dRec->payDate) : 'не посочен';
         }
 
         if(isset($dRec->currencyId)) {
@@ -419,5 +368,18 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         
         return $row;
     }
-
+    
+    
+    /**
+     * След подготовка на реда за експорт
+     *
+     * @param frame2_driver_Proto $Driver
+     * @param stdClass $res
+     * @param stdClass $rec
+     * @param stdClass $dRec
+     */
+    protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+    {
+    	$res->documentId = "#" . cls::get($dRec->className)->getHandle($dRec->documentId, 0);
+    }
 }

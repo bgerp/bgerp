@@ -1,5 +1,7 @@
 <?php
 
+
+
 /**
  * Мениджър на отчети относно просрочия по аванси
  *
@@ -21,6 +23,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      */
     public $canSelectDriver = 'ceo,sales,manager';
 
+    
     /**
      * Брой записи на страница
      *
@@ -28,6 +31,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      */
     protected $listItemsPerPage = 30;
 
+    
     /**
      * Полета от таблицата за скриване, ако са празни
      *
@@ -35,6 +39,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      */
     protected $filterEmptyListFields;
 
+    
     /**
      * Полета за хеширане на таговете
      *
@@ -43,6 +48,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      */
     protected $hashField;
 
+    
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
@@ -50,16 +56,19 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      */
     protected $newFieldToCheck = 'condition';
 
+    
     /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField;
 
+    
     /**
      * Дали групиращото поле да е на отделен ред или не
      */
     protected $groupedFieldOnNewRow = TRUE;
 
+    
     /**
      * Дилърите
      *
@@ -67,11 +76,13 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      */
     private static $dealers = array();
 
+    
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'dealers,tolerance';
 
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -80,10 +91,10 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Търговци,after=title');
-        
         $fieldset->FLD('tolerance', 'int', 'caption=Толеранс,unit= дни,after=dealers');
     }
 
+    
     /**
      * След рендиране на единичния изглед
      *
@@ -94,13 +105,10 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
-        /**
-         * Кой може да вижда други търговци освен себе си
-         */
+        // Кой може да вижда други търговци освен себе си
         $canSeeOthers = core_Roles::getRolesAsKeylist('ceo,manager');
         
         if ($form->isSubmitted()) {
-            
             if (((count(explode('|', $form->rec->dealers))) - 2) > 1) {
                 if (! (core_Users::haveRole($canSeeOthers, $userId = NULL))) {
                     $form->setError('dealers', 'Имате достъп само до Вашите документи');
@@ -109,6 +117,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
         }
     }
 
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -153,6 +162,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
         }
     }
 
+    
     /**
      * Кои записи ще се показват в таблицата
      *
@@ -177,7 +187,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
         $docQuery->orderBy('modifiedOn', 'ASC');
         
         while ($inDocs = $docQuery->fetch()) {
-            
+           
             $id = $inDocs->id;
             
             $firstDocument = doc_Threads::getFirstDocument($inDocs->threadId);
@@ -187,9 +197,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
                 if (($firstDocument->fetch()->amountDelivered)) {
                     continue;
                 }
-                ;
             }
-            ;
             
             $dealerId = $firstDocument->fetch()->dealerId;
             
@@ -207,7 +215,6 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
             $markDay = dt::addDays($rec->tolerance, $termDate, $full = FALSE);
             
             if ((dt::today()) > ($markDay)) {
-                
                 $condition = 'просрочен';
             } else {
                 $condition = 'ok';
@@ -263,50 +270,59 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
         return $recs;
     }
     
-    // Подреждане на масива по поле в обекта
+    
+    /**
+     * Подреждане на масива по поле в обекта
+     */
     function orderByTermDate($a, $b)
     {
         return $a->termDate > $b->termDate;
     }
 
+    
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param stdClass $rec
-     *            - записа
-     * @param boolean $export
-     *            - таблицата за експорт ли е
-     * @return core_FieldSet - полетата
+     * @param stdClass $rec   - записа
+     * @param boolean $export - таблицата за експорт ли е
+     * @return core_FieldSet  - полетата
      */
     protected function getTableFieldSet($rec, $export = FALSE)
     {
         $cntDealers = count(explode('|', trim($rec->dealers, "|")));
         
         $fld = cls::get('core_FieldSet');
-        if ($export === FALSE) {
-            
-            $fld->FLD('documentId', 'varchar', 'caption=Документ');
-            $fld->FLD('condition', 'varchar', 'caption=Състояние,tdClass=centered');
-            $fld->FLD('folder', 'varchar', 'caption=Папка');
-            $fld->FLD('termDate', 'varchar', 'caption=Краен срок');
-            $fld->FLD('amount', 'double(decimals=2)', 'caption=Сума,smartCenter');
-            if ($cntDealers > 1) {
-                $fld->FLD('dealer', 'varchar', 'caption=Търговец,tdClass=centered');
-            }
-        } else {
-            $fld->FLD('documentId', 'varchar', 'caption=Документ');
-            $fld->FLD('condition', 'varchar', 'caption=Състояние');
-            $fld->FLD('folder', 'varchar', 'caption=Папка');
-            $fld->FLD('termDate', 'varchar', 'caption=Краен срок');
-            $fld->FLD('amount', 'double(decimals=2)', 'caption=Сума');
-            if ($cntDealers > 1) {
-                $fld->FLD('dealer', 'varchar', 'caption=Търговец');
-            }
-        }
+        $fld->FLD('documentId', 'varchar', 'caption=Документ');
+        $fld->FLD('condition', 'varchar', 'caption=Състояние,tdClass=centered');
+        $fld->FLD('folder', 'key(mvc=doc_Folders,select=title)', 'caption=Папка');
+        $fld->FLD('termDate', 'date', 'caption=Краен срок');
+        $fld->FLD('amount', 'double(decimals=2)', 'caption=Сума,smartCenter');
+		if($export === FALSE){
+			if ($cntDealers > 1) {
+				$fld->FLD('dealer', 'key(mvc=core_Users,select=nick)', 'caption=Търговец,tdClass=centered');
+			}
+		} else {
+			$fld->FLD('dealer', 'key(mvc=core_Users,select=nick)', 'caption=Търговец,tdClass=centered');
+		}
         
         return $fld;
     }
 
+    
+    /**
+     * След подготовка на реда за експорт
+     *
+     * @param frame2_driver_Proto $Driver
+     * @param stdClass $res
+     * @param stdClass $rec
+     * @param stdClass $dRec
+     */
+    protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+    {
+    	$res->documentId = "#" . cls::get($dRec->clsName)->getHandle($dRec->documentId);
+    }
+    
+    
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
@@ -318,7 +334,6 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-        $isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
         
@@ -331,16 +346,11 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
         $row = new stdClass();
         
         if (isset($dRec->documentId)) {
-            $clsName = $dRec->clsName;
-            
-            $documentName = $clsName::getTitleById($dRec->documentId);
-            
-            $row->documentId = ($isPlain) ? $documentName : $clsName::getLink($dRec->documentId);
+            $row->documentId = cls::get($dRec->clsName)->getLink($dRec->documentId, 0);
         }
         
         if (isset($dRec->folder)) {
-            $row->folder = ($isPlain) ? (doc_Folders::getTitleById($dRec->folder)) : doc_Folders::recToVerbal(
-                doc_Folders::fetch($dRec->folder))->title;
+            $row->folder = doc_Folders::recToVerbal(doc_Folders::fetch($dRec->folder))->title;
         }
         
         if (isset($dRec->termDate)) {
@@ -348,21 +358,17 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
         }
         
         if (isset($dRec->amount)) {
-            
-            $row->amount = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->amount) : core_Type::getByName(
-                'double(decimals=2)')->toVerbal($dRec->amount);
+            $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amount);
         }
         
         if (isset($dRec->condition)) {
-            $row->condition = ($isPlain) ? ($dRec->condition) : "<span style='color: $conditionColor'>{$dRec->condition}</span>";
+            $row->condition = "<span style='color: $conditionColor'>{$dRec->condition}</span>";
         }
         
         if (isset($dRec->dealer)) {
-            $row->dealer = ($isPlain) ? (core_Users::fetch($dRec->dealer)->nick) : crm_Profiles::createLink(
-                $dRec->dealer);
+            $row->dealer = crm_Profiles::createLink($dRec->dealer);
         }
         
         return $row;
     }
 }
-

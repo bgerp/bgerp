@@ -207,21 +207,14 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
 	{
-		$isPlain = Mode::is('text', 'plain');
 		$Int = cls::get('type_Int');
 		$Date = cls::get('type_Date');
 		$row = new stdClass();
 
 		// Линк към служителя
-		if(isset($dRec->person)) {
-		    //crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
-		    $row->person = crm_Persons::fetchField($dRec->person, 'name');;
-		}
+		$row->person = crm_Persons::fetchField($dRec->person, 'name');
+		$row->person = strip_tags(($row->person instanceof core_ET) ? $row->person->getContent() : $row->person);
 		
-		if($isPlain){
-			$row->person = strip_tags(($row->person instanceof core_ET) ? $row->person->getContent() : $row->person);
-		}
-
 		if(isset($dRec->num)) {
 		    $row->num = $Int->toVerbal($dRec->num);
 		}

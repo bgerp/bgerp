@@ -77,9 +77,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
 	 */
 	protected function prepareRecs($rec, &$data = NULL)
 	{
-
-	    $recs = array();
-	
+		$recs = array();
 	    core_App::setTimeLimit(500);
 	    $Sales = cls::get('sales_Sales');
 
@@ -98,7 +96,6 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
 	    // Обикаляме по Приемателни
 	    $this->prepareQuery($query, $data, $period, 'purchase_Services', 'purchase_ServicesDetails', 'shipmentId');
 
-	    
 	    if(is_array($data->recs)) {
     	    foreach($data->recs as $pRec) {
     
@@ -131,7 +128,6 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         	            $amount -= $pRec->amount;
         	            break;
         	    }
-    
     
     	        if(!array_key_exists($pRec->article, $recs)) {
     	           $recs[$pRec->article] = (object) array ('code' => $pRec->code,
@@ -206,13 +202,11 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     	           $r->amountVatInv = $r->amountInv + ($r->amountInv * $vat); 
     	        }
     
-    	        $r->priceVat = $r->price + ($r->price * $vat); 
-    
+    	        $r->priceVat = $r->price + ($r->price * $vat);
     	    }
 	    }
 	    
 	    usort($recs, function($a, $b) {
-	        	
 	        return strnatcmp(mb_strtolower($a->code, 'UTF-8'), mb_strtolower($b->code, 'UTF-8'));
 	    });
 
@@ -231,21 +225,17 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
 	{
 	    $fld = cls::get('core_FieldSet');
 	
-	    if($export === FALSE){
-	        $fld->FLD('code', 'varchar', 'caption=Код');
-	        $fld->FLD('article', 'varchar', 'caption=Артикул');
-            $fld->FLD('measure', 'int', 'caption=Мярка');
-            $fld->FLD('price', 'double', 'caption=Ед.Стойност->без ДДС');
-            $fld->FLD('priceVat', 'double', 'caption=Ед.Стойност->с ДДС');
-            $fld->FLD('quantity', 'double', 'caption=Количество->Доставено');
-	        $fld->FLD('quantityInv', 'double', 'caption=Количество->Фактурирано');
-	        $fld->FLD('amount', 'double', 'caption=Стойност->Доставено');
-	        $fld->FLD('amountInv', 'double', 'caption=Стойност->Фактурирано');
-	        $fld->FLD('amountVat', 'double', 'caption=Стойност с ДДС->Доставено');
-	        $fld->FLD('amountVatInv', 'double', 'caption=Стойност с ДДС->Фактурирано');
-	    } else {
-
-	    }
+	    $fld->FLD('code', 'varchar', 'caption=Код');
+	    $fld->FLD('article', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+        $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
+        $fld->FLD('price', 'double', 'caption=Ед.Стойност->без ДДС');
+        $fld->FLD('priceVat', 'double', 'caption=Ед.Стойност->с ДДС');
+        $fld->FLD('quantity', 'double', 'caption=Количество->Доставено');
+	    $fld->FLD('quantityInv', 'double', 'caption=Количество->Фактурирано');
+	    $fld->FLD('amount', 'double', 'caption=Стойност->Доставено');
+	    $fld->FLD('amountInv', 'double', 'caption=Стойност->Фактурирано');
+	    $fld->FLD('amountVat', 'double', 'caption=Стойност с ДДС->Доставено');
+	    $fld->FLD('amountVatInv', 'double', 'caption=Стойност с ДДС->Фактурирано');
 	
 	    return $fld;
 	}
@@ -260,20 +250,16 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
 	{
-		$isPlain = Mode::is('text', 'plain');
 		$Double = cls::get('type_Double');
 		$Double->params['decimals'] = 2;
 
 		$row = new stdClass();
 		
 		if(isset($dRec->code)) {
-		    //$row->code = cat_Products::fetchField($rec->product,'code');
 		    $row->code = $dRec->code;
 		}
 		
-		if(isset($dRec->article)) {
-		    $row->article = ($isPlain) ? cat_Products::getTitleById($dRec->article, FALSE) : cat_Products::getShortHyperlink($dRec->article);
-		}
+		$row->article = cat_Products::getShortHyperlink($dRec->article);
 		
 		if(isset($dRec->measure)) {
 		    $row->measure = cat_UoM::fetchField($dRec->measure,'shortName');

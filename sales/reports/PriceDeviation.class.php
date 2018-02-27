@@ -437,6 +437,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
     return $recs;
 }
 
+
 /**
  * Връща фийлдсета на таблицата, която ще се рендира
  *
@@ -450,29 +451,87 @@ protected function getTableFieldSet($rec, $export = FALSE)
 {
     $fld = cls::get('core_FieldSet');
     
-    if ($export === FALSE) {
-        
-        $fld->FLD('saleId', 'varchar', 'caption=Сделка');
-        $fld->FLD('productId', 'varchar', 'caption=Артикул');
-        $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-        $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
-        $fld->FLD('price', 'double', 'caption=Прод. цена,smartCenter');
-        $fld->FLD('selfPrice', 'double', 'caption=Себестойност,smartCenter');
-        $fld->FLD('catPrice', 'double', 'caption=Цена по политика,smartCenter');
-        $fld->FLD('deviationDownSelf', 'varchar', 'caption=Отклонение->Под себестойност,tdClass=centered');
-        $fld->FLD('deviationCatPrice', 'varchar', 'caption=Отклонение->Спрямо политика,tdClass=centered');
-    } else {}
+    $fld->FLD('saleId', 'varchar', 'caption=Сделка');
+    if($export === TRUE){
+    	$fld->FLD('folderId', 'key(mvc=doc_Folders,select=title)', 'caption=papka');
+    	$fld->FLD('code', 'varchar', 'caption=Код');
+    }
+    $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+    $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+    $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
+    $fld->FLD('price', 'double', 'caption=Прод. цена,smartCenter');
+    $fld->FLD('selfPrice', 'double', 'caption=Себестойност,smartCenter');
+    $fld->FLD('catPrice', 'double', 'caption=Цена по политика,smartCenter');
+    $fld->FLD('deviationDownSelf', 'percent', 'caption=Отклонение->Под себестойност,tdClass=centered');
+    $fld->FLD('deviationCatPrice', 'percent', 'caption=Отклонение->Спрямо политика,tdClass=centered');
     
     return $fld;
 }
 
+
+/**
+ * Връща разлика
+ *
+ * @param stdClass $dRec
+ * @param boolean $verbal
+ * @return mixed $deviationCatPrice
+ */
+private function getDeviationCatPrice($dRec, $verbal = TRUE)
+{
+	if (is_numeric($dRec->catPrice) && ($dRec->price != $dRec->catPrice)) {
+	
+		$marker = (double) (($dRec->price - $dRec->catPrice) / $dRec->catPrice);
+		if ($dRec->catPrice != 0) {
+			if($verbal === TRUE){
+				$deviationCatPrice = core_Type::getByName('percent')->toVerbal($marker);
+				$deviationCatPrice = ht::styleIfNegative($deviationCatPrice, $marker);
+			} else {
+				$deviationCatPrice = $marker;
+			}
+		}
+		if (($dRec->catPrice == 0)) {
+			$deviationCatPrice = 'няма политика';
+		}
+	}
+	
+	return $deviationCatPrice;
+}
+
+
+/**
+ * Връща разлика
+ * 
+ * @param stdClass $dRec
+ * @param boolean $verbal
+ * @return mixed $deviationDownSelf
+ */
+private function getDeviationDownSelf($dRec, $verbal = TRUE)
+{
+	if (is_numeric($dRec->selfPrice) && ($dRec->price < $dRec->selfPrice)) {
+		$marker = (double) (($dRec->price - $dRec->selfPrice) / $dRec->selfPrice);
+		if ($dRec->selfPrice != 0) {
+			if($verbal === TRUE){
+				$deviationDownSelf = core_Type::getByName('percent')->toVerbal($marker);
+				$deviationDownSelf = ht::styleIfNegative($deviationDownSelf, $marker);
+			} else {
+				$deviationDownSelf = $marker;
+			}
+		}
+		
+		if (($dRec->selfPrice == 0)) {
+			$deviationDownSelf = 'няма политика';
+		}
+	}
+	
+	return $deviationDownSelf;
+}
+
+
 /**
  * Вербализиране на редовете, които ще се показват на текущата страница в отчета
  *
- * @param stdClass $rec
- *            - записа
- * @param stdClass $dRec
- *            - чистия запис
+ * @param stdClass $rec - записа
+ * @param stdClass $dRec - чистия запис
  * @return stdClass $row - вербалния запис
  */
 protected function detailRecToVerbal($rec, &$dRec)
@@ -484,33 +543,11 @@ protected function detailRecToVerbal($rec, &$dRec)
     $marker = '';
     
     if ($dRec->catPrice) {
-        
-        if (is_numeric($dRec->catPrice) && ($dRec->price != $dRec->catPrice)) {
-            
-            $marker = (double) (($dRec->price - $dRec->catPrice) / $dRec->catPrice);
-            if ($dRec->catPrice != 0) {
-                $row->deviationCatPrice = core_Type::getByName('percent')->toVerbal($marker);
-                $row->deviationCatPrice = ht::styleIfNegative($row->deviationCatPrice, $marker);
-            }
-            if (($dRec->catPrice == 0)) {
-                $row->deviationCatPrice = 'няма политика';
-            }
-        }
+    	$row->deviationCatPrice = $this->getDeviationCatPrice($dRec);
     }
     
     if ($dRec->selfPriceDown) {
-        
-        if (is_numeric($dRec->selfPrice) && ($dRec->price < $dRec->selfPrice)) {
-            
-            $marker = (double) (($dRec->price - $dRec->selfPrice) / $dRec->selfPrice);
-            if ($dRec->selfPrice != 0) {
-                $row->deviationDownSelf = core_Type::getByName('percent')->toVerbal($marker);
-                $row->deviationDownSelf = ht::styleIfNegative($row->deviationDownSelf, $marker);
-            }
-            if (($dRec->selfPrice == 0)) {
-                $row->deviationDownSelf = 'няма политика';
-            }
-        }
+    	$row->deviationDownSelf = $this->getDeviationDownSelf($dRec);
     }
     
     $Sale = doc_Containers::getDocument(sales_Sales::fetch($dRec->saleId)->containerId);
@@ -525,19 +562,14 @@ protected function detailRecToVerbal($rec, &$dRec)
              $folderLink . "</span></div>";
     }
     
-    if (isset($dRec->productId)) {
-        $row->productId = ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : cat_Products::getShortHyperlink(
-            $dRec->productId);
-    }
+    $row->productId = cat_Products::getShortHyperlink($dRec->productId);
     
     if (isset($dRec->quantity)) {
-        $row->quantity = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->quantity) : core_Type::getByName(
-            'double(decimals=2)')->toVerbal($dRec->quantity);
+        $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
     }
     
     if (isset($dRec->price)) {
-        $row->price = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->price) : core_Type::getByName(
-            'double(decimals=2)')->toVerbal($dRec->price);
+        $row->price = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->price);
     }
     
     if (isset($dRec->measure)) {
@@ -545,16 +577,40 @@ protected function detailRecToVerbal($rec, &$dRec)
     }
     
     if (isset($dRec->selfPrice)) {
-        $row->selfPrice = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->selfPrice) : core_Type::getByName(
-            'double(decimals=2)')->toVerbal($dRec->selfPrice);
+        $row->selfPrice = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->selfPrice);
     }
     
     if (isset($dRec->catPrice)) {
-        $row->catPrice = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->catPrice) : core_Type::getByName(
-            'double(decimals=2)')->toVerbal($dRec->catPrice);
+        $row->catPrice = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->catPrice);
     }
+    
     return $row;
 }
+
+
+/**
+ * След подготовка на реда за експорт
+ *
+ * @param frame2_driver_Proto $Driver
+ * @param stdClass $res
+ * @param stdClass $rec
+ * @param stdClass $dRec
+ */
+protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+{
+	$code = cat_Products::fetchField($dRec->productId, 'code');
+	$res->code = ($code) ? $code : "Art{$dRec->productId}";
+	$res->folderId = sales_Sales::fetchField($dRec->saleId, 'folderId');
+	
+	if ($dRec->catPrice) {
+		$res->deviationCatPrice = $Driver->getDeviationCatPrice($dRec, FALSE);
+	}
+	
+	if ($dRec->selfPriceDown) {
+		$res->deviationDownSelf = $Driver->getDeviationDownSelf($dRec, FALSE);
+	}
+}
+
 
 /**
  * След рендиране на единичния изглед
