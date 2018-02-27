@@ -550,23 +550,21 @@ abstract class deals_DealBase extends core_Master
     protected function еxportReport(&$data)
     {
         expect(Request::get('export', 'int'));
-  
     	expect($rec = $data->rec);
 
     	// Проверка за права
     	$this->requireRightFor('export', $rec);
-    	$title = $this->title . " Поръчано/Доставено";
     	$csv = csv_Lib::createCsv($data->DealReportCsv, $data->reportTableMvc, $data->reportFields);
-    
-    	$fileName = str_replace(' ', '_', str::utf2ascii($title));
+    	$csv .= "\n";
+    	
+    	$csv = mb_convert_encoding($csv, 'UTF-8', 'UTF-8');
+    	$csv = iconv('UTF-8', "UTF-8//IGNORE", $csv);
     	 
-    	header("Content-type: application/csv");
-    	header("Content-Disposition: attachment; filename={$fileName}.csv");
-    	header("Pragma: no-cache");
-    	header("Expires: 0");
-    	 
-    	echo $csv;
-    	shutdown();
+    	// Записване във файловата система
+    	$fh = fileman::absorbStr($csv, 'exportCsv', "{$this->abbr}{$rec->id}_OrderedAndShipped.csv");
+    	
+    	// Редирект към експортиртния файл
+    	redirect(array('fileman_Files', 'single', $fh), 'Справката е експортирана успешно');
     }
     
     
