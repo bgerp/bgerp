@@ -81,7 +81,7 @@ class export_Csv extends core_Mvc
                 
                 if (!($inst->class instanceof $dInst->fields[$mFieldName]->type->params['mvc'])) continue;
                 
-                if (!$dInst->fetch(array("#{$dInst->masterKey} = '{$objId}'"))) continue;
+                if (!$dInst->fetch(array("#{$dInst->masterKey} = '[#1#]'", $objId))) continue;
                 
                 $canUse = TRUE;
                 
