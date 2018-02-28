@@ -30,20 +30,20 @@ class prosody_RestApi {
     private static function doRequest($type, $endpoint, $params=array())
     {
 
-        expect($conf = core_Packs::getConfig('prosody_RestApi'));
+        expect($conf = core_Packs::getConfig('prosody'));
         
         if (!empty($params)) {
             $data = json_encode($params);
         }
         
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $conf['PROSODY_ADMIN_URL'] . '/' . $endpoint);
+        curl_setopt($ch, CURLOPT_URL, $conf->PROSODY_ADMIN_URL . '/' . $endpoint);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10); // timeout after 10 seconds
         curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
         
         $headers = array(
             'Content-Type: application/json',
-            'Authorization: Basic '. base64_encode($conf['PROSODY_ADMIN_USER'] . ":" . $conf['PROSODY_ADMIN_PASS'])
+            'Authorization: Basic '. base64_encode($conf->PROSODY_ADMIN_USER . ":" . $conf->PROSODY_ADMIN_PASS)
         );
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         
@@ -133,7 +133,7 @@ class prosody_RestApi {
      */
      public static function addRoster($user, $contact)
      {
-        $domain = core_Packs::getConfigKey('prosody_RestApi', 'PROSODY_DOMAIN');
+        $domain = core_Packs::getConfigKey('prosody', 'PROSODY_DOMAIN');
         $endpoint = 'roster' . '/' . $user;
         $type = 'POST';
         if (strpos($contact, "@") === FLASE ) {
@@ -154,7 +154,7 @@ class prosody_RestApi {
      */
      public static function deleteRoster($user, $contact)
     {
-        $domain = core_Packs::getConfigKey('prosody_RestApi', 'PROSODY_DOMAIN');
+        $domain = core_Packs::getConfigKey('prosody', 'PROSODY_DOMAIN');
         $endpoint = 'roster' . '/' . $user;
         if (strpos($contact, "@") === FLASE ) {
             $contact .= "@" . $domain;
@@ -196,24 +196,4 @@ class prosody_RestApi {
         return $res;
     }
     
-
-    function act_Test()
-    {
-        self::getConnectedUsers();
-        
-        //$res .= "Delete roster result: " . self::deleteRoster("dimitar_minekov");
-        $res .= "<br>";
-        $res .= self::getRoster("dimitar_minekov");
-        $res .= "<br>";
-        $res .= self::getRoster("mitko_virtual");
-        $res .= "<br>";
-        //$res .= "Add roster result: " . self::addRoster("dimitar_minekov", array("contact" => "mitko_virtual@jabber.bags.bg"));
-//         $res .= "<br>";
-        $res .= "Add roster result: " . self::addRoster("mitko_virtual", array("contact" => "mitko_mob@jabber.bags.bg"));
-        $res .= "<br>";
-        $res .= self::getConnectedUsers();
-        
-        return ($res);
-        
-    }
 }
