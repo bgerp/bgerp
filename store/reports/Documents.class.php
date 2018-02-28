@@ -321,17 +321,25 @@ class store_reports_Documents extends frame2_driver_TableData
 		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($dRec->folderId))->title;
 		
 		if(is_array($dRec->linked) && count($dRec->linked)){
-			$row->linked = $this->getLinked($dRec);
+			$row->linked = self::getLinked($dRec);
 		}
 		
 		if(is_array($dRec->stores)){
-			$row->stores = $this->getStores($dRec);
+			$row->stores = self::getStores($dRec);
 		}
 		
 		return $row;
 	}
 	
-	private function getLinked($dRec, $html = TRUE)
+	
+	/**
+	 * Свързаните документи
+	 * 
+	 * @param stdClass $dRec
+	 * @param boolean $html
+	 * @return string
+	 */
+	private static function getLinked($dRec, $html = TRUE)
 	{
 		$linkedArr = array();
 		foreach ($dRec->linked as $cId){
@@ -343,7 +351,15 @@ class store_reports_Documents extends frame2_driver_TableData
 		return ($html) ? implode(' ', $linkedArr) : "<table class='small no-border'>" . implode('', $linkedArr) . "</table>";
 	}
 	
-	private function getStores($dRec, $links = TRUE)
+	
+	/**
+	 * Връща складовете
+	 *
+	 * @param stdClass $dRec
+	 * @param boolean $html
+	 * @return string
+	 */
+	private static function getStores($dRec, $links = TRUE)
 	{
 		$stores = array();
 		foreach ($dRec->stores as $storeId){
@@ -365,11 +381,11 @@ class store_reports_Documents extends frame2_driver_TableData
 	protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
 	{
 		if(is_array($dRec->stores)){
-			$res->stores = $Driver->getStores($dRec, FALSE);
+			$res->stores = self::getStores($dRec, FALSE);
 		}
 		
 		if(is_array($dRec->linked) && count($dRec->linked)){
-			$res->linked = $Driver->getLinked($dRec, FALSE);
+			$res->linked = self::getLinked($dRec, FALSE);
 		}
 	}
 	
