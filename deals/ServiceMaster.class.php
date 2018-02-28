@@ -121,10 +121,10 @@ abstract class deals_ServiceMaster extends core_Master
 	 * @param int $id първичния ключ на направения запис
 	 * @param stdClass $rec всички полета, които току-що са били записани
 	 */
-	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
-		if($rec->isCreated !== TRUE) return;
-		if($rec->_isCreated === TRUE) return;
+		if($rec->_isCreated !== TRUE) return;
+		if($rec->_isClone === TRUE) return;
 		$origin = $mvc->getOrigin($rec);
 		
 		// Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
