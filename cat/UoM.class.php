@@ -350,20 +350,18 @@ class cat_UoM extends core_Manager
     {
         if(is_string($from) && !is_numeric($from)) {
             $fromRec = self::fetchBySinonim($from);
-            //bp($from, $fromRec);
         } else {
             $fromRec = static::fetch($from);
         }
 
         if(is_string($to) && !is_numeric($to)) {
             $toRec = self::fetchBySinonim($to);
-            bp($toRec);
         } else {
             $toRec = static::fetch($to);
         }
- 
-    	expect($fromRec, 'Проблем при изчислението на първата мярка');
-    	expect($toRec, $toRec);
+       
+    	expect($fromRec, "Неразпозната мярка: {$from}", $fromRec);
+    	expect($toRec, "Неразпозната мярка: {$to}", $toRec);
     	
     	($fromRec->baseUnitId) ? $baseFromId = $fromRec->baseUnitId : $baseFromId = $fromRec->id;
     	($toRec->baseUnitId) ? $baseToId = $toRec->baseUnitId : $baseToId = $toRec->id;
