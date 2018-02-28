@@ -165,7 +165,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 		}
 		
 		$row->num = $Int->toVerbal($dRec->num);
-		$diff = $this->getDiff($rec, $dRec);
+		$diff = self::getDiff($rec, $dRec);
 		
 		if(!empty($diff)){
 			$row->diff = $Int->toVerbal($diff);
@@ -188,7 +188,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	 */
 	protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
 	{
-		$res->diff = $Driver->getDiff($rec, $dRec);
+		$res->diff = self::getDiff($rec, $dRec);
 	}
 	
 	
@@ -199,10 +199,10 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	 * @param stdClass $dRec - запис от детайла
 	 * @return double $diff  - разликата
 	 */
-	private function getDiff($rec, $dRec)
+	private static function getDiff($rec, $dRec)
 	{
 		if(!isset(self::$versionData[$rec->id])){
-			self::$versionData[$rec->id] = $this->getVersionBeforeData($rec);
+			self::$versionData[$rec->id] = self::getVersionBeforeData($rec);
 		}
 		$oldData = self::$versionData[$rec->id];
 		
@@ -239,7 +239,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	 * @param stdClass $rec - записа на отчета
 	 * @return array $versionBeforeData - данните от предишната версия
 	 */
-	private function getVersionBeforeData($rec)
+	private static function getVersionBeforeData($rec)
 	{
 		$selectedVersionId = frame2_Reports::getSelectedVersionId($rec->id);
 		
@@ -270,7 +270,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	public function canSendNotificationOnRefresh($rec)
 	{
 		$data = $rec->data;
-		$oldData = $this->getVersionBeforeData($rec);
+		$oldData = self::getVersionBeforeData($rec);
 		
 		$send = FALSE;
 		if(is_array($data->recs)){

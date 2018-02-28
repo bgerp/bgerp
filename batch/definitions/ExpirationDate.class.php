@@ -147,7 +147,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
 			$query->in('id', $itemsIds);
 			
 			// Ако има ще бъдат подредени по стойноста на срока им
-			if(is_array($itemsIds)){
+			if(is_array($itemsIds) && count($itemsIds)){
 				$count = 1;
 				$case = "CASE #id WHEN ";
 				foreach ($itemsIds as $id){

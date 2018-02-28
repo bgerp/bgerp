@@ -476,7 +476,7 @@ protected function getTableFieldSet($rec, $export = FALSE)
  * @param boolean $verbal
  * @return mixed $deviationCatPrice
  */
-private function getDeviationCatPrice($dRec, $verbal = TRUE)
+private static function getDeviationCatPrice($dRec, $verbal = TRUE)
 {
 	if (is_numeric($dRec->catPrice) && ($dRec->price != $dRec->catPrice)) {
 	
@@ -505,7 +505,7 @@ private function getDeviationCatPrice($dRec, $verbal = TRUE)
  * @param boolean $verbal
  * @return mixed $deviationDownSelf
  */
-private function getDeviationDownSelf($dRec, $verbal = TRUE)
+private static function getDeviationDownSelf($dRec, $verbal = TRUE)
 {
 	if (is_numeric($dRec->selfPrice) && ($dRec->price < $dRec->selfPrice)) {
 		$marker = (double) (($dRec->price - $dRec->selfPrice) / $dRec->selfPrice);
@@ -543,11 +543,11 @@ protected function detailRecToVerbal($rec, &$dRec)
     $marker = '';
     
     if ($dRec->catPrice) {
-    	$row->deviationCatPrice = $this->getDeviationCatPrice($dRec);
+    	$row->deviationCatPrice = self::getDeviationCatPrice($dRec);
     }
     
     if ($dRec->selfPriceDown) {
-    	$row->deviationDownSelf = $this->getDeviationDownSelf($dRec);
+    	$row->deviationDownSelf = self::getDeviationDownSelf($dRec);
     }
     
     $Sale = doc_Containers::getDocument(sales_Sales::fetch($dRec->saleId)->containerId);
@@ -603,11 +603,11 @@ protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, 
 	$res->folderId = sales_Sales::fetchField($dRec->saleId, 'folderId');
 	
 	if ($dRec->catPrice) {
-		$res->deviationCatPrice = $Driver->getDeviationCatPrice($dRec, FALSE);
+		$res->deviationCatPrice = self::getDeviationCatPrice($dRec, FALSE);
 	}
 	
 	if ($dRec->selfPriceDown) {
-		$res->deviationDownSelf = $Driver->getDeviationDownSelf($dRec, FALSE);
+		$res->deviationDownSelf = self::getDeviationDownSelf($dRec, FALSE);
 	}
 }
 
