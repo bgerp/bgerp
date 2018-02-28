@@ -824,7 +824,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	$rec = $this->fetchRec($rec);
     	if($fromCache === TRUE){
-    		$invoicePayments = core_Cache::get('threadInvoices', "t{$rec->threadId}");
+    		$invoicePayments = core_Cache::get('threadInvoices1', "t{$rec->threadId}");
     		if($invoicePayments === FALSE){
     			$invoicePayments = deals_Helper::getInvoicePayments($rec->threadId);
     		}
@@ -834,7 +834,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	$containerId = ($rec->type != 'dc_note') ? $rec->containerId : $rec->originId;
     	
-    	$paidArr = $invoicePayments[$containerId];
+    	$paidArr = $invoicePayments[$containerId]->payments;
     	if(count($paidArr) && isset($paidArr)){
     		$hasCash = $hasBank = FALSE;
     		

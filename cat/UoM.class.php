@@ -462,26 +462,15 @@ class cat_UoM extends core_Manager
     {
         $unit = trim(mb_strtolower($unit));
 
-        $rec = self::fetch(array("LOWER(#sysId) = LOWER('[#1#]')", $unit));
-
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(#name) = LOWER('[#1#]')", $unit));
-        }
-
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(#shortName) = LOWER('[#1#]')", $unit));
-        }
-        
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(CONCAT('|', #name, '|', #shortName)) LIKE '%|[#1#]|%'", $unit));
-        }
-
-        if(!$rec) {
-            $unit = str::utf2ascii($unit);
-            $rec = self::fetch(array("LOWER(CONCAT('|', #sysId, #sinonims)) LIKE '%|[#1#]|%'", $unit));
-        }
+        $arr = array();
+        $arr[] = "LOWER(#sysId) = LOWER('[#1#]')";
+        $arr[] = "LOWER(#name) = LOWER('[#1#]')";
+        $arr[] = "LOWER(#shortName) = LOWER('[#1#]')";
+        $arr[] = "LOWER(CONCAT('|', #name, '|', #shortName)) LIKE '%|[#1#]|%'";
+        $arr[] = "LOWER(CONCAT('|', #sysId, #sinonims)) LIKE '%|[#1#]|%'";
+       
+        $rec = self::fetch(array(implode(' || ' , $arr), $unit));
     	
-
     	return $rec;
     }
     

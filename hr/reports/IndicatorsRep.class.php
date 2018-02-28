@@ -262,7 +262,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 			} elseif($rec->formula) {
 				$row->indicatorId = tr('Формула');
 				
-				$value = $this->calcFormula($rec->formula, $dRec->context);
+				$value = self::calcFormula($rec->formula, $dRec->context);
 				$row->value = (is_numeric($value)) ? "<b>" . $Double->toVerbal($value) . "</b>" : "<small style='font-style:italic;color:red;'>{$value}</small>";
 			}
 		}
@@ -306,7 +306,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	 * @param array $context
 	 * @return varchar $value
 	 */
-	private function calcFormula($formula, $context)
+	private static function calcFormula($formula, $context)
 	{
 		$newContext = self::fillMissingIndicators($context, $formula);
 		if(($expr = str::prepareMathExpr($formula, $newContext)) !== FALSE) {
@@ -335,7 +335,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 			$res->indicatorId = hr_IndicatorNames::getTitleById($dRec->indicatorId);
 		} else {
 			$res->indicatorId = tr('Формула');
-			$res->value = $Driver->calcFormula($rec->formula, $dRec->context);
+			$res->value = static::calcFormula($rec->formula, $dRec->context);
 		}
 	}
 	

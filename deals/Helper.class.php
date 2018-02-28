@@ -1303,13 +1303,17 @@ abstract class deals_Helper
 			$found = array_filter($payDocuments, function($a) use ($k, $cache){return $a->toInvoice == $k || $cache[$a->toInvoice]->originId == $k;});
 			$totalPercent = 1;
 			
+			if(!array_key_exists($k, $paid)){
+				$paid[$k] = (object)array('payments' => array(), 'total' => $o['total'], 'notPaid' => &$newInvoiceArr[$k]['current']);
+			}
+			
 			if(count($found)){
 				foreach ($found as $fId => $o){
 					$newInvoiceArr[$k]['current'] -= $o->amount;
 					$percent = min(round($o->amount / $newInvoiceArr[$k]['total'], 4), 1);
 					$totalPercent -= $percent;
 				
-					$paid[$k][$fId] = (object)array('containerId' => $fId, 'percent' => $percent, 'type' => $o->type, 'isReverse' => $o->isReverse);
+					$paid[$k]->payments[$fId] = (object)array('containerId' => $fId, 'percent' => $percent, 'type' => $o->type, 'isReverse' => $o->isReverse, 'amount' => $o->amount);
 				}
 			}
 			
@@ -1330,7 +1334,7 @@ abstract class deals_Helper
 						$unset = TRUE;
 					}
 						
-					$paid[$k][$nId] = (object)array('containerId' => $nId, 'percent' => $percent, 'type' => $o1->type, 'isReverse' => $o1->isReverse);
+					$paid[$k]->payments[$nId] = (object)array('containerId' => $nId, 'percent' => $percent, 'type' => $o1->type, 'isReverse' => $o1->isReverse, 'amount' => $o1->amount);
 					if($unset === TRUE){
 						unset($notAllocated[$nId]);
 					}
@@ -1351,9 +1355,9 @@ abstract class deals_Helper
 	public static function updateAutoPaymentTypeInThread($threadId)
 	{
 		// Разпределените начини на плащане
-		core_Cache::remove('threadInvoices', "t{$threadId}");
+		core_Cache::remove('threadInvoices1', "t{$threadId}");
 		$invoicePayments = deals_Helper::getInvoicePayments($threadId);
-		core_Cache::set('threadInvoices', "t{$threadId}", $invoicePayments, 1440);
+		core_Cache::set('threadInvoices1', "t{$threadId}", $invoicePayments, 1440);
 	
 		// Всички ф-ри в нишката
 		$invoices = self::getInvoicesInThread($threadId);
