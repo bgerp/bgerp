@@ -133,10 +133,11 @@ class prosody_RestApi {
      */
      public static function addRoster($user, $contact)
      {
+        $domain = core_Packs::getConfigKey('prosody_RestApi', 'PROSODY_DOMAIN');
         $endpoint = 'roster' . '/' . $user;
         $type = 'POST';
         if (strpos($contact, "@") === FLASE ) {
-            $contact .= "@" . $conf['PROSODY_DOMAIN'];
+            $contact .= "@" . $domain;
         }
         
         $res = self::doRequest($type, $endpoint, array("contact" => $contact));
@@ -153,13 +154,13 @@ class prosody_RestApi {
      */
      public static function deleteRoster($user, $contact)
     {
+        $domain = core_Packs::getConfigKey('prosody_RestApi', 'PROSODY_DOMAIN');
         $endpoint = 'roster' . '/' . $user;
-        $type = 'DELETE';
         if (strpos($contact, "@") === FLASE ) {
-            $contact .= "@" . $conf['PROSODY_DOMAIN'];
+            $contact .= "@" . $domain;
         }
         
-        $res = self::doRequest($type, $endpoint, array("contact" => $contact));
+        $res = self::doRequest("DELETE", $endpoint, array("contact" => $contact));
         
         return $res;
     }
