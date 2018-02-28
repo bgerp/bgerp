@@ -90,11 +90,11 @@ class cat_products_Packagings extends core_Detail
         $this->FLD('quantity', 'double(Min=0,smartRound)', 'input,caption=Количество,mandatory,smartCenter');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
         $this->FLD('eanCode', 'gs1_TypeEan(mvc=cat_products_Packagings,field=eanCode)', 'caption=EAN');
-        $this->FLD('templateId', 'key(mvc=cat_PackParams,select=title)', 'caption=Допълнително->Размери,silent,removeAndRefreshForm=tareWeight|sizeWidth|sizeHeight|sizeDepth,class=w50');
-        $this->FLD('sizeWidth', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Дължина');
-        $this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Широчина');
-        $this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Допълнително->Височина');
-        $this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Допълнително->Тара');
+        $this->FLD('templateId', 'key(mvc=cat_PackParams,select=title)', 'caption=Размери,silent,removeAndRefreshForm=tareWeight|sizeWidth|sizeHeight|sizeDepth,class=w50');
+        $this->FLD('sizeWidth', 'cat_type_Size(min=0,unit=cm)', 'caption=Разширено->Дължина,autohide=any');
+        $this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Разширено->Широчина,autohide=any');
+        $this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Разширено->Височина,autohide=any');
+        $this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Разширено->Тара,autohide=any');
         
         $this->setDbUnique('productId,packagingId');
         $this->setDbIndex('eanCode');
@@ -344,26 +344,8 @@ class cat_products_Packagings extends core_Detail
         	
         	if(count($defaults)){
         		foreach ($defaults as $def){
-        			
-        			// Ако опаковката още не е зададена
         			if(isset($options[$def->packagingId])){
         				$form->setDefault('packagingId', $def->packagingId);
-        				
-        				// За дава се избрана по дефолт
-        				foreach (array('quantity', 'isBase', 'tareWeight', 'sizeWidth', 'sizeHeight', 'sizeDepth') as $fld){
-        					if($def->justGuess === TRUE){
-        						$form->setDefault($fld, $def->{$fld});
-        					} else {
-        						
-        						// Ако не е задължителна само стойностите и се подават като плейсходлъри
-        						$placeholder = $mvc->getFieldType($fld)->toVerbal($def->{$fld});
-        						$placeholder = explode(' ', $placeholder);
-        						$placeholder = $placeholder[0];
-        						$form->setField($fld, "placeholder={$placeholder}");
-        					}
-        				}
-        				
-        				break;
         			}
         		}
         	}
