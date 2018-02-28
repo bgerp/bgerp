@@ -182,7 +182,6 @@ abstract class deals_ServiceMaster extends core_Master
 					$aRec->containerId = $rec->containerId;
 					
 					acc_CostAllocations::save($aRec);
-					core_Statuses::newStatus($aRec->id);
 				}
 			}
 		}
