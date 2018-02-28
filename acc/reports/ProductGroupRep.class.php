@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Счетоводство » Продукти по групи
@@ -95,6 +95,17 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
 	    $num = 1;
     	// за всеки един индикатор
     	while($recPrime = $query->fetch()){ 
+    		$Document = doc_Containers::getDocument($recPrime->containerId);
+    		$state = $Document->fetchField('state');
+    		if($state == 'rejected') continue;
+    		$sign = 1;
+    		if($Document->getInstance()->getField('isReverse', FALSE)){
+    			$isReverse = $Document->fetchField('isReverse');
+    			if($isReverse == 'yes'){
+    				$sign = -1;
+    			}
+    		}
+    		
     	        $id = $recPrime->productId ."|". $recPrime->containerId;
     	        // добавяме в масива събитието
     	        if(!array_key_exists($id,$recs)) { 
@@ -104,18 +115,18 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     	                'date' => $recPrime->valior,
     	                'docId' => $recPrime->containerId,
     	                'productId' => $recPrime->productId,
-    	                'quantity' => $recPrime->quantity,
-    	                'primeCost'=> $recPrime->quantity * $recPrime->primeCost,
-    	                'sellCost' => $recPrime->quantity * $recPrime->sellCost,
+    	                'quantity' => $sign * $recPrime->quantity,
+    	                'primeCost'=> $sign * $recPrime->quantity * $recPrime->primeCost,
+    	                'sellCost' => $sign * $recPrime->quantity * $recPrime->sellCost,
     	                'group' => cat_Products::fetchField($recPrime->productId, 'groups'),
     	                'dealerId' => $recPrime->dealerId
   
     	            );
     	        } else {
     	            $obj = &$recs[$id];
-    	            $obj->quantity += $recPrime->quantity;
-    	            $obj->primeCost += $recPrime->quantity * $recPrime->primeCost;
-    	            $obj->sellCost += $recPrime->quantity * $recPrime->sellCost;
+    	            $obj->quantity += $sign * $recPrime->quantity;
+    	            $obj->primeCost += $sign * $recPrime->quantity * $recPrime->primeCost;
+    	            $obj->sellCost += $sign * $recPrime->quantity * $recPrime->sellCost;
     	        }
     	    }
     	    
@@ -160,6 +171,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
 		$fld = cls::get('core_FieldSet');
 	
     	$fld->FLD('kod', 'varchar','caption=Код');
+    	$fld->FLD('docId', 'varchar','caption=Документ');
     	$fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
     	$fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество');
     	$fld->FLD('primeCost', 'double', 'smartCenter,caption=Себестойност');
@@ -179,19 +191,22 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
 	{
-		$Int = cls::get('type_Int');
-		$Date = cls::get('type_Date');
-		$Double = cls::get('type_Double');
-		$Double->params['decimals'] = 2;
+		$Double = core_Type::getByName('double(decimals=2)');
 		$groArr  = array();
+		$Document = doc_Containers::getDocument($dRec->docId);
 		$row = new stdClass();
 		
 		$row->kod = $dRec->kod;
 		$singleUrl = cat_Products::getSingleUrlArray($dRec->productId);
 		$row->productId = ht::createLinkRef(cat_Products::getVerbal($dRec->productId, 'name'), $singleUrl);
-
+		$row->docId = $Document->getLink(0);
+		
 		foreach(array('quantity', 'primeCost', 'sellCost') as $fld) {
 		    $row->{$fld} = $Double->toVerbal($dRec->{$fld});
+		    $row->{$fld} = ht::styleIfNegative($row->{$fld}, $dRec->{$fld});
+		    if($dRec->{$fld} == 0){
+		    	$row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
+		    }
 		}
 
 		if(isset($dRec->group)){
@@ -213,6 +228,20 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
 	}
     
     
+	/**
+	 * След подготовка на реда за експорт
+	 *
+	 * @param frame2_driver_Proto $Driver
+	 * @param stdClass $res
+	 * @param stdClass $rec
+	 * @param stdClass $dRec
+	 */
+	protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+	{
+		$res->docId = "#" . doc_Containers::getDocument($dRec->docId)->getHandle($dRec->docId, 0);
+	}
+	
+	
     /**
 	 * След вербализирането на данните
 	 *
@@ -226,7 +255,6 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     {
         $groArr = array();
        
-            
         $Date = cls::get('type_Date');
         $row->from = $Date->toVerbal($rec->from);
         $row->to = $Date->toVerbal($rec->to);
