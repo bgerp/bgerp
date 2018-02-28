@@ -1,5 +1,7 @@
 <?php
 
+
+
 /**
  * Мениджър на отчети за отклонения от цените
  *
@@ -19,6 +21,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
      */
     public $canSelectDriver = 'ceo,manager,store,planing,purchase,sales';
 
+    
     /**
      * Брой записи на страница
      *
@@ -26,21 +29,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
      */
     protected $listItemsPerPage = 30;
 
-    /**
-     * Полета от таблицата за скриване, ако са празни
-     *
-     * @var int
-     */
-    protected $filterEmptyListFields;
-
-    /**
-     * Полета за хеширане на таговете
-     *
-     * @see uiext_Labels
-     * @var varchar
-     */
-    protected $hashField;
-
+    
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
@@ -48,16 +37,19 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
      */
     protected $newFieldToCheck = 'conditionQuantity';
 
+    
     /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField = 'saleId';
 
+    
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'typeOfQuantity,additional,storeId,groupId';
 
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -65,21 +57,16 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('selfPriceTolerance', 'double', 
-            'caption=Отклонение от себестойност->Толеранс под себестойност,unit= %,after=title,single=none');
-        $fieldset->FLD('sellPriceToleranceDown', 'double', 
-            'caption=Отклонение от продажна цена по политика->Толеранс под цена,unit= %,after=selfPriceTolerance,single=none');
-        $fieldset->FLD('sellPriceToleranceUp', 'double', 
-            'caption=Отклонение от продажна цена по политика->Толеранс над цена,unit= %,after=sellPriceToleranceDown,single=none');
-        $fieldset->FLD('from', 'date(smartTime)', 
-            'caption=Отчетен период->От,after=sellPriceToleranceUp,mandatory,single=none');
+        $fieldset->FLD('selfPriceTolerance', 'double', 'caption=Отклонение от себестойност->Толеранс под себестойност,unit= %,after=title,single=none');
+        $fieldset->FLD('sellPriceToleranceDown', 'double', 'caption=Отклонение от продажна цена по политика->Толеранс под цена,unit= %,after=selfPriceTolerance,single=none');
+        $fieldset->FLD('sellPriceToleranceUp', 'double', 'caption=Отклонение от продажна цена по политика->Толеранс над цена,unit= %,after=sellPriceToleranceDown,single=none');
+        $fieldset->FLD('from', 'date(smartTime)', 'caption=Отчетен период->От,after=sellPriceToleranceUp,mandatory,single=none');
         $fieldset->FLD('to', 'date(smartTime)', 'caption=Отчетен период->До,after=from,mandatory,single=none');
-        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|rep_cat, rolesForTeams=ceo|manager|rep_acc|rep_cat)', 
-            'caption=Дилъри,placeholder=Всички,after=to');
-        $fieldset->FLD('articleType', 'enum(all=Всички,yes=Стандартни,no=Нестандартни)', 
-            "caption=Тип артикули,maxRadio=3,columns=3,removeAndRefreshForm,after=dealers");
+        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|rep_cat, rolesForTeams=ceo|manager|rep_acc|rep_cat)', 'caption=Дилъри,placeholder=Всички,after=to');
+        $fieldset->FLD('articleType', 'enum(all=Всички,yes=Стандартни,no=Нестандартни)', "caption=Тип артикули,maxRadio=3,columns=3,removeAndRefreshForm,after=dealers");
     }
 
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -94,14 +81,12 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
         $rec = $form->rec;
         
         $form->setDefault('articleType', 'all');
-        
         $form->setDefault('selfPriceTolerance', 1);
-        
         $form->setDefault('sellPriceToleranceDown', 1);
-        
         $form->setDefault('sellPriceToleranceUp', 1);
     }
 
+    
     /**
      * Кои записи ще се показват в таблицата
      *
@@ -111,10 +96,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = NULL)
     {
-        $recs = array();
-        $expRecs = array();
-        $sallRecs = array();
-        
+    	$sallRecs = $expRecs = $recs = array();
         $dealersId = keylist::toArray($rec->dealers);
         
         // По продажби
@@ -453,7 +435,7 @@ protected function getTableFieldSet($rec, $export = FALSE)
     
     $fld->FLD('saleId', 'varchar', 'caption=Сделка');
     if($export === TRUE){
-    	$fld->FLD('folderId', 'key(mvc=doc_Folders,select=title)', 'caption=papka');
+    	$fld->FLD('folderId', 'key(mvc=doc_Folders,select=title)', 'caption=Папка');
     	$fld->FLD('code', 'varchar', 'caption=Код');
     }
     $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
@@ -598,9 +580,11 @@ protected function detailRecToVerbal($rec, &$dRec)
  */
 protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
 {
-	$code = cat_Products::fetchField($dRec->productId, 'code');
-	$res->code = ($code) ? $code : "Art{$dRec->productId}";
-	$res->folderId = sales_Sales::fetchField($dRec->saleId, 'folderId');
+	$res->code = cat_Products::getVerbal($dRec->productId, 'code');
+	
+	$saleRec = sales_Sales::fetch($dRec->saleId, 'folderId');
+	$res->saleId = "#" . sales_Sales::getHandle($dRec->saleId);
+	$res->folderId = $saleRec->folderId;
 	
 	if ($dRec->catPrice) {
 		$res->deviationCatPrice = self::getDeviationCatPrice($dRec, FALSE);

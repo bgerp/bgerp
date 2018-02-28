@@ -350,18 +350,20 @@ class cat_UoM extends core_Manager
     {
         if(is_string($from) && !is_numeric($from)) {
             $fromRec = self::fetchBySinonim($from);
+            //bp($from, $fromRec);
         } else {
             $fromRec = static::fetch($from);
         }
 
         if(is_string($to) && !is_numeric($to)) {
             $toRec = self::fetchBySinonim($to);
+            bp($toRec);
         } else {
             $toRec = static::fetch($to);
         }
  
     	expect($fromRec, 'Проблем при изчислението на първата мярка');
-    	expect($toRec, 'Проблем при изчислението на втората мярка');
+    	expect($toRec, $toRec);
     	
     	($fromRec->baseUnitId) ? $baseFromId = $fromRec->baseUnitId : $baseFromId = $fromRec->id;
     	($toRec->baseUnitId) ? $baseToId = $toRec->baseUnitId : $baseToId = $toRec->id;
@@ -461,15 +463,15 @@ class cat_UoM extends core_Manager
     public static function fetchBySinonim($unit)
     {
         $unit = trim(mb_strtolower($unit));
-
+        $unitAscii = str::utf2ascii($unit);
+        
         $arr = array();
         $arr[] = "LOWER(#sysId) = LOWER('[#1#]')";
         $arr[] = "LOWER(#name) = LOWER('[#1#]')";
         $arr[] = "LOWER(#shortName) = LOWER('[#1#]')";
         $arr[] = "LOWER(CONCAT('|', #name, '|', #shortName)) LIKE '%|[#1#]|%'";
-        $arr[] = "LOWER(CONCAT('|', #sysId, #sinonims)) LIKE '%|[#1#]|%'";
-       
-        $rec = self::fetch(array(implode(' || ' , $arr), $unit));
+        $arr[] = "LOWER(CONCAT('|', #sysId, #sinonims)) LIKE '%|[#2#]|%'";
+        $rec = self::fetch(array(implode(' || ' , $arr), $unit, $unitAscii));
     	
     	return $rec;
     }
