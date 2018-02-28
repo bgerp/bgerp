@@ -80,12 +80,6 @@ class frame2_Reports extends embed_Manager
     /**
      * Права за писане
      */
-    public $canExport = 'powerUser';
-    
-    
-    /**
-     * Права за писане
-     */
     public $canRefresh = 'powerUser';
     
     
@@ -436,10 +430,6 @@ class frame2_Reports extends embed_Manager
     		$data->toolbar->addBtn('Обнови', array($mvc, 'refresh', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на отчета');
     	}
     	
-    	if($mvc->haveRightFor('export', $rec)){
-    		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=2');
-    	}
-    	
     	$url = array($mvc, 'single', $rec->id);
     	$icon = 'img/16/checked.png';
     	if(!Request::get('vId', 'int')){
@@ -640,12 +630,6 @@ class frame2_Reports extends embed_Manager
     		}
     	}
     	
-    	if($action == 'export' && isset($rec)){
-    		if(!$mvc->haveRightFor('single', $rec)){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
-    	
     	// Документа може да бъде създаван ако потребителя може да избере поне един драйвер
     	if($action == 'add'){
     		$options = self::getAvailableDriverOptions($userId);
@@ -655,12 +639,9 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	// За модификация, потребителя трябва да има права и за драйвера
-    	if(in_array($action, array('write', 'refresh', 'export')) && isset($rec->driverClass)){
-
+    	if(in_array($action, array('write', 'refresh')) && isset($rec->driverClass)){
     		if($Driver = $mvc->getDriver($rec)){
     			if(!$Driver->canSelectDriver($userId)){
-
-
     				$requiredRoles = 'no_one';
     			}
     		}
@@ -780,51 +761,6 @@ class frame2_Reports extends embed_Manager
     			$row->nextUpdate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($callOn);
     		}
     	}
-    }
-    
-    
-    /**
-     * Екшън който експортира данните
-     */
-    public function act_Export()
-    {
-		// Проверка за права
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	$this->requireRightFor('export', $rec);
-    
-    	// Ако е избрана версия експортира се тя
-    	if($versionId = self::getSelectedVersionId($id)){
-    		if($versionRec = frame2_ReportVersions::fetchField($versionId, 'oldRec')){
-    			$rec = $versionRec;
-    		}
-    	}
-    	
-    	// Подготовка на данните
-    	$csvRecs = $fields = array();
-    	if($Driver = $this->getDriver($rec)){
-    		$csvRecs = $Driver->getCsvExportRecs($rec);
-    		$fields = $Driver->getCsvExportFieldset($rec);
-    	}
-    	
-    	// Проверка има ли данни за експорт
-    	if(!count($csvRecs)) followRetUrl(NULL, 'Няма данни за експортиране');
-    	
-    	// Създаване на csv-то
-    	$listFields = $fields->getFieldArr();
-    	$csv = csv_Lib::createCsv($csvRecs, $fields);
-    	$csv .= "\n";
-    	
-    	// Подсигуряване че енкодига е UTF8
-    	$csv = mb_convert_encoding($csv, 'UTF-8', 'UTF-8');
-    	$csv = iconv('UTF-8', "UTF-8//IGNORE", $csv);
-    	
-    	// Записване във файловата система
-    	$fileName = str_replace(' ', '_', str::utf2ascii($rec->title));
-    	$fh = fileman::absorbStr($csv, 'exportCsv', "{$fileName}_{$rec->id}.csv");
-    	 
-    	// Редирект към експортиртния файл
-    	return new Redirect(array('fileman_Files', 'single', $fh), 'Справката е експортирана успешно');
     }
     
     
