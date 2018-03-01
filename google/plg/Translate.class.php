@@ -50,7 +50,7 @@ EOT;
     { 
         if ($rec->lg != core_Lg::getCurrent() && 
             !(Mode::is('text', 'xhtml') && !Mode::is('printing')) &&
-            !Mode::is('text', 'plain')  &&
+            !Mode::is('text', 'plain')  && !Request::get('ajax_mode')  &&
             $fields['-single'] && trim($row->textPart)
              ) {
 
