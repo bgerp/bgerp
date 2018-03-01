@@ -50,7 +50,7 @@ EOT;
     { 
         if ($rec->lg != core_Lg::getCurrent() && 
             !(Mode::is('text', 'xhtml') && !Mode::is('printing')) &&
-            !Mode::is('text', 'plain')  && !Request::get('ajax_mode')  &&
+            !Mode::is('text', 'plain')  && 
             $fields['-single'] && trim($row->textPart)
              ) {
 
@@ -58,9 +58,11 @@ EOT;
                 sprintf(static::$markupTpl, $row->textPart)
             );
             
-            $row->textPart->push(sprintf(static::$elementJsUrl, core_Lg::getCurrent()), 'JS');
-            $row->textPart->appendOnce(static::$initJs, 'SCRIPTS');
-            $row->textPart->appendOnce(static::$css, 'STYLES');
+            if(!Request::get('ajax_mode')) {
+                $row->textPart->push(sprintf(static::$elementJsUrl, core_Lg::getCurrent()), 'JS');
+                $row->textPart->appendOnce(static::$initJs, 'SCRIPTS');
+                $row->textPart->appendOnce(static::$css, 'STYLES');
+            }
         }
     }
 }
