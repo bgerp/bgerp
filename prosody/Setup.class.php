@@ -52,8 +52,8 @@ class prosody_Setup extends core_ProtoSetup
 	 */
 	public $configDescription = array(
 	    'PROSODY_DOMAIN' => array("varchar", 'caption=Настройки->Домейн,placeholder=jabber.sever.bg'),
-	    'PROSODY_ADMIN_URL' => array("varchar", 'caption=Настройки->Административно URL,placeholder=http://jabber.server.bg:5280/admin_rest'),
-	    'PROSODY_ADMIN_USER' => array("varchar", 'caption=Настройки->Потребител,placeholder=admin@jabber.server.bg'),
+	    'PROSODY_ADMIN_URL' => array("url", 'caption=Настройки->Административно URL,placeholder=http://jabber.server.bg:5280/admin_rest'),
+	    'PROSODY_ADMIN_USER' => array("email", 'caption=Настройки->Потребител,placeholder=admin@jabber.server.bg'),
 	    'PROSODY_ADMIN_PASS' => array("password", 'caption=Настройки->Парола,placeholder=Passw0rd!'),
 	     
 	);
