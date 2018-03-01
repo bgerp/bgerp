@@ -18,10 +18,10 @@
  * @link
  */
 
-DEFINE('PROSODY_DOMAIN','jabber.server.bg');
-DEFINE('PROSODY_ADMIN_URL', "http://jabber.server.bg:5280/admin_rest");
-DEFINE('PROSODY_ADMIN_USER', "admin@jabber.server.bg");
-DEFINE('PROSODY_ADMIN_PASS', 'Passw0rd!');
+DEFINE('PROSODY_DOMAIN','');
+DEFINE('PROSODY_ADMIN_URL', '');
+DEFINE('PROSODY_ADMIN_USER', '');
+DEFINE('PROSODY_ADMIN_PASS', '');
 
 class prosody_Setup extends core_ProtoSetup
 {
@@ -51,10 +51,10 @@ class prosody_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	public $configDescription = array(
-	    'PROSODY_DOMAIN' => array("varchar", 'caption=Настройки->Домейн'),
-	    'PROSODY_ADMIN_URL' => array("varchar", 'caption=Настройки->Административно URL'),
-	    'PROSODY_ADMIN_USER' => array("varchar", 'caption=Настройки->Потребител'),
-	    'PROSODY_ADMIN_PASS' => array("password", 'caption=Настройки->Парола'),
+	    'PROSODY_DOMAIN' => array("varchar", 'caption=Настройки->Домейн,placeholder=jabber.sever.bg'),
+	    'PROSODY_ADMIN_URL' => array("varchar", 'caption=Настройки->Административно URL,placeholder=http://jabber.server.bg:5280/admin_rest'),
+	    'PROSODY_ADMIN_USER' => array("varchar", 'caption=Настройки->Потребител,placeholder=admin@jabber.server.bg'),
+	    'PROSODY_ADMIN_PASS' => array("password", 'caption=Настройки->Парола,placeholder=Passw0rd!'),
 	     
 	);
 	
