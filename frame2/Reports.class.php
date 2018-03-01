@@ -194,6 +194,12 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'title,driverClass';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
