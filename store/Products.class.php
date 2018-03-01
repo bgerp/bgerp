@@ -187,7 +187,6 @@ class store_Products extends core_Detail
     	$data->query->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
     	$data->query->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=productId');
     	
-    	$data->query->orderBy('code,id', ASC);
     	if(isset($data->masterMvc)){
     		$data->listFilter->setDefault('order', 'all');
     		$data->listFilter->showFields = 'search,groupId';
@@ -230,11 +229,9 @@ class store_Products extends core_Detail
         	if(isset($rec->order)){
         		switch($data->listFilter->rec->order){
         			case 'all':
-        				$data->query->orderBy('#state,#name');
 						break;
 		        	case 'private':
         				$data->query->where("#isPublic = 'no'");
-        				$data->query->orderBy('#state,#name');
 						break;
 					case 'last':
 			      		$data->query->orderBy('#createdOn=DESC');
@@ -247,10 +244,11 @@ class store_Products extends core_Detail
         				break;
         			default :
         				$data->query->where("#isPublic = 'yes'");
-        				$data->query->orderBy('#state,#name');
         				break;
         		}
         	}
+        	
+        	$data->query->orderBy('#state,#code');
         	
         	// Филтър по групи на артикула
         	if (!empty($rec->groupId)) {
