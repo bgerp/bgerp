@@ -590,6 +590,7 @@ class sales_PrimeCostByDocument extends core_Manager
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     	$data->listFilter->input();
+    	$data->query->orderBy('valior', "DESC");
     	
     	if($rec = $data->listFilter->rec){
     		if(!empty($rec->documentId)){
