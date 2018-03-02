@@ -599,4 +599,32 @@ class sales_PrimeCostByDocument extends core_Manager
     		}
     	}
     }
+    
+    
+    /**
+     * Обновява дилърите и инциаторите на подадените документи
+     * 
+     * @param array $containerIds
+     * @return void
+     */
+    public static function updatePersons($containerIds)
+    {
+    	$containerIds = arr::make($containerIds);
+    	if(!count($containerIds)) return;
+    	
+    	$query = self::getQuery();
+    	$query->in('containerId', $containerIds);
+    	while($rec = $query->fetch()){
+    		$persons = self::getDealerAndInitiatorId($rec->containerId);
+    		if($rec->dealerId != $persons['dealerId'] || $rec->initiatorId != $persons['initiatorId']){
+    			$rec->dealerId = $persons['dealerId'];
+    			$rec->initiatorId = $persons['initiatorId'];
+    			self::save($rec);
+    			
+    			$doc = doc_Containers::getDocument($rec->containerId);
+    			$doc->touchRec();
+    			$doc->getInstance()->logInAct("Обновяване на дилъра и/или инициатора на делтата", $doc->that);
+    		}
+    	}
+    }
 }
