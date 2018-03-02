@@ -278,6 +278,12 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Кои роли може да променят активна продажбата
+     */
+    public $canChangerec = 'ceo,salesMaster';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
