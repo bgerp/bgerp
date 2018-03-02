@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -51,13 +51,13 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin';
     
     
     /**
-     * Активен таб на менюто
+     * Полетата, които могат да се променят с change_Plugin
      */
-    public $menuPage = 'Търговия:Продажби';
+    public $changableFields = 'dealerId,initiatorId';
     
     
     /**
@@ -1358,5 +1358,34 @@ class sales_Sales extends deals_DealMaster
     	}
     
     	return $result;
+    }
+    
+    
+    /**
+     * Прихваща извикването на AfterSaveLogChange в change_Plugin
+     * Добавя нотификация след промяна на документа
+     *
+     * @param $mvc $mvc
+     * @param array $recsArr - Масив със записаните данни
+     */
+    protected static function on_AfterSaveLogChange($mvc, $recsArr)
+    {
+    	if(is_array($recsArr)){
+    		if($fRec = $recsArr[0]){
+    			if($fRec->docClass && $fRec->docId){
+    				$rec = cls::get($fRec->docClass)->fetch($fRec->docId, 'threadId,containerId');
+    				
+    				// Кои са контейнерите в нишката
+    				$tRec = doc_Containers::getQuery();
+    				$tRec->where("#threadId = {$rec->threadId}");
+    				$tRec->show('id');
+    				$containerIds = arr::extractValuesFromArray($tRec->fetchAll(), 'id');
+    				$containerIds[$fRec->containerId] = $rec->containerId;
+    				
+    				// Ще им се преизчисляват делтите
+    				sales_PrimeCostByDocument::updatePersons($containerIds);
+    			}
+    		}
+    	}
     }
 }
