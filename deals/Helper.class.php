@@ -1310,7 +1310,7 @@ abstract class deals_Helper
 			if(count($found)){
 				foreach ($found as $fId => $o){
 					$newInvoiceArr[$k]['current'] -= $o->amount;
-					$percent = min(round($o->amount / $newInvoiceArr[$k]['total'], 4), 1);
+					@$percent = min(round($o->amount / $newInvoiceArr[$k]['total'], 4), 1);
 					$totalPercent -= $percent;
 				
 					$paid[$k]->payments[$fId] = (object)array('containerId' => $fId, 'percent' => $percent, 'type' => $o->type, 'isReverse' => $o->isReverse, 'amount' => $o->amount);
