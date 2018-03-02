@@ -3,13 +3,13 @@
 
 
 /**
- * Нов мениджър за справки
+ * Мениджър за динамични справки
  *
  *
  * @category  bgerp
  * @package   frame2
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -191,6 +191,12 @@ class frame2_Reports extends embed_Manager
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'lastRefreshed,data';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'title,driverClass';
     
     
     /**
@@ -615,8 +621,6 @@ class frame2_Reports extends embed_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-
-
     	if($action == 'refresh' && isset($rec)){
     		if($Driver = $mvc->getDriver($rec)){
     			$dates = $Driver->getNextRefreshDates($rec);

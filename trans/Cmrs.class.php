@@ -34,7 +34,7 @@ class trans_Cmrs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper,plg_Clone,doc_DocumentPlg, plg_Printing, plg_Search, doc_ActivatePlg, doc_EmailCreatePlg';
+    public $loadList = 'plg_RowTools2, trans_Wrapper,plg_Clone,doc_DocumentPlg, doc_plg_MultiPrint, plg_Printing, plg_Search, doc_ActivatePlg, doc_EmailCreatePlg';
 
     
     /**
@@ -113,6 +113,12 @@ class trans_Cmrs extends core_Master
      * Кои редове да са компресирани
      */
     const NUMBER_GOODS_ROWS = 4;
+    
+    
+    /**
+     * Брой копия при печат
+     */
+    public $copiesOnPrint = 4;
     
     
     /**
@@ -591,5 +597,21 @@ class trans_Cmrs extends core_Master
     	}
     
     	return $rec;
+    }
+    
+    
+    /**
+     * След рендиране на копия за принтиране
+     * @see doc_plg_MultiPrint
+     *
+     * @param core_Mvc $mvc - мениджър
+     * @param core_ET $copyTpl - копие за рендиране
+     * @param int $copyNum - пореден брой на копието за принтиране
+     */
+    protected static function on_AfterRenderPrintCopy($mvc, &$copyTpl, $copyNum, $rec)
+    {
+    	$head = array(1 => 'Copy for sender', 2 => 'Copy for receiver', 3 => 'Copy for carrier', 4 => 'Copy for second carrier');
+    	$copyTpl->append($copyNum, 'copyNum');
+    	$copyTpl->append($head[$copyNum], 'copyTitle');
     }
 }

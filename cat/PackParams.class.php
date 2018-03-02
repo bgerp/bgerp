@@ -39,7 +39,7 @@ class cat_PackParams extends core_Manager
     /**
      * Кой може да променя състоянието
      */
-    public $canChangestate = 'cat,ceo';
+    public $canChangestate = 'packEdit,ceo';
     
     
     /**
