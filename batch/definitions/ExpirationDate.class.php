@@ -158,6 +158,8 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
 				$case .= " END";
 				$query->XPR('orderById', 'int', "({$case})");
 				$query->orderBy('orderById');
+			} else {
+				$query->where("1 = 2");
 			}
 			
 			$query->EXT('featureId', 'batch_Features', 'externalName=id,remoteKey=itemId');

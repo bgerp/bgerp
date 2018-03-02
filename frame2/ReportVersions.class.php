@@ -3,13 +3,13 @@
 
 
 /**
- * Версии на новите справки
+ * Мениджър за предишни състояния на динамичните справки
  *
  *
  * @category  bgerp
  * @package   frame2
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -91,6 +91,8 @@ class frame2_ReportVersions extends core_Detail
 		$this->FLD("reportId", "key(mvc=frame2_Reports)", "caption=Репорт");
 		$this->FLD("oldRec", "blob(serialize, compress,size=20000000)", "caption=Стар запис");
 		$this->FLD("versionBefore", "int", "caption=Предишна версия");
+		
+		$this->setDbIndex('versionBefore');
 	}
 	
 	
@@ -165,7 +167,7 @@ class frame2_ReportVersions extends core_Detail
 	 * @param stdClass $row Това ще се покаже
 	 * @param stdClass $rec Това е записа в машинно представяне
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		// Коя е избраната версия в момента
 		$selectedId = frame2_Reports::getSelectedVersionId($rec->reportId);
@@ -205,7 +207,7 @@ class frame2_ReportVersions extends core_Detail
 	/**
 	 * Преди извличане на записите от БД
 	 */
-	public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+	protected static function on_BeforePrepareListRecs($mvc, &$res, $data)
 	{
 		$data->query->orderBy('id', "DESC");
 	}
@@ -241,7 +243,7 @@ class frame2_ReportVersions extends core_Detail
     /**
 	 * Преди рендиране на таблицата
 	 */
-	public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+	protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
 	{
 		$data->listTableMvc->setField('createdBy', 'smartCenter');
 	}
