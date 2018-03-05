@@ -175,6 +175,7 @@ class core_page_InternalModern extends core_page_Active
                                                 [#LANG_CHANGE#]
                                                 [#SIGNAL#]
                                                 [#DEBUG_BTN#]
+                                                [#PROFILE_MENU_ITEM#]
                                                 <div class='divider'></div>
                                                 [#SIGN_OUT#]
                                             </div>
