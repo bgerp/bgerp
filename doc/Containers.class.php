@@ -874,8 +874,11 @@ class doc_Containers extends core_Manager
                 // Масис със споделените потребители
                 $sharedArr = keylist::toArray($shared);
                 
+                // Вземаме, ако има приоритета от документа
+                $priority = ($docRec && $docRec->priority) ? $docRec->priority : 'normal';
+
                 // Нотифицираме споделените
-                self::addNotifications($sharedArr, $docMvc, $rec, 'сподели', FALSE);
+                self::addNotifications($sharedArr, $docMvc, $rec, 'сподели', FALSE, $priority);
                 
                 // Всички абонирани потребилите
                 $subscribedArr = doc_ThreadUsers::getSubscribed($rec->threadId);

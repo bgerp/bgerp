@@ -225,26 +225,25 @@ class cal_Reminders extends core_Master
     function description()
     {
         $this->FLD('title',    'varchar(128)', 'caption=Заглавие,mandatory,width=100%, changable,silent');
-        $this->FLD('priority', 'enum(low=Нисък,
-                                     normal=Нормален,
-                                     high=Висок,
-                                     critical=Критичен)', 
-            'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal,changable');
-        if(Mode::is('screenMode', 'narrow')) {
-            $this->setField('priority', "columns=2");
-            $this->setFieldTypeParams('priority',"columns=2" );
-        }
+
         $this->FLD('description', 'richtext(bucket=calReminders)', 'caption=Описание,changable,silent');
 
         // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,changable,silent');
-        
+        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,changable,silent');
+
+        // Приоритет
+        $this->FLD('priority', 'enum(normal=Нормален,
+                                     low=Нисък,
+                                     high=Спешен,
+                                     critical=Критичен)',
+            'caption=Споделяне->Приоритет,maxRadio=4,columns=4,notNull,value=normal,autohide,changable');
+      
         // Какво ще е действието на известието?
         $this->FLD('action', 'enum(threadOpen=Отваряне на нишката,
         						   notify=Нотификация,
                                    notifyNoAns = Нотификация-ако няма отговор,
         						   replicateDraft=Чернова-копие на темата,
-        						   replicate=Копие на темата)', 'caption=Действие, mandatory,maxRadio=5,columns=1,notNull,value=notify,changable');
+        						   replicate=Копие на темата)', 'caption=Действие при сработване->Избор, maxRadio=5,autohide,value=notify,notNull,changable');
         
         // Начало на напомнянето
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)', 'caption=Време->Начало, silent,changable');
