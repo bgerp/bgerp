@@ -344,11 +344,11 @@ class store_reports_Documents extends frame2_driver_TableData
 		$linkedArr = array();
 		foreach ($dRec->linked as $cId){
 			$Document = doc_Containers::getDocument($cId);
-			$link = ($html) ? "#" .$Document->getHandle() : $Document->getLink(0)->getContent();
-			$linkedArr[] = ($html) ? $link : "<tr><td>{$link}<td></tr>";
+			$link = ($html !== TRUE) ? "#" .$Document->getHandle() : $Document->getLink(0)->getContent();
+			$linkedArr[] = ($html !== TRUE) ? $link : "<tr><td>{$link}<td></tr>";
 		}
 			
-		return ($html) ? implode(' ', $linkedArr) : "<table class='small no-border'>" . implode('', $linkedArr) . "</table>";
+		return ($html !== TRUE) ? implode(', ', $linkedArr) : "<table class='small no-border'>" . implode('', $linkedArr) . "</table>";
 	}
 	
 	
@@ -380,11 +380,12 @@ class store_reports_Documents extends frame2_driver_TableData
 	 */
 	protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
 	{
+		$res->documentType = "#" . doc_Containers::getDocument($dRec->containerId)->getHandle();
 		if(is_array($dRec->stores)){
 			$res->stores = self::getStores($dRec, FALSE);
 		}
 		
-		if(is_array($dRec->linked) && count($dRec->linked)){
+		if(is_array($dRec->linked)){
 			$res->linked = self::getLinked($dRec, FALSE);
 		}
 	}

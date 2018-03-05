@@ -207,7 +207,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		// Наш персонал
 		$mvc->FLD('initiatorId', 'user(roles=user,allowEmpty,rolesForAll=sales|ceo)', 'caption=Наш персонал->Инициатор,notChangeableByContractor');
-		$mvc->FLD('dealerId', "user(rolesForAll={$dealerRolesForAll},roles={$dealerRolesList})", 'caption=Наш персонал->Търговец,notChangeableByContractor');
+		$mvc->FLD('dealerId', "user(rolesForAll={$dealerRolesForAll},allowEmpty,roles={$dealerRolesList})", 'caption=Наш персонал->Търговец,notChangeableByContractor');
 		
 		// Допълнително
 		$mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor');
