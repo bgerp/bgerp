@@ -82,7 +82,7 @@ class prosody_RemoteDriver extends core_Mvc
                     
                     // 2. Имаме друг Prosody XMPP потребител със същото име
                     $aQuery = remote_Authorizations::getFiltredQuery('prosody_RemoteDriver');
-                    while($aRec = $query->fetch()) {
+                    while($aRec = $aQuery->fetch()) {
                         if($aRec->xmppUser == $rec->xmppUser) {
                             $form->setError('xmppUser', 'Този чат ник вече е използван.');
 
@@ -121,10 +121,10 @@ class prosody_RemoteDriver extends core_Mvc
         // Обикаляме по всички съществуващи потребители и им задаваме Roaster
         if ($form->isSubmitted()) {
             $aQuery = remote_Authorizations::getFiltredQuery('prosody_RemoteDriver');
-            while($eRec = $aQuery->fetch()) {  
+            while($aRec = $aQuery->fetch()) {  
                 if($rec->userId == $aRec->userId) continue;
-                $res1 = prosody_RestApi::addRoster($nick, $eRec->xmppUser);
-                $res2 = prosody_RestApi::addRoster($eRec->xmppUser, $nick);
+                $res1 = prosody_RestApi::addRoster($nick, $aRec->xmppUser);
+                $res2 = prosody_RestApi::addRoster($aRec->xmppUser, $nick);
             }
         }
     }
@@ -151,6 +151,8 @@ class prosody_RemoteDriver extends core_Mvc
             $form->setDefault('blockNecessitous', 'night');
             $form->setDefault('blockNormal', 'night,nonworking');
             $form->setField('xmppPass', 'mandatory');
+        } else {
+            $rec->xmppPass = '';
         }
     }
 
