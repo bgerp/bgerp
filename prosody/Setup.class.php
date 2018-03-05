@@ -1,8 +1,5 @@
 <?php
 
-
-
-
 /**
  * Клас 'prosody_Setup'
  *
@@ -36,15 +33,7 @@ class prosody_Setup extends core_ProtoSetup
 	 * Списък с мениджърите, които съдържа пакета
 	 */
 	public $managers = array(
-			//'prosody_RestApi',
-	
 	);
-	
-	
-	/**
-	 * Роли за достъп до модула
-	*/
-	public $roles = 'chat';
 	
 	
 	/**
@@ -65,6 +54,9 @@ class prosody_Setup extends core_ProtoSetup
 	public $info = "REST API за Prosody";
 	
 	
+    public $defClasses = 'prosody_RemoteDriver';
+
+
 	/**
 	 * Инсталиране на пакета
 	 */

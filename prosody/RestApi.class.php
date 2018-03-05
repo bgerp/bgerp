@@ -29,7 +29,6 @@ class prosody_RestApi {
      */
     private static function doRequest($type, $endpoint, $params=array())
     {
-
         expect($conf = core_Packs::getConfig('prosody'));
         
         if (!empty($params)) {
@@ -51,21 +50,10 @@ class prosody_RestApi {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         }
         
-        switch ($type) {
-            case 'POST':
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-                break;
-            case 'GET':
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
-                break;
-            case 'DELETE':
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
-                break;
-            case 'PUT':
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
-                break;
-        }
-        
+        expect(in_array($type, array('GET', 'POST', 'PUT', 'PATCH', 'DELETE')));
+
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $type);
+         
         $result=curl_exec ($ch);
         $status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);   //get status code
         curl_close ($ch);
@@ -106,6 +94,24 @@ class prosody_RestApi {
 
         return $res;
     }
+
+
+    /**
+     * Променя паролата на потребителя
+     *
+     * @param $user - име на потребител
+     * @param $password - новата парола
+     * @return $res: 201 - OK, 409 - user exist
+     */
+     public static function changePassword($user, $password)
+     {
+        $endpoint = 'user' . '/' . $user . '/password';
+        
+        $res = self::doRequest('PATCH', $endpoint, array("password" => $password));
+
+        return $res;
+    }
+
      
     /**
      * Изтрива потребител
@@ -136,7 +142,7 @@ class prosody_RestApi {
         $domain = core_Packs::getConfigKey('prosody', 'PROSODY_DOMAIN');
         $endpoint = 'roster' . '/' . $user;
         $type = 'POST';
-        if (strpos($contact, "@") === FLASE ) {
+        if (strpos($contact, "@") === FALSE ) {
             $contact .= "@" . $domain;
         }
         
@@ -156,7 +162,7 @@ class prosody_RestApi {
     {
         $domain = core_Packs::getConfigKey('prosody', 'PROSODY_DOMAIN');
         $endpoint = 'roster' . '/' . $user;
-        if (strpos($contact, "@") === FLASE ) {
+        if (strpos($contact, "@") === FALSE ) {
             $contact .= "@" . $domain;
         }
         
