@@ -482,8 +482,10 @@ class cat_Products extends embed_Manager {
     		$sourceRec = $document->rec();
     		
     		$form->setDefault('name', $sourceRec->title);
-    		foreach ($fields as $name => $fld){
-    			$form->rec->{$name} = $sourceRec->driverRec[$name];
+    		if(empty($rec->id)){
+    			foreach ($fields as $name => $fld){
+    				$form->rec->{$name} = $sourceRec->driverRec[$name];
+    			}
     		}
     	}
     	
