@@ -449,7 +449,7 @@ class label_Prints extends core_Master
             
             $form->layout = $form->renderLayout();
             
-            $tpl = new ET("<div class='preview-holder floatedElement'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Етикет") . "</b></div><div class='scrolling-holder'>[#LABEL_PREVIEW#]</div></div><div class='clearfix21'></div>");
+            $tpl = new ET("<div class='preview-holder floatedElement' style='display: inline-block; min-width: 0;'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Етикет") . "</b></div><div class='preview-label'>[#LABEL_PREVIEW#]</div></div><div class='clearfix21'></div>");
             
             $pData = $mvc->getLabelDataFromRec($rec, TRUE);
             
