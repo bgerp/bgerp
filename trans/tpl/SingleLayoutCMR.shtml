@@ -1,5 +1,5 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-<div class='scrolling-holder'>
+<div class='scrolling-holder [#colorClass#]'>
 
 <!--ET_BEGIN originId-->
 <div class="row-fluid">
