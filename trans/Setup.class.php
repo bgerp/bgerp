@@ -8,6 +8,12 @@ defIfNot('TRANS_LINES_CRON_INTERVAL', 60 * 60);
 
 
 /**
+ * Дефолтен текст за инструкции на изпращача
+ */
+defIfNot('TRANS_CMR_SENDER_INSTRUCTIONS', '');
+
+
+/**
  * Транспорт
  *
  *
@@ -75,6 +81,7 @@ class trans_Setup extends core_ProtoSetup
 	 */
 	var $configDescription = array(
 		'TRANS_LINES_CRON_INTERVAL' => array("time", 'caption=Период за генериране и затваряне на линии->Време'),
+		'TRANS_CMR_SENDER_INSTRUCTIONS' => array('text(rows=2)' ,"caption=ЧМР->13. Инструкции на изпращача"),
 	);
 	
 	

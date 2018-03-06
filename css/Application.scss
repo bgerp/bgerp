@@ -4832,16 +4832,34 @@ row-fluid {
 	font-size: 0.7em;
 	font-weight: bold;
 }
-.cmr-table {
-	td {
-		border-left: 1px solid black !important;
-		border-right: 1px solid black !important;
-		&.border-top{
-			border-top: 1px solid black !important;
+
+// стилове за различните бланки на ЧМР
+@mixin cmrColor($crm-color) {
+	color: $crm-color;
+		td {
+			border-left: 1px solid $crm-color;
+			border-right: 1px solid $crm-color;
+			&.border-top{
+				border-top: 1px solid $crm-color;
 		}
 	}
 }
 
+.cmr-holder {
+	@include cmrColor(#000);
+}
+
+.cmr-red {
+	@include cmrColor(#ED1748);
+}
+
+.cmr-green {
+	@include cmrColor(#00a94f);
+}
+
+.cmr-blue {
+	@include cmrColor(#0082c8);
+}
 
 @media handheld , only screen and (min-width: 1240px) {
 	.background-holder {

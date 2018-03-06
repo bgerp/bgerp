@@ -118,7 +118,7 @@ class trans_Cmrs extends core_Master
     /**
      * Брой копия при печат
      */
-    public $copiesOnPrint = 4;
+    public $copiesOnPrint = 5;
     
     
     /**
@@ -388,9 +388,10 @@ class trans_Cmrs extends core_Master
     private function getDefaultContragentData($contragentClassId, $contragentId, $translate = TRUE)
     {
     	$Contragent = cls::get($contragentClassId);
-    	$contragentAddress = $Contragent->getFullAdress($contragentId, TRUE, FALSE)->getContent();
-    	$contragentAddress = str_replace('<br> ', "\n", trim($contragentAddress));
-    	$contragentAddress = str_replace(', ', "\n", trim($contragentAddress));
+    	$verbal = $Contragent->fetch($contragentId, 'pCode,place,address');
+    	$contragentAddress = ($verbal->address) ? transliterate($verbal->address) . "\n" : '';
+    	$contragentAddress .= ($verbal->pCode) ? $verbal->pCode : '';
+    	$contragentAddress .= ($verbal->place) ? " " . transliterate($verbal->place) : '';
     	
     	$contragentCountry = $Contragent->getVerbal($contragentId, 'country');
     	$contragentName = ($translate === TRUE) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->getVerbal($contragentId, 'name');
@@ -610,8 +611,10 @@ class trans_Cmrs extends core_Master
      */
     protected static function on_AfterRenderPrintCopy($mvc, &$copyTpl, $copyNum, $rec)
     {
-    	$head = array(1 => 'Copy for sender', 2 => 'Copy for receiver', 3 => 'Copy for carrier', 4 => 'Copy for second carrier');
+    	$head = array(1 => 'Copy for sender', 2 => 'Copy for consignee', 3 => 'Copy for carrier', 4 => 'Copy for second carrier', 5 => 'Copy for sender');
+    	$colorClass = array(1 => 'cmr-red', 2 => 'cmr-blue', 3 => 'cmr-green');
     	$copyTpl->append($copyNum, 'copyNum');
     	$copyTpl->append($head[$copyNum], 'copyTitle');
+    	$copyTpl->append($colorClass[$copyNum], 'colorClass');
     }
 }
