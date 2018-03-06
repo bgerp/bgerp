@@ -109,7 +109,8 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('hidden', 'enum(no,yes)', 'caption=Скрито,notNull');
         $this->FLD('closedOn', 'datetime', 'caption=Затворено на');
         $this->FLD('lastTime', 'datetime', 'caption=Предишното време, input=none');
-        
+        $this->FLD('activatedOn', 'datetime', 'caption=Последно активиране, input=none');
+
         $this->setDbUnique('url, userId');
         $this->setDbIndex('userId');
     }
@@ -125,7 +126,19 @@ class bgerp_Notifications extends core_Manager
     static function add($msg, $urlArr, $userId, $priority = NULL, $customUrl = NULL, $addOnce = FALSE)
     {
         if (!isset($userId)) return ;
+
+        $priorityMap = array(
+                        'high'   => 'warning',
+                        'critical' => 'alert',
+                        'warning' =>  'warning',
+                        'alert'   => 'alert');
         
+        $priority = $priorityMap[$priority];
+
+        if(!$priority) {
+            $priority = 'normal';
+        }
+
         // Потребителя не може да си прави нотификации сам на себе си
         // Режима 'preventNotifications' спира задаването на всякакви нотификации
         if (($userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return ;
@@ -133,16 +146,13 @@ class bgerp_Notifications extends core_Manager
         // Да не се нотифицира контрактора
         if (core_Users::haveRole('partner', $userId)) return ;
         
-        if(!$priority) {
-            $priority = 'normal';
-        }
-
         $rec = new stdClass();
         $rec->msg = $msg;
         $rec->url = toUrl($urlArr, 'local', FALSE);
         $rec->userId = $userId;
         $rec->priority = $priority;
-        
+        $rec->activatedOn = dt::now();
+
         // Ако има такова съобщение - само му вдигаме флага, че е активно
         $r = bgerp_Notifications::fetch(array("#userId = {$rec->userId} AND #url = '[#1#]'", $rec->url));
         
@@ -156,6 +166,13 @@ class bgerp_Notifications extends core_Manager
             $rec->id = $r->id;
             // Увеличаваме брояча
             $rec->cnt = $r->cnt + 1;
+
+            if( $r->state == 'active'  && 
+                isset($r->activatedOn) && 
+                $r->activatedOn > bgerp_LastTouch::get('portal', $userId)) {
+
+                $rec->activatedOn = $r->activatedOn;
+            }
         }
 
         $rec->state = 'active';
@@ -164,7 +181,7 @@ class bgerp_Notifications extends core_Manager
         if($customUrl) {
             $rec->customUrl = toUrl($customUrl, 'local', FALSE);
         }
-        
+
         bgerp_Notifications::save($rec);
     }
     
@@ -377,9 +394,16 @@ class bgerp_Notifications extends core_Manager
         if($rec->state == 'active') {
             $attr['style'] = 'font-weight:bold;';
             $attr['onclick'] = 'render_forceReloadAfterBack()';
+            if($rec->priority == 'alert') {
+                $attr['style'] .= 'color:#aa0033 !important;';
+            } elseif($rec->priority == 'warning') {
+                 $attr['style'] .= 'color:#660099 !important;';
+            }
         } else {
             $attr['style'] = 'color:#666;';
         }
+
+        
         
         if (!Mode::isReadOnly() && ($rec->userId == core_Users::getCurrent())) {
             $attr['class'] .= " ajaxContext";
@@ -708,7 +732,9 @@ class bgerp_Notifications extends core_Manager
         if ($rec->state == 'active') {
             $res = array_merge(Request::forward(array(get_called_class(), 'mark', $rec->id)), $res);
         }
-        
+
+        bgerp_LastTouch::set('portal');
+
         return $res;
     }
     
@@ -777,7 +803,9 @@ class bgerp_Notifications extends core_Manager
             
             $res[] = $obj;
         }
-        
+
+        bgerp_LastTouch::set('portal');
+
         return $res;
     }
     
@@ -1374,7 +1402,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * Колко нови за потребителя нотификации има, след позледното разглеждане на портала?
      */
-    public static function getNewCntFromLastOpen($userId = NULL)
+    public static function getNewCntFromLastOpen($userId = NULL, $arg = NULL)
     {
         if(!$userId) {
             $userId = core_Users::getCurrent();
@@ -1386,9 +1414,22 @@ class bgerp_Notifications extends core_Manager
             $lastTime = '2000-01-01';
         }
 
-        $cnt = self::count("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}'");
+        $res = self::count("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}'");
+        
 
-        return $cnt;
+        if(is_array($arg) && $arg['priority']) {
+            if(self::fetch("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}' AND #priority = 'alert'")) {
+                $priority = 'alert';
+            } elseif(self::fetch("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}' AND #priority = 'warning'")) {
+                $priority = 'warning';
+            } else {
+                $priority = 'normal';
+            }
+
+            $res = array('cnt' => $res, 'priority' => $priority);
+        }
+
+        return $res;
     }
     
     

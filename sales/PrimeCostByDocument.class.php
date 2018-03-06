@@ -590,12 +590,41 @@ class sales_PrimeCostByDocument extends core_Manager
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     	$data->listFilter->input();
+    	$data->query->orderBy('valior', "DESC");
     	
     	if($rec = $data->listFilter->rec){
     		if(!empty($rec->documentId)){
     			if($document = doc_Containers::getDocumentByHandle($rec->documentId)){
     				$data->query->where("#containerId = {$document->fetchField('containerId')}");
     			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Обновява дилърите и инциаторите на подадените документи
+     * 
+     * @param array $containerIds
+     * @return void
+     */
+    public static function updatePersons($containerIds)
+    {
+    	$containerIds = arr::make($containerIds);
+    	if(!count($containerIds)) return;
+    	
+    	$query = self::getQuery();
+    	$query->in('containerId', $containerIds);
+    	while($rec = $query->fetch()){
+    		$persons = self::getDealerAndInitiatorId($rec->containerId);
+    		if($rec->dealerId != $persons['dealerId'] || $rec->initiatorId != $persons['initiatorId']){
+    			$rec->dealerId = $persons['dealerId'];
+    			$rec->initiatorId = $persons['initiatorId'];
+    			self::save($rec);
+    			
+    			$doc = doc_Containers::getDocument($rec->containerId);
+    			$doc->touchRec();
+    			$doc->getInstance()->logInAct("Обновяване на дилъра и/или инициатора на делтата", $doc->that);
     		}
     	}
     }

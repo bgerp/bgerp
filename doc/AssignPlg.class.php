@@ -201,39 +201,9 @@ class doc_AssignPlg extends core_Plugin
         $url = array('doc_Containers', 'list', 'threadId' => $iRec->threadId);
         $customUrl = array('doc_Containers', 'list', 'threadId' => $iRec->threadId, 'docId' => $docHnd, '#' => $docHnd);
         
-        // Определяме приоритете на нотификацията
-        if ($iRec->priority) {
-            
-            // Приорите в долен регистър
-            switch (strtolower($iRec->priority)) {
-                
-                case 'normal':
-                case 'low':
-                    $priority = 'normal';
-                break;
-                
-                case 'warning':
-                case 'high':
-                    $priority = 'warning';
-                break;
-                
-                case 'alert':
-                case 'critical':
-                    $priority = 'alert';
-                break;
-                
-                default:
-                    ;
-                break;
-            }
-        }
-        
-        // Ако все още не сме определили приоритете по подразбиране да не нормален
-        $priority = ($priority) ? $priority : 'normal';
-        
         // Добавяме нотофикация
         foreach ($notifyUsersArr as $assignUserId) {
-            bgerp_Notifications::add($message, $url, $assignUserId, $priority, $customUrl);
+            bgerp_Notifications::add($message, $url, $assignUserId, $iRec->priority, $customUrl);
         }
     }
     

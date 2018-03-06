@@ -106,6 +106,11 @@ class remote_BgerpDriver extends core_Mvc
         if($rec->data->rKeyCC) {
             $row->auth .= '&nbsp;' . ht::createLink('Дадена', NULL, NULL, 'ef_icon=img/16/checked-orange.png');
         }
+
+        $icon = sbf('img/16/bgerp.png', '');
+
+        $row->url = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $row->url . "</span>";
+ 
     }
 
 
@@ -113,7 +118,7 @@ class remote_BgerpDriver extends core_Mvc
      * За да не могат да се редактират оторизациите с получен ключ
      */
     public static function on_AfterGetRequiredRoles($driver, $mvc, &$res, $action, $rec = NULL, $userId = NULL)
-	{
+	{  
         if($action == 'edit' && is_object($rec)) {
             if($rec->data->lKeyCC) {
                 $res = 'no_one';
@@ -340,8 +345,15 @@ class remote_BgerpDriver extends core_Mvc
 
             if($rec->data->lKeyCC && $rec->data->rId) {
 
-                $nCnt = self::sendQuestion($rec, __CLASS__, 'getNotifications');
+                $nCnt = self::sendQuestion($rec, __CLASS__, 'getNotifications', array('priority' => TRUE));
                 
+                if(is_array($nCnt)) { 
+                    $priority = $nCnt['priority'];
+                    $nCnt = $nCnt['cnt'];
+                } else {
+                    $priority = 'normal';
+                }
+
                 // Прескачаме, ако липсва отговор на въпроса
                 if($nCnt === NULL) continue;;
 
@@ -359,7 +371,7 @@ class remote_BgerpDriver extends core_Mvc
                     $message = "|Имате|* {$nCnt} |в|* {$url}";
 
                     // Добавя, ако няма нофификация
-                    bgerp_Notifications::add($message, $nUrl, $userId, NULL, NULL, TRUE);
+                    bgerp_Notifications::add($message, $nUrl, $userId, $priority, NULL, TRUE);
                 } else {
                     bgerp_Notifications::clear($nUrl, $userId);
                 }
@@ -444,15 +456,15 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * Връща броя на нотификациите за посочения потребител от оторизацията
      */
-    function remote_getNotifications($authId)
+    function remote_getNotifications($authId, $arg = NULL)
     {
         expect($authId);
         
         expect($rec = remote_Authorizations::fetch($authId));
 
-        $cnt = bgerp_Notifications::getNewCntFromLastOpen($rec->userId);
+        $res = bgerp_Notifications::getNewCntFromLastOpen($rec->userId, $arg);
 
-        return $cnt;        
+        return $res;        
     }
 
 
