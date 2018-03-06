@@ -388,9 +388,10 @@ class trans_Cmrs extends core_Master
     private function getDefaultContragentData($contragentClassId, $contragentId, $translate = TRUE)
     {
     	$Contragent = cls::get($contragentClassId);
-    	$contragentAddress = $Contragent->getFullAdress($contragentId, TRUE, FALSE)->getContent();
-    	$contragentAddress = str_replace('<br> ', "\n", trim($contragentAddress));
-    	$contragentAddress = str_replace(', ', "\n", trim($contragentAddress));
+    	$verbal = $Contragent->fetch($contragentId, 'pCode,place,address');
+    	$contragentAddress = ($verbal->address) ? transliterate($verbal->address) . "\n" : '';
+    	$contragentAddress .= ($verbal->pCode) ? $verbal->pCode : '';
+    	$contragentAddress .= ($verbal->place) ? " " . transliterate($verbal->place) : '';
     	
     	$contragentCountry = $Contragent->getVerbal($contragentId, 'country');
     	$contragentName = ($translate === TRUE) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->getVerbal($contragentId, 'name');
