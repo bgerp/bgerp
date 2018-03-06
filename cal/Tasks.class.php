@@ -266,10 +266,7 @@ class cal_Tasks extends embed_Manager
     function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%,changable,silent');
-        if(Mode::is('screenMode', 'narrow')) {
-            $this->setField('priority', "columns=2");
-            $this->setFieldTypeParams('priority',"columns=2" );
-        }
+        
         $this->FLD('description', 'richtext(bucket=calTasks, passage=Общи)', 'caption=Описание,changable');
 
         // Споделяне
@@ -281,6 +278,11 @@ class cal_Tasks extends embed_Manager
                                      high=Спешен,
                                      critical=Критичен)',
             'caption=Споделяне->Приоритет,maxRadio=4,columns=4,notNull,value=normal,autohide,changable');
+        
+        if(Mode::is('screenMode', 'narrow')) {
+            $this->setField('priority', "columns=2");
+            $this->setFieldTypeParams('priority',"columns=2" );
+        }
         
         // Начало на задачата
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)',

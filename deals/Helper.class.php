@@ -1330,15 +1330,17 @@ abstract class deals_Helper
 					if($o1->amount > $newInvoiceArr[$k]['current']){
 						$percent = $totalPercent;
 						$o1->amount -= $newInvoiceArr[$k]['current'];
+						$pAmount = $newInvoiceArr[$k]['current'];
 						$newInvoiceArr[$k]['current'] = 0;
 					} else {
 						$percent = min(round($o1->amount / $newInvoiceArr[$k]['total'], 2), 1);
 						$totalPercent -= $percent;
 						$newInvoiceArr[$k]['current'] -= $o1->amount;
+						$pAmount = $o1->amount;
 						$unset = TRUE;
 					}
 						
-					$paid[$k]->payments[$nId] = (object)array('containerId' => $nId, 'percent' => $percent, 'type' => $o1->type, 'isReverse' => $o1->isReverse, 'amount' => $o1->amount);
+					$paid[$k]->payments[$nId] = (object)array('containerId' => $nId, 'percent' => $percent, 'type' => $o1->type, 'isReverse' => $o1->isReverse, 'amount' => $pAmount);
 					if($unset === TRUE){
 						unset($notAllocated[$nId]);
 					}
