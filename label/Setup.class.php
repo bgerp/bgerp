@@ -2,19 +2,13 @@
 
 
 /**
- * Максимален брой отпечатвания заедно
- */
-defIfNot('LABEL_MAX_PRINT_CNT', 200);
-
-
-/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с label
  *
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -31,7 +25,7 @@ class label_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'label_Labels';
+    var $startCtr = 'label_Prints';
     
     
     /**
@@ -50,28 +44,21 @@ class label_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.66, 'Производство', 'Етикетиране', 'label_Labels', 'default', "label, admin, ceo"),
+            array(3.66, 'Производство', 'Етикетиране', 'label_Prints', 'default', "label, admin, ceo"),
         );
     
         
     // Инсталиране на мениджърите
     public $managers = array(
-        'label_Labels',
         'label_Templates',
         'label_TemplateFormats',
         'label_Media',
         'label_Counters',
         'label_CounterItems',
         'label_Prints',
-        'migrate::addDefaultMedia'
-    );
-    
-    
-    /**
-     * Описание на конфигурационните константи
-     */
-    var $configDescription = array(
-            'LABEL_MAX_PRINT_CNT' => array('int(min=0)', 'caption=Максимален брой отпечатвания заедно->Брой, customizeBy=label, autohide'),
+        'migrate::addDefaultMedia',
+        'migrate::labelsToPrint',
+        'migrate::counterItemsLabels',
     );
     
 
@@ -99,7 +86,6 @@ class label_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
     
     
     /**
@@ -137,6 +123,103 @@ class label_Setup extends core_ProtoSetup
         while ($tRec = $tQuery->fetch()) {
             $tRec->sizes = $sizes;
             label_Templates::save($tRec, 'sizes');
+        }
+    }
+    
+    
+    /**
+     * Миграция за преместване на данните от етикетите в отпечатванията
+     */
+    public function labelsToPrint()
+    {
+        $clsName = 'label_Labels';
+        
+        if (!cls::load($clsName, TRUE)) continue;
+        
+        $clsInst = cls::get($clsName);
+        
+        if (!$clsInst->db->tableExists($clsInst->dbTableName)) continue;
+        
+        $pInst = cls::get('label_Prints');
+        
+        if (!$pInst->db->isFieldExists($pInst->dbTableName, str::phpToMysqlName('labelId'))) return;
+        
+        $pInst->FLD('labelId', 'key(mvc=label_Labels, select=title)', 'caption=Етикет, mandatory, silent, input=none');
+        
+        $pQuery = $pInst->getQuery();
+        $pQuery->where("#labelId IS NOT NULL");
+        $pQuery->where("#labelId != ''");
+        
+        while ($pRec = $pQuery->fetch()) {
+            if (!$pRec->labelId) continue;
+            
+            $lRec = $clsInst->fetch($pRec->labelId);
+            
+            if (!$lRec) continue;
+            
+            $vArr = array('templateId', 'title', 'classId', 'objectId' => 'objId', 'params');
+            
+            $vArr = arr::make($vArr, TRUE);
+            
+            foreach ($vArr as $fName => $lFName) {
+                $pRec->{$fName} = $lRec->{$lFName};
+            }
+            
+            if ($lRec->state == 'rejected') {
+                $pRec->state = 'rejected';
+                $vArr['state'] = 'state';
+            }
+            
+            $pRec->_notModified = TRUE;
+            
+            $pInst->save($pRec, $vArr);
+        }
+    }
+    
+    
+    /**
+     * Миграция за преместване на полетата на броячите
+     */
+    public function counterItemsLabels()
+    {
+        $clsName = 'label_Labels';
+        
+        if (!cls::load($clsName, TRUE)) continue;
+        
+        $clsInst = cls::get($clsName);
+        
+        if (!$clsInst->db->tableExists($clsInst->dbTableName)) continue;
+        
+        $cItemsInst = cls::get('label_CounterItems');
+        
+        if (!$cItemsInst->db->isFieldExists($cItemsInst->dbTableName, str::phpToMysqlName('labelId'))) return;
+        
+        $pInst = cls::get('label_Prints');
+        
+        if (!$pInst->db->isFieldExists($pInst->dbTableName, str::phpToMysqlName('labelId'))) return;
+        
+        $pInst->FLD('labelId', 'key(mvc=label_Labels, select=title)', 'caption=Етикет, mandatory, silent, input=none');
+        $cItemsInst->FLD('labelId', 'key(mvc=label_Labels, select=title)', 'caption=Етикет');
+        
+        $cQuery = $cItemsInst->getQuery();
+        $cQuery->where("#labelId IS NOT NULL");
+        $cQuery->where("#labelId != ''");
+        
+        while ($cRec = $cQuery->fetch()) {
+            if (!$cRec->labelId) continue;
+            
+            $pQuery = $pInst->getQuery();
+            $pQuery->where(array("#labelId = '[#1#]'", $cRec->labelId));
+            
+            $pQuery->orderBy("state", "DESC");
+            
+            $pRec = $pQuery->fetch();
+            
+            if (!$pRec) continue;
+            
+            $cRec->printId = $pRec->id;
+            
+            $cItemsInst->save($cRec, 'printId');
         }
     }
 }

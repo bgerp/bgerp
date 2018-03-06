@@ -41,10 +41,12 @@ class label_plg_Print extends core_Plugin
 				$error = ",error=Няма наличен шаблон за етикети от \"{$mvc->title}\"";
 			}
 			
-			core_Request::setProtected('class,objectId');
-			$url = array('label_Labels', 'selectTemplate', 'class' => $mvc->className, 'objectId' => $data->rec->id, 'ret_url' => TRUE);
-			$data->toolbar->addBtn('Етикетиране', toUrl($url), NULL, "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети от {$mvc->title}|* №{$data->rec->id}{$error}");
-			core_Request::removeProtected('class,objectId');
+			if (label_Prints::haveRightFor('add', (object)array('classId' => $mvc->getClassId(), 'objectId' => $data->rec->id))) {
+			    core_Request::setProtected(array('classId, objectId'));
+			    $url = array('label_Prints', 'add', 'classId' => $mvc->getClassId(), 'objectId' => $data->rec->id, 'ret_url' => TRUE);
+			    $data->toolbar->addBtn('Етикетиране', toUrl($url), NULL, "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети от|* |{$mvc->title}|* №{$data->rec->id}{$error}");
+			    core_Request::removeProtected('class,objectId');
+			}
 		}
 	}
 	
@@ -64,19 +66,6 @@ class label_plg_Print extends core_Plugin
 			if(in_array($rec->state, array('rejected', 'draft', 'template'))){
 				$requiredRoles = 'no_one';
 			}
-		}
-	}
-	
-	
-	/**
-	 * Реализация по подразбиране
-	 * 
-	 * @see label_SequenceIntf::canSelectTemplate($id, $templateId)
-	 */
-	public static function on_AfterCanSelectTemplate($mvc, &$res, $objectId, $templateId)
-	{
-		if(is_null($res)) {
-			$res = TRUE;
 		}
 	}
 }

@@ -1,13 +1,12 @@
 <?php
 
 
-
 /**
  * 
  * 
  * @category  bgerp
  * @package   label
- * @author    Yusein Yuseinov <yyuseinov@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -23,16 +22,37 @@ class label_SequenceIntf
     
     
     /**
-     * Връща масив с данни за плейсхолдърите на етикет
+     * Връща наименованието на етикета
      * 
      * @param integer $id
-     * @param integer $labelNo
+     * 
+     * @return string
+     */
+    public function getLabelName($id)
+    {
+        
+        return $this->class->getLabelName($id);
+    }
+    
+    
+    /**
+     * Връща масив с данните за плейсхолдерите
+     * 
+     * @param integer|NULL $objId
      * 
      * @return array
+     * Ключа е името на плейсхолдера и стойностите са обект:
+     * type -> text/picture - тип на данните на плейсхолдъра
+     * len -> (int) - колко символа макс. са дълги данните в този плейсхолдер
+     * readonly -> (boolean) - данните не могат да се променят от потребителя
+     * hidden -> (boolean) - данните не могат да се променят от потребителя
+     * importance -> (int|double) - тежест/важност на плейсхолдера
+     * example -> (string) - примерна стойност
      */
-    public function getLabelData($id, $labelNo)
+    public function getLabelPlaceholders($objId)
     {
-        return $this->class->getLabelData($id, $labelNo);
+        
+        return $this->class->getLabelPlaceholders($objId);
     }
     
     
@@ -40,37 +60,28 @@ class label_SequenceIntf
      * Броя на етикетите, които могат да се отпечатат
      * 
      * @param integer $id
-     * @param string $allowSkip
      * 
      * @return integer
      */
-    public function getEstimateCnt($id, &$allowSkip)
+    public function getLabelEstimatedCnt($id)
     {
-        return $this->class->getEstimateCnt($id, $allowSkip);
+        
+        return $this->class->getLabelEstimatedCnt($id);
     }
     
     
     /**
-     * Може ли шаблона да бъде избран от класа
-     *
-     * @param int $id         - ид на обект от класа
-     * @param int $templateId - ид на шаблон
-     * @return boolean
+     * Връща масив с всички данни за етикетите
+     * 
+     * @param integer $id
+     * @param integer $cnt
+     * @param boolean $onlyPreview
+     * 
+     * @return array - масив от масив с ключ плейсхолдера и стойността
      */
-    public function canSelectTemplate($id, $templateId)
+    public function getLabelData($id, $cnt, $onlyPreview = FALSE)
     {
-    	return $this->class->canSelectTemplate($id, $templateId);
-    }
-    
-    
-    /**
-     * Кои плейсхолдъри немогат да се предефинират от потребителя
-     *
-     * @param int $id
-     * @return array
-     */
-    public function getReadOnlyPlaceholders($id)
-    {
-    	return $this->class->getReadOnlyPlaceholders($id);
+        
+        return $this->class->getLabelData($id, $cnt, $onlyPreview);
     }
 }

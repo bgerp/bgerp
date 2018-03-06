@@ -1,14 +1,13 @@
 <?php 
 
 
-
 /**
  * Шаблони за създаване на етикети
  * 
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -50,12 +49,6 @@ class label_Templates extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'labelMaster, admin, ceo';
-    
-    
-    /**
-     * Кой има право да създва етикет?
-     */
-    public $canCreatelabel = 'label, admin, ceo';
     
     
     /**
@@ -166,16 +159,16 @@ class label_Templates extends core_Master
     /**
      * След подготовка на тулбара за еденичния изглед
      * 
-     * @param unknown_type $mvc
-     * @param unknown_type $data
+     * @param labeL_Templates $mvc
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         // Ако имаме права за добавяне на етикет
-        if ($mvc->haveRightFor('createlabel', $data->rec->id)) {
+        if (label_Prints::haveRightFor('add', (object)array('templateId' => $data->rec->id))) {
         
         	// Добавяме бутон за нов етикет
-            $data->toolbar->addBtn('Нов етикет', array('label_Labels', 'add', 'templateId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/price_tag_label.png, title=Създаване на нов етикет');
+            $data->toolbar->addBtn('Нов етикет', array('label_Prints', 'add', 'templateId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/price_tag_label.png, title=Създаване на нов етикет');
         }
     }
     
@@ -508,7 +501,7 @@ class label_Templates extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
-     * @param label_Labels $mvc
+     * @param label_Templates $mvc
      * @param string $requiredRoles
      * @param string $action
      * @param stdClass $rec
@@ -545,17 +538,6 @@ class label_Templates extends core_Master
         // Ако ще се клонира, трябва да има права за добавяне
         if ($action == 'cloneuserdata') {
             if (!$mvc->haveRightFor('add', $rec, $userId)) {
-                $requiredRoles = 'no_one';
-            }
-        }
-        
-        // Ако ще добавяме нов етикет
-        if ($action == 'createlabel') {
-            
-            // Ако състоянието е оттеглено
-            if ($rec && $rec->state == 'rejected') {
-                
-                // Никой да не може да създава
                 $requiredRoles = 'no_one';
             }
         }
@@ -680,7 +662,9 @@ class label_Templates extends core_Master
      * Връща шаблоните достъпни за избор от даден документ
      * 
      * @param mixed $class
+     * @param integer $objectId
      * @param boolean $onlyIds
+     * 
      * @return array $res
      */
     public static function getTemplatesByDocument($class, $objectId, $onlyIds = FALSE)
@@ -696,12 +680,10 @@ class label_Templates extends core_Master
     	
     	$res = array();
     	while($tRec = $tQuery->fetch()){
-    		if($intfInst->canSelectTemplate($objectId, $tRec->id)){
-    			$res[$tRec->id] = $tRec;
-    		}
+			$res[$tRec->id] = $tRec;
     	}
     	
-    	if($onlyIds === TRUE){
+    	if ($onlyIds === TRUE){
     		$res = arr::extractValuesFromArray($res, 'id');
     	}
     	
