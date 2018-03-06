@@ -19,6 +19,12 @@ class cat_products_Packagings extends core_Detail
     
     
     /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    public $interfaces = 'label_SequenceIntf=cat_interface_PackaLabelImpl';
+    
+    
+    /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'productId';
