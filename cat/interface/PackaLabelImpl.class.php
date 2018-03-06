@@ -137,9 +137,8 @@ class cat_interface_PackaLabelImpl
 	 *
 	 * @see label_SequenceIntf
 	 */
-	public function getEstimateCnt($id, &$allowSkip)
+	public function getLabelEstimatedCnt($id)
 	{
-		$allowSkip = TRUE;
 		$rec = $this->class->fetch($id);
 		
 		$quantity = $rec->quantity;
