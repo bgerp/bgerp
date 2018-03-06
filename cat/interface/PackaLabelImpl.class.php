@@ -54,7 +54,7 @@ class cat_interface_PackaLabelImpl
 	 * importance -> (int|double) - тежест/важност на плейсхолдера
 	 * example -> (string) - примерна стойност
 	 */
-	public function getLabelPlaceholders()
+	public function getLabelPlaceholders($objId = NULL)
 	{
 		$placeholders = array();
 		$placeholders['JOB']              = (object)array('type' => 'text');
@@ -66,13 +66,22 @@ class cat_interface_PackaLabelImpl
 		$placeholders['QUANTITY']         = (object)array('type' => 'text');
 		$placeholders['ORDER']            = (object)array('type' => 'text');
 		$placeholders['OTHER']            = (object)array('type' => 'text');
-		$placeholders['EAN']              = (object)array('type' => 'text');
+		$placeholders['BARCODE']          = (object)array('type' => 'text', 'hidden' => TRUE);
 		$placeholders['MATERIAL']         = (object)array('type' => 'text');
 		$placeholders['SIZE_UNIT']        = (object)array('type' => 'text');
 		$placeholders['SIZE']             = (object)array('type' => 'text');
 		$placeholders['CATALOG_PRICE']    = (object)array('type' => 'text');
 		$placeholders['CATALOG_CURRENCY'] = (object)array('type' => 'text');
-		$placeholders['SERIAL']           = (object)array('type' => 'text');
+		$placeholders['EAN']              = (object)array('type' => 'text');
+		
+		if(isset($objId)){
+			$labelData = $this->getLabelData($objId, 1, TRUE);
+			if(isset($labelData[0])){
+				foreach ($labelData[0] as $key => $val){
+					$placeholders[$key]->example = $val;
+				}
+			}
+		}
 		
 		return $placeholders;
 	}
@@ -85,7 +94,7 @@ class cat_interface_PackaLabelImpl
 	 * @param integer $cnt
 	 * @param boolean $onlyPreview
 	 *
-	 * @return array - масив от масив с ключ плейсхолдера и стойността
+	 * @return array - масив от масиви с ключ плейсхолдера и стойността
 	 */
 	public function getLabelData($id, $cnt, $onlyPreview = FALSE)
 	{
@@ -95,35 +104,43 @@ class cat_interface_PackaLabelImpl
 		$quantity = $rec->quantity;
 		$quantity = cat_UoM::round($rec->packagingId, $quantity);
 		
-		
-		//$res['JOB'] = mb_strtoupper(planning_Jobs::getHandle(c));
-		$res['CODE'] = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
-		$res['NAME'] = cat_Products::getVerbal($rec->productId, 'name');
-		$res['DATE'] = date("m/y");
-		$catalogPrice = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $rec->productId, $rec->packagingId);
-		$res['CATALOG_PRICE'] = round($catalogPrice * $quantity, 2);
-		$res['CATALOG_CURRENCY'] = acc_Periods::getBaseCurrencyCode();
-		
-		if(isset($rec->eanCode)){
-			$res['EAN'] = $rec->eanCode;
+		$code = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
+		$name = cat_Products::getVerbal($rec->productId, 'name');
+		$date = date("m/y");
+		if($catalogPrice = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $rec->productId, $rec->packagingId)){
+			$catalogPrice = round($catalogPrice * $quantity, 2);
+			$currencyCode = acc_Periods::getBaseCurrencyCode();
 		}
+		$measureId = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
 		
-		$res['MEASURE_ID'] = tr(cat_UoM::getShortName($rec->packagingId));
-		$res['QUANTITY'] = $quantity;
-		
-		// Ако от драйвера идват още параметри, добавят се с приоритет
-		if($Driver = cat_Products::getDriver($rec->productId)){
-			$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
-			if(count($additionalFields)){
-				$res = $additionalFields + $res;
+		$arr = array();
+		for($i = 1; $i <= $cnt; $i++){
+			$res = array('CODE' => $code, 'NAME' => $name, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity);	
+			if(!empty(($catalogPrice))){
+				$res['CATALOG_PRICE'] = $catalogPrice;
+				$res['CATALOG_CURRENCY'] = $currencyCode;
 			}
+				
+			if($Driver = cat_Products::getDriver($rec->productId)){
+				$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
+				if(count($additionalFields)){
+					$res = $additionalFields + $res;
+				}
 			
-			if($onlyPreview != FALSE){
-				$res['SERIAL'] = $Driver->generateSerial('cat_products_Packagings', $rec->id);
+				if(isset($rec->eanCode)){
+					$res['EAN'] = $rec->eanCode;
+				}
+				
+				$res['BARCODE'] = 'EXAMPLE';
+ 				if($onlyPreview === FALSE){
+					$res['BARCODE'] = $Driver->generateSerial($rec->productId, 'cat_products_Packagings', $rec->id);
+				}
 			}
+				
+			$arr[] = $res;
 		}
-		
-		return $res;
+
+		return $arr;
 	}
 	
 	

@@ -49,9 +49,8 @@ class label_SequenceIntf
      * importance -> (int|double) - тежест/важност на плейсхолдера
      * example -> (string) - примерна стойност
      */
-    public function getLabelPlaceholders($objId)
+    public function getLabelPlaceholders($objId = NULL)
     {
-        
         return $this->class->getLabelPlaceholders($objId);
     }
     
