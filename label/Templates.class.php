@@ -619,7 +619,7 @@ class label_Templates extends core_Master
     	$res = '';
     	$modified = $skipped = 0;
     	$array = array('defaultTpl' => array('title' => 'Базов шаблон за етикети', 'path' => 'label/tpl/DefaultLabelBG.shtml', 'lang' => 'bg', 'class' => 'planning_Tasks', 'sizes' => array('100', '72')),
-    			       'defaultTplJob' => array('title' => 'Етикети от задания', 'path' => 'label/tpl/DefaultLabelJob.shtml', 'lang' => 'bg', 'class' => 'planning_Jobs', 'sizes' => array('100', '72')),
+    			       'defaultTplJob' => array('title' => 'Етикети от задания', 'path' => 'label/tpl/DefaultLabelJob.shtml', 'lang' => 'bg', 'class' => 'cat_products_Packagings', 'sizes' => array('100', '72')),
     				   'defaultTplEn' => array('title' => 'Default label template', 'path' => 'label/tpl/DefaultLabelEN.shtml', 'lang' => 'en', 'class' => 'planning_Tasks', 'sizes' => array('100', '72')),
     			       'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
     	);
