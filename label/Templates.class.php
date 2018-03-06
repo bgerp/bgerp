@@ -399,12 +399,16 @@ class label_Templates extends core_Master
      * 
      * @param integer $id - id на записа
      * 
-     * @retunr integer - id на записа
+     * @retunr integer|NULL - id на записа
      */
     public static function activateTemplate($id)
     {
+        if (!$id) return ;
+        
         // Вземаме записа
         $rec = static::fetch($id);
+        
+        if (!$rec) return ;
         
         // Очакваме да не е оттеглен
         expect($rec->state != 'rejected');
