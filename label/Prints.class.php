@@ -770,6 +770,7 @@ class label_Prints extends core_Master
                 core_Mode::push('prepareLabel', TRUE);
                 core_Lg::push($lang);
                 $labelDataArr = (array) $intfInst->getLabelData($rec->objectId, $pData->cnt, $preview);
+                $placeArr = (array) $intfInst->getLabelPlaceholders($rec->objectId);
                 core_Lg::pop();
                 core_Mode::pop('prepareLabel');
                 
@@ -777,7 +778,7 @@ class label_Prints extends core_Master
                     foreach ((array)$lArr as $key => $val) {
                         $keyNormalized = label_TemplateFormats::getPlaceholderFieldName($key);
                         
-                        if(!array_key_exists($keyNormalized, $params)){
+                        if ($placeArr[$key]->hidden || $placeArr[$key]->readonly || !array_key_exists($keyNormalized, $params)) {
                             $params[$keyNormalized] = $val;
                         }
                     }
