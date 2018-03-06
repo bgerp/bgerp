@@ -369,7 +369,8 @@ class label_Labels extends core_Master
         $form->title = "Избор на шаблон за етикет";
         
         if ($classId && $objId) {
-        	$form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getFormTitleLink($objId);
+        	
+        	$form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getLabelSourceLink($objId);
         	
 //         	try{
 				// Взимане на данни от шаблона

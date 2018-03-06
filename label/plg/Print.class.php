@@ -108,4 +108,23 @@ class label_plg_Print extends core_Plugin
 			}
 		}
 	}
+	
+	
+	/**
+	 * Заглавие от източника на етикета
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param string $res
+	 * @param mixed $id
+	 * @return void
+	 */
+	public static function on_AfterGetLabelSourceLink($mvc, &$res, $id)
+	{
+		if(cls::existsMethod($mvc, 'getFormTitleLink')){
+			$res = $mvc->getFormTitleLink($id);
+		} elseif($mvc instanceof core_Detail){
+			$rec = $mvc->fetchRec($id);
+			$res = $mvc->Master->getFormTitleLink($rec->{$mvc->masterKey});
+		}
+	}
 }

@@ -184,7 +184,7 @@ class label_Prints extends core_Master
         }
         
         if ($rec->classId && $rec->objectId) {
-            $form->title = 'Създаване на етикет към|* ' . cls::get($rec->classId)->getFormTitleLink($rec->objectId);
+            $form->title = 'Създаване на етикет към|* ' . cls::get($rec->classId)->getLabelSourceLink($rec->objectId);
         }
     }
     
@@ -294,8 +294,8 @@ class label_Prints extends core_Master
             
             $placeholdersArr = array();
             if ($rec->classId && $rec->objectId) {
-                $clsInst = cls::get($rec->classId);
-                $placeholdersArr = $clsInst->getLabelPlaceholders($rec->objectId);
+            	$intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
+                $placeholdersArr = $intfInst->getLabelPlaceholders($rec->objectId);
             }
             
             core_Lg::pop($lang);
@@ -425,10 +425,10 @@ class label_Prints extends core_Master
         
         if ($form->isSubmitted()) {
             if ($rec->classId && $rec->objectId) {
-                $clsInst = cls::get($rec->classId);
-                $placeholdersArr = $clsInst->getLabelPlaceholders($rec->objectId);
+            	$intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
+                $placeholdersArr = $intfInst->getLabelPlaceholders($rec->objectId);
                 
-                $estCnt = $clsInst->getLabelEstimatedCnt($rec->objectId);
+                $estCnt = $intfInst->getLabelEstimatedCnt($rec->objectId);
                 
                 // Ако излезем над разрешената стойност
                 if (isset($estCnt) && $rec->labelsCnt > $estCnt) {
