@@ -286,7 +286,12 @@ class remote_Authorizations extends embed_Manager
         while($rec = $query->fetch()) {
             $userSenders[$rec->userId][] = $rec;
         } 
-        if(!count($userSenders)) return;
+        if(!count($userSenders)) {
+            
+            log_System::add('remote_Authorizations', 'Няма потребители с услуги за изпращане на съобщения', NULL, 'info');
+
+            return;
+        }
         
         // Махаме тези потребители, които са били активни допреди 2 минути
         $before2min = dt::addSecs(-180);
@@ -298,7 +303,12 @@ class remote_Authorizations extends embed_Manager
                 $lastPortalSeen[$userId] = bgerp_LastTouch::get('portal', $userId);
             }
         }
-        if(!count($userSenders)) return;
+        if(!count($userSenders)) {
+
+            log_System::add('remote_Authorizations', 'Няма потребители с услуги за изпращане на съобщения, които не са били активни в последните 3 минути.', NULL, 'info');
+
+            return;
+        }
  
         // Обикаля по всички известия от последните 48 часа, което не са затворени
         $ntfs = array();
@@ -319,7 +329,12 @@ class remote_Authorizations extends embed_Manager
                 $ntfs[$nRec->userId][$nRec->priority] = min($nRec->activatedOn, $ntfs[$nRec->userId][$nRec->priority]);
             }
         }
-        if(!count($ntfs)) return;
+        if(!count($ntfs)) {
+
+            log_System::add('remote_Authorizations', 'Няма невидени нотификации', NULL, 'info');
+
+            return;
+        }
 
         list($d, $t) = explode(' ', dt::now());
 
@@ -346,14 +361,20 @@ class remote_Authorizations extends embed_Manager
 
                 // Ако вече сме изпращали този тип известие и след това потребителят
                 // все-още не е влизал в системата, пропускаме го  
-                if($alreadySent[$priority]) continue;
+                if($alreadySent[$priority]) {
+                    log_System::add('remote_Authorizations', "За нотификацията {$userId} {$time} {$priority} вече е изпращано съобщение", NULL, 'info');
+
+                    continue;
+                }
  
                 // Поне колко трябва да е старо известието, за да се изпрати
                 $sendIfOlderThan = dt::addSecs(-bgerp_Setup::get('NOTIFY_' . strtoupper($priority), FALSE, $userId));
                 
                 if($time < $sendIfOlderThan) {
+                    $config = bgerp_Setup::get('BLOCK_' . strtoupper($priority), FALSE, $userId);
+                    if(in_array($dayTime, explode('|', $config))) {
+                        log_System::add('remote_Authorizations', "За нотификацията {$userId} {$time} {$priority} не е подходящо времето {$config}", NULL, 'info');
 
-                     if(in_array($dayTime, explode('|', bgerp_Setup::get('BLOCK_' . strtoupper($priority), FALSE, $userId)))) {
                        continue;
                     }
 
@@ -365,6 +386,8 @@ class remote_Authorizations extends embed_Manager
                         if($driver->sendMessage($rec, $msg)) {
                             bgerp_LastTouch::set('sent_' . $priority, $userId);
                             break;
+                        } else {
+                           log_System::add('remote_Authorizations', "Неуспешно изпращане на нотификацията {$userId} {$time} {$priority}", NULL, 'info');
                         }
                     }
                 }
