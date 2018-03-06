@@ -1352,7 +1352,7 @@ class core_Users extends core_Manager
 
         Mode::setPermanent('currentUserRec', $userRec);
         
-        if(!Request::get('ajax_mode') && dt::mysql2timestamp($userRec->lastActivityTime) < (time() - 3*60)) {
+        if(!Request::get('ajax_mode') && dt::mysql2timestamp($userRec->lastActivityTime) < (time() - 2*60)) {
             $userRec->lastActivityTime = $now;
             self::save($userRec, 'lastActivityTime');
         }

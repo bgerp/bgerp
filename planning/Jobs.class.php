@@ -558,6 +558,10 @@ class planning_Jobs extends core_Master
     	$rec = &$form->rec;
     	
     	if($form->isSubmitted()){
+    		if(isset($rec->deliveryDate) && $rec->deliveryDate < $rec->dueDate){
+    			$form->setWarning('deliveryDate', 'Срокът за доставка не може да е преди падежа');
+    		}
+    		
     		if(empty($rec->department)){
     			$form->setWarning('department', 'В Заданието липсва избран ц-р на дейност и ще бъде записано в нишката');
     		}

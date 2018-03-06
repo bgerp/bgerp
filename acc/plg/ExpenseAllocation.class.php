@@ -112,7 +112,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
 				// Колко разпределено по-реда
 				$allocated = acc_CostAllocations::getAllocatedInDocument($mvc->getClassId(), $rec->id);
 				$inputQuantity = $rec->{$mvc->quantityInPackFld} * $rec->{$mvc->packQuantityFld};
-				
+				bp($allocated, $inputQuantity);
 				// Проверка дали не е въведено по-малко к-во от вече разпределеното
 				if($inputQuantity < $allocated){
 					$allocatedVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($allocated);

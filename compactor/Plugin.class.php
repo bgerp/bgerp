@@ -49,12 +49,12 @@ class compactor_Plugin extends core_Plugin
      * @return array
      */
     function compactFiles($filesArr, $configFilesArr, $baseDir, $callback = NULL)
-    {   
+    {
         $filesArr = arr::make($filesArr, TRUE);
         $configFilesArr = arr::make($configFilesArr, TRUE);
         
         // Не правим нищо, ако конфигурационните файлове и текущите нямат сечение
-        if(!count(array_intersect_key($filesArr, $configFilesArr))) return;
+        if(!count(array_intersect_key($filesArr, $configFilesArr))) return $filesArr;
         
         // Акумолатор за конкатиниране времената на последна модификация на файловете
         $times = '';
