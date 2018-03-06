@@ -653,10 +653,15 @@ class label_Prints extends core_Master
             $row->printedCnt = ht::createBtn('Печат', array($mvc, 'print', $rec->id), $warning, '_blank', 'ef_icon=img/16/printer.png, title=Отпечатване, class=fleft') . "<span class='fright' style='display: inline-block; margin-top: 4px;'>" . $row->printedCnt . "</span>";
         }
         
-        if ($rec->objectId && $rec->classId) {
+        if($rec->objectId && $rec->classId) {
             if (cls::load($rec->classId, TRUE)) {
                 $clsInst = cls::get($rec->classId);
-                $row->source = $clsInst->getLinkToSingle($rec->objectId);
+                if($clsInst instanceof core_Detail){
+                	$oMasterId = $clsInst->fetchField($rec->objectId, $clsInst->masterKey);
+                	$row->source = $clsInst->Master->getHyperlink($oMasterId);
+                } else{
+                	$row->source = $clsInst->getHyperlink($rec->objectId);
+                }
             }
         }
         
