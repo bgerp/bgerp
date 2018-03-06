@@ -148,7 +148,7 @@ class label_Prints extends core_Master
      */
     function description()
     {
-        $this->FLD('templateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\',allowEmpty)', 'caption=Шаблон, mandatory, silent, refreshForm');
+        $this->FLD('templateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\',allowEmpty)', 'caption=Шаблон, mandatory, silent, removeAndRefreshForm');
         $this->FLD('mediaId', 'key(mvc=label_Media, select=title)', 'caption=Медия, silent, mandatory, notNull');
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%, silent, input');
         
@@ -370,6 +370,8 @@ class label_Prints extends core_Master
     {
         $rec = $form->rec;
         
+        $refreshForm = array();
+        
         // Попълваме стойностите на плейсхолдерите
         
         if ($form->isSubmitted() && $rec->templateId) {
@@ -406,6 +408,8 @@ class label_Prints extends core_Master
                     // Добавяме данните от формата
                     $dataArr[$fieldName] = $rec->$fieldName;
                 }
+                
+                $refreshForm[$fieldName] = $fieldName;
             }
             
             // Добавяме целия масив към формата
@@ -464,6 +468,25 @@ class label_Prints extends core_Master
             $pData = $mvc->getLabelDataFromRec($rec);
             
             $rec->rows = $pData->rows;
+        }
+        
+        // Да се махат стойността от параметрите при рефрешване
+        if (empty($refreshForm)) {
+            
+            if ($rec->templateId) {
+                $fncForm = cls::get('core_Form');
+                
+                // Вземаме функционалните полета за типа
+                label_TemplateFormats::addFieldForTemplate($fncForm, $rec->templateId);
+                
+                foreach ((array)$fncForm->fields as $fieldName => $dummy) {
+                    $refreshForm[$fieldName] = $fieldName;
+                }
+            }
+            
+            if (!empty($refreshForm)) {
+                $form->setField("templateId", "removeAndRefreshForm=" . implode('|', $refreshForm));
+            }
         }
     }
     
