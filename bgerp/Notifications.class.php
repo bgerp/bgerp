@@ -167,7 +167,10 @@ class bgerp_Notifications extends core_Manager
             // Увеличаваме брояча
             $rec->cnt = $r->cnt + 1;
 
-            if($r->state == 'active' && isset($r->activatedOn)) {
+            if( $r->state == 'active'  && 
+                isset($r->activatedOn) && 
+                $r->activatedOn > bgerp_LastTouch::get('portal', $userId)) {
+
                 $rec->activatedOn = $r->activatedOn;
             }
         }

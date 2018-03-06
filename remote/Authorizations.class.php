@@ -314,11 +314,11 @@ class remote_Authorizations extends embed_Manager
         $ntfs = array();
         $nQuery = bgerp_Notifications::getQuery();
         $last48hours = dt::addSecs(-48*3600);
-        $nQuery->where("#state = 'active' AND #modifiedOn > '{$last48hours}' AND #userId IN (" . implode(',', array_keys($userSenders)) . ')');
+        $nQuery->where("#state = 'active' AND #activatedOn > '{$last48hours}' AND #userId IN (" . implode(',', array_keys($userSenders)) . ')');
         while($nRec = $nQuery->fetch()) {
          
             // Прескачаме тези, които са по-стари от последното виждане на портала
-            if($lastPortalSeen[$nRec->userId] > $nRec->activatedOn && $lastPortalSeen[$nRec->userId] > $nRec->modifiedOn) {
+            if($lastPortalSeen[$nRec->userId] > $nRec->activatedOn) {
                 continue;
             }
 
@@ -326,7 +326,7 @@ class remote_Authorizations extends embed_Manager
             if(!isset($ntfs[$nRec->userId][$nRec->priority])) {
                 $ntfs[$nRec->userId][$nRec->priority] = $nRec->activatedOn; 
             } else {
-                $ntfs[$nRec->userId][$nRec->priority] = min(max($lastPortalSeen[$nRec->userId], $nRec->activatedOn), $ntfs[$nRec->userId][$nRec->priority]);
+                $ntfs[$nRec->userId][$nRec->priority] = min($nRec->activatedOn, $ntfs[$nRec->userId][$nRec->priority]);
             }
         }
         if(!count($ntfs)) {
