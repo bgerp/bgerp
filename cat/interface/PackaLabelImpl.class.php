@@ -98,11 +98,12 @@ class cat_interface_PackaLabelImpl
 	 */
 	public function getLabelData($id, $cnt, $onlyPreview = FALSE)
 	{
-		$res = array();
 		expect($rec = cat_products_Packagings::fetchRec($id));
 		$pRec = cat_Products::fetch($rec->productId, 'code,measureId');
 		$quantity = $rec->quantity;
-		$quantity = cat_UoM::round($rec->packagingId, $quantity);
+		
+		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+		$quantity = cat_UoM::round($measureId, $quantity);
 		
 		$code = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
 		$name = cat_Products::getVerbal($rec->productId, 'name');
@@ -111,7 +112,7 @@ class cat_interface_PackaLabelImpl
 			$catalogPrice = round($catalogPrice * $quantity, 2);
 			$currencyCode = acc_Periods::getBaseCurrencyCode();
 		}
-		$measureId = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
+		$measureId = tr(cat_UoM::getShortName($measureId));
 		
 		$arr = array();
 		for($i = 1; $i <= $cnt; $i++){
