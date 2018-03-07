@@ -182,13 +182,13 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                                 'rate' => $iRec->rate,
                                 'invoiceValue' => $paydocs->total,
                                 'invoiceVAT' => $iRec->vatAmount,
-                                'paidAmounts' => $payDocClass::fetch($Document->that)->valior,
+                                'paidDates' => $payDocClass::fetch($Document->that)->valior,
                                 'invoiceCurrentSumm' => $paydocs->notPaid,
                                 'payDocuments' => $paydocs->payments
                             );
                         } else {
                             $obj = &$recs[$iRec->id];
-                            $obj->paidAmounds .= ', ' . $payDocClass::fetch($Document->that)->valior;
+                            $obj->paidDates .= "\n\r" . $payDocClass::fetch($Document->that)->valior;
                         }
                     }
                 }
@@ -213,27 +213,100 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         if ($export === FALSE) {
             
-            $fld->FLD('invoice', 'double(smartRound,decimals=2)', 'caption=Фактура No,smartCenter');
-            $fld->FLD('invoiceDate', 'date', 'caption=Дата,smartCenter');
+            $fld->FLD('invoiceNo', 'double(smartRound,decimals=2)', 'caption=Фактура No,smartCenter');
+            $fld->FLD('invoiceDate', 'varchar', 'caption=Дата,smartCenter');
             $fld->FLD('dueDate', 'date', 'caption=Краен срок,smartCenter');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
             $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
             $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума');
-            $fld->FLD('paidDates', 'date', 'caption=Платено->плащания,smartCenter');
+            $fld->FLD('paidDates', 'varchar', 'caption=Платено->плащания,smartCenter');
             $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Остатък');
         } else {
             
-            $fld->FLD('invoice', 'double(smartRound,decimals=2)', 'caption=Фактура No,smartCenter');
+            $fld->FLD('invoiceNo', 'double(smartRound,decimals=2)', 'caption=Фактура No,smartCenter');
             $fld->FLD('invoiceDate', 'date', 'caption=Дата,smartCenter');
-            $fld->FLD('dueDate', 'date', 'caption=Краен срок,smartCenter');
+            $fld->FLD('dueDate', 'varchar', 'caption=Краен срок,smartCenter');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
             $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
             $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума');
-            $fld->FLD('paidDates', 'date', 'caption=Платено->плащания,smartCenter');
+            $fld->FLD('paidDates', 'varchar', 'caption=Платено->плащания,smartCenter');
             $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Остатък');
         }
         return $fld;
     }
+
+    /**
+     * Връща платена сума
+     *
+     * @param stdClass $dRec            
+     * @param boolean $verbal            
+     * @return mixed $paidAmount
+     */
+    private static function getPaidAmount($dRec, $verbal = TRUE)
+    {
+        foreach ($dRec->payDocuments as $v) {
+            
+            $paidAmount += $v->amount;
+        }
+        
+        return $paidAmount;
+    }
+
+    /**
+     * Връща дати на плащания
+     *
+     * @param stdClass $dRec            
+     * @param boolean $verbal            
+     * @return mixed $paidDates
+     */
+    private static function getPaidDates($dRec, $verbal = TRUE)
+    {
+        if ($verbal === TRUE) {
+            
+            $amountsValiors = explode("\n\r", $dRec->paidDates);
+            
+            foreach ($amountsValiors as $v) {
+                
+                $paidDate = dt::mysql2verbal($v, $mask = "d.m.y");
+                
+                $paidDates .= "$paidDate" . "<br>";
+            }
+        } else {
+            $amountsValiors = explode("\n\r", $dRec->paidDates);
+            
+            foreach ($amountsValiors as $v) {
+                
+                $paidDate = dt::mysql2verbal($v, $mask = "d.m.y");
+                
+                $paidDates .= "$paidDate" . "\n\r";
+            }
+        }
+        return $paidDates;
+    }
+    
+    /**
+     * Връща просрочие на плащане
+     *
+     * @param stdClass $dRec
+     * @param boolean $verbal
+     * @return mixed $dueDate
+     */
+    private static function getDueDate($dRec, $verbal = TRUE,$rec)
+    {
+        if ($dRec->dueDate){
+        $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = "d.m.y");
+    
+     if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
+            
+            $dueDate .= " *";
+      
+        }
+        }else{
+            $dueDate = 'n.a.';
+        }
+        return $dueDate;
+    }
+    
 
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
@@ -252,7 +325,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         $row = new stdClass();
         
-        $row->invoice = ht::createLinkRef($dRec->invoiceNo, 
+        $row->invoiceNo = ht::createLinkRef($dRec->invoiceNo, 
             array(
                 'sales_Invoices',
                 'single',
@@ -261,7 +334,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         $row->invoiceDate = $Date->toVerbal($dRec->invoiceDate);
         
-        $row->dueDate = $Date->toVerbal($dRec->dueDate);
+        $row->dueDate = self::getDueDate($dRec,TRUE,$rec);
         
         $row->currencyId = $dRec->currencyId;
         
@@ -270,27 +343,29 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         $row->invoiceValue = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
         
         $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm);
+
+        $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
         
-        if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
-            
-            $row->dueDate .= " *";
-        }
-        
-        foreach ($dRec->payDocuments as $v) {
-            
-            $paidAmount += $v->amount;
-        }
-        
-        $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal($paidAmount);
-        
-        $amountsValiors = explode(',', $dRec->paidAmounts);
-        
-        foreach ($amountsValiors as $v) {
-            
-            $row->paidDates .= "<span class= 'small'>" . $Date->toVerbal($v) . "</span>" . "<br>";
-        }
+        $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, TRUE) . "</span>";
         
         return $row;
+    }
+
+    /**
+     * След подготовка на реда за експорт
+     *
+     * @param frame2_driver_Proto $Driver            
+     * @param stdClass $res            
+     * @param stdClass $rec            
+     * @param stdClass $dRec            
+     */
+    protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+    {
+        $res->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
+        
+        $res->paidDates = self::getPaidDates($dRec, FALSE);
+        
+        $res->dueDate = self::getDueDate($dRec,TRUE,$rec);
     }
 }
 
