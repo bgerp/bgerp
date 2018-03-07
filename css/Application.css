@@ -4312,11 +4312,37 @@ row-fluid {
   font-size: 0.7em;
   font-weight: bold; }
 
-  .cmr-table td {
-    border-left: 1px solid black !important;
-    border-right: 1px solid black !important; }
-    .cmr-table td.border-top {
-      border-top: 1px solid black !important; }
+.cmr-holder {
+  color: black; }
+  .cmr-holder td {
+    border-left: 1px solid black;
+    border-right: 1px solid black; }
+    .cmr-holder td.border-top {
+      border-top: 1px solid black; }
+
+.cmr-red {
+  color: #ed1748; }
+  .cmr-red td {
+    border-left: 1px solid #ed1748;
+    border-right: 1px solid #ed1748; }
+    .cmr-red td.border-top {
+      border-top: 1px solid #ed1748; }
+
+.cmr-green {
+  color: #00a94f; }
+  .cmr-green td {
+    border-left: 1px solid #00a94f;
+    border-right: 1px solid #00a94f; }
+    .cmr-green td.border-top {
+      border-top: 1px solid #00a94f; }
+
+.cmr-blue {
+  color: #0082c8; }
+  .cmr-blue td {
+    border-left: 1px solid #0082c8;
+    border-right: 1px solid #0082c8; }
+    .cmr-blue td.border-top {
+      border-top: 1px solid #0082c8; }
 
 @media handheld,
 only screen and (min-width: 1240px) {
