@@ -298,6 +298,19 @@ class label_Prints extends core_Master
                 $placeholdersArr = $intfInst->getLabelPlaceholders($rec->objectId);
             }
             
+			// При редакция да се попълват стойностите
+            if ($rec->id) {
+                foreach ((array)$rec->params as $fieldName => $val) {
+                    if (!$placeholdersArr[$fieldName]) {
+                        $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
+                        if (!$placeholdersArr[$fieldName]) {
+                            $placeholdersArr[$fieldName] = new stdClass;
+                        }
+                    }
+                    $placeholdersArr[$fieldName]->example = $val;
+                }
+            }
+            
             core_Lg::pop($lang);
             
             // Добавяме полетата от детайла на шаблона
@@ -383,8 +396,10 @@ class label_Prints extends core_Master
                 // Вземаме записа
                 $oRec = $mvc->fetch($rec->id);
                 
-                // Вземаме старите стойности
-                $oldDataArr = $oRec->params;
+                // Вземаме старите стойности, ако не сме променили шаблона
+                if ($oRec->templateId == $rec->templateId) {
+                    $oldDataArr = $oRec->params;
+                }
             }
             
             // Форма за функционалните полета
