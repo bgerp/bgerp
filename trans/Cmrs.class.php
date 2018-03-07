@@ -288,7 +288,7 @@ class trans_Cmrs extends core_Master
     		
     		$threadId = doc_Containers::fetchField($rec->originId, 'threadId');
     		$invoicesInThread = deals_Helper::getInvoicesInThread($threadId);
-    		if(count($invoicesInThread)){
+    		if(count($invoicesInThread) == 1){
     			$iRec = sales_Invoices::fetch("#containerId =" . key($invoicesInThread));
     			$iVerbal = sales_Invoices::recToVerbal($iRec, 'date,number');
     			$documentsAttached = "INVOICE {$iVerbal->number} / {$iVerbal->date}";
