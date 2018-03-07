@@ -105,7 +105,7 @@ class cat_PackParams extends core_Manager
     	} 
     	
     	if(empty($res)){
-    		$where2 = "#id != '{$rec->id}' AND (#title = '' OR #title IS NULL) AND ";
+    		$where2 = "#id != '{$rec->id}' AND ";
     		$where2 .= $this->getCompareCondition($rec);
     		$fields = array('packagingId', 'sizeWidth', 'sizeHeight', 'sizeDepth', 'tareWeight');
     		$res = $this->fetch($where2);
