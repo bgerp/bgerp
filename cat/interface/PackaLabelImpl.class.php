@@ -105,8 +105,16 @@ class cat_interface_PackaLabelImpl
 		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
 		$quantity = cat_UoM::round($measureId, $quantity);
 		
+		$jQuery = planning_Jobs::getQuery();
+		$jQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 2 WHEN 'stopped' THEN 3 END)");
+		$jQuery->where("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
+		$jQuery->orderBy('order', 'ASC');
+		if($jRec = $jQuery->fetch()){
+			$jobCode = mb_strtoupper(planning_Jobs::getHandle($jRec->id));
+		}
+		
 		$code = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
-		$name = cat_Products::getVerbal($rec->productId, 'name');
+		$name = trim(cat_Products::getVerbal($rec->productId, 'name'));
 		$date = date("m/y");
 		if($catalogPrice = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $rec->productId, $rec->packagingId)){
 			$catalogPrice = round($catalogPrice * $quantity, 2);
@@ -127,7 +135,11 @@ class cat_interface_PackaLabelImpl
 				if(count($additionalFields)){
 					$res = $additionalFields + $res;
 				}
-			
+				
+				if(isset($jobCode)){
+					$res['JOB'] = $jobCode;
+				}
+				
 				if(isset($rec->eanCode)){
 					$res['EAN'] = $rec->eanCode;
 				}
@@ -157,14 +169,6 @@ class cat_interface_PackaLabelImpl
 	 */
 	public function getLabelEstimatedCnt($id)
 	{
-		$rec = $this->class->fetch($id);
-		
-		$quantity = $rec->quantity;
-		
-		$quantity *= 1.1;
-		$res = ceil($quantity + 1);
-		if($res % 2 == 1) $res++;
-		
-		return $res;
+		return NULL;
 	}
 }
