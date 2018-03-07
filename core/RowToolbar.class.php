@@ -198,18 +198,28 @@ class core_RowToolbar extends core_BaseClass
         } else {
             $dropDownIcon = sbf("img/16/rowtools-btn.png", '');
             $layout = new ET("\n" . 
-                            "<div class='modal-toolbar rowtoolsGroup'>[#ROW_LINKS#]</div>" .
-                            "<img class='more-btn toolbar-btn button' src='{$dropDownIcon}' alt=''>");
+                            "<!--ET_BEGIN ROW_LINKS--><div class='modal-toolbar rowtoolsGroup'>[#ROW_LINKS#]</div>" .
+                            "<img class='more-btn toolbar-btn button' src='{$dropDownIcon}' alt=''><!--ET_END ROW_LINKS-->[#ALWAYS_SHOW#]");
+
             // Сортираме бутоните
             arr::order($this->links);            
             
             foreach($this->links as $id => $linkObj) {
                 $attr = $linkObj->attr;
-
                 ht::setUniqId($attr);
                 
-                $link = ht::createLink(tr($linkObj->title), $linkObj->url, $linkObj->error ? $linkObj->error : $linkObj->warning, $attr); 
-                $layout->append($link, 'ROW_LINKS');
+                $btnTitle = tr($linkObj->title);
+                if(empty($attr['alwaysShow'])){
+                	$placeholder = 'ROW_LINKS';
+                } else {
+                	$placeholder = 'ALWAYS_SHOW';
+                	if(isset($attr['ef_icon'])){
+                		$btnTitle = '';
+                	}
+                }
+                
+                $link = ht::createLink($btnTitle, $linkObj->url, $linkObj->error ? $linkObj->error : $linkObj->warning, $attr); 
+                $layout->append($link, $placeholder);
             }
 
             $layout->push('context/'. context_Setup::get('VERSION') . '/contextMenu.css', "CSS");
