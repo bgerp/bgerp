@@ -1147,6 +1147,8 @@ class label_Prints extends core_Master
             $pData->rows = array_slice((array)$pData->rows, $form->rec->from-1, $form->rec->to-$form->rec->from+1);
         }
         
+        $pData->allCnt = count($pData->rows);
+        
         // Рендираме медията
         $pageLayout = label_Media::renderMediaPageLayout($pData);
         
