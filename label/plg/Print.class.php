@@ -39,6 +39,8 @@ class label_plg_Print extends core_Plugin
 		if(isset($fields['-list']) && $mvc->hasPlugin('plg_RowTools2')){
 			$btnParams = self::getLabelBtnParams($mvc, $rec);
 			if(!empty($btnParams['url'])){
+				$btnParams['attr'] = arr::make($btnParams['attr']);
+				$btnParams['attr']['style'] = 'position: relative; top: -2px;';
 				$row->_rowTools->addLink('Етикети', $btnParams['url'], $btnParams['attr'], 'alwaysShow');
 			}
 		}
@@ -67,7 +69,7 @@ class label_plg_Print extends core_Plugin
 				$res['url'] = array('label_Prints', 'add', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id, 'ret_url' => TRUE);
 				$res['url'] = toUrl($res['url']);
 				core_Request::removeProtected('classId,objectId');
-				$res['attr'] = "target=_blank,ef_icon = img/16/price_tag_label.png,style=position: relative; top: -2px;,title=Разпечатване на етикети от|* |{$mvc->title}|* №{$rec->id}{$error}";
+				$res['attr'] = "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети от|* |{$mvc->title}|* №{$rec->id}{$error}";
 			}
 		}
 		
