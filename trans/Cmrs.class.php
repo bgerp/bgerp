@@ -281,6 +281,19 @@ class trans_Cmrs extends core_Master
     	// Зареждане на дефолти от ориджина
     	if(isset($rec->originId) && !isset($rec->id)){
     		$mvc->setDefaultsFromShipmentOrder($rec->originId, $form);
+    		
+    		if($senderInstructions = trans_Setup::get('CMR_SENDER_INSTRUCTIONS')){
+    			$form->setDefault('senderInstructions', $senderInstructions);
+    		}
+    		
+    		$threadId = doc_Containers::fetchField($rec->originId, 'threadId');
+    		$invoicesInThread = deals_Helper::getInvoicesInThread($threadId);
+    		if(count($invoicesInThread)){
+    			$iRec = sales_Invoices::fetch("#containerId =" . key($invoicesInThread));
+    			$iVerbal = sales_Invoices::recToVerbal($iRec, 'date,number');
+    			$documentsAttached = "INVOICE {$iVerbal->number} / {$iVerbal->date}";
+    			$form->setDefault('documentsAttached', $documentsAttached);
+    		}
     	}
     }
     
