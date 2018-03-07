@@ -153,6 +153,7 @@ class label_Templates extends core_Master
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
         
         $this->setDbUnique('sysId');
+        $this->setDbIndex('classId');
     }
     
     

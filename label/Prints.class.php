@@ -165,6 +165,9 @@ class label_Prints extends core_Master
         $this->FLD('params', 'blob(serialize,compress)', 'caption=Параметри, input=none');
         
         $this->FLD('rows', 'blob(1000000,serialize,compress)', 'caption=Кеш, input=none');
+        
+        $this->setDbIndex('createdOn');
+        $this->setDbIndex('templateId');
     }
     
     

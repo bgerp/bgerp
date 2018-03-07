@@ -102,6 +102,9 @@ class label_CounterItems extends core_Detail
         $this->FLD('counterId', 'key(mvc=label_Counters, select=name)', 'caption=Брояч, mandatory');
         $this->FLD('printId', 'key(mvc=label_Prints, select=title)', 'caption=Етикет, mandatory');
         $this->FLD('number', 'int', 'caption=Номер');
+        
+        $this->setDbIndex('number, counterId');
+        $this->setDbIndex('counterId, printId');
     }
     
     

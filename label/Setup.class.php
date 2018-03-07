@@ -220,7 +220,7 @@ class label_Setup extends core_ProtoSetup
             
             $cRec->printId = $pRec->id;
             
-            $cItemsInst->save($cRec, 'printId');
+            $cItemsInst->save_($cRec, 'printId');
         }
     }
     
