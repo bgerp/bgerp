@@ -21,7 +21,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'label_SequenceIntf=cat_interface_PackaLabelImpl';
+    public $interfaces = 'label_SequenceIntf=cat_interface_PackLabelImpl';
     
     
     /**

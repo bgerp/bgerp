@@ -15,7 +15,7 @@
  * @see label_SequenceIntf
  *
  */
-class cat_interface_PackaLabelImpl
+class cat_interface_PackLabelImpl
 {
 	
 	
