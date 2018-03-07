@@ -110,10 +110,10 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         $query->where("#state != 'rejected'");
         
-        $query->where(array(
-            "#createdOn < '[#1#]'",
-            $rec->checkDate . ' 23:59:59'
-        ));
+//         $query->where(array(
+//             "#createdOn < '[#1#]'",
+//             $rec->checkDate . ' 23:59:59'
+//         ));
         
         if ($rec->contragent) {
             
@@ -122,22 +122,24 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         while ($invoices = $query->fetch()) {
             
-            if (sales_Sales::fetch(doc_Threads::getFirstDocument($invoices->threadId)->that)->state == 'closed') {
+//             if (sales_Sales::fetch(doc_Threads::getFirstDocument($invoices->threadId)->that)->state == 'closed') {
                 
-                if (sales_Sales::fetch(doc_Threads::getFirstDocument($invoices->threadId)->that)->closedOn >=
-                     $rec->checkDate) {
+//                 if (sales_Sales::fetch(doc_Threads::getFirstDocument($invoices->threadId)->that)->closedOn >=
+//                      $rec->checkDate) {
                     
-                    $threadsId[$invoices->threadId] = $invoices->threadId;
-                    continue;
-                }
+//                     $threadsId[$invoices->threadId] = $invoices->threadId;
+//                     continue;
+//                 }
                 
-                continue;
-            }
+//                 continue;
+//             }
             
             $threadsId[$invoices->threadId] = $invoices->threadId;
         }
         
         foreach ($threadsId as $thread) {
+
+           
             
             // масив от фактури в тази нишка //
             $invoicesInThread = (deals_Helper::getInvoicesInThread($thread, $rec->checkDate, TRUE, TRUE, TRUE));
@@ -145,8 +147,6 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
             
             if (is_array($invoicePayments)) {
-                
-                // if ($thread == 7201)bp($invoicePayments);
                 
                 // фактура от нишката и масив от платежни документи по тази фактура//
                 foreach ($invoicePayments as $inv => $paydocs) {
@@ -158,8 +158,6 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                     
                     $iRec = $Invoice->fetch(
                         'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate');
-                    
-                    // if ($thread == 7201)bp($inv,$paydocs,$iRec);
                     
                     // платежен документ от масива с платежни документи в нишката $thread по фактурата $inv //
                     foreach ($paydocs->payments as $onePayDoc) {
@@ -213,7 +211,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         if ($export === FALSE) {
             
-            $fld->FLD('invoiceNo', 'double(smartRound,decimals=2)', 'caption=Фактура No,smartCenter');
+            $fld->FLD('invoiceNo', 'varchar', 'caption=Фактура No,smartCenter');
             $fld->FLD('invoiceDate', 'varchar', 'caption=Дата,smartCenter');
             $fld->FLD('dueDate', 'date', 'caption=Краен срок,smartCenter');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
@@ -223,7 +221,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Остатък');
         } else {
             
-            $fld->FLD('invoiceNo', 'double(smartRound,decimals=2)', 'caption=Фактура No,smartCenter');
+            $fld->FLD('invoiceNo', 'varchar', 'caption=Фактура No,smartCenter');
             $fld->FLD('invoiceDate', 'date', 'caption=Дата,smartCenter');
             $fld->FLD('dueDate', 'varchar', 'caption=Краен срок,smartCenter');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
