@@ -205,16 +205,13 @@ class label_Setup extends core_ProtoSetup
         $cQuery = $cItemsInst->getQuery();
         $cQuery->where("#labelId IS NOT NULL");
         $cQuery->where("#labelId != ''");
+        $cQuery->where("#printId = ''");
+        $cQuery->orWhere("#printId IS NULL");
         
         while ($cRec = $cQuery->fetch()) {
             if (!$cRec->labelId) continue;
             
-            $pQuery = $pInst->getQuery();
-            $pQuery->where(array("#labelId = '[#1#]'", $cRec->labelId));
-            
-            $pQuery->orderBy("state", "DESC");
-            
-            $pRec = $pQuery->fetch();
+            $pRec = $pInst->fetch(array("#labelId = '[#1#]'", $cRec->labelId));
             
             if (!$pRec) continue;
             
