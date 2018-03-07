@@ -102,7 +102,7 @@ class cat_interface_PackLabelImpl
 		$pRec = cat_Products::fetch($rec->productId, 'code,measureId');
 		$quantity = $rec->quantity;
 		
-		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+		$measureId = $pRec->measureId;
 		$quantity = cat_UoM::round($measureId, $quantity);
 		
 		$jQuery = planning_Jobs::getQuery();

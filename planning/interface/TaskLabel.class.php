@@ -25,91 +25,18 @@ class planning_interface_TaskLabel
 	public $class;
 	
 	
-	/**
-	 * Може ли шаблона да бъде избран от класа
-	 *
-	 * @param int $id         - ид на обект от класа
-	 * @param int $templateId - ид на шаблон
-	 * @return boolean
-	 */
-	public function canSelectTemplate($id, $templateId)
-	{
-		return $this->class->canSelectTemplate($id, $templateId);
-	}
-	
 	
 	/**
-	 * Връща данни за етикети
+	 * Връща наименованието на етикета
 	 *
-	 * @param int $id - ид на задача
-	 * @param number $labelNo - номер на етикета
-	 *
-	 * @return array $res - данни за етикетите
-	 *
-	 * @see label_SequenceIntf
+	 * @param integer $id
+	 * @return string
 	 */
-	public function getLabelData($id, $labelNo = 0)
+	public function getLabelName($id)
 	{
-		$res = array();
-		expect($rec = planning_Tasks::fetchRec($id));
-		expect($origin = doc_Containers::getDocument($rec->originId));
-		$jobRec = $origin->fetch();
+		$rec = $this->class->fetchRec($id);
 	
-		// Информация за артикула и заданието
-		$res['JOB'] = mb_strtoupper($origin->getHandle());
-		$res['NAME'] = cat_Products::getTitleById($rec->productId);
-		
-		$pRec = cat_Products::fetch($rec->productId, 'name,code');
-		$res['SIMPLE_NAME'] = cat_Products::getVerbal($pRec, 'name');
-		$res['PRODUCT_CODE'] = (!empty($pRec->code)) ? cat_Products::getVerbal($pRec, 'code') : "Art{$pRec->id}";
-		
-		// Генериране на баркод
-		if($labelNo != 0){
-			//$serial = planning_TaskSerials::force($id, $labelNo);
-			//$paddLength = planning_Setup::get('SERIAL_STRING_PAD');
-			//$serial = str_pad($serial, 13, '0', STR_PAD_LEFT);
-			$res['BARCODE'] = $serial;
-		} else {
-			$res['BARCODE'] = 'BARCODE';
-		}
-	
-		// Информация за артикула
-		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
-		$res['MEASURE_ID'] = tr(cat_UoM::getShortName($measureId));
-		$res['QUANTITY'] = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->quantityInPack);
-		if(isset($jobRec->saleId)){
-			$res['ORDER'] =  "#" . sales_Sales::getHandle($jobRec->saleId);
-			$logisticData = cls::get('sales_Sales')->getLogisticData($jobRec->saleId);
-			$res['COUNTRY'] = drdata_Countries::fetchField("#commonName = '{$logisticData['toCountry']}'", 'letterCode2');
-		}
-	
-		// Извличане на всички параметри на артикула
-		Mode::push('text', 'plain');
-		$params = planning_Tasks::getTaskProductParams($rec, TRUE);
-		Mode::pop('text');
-	
-		$params = cat_Params::getParamNameArr($params, TRUE);
-		$res = array_merge($res, $params);
-	
-		// Ако от драйвера идват още параметри, добавят се с приоритет
-		if($Driver = cat_Products::getDriver($rec->productId)){
-			$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
-			if(count($additionalFields)){
-				$res = $additionalFields + $res;
-			}
-		}
-	
-		$res['SIZE_UNIT'] = 'cm';
-		$res['DATE'] = dt::mysql2verbal(dt::today(), 'm/y');
-	
-		// Превюто от операцията е с приоритет
-		$previewParamId = cat_Params::fetchIdBySysId('preview');
-		if($prevValue = cat_products_Params::fetchField("#classId = {$this->class->getClassId()} AND #productId = {$rec->id} AND #paramId = {$previewParamId}", 'paramValue')){
-			$res['PREVIEW'] = $prevValue;
-		}
-		
-		// Връщане на масива, нужен за отпечатването на един етикет
-		return $res;
+		return "#" . $this->class->getHandle($rec);
 	}
 	
 	
@@ -123,7 +50,7 @@ class planning_interface_TaskLabel
 	 *
 	 * @see label_SequenceIntf
 	 */
-	public function getEstimateCnt($id, &$allowSkip)
+	public function getLabelEstimatedCnt($id)
 	{
 		// Планираното количество
 		$rec = planning_Tasks::fetch($id);
@@ -133,14 +60,138 @@ class planning_interface_TaskLabel
 	
 	
 	/**
-	 * Кои плейсхолдъри немогат да се предефинират от потребителя
-	 * 
-	 * @param int $id
+	 * Връща масив с данните за плейсхолдерите
+	 *
 	 * @return array
+	 * Ключа е името на плейсхолдера и стойностите са обект:
+	 * type -> text/picture - тип на данните на плейсхолдъра
+	 * len -> (int) - колко символа макс. са дълги данните в този плейсхолдер
+	 * readonly -> (boolean) - данните не могат да се променят от потребителя
+	 * hidden -> (boolean) - данните не могат да се променят от потребителя
+	 * importance -> (int|double) - тежест/важност на плейсхолдера
+	 * example -> (string) - примерна стойност
 	 */
-	public function getReadOnlyPlaceholders($id)
+	public function getLabelPlaceholders($objId = NULL)
 	{
-		$arr = arr::make(array('BARCODE'), TRUE);
+		$placeholders = array();
+		$placeholders['JOB']          = (object)array('type' => 'text');
+		$placeholders['NAME']         = (object)array('type' => 'text');
+		$placeholders['PRODUCT_CODE'] = (object)array('type' => 'text');
+		$placeholders['BARCODE']      = (object)array('type' => 'text', 'hidden' => TRUE);
+		$placeholders['MEASURE_ID']   = (object)array('type' => 'text');
+		$placeholders['QUANTITY']     = (object)array('type' => 'text');
+		$placeholders['ORDER']        = (object)array('type' => 'text');
+		$placeholders['COUNTRY']      = (object)array('type' => 'text');
+		$placeholders['SIZE_UNIT']    = (object)array('type' => 'text');
+		$placeholders['SIZE']         = (object)array('type' => 'text');
+		$placeholders['MATERIAL']     = (object)array('type' => 'text');
+		$placeholders['OTHER']        = (object)array('type' => 'text');
+		$placeholders['DATE']         = (object)array('type' => 'text');
+		$placeholders['PREVIEW']      = (object)array('type' => 'picture');
+		
+		if(isset($objId)){
+			$labelData = $this->getLabelData($objId, 1, TRUE);
+			if(isset($labelData[0])){
+				foreach ($labelData[0] as $key => $val){
+					if(!array_key_exists($key, $placeholders)){
+						$placeholders[$key] = (object)array('type' => 'text');
+					}
+					$placeholders[$key]->example = $val;
+				}
+			}
+		}
+		
+		return $placeholders;
+	}
+	
+	
+	/**
+	 * Връща масив с всички данни за етикетите
+	 *
+	 * @param integer $id
+	 * @param integer $cnt
+	 * @param boolean $onlyPreview
+	 *
+	 * @return array - масив от масиви с ключ плейсхолдера и стойността
+	 */
+	public function getLabelData($id, $cnt, $onlyPreview = FALSE)
+	{
+		expect($rec = planning_Tasks::fetchRec($id));
+		expect($origin = doc_Containers::getDocument($rec->originId));
+		$jobRec = $origin->fetch();
+		
+		$pRec = cat_Products::fetch($rec->productId, 'name,code,measureId');
+		$name = trim(cat_Products::getVerbal($pRec, 'name'));
+		
+		$code = (!empty($pRec->code)) ? cat_Products::getVerbal($pRec, 'code') : "Art{$pRec->id}";
+		$date = dt::mysql2verbal(dt::today(), 'm/y');
+		
+		$measureId = $pRec->measureId;
+		$quantity = cat_UoM::round($measureId, $rec->quantityInPack);
+		$measureId = tr(cat_UoM::getShortName($measureId));
+		
+		if(isset($jobRec->saleId)){
+			$orderId = "#" . sales_Sales::getHandle($jobRec->saleId);
+			$logisticData = cls::get('sales_Sales')->getLogisticData($jobRec->saleId);
+			$country = drdata_Countries::fetchField("#commonName = '{$logisticData['toCountry']}'", 'letterCode2');
+		}
+		
+		// Извличане на всички параметри на артикула
+		Mode::push('text', 'plain');
+		$params = planning_Tasks::getTaskProductParams($rec, TRUE);
+		Mode::pop('text');
+		
+		$params = cat_Params::getParamNameArr($params, TRUE);
+		
+		// Ако от драйвера идват още параметри, добавят се с приоритет
+		$additionalLabelData = array();
+		if($Driver = cat_Products::getDriver($rec->productId)){
+			$additionalLabelData = $Driver->getAdditionalLabelData($rec->productId, $this->class);
+		}
+		
+		$previewParamId = cat_Params::fetchIdBySysId('preview');
+		$prevValue = cat_products_Params::fetchField("#classId = {$this->class->getClassId()} AND #productId = {$rec->id} AND #paramId = {$previewParamId}", 'paramValue');
+		
+		$arr = array();
+		for($i = 1; $i <= $cnt; $i++){
+			$res = array('JOB'          => planning_Jobs::getHandle($jobRec->id), 
+					     'NAME'         => $name, 
+					     'DATE'         => $date,
+						 'CODE'         => $code,
+					     'MEASURE_ID'   => $measureId, 
+					     'QUANTITY'     => $quantity, 
+						 'PRODUCT_CODE' => $code,
+						 'SIZE_UNIT'    => 'cm',
+						 'DATE'         => $date,
+			);
+		
+			if(isset($jobRec->saleId)){
+				$res['ORDER'] = $orderId;
+				$res['COUNTRY'] = $country;
+			}
+			
+			$res['BARCODE'] = 'EXAMPLE';
+			
+			if($Driver){
+				if($onlyPreview === FALSE){
+					$res['BARCODE'] = $Driver->generateSerial($rec->productId, 'planning_Tasks', $rec->id);
+				}
+				
+				if(count($params)){
+					$res = array_merge($res, $params);
+				}
+				
+				if(count($additionalLabelData)){
+					$res = $additionalLabelData + $res;
+				}
+				
+				if(isset($prevValue)){
+					$res['PREVIEW'] = $prevValue;
+				}
+			}
+			
+			$arr[] = $res;
+		}
 		
 		return $arr;
 	}
