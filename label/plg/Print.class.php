@@ -39,7 +39,7 @@ class label_plg_Print extends core_Plugin
 		if(isset($fields['-list']) && $mvc->hasPlugin('plg_RowTools2')){
 			$btnParams = self::getLabelBtnParams($mvc, $rec);
 			if(!empty($btnParams['url'])){
-				$row->_rowTools->addLink('Етикетиране', $btnParams['url'], $btnParams['attr']);
+				$row->_rowTools->addLink('Етикетиране', $btnParams['url'], $btnParams['attr'], 'alwaysShow');
 			}
 		}
 	}
