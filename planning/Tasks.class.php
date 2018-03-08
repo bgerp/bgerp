@@ -966,37 +966,6 @@ class planning_Tasks extends core_Master
 	}
     
     
-	/**
-	 * Помощна функция извличаща параметрите на операцията
-	 * 
-	 * @param stdClass $rec     - запис
-	 * @param boolean $verbal   - дали параметрите да са вербални
-	 * @return array $params    - масив с обеднението на параметрите на операцията и тези на артикула
-	 */
-	public static function getTaskProductParams($rec, $verbal = FALSE)
-	{
-		// Кои са параметрите на артикула
-		$classId = planning_Tasks::getClassId();
-		$productParams = cat_Products::getParams($rec->productId, NULL, TRUE);
-		
-		// Кои са параметрите на операцията
-		$params = array();
-		$query = cat_products_Params::getQuery();
-		$query->where("#classId = {$classId} AND #productId = {$rec->id}");
-		$query->show('paramId,paramValue');
-		while($dRec = $query->fetch()){
-			$dRec->paramValue = ($verbal === TRUE) ? cat_Params::toVerbal($dRec->paramId, $classId, $rec->id, $dRec->paramValue) : $dRec->paramValue;
-			$params[$dRec->paramId] = $dRec->paramValue;
-		}
-		
-		// Обединяване на параметрите на операцията с тези на артикула
-		$params = $params + $productParams;
-		
-		// Връщане на параметрите
-		return $params;
-	}
-    
-    
     /**
      * Ф-я връщаща полетата специфични за артикула от драйвера
      *
