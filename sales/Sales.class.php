@@ -1346,14 +1346,14 @@ class sales_Sales extends deals_DealMaster
     	 
     	$query = self::getQuery();
     	$query->where("#state = 'active' || #state = 'closed' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
-    	$query->where("#activatedOn >= '{$timeline}'");
-    	$query->show('activatedBy,activatedOn,state');
+    	$query->where("#modifiedOn >= '{$timeline}'");
+    	$query->show('valior,activatedOn,state');
     	 
     	while($rec = $query->fetch()){
     		$personId = crm_Profiles::fetchField("#userId = {$rec->activatedBy}", 'personId');
     		if(empty($personId)) continue;
     		
-    		$result[] = (object)array('date'        => dt::verbal2mysql($rec->activatedOn, FALSE),
+    		$result[] = (object)array('date'        => dt::verbal2mysql($rec->valior, FALSE),
     								  'personId'    => $personId,
     								  'docId'       => $rec->id,
     								  'docClass'    => sales_Sales::getClassId(),

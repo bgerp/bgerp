@@ -1240,7 +1240,7 @@ class planning_Jobs extends core_Master
     	
     	$query = self::getQuery();
     	$query->where("#state = 'active' || #state = 'closed' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
-    	$query->where("#activatedOn >= '{$timeline}'");
+    	$query->where("#modifiedOn >= '{$timeline}'");
     	$query->show('activatedBy,activatedOn,state');
     	
     	while($rec = $query->fetch()){
