@@ -244,8 +244,6 @@ class label_Prints extends core_Master
                 
                 $cnt = 0;
                 foreach ($labelDataArr as $key => $v) {
-                	if(in_array($key, label_Templates::$systemPlaceholders)) continue;
-                	
                     if (isset($templatePlaceArr[$key])) {
                         if (isset($v->importance) && ($v->importance >= 0)) {
                             $cnt += $v->importance;
