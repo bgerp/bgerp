@@ -105,9 +105,11 @@ class cat_interface_PackLabelImpl
 		$pRec = cat_Products::fetch($rec->productId, 'code,measureId');
 		$quantity = $rec->quantity;
 		
+		// Каква е мярката и количеството
 		$measureId = $pRec->measureId;
 		$quantity = cat_UoM::round($measureId, $quantity);
 		
+		// Кое е последното задание към артикула
 		$jQuery = planning_Jobs::getQuery();
 		$jQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 2 WHEN 'stopped' THEN 3 END)");
 		$jQuery->where("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
@@ -119,12 +121,15 @@ class cat_interface_PackLabelImpl
 		$code = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
 		$name = trim(cat_Products::getVerbal($rec->productId, 'name'));
 		$date = date("m/y");
+		
+		// Цена по каталог
 		if($catalogPrice = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $rec->productId, $rec->packagingId)){
 			$catalogPrice = round($catalogPrice * $quantity, 2);
 			$currencyCode = acc_Periods::getBaseCurrencyCode();
 		}
 		$measureId = tr(cat_UoM::getShortName($measureId));
 		
+		// Продуктови параметри
 		$params = cat_Products::getParams($rec->productId, NULL, TRUE);
 		$params = cat_Params::getParamNameArr($params, TRUE);
 		
@@ -140,18 +145,18 @@ class cat_interface_PackLabelImpl
 				$res = array_merge($res, $params);
 			}
 			
+			if(isset($jobCode)){
+				$res['JOB'] = $jobCode;
+			}
+			
+			if(isset($rec->eanCode)){
+				$res['EAN'] = $rec->eanCode;
+			}
+			
 			if($Driver = cat_Products::getDriver($rec->productId)){
 				$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
 				if(count($additionalFields)){
 					$res = $additionalFields + $res;
-				}
-				
-				if(isset($jobCode)){
-					$res['JOB'] = $jobCode;
-				}
-				
-				if(isset($rec->eanCode)){
-					$res['EAN'] = $rec->eanCode;
 				}
 				
 				$res['BARCODE'] = 'EXAMPLE';
