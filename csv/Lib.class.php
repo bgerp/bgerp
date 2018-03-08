@@ -340,11 +340,15 @@ class csv_Lib
                     $type->params['decimals'] = $decimals;
                     $value = $type->toVerbal($rec->{$name});
                 } elseif ($type instanceof type_Datetime) {
-                    $value = dt::mysql2verbal($rec->{$name}, $datetimeFormat);
-                    $value = strip_tags($value);
+                	if($rec->{$name}){
+                		$value = dt::mysql2verbal($rec->{$name}, $datetimeFormat);
+                		$value = strip_tags($value);
+                	}
                 } elseif ($type instanceof type_Date) {
-                    $value = dt::mysql2verbal($rec->{$name}, $dateFormat);
-                    $value = strip_tags($value);
+                	if($rec->{$name}){
+                		$value = dt::mysql2verbal($rec->{$name}, $dateFormat);
+                		$value = strip_tags($value);
+                	}
                 } elseif ($type instanceof type_Richtext && !empty($params['text'])) {
                     Mode::push('text', $params['text']);
                     $value = $type->toVerbal($rec->{$name});
