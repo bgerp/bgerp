@@ -78,6 +78,9 @@ class cat_interface_PackLabelImpl
 			$labelData = $this->getLabelData($objId, 1, TRUE);
 			if(isset($labelData[0])){
 				foreach ($labelData[0] as $key => $val){
+					if(!array_key_exists($key, $placeholders)){
+						$placeholders[$key] = (object)array('type' => 'text');
+					}
 					$placeholders[$key]->example = $val;
 				}
 			}
@@ -122,6 +125,9 @@ class cat_interface_PackLabelImpl
 		}
 		$measureId = tr(cat_UoM::getShortName($measureId));
 		
+		$params = cat_Products::getParams($rec->productId, NULL, TRUE);
+		$params = cat_Params::getParamNameArr($params, TRUE);
+		
 		$arr = array();
 		for($i = 1; $i <= $cnt; $i++){
 			$res = array('CODE' => $code, 'NAME' => $name, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity);	
@@ -129,7 +135,11 @@ class cat_interface_PackLabelImpl
 				$res['CATALOG_PRICE'] = $catalogPrice;
 				$res['CATALOG_CURRENCY'] = $currencyCode;
 			}
-				
+			
+			if(count($params)){
+				$res = array_merge($res, $params);
+			}
+			
 			if($Driver = cat_Products::getDriver($rec->productId)){
 				$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
 				if(count($additionalFields)){
@@ -152,7 +162,7 @@ class cat_interface_PackLabelImpl
 				
 			$arr[] = $res;
 		}
-
+		
 		return $arr;
 	}
 	
