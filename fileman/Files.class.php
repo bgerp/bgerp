@@ -1874,7 +1874,14 @@ class fileman_Files extends core_Master
     	
     	$linkBtn = ht::createLink(tr('Линк'), array('F', 'GetLink', 'fileHnd' => $fh, 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/link.png', 'title'=> 'Генериране на линк за сваляне', "class" => "button"));
     	$tpl->append($linkBtn);
-        
+
+        if ($printAttr = $this->checkForPrintBnt($this, $fRec)) {
+            if (!$printAttr['disabled']) {
+                $printLink = ht::createLink(tr('Печат'), array($this, 'PrintFiles', 'fileHnd' => $fRec->fileHnd, 'ret_url' => TRUE), $printAttr['warning'], array('ef_icon' => 'img/16/printer.png', 'target' => "_blank", 'title' => 'Печат на документа', "class" => "button", 'onclick'=>'if ($(".iw-mTrigger").contextMenu) {$(".iw-mTrigger").contextMenu("close");}'));
+                $tpl->append($printLink);
+            }
+        }
+
     	$downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => TRUE), FALSE);
     	$download = ht::createLink(tr('Сваляне') . " " . $fileLen, $downloadUrl, NULL, array('ef_icon' => 'img/16/down16.png', 'title' => 'Сваляне на файла', "class" => "button"));
     	$tpl->append($download);
@@ -2119,7 +2126,62 @@ class fileman_Files extends core_Master
         // Отбелязваме като разгледан
         fileman_Log::updateLogInfo($fh, 'preview');
     }
-    
+
+
+    /**
+     * Проверява дали да се покаже бутона за печат. Предава и параметрите за бутона: warning, disabled
+     */
+    function checkForPrintBnt($mvc, $rec, $activeProcessing = FALSE) {
+        $ext = self::getExt($rec->name);
+
+        if ($mvc->haveRightFor('printfiles', $rec) && $ext) {
+            // Вземаме уеб-драйверите за това файлово разширение
+            $webdrvArr = fileman_Indexes::getDriver($ext, $rec->name);
+
+            $canPrint = FALSE;
+
+            foreach ($webdrvArr as $drv) {
+                if (!$drv) continue;
+
+                if (!cls::load($drv, TRUE)) continue;
+
+                if ($drv::$defaultTab == 'preview') {
+                    if ($activeProcessing) {
+                        $drv->startProcessing($rec);
+                    }
+                    $canPrint = TRUE;
+
+                    break;
+                }
+            }
+
+            if ($canPrint) {
+
+                $jpgArr = fileman_Indexes::getInfoContentByFh($rec->fileHnd, 'jpg');
+
+                // Ако има грешка при конвертирането
+                $disabled = '';
+                if ((is_object($jpgArr) && $jpgArr->errorProc)) {
+                    $disabled = ',disabled';
+                }
+
+                $warning = '';
+                if (is_array($jpgArr) && empty($jpgArr)) {
+                    $warning = 'Няма данни за отпечатване';
+                }
+
+                if (is_array($jpgArr) && $jpgArr['otherPagesCnt']) {
+                    $all = count($jpgArr);
+                    $all--;
+
+                    $warning = "|Ще се отпечатат първите|* {$all} |страници|*. |Ще се пропуснат|* {$jpgArr['otherPagesCnt']} |страници|*.";
+                }
+
+                return array('disabled' => $disabled, 'warning' => $warning);
+            }
+        }
+        return FALSE;
+    }
 
 	/**
      * 
@@ -2134,57 +2196,10 @@ class fileman_Files extends core_Master
         if ($mvc->haveRightFor('regenerate', $data->rec->id)) {
             $data->toolbar->addBtn('Регенериране', array($mvc, 'Regenerate', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-regenerate', 'ef_icon = img/16/recycle.png, title=Повторна обработка на файла, order=19.99');
         }
-        
-        $ext = self::getExt($data->rec->name);
-        if ($mvc->haveRightFor('printfiles', $data->rec) && $ext) {
-            // Вземаме уеб-драйверите за това файлово разширение
-            $webdrvArr = fileman_Indexes::getDriver($ext, $data->rec->name);
-            
-            $canPrint = FALSE;
-            
-            foreach ($webdrvArr as $drv) {
-                if (!$drv) continue;
-                
-                if (!cls::load($drv, TRUE)) continue;
-                
-                if ($drv::$defaultTab == 'preview') {
-                    
-                    $drv->startProcessing($data->rec);
-                    
-                    $canPrint = TRUE;
-                    
-                    break;
-                }
-            }
-            
-            if ($canPrint) {
-                
-                $jpgArr = fileman_Indexes::getInfoContentByFh($data->rec->fileHnd, 'jpg');
-                
-                // Ако има грешка при конвертирането
-                $disabled = '';
-                if ((is_object($jpgArr) && $jpgArr->errorProc)) {
-                    $disabled = ',disabled';
-                }
-                
-                $warning = '';
-                if (is_array($jpgArr) && empty($jpgArr)) {
-                    $warning = 'Няма данни за отпечатване';
-                }
-                
-                if (is_array($jpgArr) && $jpgArr['otherPagesCnt']) {
-                    $all = count($jpgArr);
-                    $all--;
-                    
-                    $warning = "|Ще се отпечатат първите|* {$all} |страници|*. |Ще се пропуснат|* {$jpgArr['otherPagesCnt']} |страници|*.";
-                }
-                
-                if ($warning) {
-                    $warning = ',warning=' . $warning;
-                }
-                
-                $data->toolbar->addBtn('Печат', array($mvc, 'PrintFiles', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btnPrint, target=_blank', "ef_icon = img/16/printer.png, title=Печат на документа{$disabled}{$warning}");
-            }
+
+        if ($printAttr = $this->checkForPrintBnt($mvc, $data->rec, TRUE)) {
+            $warning = $printAttr['warning'] ? ",warning = " . $printAttr['warning'] : "";
+            $data->toolbar->addBtn('Печат', array($mvc, 'PrintFiles', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btnPrint, target=_blank', "ef_icon = img/16/printer.png, title=Печат на документа{$printAttr['disabled']}{$warning}");
         }
         
         // Очакваме да има такъв файл

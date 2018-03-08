@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -124,6 +124,8 @@ class store_Products extends core_Detail
 	       $row->code = cat_Products::getVerbal($pRec, 'code');
 	       
 	       if($isDetail){
+	       		
+	       		// Показване на запазеното количество
 	       		$basePack = key(cat_Products::getPacks($rec->productId));
 	       		if($pRec = cat_products_Packagings::getPack($rec->productId, $basePack)){
 	       			$rec->quantity /= $pRec->quantity;
@@ -133,6 +135,17 @@ class store_Products extends core_Detail
 	       			}
 	       		}
 	       		$rec->measureId = $basePack;
+	       		
+	       		// Линк към хронологията
+	       		if(acc_BalanceDetails::haveRightFor('history')){
+	       			$to = dt::today();
+	       			$from = dt::mysql2verbal($to, "Y-m-1", NULL, FALSE);
+	       			$histUrl = array('acc_BalanceHistory', 'History', 'fromDate' => $from, 'toDate' => $to, 'accNum' => 321);
+	       			$histUrl['ent1Id'] = acc_Items::fetchItem('store_Stores', $rec->storeId)->id;
+	       			$histUrl['ent2Id'] = acc_Items::fetchItem('cat_Products', $rec->productId)->id;
+	       			$histUrl['ent3Id'] = NULL;
+	       			$row->history = ht::createLink('', $histUrl, NULL, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
+	       		}
 	       } else {
 	       		$rec->measureId = cat_Products::fetchField($rec->productId, 'measureId');
 	       }
@@ -176,7 +189,6 @@ class store_Products extends core_Detail
     		if($storeId = store_Stores::getCurrent('id', FALSE)) {
     			$data->listFilter->setDefault('storeId', $storeId);
     		}
-    		
     	}
     	
     	// Подготвяме в заявката да може да се търси по полета от друга таблица
@@ -390,6 +402,9 @@ class store_Products extends core_Detail
     {
     	if(isset($data->masterMvc)){
     		unset($data->listFields['storeId']);
+    		if(acc_BalanceDetails::haveRightFor('history')){
+    			arr::placeInAssocArray($data->listFields, array('history' => ' '), 'code');
+    		}
     	}
     }
     
@@ -547,10 +562,7 @@ class store_Products extends core_Detail
     	// Намиране на тези записи, от старите които са имали резервирано к-во, но вече нямат
     	$unsetArr = array_filter($old, function (&$r) use ($result) {
     		if(!isset($r->reservedQuantity)) return FALSE;
-    		if(array_key_exists("{$r->storeId}|{$r->productId}", $result)){
-    			return FALSE;
-    		}
-    		 
+    		if(array_key_exists("{$r->storeId}|{$r->productId}", $result)) return FALSE;
     		return TRUE;
     	});
     	
