@@ -210,8 +210,6 @@ class label_Prints extends core_Master
         $objId = $rec->objectId;
         $templateId = $rec->templateId;
         
-        $estCnt = 1;
-        
         $labelDataArr = array();
         if ($classId && $objId) {
             $mvc->requireRightFor('add', (object)array('classId' => $classId, 'objectId' => $objId));
@@ -226,6 +224,8 @@ class label_Prints extends core_Master
             
             $estCnt = $intfInst->getLabelEstimatedCnt($objId);
         }
+        
+        setIfNot($estCnt, 1);
         
         $form->setDefault('labelsCnt', $estCnt);
         $form->setDefault('copiesCnt', 1);
@@ -369,15 +369,9 @@ class label_Prints extends core_Master
             $toolbar->removeBtn('save');
         }
         
-        $viewName = 'Изглед';
-        
-        if ($form->cmd == 'view' || $data->form->ViewCmd) {
-            $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Записване на данните, order=1');
-            $form->toolbar->addSbBtn('Печат', 'print', 'ef_icon = img/16/printer.png, title = Запис и отпечатване на данните, order=2');
-            $viewName = 'Обнови';
-        }
-        
-        $form->toolbar->addSbBtn($viewName, 'view', 'ef_icon = img/16/view.png, title = Преглед на данните, order=3');
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Записване на данните, order=1');
+        $form->toolbar->addSbBtn('Печат', 'print', 'ef_icon = img/16/printer.png, title = Запис и отпечатване на данните, order=2');
+        $form->toolbar->addSbBtn('Изглед', 'view', 'ef_icon = img/16/view.png, title = Преглед на данните, order=3');
     }
     
     
@@ -395,7 +389,7 @@ class label_Prints extends core_Master
         
         // Попълваме стойностите на плейсхолдерите
         
-        if ($form->isSubmitted() && $rec->templateId) {
+        if ($rec->templateId) {
             $oldDataArr = array();
             
             // Ако редактираме записа
@@ -468,24 +462,54 @@ class label_Prints extends core_Master
             $rec->rows = NULL;
         }
         
-        // Ако само ще се преглежда етикета
-        if ($form->isSubmitted() && $form->cmd == 'view') {
+        // Рендираме изглед, ако има параметри
+        if ($rec->templateId) {
             
-            $form->cmd = 'refresh';
-            $form->ViewCmd = TRUE;
+            $renderView = FALSE;
             
-            $form->layout = $form->renderLayout();
+            if (!$renderView && $rec->id) {
+                $renderView = TRUE;
+            }
             
-            $tpl = new ET("<div class='preview-holder floatedElement' style='display: inline-block; min-width: 0;'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Етикет") . "</b></div><div class='preview-label'>[#LABEL_PREVIEW#]</div></div><div class='clearfix21'></div>");
+            if (!$renderView && ($form->isSubmitted() ||  $form->cmd == 'refresh')) {
+                $renderView = TRUE;
+            }
             
-            $pData = $mvc->getLabelDataFromRec($rec, TRUE);
+            if (!$renderView) {
+                foreach ($rec->params as $pVal) {
+                    if (isset($pVal)) {
+                        $renderView = TRUE;
+                        break;
+                    }
+                }
+            }
             
-            $labelPreview = $mvc->renderLabel($pData);
+            if (!$renderView) {
+                $placeArr = label_TemplateFormats::getAddededPlaceHolders($rec->templateId);
+                if (empty($placeArr)) {
+                    $renderView = TRUE;
+                }
+            }
             
-            $tpl->replace($labelPreview, 'LABEL_PREVIEW');
-            $form->layout->append($tpl);
+            if ($renderView) {
+                $form->layout = $form->renderLayout();
+                
+                $tpl = new ET("<div class='preview-holder floatedElement' style='display: inline-block; min-width: 0;'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Етикет") . "</b></div><div class='preview-label'>[#LABEL_PREVIEW#]</div></div><div class='clearfix21'></div>");
+                
+                $pData = $mvc->getLabelDataFromRec($rec, TRUE);
+                
+                $labelPreview = $mvc->renderLabel($pData);
+                
+                $tpl->replace($labelPreview, 'LABEL_PREVIEW');
+                $form->layout->append($tpl, 'AFTER_MAIN_TABLE');
+            }
         }
         
+        // Ако само ще се преглежда етикета
+        if ($form->isSubmitted() && $form->cmd == 'view') {
+            $form->cmd = 'refresh';
+        }
+            
         // Ако е записан или отпечатан
         if ($form->isSubmitted() && ($form->cmd == 'save' || $form->cmd == 'print')) {
             $pData = $mvc->getLabelDataFromRec($rec);
@@ -785,7 +809,9 @@ class label_Prints extends core_Master
         $pData->updateTempData = !$preview;
         
         $pData->Media = new stdClass();
-        $pData->Media->rec = label_Media::fetch($rec->mediaId);
+        if ($rec->mediaId) {
+            $pData->Media->rec = label_Media::fetch($rec->mediaId);
+        }
         
         if ($preview) {
             $pData->pageLayout = new stdClass();

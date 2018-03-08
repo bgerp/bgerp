@@ -498,6 +498,7 @@ class core_Form extends core_FieldSet
                     "<!--ET_BEGIN FORM_HIDDEN-->\n[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
                     "\n</td></tr><!--ET_BEGIN FORM_TOOLBAR-->\n<tr><td style='padding:0px;'><div class=\"formToolbar\">[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
                     "[#AFTER_MAIN_TABLE#]" .
+                    "[#BEFORE_END_FORM#]" .
                     "\n</div>" .
                     "\n</form>\n");
                 
