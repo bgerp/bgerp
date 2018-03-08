@@ -696,12 +696,28 @@ class label_Prints extends core_Master
                 $modifiedDate = dt::mysql2verbal($rec->modifiedOn, "d.m.Y H:i");
                 $warning = "Този етикет е бил отпечатван нa|* $modifiedDate. |Искате ли да го отпечатате още веднъж|*?";
             }
-            $row->printedCnt = ht::createBtn('Печат', array($mvc, 'print', $rec->id), $warning, '_blank', 'ef_icon=img/16/printer.png, title=Отпечатване, class=fleft') . "<span class='fright' style='display: inline-block; margin-top: 4px;'>" . $row->printedCnt . "</span>";
+            
+            $btnAttr = arr::make('ef_icon=img/16/printer.png, title=Отпечатване, class=fleft');
+            if(isset($rec->classId)){
+            	if(!cls::haveInterface('label_SequenceIntf', $rec->classId)){
+            		$btnAttr['error'] = 'Проблем при разпечатването на етикета|*!';
+            		$btnAttr['ef_icon'] = 'img/16/error.png';
+            	}
+            }
+            
+            $row->printedCnt = ht::createBtn('Печат', array($mvc, 'print', $rec->id), $warning, '_blank', $btnAttr) . "<span class='fright' style='display: inline-block; margin-top: 4px;'>" . $row->printedCnt . "</span>";
         }
         
         if($rec->objectId && $rec->classId) {
             if (cls::load($rec->classId, TRUE)) {
                 $clsInst = cls::get($rec->classId);
+                
+                if(!cls::haveInterface('label_SequenceIntf', $rec->classId)){
+                	$row->title = $mvc->getVerbal($rec, 'title');
+                	$row->title = "<span class ='red'>{$row->title}</span>";
+                	$row->title = ht::createHint($row->title, 'Проблем при показването', 'error', FALSE);
+                }
+                
                 if($clsInst instanceof core_Detail){
                 	$oMasterId = $clsInst->fetchField($rec->objectId, $clsInst->masterKey);
                 	$row->source = $clsInst->Master->getHyperlink($oMasterId);
