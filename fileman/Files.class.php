@@ -1877,7 +1877,7 @@ class fileman_Files extends core_Master
 
         if ($printAttr = $this->checkForPrintBnt($this, $fRec)) {
             if (!$printAttr['disabled']) {
-                $printLink = ht::createLink(tr('Печат'), array($this, 'PrintFiles', 'fileHnd' => $fRec->fileHnd, 'ret_url' => TRUE), $printAttr['warning'], array('ef_icon' => 'img/16/printer.png', 'target' => "_blank", 'title' => 'Печат на документа', "class" => "button"));
+                $printLink = ht::createLink(tr('Печат'), array($this, 'PrintFiles', 'fileHnd' => $fRec->fileHnd, 'ret_url' => TRUE), $printAttr['warning'], array('ef_icon' => 'img/16/printer.png', 'target' => "_blank", 'title' => 'Печат на документа', "class" => "button", 'onclick'=>'if ($(".iw-mTrigger").contextMenu) {$(".iw-mTrigger").contextMenu("close");}'));
                 $tpl->append($printLink);
             }
         }
