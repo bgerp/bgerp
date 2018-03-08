@@ -25,12 +25,6 @@ class planning_Tasks extends core_Master
 	
 	
 	/**
-	 * Интерфейси
-	 */
-    public $interfaces = 'label_SequenceIntf=planning_interface_TaskLabel';
-	
-	
-	/**
 	 * Шаблон за единичен изглед
 	 */
 	public $singleLayoutFile = 'planning/tpl/SingleLayoutTask.shtml';
