@@ -239,8 +239,13 @@ class label_Prints extends core_Master
                 $template = label_Templates::getTemplate($tRec->id);
                 $templatePlaceArr = label_Templates::getPlaceHolders($template);
                 
+                // Игнорират се системните плейсхолдъри, те ще са винаги удовлетворени
+                $templatePlaceArr = array_diff($templatePlaceArr, label_Templates::$systemPlaceholders);
+                
                 $cnt = 0;
                 foreach ($labelDataArr as $key => $v) {
+                	if(in_array($key, label_Templates::$systemPlaceholders)) continue;
+                	
                     if (isset($templatePlaceArr[$key])) {
                         if (isset($v->importance) && ($v->importance >= 0)) {
                             $cnt += $v->importance;
@@ -257,7 +262,7 @@ class label_Prints extends core_Master
                         }
                     }
                 }
-                
+               
                 // Оцветяваме имената на шаблоните, в зависимост от съвпаданието на плейсхолдерите
                 $percent = 0;
                 $lCnt = count($templatePlaceArr);
@@ -745,8 +750,10 @@ class label_Prints extends core_Master
                 if($clsInst instanceof core_Detail){
                 	$oMasterId = $clsInst->fetchField($rec->objectId, $clsInst->masterKey);
                 	$row->source = $clsInst->Master->getHyperlink($oMasterId);
-                } else{
-                	$row->source = $clsInst->getHyperlink($rec->objectId);
+                } elseif(cls::haveInterface('doc_DocumentIntf', $clsInst)){
+                	$row->source = $clsInst->getLink($rec->objectId, 0);
+                } else {
+                	$row->source = $clsInst->getHyperlink($rec->objectId, TRUE);
                 }
             }
         }
