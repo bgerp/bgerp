@@ -135,11 +135,11 @@ class label_Setup extends core_ProtoSetup
     {
         $clsName = 'label_Labels';
         
-        if (!cls::load($clsName, TRUE)) continue;
+        if (!cls::load($clsName, TRUE)) return;
         
         $clsInst = cls::get($clsName);
         
-        if (!$clsInst->db->tableExists($clsInst->dbTableName)) continue;
+        if (!$clsInst->db->tableExists($clsInst->dbTableName)) return;
         
         $pInst = cls::get('label_Prints');
         
@@ -185,11 +185,11 @@ class label_Setup extends core_ProtoSetup
     {
         $clsName = 'label_Labels';
         
-        if (!cls::load($clsName, TRUE)) continue;
+        if (!cls::load($clsName, TRUE)) return;
         
         $clsInst = cls::get($clsName);
         
-        if (!$clsInst->db->tableExists($clsInst->dbTableName)) continue;
+        if (!$clsInst->db->tableExists($clsInst->dbTableName)) return;
         
         $cItemsInst = cls::get('label_CounterItems');
         
