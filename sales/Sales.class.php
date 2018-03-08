@@ -1347,10 +1347,12 @@ class sales_Sales extends deals_DealMaster
     	$query = self::getQuery();
     	$query->where("#state = 'active' || #state = 'closed' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
     	$query->where("#modifiedOn >= '{$timeline}'");
-    	$query->show('valior,activatedOn,state');
+    	$query->show('valior,activatedOn,activatedBy,state,createdBy');
     	 
     	while($rec = $query->fetch()){
-    		$personId = crm_Profiles::fetchField("#userId = {$rec->activatedBy}", 'personId');
+    		$activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
+    		if(empty($activatedBy)) continue;
+    		$personId = crm_Profiles::fetchField("#userId = {$activatedBy}", 'personId');
     		if(empty($personId)) continue;
     		
     		$result[] = (object)array('date'        => dt::verbal2mysql($rec->valior, FALSE),
