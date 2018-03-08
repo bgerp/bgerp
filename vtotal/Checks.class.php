@@ -99,7 +99,7 @@ class vtotal_Checks extends core_Master
         if ($cRec) {
             $maxScanLimit = vtotal_Setup::get("MAX_SCAN_OF_FILE");
             $sArr = array();
-            if ($cRec->timesScanned && ($cRec->timesScanned >= $maxScanLimit)) {
+            if ($maxScanLimit && $cRec->timesScanned && ($cRec->timesScanned >= $maxScanLimit)) {
                 $cRec->timesScanned = $maxScanLimit - 1;
                 $sArr['timesScanned'] = 'timesScanned';
             }
