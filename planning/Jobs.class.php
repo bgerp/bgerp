@@ -558,6 +558,10 @@ class planning_Jobs extends core_Master
     	$rec = &$form->rec;
     	
     	if($form->isSubmitted()){
+    		if(isset($rec->deliveryDate) && $rec->deliveryDate < $rec->dueDate){
+    			$form->setWarning('deliveryDate', 'Срокът за доставка не може да е преди падежа');
+    		}
+    		
     		if(empty($rec->department)){
     			$form->setWarning('department', 'В Заданието липсва избран ц-р на дейност и ще бъде записано в нишката');
     		}
@@ -1236,11 +1240,13 @@ class planning_Jobs extends core_Master
     	
     	$query = self::getQuery();
     	$query->where("#state = 'active' || #state = 'closed' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
-    	$query->where("#activatedOn >= '{$timeline}'");
-    	$query->show('activatedBy,activatedOn,state');
+    	$query->where("#modifiedOn >= '{$timeline}'");
+    	$query->show('activatedBy,activatedOn,state,createdBy');
     	
     	while($rec = $query->fetch()){
-    		$personId = crm_Profiles::fetchField("#userId = {$rec->activatedBy}", 'personId');
+    		$activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
+    		if(empty($activatedBy)) continue;
+    		$personId = crm_Profiles::fetchField("#userId = {$activatedBy}", 'personId');
     		$result[] = (object)array('date'        => dt::verbal2mysql($rec->activatedOn, FALSE),
     								  'personId'    => $personId,
     								  'docId'       => $rec->id,
