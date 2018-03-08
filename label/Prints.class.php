@@ -776,6 +776,7 @@ class label_Prints extends core_Master
             $pData->pageLayout->columnsCnt = 1;
             
             $pData->cnt = 1;
+            $pData->printCnt = $rec->labelsCnt;
             $pData->copyCnt = 1;
         } else {
             $pData->cnt = $rec->labelsCnt;
@@ -905,7 +906,7 @@ class label_Prints extends core_Master
             $updatePrintCnt = FALSE;
             if (!$params[$currPrintCntField]) {
                 $updatePrintCnt = TRUE;
-                $params[$currPrintCntField] = 0;
+                $params[$currPrintCntField] = $currPrintCnt;
             }
             
             // Ако не е зададена стойност за текущата страница
@@ -919,7 +920,6 @@ class label_Prints extends core_Master
             // Ако не е зададена стойност за брой отпечатвания
             setIfNot($params[$printCntField], $data->printCnt, $data->cnt, 1);
             
-            $copyId = 1;
             if ($updatePrintCnt) {
                 $params[$currPrintCntField] = $currPrintCnt++;
             }
@@ -948,7 +948,7 @@ class label_Prints extends core_Master
             $newCurrPage = FALSE;
             
             // За всяко копие добавяме по едно копие
-            for ($copyId=0; $copyId < $data->copyCnt; $copyId++) {
+            for ($copyId=1; $copyId < $data->copyCnt; $copyId++) {
                 $copyField = $rowId + $copyId;
                 $data->rows[$copyField] = $data->rows[$rowId];
                 
