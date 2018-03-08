@@ -55,8 +55,6 @@ class store_iface_ShipmentLabelImpl
 	{
 		$placeholders = array();
 		$placeholders['NOMER']        = (object)array('type' => 'text');
-		$placeholders['Текущ_етикет'] = (object)array('type' => 'text', 'input=hidden');
-		$placeholders['Общо_етикети'] = (object)array('type' => 'text');
 		$placeholders['DESTINATION']  = (object)array('type' => 'text');
 		$placeholders['SPEDITOR']     = (object)array('type' => 'text');
 		$placeholders['DATE']         = (object)array('type' => 'text');
@@ -64,7 +62,6 @@ class store_iface_ShipmentLabelImpl
 		if(isset($objId)){
 			$labelData = $this->getLabelData($objId, 1, TRUE);
 			if(isset($labelData[0])){
-				
 				foreach ($labelData[0] as $key => $val){
 					$placeholders[$key]->example = $val;
 				}
@@ -118,13 +115,9 @@ class store_iface_ShipmentLabelImpl
 		
 		$arr = array();
 		for($i = 1; $i <= $cnt; $i++){
-			$res = array('NOMER' => $rec->id, 'Текущ_етикет' => $i, 'DESTINATION' => $destination, 'DATE' => $date);
+			$res = array('NOMER' => $rec->id, 'DESTINATION' => $destination, 'DATE' => $date);
 			if(isset($rec->lineId)){
 				$res['SPEDITOR'] = trans_Lines::getTitleById($rec->lineId);
-			
-				if($count = $this->getLabelEstimatedCnt($id)){
-					$res['Общо_етикети'] = $count;
-				}
 			}
 			
 			$arr[] = $res;
