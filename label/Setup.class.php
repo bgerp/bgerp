@@ -59,7 +59,7 @@ class label_Setup extends core_ProtoSetup
         'migrate::addDefaultMedia',
         'migrate::labelsToPrint',
         'migrate::counterItemsLabels',
-    	'migrate::removePlugin'
+    	'migrate::removePlugin3'
     );
     
 
@@ -82,7 +82,6 @@ class label_Setup extends core_ProtoSetup
         
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Принтиране на етикети от опаковки', 'label_plg_Print', 'cat_products_Packagings', 'private');
-        $html .= $Plugins->installPlugin('Принтиране на етикети от задачи за производство', 'label_plg_Print', 'planning_Tasks', 'private');
         $html .= $Plugins->installPlugin('Принтиране на етикети от ЕН-та', 'label_plg_Print', 'store_ShipmentOrders', 'private');
         
         return $html;
@@ -225,9 +224,12 @@ class label_Setup extends core_ProtoSetup
     /**
      * Миграция за добавяне на медия към шаблоните
      */
-    public static function removePlugin()
+    public static function removePlugin3()
     {
     	$Plugins = core_Plugins::getQuery();
-    	$Plugins->delete(array("#class LIKE 'planning_Jobs' AND #plugin LIKE 'label_plg_Print'"));
+    	$Plugins2 = clone $Plugins;
+    	$Plugins->delete("#class LIKE 'planning_Jobs' AND #plugin LIKE 'label_plg_Print'");
+    	
+    	$Plugins2->delete("#class LIKE 'planning_Tasks' AND #plugin LIKE 'label_plg_Print'");
     }
 }
