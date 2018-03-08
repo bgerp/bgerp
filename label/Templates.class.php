@@ -139,6 +139,12 @@ class label_Templates extends core_Master
     public $fieldsNotToClone = 'sysId,state,exState,lastUsedOn,createdOn,createdBy';
     
     
+    /**
+     * Кои са системните плейсхолдъри на етикетите
+     */
+    public static $systemPlaceholders = array('Текущ_етикет', 'Общо_етикети');
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
@@ -619,7 +625,7 @@ class label_Templates extends core_Master
     {
     	$res = '';
     	$modified = $skipped = 0;
-    	$array = array('defaultTplJob' => array('title' => 'Етикети от задания', 'path' => 'label/tpl/DefaultLabelJob.shtml', 'lang' => 'bg', 'class' => 'cat_products_Packagings', 'sizes' => array('100', '72')),
+    	$array = array('defaultTplPack' => array('title' => 'Етикети от опаковки', 'path' => 'label/tpl/DefaultLabelPack.shtml', 'lang' => 'bg', 'class' => 'cat_products_Packagings', 'sizes' => array('100', '72')),
     				   'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
     	);
     	
@@ -632,6 +638,8 @@ class label_Templates extends core_Master
     			$arr = $this->getPlaceholders($tRec->template);
     			if(is_array($arr)){
     				foreach ($arr as $placeholder){
+    					if(in_array($placeholder, self::$systemPlaceholders)) continue;
+    					
     					if($placeholder == 'BARCODE'){
     						$params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '160', 'Height' => '60', 'Rotation' => 'yes');
     						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
