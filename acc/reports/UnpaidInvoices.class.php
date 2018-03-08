@@ -139,7 +139,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         foreach ($threadsId as $thread) {
 
-           
+          
             
             // масив от фактури в тази нишка //
             $invoicesInThread = (deals_Helper::getInvoicesInThread($thread, $rec->checkDate, TRUE, TRUE, TRUE));
@@ -158,7 +158,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                     
                     $iRec = $Invoice->fetch(
                         'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate');
-                    
+                   
                     // платежен документ от масива с платежни документи в нишката $thread по фактурата $inv //
                     foreach ($paydocs->payments as $onePayDoc) {
                         
@@ -166,6 +166,11 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                         
                         $payDocClass = $Document->className;
                         
+                        $paidDates .= "\n\r" .$payDocClass::fetch($Document->that)->valior;
+                        
+                        
+                        
+                    }
                         // масива с фактурите за показване
                         if (! array_key_exists($iRec->id, $recs)) {
                             
@@ -180,15 +185,15 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                                 'rate' => $iRec->rate,
                                 'invoiceValue' => $paydocs->total,
                                 'invoiceVAT' => $iRec->vatAmount,
-                                'paidDates' => $payDocClass::fetch($Document->that)->valior,
+                                'paidDates' =>$paidDates,
                                 'invoiceCurrentSumm' => $paydocs->notPaid,
                                 'payDocuments' => $paydocs->payments
                             );
                         } else {
                             $obj = &$recs[$iRec->id];
-                            $obj->paidDates .= "\n\r" . $payDocClass::fetch($Document->that)->valior;
+                          
                         }
-                    }
+                    
                 }
             }
         }
@@ -259,6 +264,9 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
      */
     private static function getPaidDates($dRec, $verbal = TRUE)
     {
+    	//bp($dRec->paidDates,$dRec->payDocuments);
+    	
+    	
         if ($verbal === TRUE) {
             
             $amountsValiors = explode("\n\r", $dRec->paidDates);
@@ -322,12 +330,14 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         
         $row = new stdClass();
+
+        $invoiceNo = str_pad($dRec->invoiceNo, 10, "0", STR_PAD_LEFT);
         
-        $row->invoiceNo = ht::createLinkRef($dRec->invoiceNo, 
+        $row->invoiceNo = ht::createLinkRef($invoiceNo, 
             array(
                 'sales_Invoices',
                 'single',
-                $dRec->invoiceId
+                "$invoiceNo"
             ));
         
         $row->invoiceDate = $Date->toVerbal($dRec->invoiceDate);

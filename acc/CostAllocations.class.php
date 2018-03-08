@@ -761,14 +761,14 @@ class acc_CostAllocations extends core_Manager
 			
 			$sign = ($dRec->isReverse == 'yes') ? -1 : 1;
 			$personId = crm_Profiles::fetchField("#userId = '{$persons['dealerId']}'", 'personId');
-			$key = "{$personId}|{$eRec->expenseClassId}|{$eRec->expenseObjectId}|{$saleRec->valior}|{$expenseIndicatorId}";
+			$key = "{$personId}|{$Document->getClassId()}|{$Document->that}|{$saleRec->valior}|{$expenseIndicatorId}";
 			
 			// Ако няма данни, добавят се
 			if(!array_key_exists($key, $result)){
 				$result[$key] = (object)array('date'        => $saleRec->valior,
 					 					      'personId'    => $personId,
-										      'docId'       => $eRec->expenseObjectId,
-										      'docClass'    => $eRec->expenseClassId,
+										      'docId'       => $Document->that,
+										      'docClass'    => $Document->getClassId(),
 										      'indicatorId' => $expenseIndicatorId,
 										      'value'       => round($sign * $amount, 4),
 										      'isRejected'  => $dRec->state == 'rejected',);

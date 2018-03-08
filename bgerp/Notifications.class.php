@@ -395,9 +395,9 @@ class bgerp_Notifications extends core_Manager
             $attr['style'] = 'font-weight:bold;';
             $attr['onclick'] = 'render_forceReloadAfterBack()';
             if($rec->priority == 'alert') {
-                $attr['style'] .= 'color:#aa0033 !important;';
+                $attr['style'] .= 'color:#cc0033 !important;';
             } elseif($rec->priority == 'warning') {
-                 $attr['style'] .= 'color:#660099 !important;';
+                 $attr['style'] .= 'color:#993300 !important;';
             }
         } else {
             $attr['style'] = 'color:#666;';
