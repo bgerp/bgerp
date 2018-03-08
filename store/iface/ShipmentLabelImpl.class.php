@@ -110,7 +110,7 @@ class store_iface_ShipmentLabelImpl
 	{
 		$rec = $this->class->fetchRec($id);
 		$logisticData = $this->class->getLogisticData($rec);
-		$destination = "{$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toCountry']}";
+		$destination = trim("{$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toCountry']}");
 		$date = dt::mysql2verbal(dt::today(), 'd/m/y');
 		
 		$arr = array();
