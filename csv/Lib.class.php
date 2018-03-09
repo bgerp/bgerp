@@ -564,7 +564,7 @@ class csv_Lib
         if(strlen($enclosure)) {
             $eArr = array($enclosure);
         } else {
-            $eArr = array("\"" );
+            $eArr = array("\"", '\'');
         }
 
         $nlCnt = substr_count($csv, $nl);
@@ -609,10 +609,9 @@ class csv_Lib
                     if($cnt == $cellsPerRow) {
                         $points += 1;
                     } else {
-                        $points -= -1;
+                        $points -= 1;
                     }
                 }
-               
 
                 // Добавка за срещанията на ображдащия символ до разделител или нов ред
                 $deCntL = substr_count($csv, $d . $e) + substr_count($csv, $nl . $e);
@@ -620,7 +619,6 @@ class csv_Lib
                 $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * count($res);
                 $points -= ($deCntL > 0) && ($deCntL != $deCntR) * count($res);
          
-
                 // Среща ли се $е самостоятелно
                 preg_match_all("/[^\\{$d}\\{$e}]\\{$e}[^\\{$d}\\{$e}]/u", $d . str_replace($nl, $d, $csv) . $d, $matches);
                 $soloUse = count($matches[0]);
