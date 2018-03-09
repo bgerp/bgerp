@@ -64,7 +64,7 @@
                                                 <!--ET_END deadline-->
                                                 <!--ET_BEGIN debitAmount-->
                                                 <tr>
-                                                    <td class='quiet'>|Себест-ст|*:</td>
+                                                    <td class='quiet'>|Стойност|*:</td>
                                                     <td>[#debitAmount#]</td>
                                                 </tr>
                                                 <!--ET_END debitAmount-->
