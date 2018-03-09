@@ -699,4 +699,16 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
     	return cat_Serials::check($serial, $error);
     }
+    
+    
+    /**
+     * Връща сложността на артикула
+     * 
+     * @param mixed $rec
+     * @return int
+     */
+    public function getDifficulty($rec)
+    {
+    	return 1;
+    }
 }
