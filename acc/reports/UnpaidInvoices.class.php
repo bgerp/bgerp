@@ -344,7 +344,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
             
-            $row->ROW_ATTR['class'] = 'bold red';
+            $row->ROW_ATTR['class'] = 'bold red state-active';
         }
         return $row;
     }
