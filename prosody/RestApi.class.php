@@ -39,6 +39,8 @@ class prosody_RestApi {
         curl_setopt($ch, CURLOPT_URL, $conf->PROSODY_ADMIN_URL . '/' . $endpoint);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10); // timeout after 10 seconds
         curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
         
         $headers = array(
             'Content-Type: application/json',
