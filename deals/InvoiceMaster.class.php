@@ -847,7 +847,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		if($hasCash === TRUE && $hasBank === FALSE && $hasIntercept === FALSE) return 'cash';
     		if($hasBank === TRUE && $hasCash === FALSE && $hasIntercept === FALSE) return 'bank';
     		if($hasIntercept === TRUE && $hasCash === FALSE && $hasBank === FALSE) return 'intercept';
-    		if($hasBank === TRUE || $hasCash === TRUE|| $hasIntercept === TRUE) return 'mixed';
+    		if($hasBank === TRUE || $hasCash === TRUE || $hasIntercept === TRUE) return 'mixed';
     	}
     	 
     	return NULL;
