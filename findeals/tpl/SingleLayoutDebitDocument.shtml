@@ -10,9 +10,15 @@
             <td><span class='cCode'>[#dealCurrencyId#]</span> [#amount#]</td>
         </tr>
         <tr>
-            <td>|Заверено по |* [#nextHandle#]</td>
+            <td>|Заверено по|* [#nextHandle#]</td>
             <td><span class='cCode'>[#currencyId#]</span> [#amountDeal#]</td>
         </tr>
+        <!--ET_BEGIN fromContainerId-->
+        <tr>
+            <td>|Към фактура|*</td>
+            <td>[#fromContainerId#]</td>
+        </tr>
+        <!--ET_END fromContainerId-->
     </table>
     <div>
         [#description#]

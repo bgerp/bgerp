@@ -1213,6 +1213,9 @@ class planning_Jobs extends core_Master
     	$result = array();
     	$rec = hr_IndicatorNames::force('Активирани_задания', __CLASS__, 1);
     	$result[$rec->id] = $rec->name;
+    	
+    	$rec = hr_IndicatorNames::force('Сложност_на_задания', __CLASS__, 2);
+    	$result[$rec->id] = $rec->name;
     
     	return $result;
     }
@@ -1237,26 +1240,31 @@ class planning_Jobs extends core_Master
     {
     	$result = array();
     	$iRec = hr_IndicatorNames::force('Активирани_задания', __CLASS__, 1);
+    	$iRec2 = hr_IndicatorNames::force('Сложност_на_задания', __CLASS__, 2);
     	
     	$query = self::getQuery();
-    	$query->where("#state = 'active' || #state = 'closed' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
+    	$query->where("#state = 'active' || #state = 'closed' || #state = 'wakeup' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
     	$query->where("#modifiedOn >= '{$timeline}'");
-    	$query->show('activatedBy,activatedOn,state,createdBy');
+    	$query->show('activatedBy,activatedOn,state,createdBy,productId');
     	
     	while($rec = $query->fetch()){
     		$activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
     		if(empty($activatedBy)) continue;
     		$personId = crm_Profiles::fetchField("#userId = {$activatedBy}", 'personId');
-    		$result[] = (object)array('date'        => dt::verbal2mysql($rec->activatedOn, FALSE),
-    								  'personId'    => $personId,
-    								  'docId'       => $rec->id,
-    				                  'docClass'    => planning_Jobs::getClassId(),
-    				                  'indicatorId' => $iRec->id,
-    								  'value'       => 1,
-    								  'isRejected'  => $rec->state == 'rejected',
-    		);
+    		$classId = planning_Jobs::getClassId();
+    		$date = dt::verbal2mysql($rec->activatedOn, FALSE);
+    		$isRejected = ($rec->state == 'rejected');
+    		
+    		sales_PrimeCostByDocument::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec->id, 1, $isRejected);
+    		
+    		if($Driver = cat_Products::getDriver($rec->productId)){
+    			$difficulty = $Driver->getDifficulty($rec->productId);
+    			if(isset($difficulty)){
+    				sales_PrimeCostByDocument::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec2->id, $difficulty, $isRejected);
+    			}
+    		}
     	}
-    
+    	
     	return $result;
     }
     
