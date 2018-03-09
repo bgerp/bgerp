@@ -1267,19 +1267,27 @@ abstract class deals_Helper
 		if(!count($invoicesArr)) return array();
 	
 		$paid = $invoices = $payDocuments = array();
-		foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments') as $Pay){
+		foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_CreditDocuments', 'findeals_DebitDocuments') as $Pay){
 			$Pdoc = cls::get($Pay);
 			$pQuery = $Pdoc->getQuery();
 			$pQuery->where("#threadId = {$threadId} AND #state = 'active'");
-			$pQuery->show('containerId,amountDeal,fromContainerId,isReverse,activatedOn,valior');
+			$pQuery->show('containerId,amountDeal,amount,fromContainerId,isReverse,activatedOn,valior');
 			if(isset($valior)){
 				$pQuery->where("#valior <= '{$valior}'");
 			}
 			
 			while($pRec = $pQuery->fetch()){
-				$type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
+				
 				$sign = ($pRec->isReverse == 'yes') ? -1 : 1;
-				$payDocuments[$pRec->containerId] = (object)array('valior' => $pRec->valior, 'activatedOn' => $pRec->activatedOn, 'amount' => $sign * round($pRec->amountDeal, 2), 'type' => $type, 'toInvoice' => $pRec->fromContainerId, 'isReverse' => ($pRec->isReverse == 'yes'));
+				if(in_array($Pay, array('findeals_CreditDocuments', 'findeals_DebitDocuments'))){
+					$type = 'intercept';
+					$amount = round($pRec->amount, 2);
+				} else {
+					$amount = round($pRec->amountDeal, 2);
+					$type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
+				}
+				
+				$payDocuments[$pRec->containerId] = (object)array('valior' => $pRec->valior, 'activatedOn' => $pRec->activatedOn, 'amount' => $sign * $amount, 'type' => $type, 'toInvoice' => $pRec->fromContainerId, 'isReverse' => ($pRec->isReverse == 'yes'));
 			}
 		}
 	
