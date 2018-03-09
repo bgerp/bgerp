@@ -142,7 +142,7 @@ class label_Templates extends core_Master
     /**
      * Кои са системните плейсхолдъри на етикетите
      */
-    public static $systemPlaceholders = array('Текущ_етикет', 'Общо_етикети');
+    public static $systemPlaceholders = array('Текущ_етикет', 'Общо_етикети', 'Страница');
     
     
 	/**

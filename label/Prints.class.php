@@ -149,7 +149,7 @@ class label_Prints extends core_Master
     function description()
     {
         $this->FLD('templateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\',allowEmpty)', 'caption=Шаблон, mandatory, silent, removeAndRefreshForm');
-        $this->FLD('mediaId', 'key(mvc=label_Media, select=title)', 'caption=Медия, silent, mandatory, notNull');
+        $this->FLD('mediaId', 'key(mvc=label_Media, select=title)', 'caption=Медия, silent, mandatory, notNull, removeAndRefreshForm=labelsCnt');
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%, silent, input');
         
         $this->FLD('labelsCnt', 'int(min=1, max=10000)', 'caption=Брой етикети, mandatory, silent');
@@ -210,26 +210,6 @@ class label_Prints extends core_Master
         $objId = $rec->objectId;
         $templateId = $rec->templateId;
         
-        $labelDataArr = array();
-        if ($classId && $objId) {
-            $mvc->requireRightFor('add', (object)array('classId' => $classId, 'objectId' => $objId));
-            
-            $intfInst = cls::getInterface('label_SequenceIntf', $classId);
-            $labelDataArr = $intfInst->getLabelPlaceholders($objId);
-            
-            $lName = $intfInst->getLabelName($objId);
-            if ($lName) {
-                $form->setDefault(title, $lName);
-            }
-            
-            $estCnt = $intfInst->getLabelEstimatedCnt($objId);
-        }
-        
-        setIfNot($estCnt, 1);
-        
-        $form->setDefault('labelsCnt', $estCnt);
-        $form->setDefault('copiesCnt', 1);
-        
         // Определяме най-добрия шаблон
         if (!empty($labelDataArr)) {
             $templatesArr = label_Templates::getTemplatesByDocument($classId, $objId);
@@ -260,7 +240,7 @@ class label_Prints extends core_Master
                         }
                     }
                 }
-               
+                
                 // Оцветяваме имената на шаблоните, в зависимост от съвпаданието на плейсхолдерите
                 $percent = 0;
                 $lCnt = count($templatePlaceArr);
@@ -348,12 +328,40 @@ class label_Prints extends core_Master
             // Трябва да има зададена медия за шаблона
             $mediaArr = label_Templates::getMediaForTemplate($rec->templateId);
             
+            $form->setOptions('mediaId', $mediaArr);
+            
             if (empty($mediaArr)) {
                 $form->setError('templateId', 'Няма добавена медия за шаблона');
+            } else {
+                $form->setDefault('mediaId', key($mediaArr));
+            }
+        }
+        
+        $estCnt = NULL;
+        
+        $labelDataArr = array();
+        if ($classId && $objId) {
+            $mvc->requireRightFor('add', (object)array('classId' => $classId, 'objectId' => $objId));
+            
+            $intfInst = cls::getInterface('label_SequenceIntf', $classId);
+            $labelDataArr = $intfInst->getLabelPlaceholders($objId);
+            
+            $lName = $intfInst->getLabelName($objId);
+            if ($lName) {
+                $form->setDefault(title, $lName);
             }
             
-            $form->setOptions('mediaId', $mediaArr);
+            $estCnt = $intfInst->getLabelEstimatedCnt($objId);
         }
+        
+        if (!$estCnt && $rec->mediaId) {
+            $estCnt = label_Media::getCountInPage($rec->mediaId);
+        }
+        
+        setIfNot($estCnt, 1);
+        
+        $form->setDefault('labelsCnt', $estCnt);
+        $form->setDefault('copiesCnt', 1);
     }
     
     
@@ -443,7 +451,7 @@ class label_Prints extends core_Master
             $allPirntsCnt = $rec->labelsCnt * $rec->copiesCnt;
             
             if ($allPirntsCnt % $labelsCnt) {
-                $form->setWarning('labelsCnt, copiesCnt', "Броят на етикетите е кратен на|* {$labelsCnt}. |Ще има неизползвана част от медията|*.");
+                $form->setWarning('labelsCnt, copiesCnt', "Броят на етикетите не се дели на|* {$labelsCnt}. |Ще има неизползвана част от медията|*.");
             }
         }
         
@@ -1165,7 +1173,7 @@ class label_Prints extends core_Master
             $allPirntsCnt = $form->rec->to - $form->rec->from + 1;
             
             if ($allPirntsCnt % $labelsCnt) {
-                $form->setWarning('from, to', "|Броят на страниците е кратен на|* {$labelsCnt}. |Ще има неизползвана част от медията|*.");
+                $form->setWarning('from, to', "|Броят на страниците не се дели на|* {$labelsCnt}. |Ще има неизползвана част от медията|*.");
             }
         }
         
