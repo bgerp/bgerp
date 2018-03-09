@@ -465,4 +465,16 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	{
 		return $this->class->checkSerial($id, $serial, $error);
 	}
+	
+	
+	/**
+	 * Връща сложността на артикула
+	 *
+	 * @param mixed $rec
+	 * @return int
+	 */
+	public function getDifficulty($rec)
+	{
+		return $this->class->getDifficulty($rec);
+	}
 }

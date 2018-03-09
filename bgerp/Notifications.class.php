@@ -397,7 +397,7 @@ class bgerp_Notifications extends core_Manager
             if($rec->priority == 'alert') {
                 $attr['style'] .= 'color:#cc0033 !important;';
             } elseif($rec->priority == 'warning') {
-                 $attr['style'] .= 'color:#993300 !important;';
+                 $attr['style'] .= 'color:#882200 !important;';
             }
         } else {
             $attr['style'] = 'color:#666;';

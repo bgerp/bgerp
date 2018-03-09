@@ -196,7 +196,7 @@ class cat_products_Usage extends core_Manager
 			$tpl->append($addBtn, 'title');
 		}
 	
-		$listFields = arr::make('title=Задание,dueDate=Падеж,saleId=Договор,packQuantity=Планирано,quantityProduced=Заскладено,packagingId=Мярка');
+		$listFields = arr::make('title=Задание,dueDate=Падеж,saleId=Продажба,packQuantity=Планирано,quantityProduced=Заскладено,packagingId=Мярка');
 		$listFields = core_TableView::filterEmptyColumns($data->rows, $listFields, 'saleId');
 		$data->listFields = $listFields;
 		
