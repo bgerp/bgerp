@@ -13,5 +13,101 @@
  */
 class fileman_webdrv_Csv extends fileman_webdrv_Code
 {
-    
+    /**
+     * Връща съдържанието на файла
+     * 
+     * @param object $fRec - Запис на архива
+     * 
+     * @return string - Съдържанието на файла, като код
+     */
+    static function getContent($fRec) 
+    {
+        // Вземаме съдържанието на файла
+        $content = fileman_Files::getContent($fRec->fileHnd);
+        
+        $res = csv_Lib::getCsvRowsFromFile($content);
+        
+        if($res === FALSE) {
+
+            return parent::getContent($fRec);
+        }
+
+        if(isset($res['firstRow'])) {
+            foreach($res['firstRow'] as $col) {
+                if(strpos($col, '<') !== FALSE) {
+                    $col = hclean_Purifier::clean($col, 'UTF-8');
+                }
+                $rows[-1] .= "<th style='background-color:#eee;'>" . $col . "</th>";
+            }
+        }  
+        
+        $formats = csv_Lib::getColumnTypes($res['data']);
+
+        $eml  = cls::get('type_Email');
+        $emls = cls::get('type_Emails');
+
+        foreach($res['data'] as $i => $r) {
+            if(!$cnt) {
+                $cnt = count($r);
+            }
+            foreach($r as $j => $col) {
+                if(strpos($col, '<') !== FALSE) {
+                    $col = hclean_Purifier::clean($col, 'UTF-8');
+                }
+                if($formats['fixed_'.$j]) {
+                    $rows[$i] .= "<td align='center'>" . $col . "</td>";
+                } elseif($formats[$j] && in_array($formats[$j], array('unsigned', 'int', 'money', 'percent', 'number'))) {
+                    $rows[$i] .= "<td align='right' nowrap>" . $col . "</td>";
+                } elseif($formats[$j] && $formats[$j] == 'emails') {
+                    $rows[$i] .= "<td style='color:blue'>" . $emls->toVerbal($col) . "</td>";
+                } elseif($formats[$j] && $formats[$j] == 'email' ) {
+                    $rows[$i] .= "<td style='color:blue'>" . $eml->toVerbal($col) . "</td>";
+
+               } else {
+                    $rows[$i] .= "<td clsss='mightOverflow'>" . $col . "</td>";
+                }
+            }
+        }
+
+        $html = new ET("<table class='csv'><tr>" . implode("</tr>\n<tr>", $rows) . "</tr></table>");
+        
+        if(Mode::is('screenMode', 'narrow')) {  
+            $maxWidth = 600;
+        } else {
+            $maxWidth = 1600;
+        }
+
+        if($cnt > 0) {
+            $maxWidt = round(max(120, $maxWidth/$cnt));
+        }
+
+        $html->appendOnce(".csv td {
+                        max-width: {$maxWidt}px;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                        font-size:0.9em;
+                        padding-left:5px !important;
+                        padding-right:5px !important;
+                        border:solid 1px #669;
+                        }
+                        .csv td:hover, .csv td:active {
+                            text-overflow: clip;
+                            white-space: normal;
+                            word-break: break-all;
+                            background-color:#ffc;
+                        }
+                        .csv th {
+                            border:solid 1px #669;
+                            font-size:0.9em;
+                        }
+
+        ", 'STYLES');
+
+   
+        return $html;
+    }
+
+
+
 }
