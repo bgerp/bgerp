@@ -2729,7 +2729,7 @@ class email_Outgoings extends core_Master
     static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         //Добавяме бутона, ако състоянието не е чернова или отхвърлена, и ако имаме права за изпращане
-        if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
+        if ($data->rec->state != 'rejected') {
             
             // Подготвяме ret_url' то
             $retUrl = array('email_Outgoings', 'single', $data->rec->id);
@@ -2756,7 +2756,7 @@ class email_Outgoings extends core_Master
                 }
             }
             
-            if ($mvc->haveRightFor('add')) {
+            if (($data->rec->state != 'draft') && $mvc->haveRightFor('add')) {
                 // Добавяме бутон за препращане на имейла
                 $data->toolbar->addBtn('Препращане', array(
                         'email_Outgoings',

@@ -53,6 +53,12 @@ abstract class deals_Document extends deals_PaymentDocument
 	public $searchFields = 'operationSysId,name,dealId,dealHandler,currencyId,description,contragentId,contragentClassId';
 	
 	
+	/**
+	 * Кой може да избира ф-ра по документа?
+	 */
+	public $canSelectinvoice = 'cash, ceo, purchase, sales, acc';
+	
+	
     /**
      * @param core_Mvc $mvc
      */

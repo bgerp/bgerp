@@ -328,11 +328,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         $row->invoiceDate = $Date->toVerbal($dRec->invoiceDate);
         
-        if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
-            $row->dueDate = "<span style='color:red'>" . self::getDueDate($dRec, TRUE, $rec) . "</span>";
-        } else {
-            $row->dueDate = self::getDueDate($dRec, TRUE, $rec);
-        }
+        $row->dueDate = self::getDueDate($dRec, TRUE, $rec);
         
         $row->currencyId = $dRec->currencyId;
         
@@ -346,6 +342,10 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, TRUE) . "</span>";
         
+        if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
+            
+            $row->ROW_ATTR['class'] = 'bold red state-active';
+        }
         return $row;
     }
 
