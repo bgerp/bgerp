@@ -7,6 +7,15 @@ html, body, .center {
 	font-family: 'Helvetica Neue', Helvetica,Arial,sans-serif;
 }
 
+
+
+body {
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+}
+ 
+
 .center { 
 	vertical-align: middle;
 }
