@@ -60,7 +60,7 @@ class crm_ext_ContragentInfo extends core_manager
     public function description()
     {
     	$this->FLD('contragentClassId', 'int');
-    	$this->FLD('contragentId', 'int', 'tdClass=leftCol');
+    	$this->FLD('contragentId', 'int', 'tdClass=leftCol wrapText');
     	$this->FLD('customerSince', 'date');
     	$this->FLD('overdueSales', 'enum(yes=Да)');
     	

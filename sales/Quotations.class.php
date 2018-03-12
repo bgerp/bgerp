@@ -442,40 +442,42 @@ class sales_Quotations extends core_Master
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-    	if(isset($rec->originId)){
+    	if (isset($rec->originId)) {
     		
     		// Намиране на ориджина
     		$origin = doc_Containers::getDocument($rec->originId);
-    		$originRec = $origin->fetch('id,measureId');
-    		$vat = cat_Products::getVat($origin->that, $rec->date);
-    		
-    		// Ако в река има 1 от 3 к-ва
-    		foreach (range(1, 3) as $i){
-    			
-    			// Ако има дефолтно количество
-    			$quantity = $rec->{"quantity{$i}"};
-    			$price = $rec->{"price{$i}"};
-    			if(!$quantity) continue;
-    				 
-    			// Прави се опит за добавянето на артикула към реда
-    			try{
-    				if(!empty($price)){
-    					$price = deals_Helper::getPurePrice($price, $vat, $rec->currencyRate, $rec->chargeVat);
-    				}
-    				sales_Quotations::addRow($rec->id, $originRec->id, $quantity, $originRec->measureId, $price);
-    			} catch(core_exception_Expect $e){
-    				reportException($e);
-    		
-    				if(haveRole('debug')){
-    					$dump  = $e->getDump();
-    					core_Statuses::newStatus($dump[0], 'warning');
-    				}
-    			}
+    		if ($origin && cls::haveInterface('cat_ProductAccRegIntf', $origin->instance)) {
+    		    $originRec = $origin->fetch('id,measureId');
+    		    $vat = cat_Products::getVat($origin->that, $rec->date);
+    		    
+    		    // Ако в река има 1 от 3 к-ва
+    		    foreach (range(1, 3) as $i){
+    		        
+    		        // Ако има дефолтно количество
+    		        $quantity = $rec->{"quantity{$i}"};
+    		        $price = $rec->{"price{$i}"};
+    		        if(!$quantity) continue;
+    		        
+    		        // Прави се опит за добавянето на артикула към реда
+    		        try{
+    		            if(!empty($price)){
+    		                $price = deals_Helper::getPurePrice($price, $vat, $rec->currencyRate, $rec->chargeVat);
+    		            }
+    		            sales_Quotations::addRow($rec->id, $originRec->id, $quantity, $originRec->measureId, $price);
+    		        } catch(core_exception_Expect $e){
+    		            reportException($e);
+    		            
+    		            if(haveRole('debug')){
+    		                $dump  = $e->getDump();
+    		                core_Statuses::newStatus($dump[0], 'warning');
+    		            }
+    		        }
+    		    }
+    		    
+    		    // Споделяме текущия потребител със нишката на заданието
+    		    $cu = core_Users::getCurrent();
+    		    doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
     		}
-    		
-    		// Споделяме текущия потребител със нишката на заданието
-    		$cu = core_Users::getCurrent();
-    		doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
     	}
     }
     

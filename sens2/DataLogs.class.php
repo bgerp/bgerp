@@ -25,7 +25,7 @@ class sens2_DataLogs extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Записи на индикаторите';
+    public $title = 'Записи от IP контролерите';
     
     
     /**

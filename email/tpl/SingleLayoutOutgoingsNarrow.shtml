@@ -1,0 +1,106 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <div class='scrolling-holder'>
+        <div class='display-table'>
+            <div class='antetka'>
+				<div class="small">
+				    
+				    <!--ET_BEGIN IpErrorString-->
+				    <div class="textWithIcons red"><b>|Внимание|*!</b> [#IpErrorString#]</div>
+				    <!--ET_END IpErrorString-->
+				    
+                    <table class='top-table' style='width:100%'>
+                        <tr>
+                            <td class='vtop'>
+                                <table class='top-table'>
+                                    <!--ET_BEGIN handle-->          
+                                    <tr>
+                                        <td class='aright'>|Реф.|*:</td>
+                                        <td>[#handle#]</td>
+                                    </tr>
+                                    <!--ET_END handle-->
+                                    <!--ET_BEGIN createdDate-->          
+                                    <tr>
+                                        <td class='aright'>|Дата|*:</td>
+                                        <td>[#createdDate#]</td>
+                                    </tr>
+                                    <!--ET_END createdDate-->
+                                    <!--ET_BEGIN recipient-->          
+                                    <tr>
+                                        <td class='aright'>|До|*:</td>
+                                        <td>
+                                            [#recipient#]<!--ET_BEGIN firmCountry--> - [#firmCountry#]<!--ET_END firmCountry--><!--ET_BEGIN recipientEmail-->[#recipientEmail#]<!--ET_END recipientEmail-->
+                                        </td>
+                                    </tr>
+                                    <!--ET_END recipient-->
+                                    <!--ET_BEGIN attn-->          
+                                    <tr>
+                                        <td class='aright'>|Към|*:</td>
+                                        <td>[#attn#]</td>
+                                    </tr>
+                                    <!--ET_END attn-->
+                                    <!--ET_BEGIN emailLeft-->          
+                                    <tr>
+                                        <td class='aright'>|Имейл|*:</td>
+                                        <td><b>[#emailLeft#]</b></td>
+                                    </tr>
+                                    <!--ET_END emailLeft-->
+                                    <!--ET_BEGIN emailCcLeft-->          
+                                    <tr>
+                                        <td class='aright'>|Копие|*:</td>
+                                        <td>[#emailCcLeft#]</td>
+                                    </tr>
+                                    <!--ET_END emailCcLeft-->
+                                    <!--ET_BEGIN email-->
+                                    <tr>
+                                        <td class='aright'>|Имейл|*:</td>
+                                        <td><b>[#email#]</b></td>
+                                    </tr>
+                                    <!--ET_END email-->
+                                    <!--ET_BEGIN emailCc-->
+                                    <tr>
+                                        <td class='aright'>|Копие|*:</td>
+                                        <td><b>[#emailCc#]</b></td>
+                                    </tr>
+                                    <!--ET_END emailCc-->
+                                    <!--ET_BEGIN fax-->
+                                    <tr>
+                                        <td class='aright'>|Факс|*:</td>
+                                        <td>[#fax#]</td>
+                                    </tr>
+                                    <!--ET_END fax-->
+                                </table>
+                           </td>
+                        </tr>
+                    </table>
+                </div>
+                <div style='clear: both;'></div>
+            </div>
+        </div>
+    </div>
+    <div style='clear: both;'></div>
+    <!--ET_BEGIN body--> 
+    <div style='padding:6px 10px 10px;'>
+    <!--ET_BEGIN subject--><h3 class='richtext-title'>[#subject#]</h3><!--ET_END subject-->
+        <div>[#body#]</div>
+    </div>
+    
+    <!--ET_BEGIN bottomAntetka-->
+    [#bottomAntetka#]
+    
+    <div class='bottom-antetka'>
+	    <!--ET_BEGIN notifyForAnsw-->
+	    	[#notifyForAnsw#]
+	        <div>|Ако не се получи отговор до|* [#notifyDate#] |ще бъде известен|* [#notifyUser#]
+	        	[#removeNotify#]
+	        </div>
+	    <!--ET_END notifyForAnsw-->
+	    
+	    <!--ET_BEGIN sendLater-->
+	    	[#sendLater#]
+	    <!--ET_END sendLater-->
+    </div>
+    <!--ET_END bottomAntetka-->
+    
+    <!--ET_END body--> 
+    <div style='clear: both;'></div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

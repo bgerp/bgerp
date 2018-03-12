@@ -214,8 +214,10 @@ class sales_Sales extends deals_DealMaster
     		'customer2bankAdvance' => array('title' => 'Авансово плащане от Клиент', 'debit' => '503', 'credit' => '412'),
     		'customer2case'        => array('title' => 'Плащане от Клиент', 'debit' => '501', 'credit' => '411'),
     		'customer2bank'        => array('title' => 'Плащане от Клиент', 'debit' => '503', 'credit' => '411'),
-    		'case2customer'        => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '501', 'reverse' => TRUE),
-    		'bank2customer'        => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '503', 'reverse' => TRUE),
+    		'case2customer'        => array('title' => 'Прехвърляне на плащане', 'debit' => '411', 'credit' => '501', 'reverse' => TRUE),
+    		'bank2customer'        => array('title' => 'Прехвърляне на плащане', 'debit' => '411', 'credit' => '503', 'reverse' => TRUE),
+    		'case2customerRet'     => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '501', 'reverse' => TRUE),
+    		'bank2customerRet'     => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '503', 'reverse' => TRUE),
     		'caseAdvance2customer' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '501', 'reverse' => TRUE),
     		'bankAdvance2customer' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '503', 'reverse' => TRUE),
     		'debitDeals'           => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '411'),
@@ -637,6 +639,14 @@ class sales_Sales extends deals_DealMaster
             	$p->batches = $bQuery->fetchAll();
             }
             
+            if($tRec = tcost_Calcs::get(sales_Sales::getClassId(), $rec->id, $dRec->id)){
+            	if($tRec->fee > 0){
+            		$p->fee = $tRec->fee;
+            		$p->deliveryTimeFromFee = $tRec->deliveryTime;
+            		$p->syncFee = TRUE;
+            	}
+            }
+             
             $agreed[] = $p;
             
             $p1 = clone $p;
@@ -1395,5 +1405,36 @@ class sales_Sales extends deals_DealMaster
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща разпределените разходи по сделката
+     * 
+     * @param int $threadId
+     * @return array $res
+     */
+    public static function getCalcedTransports($threadId)
+    {
+    	$res = array();
+    	
+    	$Doc = doc_Threads::getFirstDocument($threadId);
+    	if(!$Doc->isInstanceOf('sales_Sales')) return $res;
+    	
+    	$saleClassId = sales_Sales::getClassId();
+    	$tCostQuery = tcost_Calcs::getQuery();
+    	$tCostQuery->where("#docClassId = {$saleClassId} AND #docId = {$Doc->that}");
+    	$tCostQuery->where("#fee > 0");
+    	while($tRec = $tCostQuery->fetch()){
+    		$dRec = sales_SalesDetails::fetch($tRec->recId, 'productId,quantity');
+    		if(!array_key_exists($dRec->productId, $res)){
+    			$costs[$dRec->productId] = new stdClass();
+    		}
+    			
+    		$costs[$dRec->productId]->fee += $tRec->fee;
+    		$costs[$dRec->productId]->quantity += $dRec->quantity;
+    	}
+    	
+    	return $costs;
     }
 }

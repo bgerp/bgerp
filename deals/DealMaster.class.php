@@ -1149,7 +1149,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Изтриваме досегашните детайли на сделката
     	$Detail = $mvc->mainDetail;
     	$Detail::delete("#{$mvc->{$Detail}->masterKey} = {$rec->id}");
-    	
     	$details = deals_Helper::normalizeProducts($details);
     	
     	if(count($details)){
