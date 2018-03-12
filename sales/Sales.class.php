@@ -1406,4 +1406,35 @@ class sales_Sales extends deals_DealMaster
     		}
     	}
     }
+    
+    
+    /**
+     * Връща разпределените разходи по сделката
+     * 
+     * @param int $threadId
+     * @return array $res
+     */
+    public static function getCalcedTransports($threadId)
+    {
+    	$res = array();
+    	
+    	$Doc = doc_Threads::getFirstDocument($threadId);
+    	if(!$Doc->isInstanceOf('sales_Sales')) return $res;
+    	
+    	$saleClassId = sales_Sales::getClassId();
+    	$tCostQuery = tcost_Calcs::getQuery();
+    	$tCostQuery->where("#docClassId = {$saleClassId} AND #docId = {$Doc->that}");
+    	$tCostQuery->where("#fee > 0");
+    	while($tRec = $tCostQuery->fetch()){
+    		$dRec = sales_SalesDetails::fetch($tRec->recId, 'productId,quantity');
+    		if(!array_key_exists($dRec->productId, $res)){
+    			$costs[$dRec->productId] = new stdClass();
+    		}
+    			
+    		$costs[$dRec->productId]->fee += $tRec->fee;
+    		$costs[$dRec->productId]->quantity += $dRec->quantity;
+    	}
+    	
+    	return $costs;
+    }
 }
