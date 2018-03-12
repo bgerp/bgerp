@@ -646,10 +646,6 @@ abstract class deals_Helper
 								$d->syncFee = TRUE;
 							}
 							
-							if($p->discount != 1){
-								$d->discount = max($d->discount, $p->discount);
-							}
-							
 							$sign = ($parameter == 'arrays') ? 1 : -1;
 							
 							//@TODO да може да е -
