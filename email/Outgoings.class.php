@@ -2411,15 +2411,27 @@ class email_Outgoings extends core_Master
         switch (true)
         {
             case Mode::is('text', 'plain') :
-            $tpl = 'email/tpl/SingleLayoutOutgoings.txt';
+                $tpl = 'email/tpl/SingleLayoutOutgoings.txt';
             break;
             
             case (Mode::is('printing') || Mode::is('text', 'xhtml')) :
-            $tpl = 'email/tpl/SingleLayoutSendOutgoings.shtml';
+                $tpl = 'email/tpl/SingleLayoutSendOutgoings.shtml';
             break;
             
             default :
-            $tpl = 'email/tpl/SingleLayoutOutgoings.shtml';
+                
+                $tpl = 'email/tpl/SingleLayoutOutgoings.shtml';
+                
+                if (Mode::is('screenMode', 'narrow') && isset($this->singleLayoutFileNarrow)) {
+                    $tpl = $this->singleLayoutFileNarrow;
+                }
+                
+            break;
+        }
+        
+        $layoutText = getTplFromFile($this->singleLayoutFile);
+        if(Mode::is('screenMode', 'narrow') && isset($this->singleLayoutFileNarrow)) {
+            $layoutText = getTplFromFile($this->singleLayoutFileNarrow);
         }
         
         $tpl = getTplFromFile($tpl);
