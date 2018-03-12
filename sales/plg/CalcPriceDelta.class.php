@@ -102,6 +102,14 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 				$sellCost = $sellCost * (1 - $correctPercent);
 			}
 			
+			if(isset($primeCost)){
+				$costs = sales_Sales::getCalcedTransports($rec->threadId);
+				if(isset($costs[$dRec->{$mvc->detailProductFld}])){
+					$primeCost += $costs[$dRec->{$mvc->detailProductFld}]->fee / $costs[$dRec->{$mvc->detailProductFld}]->quantity;
+				}
+			}
+			
+			
 			// Ако артикулът е 'Надценка' няма себестойност
 			$code = cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'code');
 			if($code == 'surcharge'){
