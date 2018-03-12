@@ -307,7 +307,7 @@ class core_Cron extends core_Manager
             // Колко минути остават до следващото стартиране
             $remainMinutes = floor(($currentMinute - $rec->offset) / $rec->period ) * $rec->period + $rec->period + $rec->offset - $currentMinute;
             
-            if( (($currentMinute % $rec->period) == $rec->offset) || ($rec->period > 60 && $lastSchedule > $lastStarting && $rec->period/2 < $remainMinutes)) {
+            if( (($currentMinute % $rec->period) == $rec->offset) || ($rec->period > 60 && $lastSchedule > $lastStarting && 60 < $remainMinutes)) {
                
                 $i++;
                 fopen(toUrl(array(
