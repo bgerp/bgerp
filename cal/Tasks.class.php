@@ -1505,7 +1505,7 @@ class cal_Tasks extends embed_Manager
             $date = $rec->timeEnd;
         }
         
-        if (($rec->state = 'waiting' || $rec->state = 'pending') && $rec->timeStart) {
+        if (($rec->state == 'waiting' || $rec->state == 'pending') && $rec->timeStart) {
             $date = $rec->timeStart;
         }
     
