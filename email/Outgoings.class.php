@@ -137,7 +137,13 @@ class email_Outgoings extends core_Master
      * Нов темплейт за показване
      */
     var $singleLayoutFile = 'email/tpl/SingleLayoutOutgoings.shtml';
-    
+
+
+    /**
+     * Нов темплейт за показване в мобилен
+     */
+    var $singleLayoutFileNarrow = 'email/tpl/SingleLayoutOutgoingsNarrow.shtml';
+
     
     /**
      * Икона по подразбиране за единичния обект
