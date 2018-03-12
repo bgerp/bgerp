@@ -639,6 +639,14 @@ class sales_Sales extends deals_DealMaster
             	$p->batches = $bQuery->fetchAll();
             }
             
+            if($tRec = tcost_Calcs::get(sales_Sales::getClassId(), $rec->id, $dRec->id)){
+            	if($tRec->fee > 0){
+            		$p->fee = $tRec->fee;
+            		$p->deliveryTimeFromFee = $tRec->deliveryTime;
+            		$p->syncFee = TRUE;
+            	}
+            }
+             
             $agreed[] = $p;
             
             $p1 = clone $p;

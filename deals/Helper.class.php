@@ -634,6 +634,22 @@ abstract class deals_Helper
 								$d->discount = max($d->discount, $p->discount);
 							}
 			
+							if(isset($p->fee) && $p->fee > 0){
+								$d->fee += $p->fee;
+							}
+							
+							if(isset($p->deliveryTimeFromFee)){
+								$d->deliveryTimeFromFee = max($d->deliveryTimeFromFee, $p->deliveryTimeFromFee);
+							}
+							
+							if($p->syncFee === TRUE){
+								$d->syncFee = TRUE;
+							}
+							
+							if($p->discount != 1){
+								$d->discount = max($d->discount, $p->discount);
+							}
+							
 							$sign = ($parameter == 'arrays') ? 1 : -1;
 							
 							//@TODO да може да е -
