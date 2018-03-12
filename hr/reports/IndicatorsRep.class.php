@@ -311,10 +311,13 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		$newContext = self::fillMissingIndicators($context, $formula);
 		if(($expr = str::prepareMathExpr($formula, $newContext)) !== FALSE) {
 			$value = str::calcMathExpr($expr, $success);
-		}
-		if($success === FALSE) {
-			$value = tr("Невъзможно изчисление");
-		}
+           
+            if($success === FALSE) {
+                $value = tr("Невъзможно изчисление");
+            }
+		} else {
+            $value = tr("Некоректна формула");
+        }
 		
 		return $value;
 	}

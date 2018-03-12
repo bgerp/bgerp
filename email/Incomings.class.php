@@ -2562,8 +2562,17 @@ class email_Incomings extends core_Master
             if ($data->rec->state != 'rejected') {
                 $rec = $data->rec;
                 
+                $cover = doc_Folders::getCover($rec->folderId);
+                $quatation = FALSE;
+                if($cover->haveInterface('crm_ContragentAccRegIntf')){
+                    if (sales_Quotations::haveRightFor('add', (object)array('folderId' => $rec->folderId, 'threadId' => $rec->threadId))) {
+                        $data->toolbar->addBtn('Оферта', array('sales_Quotations', 'add', 'originId' => $rec->containerId), "ef_icon=img/16/quotation.png,title=Създаване на оферта по това запитване");
+                        $quatation = TRUE;
+                    }
+                }
+                
                 // Създаване на нов артикул от входящ имейл
-                if (cat_Products::haveRightFor('add', (object)array('folderId' => $rec->folderId, 'threadId' => $rec->threadId))) {
+                if (!$quatation && cat_Products::haveRightFor('add', (object)array('folderId' => $rec->folderId, 'threadId' => $rec->threadId))) {
                     
                     $innerClass = NULL;
                     
@@ -2584,7 +2593,7 @@ class email_Incomings extends core_Master
                     }
                     
                     $url = array('cat_Products', 'add', "innerClass" => $innerClass, "foreignId" => $rec->containerId, 'ret_url' => TRUE);
-                    if(doc_Folders::getCover($rec->folderId)->haveInterface('crm_ContragentAccRegIntf')){
+                    if($cover->haveInterface('crm_ContragentAccRegIntf')){
                         $url['folderId'] = $rec->folderId;
                         $url['threadId'] = $rec->threadId;
                     }

@@ -77,11 +77,19 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('typeOfQuantity', 'enum(FALSE=Налично,TRUE=Разполагаемо)','caption=Количество за показване,maxRadio=2,columns=2,after=title');
-        $fieldset->FLD('additional', 'table(columns=code|name|minQuantity|maxQuantity,captions=Код на атикула|Наименование|Мин к-во|Макс к-во,widths=8em|20em|5em|5em)', "caption=Артикули||Additional,autohide,advanced,after=storeId,single=none");
+    	
+    	$fieldset->FLD('limmits', 'enum(yes=С лимити,no=Без лимити)','caption=Вид на справката,removeAndRefreshForm,after=title');
+        
+    	$fieldset->FLD('typeOfQuantity', 'enum(FALSE=Налично,TRUE=Разполагаемо)','caption=Количество за показване,maxRadio=2,columns=2,after=limmits');
+
+
+       // $fieldset->FLD('additional', 'table(columns=code|name|minQuantity|maxQuantity,captions=Код на атикула|Наименование|Мин к-во|Макс к-во,widths=8em|20em|5em|5em)', "caption=Артикули||Additional,autohide,advanced,after=storeId,single=none");
+
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=typeOfQuantity');
         $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
     }
+    
+    
     
     
     /**
@@ -93,12 +101,29 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
+    	
+    	
+    	
+    	
+    	
         $form = $data->form;
         $rec = $form->rec;
+        
+        
+       
+        
         $rec->flag = TRUE;
 
         $form->setDefault('typeOfQuantity', 'TRUE');
- 
+        
+        $form->setDefault('limmits', 'no');
+//         if ($form->cmd == 'refresh' && $rec->limmits == 'yes') {
+//         	if ($rec->limmits == 'yes'){
+        
+//         		$form->FLD('additional', 'table(columns=code|name|minQuantity|maxQuantity,captions=Код на атикула|Наименование|Мин к-во|Макс к-во,widths=8em|20em|5em|5em)', "caption=Артикули||Additional,autohide,advanced,after=storeId,single=none");
+//         	}
+//         }
+//  bp($rec);
     }
 
     /**
@@ -111,10 +136,14 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+    	
+    	
 
         $details = (json_decode($form->rec->additional));
 
         if ($form->isSubmitted()) {
+        	
+        	
             
             $details = (json_decode($form->rec->additional));
 
@@ -224,8 +253,14 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }else{
 
             $rec = $form->rec;
+            
+            if ($form->cmd == 'refresh' && $rec->limmits == 'yes') {
+            	
+            	$form->FLD('additional', 'table(columns=code|name|minQuantity|maxQuantity,captions=Код на атикула|Наименование|Мин к-во|Макс к-во,widths=8em|20em|5em|5em)', "caption=Артикули||Additional,autohide,advanced,after=storeId,single=none");
+            	
+            }
          
-            if ($form->cmd == 'refresh' && $rec->groupId) {
+            if ($form->cmd == 'refresh' && $rec->groupId && $rec->limmits == 'yes') {
             	
             	$maxPost = ini_get("max_input_vars")-self::MAX_POST_ART;
             	            
@@ -341,7 +376,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             		
             				$form->setWarning('groupId',"$countUnset артикула от група $groupName няма да  бъдат добавени.
             						Максимален брой артикули за еднократно добавяне - $maxArt.
-            						Може да добавите още артикули от групата при следваща редакция.");
+            						§§Може да добавите още артикули от групата при следваща редакция.");
             			}
             		
             		}

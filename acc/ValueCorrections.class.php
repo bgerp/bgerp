@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,7 +20,7 @@ class acc_ValueCorrections extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=acc_transaction_ValueCorrection';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=acc_transaction_ValueCorrection,hr_IndicatorsSourceIntf';
     
     
     /**
@@ -30,17 +30,9 @@ class acc_ValueCorrections extends core_Master
     
     
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'acc_AllocatedExpenses';
-    
-    
-    /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_Wrapper, plg_Sorting, acc_plg_Contable,
-                        doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search, 
-                        doc_plg_HidePrices, bgerp_plg_Blank, doc_plg_SelectFolder';
+    public $loadList = 'plg_RowTools2, acc_Wrapper, plg_Sorting, acc_plg_Contable,doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search,doc_plg_HidePrices';
     
     
     /**
@@ -52,7 +44,7 @@ class acc_ValueCorrections extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "valior, title=Документ, amount, dealOriginId=Сделка->Основна, correspondingDealOriginId=Сделка->Кореспондент, state, createdOn, createdBy";
+    public $listFields = "valior, title=Документ, amount, currencyId, dealOriginId=Сделка->Основна, correspondingDealOriginId=Сделка->Кореспондент, state, createdOn, createdBy";
     
     
     /**
@@ -86,12 +78,6 @@ class acc_ValueCorrections extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'acc, ceo';
-    
-    
-    /**
      * Кой може да пише?
      */
     public $canWrite = 'acc, ceo';
@@ -112,13 +98,7 @@ class acc_ValueCorrections extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId,notes';
-    
-    
-    /**
-     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
-     */
-    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+    public $searchFields = 'folderId,notes,action';
 
     
     /**
@@ -230,7 +210,6 @@ class acc_ValueCorrections extends core_Master
     	
     	if($pRec->allocated < 0){
     		$row->allocated = "<span class='red'>{$row->allocated}</span>";
-    		
     	} elseif($rec->action == 'decrease'){
     		$row->allocated = "<span class='red'>-{$row->allocated}</span>";
     	} else {
@@ -624,9 +603,7 @@ class acc_ValueCorrections extends core_Master
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
     	// Може да се добави само към тред на покупка/продажба
-    	if($firstDoc->isInstanceOf('sales_Sales') || $firstDoc->isInstanceOf('purchase_Purchases')){
-    		return TRUE;
-    	}
+    	if($firstDoc->isInstanceOf('sales_Sales') || $firstDoc->isInstanceOf('purchase_Purchases')) return TRUE;
     	
     	return FALSE;
     }
@@ -663,5 +640,74 @@ class acc_ValueCorrections extends core_Master
     		
     		$res = " " . $res . " " . $detailsKeywords;
     	}
+    }
+    
+    
+    /**
+     * Интерфейсен метод на hr_IndicatorsSourceIntf
+     *
+     * @return array $result
+     */
+    public static function getIndicatorNames()
+    {
+    	$result = array();
+    		
+    	// Индикатор за делта на търговеца
+    	$rec = hr_IndicatorNames::force('priceCorrection', __CLASS__, 1);
+    	$result[$rec->id] = $rec->name;
+    
+    	return $result;
+    }
+    
+    
+    /**
+     * Метод за вземане на резултатност на хората. За определена дата се изчислява
+     * успеваемостта на човека спрямо ресурса, които е изпозлвал
+     *
+     * @param date $timeline  - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @return array $result  - масив с обекти
+     *
+     * 			o date        - дата на стайноста
+     * 		    o personId    - ид на лицето
+     *          o docId       - ид на документа
+     *          o docClass    - клас ид на документа
+     *          o indicatorId - ид на индикатора
+     *          o value       - стойноста на индикатора
+     *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
+     */
+    public static function getIndicatorValues($timeline)
+    {
+    	$result = array();
+    	
+    	// Кои са последно променяните документи, в нишка на продажба
+    	$query = self::getQuery();
+    	$query->EXT('firstDocClass', 'doc_Threads', 'externalName=firstDocClass,externalKey=threadId');
+    	$query->where("#state = 'active' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
+    	$query->where("#modifiedOn >= '{$timeline}' AND #firstDocClass = " . sales_Sales::getClassId());
+    	$query->show('state,action,amount,valior,threadId');
+    	
+    	$classId = self::getClassId();
+    	$iRec = hr_IndicatorNames::force('priceCorrection', __CLASS__, 1);
+    	
+    	// За всеки
+    	while($rec = $query->fetch()){
+    		
+    		// Опит за намиране на търговеца от продажбата
+    		$firstContainerId = doc_Threads::getFirstContainerId($rec->threadId);
+    		$dealers = sales_PrimeCostByDocument::getDealerAndInitiatorId($firstContainerId);
+    		if(empty($dealers['dealerId'])) continue;
+    		
+    		// Кое е лицето от визитника
+    		$personId = crm_Profiles::fetchField("#userId = '{$dealers['dealerId']}'", 'personId');
+    		$isRejected = ($rec->state == 'rejected');
+    		
+    		$sign = ($rec->action == 'decrease') ? -1 : 1;
+    		$value = $rec->amount * $sign;
+    		
+    		// Добавяне на записа за индикатора
+    		sales_PrimeCostByDocument::addIndicatorToArray($result, $rec->valior, $personId, $rec->id, $classId, $iRec->id, $value, $isRejected);
+    	}
+    	
+    	return $result;
     }
 }
