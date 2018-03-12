@@ -639,7 +639,7 @@ abstract class deals_Helper
 							}
 							
 							if(isset($p->deliveryTimeFromFee)){
-								$d->deliveryTimeFromFee = max($d->deliveryTimeFromFee, $p->deliveryTimeFromFee);
+								$d->deliveryTimeFromFee = min($d->deliveryTimeFromFee, $p->deliveryTimeFromFee);
 							}
 							
 							if($p->syncFee === TRUE){
