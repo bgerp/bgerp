@@ -107,11 +107,25 @@ class setup_Controller {
      */
     function form5(&$res)
     {   
+        // Ще покажем възможностите за обновяване, само ако:
+        // 1. Не сме отказали проверките за обновяване
+        // 2. Не правим нова инсталация
         if($this->state['checkForUpdates'] != 'yes' || $this->state['installationType'] == 'recovery') {
 
             return FALSE;
         }
+        if(defined('EF_PRIVATE_PATH')) {
+            $repo2Path   = EF_PRIVATE_PATH;
+            $repo2Branch = PRIVATE_GIT_BRANCH;
+        }  
+            $repo1Path   = EF_APP_PATH;
+            $repo1Branch = BGERP_GIT_BRANCH;
+        
+        $log = array();
+        //$newVer = core_Git::gitHasNewVersion($repo1Path, $log, $repo1Branch);
 
+
+ 
         $res->title = "Обновяване на избраното";
         $res->question  = "Желаете ли обновяване на:";
         $res->body  = $this->createCheckbox('updates', 
@@ -136,7 +150,7 @@ class setup_Controller {
         $res->question  = "Какво ще бъде основното предназначение на системата?";
         $res->body  = $this->createRadio('bgerpType', 
             array(  'base'    => 'Организация на екип, имейли и документооборот', 
-                    'trade' => 'Търговски мениджмънт ( + предходното)', 
+                    'trade' => 'Управление на продажби ( + предходното)', 
                     'manufacturing' => 'Производствен мениджмънт ( + предходното)',
                     'demo' => 'За демонстрация и обучение',
                     'dev' => 'За разработка и тестване',
@@ -156,11 +170,11 @@ class setup_Controller {
         }
 
         $res->title = "Допълнителни модули";
-        $res->question  = "Какви допълнителни модули да бъдат инсталирани?";
+        $res->question  = "Кои допълнителни модули да бъдат инсталирани?";
         if($this->state['bgerpType'] == 'base') {
             $res->body  = $this->createCheckbox('bgerpAddmodules', 
                 array(  'web'    => 'cms (Управление на уеб-сайт)',
-                        'mon2'   => 'mon2 (Мониторинг на сензори)', 
+                        'mon2'   => 'mon2 (Мониторинг на IoT контролери)', 
                         'cams'    => 'cams (Записване на IP видеокамери)',
                         'catering'    => 'catering (Кетъринг за персонала)',
 
@@ -284,7 +298,7 @@ class setup_Controller {
         $res->title = "Рапортуване на грешките";
         $res->question  = "Когато възникне грешка:";
         $res->body  = $this->createRadio('reportErrors', 
-            array('yes' => 'Рапортувай на разработчиците', 
+            array('yes' => 'Докладвай на разработчиците', 
                   'recovery' => 'Не изпращай нищо'));
     }
 
@@ -340,13 +354,13 @@ class setup_Controller {
                 $res['back'] = "« Предишен";
             }
             if($res['back']) {
-                $res['back'] = "<input type='submit' name='Cmd_Back' style='font-size:14px;margin:3px' value='" . $res['back'] . "'>";
+                $res['back'] = "<input type='submit' name='Cmd_Back' style='font-size:14px;margin:3px;color:black' value='" . $res['back'] . "'>";
             }
             if(!isset($res['next'])) {
                 $res['next'] = "Следващ »";
             }
             if($res['next']) {
-                $res['next'] = "<input type='submit' name='Cmd_Next' style='font-size:14px;margin:3px' value='" . $res['next'] . "'>";
+                $res['next'] = "<input type='submit' name='Cmd_Next' style='font-size:14px;margin:3px;color:black' value='" . $res['next'] . "'>";
             }
 
             $res['title'] = $res['title'];
@@ -359,9 +373,11 @@ class setup_Controller {
             }  
             $tpl = strtr($tpl, $res);
             $tpl = preg_replace('/\[#([a-zA-Z0-9_:]{1,})#\]/', '', $tpl);
-        } else {  
+        } else { 
             $tpl = 'Финал';
         }
+        
+        Mode::set('wrapper', 'page_Empty');
 
         return $tpl;
     }
@@ -378,16 +394,19 @@ class setup_Controller {
                 "BkFwTESAVEQBcCeX6OUhJCE+99LJN2IYt/orjs8D/jeYAEANAACHRAIdEAgAACgLtZkO476nFftOgKF2dEDw" . 
                 "EAPAAMAAOoKr1PJ+7GMBn4wOzpgYKADAoEFAPAHl3wkRpLmpFkAAAAASUVORK5CYII=";
         
+        $background = sbf("setup/img/sunrise.jpg", '');
+
         $tpl = "<!DOCTYPE html>
         <html>
             <head>
-                <title>HTML centering</title>
+                <title>Setup - bgERP</title>
 
                 <style>" . file_get_contents(__DIR__ . '/setup.css') . "</style>
+                
                 <link href='{$icon}' rel='icon' type='image/x-icon'>
         </head>
 
-        <body bgcolor='#ffffff'>
+        <body style='background-color:#000 !important; background-image: url(\"{$background}\");'>
         <table class='center' border='0'><tbody><tr><td class='center'>
 
         <div id='container'>

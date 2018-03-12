@@ -13,14 +13,56 @@
  */
 class fileman_webdrv_Csv extends fileman_webdrv_Code
 {
+    
+    
+    
     /**
-     * Връща съдържанието на файла
+     * Кой таб да е избран по подразбиране
+     * @Override
+     * @see fileman_webdrv_Generic::$defaultTab
+     */
+    static $defaultTab = 'view';
+    
+    
+    /**
+     * Връща всички табове, които ги има за съответния файл
+     *
+     * @param object $fRec - Записите за файла
+     *
+     * @return array
+     *
+     * @Override
+     * @see fileman_webdrv_Generic::getTabs
+     */
+    static function getTabs($fRec)
+    {
+        // Вземаме табовете от родителя
+        $tabsArr = parent::getTabs($fRec);
+        
+        // Вземаме съдържанието
+        $view = static::getView($fRec);
+        
+        // Таб за съдържанието
+        $tabsArr['view'] = (object)
+        array(
+                'title'   => 'Изглед',
+                'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr("Съдържание") . "</div>{$view}</div></div>",
+                'order' => 6,
+                'tpl' => $view,
+        );
+        
+        return $tabsArr;
+    }
+    
+    
+    /**
+     * Връща изгледа на файла
      * 
      * @param object $fRec - Запис на архива
      * 
      * @return string - Съдържанието на файла, като код
      */
-    static function getContent($fRec) 
+    static function getView($fRec) 
     {
         // Вземаме съдържанието на файла
         $content = fileman_Files::getContent($fRec->fileHnd);
@@ -107,7 +149,4 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
    
         return $html;
     }
-
-
-
 }
