@@ -210,7 +210,8 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             
             $fld->FLD('invoiceNo', 'varchar', 'caption=Фактура No,smartCenter');
             $fld->FLD('invoiceDate', 'date', 'caption=Дата,smartCenter');
-            $fld->FLD('dueDate', 'varchar', 'caption=Краен срок,smartCenter');
+            $fld->FLD('dueDate', 'date', 'caption=Краен срок,smartCenter');
+            $fld->FLD('dueDateStatus', 'varchar', 'caption=Състояние,smartCenter');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
             $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
             $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума');
@@ -287,16 +288,32 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
      */
     private static function getDueDate($dRec, $verbal = TRUE, $rec)
     {
-        if ($dRec->dueDate) {
-            $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = "d.m.y");
+        if ($verbal === TRUE) {
             
-            if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
+            if ($dRec->dueDate) {
+                $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = "d.m.y");
                 
-                $dueDate .= " *";
+                if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
+                    
+                    $dueDate = ht::createHint($dueDate, 'фактурата е просрочена', 'warning');
+                }
+            } else {
+                $dueDate = '';
             }
         } else {
-            $dueDate = '';
+            
+            if ($dRec->dueDate) {
+                $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = "d.m.y");
+                
+//                 if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
+                    
+//                     $dueDate .= ' *';
+//                 }
+            } else {
+                $dueDate = '';
+            }
         }
+        
         return $dueDate;
     }
 
@@ -363,7 +380,12 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         $res->paidDates = self::getPaidDates($dRec, FALSE);
         
-        $res->dueDate = self::getDueDate($dRec, TRUE, $rec);
+        $res->dueDate = self::getDueDate($dRec, FALSE, $rec);
+        
+        if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
+
+            $res->dueDateStatus = 'Просрочен';
+        }
         
         $invoiceNo = str_pad($dRec->invoiceNo, 10, "0", STR_PAD_LEFT);
         
