@@ -101,11 +101,15 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         $form->setDefault('typeOfQuantity', 'TRUE');
         
-        // $form->setDefault('limmits', 'no');
+       
         
         if ($rec->limmits == 'no') {
-            
-           $form->rec->additional = array();
+ 
+        	$form->rec->additional = array();
+        	
+        	$form->setOptions('additional', array('input'=>'none'));
+
+          
             
         }
     }
