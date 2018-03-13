@@ -959,6 +959,9 @@ class planning_Jobs extends core_Master
     	$data->packagingData->masterId = $data->rec->productId;
     	$data->packagingData->tpl = new core_ET("[#CONTENT#]");
     	$data->packagingData->retUrl = planning_Jobs::getSingleUrlArray($data->rec->id);
+    	if($data->rec->state == 'rejected'){
+    		$data->packagingData->rejected = TRUE;
+    	}
     	cls::get('cat_products_Packagings')->preparePackagings($data->packagingData);
     	
     	$data->components = array();

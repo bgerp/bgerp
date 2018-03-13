@@ -160,8 +160,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
 
 		foreach(array('quantity', 'reservedQuantity', 'freeQuantity', 'changeQuantity') as $fld) {
 		    $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
-		    $row->{$fld} = (empty($dRec->{$fld})) ? "<span class='quiet'>{$row->{$fld}}</span>" : $row->{$fld};
-		    $row->{$fld} = ht::styleIfNegative($row->{$fld}, $dRec->{$fld});
+		    $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
 		}
 
 		return $row;
@@ -170,13 +169,14 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
     
 	/**
 	 * След подготовка на реда за експорт
-	 *
-	 * @param frame2_driver_Proto $Driver
-	 * @param stdClass $res
-	 * @param stdClass $rec
-	 * @param stdClass $dRec
+	 * 
+	 * @param frame2_driver_Proto $Driver - драйвер
+	 * @param stdClass $res               - резултатен запис
+	 * @param stdClass $rec               - запис на справката
+	 * @param stdClass $dRec              - запис на реда
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
 	 */
-	protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
 	{
 		$res->kod = (!empty($dRec->kod)) ? $dRec->kod : "Art{$dRec->productId}";
 	}

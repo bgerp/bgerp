@@ -884,9 +884,9 @@ abstract class deals_InvoiceMaster extends core_Master
     		$row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($novatToVerbal);
     		$row->vatAmount = $mvc->getFieldType('dealValue')->toVerbal($amountToVerbal);
     		
-    		$row->dealValue = ht::styleIfNegative($row->dealValue, $total);
-    		$row->valueNoVat = ht::styleIfNegative($row->valueNoVat, $total);
-    		$row->vatAmount = ht::styleIfNegative($row->vatAmount, $total);
+    		$row->dealValue = ht::styleNumber($row->dealValue, $total);
+    		$row->valueNoVat = ht::styleNumber($row->valueNoVat, $total);
+    		$row->vatAmount = ht::styleNumber($row->vatAmount, $total);
     	}
     	
     	if(empty($rec->paymentType) && isset($rec->autoPaymentType)){
