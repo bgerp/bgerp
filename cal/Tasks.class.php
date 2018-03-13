@@ -1524,7 +1524,7 @@ class cal_Tasks extends embed_Manager
         if ($rec->state == 'active' && $rec->timeEnd) {
             $date = $rec->timeEnd;
         }
-        // @todo - да се показва текста на вместо процента
+        
         if (($rec->state == 'waiting' || $rec->state == 'pending') && $rec->timeStart) {
             $date = $rec->timeStart;
         }
