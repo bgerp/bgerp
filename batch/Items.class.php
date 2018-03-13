@@ -163,7 +163,6 @@ class batch_Items extends core_Master {
     	
     	$measureId = cat_Products::fetchField($rec->productId, 'measureId');
     	$row->measureId = cat_UoM::getShortName($measureId);
-    	$row->quantity = ht::styleIfNegative($row->quantity, $rec->quantity);
     	
     	if($Definition = batch_Defs::getBatchDef($rec->productId)){
     		$row->batch = $Definition->toVerbal($rec->batch);
@@ -326,9 +325,7 @@ class batch_Items extends core_Master {
     	if(!count($data->rows)) return;
     	
     	foreach ($data->rows as $id => &$row){
-    		if($data->recs[$id]->quantity < 0){
-    			$row->quantity = "<span class='red'>{$row->quantity}</span>";
-    		}
+    		$row->quantity = ht::styleNumber($row->quantity, $data->recs[$id]->quantity);
     	}
     }
     
