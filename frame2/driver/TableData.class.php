@@ -322,13 +322,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * Връща редовете на CSV файл-а
 	 *
 	 * @param stdClass $rec               - запис
-	 * @param core_BaseClass $ExportClass - клас за експорт
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
 	 * @return array $recs                - записите за експорт
 	 */
 	public function getExportRecs($rec, $ExportClass)
 	{
-		$recs = array();
+		expect(cls::haveInterface('export_ExportTypeIntf', $ExportClass));
 		
+		$recs = array();
 		if(is_array($rec->data->recs)){
 			foreach ($rec->data->recs as $dRec){
 				$recs[] = $this->getCsvRec($rec, $dRec);
