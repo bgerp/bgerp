@@ -160,8 +160,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
 
 		foreach(array('quantity', 'reservedQuantity', 'freeQuantity', 'changeQuantity') as $fld) {
 		    $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
-		    $row->{$fld} = (empty($dRec->{$fld})) ? "<span class='quiet'>{$row->{$fld}}</span>" : $row->{$fld};
-		    $row->{$fld} = ht::styleIfNegative($row->{$fld}, $dRec->{$fld});
+		    $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
 		}
 
 		return $row;

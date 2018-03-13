@@ -406,7 +406,7 @@ abstract class deals_Helper
 		$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
 		$storeName = store_Stores::getTitleById($storeId);
 		$verbalQuantity = $Double->toVerbal($quantity);
-		$verbalQuantity = ht::styleIfNegative($verbalQuantity, $quantity);
+		$verbalQuantity = ht::styleNumber($verbalQuantity, $quantity);
 		$foundQuantity = $quantity;
 		
 		$text = "|Разполагаемо в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";

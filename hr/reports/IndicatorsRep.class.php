@@ -269,7 +269,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 
 	    if(isset($dRec->value) && empty($row->value)) {
 		    $row->value = $Double->toVerbal($dRec->value);
-		    $row->value = ht::styleIfNegative($row->value, $dRec->value);
+		    $row->value = ht::styleNumber($row->value, $dRec->value);
 		    	
 		    $start = acc_Periods::fetchField($rec->periods, 'start');
 		    $date = new DateTime($start);
