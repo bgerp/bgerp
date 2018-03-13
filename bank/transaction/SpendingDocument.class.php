@@ -85,7 +85,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
 	    					array('currency_Currencies', $rec->currencyId),
 	    					'quantity' => $sign * $rec->amount));
     	 
-    	if($reverse === TRUE && $rec->operationSysId == 'supplier2bankRet'){
+    	if($reverse === TRUE && ($rec->operationSysId == 'supplier2bankRet'  || $rec->operationSysId == 'supplierAdvance2bankRet')){
     		$entry2 = $entry[0];
     		$entry2['credit'] = $entry2['debit'];
     		$entry2['amount'] = abs($entry2['amount']);
