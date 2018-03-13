@@ -37,7 +37,7 @@ class batch_Items extends core_Master {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'batch, productId, storeId, quantity, state';
+    public $listFields = 'batch, productId, storeId, measureId=Мярка, quantity, state';
     
     
     /**
@@ -162,10 +162,9 @@ class batch_Items extends core_Master {
     	$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     	
     	$measureId = cat_Products::fetchField($rec->productId, 'measureId');
-    	$measureShort = cat_UoM::getShortName($measureId);
-    	$row->quantity .= " {$measureShort}";
+    	$row->measureId = cat_UoM::getShortName($measureId);
+    	$row->quantity = ht::styleIfNegative($row->quantity, $rec->quantity);
     	
-    	$row->quantity = "<span class='red'>{$row->quantity}</span>";
     	if($Definition = batch_Defs::getBatchDef($rec->productId)){
     		$row->batch = $Definition->toVerbal($rec->batch);
     	}
@@ -509,7 +508,7 @@ class batch_Items extends core_Master {
     	
     	// Подготвяме таблицата за рендиране
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet));
-    	$fields = arr::make("batch=Партида,storeId=Склад,quantity=Количество", TRUE);
+    	$fields = arr::make("batch=Партида,storeId=Склад,measureId=Мярка,quantity=Количество", TRUE);
     	if(count($data->rows)){
     		$fields = array('icon' => ' ') + $fields;
     	}
