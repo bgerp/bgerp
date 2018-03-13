@@ -75,8 +75,8 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         // 'caption=Дилъри,after=contragent');
         
         $fieldset->FLD('checkDate', 'date', 'caption=Към дата,after=contragent,mandatory');
-        $fieldset->FLD('totalNotPaid', 'varchar', 'input=none,single=none');
-        $fieldset->FLD('totalOverDue', 'varchar', 'input=none,single=none');
+        $fieldset->FLD('totalNotPaid', 'double', 'input=none,single=none');
+        $fieldset->FLD('totalOverDue', 'double', 'input=none,single=none');
     }
 
     /**
@@ -398,8 +398,8 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                 "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                 <small><div><!--ET_BEGIN contragent-->|Контрагент|*: [#contragent#]<!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN totalNotPaid-->|Обща стойност на неплатените задължения по фактури|*: [#totalNotPaid#]<!--ET_END from--></div></small>
-                                <small><div><!--ET_BEGIN totalOverDue-->|Обща стойност на просрочените задължения по фактури|*: [#totalOverDue#]<!--ET_END to--></div></small>
+                                <small><div><!--ET_BEGIN totalNotPaid-->|Обща стойност на НЕПЛАТЕНИТЕ задължения по фактури|*: [#totalNotPaid#]<!--ET_END from--></div></small>
+                                <small><div><!--ET_BEGIN totalOverDue-->|Обща стойност на ПРОСРОЧЕНИТЕ задължения по фактури|*: [#totalOverDue#]<!--ET_END to--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->contragent)) {
@@ -410,11 +410,11 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         
         if (isset($data->rec->totalNotPaid)) {
-            $fieldTpl->append($data->rec->totalNotPaid, 'totalNotPaid');
+            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->totalNotPaid), 'totalNotPaid');
         }
         
         if (isset($data->rec->totalOverDue)) {
-            $fieldTpl->append($data->rec->totalOverDue, 'totalOverDue');
+            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->totalOverDue), 'totalOverDue');
         }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
