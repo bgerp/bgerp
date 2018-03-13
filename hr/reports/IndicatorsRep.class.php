@@ -52,7 +52,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	{
 		$fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title)', 'caption=Месец,after=title');
 		$fieldset->FLD('indocators', 'keylist(mvc=hr_IndicatorNames,select=name,allowEmpty)', 'caption=Индикатори,after=periods');
-		$fieldset->FLD('personId', 'type_UserList', 'caption=Потребител,after=indocators');
+		$fieldset->FLD('personId', 'type_UserList', 'caption=Потребители,after=indocators');
 		$fieldset->FLD('formula', 'text(rows=2)', 'caption=Формула,after=indocators,single=none');
 	}
       
