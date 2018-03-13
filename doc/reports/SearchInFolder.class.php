@@ -180,13 +180,14 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	
 	/**
 	 * След подготовка на реда за експорт
-	 *
-	 * @param frame2_driver_Proto $Driver
-	 * @param stdClass $res
-	 * @param stdClass $rec
-	 * @param stdClass $dRec
+	 * 
+	 * @param frame2_driver_Proto $Driver - драйвер
+	 * @param stdClass $res               - резултатен запис
+	 * @param stdClass $rec               - запис на справката
+	 * @param stdClass $dRec              - запис на реда
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
 	 */
-	protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
 	{
 		$res->diff = self::getDiff($rec, $dRec);
 	}

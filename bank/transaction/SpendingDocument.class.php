@@ -48,7 +48,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
-            'reason' => $rec->reason,   // основанието за ордера
+            'reason' => (!empty($rec->reason)) ? $rec->reason : deals_Helper::getPaymentOperationText($rec->operationSysId),   // основанието за ордера
             'valior' => $rec->valior,   // датата на ордера
             'entries' => $entry,
         );
