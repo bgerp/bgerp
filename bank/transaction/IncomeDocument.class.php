@@ -87,7 +87,7 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
     	
     	$entry[] = $entry1;
 
-    	if($reverse === TRUE && $rec->operationSysId == 'bank2customerRet'){
+    	if($reverse === TRUE && ($rec->operationSysId == 'bank2customerRet' || $rec->operationSysId == 'bankAdvance2customerRet')){
     		$entry2 = $entry[0];
     		$entry2['credit'] = $entry2['debit'];
     		$entry2['amount'] = abs($entry2['amount']);

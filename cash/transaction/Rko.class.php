@@ -94,7 +94,7 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
     									array('currency_Currencies', $rec->currencyId),
     									'quantity' => $sign * $rec->amount));
     	
-    	if($reverse === TRUE && $rec->operationSysId == 'supplier2caseRet'){
+    	if($reverse === TRUE && $rec->operationSysId == 'supplier2caseRet' || $rec->operationSysId == 'supplierAdvance2caseRet'){
     		$entry2 = $entry[0];
     		$entry2['debit'] = $entry2['credit'];
     		$entry2['amount'] = abs($entry2['amount']);

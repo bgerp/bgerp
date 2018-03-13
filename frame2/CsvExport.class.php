@@ -86,7 +86,7 @@ class frame2_CsvExport extends core_Mvc
     	// Подготовка на данните
     	$csvRecs = $fields = array();
     	if($Driver = $Frame->getDriver($frameRec)){
-    		$csvRecs = $Driver->getCsvExportRecs($frameRec);
+    		$csvRecs = $Driver->getExportRecs($frameRec, $this);
     		$fields = $Driver->getCsvExportFieldset($frameRec);
     	}
     	 

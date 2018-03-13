@@ -101,11 +101,15 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         $form->setDefault('typeOfQuantity', 'TRUE');
         
-        // $form->setDefault('limmits', 'no');
+       
         
         if ($rec->limmits == 'no') {
-            
-           $form->rec->additional = array();
+ 
+        	$form->rec->additional = array();
+        	
+        	$form->setOptions('additional', array('input'=>'none'));
+
+          
             
         }
     }
@@ -615,14 +619,15 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     }
 
     /**
-     * След подготовка на реда за експорт
-     *
-     * @param frame2_driver_Proto $Driver            
-     * @param stdClass $res            
-     * @param stdClass $rec            
-     * @param stdClass $dRec            
-     */
-    protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+	 * След подготовка на реда за експорт
+	 * 
+	 * @param frame2_driver_Proto $Driver - драйвер
+	 * @param stdClass $res               - резултатен запис
+	 * @param stdClass $rec               - запис на справката
+	 * @param stdClass $dRec              - запис на реда
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+	 */
+	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
         $code = cat_Products::fetchField($dRec->productId, 'code');
         $res->code = (! empty($code)) ? $code : "Art{$dRec->productId}";
