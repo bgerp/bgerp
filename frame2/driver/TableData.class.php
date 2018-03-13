@@ -332,7 +332,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		$recs = array();
 		if(is_array($rec->data->recs)){
 			foreach ($rec->data->recs as $dRec){
-				$recs[] = $this->getCsvRec($rec, $dRec);
+				$recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
 			}
 		}
 		
@@ -345,9 +345,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * 
 	 * @param stdClass $rec
 	 * @param stdClass $dRec
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
 	 * @return stdClass
 	 */
-	public function getCsvRec_($rec, $dRec)
+	public function getExportRec_($rec, $dRec, $ExportClass)
 	{
 		return $dRec;
 	}

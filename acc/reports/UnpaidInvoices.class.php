@@ -366,17 +366,20 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         return $row;
     }
 
+    
+    
     /**
-     * След подготовка на реда за експорт
-     *
-     * @param frame2_driver_Proto $Driver            
-     * @param stdClass $res            
-     * @param stdClass $rec            
-     * @param stdClass $dRec            
-     */
-    protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+	 * След подготовка на реда за експорт
+	 * 
+	 * @param frame2_driver_Proto $Driver - драйвер
+	 * @param stdClass $res               - резултатен запис
+	 * @param stdClass $rec               - запис на справката
+	 * @param stdClass $dRec              - запис на реда
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+	 */
+	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $res->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
+        $res->paidAmount = self::getPaidAmount($dRec);
         
         $res->paidDates = self::getPaidDates($dRec, FALSE);
         
