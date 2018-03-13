@@ -1476,7 +1476,27 @@ class cal_Tasks extends embed_Manager
         $row->subTitle = '';
         
         if ($rec->progress) {
-            $row->subTitle .= $this->getVerbal($rec, 'progress');
+            $Driver = $this->getDriver($rec->id);
+            
+            if ($Driver) {
+                $progressArr = $Driver->getProgressSuggestions($rec);
+            } else {
+                $progressArr = array();
+            }
+            
+            Mode::push('text', 'plain');
+            $pVal = $this->getVerbal($rec, 'progress');
+            Mode::pop('text');
+            
+            $pValStr = $progressArr[$pVal];
+            
+            if ($pValStr && ($pValStr != $pVal)) {
+                $row->subTitle .= $pValStr;
+            } else {
+                $row->subTitle .= $this->getVerbal($rec, 'progress');
+            }
+            
+            $row->subTitle .= ' (' .cal_TaskProgresses::getLastProgressAuthor($rec->id) . ')';
         }
         
         $usersArr = type_Keylist::toArray($rec->assign);
@@ -1504,7 +1524,7 @@ class cal_Tasks extends embed_Manager
         if ($rec->state == 'active' && $rec->timeEnd) {
             $date = $rec->timeEnd;
         }
-        
+        // @todo - да се показва текста на вместо процента
         if (($rec->state == 'waiting' || $rec->state == 'pending') && $rec->timeStart) {
             $date = $rec->timeStart;
         }
