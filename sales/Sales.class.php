@@ -696,7 +696,9 @@ class sales_Sales extends deals_DealMaster
     			unset($allowedPaymentOperations['customer2caseAdvance'], 
     					$allowedPaymentOperations['customer2bankAdvance'], 
     					$allowedPaymentOperations['caseAdvance2customer'],
-    					$allowedPaymentOperations['bankAdvance2customer']);
+    					$allowedPaymentOperations['bankAdvance2customer'],
+    					$allowedPaymentOperations['caseAdvance2customerRet'],
+    					$allowedPaymentOperations['bankAdvance2customerRet']);
     		}
     	}
     	 

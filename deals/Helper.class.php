@@ -1416,4 +1416,18 @@ abstract class deals_Helper
 		
 		return $res;
 	}
+	
+	
+	/**
+	 * Дефолтното име на платежната операция
+	 * 
+	 * @param string $operationSysId
+	 * @return string
+	 */
+	public static function getPaymentOperationText($operationSysId)
+	{
+		$payments = cls::get('sales_Sales')->allowedPaymentOperations + cls::get('purchase_Purchases')->allowedPaymentOperations;
+		
+		return array_key_exists($operationSysId, $payments) ? $payments[$operationSysId]['title'] : '';
+	}
 }
