@@ -415,7 +415,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 							    <!--ET_BEGIN formula--><small>[#formula#]</small></div><!--ET_END formula--></fieldset><!--ET_END BLOCK-->"));
     
     	foreach (array('indocators', 'formula') as $fld){
-    		if(isset($data->rec->{$fld})){
+    		if(!empty($data->rec->{$fld})){
     			$fieldTpl->append($data->row->{$fld}, $fld);
     		}
     	}
