@@ -295,7 +295,7 @@ class core_Cron extends core_Manager
         $query = $this->getQuery();
         $i = 0;
         
-        $mCnt = 3;
+        $mCnt = 5;
         
         while ($rec = $query->fetch("#state != 'stopped'")) {
             
@@ -316,6 +316,8 @@ class core_Cron extends core_Manager
                 if ($maxRemain < $remainMinutes) {
                     
                     if ($mCnt-- <= 0) continue;
+                    
+                    self::logNotice('Форсирано пускане на пропуснат процес', $rec->id);
                 }
                 
                 $i++;
