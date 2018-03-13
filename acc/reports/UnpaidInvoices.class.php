@@ -69,12 +69,14 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
     {
         $fieldset->FLD('contragent', 
             'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 
-            'caption=Контрагент,after=title');
+            'caption=Контрагент,single=none,after=title');
         
         // $fieldset->FLD('dealers', 'users(rolesForAll=ceo|rep_cat, rolesForTeams=ceo|manager|rep_acc|rep_cat,allowEmpty)',
         // 'caption=Дилъри,after=contragent');
         
         $fieldset->FLD('checkDate', 'date', 'caption=Към дата,after=contragent,mandatory');
+        $fieldset->FLD('totalNotPaid', 'varchar', 'input=none,single=none');
+        $fieldset->FLD('totalOverDue', 'varchar', 'input=none,single=none');
     }
 
     /**
@@ -137,6 +139,9 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             $threadsId[$invoices->threadId] = $invoices->threadId;
         }
         
+        $totalNotPaid = 0;
+        $totalOverDue = 0;
+        
         if (is_array($threadsId)) {
             foreach ($threadsId as $thread) {
                 
@@ -158,6 +163,12 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                         $iRec = $Invoice->fetch(
                             'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate');
                         
+                        $totalNotPaid += $paydocs->notPaid;
+                        
+                        if ($iRec->dueDate && $paydocs->total > 0 && $iRec->dueDate < $rec->checkDate) {
+                            
+                            $totalOverDue += $paydocs->notPaid;
+                        }
                         // масива с фактурите за показване
                         if (! array_key_exists($iRec->id, $recs)) {
                             
@@ -180,6 +191,11 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                 }
             }
         }
+        
+        $rec->totalNotPaid = $totalNotPaid;
+        
+        $rec->totalOverDue = $totalOverDue;
+        // bp($rec);
         return $recs;
     }
 
@@ -305,10 +321,10 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             if ($dRec->dueDate) {
                 $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = "d.m.y");
                 
-//                 if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
-                    
-//                     $dueDate .= ' *';
-//                 }
+                // if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
+                
+                // $dueDate .= ' *';
+                // }
             } else {
                 $dueDate = '';
             }
@@ -328,6 +344,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+        // bp($rec);
         $isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
@@ -367,6 +384,43 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
     }
 
     /**
+     * След рендиране на единичния изглед
+     *
+     * @param cat_ProductDriver $Driver            
+     * @param embed_Manager $Embedder            
+     * @param core_ET $tpl            
+     * @param stdClass $data            
+     */
+    protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
+    {
+        $fieldTpl = new core_ET(
+            tr(
+                "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
+								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+                                <small><div><!--ET_BEGIN contragent-->|Контрагент|*: [#contragent#]<!--ET_END to--></div></small>
+                                <small><div><!--ET_BEGIN totalNotPaid-->|Обща стойност на неплатените задължения по фактури|*: [#totalNotPaid#]<!--ET_END from--></div></small>
+                                <small><div><!--ET_BEGIN totalOverDue-->|Обща стойност на просрочените задължения по фактури|*: [#totalOverDue#]<!--ET_END to--></div></small>
+                                </fieldset><!--ET_END BLOCK-->"));
+        
+        if (isset($data->rec->contragent)) {
+            $fieldTpl->append(doc_Folders::fetch($data->rec->contragent)->title, 'contragent');
+        }else{
+            $fieldTpl->append('Всички','contragent');
+        }
+        
+        
+        if (isset($data->rec->totalNotPaid)) {
+            $fieldTpl->append($data->rec->totalNotPaid, 'totalNotPaid');
+        }
+        
+        if (isset($data->rec->totalOverDue)) {
+            $fieldTpl->append($data->rec->totalOverDue, 'totalOverDue');
+        }
+        
+        $tpl->append($fieldTpl, 'DRIVER_FIELDS');
+    }
+
+    /**
      * След подготовка на реда за експорт
      *
      * @param frame2_driver_Proto $Driver            
@@ -383,7 +437,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         $res->dueDate = self::getDueDate($dRec, FALSE, $rec);
         
         if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
-
+            
             $res->dueDateStatus = 'Просрочен';
         }
         
