@@ -398,7 +398,7 @@ class frame2_Reports extends embed_Manager
     	
     	// На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
     	foreach ($userArr as $userId){
-    		bgerp_Notifications::add($msg, $url, $userId);
+    		bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
     	}
     }
     
