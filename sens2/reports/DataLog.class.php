@@ -38,7 +38,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
 	/**
      * Заглавие
      */
-    public  $title = 'Мониторинг » Записи на индикаторите';
+    public  $title = 'Мониторинг » Записи от IP контролерите';
     
     
     /**

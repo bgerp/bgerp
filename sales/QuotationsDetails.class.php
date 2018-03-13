@@ -402,6 +402,38 @@ class sales_QuotationsDetails extends doc_Detail {
     			$form->setField('term', 'input');
     		}
     	}
+    	
+    	// Показваме документа, който е бил източник на мастъра
+    	if ($masterRec->originId || $rec->originId) {
+    	    $fType = 'doc';
+    	    $oDocId = $rec->originId;
+    	    
+    	    if (!$oDocId) {
+    	        $oDocId = $masterRec->originId;
+    	    }
+    	    
+        	if ($oDocId && !Mode::is('stopRenderOrigin')) {
+        	    $document = doc_Containers::getDocument($oDocId);
+        	    if ($document && cls::haveInterface('doc_DocumentIntf', $document->instance)) {
+        	        // Добавяме клас, за да може формата да застане до привюто на документа/файла
+        	        if (Mode::is('screenMode', 'wide')) {
+        	            $className = " floatedElement ";
+        	            $form->class .= $className;
+        	        }
+        	        
+        	        if ($document->haveRightFor('single')) {
+        	            $form->layout = $form->renderLayout();
+        	            $tpl = new ET("<div class='preview-holder {$className}'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Източник") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
+        	            
+        	            $docHtml = $document->getInlineDocumentBody();
+        	            
+        	            $tpl->append($docHtml, 'DOCUMENT');
+        	            
+        	            $form->layout->append($tpl);
+        	        }
+        	    }
+        	}
+    	}
     }
     
     

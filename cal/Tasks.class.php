@@ -1473,6 +1473,32 @@ class cal_Tasks extends embed_Manager
         //Заглавие
         $row->title = $this->getVerbal($rec, 'title');
         
+        $row->subTitle = '';
+        
+        if ($rec->progress) {
+            $Driver = $this->getDriver($rec->id);
+            
+            if ($Driver) {
+                $progressArr = $Driver->getProgressSuggestions($rec);
+            } else {
+                $progressArr = array();
+            }
+            
+            Mode::push('text', 'plain');
+            $pVal = $this->getVerbal($rec, 'progress');
+            Mode::pop('text');
+            
+            $pValStr = $progressArr[$pVal];
+            
+            if ($pValStr && ($pValStr != $pVal)) {
+                $row->subTitle .= $pValStr;
+            } else {
+                $row->subTitle .= $this->getVerbal($rec, 'progress');
+            }
+            
+            $row->subTitle .= ' (' .cal_TaskProgresses::getLastProgressAuthor($rec->id) . ')';
+        }
+        
         $usersArr = type_Keylist::toArray($rec->assign);
         if (!empty($usersArr)) {
             
@@ -1485,7 +1511,8 @@ class cal_Tasks extends embed_Manager
             
             $Users = cls::get('type_userList');
             // В заглавието добавяме потребителя
-            $row->subTitle = $Users->toVerbal(type_userList::fromArray($usersArr));
+            $row->subTitle .= $row->subTitle ? ' - ' : '';
+            $row->subTitle .= $Users->toVerbal(type_userList::fromArray($usersArr));
             $row->subTitle .= $othersStr;
         }
        
@@ -1493,11 +1520,12 @@ class cal_Tasks extends embed_Manager
         $row->state = $rec->state;
         
         $date = '';
+		
         if ($rec->state == 'active' && $rec->timeEnd) {
-            $date = $rec->timeEnd; 
+            $date = $rec->timeEnd;
         }
         
-        if ($rec->state = 'waiting' && $rec->timeStart) {
+        if (($rec->state == 'waiting' || $rec->state == 'pending') && $rec->timeStart) {
             $date = $rec->timeStart;
         }
     

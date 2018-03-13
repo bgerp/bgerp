@@ -269,7 +269,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 
 	    if(isset($dRec->value) && empty($row->value)) {
 		    $row->value = $Double->toVerbal($dRec->value);
-		    $row->value = ht::styleIfNegative($row->value, $dRec->value);
+		    $row->value = ht::styleNumber($row->value, $dRec->value);
 		    	
 		    $start = acc_Periods::fetchField($rec->periods, 'start');
 		    $date = new DateTime($start);
@@ -311,10 +311,13 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		$newContext = self::fillMissingIndicators($context, $formula);
 		if(($expr = str::prepareMathExpr($formula, $newContext)) !== FALSE) {
 			$value = str::calcMathExpr($expr, $success);
-		}
-		if($success === FALSE) {
-			$value = tr("Невъзможно изчисление");
-		}
+           
+            if($success === FALSE) {
+                $value = tr("Невъзможно изчисление");
+            }
+		} else {
+            $value = tr("Некоректна формула");
+        }
 		
 		return $value;
 	}
@@ -412,7 +415,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 							    <!--ET_BEGIN formula--><small>[#formula#]</small></div><!--ET_END formula--></fieldset><!--ET_END BLOCK-->"));
     
     	foreach (array('indocators', 'formula') as $fld){
-    		if(isset($data->rec->{$fld})){
+    		if(!empty($data->rec->{$fld})){
     			$fieldTpl->append($data->row->{$fld}, $fld);
     		}
     	}

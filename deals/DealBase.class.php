@@ -627,7 +627,7 @@ abstract class deals_DealBase extends core_Master
 				foreach (array('quantity', 'shipQuantity', 'blQuantity', 'inStock') as $q){
 					if(!isset($expRec->{$q})) continue;
 					$row->{$q} = $Double->toVerbal($expRec->{$q});
-					$row->{$q} = ($expRec->{$q} == 0) ? "<span class='quiet'>{$row->{$q}}</span>" : ht::styleIfNegative($row->{$q}, $expRec->{$q});
+					$row->{$q} = ht::styleNumber($row->{$q}, $expRec->{$q});
 				}
 				
 				$report[$productId] = $row;

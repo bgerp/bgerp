@@ -454,7 +454,7 @@ class cat_products_Packagings extends core_Detail
         }
         
         $data->retUrl = (isset($data->retUrl)) ? $data->retUrl : cat_Products::getSingleUrlArray($data->masterId);
-        if ($this->haveRightFor('add', (object)array('productId' => $data->masterId))) {
+        if ($data->rejected !== TRUE && $this->haveRightFor('add', (object)array('productId' => $data->masterId))) {
             $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => $data->retUrl);
         }
         
@@ -488,6 +488,10 @@ class cat_products_Packagings extends core_Detail
         
         $table = cls::get('core_TableView', array('mvc' => $this));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        
+        if($data->rejected === TRUE){
+        	unset($data->listFields['_rowTools']);
+        }
         
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         

@@ -109,6 +109,13 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
     							'reason' => "Плащане с '{$type}'",
     							);
     		}
+    	} elseif($rec->operationSysId == 'case2customerRet' || $rec->operationSysId == 'caseAdvance2customerRet'){
+    		$entry2 = $entry[0];
+    		$entry2['credit'] = $entry2['debit'];
+    		$entry2['amount'] = abs($entry2['amount']);
+    		$entry2['debit']['quantity'] = abs($entry2['debit']['quantity']);
+    		$entry2['credit']['quantity'] = abs($entry2['credit']['quantity']);
+    		$entry[] = $entry2;
     	}
     	
     	return $entry;

@@ -81,7 +81,7 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
     		$amount = $rec->amount * $rec->rate;
     	}
     	
-    	$entry = array('amount' => $sign * $amount, 
+    	$entry[] = array('amount' => $sign * $amount, 
     			
     				   'debit' => array($rec->debitAccount, 
     				   					array($rec->contragentClassId, $rec->contragentId), 
@@ -93,7 +93,15 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
     									array('cash_Cases', $rec->peroCase), 
     									array('currency_Currencies', $rec->currencyId),
     									'quantity' => $sign * $rec->amount));
-    	$entry = array($entry);
+    	
+    	if($reverse === TRUE && $rec->operationSysId == 'supplier2caseRet' || $rec->operationSysId == 'supplierAdvance2caseRet'){
+    		$entry2 = $entry[0];
+    		$entry2['debit'] = $entry2['credit'];
+    		$entry2['amount'] = abs($entry2['amount']);
+    		$entry2['debit']['quantity'] = abs($entry2['debit']['quantity']);
+    		$entry2['credit']['quantity'] = abs($entry2['credit']['quantity']);
+    		$entry[] = $entry2;
+    	}
     	
     	return $entry;
     }

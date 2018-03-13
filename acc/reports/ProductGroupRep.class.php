@@ -203,10 +203,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
 		
 		foreach(array('quantity', 'primeCost', 'sellCost') as $fld) {
 		    $row->{$fld} = $Double->toVerbal($dRec->{$fld});
-		    $row->{$fld} = ht::styleIfNegative($row->{$fld}, $dRec->{$fld});
-		    if($dRec->{$fld} == 0){
-		    	$row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
-		    }
+		    $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
 		}
 
 		if(isset($dRec->group)){
