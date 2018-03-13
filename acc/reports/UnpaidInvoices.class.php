@@ -399,6 +399,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                 <small><div><!--ET_BEGIN contragent-->|Контрагент|*: [#contragent#]<!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN totalNotPaid-->|Обща стойност на <span style= color:red>НЕПЛАТЕНИТЕ</span>  задължения по фактури|*: [#totalNotPaid#]<!--ET_END from--></div></small>
+                                <small><div><!--ET_BEGIN totalNotPaid-->|Обща стойност на НЕПЛАТЕНИТЕ задължения по фактури|*: [#totalNotPaid#]<!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN totalOverDue-->|Обща стойност на ПРОСРОЧЕНИТЕ задължения по фактури|*: [#totalOverDue#]<!--ET_END to--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         
