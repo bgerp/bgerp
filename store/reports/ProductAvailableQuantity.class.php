@@ -69,7 +69,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('limmits', 'enum(yes=С лимити,no=Без лимити)', 
+        $fieldset->FLD('limmits', 'enum(no=Без лимити,yes=С лимити)', 
             'caption=Вид на справката,removeAndRefreshForm,after=title');
         
         $fieldset->FLD('typeOfQuantity', 'enum(FALSE=Налично,TRUE=Разполагаемо)', 
@@ -98,15 +98,25 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $rec = $form->rec;
         
         $rec->flag = TRUE;
-        
+      
         $form->setDefault('typeOfQuantity', 'TRUE');
         
-        if ($rec->limmits == 'no') {
+        
+        
+        if ($form->cmd == 'refresh' && $rec->limmits == 'no') {
             
             $form->rec->additional = array();
             
-            // $form->setOptions('additional', array('input'=>'none'));
+          $form->setField('additional', 'input=none');
         }
+      
+        if ($form->cmd == 'refresh' && $rec->limmits == 'yes') {
+        
+            $form->rec->additional = array();
+        
+            $form->setField('additional', 'input=input');
+        }
+        
     }
 
     /**
@@ -119,6 +129,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+        
         if ($form->isSubmitted()) {
             
             if ($form->rec->limmits == 'no') {
@@ -428,7 +439,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 }
             }
             
-            // bp($recs);
+            
             return $recs;
         }
         
