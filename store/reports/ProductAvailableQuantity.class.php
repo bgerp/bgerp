@@ -101,16 +101,11 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         $form->setDefault('typeOfQuantity', 'TRUE');
         
-       
-        
         if ($rec->limmits == 'no') {
- 
-        	$form->rec->additional = array();
-        	
-        	$form->setOptions('additional', array('input'=>'none'));
-
-          
             
+            $form->rec->additional = array();
+            
+            // $form->setOptions('additional', array('input'=>'none'));
         }
     }
 
@@ -124,18 +119,14 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
-      
-        
         if ($form->isSubmitted()) {
             
             if ($form->rec->limmits == 'no') {
-                $form->rec->additional = array();
                 
+                $form->rec->additional = array();
             }
             
             if ($form->rec->limmits == 'yes') {
-                
-               
                 
                 $details = (json_decode($form->rec->additional));
                 
@@ -233,7 +224,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             if ($form->rec->limmits == 'no') {
                 
                 $form->rec->additional = array();
-            
             }
             
             if ($form->rec->limmits == 'yes') {
@@ -375,7 +365,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         // Вариант без лимити
         if ($rec->limmits == 'no') {
-           
+            
             $sQuery = store_Products::getQuery();
             
             $cQuery = cat_Products::getQuery();
@@ -393,7 +383,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             }
             $recs = array();
             while ($recProduct = $sQuery->fetch()) {
-                
                 
                 if (is_array($groupProductsArr)) {
                     foreach ($groupProductsArr as $code) {
@@ -569,11 +558,11 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
         $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
-
-        if ($rec->limmits == 'yes'){
-        $fld->FLD('minQuantity', 'double', 'caption=Минимално,smartCenter');
-        $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
-        $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
+        
+        if ($rec->limmits == 'yes') {
+            $fld->FLD('minQuantity', 'double', 'caption=Минимално,smartCenter');
+            $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
+            $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
         }
         return $fld;
     }
