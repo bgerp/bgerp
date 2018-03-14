@@ -44,7 +44,7 @@ abstract class deals_Helper
 	{
 	    $p = 0;
 	    if ($price) {
-	        $p = round(log10($price));
+	        $p = round(log10(abs($price)));
 	    }
 	    
 	    // Плаваща прецизност

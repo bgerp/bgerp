@@ -438,13 +438,13 @@ protected function getTableFieldSet($rec, $export = FALSE)
     	$fld->FLD('folderId', 'key(mvc=doc_Folders,select=title)', 'caption=Папка');
     	$fld->FLD('code', 'varchar', 'caption=Код');
     }
-    $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+    $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=productCell leftCol wrap');
     $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
     $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
-    $fld->FLD('price', 'double', 'caption=Прод. цена,smartCenter');
-    $fld->FLD('selfPrice', 'double', 'caption=Себестойност,smartCenter');
-    $fld->FLD('catPrice', 'double', 'caption=Цена по политика,smartCenter');
-    $fld->FLD('deviationDownSelf', 'percent', 'caption=Отклонение->Под себестойност,tdClass=centered');
+    $fld->FLD('price', 'double', 'caption=Цени->Продажна,smartCenter');
+    $fld->FLD('selfPrice', 'double', 'caption=Цени->Себест-ст,smartCenter');
+    $fld->FLD('catPrice', 'double', 'caption=Цени->Политика,smartCenter');
+    $fld->FLD('deviationDownSelf', 'percent', 'caption=Отклонение->Под Себест-ст,tdClass=centered');
     $fld->FLD('deviationCatPrice', 'percent', 'caption=Отклонение->Спрямо политика,tdClass=centered');
     
     return $fld;
@@ -539,7 +539,7 @@ protected function detailRecToVerbal($rec, &$dRec)
     $singleUrl = $Sale->getUrlWithAccess($Sale->getInstance(), $Sale->that);
     
     if (isset($dRec->saleId)) {
-        $row->saleId = "<div ><span class= 'state-{$state} document-handler' >" . ht::createLink("#{$handle}", 
+        $row->saleId = "<div ><span class= 'state-{$Sale->fetchField('state')} document-handler' >" . ht::createLink("#{$handle}", 
             $singleUrl, FALSE, "ef_icon={$Sale->singleIcon}") . "</span>" . ' »  ' . "<span class= 'quiet small'>" .
              $folderLink . "</span></div>";
     }

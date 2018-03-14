@@ -105,9 +105,15 @@ class docoffice_Jodconverter extends core_Manager
         $Script->setCheckProgramsArr('java');
         // Стартираме скрипта Aсинхронно
         if ($Script->run($params['asynch']) === FALSE) {
-            $params['type'] = 'jpg';
+            if ($params['outType']) {
+                $params['type'] = $params['outType'];
+            }
             fileman_Indexes::createError($params);
+            
+            return NULL;
         }
+        
+        return $Script->outFilePath;
     }
     
     
@@ -128,7 +134,7 @@ class docoffice_Jodconverter extends core_Manager
         
         // Десериализираме параметрите
         $params = unserialize($script->params);
-
+        
         // Ако има callBack функция
         if ($params['callBack']) {
             
