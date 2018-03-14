@@ -31,8 +31,10 @@ class prosody_RestApi {
     {
         expect($conf = core_Packs::getConfig('prosody'));
         
+        $endpoint = strtolower($endpoint);
         if (!empty($params)) {
-            $data = json_encode($params);
+            $params = array_map('strtolower', $params);
+            $data   = json_encode($params);
         }
         
         $ch = curl_init();
