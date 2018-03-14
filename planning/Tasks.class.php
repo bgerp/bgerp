@@ -688,7 +688,7 @@ class planning_Tasks extends core_Master
 			if($id = cat_products_Params::fetchField("#classId = {$tasksClassId} AND #productId = {$rec->id} AND #paramId = {$o->paramId}", 'id')){
 				$nRec->id = $id;
 			}
-					
+			
 			cat_products_Params::save($nRec, NULL, "REPLACE");
 		}
 	}
@@ -1096,7 +1096,7 @@ class planning_Tasks extends core_Master
     	if($onlyActive === TRUE){
     		$query->where("#state = 'active' || #state = 'wakeup' || #state = 'stopped'");
     	} else {
-    		$query->where("#state != 'rejected' AND #state != 'draft'");
+    		$query->where("#state != 'rejected'");
     	}
     	
     	while($rec = $query->fetch()){
