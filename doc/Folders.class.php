@@ -1755,9 +1755,7 @@ class doc_Folders extends core_Master
         $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From` за изходящите писма от тази папка->Имейл, input=input');
         
 		// Показва се само когато се настройват всички потребители
-        if ($form->rec->_userOrRole && (type_UserOrRole::getRoleIdFromSys($form->rec->_userOrRole) === 0)) {
-            $form->FNC('closeTime' , 'time(suggestions=1 ден|3 дни|7 дни)', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty, input=input');
-        }
+        $form->FNC('closeTime' , 'time(suggestions=1 ден|3 дни|7 дни)', "caption=Автоматично затваряне на нишките след->Време, allowEmpty, input=input, settingForAll={$rec->inCharge}");
         
         // Изходящ имейл по-подразбиране за съответната папка
         try {
