@@ -96,27 +96,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-        
         $rec->flag = TRUE;
-      
+        
         $form->setDefault('typeOfQuantity', 'TRUE');
-        
-        
-        
-        if ($form->cmd == 'refresh' && $rec->limmits == 'no') {
-            
-            $form->rec->additional = array();
-            
-          $form->setField('additional', 'input=none');
-        }
-      
-        if ($form->cmd == 'refresh' && $rec->limmits == 'yes') {
-        
-            $form->rec->additional = array();
-        
-            $form->setField('additional', 'input=input');
-        }
-        
     }
 
     /**
@@ -129,6 +111,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+        if ($form->rec->limmits == 'yes') {
+            $details = (json_decode($form->rec->additional));
+        }
         
         if ($form->isSubmitted()) {
             
@@ -232,13 +217,13 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         } else {
             
             $rec = $form->rec;
+            
             if ($form->rec->limmits == 'no') {
                 
                 $form->rec->additional = array();
             }
             
             if ($form->rec->limmits == 'yes') {
-                
                 if ($form->cmd == 'refresh' && $rec->groupId) {
                     
                     $maxPost = ini_get("max_input_vars") - self::MAX_POST_ART;
@@ -439,11 +424,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 }
             }
             
-            
             return $recs;
         }
         
-        // Вариант с лимитио
+        // Вариант с лимити
         
         if ($rec->limmits == 'yes') {
             
@@ -559,7 +543,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      *            - таблицата за експорт ли е
      * @return core_FieldSet - полетата
      */
-    protected function getTableFieldSet($rec, $export = FALSE)
+ protected function getTableFieldSet($rec, $export = FALSE)
     {
         $fld = cls::get('core_FieldSet');
         
@@ -619,15 +603,14 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     }
 
     /**
-	 * След подготовка на реда за експорт
-	 * 
-	 * @param frame2_driver_Proto $Driver - драйвер
-	 * @param stdClass $res               - резултатен запис
-	 * @param stdClass $rec               - запис на справката
-	 * @param stdClass $dRec              - запис на реда
-	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
-	 */
-	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
+     * След подготовка на реда за експорт
+     *
+     * @param frame2_driver_Proto $Driver            
+     * @param stdClass $res            
+     * @param stdClass $rec            
+     * @param stdClass $dRec            
+     */
+    protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
     {
         $code = cat_Products::fetchField($dRec->productId, 'code');
         $res->code = (! empty($code)) ? $code : "Art{$dRec->productId}";
