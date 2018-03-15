@@ -342,13 +342,13 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                             }
                             
                             if ($countUnset > 0) {
-                                $groupName = cat_Products::getTitleById($rec->groupId);
+                                $groupName = cat_Groups::getTitleById($rec->groupId);
                                 $maxArt = self::NUMBER_OF_ITEMS_TO_ADD;
                                 
                                 $form->setWarning('groupId', 
                                     "$countUnset артикула от група $groupName няма да  бъдат добавени.
             						Максимален брой артикули за еднократно добавяне - $maxArt.
-            						§§Може да добавите още артикули от групата при следваща редакция.");
+            						Може да добавите още артикули от групата при следваща редакция.");
                             }
                         }
                         
