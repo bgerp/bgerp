@@ -32,11 +32,12 @@ class doc_SharablePlg extends core_Plugin
 
         // Поле за потребителите, с които е споделен документа (ако няма)
         if (!$mvc->getField('priority', FALSE)) {
+        	$columns = (Mode::is('screenMode', 'narrow')) ? 2 : 4;
             $mvc->FLD('priority', 'enum(normal=Нормален,
                                      low=Нисък,
                                      high=Спешен,
                                      critical=Критичен)',
-            'caption=Споделяне->Приоритет,maxRadio=4,columns=4,notNull,value=normal,autohide,changable');
+            "caption=Споделяне->Приоритет,maxRadio=4,columns={$columns},notNull,value=normal,autohide,changable");
         }
 
         // Поле за първите виждания на документа от потребителите с които той е споделен
