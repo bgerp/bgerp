@@ -45,7 +45,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter,store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting,store_plg_Request, acc_plg_Contable, cond_plg_DefaultValues,
                     plg_Clone,doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search,deals_plg_SelectInvoice';
 
     
     /**
@@ -55,6 +55,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @see doc_SharablePlg
      */
     public $shareUserRoles = 'ceo, store';
+    
+    
+    /**
+     * Кой може да избира ф-ра по документа?
+     */
+    public $canSelectinvoice = 'cash, ceo, purchase, sales, acc, store';
     
     
     /**
