@@ -210,6 +210,11 @@ class label_Prints extends core_Master
         $objId = $rec->objectId;
         $templateId = $rec->templateId;
         
+        if(isset($classId) && isset($objId)){
+        	$intfInst = cls::getInterface('label_SequenceIntf', $classId);
+            $labelDataArr = $intfInst->getLabelPlaceholders($objId);
+        }
+        
         // Определяме най-добрия шаблон
         if (!empty($labelDataArr)) {
             $templatesArr = label_Templates::getTemplatesByDocument($classId, $objId);
