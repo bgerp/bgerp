@@ -22,7 +22,7 @@ class lab_Tests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, doc_ActivatePlg, plg_Clone, doc_DocumentPlg, plg_Printing,
+    var $loadList = 'plg_RowTools2, doc_ActivatePlg,  plg_Clone, doc_DocumentPlg, plg_Printing,
                      lab_Wrapper, plg_Sorting, bgerp_plg_Blank, doc_plg_SelectFolder,planning_plg_StateManager';
 
     /**
@@ -144,15 +144,15 @@ class lab_Tests extends core_Master
      */
     function description()
     {
-        // $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory,oldFieldName=handler');
+        $this->FLD('title', 'varchar(128)', 'caption=Наименование,input=none,oldFieldName=handler');
         $this->FLD('type', 'varchar(64)', 'caption=Образец,notSorting');
         $this->FLD('provider', 'varchar(64)', 'caption=Доставчик,notSorting');
         $this->FLD('batch', 'varchar(64)', 'caption=Партида,notSorting');
-        
+        $this->FLD('referention', 'set()','caption=Референция,after=title');
         $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Описание,notSorting');
         $this->FLD('parameters', 'keylist(mvc=lab_Parameters,select=name)', 'caption=Параметри,notSorting,after=bringing');
       //  $this->FLD('bringing', 'enum(vendor=Възложителя,performer=Изпълнителя)', "caption=Мострата се доставя от,maxRadio=2,columns=2,after=batch");
-        
+        $this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Нотифициране->Потребители,mandatory');
         $this->FLD('activatedOn', 'datetime', 'caption=Активиран на,input=none,notSorting');
         $this->FLD('lastChangedOn', 'datetime', 'caption=Последна промяна,input=none,notSorting');
         $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит)', 
@@ -176,7 +176,9 @@ class lab_Tests extends core_Master
         
         }
          $form->setDefault('bringing', 'vendor');
-        
+
+         
+         self::sendNotification($rec);
         
         
     }
@@ -187,6 +189,7 @@ class lab_Tests extends core_Master
     public static function on_BeforeSave($mvc, $id, $rec)
     {
       
+       
         if ($rec->foreignId) {
             
             $rec->originId = $rec->foreignId;
@@ -194,6 +197,13 @@ class lab_Tests extends core_Master
         
         
     }
+    
+    public static function on_AfterSavePendingDocument($mvc, &$rec)
+    {
+        self::sendNotification($rec);
+        
+    }
+    
 
     /**
      * Добавя бутоните в лентата с инструменти на единичния изглед
@@ -219,12 +229,14 @@ class lab_Tests extends core_Master
      */
     function act_CompareTwoTests()
     {
-        bp($rec);
+        
         $cRec = new stdClass();
         
         $form = cls::get('core_form', array(
             'method' => 'GET'
         ));
+        
+       
         $TestDetails = cls::get('lab_TestDetails');
         $Methods = cls::get('lab_Methods');
         $Params = cls::get('lab_Parameters');
@@ -237,6 +249,7 @@ class lab_Tests extends core_Master
         $queryRight = $this->getQuery();
         
         while ($rec = $queryRight->fetch("#id != {$leftTestId} AND state='active'")) {
+           
             $rightTestSelectArr[$rec->id] = $rec->title;
         }
         
@@ -252,7 +265,7 @@ class lab_Tests extends core_Master
         $form->setOptions('rightTestId', $rightTestSelectArr);
         
         // END Prepare form
-        
+      
         $cRec = $form->input();
         $formSubmitted = (boolean) count((array) $cRec);
         
@@ -353,6 +366,9 @@ class lab_Tests extends core_Master
             
             $data = new stdClass();
             $data->listFields = arr::make($this->listFields, TRUE);
+            
+          
+            
             
             $tpl = $table->get($tableData, 
                 "counter=N,methodName=Метод,paramName=Параметър,resultsLeft=Тест No {$cRec->leftTestId},resultsRight=Тест No {$cRec->rightTestId}");
@@ -589,7 +605,7 @@ class lab_Tests extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'activate') {
-            
+              
             if (is_object($rec) && $rec->id) {
                 
                 $haveDetail = is_object(lab_TestDetails::fetch("#testId = {$rec->id}"));
@@ -597,7 +613,7 @@ class lab_Tests extends core_Master
                 $haveDetail = FALSE;
             }
             
-            if (! $rec->id || $rec->state != 'draft' || ! $haveDetail) {
+            if (! $rec->id || $rec->state != 'pending' || ! $haveDetail) {
                 $requiredRoles = 'no_one';
                 
                 return;
@@ -639,4 +655,37 @@ class lab_Tests extends core_Master
         
         return $row;
     }
+    
+    /**
+     * Изпращане на нотификации на споделените потребители
+     *
+     * @param stdClass $rec
+     * @return void
+     */
+    public static function sendNotification($rec)
+    {
+        // Ако няма избрани потребители за нотифициране, не се прави нищо
+        $userArr = keylist::toArray($rec->sharedUsers);
+        if(!count($userArr)) return;
+         
+       // $text = (!empty($rec->notificationText)) ? $rec->notificationText : self::$defaultNotificationText;
+        $msg = new core_ET($text);
+         
+        // Заместване на параметрите в текста на нотификацията
+//         if($Driver = self::getDriver($rec)){
+//             $params = $Driver->getNotificationParams($rec);
+//             if(is_array($params)){
+//                 $msg->placeArray($params);
+//             }
+//         }
+         
+        $url = array('lab_Test', 'single', $rec->id);
+        $msg = $msg->getContent();
+         
+        // На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
+        foreach ($userArr as $userId){
+            bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
+        }
+    }
+    
 }
