@@ -44,7 +44,7 @@ class export_ExportTypeIntf
      * @param integer $clsId
      * @param integer $objId
      *
-     * @return boolean
+     * @return string
      */
     function getExportTitle($clsId, $objId)
     {
@@ -60,7 +60,7 @@ class export_ExportTypeIntf
      * @param integer $clsId
      * @param integer|stdClass $objId
      *
-     * @return boolean
+     * @return NULL|string
      */
     function makeExport($form, $clsId, $objId)
     {

@@ -1428,6 +1428,13 @@ class doc_Linked extends core_Manager
             $attr['ef_icon'] = $doc->getIcon($doc->that);
             $attr['title'] = 'Документ|*: ' . $docRow->title;
             
+            // Ако документа е оттеглен
+            $dRec = $doc->fetch();
+            if ($dRec->state == 'rejected') {
+                $attr['class'] = 'state-rejected';
+                $attr['style'] = 'text-decoration: line-through; color: #666;';
+            }
+            
             $link = ht::createLink($hnd, $url, NULL, $attr);
             
             $folderId = doc_Containers::fetchField($valId, 'folderId');

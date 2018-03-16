@@ -959,6 +959,9 @@ class planning_Jobs extends core_Master
     	$data->packagingData->masterId = $data->rec->productId;
     	$data->packagingData->tpl = new core_ET("[#CONTENT#]");
     	$data->packagingData->retUrl = planning_Jobs::getSingleUrlArray($data->rec->id);
+    	if($data->rec->state == 'rejected'){
+    		$data->packagingData->rejected = TRUE;
+    	}
     	cls::get('cat_products_Packagings')->preparePackagings($data->packagingData);
     	
     	$data->components = array();
@@ -1255,12 +1258,12 @@ class planning_Jobs extends core_Master
     		$date = dt::verbal2mysql($rec->activatedOn, FALSE);
     		$isRejected = ($rec->state == 'rejected');
     		
-    		sales_PrimeCostByDocument::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec->id, 1, $isRejected);
+    		hr_Indicators::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec->id, 1, $isRejected);
     		
     		if($Driver = cat_Products::getDriver($rec->productId)){
     			$difficulty = $Driver->getDifficulty($rec->productId);
     			if(isset($difficulty)){
-    				sales_PrimeCostByDocument::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec2->id, $difficulty, $isRejected);
+    				hr_Indicators::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec2->id, $difficulty, $isRejected);
     			}
     		}
     	}

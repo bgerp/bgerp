@@ -206,6 +206,9 @@ class planning_ProductionTaskDetails extends core_Detail
     		$pRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
     		if($pRec->canStore != 'yes'){
     			$form->setField('serial', 'input=none');
+    			if($rest = $masterRec->plannedQuantity - $masterRec->totalQuantity){
+    				$form->setDefault('quantity', $rest);
+    			}
     		}
     		
     		// Показване на очакваните к-ва
@@ -237,6 +240,9 @@ class planning_ProductionTaskDetails extends core_Detail
     	$employees = planning_Hr::getPersonsCodesArr($masterRec->employees);
     	if(count($employees)){
     		$form->setSuggestions('employees', $employees);
+    		if(count($employees) == 1){
+    			$form->setDefault('employees', keylist::addKey(key($employees), ''));
+    		}
     	} else {
     		$form->setField('employees', 'input=none');
     	}

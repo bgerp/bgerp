@@ -52,7 +52,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	{
 		$fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title)', 'caption=Месец,after=title');
 		$fieldset->FLD('indocators', 'keylist(mvc=hr_IndicatorNames,select=name,allowEmpty)', 'caption=Индикатори,after=periods');
-		$fieldset->FLD('personId', 'type_UserList', 'caption=Потребител,after=indocators');
+		$fieldset->FLD('personId', 'type_UserList', 'caption=Потребители,after=indocators');
 		$fieldset->FLD('formula', 'text(rows=2)', 'caption=Формула,after=indocators,single=none');
 	}
       
@@ -269,7 +269,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 
 	    if(isset($dRec->value) && empty($row->value)) {
 		    $row->value = $Double->toVerbal($dRec->value);
-		    $row->value = ht::styleIfNegative($row->value, $dRec->value);
+		    $row->value = ht::styleNumber($row->value, $dRec->value);
 		    	
 		    $start = acc_Periods::fetchField($rec->periods, 'start');
 		    $date = new DateTime($start);
@@ -325,13 +325,14 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	
 	/**
 	 * След подготовка на реда за експорт
-	 *
-	 * @param frame2_driver_Proto $Driver
-	 * @param stdClass $res
-	 * @param stdClass $rec
-	 * @param stdClass $dRec
+	 * 
+	 * @param frame2_driver_Proto $Driver - драйвер
+	 * @param stdClass $res               - резултатен запис
+	 * @param stdClass $rec               - запис на справката
+	 * @param stdClass $dRec              - запис на реда
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
 	 */
-	protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
 	{
 		$res->person = ($dRec->person) ? crm_Persons::fetchField($dRec->person, 'name') : tr('Общо');
 		if($dRec->indicatorId != 'formula'){
@@ -415,7 +416,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 							    <!--ET_BEGIN formula--><small>[#formula#]</small></div><!--ET_END formula--></fieldset><!--ET_END BLOCK-->"));
     
     	foreach (array('indocators', 'formula') as $fld){
-    		if(isset($data->rec->{$fld})){
+    		if(!empty($data->rec->{$fld})){
     			$fieldTpl->append($data->row->{$fld}, $fld);
     		}
     	}

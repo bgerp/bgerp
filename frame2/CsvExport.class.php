@@ -25,7 +25,7 @@ class frame2_CsvExport extends core_Mvc
     /**
      *  Интерфейси
      */
-    public $interfaces = 'export_ExportTypeIntf';
+    public $interfaces = 'export_ExportTypeIntf, export_ToXlsExportIntf';
     
     
     /**
@@ -51,7 +51,7 @@ class frame2_CsvExport extends core_Mvc
      * @param integer $clsId
      * @param integer $objId
      *
-     * @return boolean
+     * @return string
      */
     public function getExportTitle($clsId, $objId)
     {
@@ -66,7 +66,7 @@ class frame2_CsvExport extends core_Mvc
      * @param integer $clsId
      * @param integer|stdClass $objId
      *
-     * @return boolean
+     * @return string|NULL
      */
     public function makeExport($form, $clsId, $objId)
     {
@@ -86,7 +86,7 @@ class frame2_CsvExport extends core_Mvc
     	// Подготовка на данните
     	$csvRecs = $fields = array();
     	if($Driver = $Frame->getDriver($frameRec)){
-    		$csvRecs = $Driver->getCsvExportRecs($frameRec);
+    		$csvRecs = $Driver->getExportRecs($frameRec, $this);
     		$fields = $Driver->getCsvExportFieldset($frameRec);
     	}
     	 

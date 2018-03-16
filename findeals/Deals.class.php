@@ -648,7 +648,7 @@ class findeals_Deals extends deals_DealBase
     	
     	foreach (array('amountDeal', 'debitAmount', 'creditAmount') as $fld){
     		if($fld == 'amountDeal' && !empty($data->rec->{$fld})){
-    			$data->rec->{$fld} /= $rate;
+    			@$data->rec->{$fld} /= $rate;
     		}
     		$data->row->{$fld} = $this->getFieldType('amountDeal')->toVerbal($data->rec->{$fld});
     		if($data->rec->{$fld} == 0){

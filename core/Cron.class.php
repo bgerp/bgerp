@@ -295,6 +295,8 @@ class core_Cron extends core_Manager
         $query = $this->getQuery();
         $i = 0;
         
+        $mCnt = 5;
+        
         while ($rec = $query->fetch("#state != 'stopped'")) {
             
             // Кога е бил последно стартиран този процес?
@@ -307,8 +309,17 @@ class core_Cron extends core_Manager
             // Колко минути остават до следващото стартиране
             $remainMinutes = floor(($currentMinute - $rec->offset) / $rec->period ) * $rec->period + $rec->period + $rec->offset - $currentMinute;
             
-            if( (($currentMinute % $rec->period) == $rec->offset) || ($rec->period > 60 && $lastSchedule > $lastStarting && $rec->period/2 < $remainMinutes)) {
-               
+            $maxRemain = 60;
+            
+            if( (($currentMinute % $rec->period) == $rec->offset) || ($rec->period > $maxRemain && $lastSchedule > $lastStarting && $maxRemain < $remainMinutes)) {
+                
+                if ($maxRemain < $remainMinutes) {
+                    
+                    if ($mCnt-- <= 0) continue;
+                    
+                    self::logNotice('Форсирано пускане на пропуснат процес', $rec->id);
+                }
+                
                 $i++;
                 fopen(toUrl(array(
                             'Act' => 'ProcessRun',

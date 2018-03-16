@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -456,17 +456,14 @@ class findeals_AdvanceReports extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-list'])){
     		$row->title = $mvc->getLink($rec->id, 0);
     		
     		$amount = ($rec->amount + $rec->amountVat) / $rec->currencyRate;
     		$row->amount = $mvc->getFieldType('amount')->toVerbal($amount);
-    		
-    		if($amount ==- 0){
-    			$row->amount = "<span class='quiet'><b>{$row->amount}</b></span>";
-    		}
+    		$row->amount = ht::styleNumber($row->amount, $amount);
     	}
     }
 }

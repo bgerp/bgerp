@@ -203,10 +203,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
 		
 		foreach(array('quantity', 'primeCost', 'sellCost') as $fld) {
 		    $row->{$fld} = $Double->toVerbal($dRec->{$fld});
-		    $row->{$fld} = ht::styleIfNegative($row->{$fld}, $dRec->{$fld});
-		    if($dRec->{$fld} == 0){
-		    	$row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
-		    }
+		    $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
 		}
 
 		if(isset($dRec->group)){
@@ -230,13 +227,14 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     
 	/**
 	 * След подготовка на реда за експорт
-	 *
-	 * @param frame2_driver_Proto $Driver
-	 * @param stdClass $res
-	 * @param stdClass $rec
-	 * @param stdClass $dRec
+	 * 
+	 * @param frame2_driver_Proto $Driver - драйвер
+	 * @param stdClass $res               - резултатен запис
+	 * @param stdClass $rec               - запис на справката
+	 * @param stdClass $dRec              - запис на реда
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
 	 */
-	protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
 	{
 		$res->docId = "#" . doc_Containers::getDocument($dRec->docId)->getHandle($dRec->docId, 0);
 	}

@@ -1,7 +1,5 @@
 <?php
 
-
-
 /**
  * Мениджър за тестовете
  *
@@ -15,40 +13,34 @@
  */
 class lab_Tests extends core_Master
 {
-    
-    
+
     /**
      * Заглавие
      */
     var $title = 'Лабораторни тестове';
-    
-    
+
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools2, doc_ActivatePlg, plg_Clone, doc_DocumentPlg, plg_Printing,
                      lab_Wrapper, plg_Sorting, bgerp_plg_Blank, doc_plg_SelectFolder,planning_plg_StateManager';
-    
-    
+
     /**
      * Дали може да бъде само в началото на нишка
      */
     var $onlyFirstInThread = TRUE;
-    
-    
+
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, title,type,batch,origin,
                        assignor,activatedOn=Активиран,lastChangedOn=Последно';
 
-    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'title';
-    
-    
+
     /**
      * Детайла, на модела
      */
@@ -57,8 +49,7 @@ class lab_Tests extends core_Master
     /**
      * Кой може да активира задачата
      */
-    public $canActivate = 'ceo';
-
+    public $canActivate = 'ceo,lab';
 
     /**
      * Кой има право да променя?
@@ -67,70 +58,58 @@ class lab_Tests extends core_Master
      */
     public $canEdit;
 
-
     /**
      * Кой има право да добавя?
      *
      * @var string|array
      */
-    public $canAdd;
-
-
+    public $canAdd = 'ceo,lab';
 
     /**
      * Роли, които могат да записват
      */
     var $canWrite = 'lab,ceo';
-    
-    
+
     /**
      * Кой има право да чете?
      */
     var $canRead = 'lab,ceo';
-    
-    
+
     /**
      * Кой може да го отхвърли?
      */
     var $canReject = 'lab,ceo';
-    
-    
+
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'lab,ceo';
+     * Кой може да го разглежда?
+     */
+    var $canList = 'lab,ceo';
 
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'lab,ceo';
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'lab,ceo';
-	
-    
     /**
      * Заглавие на единичен документ
      */
     var $singleTitle = 'Лабораторен тест';
-    
-    
+
     /**
      * Икона за единичния изглед
      */
     var $singleIcon = 'img/16/ruler.png';
-    
-    
+
     /**
      * Шаблон за единичния изглед
      */
     var $singleLayoutFile = 'lab/tpl/SingleLayoutTests.shtml';
-    
-    
+
     /**
      * Абревиатура
      */
     var $abbr = "Lab";
-    
-    
+
     /**
      * Групиране на документите
      */
@@ -140,13 +119,11 @@ class lab_Tests extends core_Master
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'ceo, lab';
-    
-    
+
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
-    
 
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
@@ -154,57 +131,70 @@ class lab_Tests extends core_Master
      * @see plg_Clone
      */
     public $cloneDetails = 'lab_TestDetails';
-    
-    
+
     /**
      * Полета, които при клониране да не са попълнени
      *
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'title';
-    
-    
+
     /**
      * Описание на модела
      */
     function description()
     {
-       // $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory,oldFieldName=handler');
+        // $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory,oldFieldName=handler');
         $this->FLD('type', 'varchar(64)', 'caption=Образец,notSorting');
         $this->FLD('provider', 'varchar(64)', 'caption=Доставчик,notSorting');
         $this->FLD('batch', 'varchar(64)', 'caption=Партида,notSorting');
-      //  $this->FLD('madeBy', 'varchar(255)', 'caption=Изпълнител');
-        $this->FLD('origin', 'enum(order=Поръчка,research=Разработка,external=Външна)', 'caption=Произход,notSorting');
-      //  $this->FLD('assignor', 'varchar(255)', 'caption=Възложител');
+        
         $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Описание,notSorting');
-        $this->FLD('parameters', 'keylist(mvc=lab_Parameters,select=name)', 'caption=Параметри,notSorting');
-
+        $this->FLD('parameters', 'keylist(mvc=lab_Parameters,select=name)', 'caption=Параметри,notSorting,after=bringing');
+      //  $this->FLD('bringing', 'enum(vendor=Възложителя,performer=Изпълнителя)', "caption=Мострата се доставя от,maxRadio=2,columns=2,after=batch");
+        
         $this->FLD('activatedOn', 'datetime', 'caption=Активиран на,input=none,notSorting');
         $this->FLD('lastChangedOn', 'datetime', 'caption=Последна промяна,input=none,notSorting');
-        $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит)', 'caption=Статус,input=none,notSorting');
+        $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит)', 
+            'caption=Статус,input=none,notSorting');
         $this->FLD('searchd', 'text', 'caption=searchd, input=none, notSorting');
     }
 
-
     public static function on_AfterInputeditForm($mvc, &$form)
     {
+        
+        $rec = $form->rec;
 
-//        $param = lab_Parameters::getQuery()->fetch()->name;
-//
-//        bp($param);
+        
+        if ($rec->foreignId) {
 
-        $pQuery = lab_Parameters::getQuery();
-        while($param = $pQuery ->fetch()->name) {
-
-
-           // $form->this->FLD('parameters', "set($param)", 'caption=Параметри,notSorting');
+        $firstDocument = doc_Threads::getFirstDocument(doc_Containers::fetch($rec->foreignId)->threadId);
+        
+        $handle = $firstDocument->getHandle();
+        
+       $form->setDefault('batch', "{$handle}");
+        
         }
-
-
+         $form->setDefault('bringing', 'vendor');
+        
+        
+        
     }
 
+    /**
+     * Преди запис в модела
+     */
+    public static function on_BeforeSave($mvc, $id, $rec)
+    {
+      
+        if ($rec->foreignId) {
+            
+            $rec->originId = $rec->foreignId;
+        }
+        
+        
+    }
 
-    
     /**
      * Добавя бутоните в лентата с инструменти на единичния изглед
      */
@@ -217,11 +207,11 @@ class lab_Tests extends core_Master
                 'id' => $data->rec->id,
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Сравняване', $url, 'id=compare,class=btn-compare,title=Сравняване на два теста,ef_icon=img/16/report.png');
+            $data->toolbar->addBtn('Сравняване', $url, 
+                'id=compare,class=btn-compare,title=Сравняване на два теста,ef_icon=img/16/report.png');
         }
     }
-    
-    
+
     /**
      * Сравнение на два теста
      *
@@ -229,9 +219,12 @@ class lab_Tests extends core_Master
      */
     function act_CompareTwoTests()
     {
-        $cRec = new stdClass;
+        bp($rec);
+        $cRec = new stdClass();
         
-        $form = cls::get('core_form', array('method' => 'GET'));
+        $form = cls::get('core_form', array(
+            'method' => 'GET'
+        ));
         $TestDetails = cls::get('lab_TestDetails');
         $Methods = cls::get('lab_Methods');
         $Params = cls::get('lab_Parameters');
@@ -243,7 +236,7 @@ class lab_Tests extends core_Master
         // Prepare right test
         $queryRight = $this->getQuery();
         
-        while($rec = $queryRight->fetch("#id != {$leftTestId} AND state='active'")) {
+        while ($rec = $queryRight->fetch("#id != {$leftTestId} AND state='active'")) {
             $rightTestSelectArr[$rec->id] = $rec->title;
         }
         
@@ -271,7 +264,7 @@ class lab_Tests extends core_Master
             
             $queryTestDetailsLeft = $TestDetails->getQuery();
             
-            while($rec = $queryTestDetailsLeft->fetch("#testId = {$cRec->leftTestId}")) {
+            while ($rec = $queryTestDetailsLeft->fetch("#testId = {$cRec->leftTestId}")) {
                 $testDetailsLeft[] = (array) $rec;
             }
             
@@ -280,7 +273,7 @@ class lab_Tests extends core_Master
             // Right test
             $queryTestDetailsLeft = $TestDetails->getQuery();
             
-            while($rec = $queryTestDetailsLeft->fetch("#testId = {$cRec->rightTestId}")) {
+            while ($rec = $queryTestDetailsLeft->fetch("#testId = {$cRec->rightTestId}")) {
                 $testDetailsRight[] = (array) $rec;
             }
             
@@ -289,83 +282,88 @@ class lab_Tests extends core_Master
             // allParamsArr
             $queryAllParams = $Params->getQuery();
             
-            while($rec = $queryAllParams->fetch("#id != 0")) {
+            while ($rec = $queryAllParams->fetch("#id != 0")) {
                 $allParamsArr[$rec->id] = $rec->name;
             }
             
             // allMethodsArr
             $queryAllMethods = $Methods->getQuery();
             
-            while($rec = $queryAllMethods->fetch("#id != 0")) {
+            while ($rec = $queryAllMethods->fetch("#id != 0")) {
                 $allMethodsArr[$rec->id]['methodName'] = $rec->name;
                 $allMethodsArr[$rec->id]['paramId'] = $rec->paramId;
                 $allMethodsArr[$rec->id]['paramName'] = $allParamsArr[$rec->paramId];
             }
             
-            
             $methodsLeft = $methodsRight = array();
-            if(count($testDetailsLeft)){
-            	foreach ($testDetailsLeft as $lRec) {
-            		$methodsLeft[] = $lRec['methodId'];
-            	}
+            if (count($testDetailsLeft)) {
+                foreach ($testDetailsLeft as $lRec) {
+                    $methodsLeft[] = $lRec['methodId'];
+                }
             }
-            	
-            if(count($methodsRight)){
-            	foreach ($testDetailsRight as $rRec) {
-            		$methodsRight[] = $rRec['methodId'];
-            	}
+            
+            if (count($methodsRight)) {
+                foreach ($testDetailsRight as $rRec) {
+                    $methodsRight[] = $rRec['methodId'];
+                }
             }
-                
+            
             $methodsUnion = array_unique(array_merge($methodsLeft, $methodsRight));
             
             // END Prepare $methodsUnion
             
-            //      
+            //
             $counter = 0;
             $tableRow = array();
             $tableData = array();
             
             // Prepare table data for compare two tests
             foreach ($methodsUnion as $methodId) {
-                $counter++;
+                $counter ++;
                 $tableRow['counter'] = $counter;
                 $tableRow['methodName'] = $allMethodsArr[$methodId]['methodName'];
                 $tableRow['paramName'] = $allMethodsArr[$methodId]['paramName'];
                 
                 $tableRow['resultsLeft'] = "---";
                 
-                if(count($testDetailsLeft)){
-                	foreach($testDetailsLeft as $v) {
-                		if ($v['methodId'] == $methodId) {
-                			$tableRow['resultsLeft'] = $v['results'];
-                		}
-                	}
+                if (count($testDetailsLeft)) {
+                    foreach ($testDetailsLeft as $v) {
+                        if ($v['methodId'] == $methodId) {
+                            $tableRow['resultsLeft'] = $v['results'];
+                        }
+                    }
                 }
                 
                 $tableRow['resultsRight'] = "---";
                 
-                if(count($testDetailsRight)){
-                	foreach($testDetailsRight as $v) {
-                		if ($v['methodId'] == $methodId) {
-                			$tableRow['resultsRight'] = $v['results'];
-                		}
-                	}
+                if (count($testDetailsRight)) {
+                    foreach ($testDetailsRight as $v) {
+                        if ($v['methodId'] == $methodId) {
+                            $tableRow['resultsRight'] = $v['results'];
+                        }
+                    }
                 }
                 
                 $tableData[] = $tableRow;
             }
             
-            $table = cls::get('core_TableView', array('mvc' => $this));
+            $table = cls::get('core_TableView', array(
+                'mvc' => $this
+            ));
             
             $data = new stdClass();
             $data->listFields = arr::make($this->listFields, TRUE);
             
-            $tpl = $table->get($tableData, "counter=N,methodName=Метод,paramName=Параметър,resultsLeft=Тест No {$cRec->leftTestId},resultsRight=Тест No {$cRec->rightTestId}");
+            $tpl = $table->get($tableData, 
+                "counter=N,methodName=Метод,paramName=Параметър,resultsLeft=Тест No {$cRec->leftTestId},resultsRight=Тест No {$cRec->rightTestId}");
             
-            $tpl->prepend("<div style='margin-bottom: 20px;'>
+            $tpl->prepend(
+                "<div style='margin-bottom: 20px;'>
                                <b>Сравнение на тестове</b>
-                               <br/>" . $cRec->leftTestId . ". " . $leftTestName . "
-                               <br/>" . $cRec->rightTestId . ". " . $rightTestName . "
+                               <br/>" . $cRec->leftTestId . ". " .
+                     $leftTestName . "
+                               <br/>" . $cRec->rightTestId . ". " .
+                     $rightTestName . "
                            </div>");
             
             // END Prepare table data for compare two tests
@@ -379,8 +377,10 @@ class lab_Tests extends core_Master
             $viewCompareTests .= "<tr>
                                       <td colspan='5' style='text-align: center;'>
                                           <b>Сравнение на тестове</b>
-                                          <br/>" . $cRec->leftTestId . ". " . $leftTestName . "
-                                          <br/>" . $cRec->rightTestId . ". " . $rightTestName . "
+                                          <br/>" . $cRec->leftTestId .
+                 ". " . $leftTestName . "
+                                          <br/>" . $cRec->rightTestId .
+                 ". " . $rightTestName . "
                                       </td>
                                   </tr>";
             $viewCompareTests .= "<tr class='title'>
@@ -395,9 +395,15 @@ class lab_Tests extends core_Master
                 $viewCompareTests .= "<tr>
                                           <td>" . $tableRow['counter'] . "</td>
                                           <td>" . $tableRow['methodName'] . "</td>
-                                          <td>" . $tableRow['paramName'] . "</td>
-                                          <td style='text-align: " . ($tableRow['resultsLeft'] == '---' ? 'center; background: #f0f0f0' : 'right') . ";'>" . nl2br($tableRow['resultsLeft']) . "</td>
-                                          <td style='text-align: " . ($tableRow['resultsRight'] == '---' ? 'center; background: #f0f0f0' : 'right') . ";'>" . nl2br($tableRow['resultsRight']) . "</td>
+                                          <td>" . $tableRow['paramName'] .
+                     "</td>
+                                          <td style='text-align: " .
+                     ($tableRow['resultsLeft'] == '---' ? 'center; background: #f0f0f0' : 'right') . ";'>" .
+                     nl2br($tableRow['resultsLeft']) .
+                     "</td>
+                                          <td style='text-align: " .
+                     ($tableRow['resultsRight'] == '---' ? 'center; background: #f0f0f0' : 'right') . ";'>" .
+                     nl2br($tableRow['resultsRight']) . "</td>
                                       </tr>";
             }
             
@@ -411,13 +417,12 @@ class lab_Tests extends core_Master
             return $this->renderWrapping($form->renderHtml());
         }
     }
-    
-    
+
     /**
      * Филтър
      *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
+     * @param core_Mvc $mvc            
+     * @param stdClass $data            
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
@@ -430,7 +435,8 @@ class lab_Tests extends core_Master
             $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
             $data->listFilter->FNC('dateStartFilter', 'date', 'caption=От,placeholder=От');
             $data->listFilter->FNC('dateEndFilter', 'date', 'caption=До,placeholder=До');
-            $data->listFilter->FNC('paramIdFilter', 'key(mvc=lab_Parameters,select=name, allowEmpty)', 'caption=Параметри,refreshForm');
+            $data->listFilter->FNC('paramIdFilter', 'key(mvc=lab_Parameters,select=name, allowEmpty)', 
+                'caption=Параметри,refreshForm');
             $data->listFilter->FNC('searchString', 'varchar(255)', 'caption=Търсене,placeholder=Търсене');
             $data->listFilter->showFields = 'dateStartFilter, dateEndFilter, paramIdFilter, searchString';
             
@@ -470,25 +476,25 @@ class lab_Tests extends core_Master
                 // Ако имаме избрани параметри от филтъра:
                 // 1. Правим масив с техните id-та
                 // 2. Търсим за всяко id на параметър от горния масив, кои методи използват тези параметри
-                // 3. Търсим записи от TestDetails къде има поле #menuId, което е сред елементите на масива с избраните методи 
-                // 4. От избраните записи от TestDetails правим масив с id-тата на тестовете 
-                // 5. Правим заявка, която вади тестовете, чийто id-та са IN (масива с id-та на избраните тестове)   
+                // 3. Търсим записи от TestDetails къде има поле #menuId, което е сред елементите на масива с избраните методи
+                // 4. От избраните записи от TestDetails правим масив с id-тата на тестовете
+                // 5. Правим заявка, която вади тестовете, чийто id-та са IN (масива с id-та на избраните тестове)
                 if ($data->listFilter->rec->paramIdFilter) {
                     $selectedParamsArr = keylist::toArray($data->listFilter->rec->paramIdFilter);
                     
-                    // If some params are selected in the filter 
+                    // If some params are selected in the filter
                     if (count($selectedParamsArr)) {
                         // Prepare array with method Id-s (which methods have the selected params)
                         $methodsArr = array();
                         $condMethods = NULL;
                         
                         // Add SQL to $condMethods (add $methodId for every method which has the selected #paramId)
-                        foreach($selectedParamsArr as $v) {
+                        foreach ($selectedParamsArr as $v) {
                             $queryMethods = $mvc->Methods->getQuery();
                             $where = "#paramId = {$v}";
                             
                             while ($recMethods = $queryMethods->fetch($where)) {
-                                if (!array_key_exists($recMethods->id, $methodsArr)) {
+                                if (! array_key_exists($recMethods->id, $methodsArr)) {
                                     $methodsArr[$recMethods->id] = $recMethods->name;
                                     $condMethods .= "#methodId = {$recMethods->id} OR ";
                                 }
@@ -500,7 +506,7 @@ class lab_Tests extends core_Master
                         // END Prepare array with method Id-s (which methods have the selected params)
                         
                         if (count($methodsArr)) {
-                            // Cut ' OR ' from the end of $condMethods string 
+                            // Cut ' OR ' from the end of $condMethods string
                             $condMethods = substr($condMethods, 0, strlen($condMethods) - 4);
                             
                             // Prepare $testsFilteredByParamsList
@@ -513,8 +519,9 @@ class lab_Tests extends core_Master
                             }
                             
                             if (strlen($testsFilteredByParamsList)) {
-                                // Cut ',' from the end of $testsFilteredByParamsList string 
-                                $testsFilteredByParamsList = substr($testsFilteredByParamsList, 0, strlen($testsFilteredByParamsList) - 1);
+                                // Cut ',' from the end of $testsFilteredByParamsList string
+                                $testsFilteredByParamsList = substr($testsFilteredByParamsList, 0, 
+                                    strlen($testsFilteredByParamsList) - 1);
                                 
                                 $condTestsFilteredByParams = "#id IN ({$testsFilteredByParamsList})";
                             } else {
@@ -529,7 +536,7 @@ class lab_Tests extends core_Master
                         }
                     }
                     
-                    // END If params are selected in the filter    
+                    // END If params are selected in the filter
                 }
                 
                 // END Prepare $condTestsFilteredByParams
@@ -575,38 +582,35 @@ class lab_Tests extends core_Master
         $data->query->orderBy('#activatedOn', 'DESC');
         $data->query->orderBy('#createdOn', 'DESC');
     }
-    
-    
+
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        
-            
         if ($action == 'activate') {
+            
+            if (is_object($rec) && $rec->id) {
                 
-            if(is_object($rec) && $rec->id) {
-
                 $haveDetail = is_object(lab_TestDetails::fetch("#testId = {$rec->id}"));
             } else {
                 $haveDetail = FALSE;
             }
-                
-            if (!$rec->id || $rec->state != 'draft' || !$haveDetail) {
+            
+            if (! $rec->id || $rec->state != 'draft' || ! $haveDetail) {
                 $requiredRoles = 'no_one';
-                    
+                
                 return;
             }
         }
         
-        if(is_object($rec)) {
+        if (is_object($rec)) {
             
             if ($action == 'compare') {
                 
                 $haveOtherTests = is_object(lab_Tests::fetch("#id != {$rec->id}"));
                 
-                if ($rec->state != 'active' || !$haveOtherTests) {
+                if ($rec->state != 'active' || ! $haveOtherTests) {
                     $requiredRoles = 'no_one';
                     
                     return;
@@ -614,14 +618,14 @@ class lab_Tests extends core_Master
             }
         }
     }
-    
-    
+
     /**
      * Интерфейсен метод на doc_DocumentIntf
      */
     function getDocumentRow($id)
     {
-        if(!$id) return;
+        if (! $id)
+            return;
         
         $rec = $this->fetch($id);
         $title = $this->singleTitle . " " . $rec->title;
@@ -635,5 +639,4 @@ class lab_Tests extends core_Master
         
         return $row;
     }
-
 }

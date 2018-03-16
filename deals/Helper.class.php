@@ -44,7 +44,7 @@ abstract class deals_Helper
 	{
 	    $p = 0;
 	    if ($price) {
-	        $p = round(log10($price));
+	        $p = round(log10(abs($price)));
 	    }
 	    
 	    // Плаваща прецизност
@@ -406,7 +406,7 @@ abstract class deals_Helper
 		$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
 		$storeName = store_Stores::getTitleById($storeId);
 		$verbalQuantity = $Double->toVerbal($quantity);
-		$verbalQuantity = ht::styleIfNegative($verbalQuantity, $quantity);
+		$verbalQuantity = ht::styleNumber($verbalQuantity, $quantity);
 		$foundQuantity = $quantity;
 		
 		$text = "|Разполагаемо в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";
@@ -634,6 +634,18 @@ abstract class deals_Helper
 								$d->discount = max($d->discount, $p->discount);
 							}
 			
+							if(isset($p->fee) && $p->fee > 0){
+								$d->fee += $p->fee;
+							}
+							
+							if(isset($p->deliveryTimeFromFee)){
+								$d->deliveryTimeFromFee = min($d->deliveryTimeFromFee, $p->deliveryTimeFromFee);
+							}
+							
+							if($p->syncFee === TRUE){
+								$d->syncFee = TRUE;
+							}
+							
 							$sign = ($parameter == 'arrays') ? 1 : -1;
 							
 							//@TODO да може да е -
@@ -1403,5 +1415,19 @@ abstract class deals_Helper
 		$res = ($makeInvoice == 'yes') ? TRUE : FALSE;
 		
 		return $res;
+	}
+	
+	
+	/**
+	 * Дефолтното име на платежната операция
+	 * 
+	 * @param string $operationSysId
+	 * @return string
+	 */
+	public static function getPaymentOperationText($operationSysId)
+	{
+		$payments = cls::get('sales_Sales')->allowedPaymentOperations + cls::get('purchase_Purchases')->allowedPaymentOperations;
+		
+		return array_key_exists($operationSysId, $payments) ? $payments[$operationSysId]['title'] : '';
 	}
 }

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   frame2
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -111,7 +111,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	
 		// Подготовка на пейджъра
 		if(!Mode::isReadOnly()){
-			$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+			setIfNot($itemsPerPage, $rec->listItemsPerPage, $this->listItemsPerPage);
+			$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $itemsPerPage));
 			$data->Pager->setPageVar('frame2_Reports', $rec->id);
 			$data->Pager->itemsCount = count($data->recs);
 		}
@@ -320,16 +321,18 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	/**
 	 * Връща редовете на CSV файл-а
 	 *
-	 * @param stdClass $rec
-	 * @return array
+	 * @param stdClass $rec               - запис
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+	 * @return array $recs                - записите за експорт
 	 */
-	public function getCsvExportRecs($rec)
+	public function getExportRecs($rec, $ExportClass)
 	{
-		$recs = array();
+		expect(cls::haveInterface('export_ExportTypeIntf', $ExportClass));
 		
+		$recs = array();
 		if(is_array($rec->data->recs)){
 			foreach ($rec->data->recs as $dRec){
-				$recs[] = $this->getCsvRec($rec, $dRec);
+				$recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
 			}
 		}
 		
@@ -342,9 +345,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * 
 	 * @param stdClass $rec
 	 * @param stdClass $dRec
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
 	 * @return stdClass
 	 */
-	public function getCsvRec_($rec, $dRec)
+	public function getExportRec_($rec, $dRec, $ExportClass)
 	{
 		return $dRec;
 	}
@@ -392,6 +396,19 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		$res = (is_array($diff) && count($diff));
 	
 		return $res;
+	}
+	
+	
+	/**
+	 * След добавени
+	 *
+	 * @param frame2_driver_Proto $Driver - драйвер
+	 * @param embed_Manager $Embedder     - ембедър
+	 * @param core_Fieldset $fieldset     - форма
+	 */
+	protected static function on_AfterAddFields(frame2_driver_Proto $Driver, embed_Manager $Embedder, core_Fieldset &$fieldset)
+	{
+		$fieldset->FLD('listItemsPerPage', 'int(min=10,Max=100)', "caption=Други настройки->Елементи на страница,after=changeFields,autohide,placeholder={$Driver->listItemsPerPage}");
 	}
 	
 	

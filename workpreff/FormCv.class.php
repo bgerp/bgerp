@@ -189,7 +189,7 @@ class workpreff_FormCv extends core_Master
 		if($form->isSubmitted()){
 			$rec = $form->rec;
 
-			+$rec->state = 'active';
+			$rec->state = 'active';
 			$this->save($rec);
 		
 			return followRetUrl(NULL, '|Вашето CV е прието. Благодарим за проявения интерес. ', 'success');
