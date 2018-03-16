@@ -9,7 +9,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Склад » Артикули налични количества
+ * @title     Склад » Артикули наличности и лимити
  */
 class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 {
