@@ -102,6 +102,7 @@ class embed_Manager extends core_Master
             if($driver = $this->getDriver($rec)){
             	$driver = cls::get($rec->{$this->driverClassField}, array('Embedder' => $this));
             	$driver->addFields($form);
+            	$driver->invoke('AfterAddFields', array($this, &$form));
             }
             
             $form->input(NULL, 'silent');
@@ -242,6 +243,7 @@ class embed_Manager extends core_Master
 				
 				$fieldset = cls::get('core_Fieldset');
 				$driver->addFields($fieldset);
+				$driver->invoke('AfterAddFields', array($mvc, &$fieldset));
 				
 				foreach($fieldset->fields as $name => $field) {
 					
@@ -266,8 +268,10 @@ class embed_Manager extends core_Master
 	 */
     public static function getDriverFields($driver, $onlySingleFields = FALSE, $returnAsFieldSet = FALSE)
     {
-        $fieldset = cls::get('core_Fieldset');
+        $me = cls::get(get_called_class());
+    	$fieldset = cls::get('core_Fieldset');
         $driver->addFields($fieldset);
+        $driver->invoke('AfterAddFields', array($me, &$fieldset));
         
         $res = array(); 
         if(is_array($fieldset->fields)) {

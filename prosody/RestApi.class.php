@@ -32,7 +32,7 @@ class prosody_RestApi {
         expect($conf = core_Packs::getConfig('prosody'));
         
         if (!empty($params)) {
-            $data = json_encode($params);
+            $data   = json_encode($params);
         }
         
         $ch = curl_init();
@@ -73,6 +73,7 @@ class prosody_RestApi {
      */
     public static function sendMessage($user, $message)
     {
+        $user = strtolower($user);
         $endpoint = 'message' . '/' . $user;
         $type = 'POST';
         $res = self::doRequest($type, $endpoint, array('message' => $message));
@@ -90,6 +91,7 @@ class prosody_RestApi {
      */
      public static function addUser($user, $password)
      {
+        $user = strtolower($user);
         $endpoint = 'user' . '/' . $user;
         
         $res = self::doRequest('POST', $endpoint, array("password" => $password));
@@ -107,6 +109,7 @@ class prosody_RestApi {
      */
      public static function changePassword($user, $password)
      {
+        $user = strtolower($user);
         $endpoint = 'user' . '/' . $user . '/password';
         
         $res = self::doRequest('PATCH', $endpoint, array("password" => $password));
@@ -124,6 +127,7 @@ class prosody_RestApi {
      */
     public static function removeUser($user)
     {
+        $user = strtolower($user);
         $endpoint = 'user' . '/' . $user;
     
         $res = self::doRequest('DELETE', $endpoint);
@@ -141,6 +145,7 @@ class prosody_RestApi {
      */
      public static function addRoster($user, $contact)
      {
+        $user = strtolower($user);
         $domain = core_Packs::getConfigKey('prosody', 'PROSODY_DOMAIN');
         $endpoint = 'roster' . '/' . $user;
         $type = 'POST';
@@ -162,6 +167,7 @@ class prosody_RestApi {
      */
      public static function deleteRoster($user, $contact)
     {
+        $user = strtolower($user);
         $domain = core_Packs::getConfigKey('prosody', 'PROSODY_DOMAIN');
         $endpoint = 'roster' . '/' . $user;
         if (strpos($contact, "@") === FALSE ) {
@@ -182,6 +188,7 @@ class prosody_RestApi {
      */
      public static function getRoster($user)
      {
+        $user = strtolower($user);
         $endpoint = 'roster' . '/' . $user;
         $type = 'GET';
         $res = self::doRequest($type, $endpoint);

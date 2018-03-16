@@ -151,7 +151,7 @@ class lab_Tests extends core_Master
         
         $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Описание,notSorting');
         $this->FLD('parameters', 'keylist(mvc=lab_Parameters,select=name)', 'caption=Параметри,notSorting,after=bringing');
-        $this->FLD('bringing', 'enum(vendor=Възложителя,performer=Изпълнителя)', "caption=Мострата се доставя от,maxRadio=2,columns=2,after=batch");
+      //  $this->FLD('bringing', 'enum(vendor=Възложителя,performer=Изпълнителя)', "caption=Мострата се доставя от,maxRadio=2,columns=2,after=batch");
         
         $this->FLD('activatedOn', 'datetime', 'caption=Активиран на,input=none,notSorting');
         $this->FLD('lastChangedOn', 'datetime', 'caption=Последна промяна,input=none,notSorting');

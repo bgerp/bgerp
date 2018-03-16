@@ -25,8 +25,10 @@ class docoffice_ConverterIntf
      * 				$params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането
      * 				$params['fileInfoId'] - id към bgerp_FileInfo
      * 				$params['asynch'] - Дали скрипта да се стартира асинхронно или не
+     * 
+     * @return string|NULL
      */
-    function convertDoc($fileHnd, $toExt, $params=array())
+    function convertDoc($fileHnd, $toExt, &$params=array())
     {
         
         return $this->class->convertDoc($fileHnd, $toExt, $params);

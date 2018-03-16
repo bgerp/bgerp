@@ -45,7 +45,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter,store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting,store_plg_Request, acc_plg_Contable, cond_plg_DefaultValues,
                     plg_Clone,doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search,deals_plg_SelectInvoice';
 
     
     /**
@@ -55,6 +55,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @see doc_SharablePlg
      */
     public $shareUserRoles = 'ceo, store';
+    
+    
+    /**
+     * Кой може да избира ф-ра по документа?
+     */
+    public $canSelectinvoice = 'cash, ceo, purchase, sales, acc, store';
     
     
     /**
@@ -542,21 +548,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     		}
     		
     		if(deals_Helper::showInvoiceBtn($rec->threadId) && in_array($rec->state, array('draft', 'active', 'pending'))){
-    				
-    			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
-    			if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
-    				if(sales_Invoices::haveRightFor('single', $iRec)){
-    					$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
-    					$data->toolbar->addBtn("Фактура|* {$arrow}", array('sales_Invoices', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на фактурата издадена към експедиционното нареждането,ef_icon=img/16/invoice.png');
-    				}
-    			} else {
-    				if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
-    					$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/invoice.png,row=2');
-    				}
+    			if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
+    				$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/invoice.png,row=2');
     			}
     		}
     	}
-    		
+    	
     	// Бутони за редакция и добавяне на ЧМР-та
     	if(in_array($rec->state, array('active', 'pending'))) {
     		if($cmrId = trans_Cmrs::fetchField("#originId = {$rec->containerId} AND #state != 'rejected'")){

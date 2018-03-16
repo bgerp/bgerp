@@ -1015,6 +1015,10 @@ class cat_Boms extends core_Master
     			} else {
     				$price = planning_ObjectResources::getWacAmountInProduction(1, $productId, $date);
     			}
+    			
+    			if(isset($price) && $price < 0){
+    				$price = NULL;
+    			}
     		}
     	} else {
     		$pInfo = cat_Products::getProductInfo($productId);

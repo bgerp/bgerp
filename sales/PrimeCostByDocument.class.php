@@ -433,60 +433,26 @@ class sales_PrimeCostByDocument extends core_Manager
 					// Сумата е X / броя на групите в които се среща от тези, които се следят
 					$indicatorId = $selectedGroups[$groupId]->groupRec->id;
 					$value = $sign * (round(($rec->quantity * $rec->sellCost) / $delimiter, 2));
-					self::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorId, $value, $isRejected);
+					hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorId, $value, $isRejected);
 				
 					// Индикатор за делта по групите
 					$indicatorDeltaId = $selectedGroups[$groupId]->deltaRec->id;
 					$delta = $sign * (round($rec->delta / $delimiter, 2));
-					self::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorDeltaId, $delta, $isRejected);
+					hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorDeltaId, $delta, $isRejected);
 				
 					// Сумиране по индикатор на общата сума на групите
-					self::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $groupSumId, $value, $isRejected);
+					hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $groupSumId, $value, $isRejected);
 				}
 			} else {
 				
 				// Сумиране на индикатор без група
 				$value = $sign * (round(($rec->quantity * $rec->sellCost), 2));
-				self::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $noGroupSumId, $value, $isRejected);
+				hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $noGroupSumId, $value, $isRejected);
 			}
 		}
 		
 		// Връщане на индикаторите
 		return $result;
-	}
-	
-	
-	/**
-	 * Помощна ф-я за събиране на индикаторите в масив
-	 * 
-	 * @param array $result
-	 * @param datetime $valior
-	 * @param int $personId
-	 * @param int $docId
-	 * @param int $docClassId
-	 * @param int $indicatorId
-	 * @param double $value
-	 * @param boolean $isRejected
-	 */
-	public static function addIndicatorToArray(&$result, $valior, $personId, $docId, $docClassId, $indicatorId, $value, $isRejected)
-	{
-		$key = "{$personId}|{$docClassId}|{$docId}|{$valior}|{$indicatorId}";
-		
-		// Ако няма данни, добавят се
-		if(!array_key_exists($key, $result)){
-			$result[$key] = (object)array('date'        => $valior,
-					 					  'personId'    => $personId,
-										  'docId'       => $docId,
-										  'docClass'    => $docClassId,
-										  'indicatorId' => $indicatorId,
-										  'value'       => $value,
-										  'isRejected'  => $isRejected,);
-		} else {
-		
-			// Ако има вече се сумират
-			$ref = &$result[$key];
-			$ref->value += $value;
-		}
 	}
 	
 	

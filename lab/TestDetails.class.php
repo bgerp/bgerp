@@ -64,7 +64,13 @@ class lab_TestDetails extends core_Detail
         $this->FLD('methodId', 'key(mvc=lab_Methods, select=name)', 'caption=Метод, notSorting,mandatory,smartCenter');
         $this->FLD('value', 'varchar(64)', 'caption=Стойност, notSorting, input=none,smartCenter');
         $this->FLD('error', 'percent(decimals=2)', 'caption=Грешка, notSorting,input=none,smartCenter');
-        $this->FLD('results', 'text', 'caption=Резултати, hint=На всеки отделен ред запишете по една стойност от измерване,notSorting, column=none');
+        $this->FLD('comment', 'text', 'caption=Коментари, notSorting,after=results, column=none,class=" w50, rows= 1"');
+      
+        $this->FLD('better', 'enum(up=По-големия,down=По-малкия)',
+            'caption=По-добрия резултат е,after=title,maxRadio=2,columns=2');
+        
+        $this->FLD('results', 'table(columns=value,captions=Стойност,widths=8em)', 
+            "caption=Измервания||Additional,autohide,advanced,after=title,single=none");
         
         $this->setDbUnique('testId, methodId');
     }

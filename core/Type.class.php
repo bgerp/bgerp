@@ -320,7 +320,6 @@ class core_Type extends core_BaseClass
             	$this->error = TRUE;
             }
            
-            
             return $res;
         }
     }

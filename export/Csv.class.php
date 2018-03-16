@@ -24,7 +24,7 @@ class export_Csv extends core_Mvc
     /**
      *  
      */
-    public $interfaces = 'export_ExportTypeIntf';
+    public $interfaces = 'export_ExportTypeIntf, export_ToXlsExportIntf';
     
     
     /**
@@ -101,7 +101,7 @@ class export_Csv extends core_Mvc
      * @param integer $clsId
      * @param integer $objId
      *
-     * @return boolean
+     * @return string
      */
     function getExportTitle($clsId, $objId)
     {
@@ -117,7 +117,7 @@ class export_Csv extends core_Mvc
      * @param integer $clsId
      * @param integer|stdClass $objId
      *
-     * @return boolean
+     * @return NULL|string
      */
     function makeExport($form, $clsId, $objId)
     {

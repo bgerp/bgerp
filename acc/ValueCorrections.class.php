@@ -705,7 +705,7 @@ class acc_ValueCorrections extends core_Master
     		$value = $rec->amount * $sign;
     		
     		// Добавяне на записа за индикатора
-    		sales_PrimeCostByDocument::addIndicatorToArray($result, $rec->valior, $personId, $rec->id, $classId, $iRec->id, $value, $isRejected);
+    		hr_Indicators::addIndicatorToArray($result, $rec->valior, $personId, $rec->id, $classId, $iRec->id, $value, $isRejected);
     	}
     	
     	return $result;

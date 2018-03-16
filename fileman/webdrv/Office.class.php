@@ -209,7 +209,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             // и записа от таблицата fconv_Process
             return TRUE;
         }
-    }   
+    }
     
     
 	/**
@@ -219,29 +219,48 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      */
     static function convertToJpg($fRec)
     {
+        
+        return self::convertToFile($fRec);
+    }
+    
+    
+    /**
+     * Конвертира файла към съответното разширение
+     *
+     * @param stdClass $fRec
+     * @param string $toExt
+     * @param boolean $asynch
+     * @param string $callBack
+     * @param string $outType
+     * @return NULL|string
+     */
+    public static function convertToFile($fRec, $toExt = 'pdf', $asynch = TRUE, $callBack = 'fileman_webdrv_Office::afterConvertDocToJpg', $outType = 'jpg')
+    {
         // Параметри необходими за конвертирането
         $params = array(
-            'callBack' => 'fileman_webdrv_Office::afterConvertDocToPdf',
-            'dataId' => $fRec->dataId,
-        	'asynch' => TRUE,
-            'createdBy' => core_Users::getCurrent('id'),
-            'type' => 'docToPdf',
+                'callBack' => $callBack,
+                'dataId' => $fRec->dataId,
+                'asynch' => $asynch,
+                'createdBy' => core_Users::getCurrent('id'),
+                'type' => 'docTo' . ucfirst($toExt),
         );
         
         // Променливата, с която ще заключим процеса
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
-
+        
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) return ;
         
-        // Параметри за проверка дали е стартиран процеса на конвертиране на получения pdf документ към jpg
-        $paramsJpg = $params;
-        $paramsJpg['type'] = 'jpg';
-        $paramsJpg['lockId'] = static::getLockId($paramsJpg['type'], $fRec->dataId);
+        // Параметри за проверка дали е стартиран процеса на конвертиране на получения $toExt документ към $outType
+        $paramsOut = $params;
+        $paramsOut['type'] = $outType;
+        $paramsOut['lockId'] = static::getLockId($paramsOut['type'], $fRec->dataId);
         
         // Проверявама дали няма извлечена информация или не е заключен
-        if (fileman_Indexes::isProcessStarted($paramsJpg)) return ;
-
+        if (fileman_Indexes::isProcessStarted($paramsOut)) return ;
+        
+        $outFilePath = '';
+        
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
             
@@ -254,9 +273,13 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             // Инстанция на класа
             $inst = cls::get($ConvClass);
             
+            $params['outType'] = $outType;
+            
             // Стартираме конвертирането
-            $inst->convertDoc($fRec->fileHnd, 'pdf', $params);    
+            $outFilePath = $inst->convertDoc($fRec->fileHnd, $toExt, $params);
         }
+        
+        return $outFilePath;
     }
     
     
@@ -270,7 +293,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      * 
      * @access protected
      */
-    static function afterConvertDocToPdf($script)
+    static function afterConvertDocToJpg($script)
     {
         // Десериализираме параметрите
         $params = unserialize($script->params);

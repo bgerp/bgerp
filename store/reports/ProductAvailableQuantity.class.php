@@ -9,7 +9,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Склад » Артикули налични количества
+ * @title     Склад » Артикули наличности и лимити
  */
 class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 {
@@ -69,8 +69,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('limmits', 'enum(yes=С лимити,no=Без лимити)', 
-            'caption=Вид на справката,removeAndRefreshForm,after=title');
+        $fieldset->FLD('limmits', 'enum(no=Без лимити,yes=С лимити)', 
+            'caption=Вид на справката,removeAndRefreshForm,after=title,silent');
         
         $fieldset->FLD('typeOfQuantity', 'enum(FALSE=Налично,TRUE=Разполагаемо)', 
             'caption=Количество за показване,maxRadio=2,columns=2,after=limmits');
@@ -96,22 +96,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-        
         $rec->flag = TRUE;
         
         $form->setDefault('typeOfQuantity', 'TRUE');
-        
-       
-        
-        if ($rec->limmits == 'no') {
- 
-        	$form->rec->additional = array();
-        	
-        	$form->setOptions('additional', array('input'=>'none'));
-
-          
-            
-        }
     }
 
     /**
@@ -124,18 +111,20 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
-      
+        if ($form->rec->limmits == 'yes') {
+            $details = (json_decode($form->rec->additional));
+        } else {
+            $form->setField('additional', 'input=none');
+        }
         
         if ($form->isSubmitted()) {
             
             if ($form->rec->limmits == 'no') {
-                $form->rec->additional = array();
                 
+                $form->rec->additional = array();
             }
             
             if ($form->rec->limmits == 'yes') {
-                
-               
                 
                 $details = (json_decode($form->rec->additional));
                 
@@ -230,14 +219,13 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         } else {
             
             $rec = $form->rec;
+            
             if ($form->rec->limmits == 'no') {
                 
                 $form->rec->additional = array();
-            
             }
             
             if ($form->rec->limmits == 'yes') {
-                
                 if ($form->cmd == 'refresh' && $rec->groupId) {
                     
                     $maxPost = ini_get("max_input_vars") - self::MAX_POST_ART;
@@ -341,13 +329,13 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                             }
                             
                             if ($countUnset > 0) {
-                                $groupName = cat_Products::getTitleById($rec->groupId);
+                                $groupName = cat_Groups::getTitleById($rec->groupId);
                                 $maxArt = self::NUMBER_OF_ITEMS_TO_ADD;
                                 
                                 $form->setWarning('groupId', 
                                     "$countUnset артикула от група $groupName няма да  бъдат добавени.
             						Максимален брой артикули за еднократно добавяне - $maxArt.
-            						§§Може да добавите още артикули от групата при следваща редакция.");
+            						Може да добавите още артикули от групата при следваща редакция.");
                             }
                         }
                         
@@ -375,7 +363,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         // Вариант без лимити
         if ($rec->limmits == 'no') {
-           
+            
             $sQuery = store_Products::getQuery();
             
             $cQuery = cat_Products::getQuery();
@@ -393,7 +381,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             }
             $recs = array();
             while ($recProduct = $sQuery->fetch()) {
-                
                 
                 if (is_array($groupProductsArr)) {
                     foreach ($groupProductsArr as $code) {
@@ -439,11 +426,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 }
             }
             
-            // bp($recs);
             return $recs;
         }
         
-        // Вариант с лимитио
+        // Вариант с лимити
         
         if ($rec->limmits == 'yes') {
             
@@ -569,11 +555,11 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
         $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
-
-        if ($rec->limmits == 'yes'){
-        $fld->FLD('minQuantity', 'double', 'caption=Минимално,smartCenter');
-        $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
-        $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
+        
+        if ($rec->limmits == 'yes') {
+            $fld->FLD('minQuantity', 'double', 'caption=Минимално,smartCenter');
+            $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
+            $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
         }
         return $fld;
     }

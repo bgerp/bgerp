@@ -205,14 +205,25 @@ class frame2_Reports extends embed_Manager
     function description()
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие');
-    	$this->FLD('changeFields', 'set', 'caption=Промяна на->Избор,autohide,input=none');
     	$this->FLD('updateDays', 'set(monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя)', 'caption=Обновяване и известяване->Дни,autohide');
     	$this->FLD('updateTime', 'set(08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00)', 'caption=Обновяване и известяване->Час,autohide');
     	$this->FLD('notificationText', 'varchar', 'caption=Обновяване и известяване->Текст,autohide');
     	$this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Обновяване и известяване->Потребители,autohide');
-    	$this->FLD('maxKeepHistory', 'int(Min=0)', 'caption=Запазване на предишни състояния->Версии,autohide,placeholder=Неограничено');
+    	$this->FLD('changeFields', 'set', 'caption=Други настройки->Промяна,autohide,input=none');
+    	$this->FLD('maxKeepHistory', 'int(Min=0)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
     	$this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
     	$this->FLD('lastRefreshed', 'datetime', 'caption=Последно актуализиране,input=none');
+    }
+    
+    
+    /**
+     * След дефиниране на полетата на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Master &$mvc)
+    {
+    	$mvc->setField('priority', 'caption=Обновяване и известяване->Приоритет,after=sharedUsers');
     }
     
     
@@ -387,7 +398,7 @@ class frame2_Reports extends embed_Manager
     	
     	// На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
     	foreach ($userArr as $userId){
-    		bgerp_Notifications::add($msg, $url, $userId);
+    		bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
     	}
     }
     
@@ -460,7 +471,7 @@ class frame2_Reports extends embed_Manager
     	expect($rec = $this->fetch($id));
     	$this->requireRightFor('refresh', $rec);
     	
-    	self::refresh($rec, $save = TRUE);
+    	self::refresh($rec);
     	frame2_ReportVersions::unSelectVersion($rec->id);
     	
     	return followRetUrl();
@@ -478,7 +489,7 @@ class frame2_Reports extends embed_Manager
     	if($Driver = $mvc->getDriver($rec)){
     		$tpl->replace($Driver->renderData($rec)->getContent(), 'DRIVER_DATA');
     	} else {
-    		$tpl->replace("<span class='red'><b>" . tr('Несъществуващ драйвер') . "</b></span>", 'DRIVER_DATA');
+    		$tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на отчета') . "</b></span>", 'DRIVER_DATA');
     	}
     	
     	// Връщане на оригиналния рек ако е пушнат

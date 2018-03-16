@@ -101,7 +101,16 @@ class hr_Indicators extends core_Manager
             $row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
         }
         
-        $row->docId = cls::get($rec->docClass)->getLink($rec->docId, 0);
+        if(cls::load($rec->docClass, TRUE)){
+        	$Class = cls::get($rec->docClass);
+        	if(cls::existsMethod($Class, 'getLink')){
+        		$row->docId = cls::get($rec->docClass)->getLink($rec->docId, 0);
+        	} else {
+        		$row->docId = cls::get($rec->docClass)->getTitleById($rec->docId, 0);
+        	}
+        } else {
+        	$row->docId = "<span class='red'>" . tr('Проблем при зареждането') . "</span>";
+        }
     }
     
     
@@ -681,6 +690,40 @@ class hr_Indicators extends core_Manager
     				$requiredRoles = 'powerUser';
     			}
     		}
+    	}
+    }
+    
+    
+    /**
+     * Помощна ф-я за събиране на индикаторите в масив
+     *
+     * @param array $result
+     * @param datetime $valior
+     * @param int $personId
+     * @param int $docId
+     * @param int $docClassId
+     * @param int $indicatorId
+     * @param double $value
+     * @param boolean $isRejected
+     */
+    public static function addIndicatorToArray(&$result, $valior, $personId, $docId, $docClassId, $indicatorId, $value, $isRejected)
+    {
+    	$key = "{$personId}|{$docClassId}|{$docId}|{$valior}|{$indicatorId}";
+    
+    	// Ако няма данни, добавят се
+    	if(!array_key_exists($key, $result)){
+    		$result[$key] = (object)array('date'        => $valior,
+    				'personId'    => $personId,
+    				'docId'       => $docId,
+    				'docClass'    => $docClassId,
+    				'indicatorId' => $indicatorId,
+    				'value'       => $value,
+    				'isRejected'  => $isRejected,);
+    	} else {
+    
+    		// Ако има вече се сумират
+    		$ref = &$result[$key];
+    		$ref->value += $value;
     	}
     }
 }
