@@ -64,7 +64,10 @@ class lab_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'lab';
+     var $roles = array(
+        array('lab'),
+        array('masterLab', 'lab'),
+    );
 
     
     /**
