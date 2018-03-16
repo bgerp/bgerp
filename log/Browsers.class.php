@@ -521,15 +521,28 @@ class log_Browsers extends core_Master
     static function generateBrid()
     {   
         $s = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
+        
+        $str = '';
+        
         if($bot = self::detectBot()) {
             $str = md5($bot . BRID_SALT);
         } else {
-            $str = md5($_SERVER['HTTP_USER_AGENT'] . '|' . core_Users::getRealIpAddr() . '|' . dt::today() . '|' . BRID_SALT);
+            $userAgent = self::getUserAgent();
+            
+            $browserName = self::getUserAgentBrowserName($userAgent);
+            $osName = self::getUserAgentOsName($userAgent);
+            
+            if (($browserName == "Unknown Browser") || ($osName == "Unknown OS")) {
+                $str = md5($userAgent . '|' . core_Users::getRealIpAddr() . '|' . dt::today() . '|' . BRID_SALT);
+            }
         }
-
-        $brid = $s[hexdec(substr($str, 0, 2)) % 62] . $s[hexdec(substr($str, 2, 2)) % 62] . $s[hexdec(substr($str, 4, 2)) % 62] .  $s[hexdec(substr($str, 6, 2)) % 62] .
-               $s[hexdec(substr($str, 8, 2)) % 62] . $s[hexdec(substr($str, 10, 2)) % 62] . $s[hexdec(substr($str, 12, 2)) % 62] .  $s[hexdec(substr($str, 14, 2)) % 62];
+        
+        if ($str) {
+            $brid = $s[hexdec(substr($str, 0, 2)) % 62] . $s[hexdec(substr($str, 2, 2)) % 62] . $s[hexdec(substr($str, 4, 2)) % 62] .  $s[hexdec(substr($str, 6, 2)) % 62] .
+            $s[hexdec(substr($str, 8, 2)) % 62] . $s[hexdec(substr($str, 10, 2)) % 62] . $s[hexdec(substr($str, 12, 2)) % 62] .  $s[hexdec(substr($str, 14, 2)) % 62];
+        } else {
+            $brid = str::getRand('********');
+        }
         
         return $brid;
     }
@@ -548,7 +561,7 @@ class log_Browsers extends core_Master
         }
 
         $browser = "Unknown Browser";
-    
+        
         $browserArray = array(
                                 '/edge/i' => 'Edge',
                                 '/mobile/i' => 'Mobile Browser',
