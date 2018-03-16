@@ -70,7 +70,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('limmits', 'enum(no=Без лимити,yes=С лимити)', 
-            'caption=Вид на справката,removeAndRefreshForm,after=title');
+            'caption=Вид на справката,removeAndRefreshForm,after=title,silent');
         
         $fieldset->FLD('typeOfQuantity', 'enum(FALSE=Налично,TRUE=Разполагаемо)', 
             'caption=Количество за показване,maxRadio=2,columns=2,after=limmits');
@@ -113,6 +113,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         if ($form->rec->limmits == 'yes') {
             $details = (json_decode($form->rec->additional));
+        } else {
+            $form->setField('additional', 'input=none');
         }
         
         if ($form->isSubmitted()) {
@@ -543,7 +545,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      *            - таблицата за експорт ли е
      * @return core_FieldSet - полетата
      */
- protected function getTableFieldSet($rec, $export = FALSE)
+    protected function getTableFieldSet($rec, $export = FALSE)
     {
         $fld = cls::get('core_FieldSet');
         
