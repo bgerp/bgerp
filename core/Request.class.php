@@ -429,7 +429,7 @@ class core_Request
         
         $ctr = cls::getClassName($ctr);
         
-        if (cls::load($ctr, TRUE) && ($mvc = & cls::get($ctr)) && ($mvc instanceof core_Mvc)) {
+        if (cls::load($ctr, TRUE) && ($mvc = & cls::get($ctr))) {
             $content = $mvc->action(strtolower($act));
         } else {
             error('404 @Липсваща страница', $ctr, $_GET, $_POST);
