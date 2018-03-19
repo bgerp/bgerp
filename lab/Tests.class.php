@@ -18,11 +18,17 @@ class lab_Tests extends core_Master
      * Заглавие
      */
     var $title = 'Лабораторни тестове';
+    
+    /**
+     * Дефолтен текст за нотификация
+     */
+    protected static $defaultNotificationText = "Имате заявен лабораторен тест";
+   // protected static $defaultNotificationText = "|*[#handle#] |има актуална версия от|* '[#lastRefreshed#]'";
 
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, doc_ActivatePlg,  plg_Clone, doc_DocumentPlg, plg_Printing,
+    var $loadList = 'plg_RowTools2,doc_ActivatePlg,plg_Clone,doc_DocumentPlg,plg_Printing,
                      lab_Wrapper, plg_Sorting, bgerp_plg_Blank, doc_plg_SelectFolder,planning_plg_StateManager';
 
     /**
@@ -49,14 +55,14 @@ class lab_Tests extends core_Master
     /**
      * Кой може да активира задачата
      */
-    public $canActivate = 'ceo,lab';
+    public $canActivate = 'ceo,lab,masterLab';
 
     /**
      * Кой има право да променя?
      *
      * @var string|array
      */
-    public $canEdit;
+    public $canEdit = 'ceo,lab,masterLab';
 
     /**
      * Кой има право да добавя?
@@ -118,7 +124,7 @@ class lab_Tests extends core_Master
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo, lab';
+    public $canPending = 'ceo,lab,masterLab';
 
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
@@ -155,7 +161,7 @@ class lab_Tests extends core_Master
         $this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Нотифициране->Потребители,mandatory');
         $this->FLD('activatedOn', 'datetime', 'caption=Активиран на,input=none,notSorting');
         $this->FLD('lastChangedOn', 'datetime', 'caption=Последна промяна,input=none,notSorting');
-        $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит)', 
+        $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит,pending=Зявка)', 
             'caption=Статус,input=none,notSorting');
         $this->FLD('searchd', 'text', 'caption=searchd, input=none, notSorting');
     }
@@ -177,16 +183,13 @@ class lab_Tests extends core_Master
         }
          $form->setDefault('bringing', 'vendor');
 
-         
-         self::sendNotification($rec);
-        
-        
+      
     }
 
     /**
      * Преди запис в модела
      */
-    public static function on_BeforeSave($mvc, $id, $rec)
+    public static function on_BeforeSave($mvc, $id, $rec)//
     {
       
        
@@ -200,6 +203,8 @@ class lab_Tests extends core_Master
     
     public static function on_AfterSavePendingDocument($mvc, &$rec)
     {
+    	
+    	
         self::sendNotification($rec);
         
     }
@@ -210,6 +215,8 @@ class lab_Tests extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
+    	
+    	
         if ($mvc->haveRightFor('compare', $data->rec)) {
             $url = array(
                 $mvc,
@@ -223,13 +230,13 @@ class lab_Tests extends core_Master
     }
 
     /**
-     * Сравнение на два теста
+     * pendingSavedСравнение на два теста
      *
      * @return core_Et $tpl
      */
     function act_CompareTwoTests()
     {
-        
+      
         $cRec = new stdClass();
         
         $form = cls::get('core_form', array(
@@ -263,7 +270,7 @@ class lab_Tests extends core_Master
         $form->view = 'vertical';
         $form->toolbar->addSbBtn('Сравни');
         $form->setOptions('rightTestId', $rightTestSelectArr);
-        
+       
         // END Prepare form
       
         $cRec = $form->input();
@@ -274,7 +281,7 @@ class lab_Tests extends core_Master
             // Left test
             $cRec->leftTestId = $leftTestId;
             $rightTestName = $this->fetchField($cRec->rightTestId, 'title');
-            
+          
             $queryTestDetailsLeft = $TestDetails->getQuery();
             
             while ($rec = $queryTestDetailsLeft->fetch("#testId = {$cRec->leftTestId}")) {
@@ -287,6 +294,9 @@ class lab_Tests extends core_Master
             $queryTestDetailsLeft = $TestDetails->getQuery();
             
             while ($rec = $queryTestDetailsLeft->fetch("#testId = {$cRec->rightTestId}")) {
+            	
+            	
+            	
                 $testDetailsRight[] = (array) $rec;
             }
             
@@ -306,7 +316,7 @@ class lab_Tests extends core_Master
                 $allMethodsArr[$rec->id]['methodName'] = $rec->name;
                 $allMethodsArr[$rec->id]['paramId'] = $rec->paramId;
                 $allMethodsArr[$rec->id]['paramName'] = $allParamsArr[$rec->paramId];
-            }
+            }//
             
             $methodsLeft = $methodsRight = array();
             if (count($testDetailsLeft)) {
@@ -342,7 +352,7 @@ class lab_Tests extends core_Master
                 if (count($testDetailsLeft)) {
                     foreach ($testDetailsLeft as $v) {
                         if ($v['methodId'] == $methodId) {
-                            $tableRow['resultsLeft'] = $v['results'];
+                            $tableRow['resultsLeft'] = $v['value'];
                         }
                     }
                 }
@@ -352,7 +362,7 @@ class lab_Tests extends core_Master
                 if (count($testDetailsRight)) {
                     foreach ($testDetailsRight as $v) {
                         if ($v['methodId'] == $methodId) {
-                            $tableRow['resultsRight'] = $v['results'];
+                            $tableRow['resultsRight'] = $v['value'];
                         }
                     }
                 }
@@ -604,6 +614,8 @@ class lab_Tests extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
+    	
+    	
         if ($action == 'activate') {
               
             if (is_object($rec) && $rec->id) {
@@ -668,7 +680,7 @@ class lab_Tests extends core_Master
         $userArr = keylist::toArray($rec->sharedUsers);
         if(!count($userArr)) return;
          
-       // $text = (!empty($rec->notificationText)) ? $rec->notificationText : self::$defaultNotificationText;
+        $text = (!empty($rec->notificationText)) ? $rec->notificationText : self::$defaultNotificationText;
         $msg = new core_ET($text);
          
         // Заместване на параметрите в текста на нотификацията

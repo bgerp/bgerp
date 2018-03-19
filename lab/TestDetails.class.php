@@ -36,11 +36,25 @@ class lab_TestDetails extends core_Detail
     var $masterKey = 'testId';
     
     
+    
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'methodId,paramName,value,refValue,error';
+    
+    /**
+     * Кой има право да добавя?
+     *
+     * @var string|array
+     */
+    public $canAdd = 'ceo,lab,masterLab';
 
+    
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo,lab,masterLab';
     
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
@@ -51,7 +65,7 @@ class lab_TestDetails extends core_Detail
     /**
      * Роли, които могат да записват
      */
-    var $canWrite = 'lab,ceo';
+    var $canWrite = 'lab,ceo,masterLab';
     
     
     /**
@@ -86,6 +100,7 @@ class lab_TestDetails extends core_Detail
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
+    	
         // allMethodsArr
         $Methods = cls::get('lab_Methods');
         $queryAllMethods = $Methods->getQuery();
@@ -167,7 +182,7 @@ class lab_TestDetails extends core_Detail
             $row->value =  cls::get('type_Text')->toVerbal($rec->results);
         }
         
-        // $row->parameterName
+        // $row->parameterName bp($rec);
         $paramId = $mvc->Methods->fetchField("#id = '{$rec->methodId}'", 'paramId');
         $paramRec = $mvc->Params->fetch($paramId);
         $row->paramName = $paramRec->name . ($paramRec->dimension ? ', ' : '') . $paramRec->dimension;
@@ -189,12 +204,11 @@ class lab_TestDetails extends core_Detail
      */
     static function on_BeforeSave($mvc, &$id, $rec)
     {
+    	
+    	
+    	
         // Подготовка на масива за резултатите ($rec->results)
-        $rec->results = str_replace("\r\n", "\n", $rec->results);
-        $rec->results = str_replace("\n\r", "\n", $rec->results);
-       
-        
-        //$resultsArr = explode("\n", $rec->results);
+
         $resultsArr = json_decode($rec->results)->value;
         
        
@@ -246,6 +260,10 @@ class lab_TestDetails extends core_Detail
             $rec->error = NULL;
         }
         
+//         if ($rec->refValue){
+//         $refValue = 77;
+//         $rec->refValue = $refValue;
+//         }
         // END Обработки в зависимост от типа на параметъра
         
         // Запис в 'lab_Tests'
@@ -263,6 +281,8 @@ class lab_TestDetails extends core_Detail
      */
     static function on_AfterPrepareListToolbar($mvc, $data, $rec)
     {
+    	
+    	
         $data->toolbar->removeBtn('btnPrint');
         
         // Count all methods
