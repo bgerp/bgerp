@@ -730,7 +730,7 @@ abstract class deals_InvoiceMaster extends core_Master
     			$originRec = $origin->fetch('dpAmount,dpOperation,dealValue,date');
     			
     			if($rec->date < $originRec->date){
-    				$oDate = dt::mysql2verbal($oDate, 'd.m.Y');
+    				$oDate = dt::mysql2verbal($originRec->date, 'd.m.Y');
     				$form->setError('date', "Датата трябва да е по-голяма или равна на тази от оригиналната фактура|* <b>{$oDate}</b>");
     			}
     			
