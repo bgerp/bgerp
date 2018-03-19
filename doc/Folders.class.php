@@ -1607,6 +1607,8 @@ class doc_Folders extends core_Master
      * @param boolean $removeCurrent - Дали да се премахне текущия потребител от резултатите
      * 
      * @return array $sharedUsersArr - Масив с всички споделени потребители
+     * 
+     * @deprecated
      */
     static function getSharedUsersArr($folderId, $removeCurrent=FALSE)
     {

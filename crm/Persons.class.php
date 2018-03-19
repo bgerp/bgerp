@@ -1875,7 +1875,6 @@ class crm_Persons extends core_Master
 			if(!count($locations)){
 				$form->setField('buzLocationId', 'input=none');
 			}
-            $form->title = "Добавяне на служител към|* " . crm_Companies::getLinkToSingle($form->rec->buzCompanyId);
         }
         
         crm_Companies::autoChangeFields($form);
@@ -1890,7 +1889,7 @@ class crm_Persons extends core_Master
         $form = &$data->form;
 
         if($form->rec->buzCompanyId){
-            $form->title = "Добавяне на служител към|* " . crm_Companies::getHyperlink($form->rec->buzCompanyId);
+           $form->title = core_Detail::getEditTitle('crm_Companies', $form->rec->buzCompanyId, 'служител', $form->rec->id);
         }
     }
     
