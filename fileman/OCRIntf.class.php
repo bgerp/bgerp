@@ -18,7 +18,7 @@ class fileman_OCRIntf extends fileman_FileActionsIntf
     /**
      * Проверка дали може да се пуска OCR обработка
      * 
-     * @param stdObject|string $fRec
+     * @param stdClass|string $fRec
      */
     function canExtract($fRec)
     {
@@ -30,7 +30,7 @@ class fileman_OCRIntf extends fileman_FileActionsIntf
     /**
      * Функция за извличане на текст
      * 
-     * @param stdObject|string $fRec
+     * @param stdClass|string $fRec
      */
     function getTextByOcr($fRec)
     {
@@ -42,7 +42,7 @@ class fileman_OCRIntf extends fileman_FileActionsIntf
     /**
      * Бърза проврка дали има смисъл от OCR-ване на текста
      * 
-     * @param stdObject|string $fRec
+     * @param stdClass|string $fRec
      */
     function haveTextForOcr($fRec)
     {

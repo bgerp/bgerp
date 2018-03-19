@@ -1370,7 +1370,7 @@ class core_Users extends core_Manager
     /**
      * 
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $tpl
      * @param string $subject
      * @param string $act

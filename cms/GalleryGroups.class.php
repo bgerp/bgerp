@@ -492,9 +492,9 @@ class cms_GalleryGroups extends core_Manager
     /**
      * Подготвя вербалната стойност на данните
      * 
-     * @param stdObject
+     * @param stdClass
      * 
-     * @return stdObject
+     * @return stdClass
      * 
      * @see core_Manager::prepareListRows_()
      */
@@ -560,7 +560,7 @@ class cms_GalleryGroups extends core_Manager
     /**
      * Рендира таблицата за показване в диалоговия прозорец на галерията
      * 
-     * @param stdObject $data
+     * @param stdClass $data
      */
     function renderGalleryDialogListTable($data)
     {

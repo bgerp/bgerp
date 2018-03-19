@@ -243,8 +243,8 @@ class doc_LikesPlg extends core_Plugin
      * 
      * @param string $notifyStr
      * @param string $className
-     * @param stdObject $lRec
-     * @param stdObject $rec
+     * @param stdClass $lRec
+     * @param stdClass $rec
      */
     protected static function notifyUsers($notifyStr, $className, $userId, $rec)
     {
@@ -477,7 +477,7 @@ class doc_LikesPlg extends core_Plugin
     /**
      * Връща id за html елемент
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return string
      */

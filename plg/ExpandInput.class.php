@@ -66,7 +66,7 @@ class plg_ExpandInput extends core_Plugin
      * 
      * @param core_Manager $mvc
      * @param NULL|integer $id
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string|NULL $fields
      */
     static function on_BeforeSave($mvc, &$id, &$rec, &$fields = NULL)

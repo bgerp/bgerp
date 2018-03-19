@@ -282,7 +282,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      * 
      * 
      * @param purchase_Invoices $mvc
-     * @param stdObject $data
+     * @param stdClass $data
      */
     function on_BeforePrepareEditForm($mvc, &$data)
     {
@@ -589,7 +589,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      * 
      * Връща масив с действия, които могат да се извършат с дадения файл
      * 
-     * @param stdObject $fRec - Обект са данни от модела
+     * @param stdClass $fRec - Обект са данни от модела
      * 
      * @return array $arr - Масив с данните
      * $arr['url'] - array URL на действието

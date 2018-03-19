@@ -510,7 +510,7 @@ class plg_UserReg extends core_Plugin
      * 
      * @param core_Users $mvc
      * @param NULL|boolean $res
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $tpl
      * @param string $subject
      * @param string $act

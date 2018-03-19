@@ -540,7 +540,7 @@ class distro_Repositories extends core_Master
     /**
      * Прави връзка към сървъра по SSH
      * 
-     * @param stdObject|integer $rec
+     * @param stdClass|integer $rec
      * 
      * @return FALSE|ssh_Actions
      */
@@ -656,7 +656,7 @@ class distro_Repositories extends core_Master
     /**
      * Премахва процеса от кронтаба и го спира
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     protected static function stopProcess($rec)
     {

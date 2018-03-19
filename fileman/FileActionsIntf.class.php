@@ -22,7 +22,7 @@ class fileman_FileActionsIntf
      * 
      * Връща масив с действия, които могат да се извършат с дадения файл
      * 
-     * @param stdObject $fRec - Обект са данни от модела
+     * @param stdClass $fRec - Обект са данни от модела
      * 
      * @return array $arr - Масив с данните
      * $arr['url'] - array URL на действието

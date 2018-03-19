@@ -355,7 +355,7 @@ class doc_LinkedTemplates extends core_Master
      *
      * @param string $activity
      *
-     * @return  NULL|stdObject
+     * @return  NULL|stdClass
      */
     protected function getRecForActivity($activity)
     {
