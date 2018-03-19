@@ -270,7 +270,7 @@ class blast_Lists extends core_Master
     /**
      * Поддържа точна информацията за записите в детайла
      */
-    protected static function on_AfterUpdateDetail(blast_Lists $mvc, $id, core_Manager $detailMvc)
+    protected static function on_AfterUpdateDetail(core_Master $mvc, $id, core_Manager $detailMvc)
     {
         $mvc->mustUpdate[$id] = $detailMvc;
     }
