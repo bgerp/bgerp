@@ -29,6 +29,18 @@ class deals_plg_SelectInvoice extends core_Plugin
 	
 	
 	/**
+	 * Добавя ключови думи за пълнотекстово търсене
+	 */
+	public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+	{
+		if(isset($rec->fromContainerId)){
+			$number = str_pad(sales_Invoices::fetchField("#containerId = {$rec->fromContainerId}", 'number'), '10', '0', STR_PAD_LEFT);
+			$res .= " " . plg_Search::normalizeText($number);
+		}
+	}
+	
+	
+	/**
 	 *  Обработки по вербалното представяне на данните
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -78,9 +90,7 @@ class deals_plg_SelectInvoice extends core_Plugin
 		$form->input();
 		if($form->isSubmitted()){
 			$rec->fromContainerId = $form->rec->fromContainerId;
-			$rec->modifiedOn = dt::now();
-			$rec->modifiedBy = core_Users::getCurrent();
-			$mvc->save_($rec, 'fromContainerId,modifiedOn,modifiedBy');
+			$mvc->save($rec, 'fromContainerId,searchKeywords');
 			
 			if($mvc instanceof deals_PaymentDocument){
 				deals_Helper::updateAutoPaymentTypeInThread($rec->threadId);
@@ -88,7 +98,6 @@ class deals_plg_SelectInvoice extends core_Plugin
 			}
 			
 			$mvc->logWrite("Отнасяне към фактура|* '{$invoices[$rec->fromContainerId]}'", $rec->id);
-				
 			followRetUrl(NULL, 'Промяната е записана успешно');
 		}
 		
