@@ -457,9 +457,7 @@ class core_ProtoSetup
 
             	// задаваме позицията в менюто
             	// с приоритет е от конфига
-            	if ($conf->{$constPosition."_".$id}) {
-            		$row = $conf->{$constPosition."_".$id};
-            	} elseif ($item['row']) {
+            	if ($item['row']) {
             		$row = $item['row'];
             	} elseif ($item[0]) {
             		$row = $item[0];
@@ -469,9 +467,7 @@ class core_ProtoSetup
             
             	// задаваме името на менюто
             	// с приоритет е от конфига
-            	if ($conf->{$constMenuName."_".$id}) {
-            		$menu = $conf->{$constMenuName."_".$id};
-            	} elseif ($item['menu']) {
+            	if ($item['menu']) {
             		$menu = $item['menu'];
             	} elseif ($item[1]) {
             		$menu = $item[1];
@@ -481,9 +477,7 @@ class core_ProtoSetup
             	
             	// задаваме името на подменюто
             	// с приоритет е от конфига
-            	if ($conf->{$constSubMenu."_".$id}) {
-            		$subMenu = $conf->{$constSubMenu."_".$id};
-            	} elseif ($item['subMenu']) {
+            	if ($item['subMenu']) {
             		$subMenu = $item['subMenu'];
             	} elseif ($item[2]) {
             		$subMenu = $item[2];
@@ -492,31 +486,19 @@ class core_ProtoSetup
                 $ctr     = $item['ctr'] ? $item['ctr'] : $item[3];
                 $act     = $item['act'] ? $item['act'] : $item[4];
                 $roles   = $item['roles'] ? $item['roles'] : $item[5];
-                
-	            // ако искаме това меню да не е видимо, го изтриваме
-                if ($conf->{$constView."_".$id} === 'no')  { 
-	        	
-		        	$query = bgerp_Menu::getQuery();
-		        	
-			        $del = $query->delete(array("#ctr = '[#1#]' AND #act = '[#2#]' AND #menu = '[#3#]' AND #subMenu = '[#4#]' AND #createdBy = -1", $ctr, $act, $menu, $subMenu));
-                    if($del) {
-                        $res .= "<li class='debug-update'>Премахнат е елемента на менюто <b>{$menu} » {$subMenu}</b></li>";
-                    }
-			       
-	        	} else {
-	        	    // Добавя елемента на менюто
-                	$res .= bgerp_Menu::addOnce($row, $menu, $subMenu, $ctr, $act, $roles);
-	        	}
-	        	
-	        	$cacheKey = 'menuObj_' . core_Lg::getCurrent();
-			        
-			    core_Cache::remove('Menu', $cacheKey);
-			        
+	    
+	            // Добавя елемента на менюто
+                $res .= bgerp_Menu::addOnce($row, $menu, $subMenu, $ctr, $act, $roles);
+	        				        
 	        	unset($row);
                 unset($menu);
                 unset($subMenu);
             }
         }
+	    
+        $cacheKey = 'menuObj_' . core_Lg::getCurrent();
+			        
+	    core_Cache::remove('Menu', $cacheKey);
 
         return $res;
     }
@@ -531,51 +513,6 @@ class core_ProtoSetup
     {
         $description = $this->configDescription;
                               
-        // взимаме текущото зададено меню
-        if ($this->menuItems && count($this->menuItems)) { 
-            
-            // Името на пакета
-            $packName = $this->getPackName();
-
-            // три имена на променливи за менюто
-            $position = strtoupper($packName). "_MENU_POSITION";
-            $menuName = strtoupper($packName). "_MENU";
-            $subMenu = strtoupper($packName). "_SUB_MENU";
-            $view = strtoupper($packName). "_VIEW";
-            
-        	$menu = $this->menuItems;
-        	
-        	if (is_array($menu)) {
-        		foreach($menu as $id=>$m) {
-        			
-        			// дефинираме константи с определените имена
-        			defIfNot($position."_".$id, $m[0]);
-        			defIfNot($menuName."_".$id, $m[1]);
-        			defIfNot($subMenu."_".$id, $m[2]);
-        			defIfNot($view."_".$id, 'yes');
-        			
-        		    $numbMenu =  $id + 1;
-
-        		    if($numbMenu == 1) {
-                        $numbMenu = '';
-                    } else {
-                        $numbMenu = " ({$numbMenu})";
-                    }
-
-        			$description[$position."_".$id] = array ('double', 'caption=Меню '.$numbMenu.'->Позиция');
-        			$description[$menuName."_".$id] = array ('varchar', 'caption=Меню '.$numbMenu.'->Група');
-        			$description[$subMenu."_".$id] = array ('varchar', 'caption=Меню '.$numbMenu.'->Подменю');
-        			$description[$view."_".$id] = array ('enum(yes=Да, no=Не),row=2', 'caption=Меню '.$numbMenu.'->Показване,maxRadio=2');
-        		}
-        	} 
-            
-        }
-        
-        // За всеки случай нулираме, за да не се обърка някой по-нататък
-        if(is_array($description) && !count($description)) {
-            $description = NULL;
-        }
-
         return $description;
     }
 }
