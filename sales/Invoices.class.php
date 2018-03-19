@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -497,7 +497,8 @@ class sales_Invoices extends deals_InvoiceMaster
     	}
     	
     	if($rec->state == 'active'){
-    		$amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount - 0.005;
+    		$minus = ($rec->type == 'dc_note') ? 0 : 0.005;
+    		$amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount - $minus;
     		$amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
     		$amount = round($amount, 2);
     		
@@ -825,5 +826,28 @@ class sales_Invoices extends deals_InvoiceMaster
    		}
    	
    		return $rec;
+   	}
+   	
+   	
+   	/**
+   	 * Функция, която се извиква след активирането на документа
+   	 */
+   	public static function on_AfterActivation($mvc, &$rec)
+   	{
+   		$rec = $mvc->fetchRec($rec);
+   		 
+   		if(!empty($rec->sourceContainerId)){
+   			$Source = doc_Containers::getDocument($rec->sourceContainerId);
+   			if($Source->isInstanceOf('store_ShipmentOrders')){
+   					
+   				// Ако източника на ф-та е ЕН, записва се че е към нея
+   				$sRec = $Source->fetch('fromContainerId,containerId');
+   				if(empty($sRec->fromContainerId)){
+   					$sRec->fromContainerId = $rec->containerId;
+   					$Source->getInstance()->save_($sRec, 'fromContainerId');
+   					doc_DocumentCache::cacheInvalidation($sRec->containerId);
+   				}
+   			}
+   		}
    	}
 }

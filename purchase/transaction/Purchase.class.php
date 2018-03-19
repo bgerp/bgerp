@@ -359,7 +359,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     public static function getPaidAmount($jRecs, $rec)
     {
     	// Взимаме количествата по валути
-    	$quantities = acc_Balances::getBlQuantities($jRecs, '401,402', 'debit', '501,503');
+    	$quantities = acc_Balances::getBlQuantities($jRecs, '401,402', 'debit', '501,503,482');
     	$res = deals_Helper::convertJournalCurrencies($quantities, $rec->currencyId, $rec->valior);
     	
     	// К-то платено във валутата на сделката го обръщаме в основна валута за изравнявания

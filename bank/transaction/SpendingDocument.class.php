@@ -87,9 +87,15 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
     	 
     	if($reverse === TRUE && ($rec->operationSysId == 'supplier2bankRet'  || $rec->operationSysId == 'supplierAdvance2bankRet')){
     		$entry2 = $entry[0];
-    		$entry2['credit'] = $entry2['debit'];
     		$entry2['amount'] = abs($entry2['amount']);
+    		$debitArr = $entry2['credit'];
+    		$creditArr = $entry2['debit'];
+    		$entry[0]['credit'] = $creditArr;
+    		$entry[0]['credit'][0] = '482';
+    		
+    		$entry2['debit'] = $debitArr;
     		$entry2['debit']['quantity'] = abs($entry2['debit']['quantity']);
+    		$entry2['credit'] = $entry[0]['credit'];
     		$entry2['credit']['quantity'] = abs($entry2['credit']['quantity']);
     		$entry[] = $entry2;
     	}

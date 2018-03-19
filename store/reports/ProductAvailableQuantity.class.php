@@ -9,7 +9,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Склад » Артикули налични количества
+ * @title     Склад » Артикули наличности и лимити
  */
 class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 {
@@ -70,7 +70,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('limmits', 'enum(no=Без лимити,yes=С лимити)', 
-            'caption=Вид на справката,removeAndRefreshForm,after=title');
+            'caption=Вид на справката,removeAndRefreshForm,after=title,silent');
         
         $fieldset->FLD('typeOfQuantity', 'enum(FALSE=Налично,TRUE=Разполагаемо)', 
             'caption=Количество за показване,maxRadio=2,columns=2,after=limmits');
@@ -96,27 +96,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-        
         $rec->flag = TRUE;
-      
+        
         $form->setDefault('typeOfQuantity', 'TRUE');
-        
-        
-        
-        if ($form->cmd == 'refresh' && $rec->limmits == 'no') {
-            
-            $form->rec->additional = array();
-            
-          $form->setField('additional', 'input=none');
-        }
-      
-        if ($form->cmd == 'refresh' && $rec->limmits == 'yes') {
-        
-            $form->rec->additional = array();
-        
-            $form->setField('additional', 'input=input');
-        }
-        
     }
 
     /**
@@ -129,6 +111,11 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+        if ($form->rec->limmits == 'yes') {
+            $details = (json_decode($form->rec->additional));
+        } else {
+            $form->setField('additional', 'input=none');
+        }
         
         if ($form->isSubmitted()) {
             
@@ -232,13 +219,13 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         } else {
             
             $rec = $form->rec;
+            
             if ($form->rec->limmits == 'no') {
                 
                 $form->rec->additional = array();
             }
             
             if ($form->rec->limmits == 'yes') {
-                
                 if ($form->cmd == 'refresh' && $rec->groupId) {
                     
                     $maxPost = ini_get("max_input_vars") - self::MAX_POST_ART;
@@ -342,13 +329,13 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                             }
                             
                             if ($countUnset > 0) {
-                                $groupName = cat_Products::getTitleById($rec->groupId);
+                                $groupName = cat_Groups::getTitleById($rec->groupId);
                                 $maxArt = self::NUMBER_OF_ITEMS_TO_ADD;
                                 
                                 $form->setWarning('groupId', 
                                     "$countUnset артикула от група $groupName няма да  бъдат добавени.
             						Максимален брой артикули за еднократно добавяне - $maxArt.
-            						§§Може да добавите още артикули от групата при следваща редакция.");
+            						Може да добавите още артикули от групата при следваща редакция.");
                             }
                         }
                         
@@ -439,11 +426,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 }
             }
             
-            
             return $recs;
         }
         
-        // Вариант с лимитио
+        // Вариант с лимити
         
         if ($rec->limmits == 'yes') {
             
@@ -619,15 +605,14 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     }
 
     /**
-	 * След подготовка на реда за експорт
-	 * 
-	 * @param frame2_driver_Proto $Driver - драйвер
-	 * @param stdClass $res               - резултатен запис
-	 * @param stdClass $rec               - запис на справката
-	 * @param stdClass $dRec              - запис на реда
-	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
-	 */
-	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
+     * След подготовка на реда за експорт
+     *
+     * @param frame2_driver_Proto $Driver            
+     * @param stdClass $res            
+     * @param stdClass $rec            
+     * @param stdClass $dRec            
+     */
+    protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
     {
         $code = cat_Products::fetchField($dRec->productId, 'code');
         $res->code = (! empty($code)) ? $code : "Art{$dRec->productId}";

@@ -17,7 +17,8 @@ class prosody_Test extends core_Manager
 {
     function act_Default()
     {
-    
+        requireRole('admin');
+        
         //$res .= "Delete roster result: " . self::deleteRoster("dimitar_minekov");
         $res .= "<br>";
         //$res .= self::getRoster("dimitar_minekov");

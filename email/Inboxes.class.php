@@ -1066,8 +1066,8 @@ class email_Inboxes extends core_Master
         
         return $options;
     }
-
-
+    
+    
     /**
      * Връща потребителите с ранг на корпоративен потребител: ceo, manager, officer, executive
      */
@@ -1079,9 +1079,10 @@ class email_Inboxes extends core_Master
         // Намираме масив с потребителите, които имат право на вътрешен имейл
         if(!$powerUsers) {
             $userQuery = core_Users::getQuery();
-            $powerRoles = core_Roles::getRolesAsKeylist('executive,officer,manager,ceo');
-            $userQuery->likeKeylist('roles', $roles);
+            $powerRole = core_Roles::getRolesAsKeylist('powerUser');
+            $userQuery->likeKeylist('roles', $powerRole);
             $userQuery->where("#state != 'rejected'");
+            
             while($uRec = $userQuery->fetch()) {
                 $powerUsers[strtolower($uRec->nick)] = $uRec;
             }
