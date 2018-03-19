@@ -1067,7 +1067,7 @@ class email_Inboxes extends core_Master
         return $options;
     }
     
-    // @todo - ако корпоративната сметка се създаде по-късно?
+    
     /**
      * Връща потребителите с ранг на корпоративен потребител: ceo, manager, officer, executive
      */
