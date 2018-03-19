@@ -36,6 +36,10 @@
         <legend class="groupTitle">|Папки|*</legend>
            [#planning_AssetResourceFolders#]
     </fieldset>
+    <fieldset class="detail-info">
+        <legend class="groupTitle">|Норми|*</legend>
+           [#planning_AssetResourcesNorms#]
+    </fieldset>
     </div>
     [#DETAILS#]
 </div>

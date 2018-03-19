@@ -99,7 +99,7 @@ class planning_AssetResources extends core_Master
     /**
      * Детайли
      */
-    public $details = 'planning_AssetResourceFolders';
+    public $details = 'planning_AssetResourceFolders,planning_AssetResourcesNorms';
     
     
     /**
