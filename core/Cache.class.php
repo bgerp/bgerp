@@ -299,7 +299,7 @@ class core_Cache extends core_Manager
     {
         // Почистване на всичкия изтекъл Кеш
         $cache = cls::get('core_Cache');
-        $res .= $cache->cron_DeleteExpiredData(TRUE);
+        $cache->cron_DeleteExpiredData(TRUE);
         if (function_exists('apcu_clear_cache')) {
             apcu_clear_cache();
         } elseif(function_exists('apc_clear_cache')) {

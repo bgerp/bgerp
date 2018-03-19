@@ -929,7 +929,7 @@ class core_Mvc extends core_FieldSet
      */
     function setupMVC()
     {
-        $html .= "<li>Създаване на модела <b>" . $this->className . "</b></li><ul style='margin-bottom:10px;'>";
+        $html = "<li>Създаване на модела <b>" . $this->className . "</b></li><ul style='margin-bottom:10px;'>";
 
         // Запалваме събитието on_BeforeSetup
         if ($this->invoke('BeforeSetupMVC', array(&$html)) === FALSE) {
