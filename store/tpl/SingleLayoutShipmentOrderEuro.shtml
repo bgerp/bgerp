@@ -49,6 +49,11 @@
                                 <td>[#deliveryTime#]</td>
                             </tr>
                             <!--ET_END deliveryTime-->
+                            <!--ET_BEGIN fromContainerId-->
+                  			<tr>
+                     			<td colspan='2'><span class='quiet'>|Към фактура|*:</span> [#fromContainerId#]</td>
+                  			</tr>
+                  			<!--ET_END fromContainerId-->
                             <!--ET_BEGIN storeId-->
                             <tr>
                                 <td class='quiet nowrap aright'>|От склад|*:</td>

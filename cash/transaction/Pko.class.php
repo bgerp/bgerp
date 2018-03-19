@@ -86,6 +86,7 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
 				    			array($origin->className, $origin->that),
 				    			array('currency_Currencies', $rec->dealCurrencyId),
 				    			'quantity' => $sign * $rec->amountDeal),);
+    	
     	$entry = array($entry);
     	 
     	if($reverse === FALSE){
@@ -111,10 +112,16 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
     		}
     	} elseif($rec->operationSysId == 'case2customerRet' || $rec->operationSysId == 'caseAdvance2customerRet'){
     		$entry2 = $entry[0];
-    		$entry2['credit'] = $entry2['debit'];
     		$entry2['amount'] = abs($entry2['amount']);
-    		$entry2['debit']['quantity'] = abs($entry2['debit']['quantity']);
+    		$debitArr = $entry2['debit'];
+    		$creditArr = $entry2['credit'];
+    		$entry[0]['debit'] = $creditArr;
+    		$entry[0]['debit'][0] = '482';
+    		
+    		$entry2['credit'] = $debitArr;
     		$entry2['credit']['quantity'] = abs($entry2['credit']['quantity']);
+    		$entry2['debit'] = $entry[0]['debit'];
+    		$entry2['debit']['quantity'] = abs($entry2['debit']['quantity']);
     		$entry[] = $entry2;
     	}
     	

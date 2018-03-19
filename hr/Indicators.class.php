@@ -101,7 +101,16 @@ class hr_Indicators extends core_Manager
             $row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
         }
         
-        $row->docId = cls::get($rec->docClass)->getLink($rec->docId, 0);
+        if(cls::load($rec->docClass, TRUE)){
+        	$Class = cls::get($rec->docClass);
+        	if(cls::existsMethod($Class, 'getLink')){
+        		$row->docId = cls::get($rec->docClass)->getLink($rec->docId, 0);
+        	} else {
+        		$row->docId = cls::get($rec->docClass)->getTitleById($rec->docId, 0);
+        	}
+        } else {
+        	$row->docId = "<span class='red'>" . tr('Проблем при зареждането') . "</span>";
+        }
     }
     
     
@@ -428,15 +437,14 @@ class hr_Indicators extends core_Manager
     	$data->IData->query = self::getQuery();
     	
     	// Позицията от трудовия договор
-    	$positionId = hr_EmployeeContracts::fetchField("#state = 'active' AND #personId = {$data->masterId}", 'positionId');
+    	$contractRec = hr_EmployeeContracts::fetch("#state = 'active' AND #personId = {$data->masterId}");
     	$data->IData->render = FALSE;
-    	
     	if(Request::get('Tab') != 'PersonsDetails') return;
     	
-    	if(!empty($positionId)){
+    	if(!empty($contractRec->positionId)){
     		
     		// Ако има формула за заплата
-    		$formula = hr_Positions::fetchField($positionId, 'formula');
+    		$formula = hr_Positions::fetchField($contractRec->positionId, 'formula');
     		
     		if(!empty($formula)){
     			
@@ -494,6 +502,10 @@ class hr_Indicators extends core_Manager
     		$value = array_key_exists($iId, $data->IData->summaryRecs) ? $data->IData->summaryRecs[$iId]->value : 0;
     		$context['$' . $indicatorVerbal] = $value;
     		$data->IData->summaryRows[$iId] = (object)array('indicatorId' => $indicatorVerbal , 'value' => core_Type::getByName('double(smartRound)')->toVerbal($value));
+    	}
+    	
+    	if(!empty($contractRec->salaryBase)){
+    		$context["$" . 'BaseSalary'] = $contractRec->salaryBase;
     	}
     	
     	// Опит за изчисление на заплатата по формулата

@@ -585,4 +585,54 @@ class colab_FolderToPartners extends core_Manager
     	
     	return $tpl;
     }
+    
+    
+    /**
+     * Тестова функция за създаване на потребители
+     */
+    function act_CreateTestUsers()
+    {
+        requireRole('admin');
+        requireRole('debug');
+        
+        expect(core_Packs::isInstalled('colab'));
+        
+        core_App::setTimeLimit(600);
+        
+        $nickCnt = Request::get('cnt', 'int');
+        setIfNot($nickCnt, 1000);
+        if ($nickCnt > 20000) {
+            $nickCnt = 20000;
+        }
+        
+        $pass = Request::get('pass');
+        setIfNot($pass, '123456');
+        
+        $nickPref = Request::get('nickPref');
+        setIfNot($nickPref, 'test_');
+        
+        $pRoleId = core_Roles::fetchByName('partner');
+        $dRoleId = core_Roles::fetchByName('distributor');
+        $aRoleId = core_Roles::fetchByName('agent');
+        
+        while ($nickCnt--) {
+            $uRec = new stdClass();
+            $uRec->nick = $nickPref . str::getRand();
+            $uRec->names = $uRec->nick . ' Name';
+            $uRec->email = $uRec->nick . '@bgerp.com';
+            $uRec->state = 'active';
+            $uRec->rolesInput = array($pRoleId => $pRoleId);
+            
+            if (rand(1,3) == 1) {
+                $uRec->rolesInput[$dRoleId] = $dRoleId;
+            }
+            if (rand(1,3) == 3) {
+                $uRec->rolesInput[$aRoleId] = $aRoleId;
+            }
+            $uRec->rolesInput = type_Keylist::fromArray($uRec->rolesInput);
+            $uRec->ps5Enc = core_Users::encodePwd($pass, $uRec->nick);
+            
+            core_Users::save($uRec, NULL, 'IGNORE');
+        }
+    }
 }
