@@ -727,7 +727,12 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     			
     			$origin = doc_Containers::getDocument($rec->originId);
-    			$originRec = $origin->fetch('dpAmount,dpOperation,dealValue');
+    			$originRec = $origin->fetch('dpAmount,dpOperation,dealValue,date');
+    			
+    			if($rec->date < $originRec->date){
+    				$oDate = dt::mysql2verbal($oDate, 'd.m.Y');
+    				$form->setError('date', "Датата трябва да е по-голяма или равна на тази от оригиналната фактура|* <b>{$oDate}</b>");
+    			}
     			
     			if($originRec->dpOperation == 'accrued' || isset($rec->changeAmount)){
     				$diff = ($rec->changeAmount * $rec->rate);
