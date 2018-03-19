@@ -121,7 +121,7 @@ class acc_Balances extends core_Master
     /**
      * Максимално допустимо време в секунди за изчисляване на баланс на период
      */
-    const MAX_PERIOD_CALC_TIME = 300;
+    const MAX_PERIOD_CALC_TIME = 1200;
     
 
     /**
@@ -394,24 +394,19 @@ class acc_Balances extends core_Master
     		$isMiddleBalance = ($rec->periodId) ? FALSE : TRUE;
     		$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
     	    
-            // Заключваме процеса за определено време
-            if (core_Locks::get(acc_Balances::saveLockKey)) {
-
-                // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
-                if($bD->saveBalance($rec->id)) {
-                    $rec->lastCalculateChange = 'yes';
-                } else {
-                    $rec->lastCalculateChange = 'no';
-                }
-                                
-                // Отбелязваме, кога за последно е калкулиран този баланс
-                $rec->lastCalculate = dt::now();
-                self::save($rec, 'lastCalculate,lastCalculateChange');
+ 
+            // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
+            if($bD->saveBalance($rec->id)) {
+                $rec->lastCalculateChange = 'yes';
+            } else {
+                $rec->lastCalculateChange = 'no';
             }
+                                
+            // Отбелязваме, кога за последно е калкулиран този баланс
+            $rec->lastCalculate = dt::now();
+            self::save($rec, 'lastCalculate,lastCalculateChange');
     		
-    		//$count++;
-    	//}
-    }
+     }
     
     
     /**
