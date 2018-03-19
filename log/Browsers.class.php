@@ -532,7 +532,7 @@ class log_Browsers extends core_Master
             $browserName = self::getUserAgentBrowserName($userAgent);
             $osName = self::getUserAgentOsName($userAgent);
             
-            if (($browserName == "Unknown Browser") || ($osName == "Unknown OS")) {
+            if (($browserName == "Unknown Browser") || ($osName == "Unknown OS") || !self::getAcceptLangs()) {
                 $str = md5($userAgent . '|' . core_Users::getRealIpAddr() . '|' . dt::today() . '|' . BRID_SALT);
             }
         }
@@ -653,11 +653,6 @@ class log_Browsers extends core_Master
             $userAgent = $_SERVER['HTTP_USER_AGENT'];
         }
         
-        if(self::getUserAgentBrowserName($userAgent) != 'Unknown Browser') {
-
-            return FALSE;
-        }
-
         $bots = 'GoogleBot|msnbot|Bingbot|Teoma|80legs|xenon|baidu|Charlotte|DotBot|Sosospider|Rambler|Yahoo|' .
             'AbachoBOT|Acoon|appie|Fluffy|ia_archiver|MantraAgent|Openbot|accoona|AcioRobot|ASPSeek|CocoCrawler|Dumbot|' . 
             'FAST-WebCrawler|GeonaBot|Gigabot|Lycos|MSRBOT|Scooter|AltaVista|IDBot|eStyle|Scrubby|majestic12|augurfind|Java';
@@ -672,7 +667,7 @@ class log_Browsers extends core_Master
             }
         }
 
-        if(preg_match("/\b([\w\-]+bot[\w\-]*)\b/i", $userAgent, $matches)) {
+        if(preg_match("/\b([a-z\w\-]+(bot|crawler)[\w\-]*)\b/i", $userAgent, $matches)) {
 
             $botName = $matches[1];
 
@@ -685,7 +680,17 @@ class log_Browsers extends core_Master
 
             return $botName;
         }
-     
+        
+        if(self::getUserAgentBrowserName($userAgent) != 'Unknown Browser') {
+
+            return FALSE;
+        }
+        
+        if(preg_match("/([a-z]+\.com)\b/i", $userAgent, $matches)) {
+        
+            return $matches[1];
+        }
+
         return FALSE;
     }
 
