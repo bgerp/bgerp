@@ -96,11 +96,17 @@ class label_Prints extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'label_Wrapper, plg_Created, plg_Modified, plg_State, plg_RefreshRows, plg_Search, plg_Sorting, plg_rowTools2, plg_Clone, plg_Rejected';
+    public $loadList = 'label_Wrapper, plg_Created, plg_Modified, plg_State, plg_RefreshRows, plg_Search, plg_Sorting, plg_rowTools2, plg_Clone, plg_Rejected, plg_LastUsedKeys';
     
     
     /**
-     * 
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    public $lastUsedKeys = 'templateId';
+    
+    
+    /**
+     * Кои полета да не се клонират
      */
     public $fieldsNotToClone = 'searchKeywords,printedCnt,modifiedOn,modifiedBy,state,exState,lastUsedOn,createdOn,createdBy, rows, params';
     
