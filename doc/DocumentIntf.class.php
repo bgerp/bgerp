@@ -247,8 +247,8 @@ class doc_DocumentIntf
     /**
      * Връща антетката на документа
      * 
-     * @param stdObject $rec
-     * @param stdObject $row
+     * @param stdClass $rec
+     * @param stdClass $row
      */
     function getLetterHead($rec, $row)
     {

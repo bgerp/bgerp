@@ -344,7 +344,7 @@ class doc_Prototypes extends core_Manager
      * @param integer $docId
      * @param string|NULL $field
      * 
-     * @return stdObject|string
+     * @return stdClass|string
      */
     public static function getProtoRec($class, $docId, $field = NULL)
     {

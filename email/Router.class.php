@@ -387,7 +387,7 @@ class email_Router extends core_Manager
     /**
      * Проверява дали може да се рутира тук
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param array $oldValArr
      * 
      * @return boolean

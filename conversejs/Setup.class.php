@@ -61,7 +61,7 @@ class conversejs_Setup extends core_ProtoSetup {
      */
     function install()
     {
-    	$html .= parent::install();
+    	$html = parent::install();
     	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');

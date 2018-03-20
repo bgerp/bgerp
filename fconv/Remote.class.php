@@ -72,7 +72,7 @@ class fconv_Remote extends core_Manager
      * 
      * @param string $commandName
      * 
-     * @return FALSE|stdObject
+     * @return FALSE|stdClass
      */
     public static function getRemoteCommand($commandName)
     {

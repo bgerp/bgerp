@@ -87,7 +87,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
      * 
      * @param core_Mvc $mvc
      * @param NULL|string $res
-     * @param integer|stdObject $rec
+     * @param integer|stdClass $rec
      */
     public static function on_BeforeIsVisibleForPartners($mvc, &$res, $rec)
     {

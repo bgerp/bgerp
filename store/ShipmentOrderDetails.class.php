@@ -418,12 +418,10 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             if($err2) {
                 $data->masterData->row->logisticInfo = ht::createHint($data->masterData->row->logisticInfo, $err2, 'error');
             }
-
         }
-
-        if(!$haveTransInfo) {
-            unset($data->listFields['info']);
-        }
+        
+        // Временно спиране
+        unset($data->listFields['info']);
     	
     	core_Lg::pop();
     }

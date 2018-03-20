@@ -259,7 +259,7 @@ class distro_Group extends core_Master
      * Функция, която се извиква след активирането на документа
      *
      * @param distro_Group $mvc
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     public static function on_BeforeActivation($mvc, &$rec)
     {
@@ -283,7 +283,7 @@ class distro_Group extends core_Master
      * Функция, която се извиква след активирането на документа
 	 * 
 	 * @param distro_Group $mvc
-	 * @param stdObject $rec
+	 * @param stdClass $rec
 	 */
     public static function on_AfterActivation($mvc, &$rec)
     {

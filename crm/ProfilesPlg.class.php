@@ -20,8 +20,8 @@ class crm_ProfilesPlg extends core_Plugin
      * 
      * 
      * @param core_Mvc $mvc
-     * @param stdObject $row
-     * @param stdObject $rec
+     * @param stdClass $row
+     * @param stdClass $rec
      * @param array $fields
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())

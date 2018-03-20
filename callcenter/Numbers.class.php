@@ -704,7 +704,7 @@ class callcenter_Numbers extends core_Manager
      * 
      * @param integer $num - Вътрешен номер
      * 
-     * @return FALSE|stdObject
+     * @return FALSE|stdClass
      */
     public static function getRecForInternalNum($num)
     {

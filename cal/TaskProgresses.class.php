@@ -482,7 +482,7 @@ class cal_TaskProgresses extends core_Detail
 	/**
 	 * 
 	 * 
-	 * @param stdObject $data
+	 * @param stdClass $data
 	 */
 	public function prepareDetail_($data)
 	{
@@ -623,9 +623,9 @@ class cal_TaskProgresses extends core_Detail
 	 * Извлича редовете, които ще се покажат на текущата страница
 	 * За да покажем и оттеглените задачи
 	 * 
-	 * @param stdObject $data
+	 * @param stdClass $data
 	 * 
-	 * @return stdObject
+	 * @return stdClass
 	 */
 	function prepareListRecs(&$data)
 	{

@@ -670,7 +670,7 @@ class doc_Folders extends core_Master
     /**
      * Връща масив с потребители, които ще се нотифицират за действия в папката
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return array
      */
@@ -1452,7 +1452,7 @@ class doc_Folders extends core_Master
     /**
      * Опитва се да извлече точки за записа
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return number
      */
@@ -1477,7 +1477,7 @@ class doc_Folders extends core_Master
     /**
      * Прави миграция на папките към несортирани. Използва се при поправка на документите.
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param NULL|integer $currUser
      * 
      * @return array

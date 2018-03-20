@@ -292,6 +292,8 @@ class remote_Authorizations extends embed_Manager
 
             return;
         }
+
+        $lastPortalSeen = array();
         
         // Махаме тези потребители, които са били активни допреди 2 минути
         $before2min = dt::addSecs(-180);

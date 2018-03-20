@@ -15,6 +15,13 @@
 abstract class deals_PaymentDocument extends core_Master 
 {
 
+	
+	/**
+	 * Име на полето за основание
+	 */
+	public $reasonField = 'reason';
+	
+	
 	/**
 	 * Функция, която се извиква след активирането на документа
 	 */

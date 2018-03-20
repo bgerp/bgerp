@@ -372,7 +372,7 @@ class support_Issues extends core_Master
     /**
      * 
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     public static function prepareBodyAndSubject($rec)
     {

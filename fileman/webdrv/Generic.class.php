@@ -558,7 +558,7 @@ class fileman_webdrv_Generic extends core_Manager
     /**
      * Подготвя стойността за заключване
      * 
-     * @param string|stdObject $res
+     * @param string|stdClass $res
      * 
      * @return string|boolean
      */

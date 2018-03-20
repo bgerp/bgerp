@@ -137,6 +137,10 @@ class export_Export extends core_Mvc
         
         $exportFormats = $this->getPossibleExports($classId, $docId);
         
+        if (!empty($exportFormats)) {
+            ksort($exportFormats);
+        }
+        
         $suggestions = '';
         foreach ($exportFormats as $clsId => $typeTitle) {
             $suggestions .= "{$clsId}={$typeTitle},";

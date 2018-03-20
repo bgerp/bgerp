@@ -17,9 +17,8 @@
 class cms_SourceIntf
 {
 	
-	
 	/**
-	 * Клас
+	 * Инстанция на обекта
 	 */
 	public $class;
 	

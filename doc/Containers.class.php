@@ -2396,7 +2396,7 @@ class doc_Containers extends core_Manager
     /**
      * Помощна функция за поправка на docClass
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     protected static function repairDocClass($rec)
     {
@@ -2440,7 +2440,7 @@ class doc_Containers extends core_Manager
     /**
      * Помощна функция за поправка на id на документи
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return boolean
      */

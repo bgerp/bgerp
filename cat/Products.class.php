@@ -692,7 +692,7 @@ class cat_Products extends embed_Manager {
      * Обработка, преди импортиране на запис при начално зареждане
      * 
      * @param cat_Products $mvc
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     protected static function on_BeforeImportRec($mvc, $rec)
     {
