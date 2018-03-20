@@ -30,20 +30,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected $listItemsPerPage = 30;
 
-    /**
-     * Полета от таблицата за скриване, ако са празни
-     *
-     * @var int
-     */
-    protected $filterEmptyListFields;
-
-    /**
-     * Полета за хеширане на таговете
-     *
-     * @see uiext_Labels
-     * @var varchar
-     */
-    protected $hashField;
 
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
@@ -52,10 +38,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected $newFieldToCheck = 'conditionQuantity';
 
-    /**
-     * По-кое поле да се групират листовите данни
-     */
-    protected $groupByField;
+
 
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
