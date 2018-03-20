@@ -153,8 +153,8 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Помощна функция за показване на текста на оригиналния файл във формата
      *
-     * @param stdObject $fRec
-     * @param NULL|stdObject $form
+     * @param stdClass $fRec
+     * @param NULL|stdClass $form
      * @param NULL|string $form
      */
     public static function showOriginalFile($fRec, $form = NULL, $localUrl = NULL)
@@ -508,7 +508,7 @@ class doc_DocumentPlg extends core_Plugin
      * Подготовка на филтър формата
      * 
      * @param core_Manager $mvc
-     * @param stdObject $data
+     * @param stdClass $data
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
@@ -4129,7 +4129,7 @@ class doc_DocumentPlg extends core_Plugin
      * 
      * @param core_Manager $mvc
      * @param NULL|array $res
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     function on_AfterGetUsersArrForNotifyInDoc($mvc, &$res, $rec)
     {
@@ -4243,7 +4243,7 @@ class doc_DocumentPlg extends core_Plugin
      *
      * @param core_Mvc $mvc
      * @param NULL|string $res
-     * @param integer|stdObject $rec
+     * @param integer|stdClass $rec
      */
     public static function on_AfterIsVisibleForPartners($mvc, &$res, $rec)
     {

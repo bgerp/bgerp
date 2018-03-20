@@ -881,6 +881,9 @@ class acc_BalanceDetails extends core_Detail
         
         // Изтриваме запаметените изчислени данни
         unset($this->balance, $this->strategies);
+        
+        // Заключваме показването на информацията от баланса в кориците и документи
+        core_Locks::get(acc_Balances::saveLockKey);
 
         // Изтриваме старите данни за текущия баланс
         $this->delete("#balanceId = {$balanceId}");
@@ -890,6 +893,9 @@ class acc_BalanceDetails extends core_Detail
         // За да може ако някой използва данни от таблицата докато не са готови новите да разполага със старите
         $balanceIdColName = str::phpToMysqlName('balanceId');
         $this->db->query("UPDATE {$this->dbTableName} SET {$balanceIdColName} = {$balanceId} WHERE {$balanceIdColName} = '-1'");
+        
+        // Освобождаваме заключването
+        core_Locks::release(acc_Balances::saveLockKey);
 
         if($sum == self::getCheckSum($balanceId)) {
             $res = FALSE;

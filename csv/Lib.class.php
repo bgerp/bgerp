@@ -619,7 +619,7 @@ class csv_Lib
             if($maxRows-- == 0) break;
         }
        
-        $res1 = $arr;
+        $res1 = array();
 
         foreach($res as $i => $arr) {
             if($maxRows < 999 && $arr['minLen'] == $arr['maxLen']) {

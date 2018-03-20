@@ -2510,7 +2510,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Добавя нотификация за приключена задача
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $msg
      * @param array $notifyUsersArr
      * @param boolean $removeOldNotify
@@ -2575,7 +2575,7 @@ class cal_Tasks extends embed_Manager
      * 
      * 
      * @param cal_Tasks $mvc
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $state
      */
     protected function on_AfterChangeState($mvc, $rec, $state)

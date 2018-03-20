@@ -21,7 +21,7 @@ class support_IssueCreateIntf
      * 
      * @param integer $id Кой е пораждащия обект
      * 
-     * @return stdObject за support_Issues
+     * @return stdClass за support_Issues
      * 
      * @see support_IssueCreateIntf
      */

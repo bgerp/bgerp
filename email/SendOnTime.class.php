@@ -143,7 +143,7 @@ class email_SendOnTime extends core_Manager
     /**
      * Спира разпращането
      * 
-     * @param stdObject|int $id
+     * @param stdClass|int $id
      * 
      * @return array
      */
@@ -181,7 +181,7 @@ class email_SendOnTime extends core_Manager
      * Добавя стойност на функционалното поле emailsTo
      * 
      * @param email_SendOnTime $mvc
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     static function on_CalcEmailsTo($mvc, $rec)
     {
@@ -193,7 +193,7 @@ class email_SendOnTime extends core_Manager
      * Добавя стойност на функционалното поле emailsCc
      * 
      * @param email_SendOnTime $mvc
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     static function on_CalcEmailsCc($mvc, $rec)
     {
@@ -205,7 +205,7 @@ class email_SendOnTime extends core_Manager
      * Добавя стойност на функционалното поле faxTo
      * 
      * @param email_SendOnTime $mvc
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     static function on_CalcFaxTo($mvc, $rec)
     {
@@ -217,7 +217,7 @@ class email_SendOnTime extends core_Manager
      * Добавя стойност на функционалното поле faxService
      * 
      * @param email_SendOnTime $mvc
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     static function on_CalcFaxService($mvc, $rec)
     {
@@ -229,7 +229,7 @@ class email_SendOnTime extends core_Manager
      * Добавя стойност на функционалното поле boxFrom
      * 
      * @param email_SendOnTime $mvc
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     static function on_CalcBoxFrom($mvc, $rec)
     {

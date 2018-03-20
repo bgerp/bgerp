@@ -62,7 +62,7 @@ class abbyyocr_Converter extends core_Manager
      *
      * Връща масив с действия, които могат да се извършат с дадения файл
      *
-     * @param stdObject $fRec - Обект са данни от модела
+     * @param stdClass $fRec - Обект са данни от модела
      *
      * @return array|NULL $arr - Масив с данните
      * $arr['url'] - array URL на действието
@@ -141,7 +141,7 @@ class abbyyocr_Converter extends core_Manager
     /**
      * 
      * 
-     * @param stdObject|string $fRec
+     * @param stdClass|string $fRec
      * 
      * @return string|NULL
      * 
@@ -324,7 +324,7 @@ class abbyyocr_Converter extends core_Manager
     /**
      * Проверява дали файл с даденото име може да се екстрактва
      * 
-     * @param stdObject|string $fRec
+     * @param stdClass|string $fRec
      * 
      * @return boolean - Дали може да се екстрактва от файла
      * 
@@ -354,7 +354,7 @@ class abbyyocr_Converter extends core_Manager
     /**
      * Бърза проврка дали има смисъл от OCR-ване на текста
      *
-     * @param stdObject|string $fRec
+     * @param stdClass|string $fRec
      * 
      * @see fileman_OCRIntf
      */

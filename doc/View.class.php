@@ -169,8 +169,8 @@ class doc_View extends core_Master
      * Извиква се преди подготовката на формата за редактиране/добавяне $data->form
      * 
      * @param crm_Locations $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
@@ -182,8 +182,8 @@ class doc_View extends core_Master
      * Извиква се преди подготовката на формата за редактиране/добавяне $data->form
      *
      * @param crm_Locations $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
@@ -285,7 +285,7 @@ class doc_View extends core_Master
      * 
      * @param doc_View $mvc
      * @param string|NULL $res
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {

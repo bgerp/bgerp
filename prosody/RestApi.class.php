@@ -146,6 +146,8 @@ class prosody_RestApi {
      public static function addRoster($user, $contact)
      {
         $user = strtolower($user);
+        $contact = strtolower($contact);
+        
         $domain = core_Packs::getConfigKey('prosody', 'PROSODY_DOMAIN');
         $endpoint = 'roster' . '/' . $user;
         $type = 'POST';

@@ -18,7 +18,8 @@ class conversejs_Adapter extends core_Mvc
 {
     
     public function act_Show()
-    {
+    { 
+        if (Request::get('locale')) core_App::getJson(array());
         requireRole('powerUser');
 
         $tpl = new page_Html();

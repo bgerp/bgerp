@@ -40,7 +40,7 @@ class type_Nick extends type_Varchar {
         
         $value = self::normalize($value);
         
-        if (!$this->isValid($value, $this->params['allowEmail'])) {
+        if (!$this->isValidNick($value, $this->params['allowEmail'])) {
             $this->error = 'Въвели сте недопустима стойност:|* ' . parent::escape($value);
 
             return FALSE;
@@ -68,8 +68,13 @@ class type_Nick extends type_Varchar {
     
     /**
      * Проверява дали е валиден
+     *
+     * @param string $nick
+     * @param boolean $allowEmail
+     * 
+     * @return boolean
      */
-    function isValid($value, $allowEmail = FALSE)
+    public function isValidNick($value, $allowEmail = FALSE)
     {
         if($allowEmail && type_Email::isValidEmail($value)) {
 

@@ -26,8 +26,8 @@ class spcheck_Plugin extends core_Plugin
      * 
      * 
      * @param core_Master $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {

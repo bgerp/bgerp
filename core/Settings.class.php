@@ -378,7 +378,7 @@ class core_Settings extends core_Manager
             if (!isset($fOpt->settingForAll)) continue;
             
             if (trim($fOpt->settingForAll) && ($fOpt->settingForAll != 'settingForAll')) {
-                $uSettingForAllArr[$fName] = type_Keylist::toArray($fOpt->settingForAll, TRUE);
+                $uSettingForAllArr[$fName] = type_Keylist::toArray($fOpt->settingForAll);
             } else {
                 $uSettingForAllArr[$fName] = '*';
             }

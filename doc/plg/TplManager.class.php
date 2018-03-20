@@ -247,10 +247,10 @@ class doc_plg_TplManager extends core_Plugin
      * 
      * 
      * @param core_Mvc $mvc
-     * @param NULL|stdObject $res
+     * @param NULL|stdClass $res
      * @param integer $id
      * @param string $mode
-     * @param NULL|stdObject $options
+     * @param NULL|stdClass $options
      */
     function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
     {
@@ -495,8 +495,8 @@ class doc_plg_TplManager extends core_Plugin
      * 
      * @param core_Mvc $mvc
      * @param core_Et|NULL $res
-     * @param stdObject $rec
-     * @param stdObject $row
+     * @param stdClass $rec
+     * @param stdClass $row
      */
     public static function on_BeforeGetLetterHead($mvc, &$res, $rec, $row)
     {
@@ -533,8 +533,8 @@ class doc_plg_TplManager extends core_Plugin
      * 
      * 
      * @param core_Mvc $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
@@ -549,7 +549,7 @@ class doc_plg_TplManager extends core_Plugin
      * @param core_Mvc $mvc
      * @param core_ET $container
      * @param integer $cnt
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     public static function on_AfterRenderPrintCopy($mvc, &$container, $cnt, $rec)
     {

@@ -188,7 +188,7 @@ class fileman_Data extends core_Manager {
      * Връща пътя до файла на съответния запис
      * Първо проверява с поддиректория, след това 
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param bolean $createDir - Създва директорията, ако липсва
      * 
      * @return string
@@ -409,7 +409,7 @@ class fileman_Data extends core_Manager {
     /**
      * Когато искаме да ресетнем, че файлът е преминал през обработка
      * 
-     * @param integer|stdObject $rec
+     * @param integer|stdClass $rec
      */
     public static function resetProcess($rec)
     {

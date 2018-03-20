@@ -1820,10 +1820,10 @@ class email_Outgoings extends core_Master
     /**
      * Прави опит да определи контрагент данните и връща резултат за тях
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param boolean $isForwarding
      * 
-     * @return NULL|stdObject
+     * @return NULL|stdClass
      */
     protected static function prepareContragentData($rec, $isForwarding=FALSE)
     {
@@ -1915,8 +1915,8 @@ class email_Outgoings extends core_Master
     /**
      * Задава стойности на контрагент данните
      * 
-     * @param stdObject $contragentData
-     * @param stdObject $rec
+     * @param stdClass $contragentData
+     * @param stdClass $rec
      */
     protected static function setContragentDataToRec($contragentData, &$rec)
     {
@@ -2628,7 +2628,7 @@ class email_Outgoings extends core_Master
      * Добавяме нотификация на съответния потребител за чакащ имейл
      *
      * @param integer|NULL $userId
-     * @param stdObject|NULL $rec
+     * @param stdClass|NULL $rec
      */
     static function addWaitingEmailNotification($userId = NULL, $rec = NULL)
     {

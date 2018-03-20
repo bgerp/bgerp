@@ -115,6 +115,12 @@ class core_Query extends core_FieldSet
 
 
     /**
+     * Дали в заявката ще се използва having клауза
+     */
+    private $useHaving;
+
+
+    /**
      * Данните на записите, които ще бъдат изтрити. Инициализира се преди всяко изтриване.
      *
      * @var array

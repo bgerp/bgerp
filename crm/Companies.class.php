@@ -532,7 +532,7 @@ class crm_Companies extends core_Master
     /**
      * Проверява дали полето име и полето ЕГН се дублират. Ако се дублират сетваме грешка.
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $fields
      * 
      * @return string
@@ -596,7 +596,7 @@ class crm_Companies extends core_Master
     /**
      * Връща масив с възможните съвпадения
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $fields
      * 
      * @return array
@@ -868,7 +868,7 @@ class crm_Companies extends core_Master
      * 
      * @param crm_Companies $mvc
      * @param integer $id
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string|NULL $saveFileds
      */
     protected static function on_AfterSave(crm_Companies $mvc, &$id, $rec, $saveFileds = NULL)
