@@ -133,4 +133,22 @@ class deals_plg_SelectInvoice extends core_Plugin
 			}
 		}
 	}
+	
+	
+	/**
+	 * Подготовка на формата за добавяне
+	 */
+	public static function on_AfterPrepareEditForm($mvc, $res, $data)
+	{
+		$form = $data->form;
+		
+		// Ако е към проформа да се показва в описанието
+		if(isset($mvc->reasonField) && isset($form->rec->fromContainerId)){
+			$fromDocument = doc_Containers::getDocument($form->rec->fromContainerId);
+			if($fromDocument->isInstanceOf('sales_Proformas')){
+				$form->setDefault($mvc->reasonField, tr("Към") . " #" . $fromDocument->getHandle());
+				unset($form->rec->fromContainerId);
+			}
+		}
+	}
 }
