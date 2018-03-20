@@ -34,8 +34,9 @@ class deals_plg_SelectInvoice extends core_Plugin
 	public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
 	{
 		if(isset($rec->fromContainerId)){
-			$number = str_pad(sales_Invoices::fetchField("#containerId = {$rec->fromContainerId}", 'number'), '10', '0', STR_PAD_LEFT);
-			$res .= " " . plg_Search::normalizeText($number);
+			$number = sales_Invoices::fetchField("#containerId = {$rec->fromContainerId}", 'number');
+			$numberPaddeng = str_pad($numberPaddeng, '10', '0', STR_PAD_LEFT);
+			$res .= " " . plg_Search::normalizeText($number) . " " . plg_Search::normalizeText($numberPaddeng);
 		}
 	}
 	
