@@ -195,6 +195,10 @@ class acc_Balances extends core_Master
         if($rec->lastAlternationDocClass && $rec->lastAlternationDocId) {
             $row->lastAlternation .= ht::createLink('↗', array($rec->lastAlternationDocClass, 'single', $rec->lastAlternationDocId));
         }
+
+        if($rec->lastCalculateChange == 'no') {
+            $row->lastCalculate .= ' ' . "<span title='При последното изчисляване не е настъпила промяна'>✓</span>";
+        }
     	
     	if($rec->lastAlternation > $rec->lastCalculate){
     		$row->lastAlternation = ht::createHint($row->lastAlternation, 'Има промяна след последното изчисление на баланса', 'warning');
@@ -480,10 +484,14 @@ class acc_Balances extends core_Master
         // Ако нямаме никакви записи за периода, значи всичко е ОК
         if(empty($rec->lastAlternation)) return TRUE;
 
-        // Вземаме предния период. Ако той е с по-ново време на изчисление, задължително изчисляваме и този
-        $prevRec = acc_Periods::fetchByDate(dt::addDays(-2, $rec->start));
+        // Вземаме предния баланс. Ако той е с по-ново време на изчисление, задължително изчисляваме и този
+        $query = self::getQuery();
+        $query->limit(1);
+        $query->where("#fromDate < '{$rec->fromDate}'");
+        $query->orderBy('fromDate', 'DESC');
+        $lastRec = $query->fetch();
         
-        if($prevRec && $prevRec->lastCalculate > $rec->lastCalculate) {
+        if($lastRec && ($lastRec->lastCalculate > $rec->lastCalculate)) {
 
             return FALSE;
         }
