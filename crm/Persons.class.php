@@ -1899,7 +1899,7 @@ class crm_Persons extends core_Master
      * 
      * Връща масив с действия, които могат да се извършат с дадения файл
      * 
-     * @param stdObject $fRec - Обект са данни от модела
+     * @param stdClass $fRec - Обект са данни от модела
      * 
      * @return array $arr - Масив с данните
      * $arr['url'] - array URL на действието
@@ -2304,7 +2304,7 @@ class crm_Persons extends core_Master
     /**
      * Проверява дали полето име и полето ЕГН се дублират. Ако се дублират сетваме грешка.
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $fields
      * 
      * @return string
@@ -2370,7 +2370,7 @@ class crm_Persons extends core_Master
     /**
      * Връща масив с възможните съвпадения
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $fields
      * 
      * @return array

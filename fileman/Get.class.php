@@ -153,7 +153,7 @@ class fileman_Get extends core_Manager {
     /**
      * Функция, за вземане на файла от подаденото URL
      * 
-     * @param stdObject $rec - bucketId,callback,url
+     * @param stdClass $rec - bucketId,callback,url
      * @param string $add
      * @param string $err
      * 

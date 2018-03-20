@@ -248,7 +248,7 @@ class colab_DocumentLog extends core_Manager
     /**
      * Връща id за html елемент
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return string
      */

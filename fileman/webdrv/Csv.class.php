@@ -73,6 +73,8 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
 
             return parent::getContent($fRec);
         }
+        
+        $rows = array();
 
         if(isset($res['firstRow'])) {
             foreach($res['firstRow'] as $col) {

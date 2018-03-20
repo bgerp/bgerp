@@ -1075,7 +1075,7 @@ class fileman_Files extends core_Master
     /**
      * Обновява времето на последно използване на файла
      * 
-     * @param string|stdObject $fh
+     * @param string|stdClass $fh
      * @param NULL|datetime $lastUse
      * 
      * @return boolean
@@ -1535,7 +1535,7 @@ class fileman_Files extends core_Master
     /**
      * Проверява дали файла е опасен
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param double $minDangerLevel
      * 
      * @return boolean

@@ -276,7 +276,7 @@ class core_Updates extends core_Manager
      *
      * @param core_Updates $mvc
      * @param core_ET $tpl
-     * @param stdObject $data
+     * @param stdClass $data
      */
     static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {

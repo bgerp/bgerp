@@ -683,8 +683,8 @@ class change_Plugin extends core_Plugin
      * @see plg_Clone
      * 
      * @param core_Manager $mvc
-     * @param stdObject $rec
-     * @param stdObject $nRec
+     * @param stdClass $rec
+     * @param stdClass $nRec
      */
     function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {

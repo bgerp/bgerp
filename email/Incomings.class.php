@@ -1285,7 +1285,7 @@ class email_Incomings extends core_Master
     /**
      * Пресмята стойностите за AllTo и AllCc - всички получатели на имейла
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param boolean $saveIfNotExist
      */
     public static function calcAllToAndCc($rec, $saveIfNotExist = TRUE)
@@ -1356,7 +1356,7 @@ class email_Incomings extends core_Master
      /**
       * Преизчислява спам рейтинга, ако е необходими
       * 
-      * @param stdObject $rec
+      * @param stdClass $rec
       * @param boolean $saveIfNotExist
       */
      public static function calcSpamScore($rec, $saveIfNotExist = TRUE)
@@ -1890,7 +1890,7 @@ class email_Incomings extends core_Master
     /**
      * Рутира по файлове
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     protected static function doRuleFile($rec)
     {
@@ -1997,7 +1997,7 @@ class email_Incomings extends core_Master
      * Определя рейтинга на документа
      * Последно модифицираните са с най-голям рейтинг, а оттеглените с най-нисък
      * 
-     * @param integer|stdObject $cId
+     * @param integer|stdClass $cId
      * 
      * @return NULL|iteger
      */
@@ -2026,7 +2026,7 @@ class email_Incomings extends core_Master
     /**
      * 
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * return boolean
      */
@@ -2047,7 +2047,7 @@ class email_Incomings extends core_Master
      * 
      * @param email_Incomings $mvc
      * @param integer|NULL $id
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param mixed $saveFileds
      */
     static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = NULL)
@@ -2063,7 +2063,7 @@ class email_Incomings extends core_Master
      * 
      * @param email_Incomings $mvc
      * @param integer|NULL $id
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param mixed $saveFileds
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
@@ -2095,7 +2095,7 @@ class email_Incomings extends core_Master
     /**
      * Добавя id-тата на имейлите към акаунтите
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param boolean $forceSave
      * 
      * @return integer|FALSE
@@ -2842,7 +2842,7 @@ class email_Incomings extends core_Master
      * Намираме потребители, които да се нотифицират допълнително за документа
      * Извън споделени/абонирани в нишката
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return array
      */

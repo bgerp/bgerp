@@ -232,7 +232,7 @@ class support_Ratings extends core_Master
      * 
      * 
      * @param support_Corrections $mvc
-     * @param stdObject $data
+     * @param stdClass $data
      */
     static function on_AfterPrepareEditForm($mvc, &$data)
     {

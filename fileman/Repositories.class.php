@@ -811,7 +811,7 @@ class fileman_Repositories extends core_Master
     /**
      * Връща двумерен масив с всички папки и файловете в тях
      * 
-     * @param integer|stdObject $repoRec - id|rec на хранилището
+     * @param integer|stdClass $repoRec - id|rec на хранилището
      * @param string $subPath - Подпапка в хранилището
      * @param boolean $useFullPath - Да се използва целия файл до папката
      * @param integer $depth - Дълбочината на папката, до която ще се търси
@@ -1232,8 +1232,8 @@ class fileman_Repositories extends core_Master
      * След подготовка на сингъла
      * 
      * @param fileman_Repositories $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {

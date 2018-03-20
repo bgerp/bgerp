@@ -274,7 +274,7 @@ class cal_TaskConditions extends core_Detail
 	/**
 	 * 
 	 * 
-	 * @param stdObject $data
+	 * @param stdClass $data
 	 */
 	public function prepareDetail_($data)
 	{

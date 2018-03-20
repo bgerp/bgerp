@@ -160,7 +160,7 @@ class callcenter_Hosts extends core_Master
     /**
      * Подготвя пътя до файла, като замества плейсхолдерите
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param array $placeArr
      * 
      * @return string
@@ -199,7 +199,7 @@ class callcenter_Hosts extends core_Master
      * @param callcenter_Hosts $mvc
      * @param string $requiredRoles
      * @param string $action
-     * @param NULL|stdObject $rec
+     * @param NULL|stdClass $rec
      * @param NULL|integer $userId
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)

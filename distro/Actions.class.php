@@ -118,7 +118,7 @@ class distro_Actions extends embed_Manager
      * Добавя екшъните от драйверите
      * 
      * @param core_RowToolbar $rowTools
-     * @param stdObject $fRec
+     * @param stdClass $fRec
      */
     public static function addActionToFile(&$rowTools, $fRec)
     {
@@ -156,7 +156,7 @@ class distro_Actions extends embed_Manager
     /**
      * Извиква драйвера за абсорбиране на файл
      * 
-     * @param stdObject $fRec
+     * @param stdClass $fRec
      * @param string $driverName
      * @param bollean $onlyCallback
      */
@@ -272,7 +272,7 @@ class distro_Actions extends embed_Manager
      * Праща нотификация до инициатора на събитието
      * Сменя състояниет
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     protected function notifyErr($rec)
     {
@@ -537,7 +537,7 @@ class distro_Actions extends embed_Manager
      * Извиква се след подготовката на toolbar-а за табличния изглед
      * 
      * @param distro_Actions $mvc
-     * @param stdObject $data
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
@@ -612,8 +612,8 @@ class distro_Actions extends embed_Manager
      * След успешен запис
      * 
      * @param distro_Actions $mvc
-     * @param stdObject $res
-     * @param stdObject $rec
+     * @param stdClass $res
+     * @param stdClass $rec
      */
     public static function on_AfterSave($mvc, $res, $rec)
     {
@@ -671,8 +671,8 @@ class distro_Actions extends embed_Manager
      * След успешен запис
      * 
      * @param distro_Actions $mvc
-     * @param stdObject $res
-     * @param stdObject $rec
+     * @param stdClass $res
+     * @param stdClass $rec
      */
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {

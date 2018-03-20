@@ -605,7 +605,6 @@ abstract class deals_Helper
 	public static function normalizeProducts($arrays, $subtractArrs = array())
 	{
 		$combined = array();
-		$indexArr = arr::make($indexArr);
 		
 		foreach (array('arrays', 'subtractArrs') as $parameter){
 			$var = ${$parameter};

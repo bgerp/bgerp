@@ -395,7 +395,7 @@ class callcenter_Talks extends core_Master
     /**
      * Връща масив с данни, които ще се използват за определяне на файла при архивиране
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return array
      */
@@ -1709,7 +1709,7 @@ class callcenter_Talks extends core_Master
      * @param callcenter_Talks $mvc
      * @param string $requiredRoles
      * @param string $action
-     * @param NULL|stdObject $rec
+     * @param NULL|stdClass $rec
      * @param NULL|integer $userId
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
@@ -2265,7 +2265,7 @@ class callcenter_Talks extends core_Master
 	 * 
 	 * @param integer $id Кой е пораждащия комит
 	 * 
-	 * @return stdObject за cal_Tasks
+	 * @return stdClass за cal_Tasks
 	 * 
 	 * @see support_IssueCreateIntf
 	 */
