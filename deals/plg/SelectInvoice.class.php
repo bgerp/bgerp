@@ -34,8 +34,9 @@ class deals_plg_SelectInvoice extends core_Plugin
 	public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
 	{
 		if(isset($rec->fromContainerId)){
-			$number = str_pad(sales_Invoices::fetchField("#containerId = {$rec->fromContainerId}", 'number'), '10', '0', STR_PAD_LEFT);
-			$res .= " " . plg_Search::normalizeText($number);
+			$number = sales_Invoices::fetchField("#containerId = {$rec->fromContainerId}", 'number');
+			$numberPaddeng = str_pad($numberPaddeng, '10', '0', STR_PAD_LEFT);
+			$res .= " " . plg_Search::normalizeText($number) . " " . plg_Search::normalizeText($numberPadded);
 		}
 	}
 	
@@ -130,6 +131,24 @@ class deals_plg_SelectInvoice extends core_Plugin
 				
 			if($rec->state == 'rejected' || !$hasInvoices){
 				$requiredRoles = 'no_one';
+			}
+		}
+	}
+	
+	
+	/**
+	 * Подготовка на формата за добавяне
+	 */
+	public static function on_AfterPrepareEditForm($mvc, $res, $data)
+	{
+		$form = $data->form;
+		
+		// Ако е към проформа да се показва в описанието
+		if(isset($mvc->reasonField) && isset($form->rec->fromContainerId)){
+			$fromDocument = doc_Containers::getDocument($form->rec->fromContainerId);
+			if($fromDocument->isInstanceOf('sales_Proformas')){
+				$form->setDefault($mvc->reasonField, tr("Към") . " #" . $fromDocument->getHandle());
+				unset($form->rec->fromContainerId);
 			}
 		}
 	}
