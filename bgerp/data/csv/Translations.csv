@@ -27,6 +27,10 @@ en,"Моля, посочете _dd0b",Please specify where to move selected thre
 en,"Не може да добавите продукта като опционален, защото фигурира вече като задължителен!","Unable to add product as optional because already included as mandatory!"
 en,"Неполучени, върнати писма","Not received, returned mails"
 en,"Обекти, достъп_a7851",Available objects for publishing
+en,Обнови,Refresh
+en,обнови,refresh
+en,Обновяване,Refresh
+en,обновяване,refresh
 en,"Отчети и доклади, за любителите на цифрите",Records and reports for lovers of numbers
 en,"Параметри, под_a428f","Parameters, supported by the sensors"
 en,"Позиция по въпроси касаещи България, Европа и света","Position on issues relating to Bulgaria, Europe and the world"
@@ -556,7 +560,7 @@ en,Език,Language
 en,Езици,Languages
 en,Екип,Team
 en,Екипен,Team
-en,Експедиране,Shipping
+en,Експедиране,Shipment
 en,Експедици,Shipping orders
 en,Експедиции,Shipments
 en,Експедиционни _b21d,Shipping orders
@@ -1657,7 +1661,7 @@ en,Пускане,Release
 en,Пускане в експ_8dd6f,Commissioning of LTA
 en,Първи документ,First document
 en,Първи документ_e7b9,First document in the thread
-en,Първо отворените,First opens
+en,Първо отворените,First opened
 en,Първо чакащите,First waitings
 en,Път до хранилище,Path to repository
 en,Път,Path
