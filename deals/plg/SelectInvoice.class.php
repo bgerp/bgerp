@@ -25,6 +25,7 @@ class deals_plg_SelectInvoice extends core_Plugin
 	public static function on_AfterDescription(core_Master &$mvc)
 	{
 		$mvc->FLD('fromContainerId', 'int', 'caption=От фактура,input=hidden,silent');
+		$mvc->setDbIndex('fromContainerId');
 	}
 	
 	
