@@ -372,7 +372,14 @@ class email_Accounts extends core_Master
             try {
                 // Логването и генериране на съобщение при грешка е винаги в контролерната част
                 if ($imapConn->connect() === FALSE) {
-                    $errMsg = "Грешка при свързване|*: " . $imapConn->getLastError();
+                    $anchor = 'Kak-se-nastroyvat-smetkite';
+                    if ($rec->email) {
+                        list(, $domain) = explode('@', $rec->email);
+                        if (strtolower($domain) == 'gmail.com') {
+                            $anchor = 'Dopalnitelni-nastroyki-v-sarvarite';
+                        }
+                    }
+                    $errMsg = "Грешка при свързване|*: " . $imapConn->getLastError() . "<br>|За повече информация|*: " . ht::createLink('bgerp.com', "https://bgerp.com/Bg/Zadavane-na-IMAP-POP3-akaunt/#{$anchor}", FALSE, array('target' => '_blank', 'title' => 'Задаване на IMAP/POP3 акаунт'));
                     
                     $form->setWarning('server', $errMsg);
                 }
