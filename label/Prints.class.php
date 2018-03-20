@@ -1001,8 +1001,13 @@ class label_Prints extends core_Master
                 // Вземаме името на плейсхолдера
                 $fPlace = label_TemplateFormats::getPlaceholderFieldName($place);
                 
-                // Вземаме вербалната стойност
-                $data->rows[$rowId][$place] = label_TemplateFormats::getVerbalTemplate($rec->templateId, $place, $params[$fPlace], $rec->id, $data->updateTempData);
+                try {
+                    // Вземаме вербалната стойност
+                    $data->rows[$rowId][$place] = label_TemplateFormats::getVerbalTemplate($rec->templateId, $place, $params[$fPlace], $rec->id, $data->updateTempData);
+                } catch (core_exception_Expect $e) {
+                    $data->rows[$rowId][$place] = "<span style='color: #c00;'>" . tr('Грешка при показване на данните') . "!!!</span>";
+                    $this->logWarning('Грешка при показване на данните: ' . $e->getMessage(), $rec->id);
+                }
             }
             
             $newCurrPage = FALSE;
