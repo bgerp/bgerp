@@ -702,14 +702,13 @@ class label_TemplateFormats extends core_Detail
                     }
                 }
             }
-        } elseif ($type == 'counter') {
+        } elseif (($type == 'counter') || ($type == 'barcode')) {
             
             // Вземаме формата
             $formatVal = $rec->formatParams['Format'];
             
             // Ако има шаблон за субституиране с брояч
             if (label_Counters::haveCounterPlace($formatVal)) {
-                
                 if ($rec->formatParams['CounterId']) {
                     // Заместваме брояча
                     $formatVal = label_Counters::placeCounter($formatVal, $rec->formatParams['CounterId'], $printId, $updateTempData);
@@ -752,18 +751,18 @@ class label_TemplateFormats extends core_Detail
                     // Добавяме стойността
                     $verbalValArr[$valStr] = $div . $formatVal . "</div>";
                 } else {
-                    
                     // Очакваме да има въведен баркод тип
                     expect($barcodeType, 'Трябва да се избере типа на баркода');
-                    
-                    // Масив с размерите
-                    $size = array('width' => $rec->formatParams['Width'], 'height' => $rec->formatParams['Height']);
                     
                     // Вземаме минималната височина и широчината
                     $minWidthAndHeight = barcode_Generator::getMinWidthAndHeight($barcodeType, $formatVal);
                     
-                    // Проверяваме размера след ротиране
-                    barcode_Generator::checkSizes($barcodeType, $size, $minWidthAndHeight);
+                    $minWidthAndHeight = barcode_Generator::getMinWidthAndHeight($barcodeType, $formatVal);
+                    $width = max($minWidthAndHeight['width'], $rec->formatParams['Width']);
+                    $height = max($minWidthAndHeight['height'], $rec->formatParams['Height']);
+                  
+                    // Масив с размерите
+                    $sizeArr = array('width' => $width, 'height' => $height);
                     
                     // Ако е зададено да се ротира твърдо
                     if ($rec->formatParams['Rotation'] == 'yes') {
@@ -783,7 +782,7 @@ class label_TemplateFormats extends core_Detail
                     $attr['ratio'] = $rec->formatParams['Ratio'];
                     
                     // Вземаме вербалната стойност
-                    $verbalValArr[$valStr] = barcode_Generator::getLink($barcodeType, $formatVal, $size, $attr);
+                    $verbalValArr[$valStr] = barcode_Generator::getLink($barcodeType, $formatVal, $sizeArr, $attr);
                 }
             }
         } elseif ($type == 'html') {
@@ -799,39 +798,6 @@ class label_TemplateFormats extends core_Detail
                 
                 // Добавяме в масива
                 $verbalValArr[$valStr] = $Html->toVerbal($val);
-            }
-        } elseif ($type == 'barcode') {
-            
-            $valStr = $val . '|' . $updateTempData . '|' . serialize($rec->formatParams) . '|' . $rec->type;
-            
-            if (!$verbalValArr[$valStr]) {
-                if ($val) {
-                    $barcodeType = $rec->formatParams['BarcodeType'];
-                    $minWidthAndHeight = barcode_Generator::getMinWidthAndHeight($barcodeType, $val);
-                    $width = max($minWidthAndHeight['width'], $rec->formatParams['Width']);
-                    $height = max($minWidthAndHeight['height'], $rec->formatParams['Height']);
-                    
-                    $size = array('width' => $width, 'height' => $height);
-                    
-                    $attr = array();
-                    $attr['ratio'] = $rec->formatParams['Ratio'];
-                    if ($rec->formatParams['Rotation'] == 'yes') {
-                        $attr['angle'] = 90;
-                    }
-                    
-                    if ($rec->formatParams['Showing'] == 'barcodeAndStr') {
-                        $attr['addText'] = array();
-                    }
-                    
-                    // Генериране на баркод от серийния номер, според зададените параметри
-                    $Html = cls::get('type_Html');
-                    $barcode = barcode_Generator::getLink($barcodeType, $val, $size, $attr)->getContent();
-                    $hRes = $Html->toVerbal($barcode);
-                } else {
-                    $hRes = '';
-                }
-                
-                $verbalValArr[$valStr] = $hRes;
             }
         }
         
