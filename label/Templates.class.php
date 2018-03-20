@@ -96,7 +96,7 @@ class label_Templates extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy, state';
+    public $listFields = 'id, title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy, lastUsedOn=Последно, state';
 
     
     /**
@@ -382,10 +382,7 @@ class label_Templates extends core_Master
         }
         
         // Подреждане по състояние
-        $data->query->orderBy('#state=ASC');
-        
-        // Подреждаме по дата на създаване
-        $data->query->orderBy('#createdOn=DESC');
+        $data->query->orderBy('#state=ASC,#lastUsedOn=DESC');
 
         if($state = $data->listFilter->rec->fState) {
             $data->query->where(array("#state = '[#1#]'", $state));
