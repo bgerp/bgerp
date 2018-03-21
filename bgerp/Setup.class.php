@@ -199,7 +199,7 @@ class bgerp_Setup extends core_ProtoSetup {
      */
     var $managers = array(
             'migrate::addThreadIdToRecently',
-            'migrate::migrateBookmarks',
+            'migrate::migrateBookmarks2',
         );
     
     
@@ -535,11 +535,9 @@ class bgerp_Setup extends core_ProtoSetup {
     /**
      * Миграция за подредбата на букмарките
      */
-    public static function migrateBookmarks()
+    public static function migrateBookmarks2()
     {
         $mvc = cls::get('bgerp_Bookmark');
-
-        if(!$mvc->fetch("#saoOrder IS NULL")) return;
 
         $query = $mvc->getQuery();
         
@@ -547,16 +545,17 @@ class bgerp_Setup extends core_ProtoSetup {
 	    $query->orderBy('createdOn', 'DESC');
         
         $arr = array();
-        $i = 1;
+        $i = array();
         $cnt = 0;
         while($rec = $query->fetch()) {
-            if(!$rec->saoOrder) {
-                $rec->saoOrder = $i++;
-                $rec->saoLevel = 1;
-                $mvc->save_($rec, 'saoOrder, saoLevel');
-                $cnt++;
+            if(!isset($i[$rec->user])) {
+                $i[$rec->user] = 1;
             }
-        }
+            $rec->saoOrder = $i[$rec->user]++;
+            $rec->saoLevel = 1;
+            $mvc->save_($rec, 'saoOrder, saoLevel');
+            $cnt++;
+         }
  
   
         return "<li>Мигрирани букмарки: " . $cnt;    
