@@ -3108,15 +3108,15 @@ class doc_Containers extends core_Manager
     		if(isset($rec->types)){
     			$types = keylist::toArray($rec->types);
     			$query->in('docClass', $types);
-    		} else {
-    			$query->groupBy('docClass');
     		}
     		
     		if(isset($rec->from)){
     			$query->where("#createdOn >= '{$rec->from}'");
     		}
     		
-    		core_App::setTimeLimit(600);
+    		$limit = $query->count() * 0.005;
+    		core_App::setTimeLimit($limit, FALSE, 600);
+    		
     		$rArr = self::regenerateSerchKeywords($force, $query);
     		
     		$retUrl = getRetUrl();
