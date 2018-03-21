@@ -66,7 +66,7 @@ class cat_interface_PackLabelImpl
 		$placeholders['QUANTITY']         = (object)array('type' => 'text');
 		$placeholders['ORDER']            = (object)array('type' => 'text');
 		$placeholders['OTHER']            = (object)array('type' => 'text');
-		$placeholders['SERIAL']          = (object)array('type' => 'text', 'hidden' => TRUE);
+		$placeholders['SERIAL']           = (object)array('type' => 'text', 'hidden' => TRUE);
 		$placeholders['MATERIAL']         = (object)array('type' => 'text');
 		$placeholders['SIZE_UNIT']        = (object)array('type' => 'text');
 		$placeholders['SIZE']             = (object)array('type' => 'text');
