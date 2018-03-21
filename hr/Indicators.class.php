@@ -438,6 +438,7 @@ class hr_Indicators extends core_Manager
     	
     	// Позицията от трудовия договор
     	$contractRec = hr_EmployeeContracts::fetch("#state = 'active' AND #personId = {$data->masterId}");
+    	
     	$data->IData->render = FALSE;
     	if(Request::get('Tab') != 'PersonsDetails') return;
     	
@@ -463,6 +464,7 @@ class hr_Indicators extends core_Manager
     	
     	// Подготовка на заявката
     	$data->IData->query->where("#personId = {$data->masterId}");
+    	$data->IData->query->where("#date >= '{$contractRec->startFrom}'");
     	$data->IData->query->orderBy('date', 'DESC');
     	$data->IData->recs = $data->IData->rows = array();
     	$data->IData->fullQuery = clone $data->IData->query;
