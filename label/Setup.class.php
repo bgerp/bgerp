@@ -61,6 +61,7 @@ class label_Setup extends core_ProtoSetup
         'migrate::counterItemsLabels',
     	'migrate::removePlugin3',
     	'migrate::barcodeToSerial',
+    	'migrate::templateSource',
     );
     
 
@@ -269,6 +270,44 @@ class label_Setup extends core_ProtoSetup
                 $dRec->placeHolder = 'SERIAL';
                 label_TemplateFormats::save($dRec, 'placeHolder');
             }
+        }
+    }
+    
+    
+    /**
+     * Мигриране на източника за производсвените задачи и операции към опаковки
+     */
+    public static function templateSource()
+    {
+        $oldClsArr = array();
+        
+        foreach (array('planning_Jobs', 'planning_Tasks') as $clsName) {
+            if (cls::load($clsName, TRUE)) {
+                $cId = $clsName::getClassId();
+                
+                if (!$cId) continue;
+                
+                $oldClsArr[] = $cId;
+            }
+        }
+        
+        if (empty($oldClsArr)) return ;
+        
+        $pId = NULL;
+        
+        if (cls::load('cat_products_Packagings', TRUE)) {
+            $pId = cat_products_Packagings::getClassId();
+        }
+        
+        if (!$pId) return ;
+        
+        $tQuery = label_Templates::getQuery();
+        $tQuery->orWhereArr('classId', $oldClsArr);
+        
+        while ($tRec = $tQuery->fetch()) {
+            $tRec->classId = $pId;
+            
+            label_Templates::save($tRec, 'classId');
         }
     }
 }
