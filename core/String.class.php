@@ -639,7 +639,7 @@ class core_String
                         
                         // Ако е зададен колбек - викаме го
                         if($callback) {
-                            call_user_func($callback, $out, $lastLen, $lastTag);
+                            call_user_func_array($callback, array(&$out, $lastLen, $lastTag));
                         }
                     }
                 }
