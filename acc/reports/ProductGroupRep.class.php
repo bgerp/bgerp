@@ -29,7 +29,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
-     * @var varchar
+     * @var string
      */
     protected $hashField = '$recIndic';
     
@@ -37,7 +37,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
-     * @var varchar
+     * @var string
      */
     protected $newFieldToCheck = 'docId';
 

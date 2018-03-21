@@ -32,7 +32,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
-     * @var varchar
+     * @var string
      */
     protected $newFieldToCheck = 'docId';
 
@@ -304,7 +304,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	 * 
 	 * @param string $formula
 	 * @param array $context
-	 * @return varchar $value
+	 * @return string $value
 	 */
 	private static function calcFormula($formula, $context)
 	{

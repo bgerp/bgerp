@@ -197,7 +197,7 @@ abstract class deals_Helper
 	 * @param array $values - масив с стойности на сумата на всеки ред, ддс-то и отстъпката 
 	 * @param date $date - дата
 	 * @param doublr $currencyRate - курс
-	 * @param varchar(3) $currencyId - код на валута
+	 * @param string(3) $currencyId - код на валута
 	 * @param enum $chargeVat - ддс режима
 	 * @param boolean $invoice - дали документа е фактура
 	 * 
@@ -717,7 +717,7 @@ abstract class deals_Helper
 	 * 
 	 * @see acc_Balances::getBlQuantities
 	 * @param array $array - масив от обекти с ключ ид на перо на валута и полета amount и quantity
-	 * @param varchar $currencyCode - към коя валута да се конвертират
+	 * @param string $currencyCode - към коя валута да се конвертират
 	 * @param date $date - дата
 	 * @return array $res
 	 * 					->quantity - Количество във подадената валута

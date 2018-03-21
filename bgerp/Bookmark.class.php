@@ -19,7 +19,13 @@ class bgerp_Bookmark extends core_Manager
      * Заглавие
      */
     public $title = "Отметки";
-    
+
+
+    /**
+     * Заглавие в ед. ч.
+     */
+    public $singleTitle = "Отметка";
+
     
     /**
      * Кой има право да го чете?
@@ -66,7 +72,7 @@ class bgerp_Bookmark extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'bgerp_Wrapper, plg_Created, plg_Modified, plg_RowTools2, plg_Search, plg_Sorting';
+    public $loadList = 'bgerp_Wrapper, plg_Created, plg_Modified, plg_RowTools2, plg_Search, plg_Sorting, plg_StructureAndOrder';
     
     
     /**
@@ -75,13 +81,16 @@ class bgerp_Bookmark extends core_Manager
     public $listFields = 'url=Линк, color, modifiedOn=Последно';
     
 
+    public $saoTitleField = 'url';
+
     static $curRec;
     
     /**
      * Полета на модела
      */
     public function description()
-    {
+    {   
+        $this->FLD('type', 'enum(bookmark,group)', 'caption=Тип, intup=hidden,silent');
         $this->FLD('user', 'user(roles=powerUser, rolesForTeams=admin, rolesForAll=ceo)', 'caption=Потребител, mandatory');
         $this->FLD('title', 'varchar', 'caption=Заглавие, silent, mandatory');
         $this->FLD('url', 'text', 'caption=URL, silent, mandatory');
@@ -222,6 +231,12 @@ class bgerp_Bookmark extends core_Manager
 	    return $res;
 	}
     
+
+    public function saoCanHaveSublevel($rec)
+    {
+
+        return FALSE;
+    }
 	
 	/**
 	 * Подрежда записите в зависимост от подредбата на потребители и броя на показванията
@@ -230,8 +245,7 @@ class bgerp_Bookmark extends core_Manager
 	 */
 	protected static function orderQuery($query)
 	{
-	    $query->orderBy('modifiedOn', 'DESC');
-	    $query->orderBy('createdOn', 'DESC');
+	    $query->orderBy('saoOrder');
 	}
 	
 	
@@ -347,6 +361,16 @@ class bgerp_Bookmark extends core_Manager
             
             $data->form->rec->title = implode($delimiter, $titleArr);
         }
+
+        $form = $data->form;
+        $rec = $form->rec;
+        if(!$rec->type) {
+            $rec->type = 'bookmark';
+        }
+
+        if($rec->type != 'bookmark') {
+            $form->setField('url', 'input=none');
+        }
     }
     
     
@@ -386,5 +410,21 @@ class bgerp_Bookmark extends core_Manager
         $title = $mvc->getVerbal($rec, 'title');
         
         $row->url = self::getLinkFromUrl($rec->url, $title);
+    }
+
+
+    /**
+     * Необходим метод за подреждането
+     */
+    public static function getSaoItems($rec)
+    {
+        setIfNot($rec->user, core_Users::getCurrent());
+        $query = self::getQuery();
+        $query->where("#user = {$rec->user}");
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = $rec;
+        }
+
+        return $res;
     }
 }

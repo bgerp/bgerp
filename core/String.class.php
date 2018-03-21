@@ -1104,9 +1104,9 @@ class core_String
     /**
      * Маха всички празни стрингове от стринга
      * 
-     * @param varchar $string  - стринг в който да се замести
-     * @param varchar $replace - стринг за заместване
-     * @return varchar
+     * @param string $string  - стринг в който да се замести
+     * @param string $replace - стринг за заместване
+     * @return string
      */
     public static function removeWhitespaces($string, $replace = '')
     {

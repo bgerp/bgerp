@@ -169,7 +169,7 @@ class uiext_Labels extends core_Manager
      * @param array $rows               - масив със вербалните записи
      * @param array $listFields         - колонките
      * @param array $hashFields         - кои полета ще служат за хеш
-     * @param varchar $colName          - Как ще се казва колонката за избора на тагове
+     * @param string $colName          - Как ще се казва колонката за избора на тагове
      * @param core_ET $tpl              - шаблон за рендиране
      * @param core_FieldSet &$fieldset  - шаблон за рендиране
      * @param void
@@ -235,7 +235,7 @@ class uiext_Labels extends core_Manager
      * 
      * @param int $containerId - ид на контейнера
      * @param int $classId     - ид на класа, от който ще се избират таговете
-     * @param varchar $hash    - хеш на реда
+     * @param string $hash    - хеш на реда
      * @return text            - инпута за избор на тагове
      */
     public static function renderLabel($containerId, $classId, $hash)

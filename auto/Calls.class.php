@@ -75,7 +75,7 @@ class auto_Calls extends core_Manager
 	/**
 	 * Добавя функция, която да се изпълни след определено време
 	 * 
-	 * @param varchar $event          - име на събитието
+	 * @param string $event          - име на събитието
 	 * @param mixed   $data           - данни за събитието
 	 * @param boolean $once           - дали да се добави само веднъж
 	 * @param boolean $callOnShutdown - да се изпълнили на шътдаун

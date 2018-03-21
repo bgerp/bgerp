@@ -69,7 +69,8 @@ class acc_plg_Contable extends core_Plugin
     public static function on_BeforeAction(core_Manager $mvc, &$res, $action)
     {
         if(strtolower($action) == strtolower('getTransaction')) {
-            $id = Request::get('id', 'int');
+            requireRole('debug');
+        	$id = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
             $transaction       = $transactionSource->getTransaction($rec);
