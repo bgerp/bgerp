@@ -137,7 +137,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
     /**
      * Разбива партидата в масив
      * 
-     * @param varchar $value - партида
+     * @param string $value - партида
      * @return array $array - масив с партидата
      */
     public function makeArray($value)
@@ -184,7 +184,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
     /**
      * Какви са свойствата на партидата
      *
-     * @param varchar $value - номер на партидара
+     * @param string $value - номер на партидара
      * @return array - свойства на партидата
      * 			o name    - заглавие
      * 			o classId - клас
@@ -217,7 +217,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
 	 * Добавя филтър към заявката към  batch_Items възоснова на избраната опция (@see getListFilterOptions)
 	 *
 	 * @param core_Query $query - заявка към batch_Items
-	 * @param varchar $value -стойност на филтъра
+	 * @param string $value -стойност на филтъра
 	 * @param string $featureCaption - Заглавие на колоната на филтъра
 	 * @return void
 	 */
@@ -266,7 +266,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
     /**
      * Заглавието на полето за партида
      * 
-     * @return varchar
+     * @return string
      */
     public function getFieldCaption()
     {
@@ -277,7 +277,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
     /**
      * Може ли автоматично да се разпределят к-та
      *
-     * @return varchar
+     * @return string
      */
     public function canAutoAllocate()
     {
@@ -288,7 +288,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
     /**
      * Връща името на дефиницията
      *
-     * @return varchar - Името на дефиницията
+     * @return string - Името на дефиницията
      */
     public function getName()
     {

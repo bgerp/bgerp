@@ -115,8 +115,8 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	/**
 	 * Генерира серийни номера в интервал
 	 * 
-	 * @param varchar $from - начало на диапазона
-	 * @param varchar $to - край на диапазона
+	 * @param string $from - начало на диапазона
+	 * @param string $to - край на диапазона
 	 * @return FALSE|array $res - генерираните номера или FALSE ако не може да се генерират
 	 */
 	private function getByRange($from, $to)
@@ -161,7 +161,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	/**
 	 * Разбива партидата в масив
 	 *
-	 * @param varchar $value - партида
+	 * @param string $value - партида
 	 * @return array $array - масив с партидата
 	 */
 	public function makeArray($value)
@@ -268,7 +268,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	/**
      * Какви са свойствата на партидата
      *
-     * @param varchar $value - номер на партидара
+     * @param string $value - номер на партидара
      * @return array - свойства на партидата
      * 			o name    - заглавие
      * 			o classId - клас

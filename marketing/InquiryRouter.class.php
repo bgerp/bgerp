@@ -1,23 +1,29 @@
 <?php
+
+
+
 /**
  * Помощен клас за рутиране на запитвания
  *
  * @category  bgerp
  * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  *
  */
 class marketing_InquiryRouter extends core_Manager
 {
+	
+	
 	/**
 	 * Рутиране на запитване
+	 * 
 	 * @param stdClass $rec - запис на запитване
 	 * @return int - ид на папка
 	 */
-	public function route($rec)
+	public static function route($rec)
 	{
 		// Кой ще е отговорника на папката
 		$inCharge = marketing_Router::getInChargeUser($rec->place, $rec->country);
@@ -28,14 +34,14 @@ class marketing_InquiryRouter extends core_Manager
 				expect($rec->personNames, $rec);
 			} catch(core_exception_Expect $e){
 				reportException($e);
-				$this->logErr('Липсва име за контактни данни');
+				static::logErr('Липсва име за контактни данни');
 			}
 			// Рутиране на запитване от лице
-			$folderId = $this->routeInquiryFromPerson($rec, $inCharge);
+			$folderId = static::routeInquiryFromPerson($rec, $inCharge);
 		} else {
 			
 			// Рутиране на запитване от фирма
-			$folderId = $this->routeInquiryFromCompany($rec, $inCharge);
+			$folderId = static::routeInquiryFromCompany($rec, $inCharge);
 		}
 		
 		// Трябва да е намерена папка
@@ -59,7 +65,7 @@ class marketing_InquiryRouter extends core_Manager
 	 * @param int $inCharge - отговорник
 	 * @return int - ид на папка
 	 */
-	private function routeInquiryFromPerson($rec, $inCharge)
+	private static function routeInquiryFromPerson($rec, $inCharge)
 	{
 		// Ако има папка на фирма с този имейл
 		$folderId = marketing_Router::routeByCompanyEmail($rec->email, $inCharge);
@@ -94,7 +100,7 @@ class marketing_InquiryRouter extends core_Manager
 	 * @param int $inCharge - ид на отговорник
 	 * @return int - ид на папка
 	 */
-	private function routeInquiryFromCompany($rec, $inCharge)
+	private static function routeInquiryFromCompany($rec, $inCharge)
 	{
 		// Намираме папка на компания с този имейл
 		$folderId = marketing_Router::routeByCompanyEmail($rec->email, $inCharge);
@@ -102,7 +108,6 @@ class marketing_InquiryRouter extends core_Manager
 		
 		// Рутиране според имейла, взимаме папката ако корицата и е фирма
 		$folderId = marketing_Router::routeByEmail($rec->email, 'company');
-		
 		if($folderId) return $folderId;
 		
 		// Рутираме в папка на фирма със същото име от същата държава

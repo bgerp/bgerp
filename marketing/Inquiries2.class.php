@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -63,13 +63,7 @@ class marketing_Inquiries2 extends embed_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, marketing_Wrapper, plg_Sorting, plg_Clone, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,Router=marketing_InquiryRouter, drdata_PhonePlg';
-    
-    
-    /**
-     * @see marketin
-     */
-    protected $Router;
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, drdata_PhonePlg';
     
     
     /**
@@ -772,6 +766,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$this->requireRightFor('new');
     	expect($drvId = Request::get('drvId', 'int'));
     	$proto = Request::get('protos', 'varchar');
+    	
     	$proto = keylist::toArray($proto);
         
         // Поставя временно външният език, за език на интерфейса
@@ -803,9 +798,11 @@ class marketing_Inquiries2 extends embed_Manager
     	$form->FLD('moq', 'double', 'input=hidden,silent');
     	$form->FLD('drvId', 'class', 'input=hidden,silent');
     	$form->FLD('quantityCount', 'double', 'input=hidden,silent');
+    	$form->FLD('protos', 'varchar', 'input=hidden,silent');
     	
     	$form->input(NULL, 'silent');
     	$form->setDefault('measureId', Request::get('measureId'));
+    	
     	if(count($proto)){
     		
     		$form->setOptions('proto', $proto);
@@ -855,7 +852,7 @@ class marketing_Inquiries2 extends embed_Manager
     		$rec->brid = log_Browsers::getBrid();
     	
     		if(empty($rec->folderId)){
-    			$rec->folderId = $this->Router->route($rec);
+    			$rec->folderId = marketing_InquiryRouter::route($rec);
     		}
     		
     		// Запис и редирект

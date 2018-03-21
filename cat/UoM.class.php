@@ -436,7 +436,7 @@ class cat_UoM extends core_Manager
     
     /**
      * Връща мерна еденициа по систем ид
-     * @param varchar $sysId - sistem Id
+     * @param string $sysId - sistem Id
      * @return stdClass $rec - записа отговарящ на сис ид-то
      */
     public static function fetchBySysId($sysId)

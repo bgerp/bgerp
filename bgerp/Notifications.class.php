@@ -118,7 +118,7 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Добавя известие за настъпило събитие
-     * @param varchar $msg
+     * @param string $msg
      * @param array $url
      * @param integer $userId
      * @param enum $priority

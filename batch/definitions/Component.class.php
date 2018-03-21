@@ -111,7 +111,7 @@ class batch_definitions_Component extends batch_definitions_Proto
     /**
      * Какви са свойствата на партидата
      *
-     * @param varchar $value - номер на партидара
+     * @param string $value - номер на партидара
      * @return array - свойства на партидата
      * 			o name    - заглавие
      * 			o classId - клас

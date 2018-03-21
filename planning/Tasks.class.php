@@ -1180,7 +1180,7 @@ class planning_Tasks extends core_Master
      * Връща името на операцията готово за партида
      * 
      * @param mixed $taskId       - ид на операцията
-     * @return varchar $batchName - името на партидата, генерирана от операцията
+     * @return string $batchName - името на партидата, генерирана от операцията
      */
     public static function getBatchName($taskId)
     {

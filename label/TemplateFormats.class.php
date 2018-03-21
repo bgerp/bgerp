@@ -114,7 +114,7 @@ class label_TemplateFormats extends core_Detail
      * Добавяне на параметър към шаблон за етикети, или обновяване на съществуващ
      * 
      * @param int $templateId      - ид на шаблона
-     * @param varchar $placeholder - име на плейсхолдъра
+     * @param string $placeholder - име на плейсхолдъра
      * @param string $type         - тип на параметъра (caption, counter, image, html, barcode)
      * @param array|NULL $params   - допълнителни параметри
      * @return int

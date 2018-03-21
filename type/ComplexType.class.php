@@ -205,7 +205,7 @@ class type_ComplexType extends type_Varchar {
     /**
      * Извличане на лявата и дясната част на стойността
      * 
-     * @param varchar $value - запис от вида : "число|число"
+     * @param string $value - запис от вида : "число|число"
      * @return array $parts - масив с извлечена лявата и дясната част
      */
     public static function getParts($value)

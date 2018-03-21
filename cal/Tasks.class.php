@@ -1907,7 +1907,7 @@ class cal_Tasks extends embed_Manager
     
     /**
      * Прави линкове към по-голям и по-маък тип гант
-     * @param varchar $ganttType
+     * @param string $ganttType
      */
     static public function getNextGanttType ($ganttType)
     {
