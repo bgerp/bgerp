@@ -58,6 +58,7 @@ class store_iface_ShipmentLabelImpl
 		$placeholders['DESTINATION']  = (object)array('type' => 'text');
 		$placeholders['SPEDITOR']     = (object)array('type' => 'text');
 		$placeholders['DATE']         = (object)array('type' => 'text');
+		$placeholders['SERIAL']         = (object)array('type' => 'text');
 		
 		if(isset($objId)){
 			$labelData = $this->getLabelData($objId, 1, TRUE);
@@ -115,7 +116,7 @@ class store_iface_ShipmentLabelImpl
 		
 		$arr = array();
 		for($i = 1; $i <= $cnt; $i++){
-			$res = array('NOMER' => $rec->id, 'DESTINATION' => $destination, 'DATE' => $date);
+			$res = array('NOMER' => $rec->id, 'DESTINATION' => $destination, 'DATE' => $date, 'SERIAL' => 121);
 			if(isset($rec->lineId)){
 				$res['SPEDITOR'] = trans_Lines::getTitleById($rec->lineId);
 			}

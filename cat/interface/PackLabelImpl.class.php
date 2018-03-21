@@ -66,7 +66,7 @@ class cat_interface_PackLabelImpl
 		$placeholders['QUANTITY']         = (object)array('type' => 'text');
 		$placeholders['ORDER']            = (object)array('type' => 'text');
 		$placeholders['OTHER']            = (object)array('type' => 'text');
-		$placeholders['BARCODE']          = (object)array('type' => 'text', 'hidden' => TRUE);
+		$placeholders['SERIAL']          = (object)array('type' => 'text', 'hidden' => TRUE);
 		$placeholders['MATERIAL']         = (object)array('type' => 'text');
 		$placeholders['SIZE_UNIT']        = (object)array('type' => 'text');
 		$placeholders['SIZE']             = (object)array('type' => 'text');
@@ -159,9 +159,9 @@ class cat_interface_PackLabelImpl
 					$res = $additionalFields + $res;
 				}
 				
-				$res['BARCODE'] = 'EXAMPLE';
+				$res['SERIAL'] = 'EXAMPLE';
  				if($onlyPreview === FALSE){
-					$res['BARCODE'] = $Driver->generateSerial($rec->productId, 'cat_products_Packagings', $rec->id);
+					$res['SERIAL'] = $Driver->generateSerial($rec->productId, 'cat_products_Packagings', $rec->id);
 				}
 			}
 				
