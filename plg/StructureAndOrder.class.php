@@ -353,7 +353,7 @@ class plg_StructureAndOrder extends core_Plugin
      */
     private static function padOpt($title, $level)
     {   
-        $title = str_repeat(html_entity_decode(self::PADDING) , $level-1) . $title; 
+        $title = str_repeat(html_entity_decode(self::PADDING) , max(0, $level-1)) . $title; 
 
         return $title;
     }
