@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -772,6 +772,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$this->requireRightFor('new');
     	expect($drvId = Request::get('drvId', 'int'));
     	$proto = Request::get('protos', 'varchar');
+    	
     	$proto = keylist::toArray($proto);
         
         // Поставя временно външният език, за език на интерфейса
@@ -803,9 +804,11 @@ class marketing_Inquiries2 extends embed_Manager
     	$form->FLD('moq', 'double', 'input=hidden,silent');
     	$form->FLD('drvId', 'class', 'input=hidden,silent');
     	$form->FLD('quantityCount', 'double', 'input=hidden,silent');
+    	$form->FLD('protos', 'varchar', 'input=hidden,silent');
     	
     	$form->input(NULL, 'silent');
     	$form->setDefault('measureId', Request::get('measureId'));
+    	
     	if(count($proto)){
     		
     		$form->setOptions('proto', $proto);
