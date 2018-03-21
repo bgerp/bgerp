@@ -199,6 +199,7 @@ class bgerp_Setup extends core_ProtoSetup {
      */
     var $managers = array(
             'migrate::addThreadIdToRecently',
+            'migrate::migrateBookmarks',
         );
     
     
@@ -528,5 +529,36 @@ class bgerp_Setup extends core_ProtoSetup {
                 continue;
             }
         }
+    }
+
+
+    /**
+     * Миграция за подредбата на букмарките
+     */
+    public static function migrateBookmarks()
+    {
+        $mvc = cls::get('bgerp_Bookmark');
+
+        if(!$mvc->fetch("#saoOrder IS NULL")) return;
+
+        $query = $mvc->getQuery();
+        
+	    $query->orderBy('modifiedOn', 'DESC');
+	    $query->orderBy('createdOn', 'DESC');
+        
+        $arr = array();
+        $i = 1;
+        $cnt = 0;
+        while($rec = $query->fetch()) {
+            if(!$rec->saoOrder) {
+                $rec->saoOrder = $i++;
+                $rec->saoLevel = 1;
+                $mvc->save_($rec, 'saoOrder, saoLevel');
+                $cnt++;
+            }
+        }
+ 
+  
+        return "<li>Мигрирани букмарки: " . $cnt;    
     }
 }
