@@ -539,7 +539,7 @@ class hr_Indicators extends core_Manager
 		$listTableMvc = clone $this;
 		$listTableMvc->setField('indicatorId', 'tdClass=leftCol');
     	
-    	$tpl = new core_ET(tr("|*<div style='margin-bottom:6px'>[#I_S_TABLE#]</div><div><hr />|Формула|* : <b>[#salary#]</b><hr /></div><div style='margin-top:20px'>[#listFilter#][#ListToolbarTop#][#I_TABLE#][#ListToolbarBottom#]</div>"));
+    	$tpl = new core_ET(tr("|*<div style='margin-bottom:6px'>[#I_S_TABLE#]</div><div style='text-align:right;'><hr />|Формула|* : <b>[#salary#]</b><hr /></div><div style='margin-top:20px'>[#listFilter#][#ListToolbarTop#][#I_TABLE#][#ListToolbarBottom#]</div>"));
     	$tpl->append($this->renderListFilter($data->IData), 'listFilter');
     	
     	// Рендиране на подробната информация на индикаторите
