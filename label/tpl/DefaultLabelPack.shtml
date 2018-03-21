@@ -88,7 +88,7 @@
         </td>
         <td rowspan="4" class="no-border-top" width="17%" align="center" valign="middle">
             <div class="barcode-holder">
-                [#BARCODE#]
+                [#SERIAL#]
             </div>
         </td>
     </tr><tr><td class="top-descr no-border-left bold">

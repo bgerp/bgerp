@@ -59,7 +59,8 @@ class label_Setup extends core_ProtoSetup
         'migrate::addDefaultMedia',
         'migrate::labelsToPrint',
         'migrate::counterItemsLabels',
-    	'migrate::removePlugin3'
+    	'migrate::removePlugin3',
+    	'migrate::barcodeToSerial',
     );
     
 
@@ -231,5 +232,43 @@ class label_Setup extends core_ProtoSetup
     	$Plugins->delete("#class LIKE 'planning_Jobs' AND #plugin LIKE 'label_plg_Print'");
     	
     	$Plugins2->delete("#class LIKE 'planning_Tasks' AND #plugin LIKE 'label_plg_Print'");
+    }
+    
+    
+    /**
+     * Преименува всички плейсхолдери от BARCODE към SERIAL
+     */
+    public function barcodeToSerial()
+    {
+        $tQuery = label_Templates::getQuery();
+        
+        while ($tRec = $tQuery->fetch()) {
+            
+            if (stripos($tRec->template, '[#BARCODE#]') === FALSE) continue;
+            
+            if (stripos($tRec->template, '[#SERIAL#]') !== FALSE) {
+                
+                label_Templates::logErr('Не е мигриран плейсхолдер BARCODE към SERIAL, поради дублиране', $tRec->id);
+                
+                continue;
+            }
+            
+            $dRec = label_TemplateFormats::fetch(array("#templateId = '[#1#]' AND LOWER(#placeHolder) = 'barcode'", $tRec->id));
+            
+            if ($dRecS = label_TemplateFormats::fetch(array("#templateId = '[#1#]' AND LOWER(#placeHolder) = 'serial'", $tRec->id))) {
+                label_TemplateFormats::logErr('Не е мигриран плейсхолдер BARCODE към SERIAL, поради дублиране', $dRecS->id);
+                
+                continue;
+            }
+            
+            $tRec->template = str_ireplace('[#BARCODE#]', '[#SERIAL#]', $tRec->template);
+            
+            label_Templates::save($tRec, 'template');
+            
+            if ($dRec) {
+                $dRec->placeHolder = 'SERIAL';
+                label_TemplateFormats::save($dRec, 'placeHolder');
+            }
+        }
     }
 }
