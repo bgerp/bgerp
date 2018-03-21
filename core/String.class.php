@@ -636,14 +636,14 @@ class core_String
                     if($lastLen !== FALSE && $lastLen < strlen($out)) {
                         // Записваме думата между $lastLen до края на аутпут буфера
                         $res[] = substr($out, $lastLen);
-
+                        
                         // Ако е зададен колбек - викаме го
                         if($callback) {
-                            $callback($out, $lastLen, $lastTag);
+                            call_user_func($callback, $out, $lastLen, $lastTag);
                         }
                     }
                 }
-                $lastLen = FALSE;;
+                $lastLen = FALSE;
             } else {
                 if($lastLen === FALSE) {
                     $lastLen = strlen($out);
