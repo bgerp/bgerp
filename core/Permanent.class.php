@@ -174,7 +174,7 @@ class core_Permanent extends core_Manager
     /**
      * Връща ключ за запазване
      * 
-     * @param varchar $key - оригиналния ключ
+     * @param string $key - оригиналния ключ
      * @return string $newKey - ключа за запис
      */
     private static function getKey($key)

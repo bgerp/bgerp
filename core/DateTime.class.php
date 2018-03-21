@@ -910,8 +910,8 @@ class core_DateTime
     /**
      * Дали дадена дата е във формата на подадената маска
      * 
-     * @param varchar $date - дата
-     * @param varchar $mask - маска
+     * @param string $date - дата
+     * @param string $mask - маска
      * @return boolean
      */
     public static function checkByMask($date, $mask)
@@ -939,8 +939,8 @@ class core_DateTime
     /**
      * Опитва се да обърне подаден стринг с дадена маска, в mysql-ски формат дата
      * 
-     * @param varchar $string     - стринг
-     * @param varchar $mask       - маска (e.g dd.mm.yyyy)
+     * @param string $string     - стринг
+     * @param string $mask       - маска (e.g dd.mm.yyyy)
      * @return string|FALSE       - mysql датата в формат 'Y-m-d', или FALSE ако има проблем
      */
     public static function getMysqlFromMask($string, $mask)

@@ -89,7 +89,7 @@ class permanent_Data extends core_Manager {
     /**
      * Връща данните за посочения ключ, като го заключва по подразбиране
      *
-     * @param varchar $key
+     * @param string $key
      */
     static function read($key, $lock = TRUE)
     {
@@ -119,7 +119,7 @@ class permanent_Data extends core_Manager {
     /**
      * Изтрива данните за посочения ключ
      *
-     * @param varchar $key
+     * @param string $key
      */
     static function remove($key)
     {

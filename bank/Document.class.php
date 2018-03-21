@@ -35,8 +35,8 @@ abstract class bank_Document extends deals_PaymentDocument
 	 * Неща, подлежащи на начално зареждане
 	 */
 	public $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_RejectContoDocuments, acc_plg_Contable,
-         plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,doc_plg_HidePrices,
-         plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg, doc_SharablePlg, deals_plg_SetTermDate,deals_plg_SelectInvoice';
+         plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoice, acc_plg_DocumentSummary,doc_plg_HidePrices,
+         plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg, doc_SharablePlg, deals_plg_SetTermDate';
 	
 	
 	/**
@@ -102,7 +102,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	/**
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
-	public $searchFields = 'reason, contragentName, amount, id';
+	public $searchFields = 'reason, contragentName, amount';
 	
 	
 	/**

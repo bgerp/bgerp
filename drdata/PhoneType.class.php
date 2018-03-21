@@ -240,7 +240,7 @@ class drdata_PhoneType extends type_Varchar
     /**
      * Превръщане на телефонните номера и факсове в линкове
      * 
-     * @param varchar $verbal
+     * @param string $verbal
      * @param drdata_PhoneType $canonical
      * @param boolean $isFax
      */

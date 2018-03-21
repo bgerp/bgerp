@@ -27,7 +27,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	/**
 	 * Кое поле от $data->recs да се следи, ако има нов във новата версия
 	 *
-	 * @var varchar
+	 * @var string
 	 */
 	protected $newFieldToCheck = 'containerId';
 	
@@ -68,7 +68,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	 * Полета за хеширане на таговете
 	 * 
 	 * @see uiext_Labels
-	 * @var varchar
+	 * @var string
 	 */
 	protected $hashField = 'containerId';
 

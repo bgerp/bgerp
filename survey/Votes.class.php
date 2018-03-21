@@ -135,7 +135,7 @@ class survey_Votes extends core_Manager {
      * Ако анкетата е изпратена по поща това е мид-а на анкетата
      * Ако потребителя не е потребител в системата и нямаме мид, записваме
      * Ип-то му
-     * @return varchar $userUid - Потребителя, който е гласувал
+     * @return string $userUid - Потребителя, който е гласувал
      */
     static function getUserUid($alternativeId)
     {
@@ -195,7 +195,7 @@ class survey_Votes extends core_Manager {
     
     /**
      * Връща вербалната стойност на подадения userUid
-     * @param varchar(32) $userUid - ид на потребител/мид/ип на
+     * @param string(32) $userUid - ид на потребител/мид/ип на
      * гласувалия потребител
      */
     function verbalUserUid($userUid)

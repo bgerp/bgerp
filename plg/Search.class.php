@@ -55,8 +55,10 @@ class plg_Search extends core_Plugin
      */
     public static function on_BeforeSave($mvc, $id, $rec, &$fields=NULL)
     {
-        if (!$fields || arr::haveSection($fields, $mvc->getSearchFields()) || ($fields == 'searchKeywords')) {
-            if ($fields !== NULL) {
+		$fieldArr = arr::make($fields, TRUE);
+		if (!$fields || arr::haveSection($fields, $mvc->getSearchFields()) || ($fields == 'searchKeywords') || array_key_exists('searchKeywords', $fieldArr)) {
+			
+			if ($fields !== NULL) {
                 $fields = arr::make($fields, TRUE);
                 $fields['searchKeywords'] = 'searchKeywords';
             }
@@ -284,7 +286,7 @@ class plg_Search extends core_Plugin
                     $w = trim($w, '%');
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if (self::isStopWord($w) || $minWordLen <= $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0) {  
+                    if (self::isStopWord($w) || $minWordLen < $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0) {  
                         if($limit > 0 && $like == 'LIKE') {
                             $field1 =  "LEFT(#{$field}, {$limit})";
                         } else {

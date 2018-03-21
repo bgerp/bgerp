@@ -965,7 +965,7 @@ class cal_Tasks extends embed_Manager
 
         // изчисляваме очакваните времена
         self::calculateExpectationTime($rec);
-
+        
         // проверяваме дали може да стане задачата в активно състояние
         $canActivate = self::canActivateTask($rec);
         
@@ -1907,7 +1907,7 @@ class cal_Tasks extends embed_Manager
     
     /**
      * Прави линкове към по-голям и по-маък тип гант
-     * @param varchar $ganttType
+     * @param string $ganttType
      */
     static public function getNextGanttType ($ganttType)
     {
@@ -2693,12 +2693,11 @@ class cal_Tasks extends embed_Manager
 	    	    foreach($arrCond as $cond) {
 	    	    	 // правим масив с всички изчислени времена
 	    			$calcTimeS[] = self::calculateTimeToStart($rec, $cond);
-    	    		//$timeEnd = self::fetchField($cond->dependId, "expectationTimeEnd");
 	    	    }
 	    	    
 		     	// взимаме и началното време на текущата задача,
 		     	// ако има такова
-		     	$timeStartRec = self::fetchField($rec->id, "timeStart");
+	    	    $timeStartRec = $rec->timeStart;
 		     	
 		     	if (!$timeStartRec) { 
 		     		// в противен случай го слагаме 0
@@ -2714,9 +2713,9 @@ class cal_Tasks extends embed_Manager
 
 		     // ако не е зависима от други взимаме нейните начало и край
 	    	} else {
-	    		$timeStart = self::fetchField($rec->id, "timeStart");
-    	    	$timeEnd = self::fetchField($rec->id, "timeEnd");
-    	    	$timeDuration = self::fetchField($rec->id, "timeDuration");
+	    		$timeStart = $rec->timeStart;
+    	    	$timeEnd = $rec->timeEnd;
+    	    	$timeDuration = $rec->timeDuration;
     	    	
     	    	if($timeDuration && !$timeEnd){
     	    		$timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($timeStart) + $timeDuration);
@@ -2749,7 +2748,7 @@ class cal_Tasks extends embed_Manager
 	    } elseif ($timeEnd && !$timeStart && !$rec->timeDuration) {
 	    	$expEnd = $timeEnd;
 	    	if ($rec->id) {
-	    		$expStart = self::fetchField($rec->id, "modifiedOn");
+	    	    $expStart = $rec->modifiedOn;
 	    	}	
 	    // ако има и начало и край
 	    // то очакваните начало и край са тези

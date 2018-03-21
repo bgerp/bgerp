@@ -636,14 +636,14 @@ class core_String
                     if($lastLen !== FALSE && $lastLen < strlen($out)) {
                         // Записваме думата между $lastLen до края на аутпут буфера
                         $res[] = substr($out, $lastLen);
-
+                        
                         // Ако е зададен колбек - викаме го
                         if($callback) {
-                            $callback($out, $lastLen, $lastTag);
+                            call_user_func_array($callback, array(&$out, $lastLen, $lastTag));
                         }
                     }
                 }
-                $lastLen = FALSE;;
+                $lastLen = FALSE;
             } else {
                 if($lastLen === FALSE) {
                     $lastLen = strlen($out);
@@ -1104,9 +1104,9 @@ class core_String
     /**
      * Маха всички празни стрингове от стринга
      * 
-     * @param varchar $string  - стринг в който да се замести
-     * @param varchar $replace - стринг за заместване
-     * @return varchar
+     * @param string $string  - стринг в който да се замести
+     * @param string $replace - стринг за заместване
+     * @return string
      */
     public static function removeWhitespaces($string, $replace = '')
     {
