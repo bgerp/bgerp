@@ -90,7 +90,7 @@ class bgerp_Bookmark extends core_Manager
      */
     public function description()
     {   
-        $this->FLD('type', 'enum(bookmark,group)', 'caption=Тип, intup=hidden,silent');
+        $this->FLD('type', 'enum(bookmark,group)', 'caption=Тип, input=hidden,silent');
         $this->FLD('user', 'user(roles=powerUser, rolesForTeams=admin, rolesForAll=ceo)', 'caption=Потребител, mandatory');
         $this->FLD('title', 'varchar', 'caption=Заглавие, silent, mandatory');
         $this->FLD('url', 'text', 'caption=URL, silent, mandatory');
