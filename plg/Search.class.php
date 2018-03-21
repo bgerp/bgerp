@@ -284,7 +284,7 @@ class plg_Search extends core_Plugin
                     $w = trim($w, '%');
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if (self::isStopWord($w) || $minWordLen <= $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0) {  
+                    if (self::isStopWord($w) || $minWordLen < $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0) {  
                         if($limit > 0 && $like == 'LIKE') {
                             $field1 =  "LEFT(#{$field}, {$limit})";
                         } else {
