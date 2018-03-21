@@ -55,8 +55,10 @@ class plg_Search extends core_Plugin
      */
     public static function on_BeforeSave($mvc, $id, $rec, &$fields=NULL)
     {
-        if (!$fields || arr::haveSection($fields, $mvc->getSearchFields()) || ($fields == 'searchKeywords')) {
-            if ($fields !== NULL) {
+		$fieldArr = arr::make($fields, TRUE);
+		if (!$fields || arr::haveSection($fields, $mvc->getSearchFields()) || ($fields == 'searchKeywords') || array_key_exists('searchKeywords', $fieldArr)) {
+			
+			if ($fields !== NULL) {
                 $fields = arr::make($fields, TRUE);
                 $fields['searchKeywords'] = 'searchKeywords';
             }
