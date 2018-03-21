@@ -51,7 +51,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'productId=Амбалаж, packagingId, packQuantity,type,packPrice, amount';
+	public $listFields = 'productId=Артикул, packagingId, packQuantity,type,packPrice, amount';
 	
 	
 	/**
