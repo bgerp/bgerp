@@ -34,7 +34,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
-     * @var varchar
+     * @var string
      */
     protected $newFieldToCheck = 'conditionQuantity';
 

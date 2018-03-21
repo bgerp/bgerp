@@ -2116,7 +2116,7 @@ class crm_Companies extends core_Master
      * Форсира контрагент в дадена група
      * 
      * @param int $id -ид на продукт
-     * @param varchar $groupSysId - sysId или ид на група
+     * @param string $groupSysId - sysId или ид на група
      * @param boolean $isSysId  - дали е систем ид
      */
     public static function forceGroup($id, $groupSysId, $isSysId = TRUE)

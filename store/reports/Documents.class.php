@@ -28,7 +28,7 @@ class store_reports_Documents extends frame2_driver_TableData
 	 * Полета за хеширане на таговете
 	 *
 	 * @see uiext_Labels
-	 * @var varchar
+	 * @var string
 	 */
 	protected $hashField = 'containerId';
 	

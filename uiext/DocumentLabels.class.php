@@ -162,7 +162,7 @@ class uiext_DocumentLabels extends core_Manager
 	 * Връща записа
 	 * 
 	 * @param int $containerId
-	 * @param varchar $hash
+	 * @param string $hash
 	 * @return stdClass|FALSE
 	 */
 	public static function fetchByDoc($containerId, $hash)

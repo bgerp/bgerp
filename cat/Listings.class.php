@@ -317,7 +317,7 @@ class cat_Listings extends core_Master
      * @param int $cId               - ид на контрагента
      * @param int $productId         - ид на артикул
      * @param int|NULL $packagingId  - ид на опаковка, NULL ако не е известна
-     * @return varchar|NULL          - намерения код или NULL
+     * @return string|NULL          - намерения код или NULL
      */
     public static function getReffByProductId($listId, $productId, $packagingId = NULL)
     {

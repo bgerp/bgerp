@@ -417,7 +417,7 @@ class deals_plg_DpInvoice extends core_Plugin
      * Връща дефолтното основание на аванса
      * 
      * @param stdClass $masterRec
-     * @param varchar $dpOperation
+     * @param string $dpOperation
      * @return string
      */
     private static function getReasonText($masterRec, $dpOperation)

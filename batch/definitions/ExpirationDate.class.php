@@ -124,7 +124,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
 	 * Добавя филтър към заявката към  batch_Items възоснова на избраната опция (@see getListFilterOptions)
 	 *
 	 * @param core_Query $query - заявка към batch_Items
-	 * @param varchar $value -стойност на филтъра
+	 * @param string $value -стойност на филтъра
 	 * @param string $featureCaption - Заглавие на колоната на филтъра
 	 * @return void
 	 */
@@ -202,7 +202,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
 	/**
      * Какви са свойствата на партидата
      *
-     * @param varchar $value - номер на партидара
+     * @param string $value - номер на партидара
      * @return array - свойства на партидата
      * 			o name    - заглавие
      * 			o classId - клас

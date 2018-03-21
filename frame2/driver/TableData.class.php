@@ -37,7 +37,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * Полета за хеширане на таговете
 	 * 
 	 * @see uiext_Labels
-	 * @var varchar
+	 * @var string
 	 */
 	protected $hashField;
 	
@@ -45,7 +45,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	/**
 	 * Кое поле от $data->recs да се следи, ако има нов във новата версия
 	 *
-	 * @var varchar
+	 * @var string
 	 */
 	protected $newFieldToCheck;
 	

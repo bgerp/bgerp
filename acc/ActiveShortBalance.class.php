@@ -299,7 +299,7 @@ class acc_ActiveShortBalance {
     /**
      * Връща хронологията на движенията на посочената сметка
      * 
-     * @param varchar $accSysId - Ид на сметка
+     * @param string $accSysId - Ид на сметка
      * @param date $from - от дата
      * @param date $to - до дата
      * @param int $item1 - перо 1 / NULL ако няма

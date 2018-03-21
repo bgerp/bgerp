@@ -291,7 +291,7 @@ class cat_products_Params extends doc_Detail
      * @param int $productId - ид на продукт
      * @param int $sysId - sysId на параметъра
      * @param boolean $verbal - вербално представяне
-     * @return varchar $value - стойността на параметъра
+     * @return string $value - стойността на параметъра
      */
     public static function fetchParamValue($classId, $productId, $sysId, $verbal = FALSE)
     {

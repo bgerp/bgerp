@@ -286,7 +286,7 @@ class cat_ListingDetails extends doc_Detail
 	 * Помощна ф-я връщаща намерения артикул и опаковка според кода
 	 * 
 	 * @param int $listId            - ид на продуктовият лист
-	 * @param varchar $reff          - чужд код за търсене
+	 * @param string $reff          - чужд код за търсене
 	 * @return NULL|stdClass         - обект с ид на артикула и опаковката или NULL ако няма
 	 */
 	public static function getProductByReff($listId, $reff)
