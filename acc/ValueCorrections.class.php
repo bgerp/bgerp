@@ -702,7 +702,7 @@ class acc_ValueCorrections extends core_Master
     		$isRejected = ($rec->state == 'rejected');
     		
     		$sign = ($rec->action == 'decrease') ? -1 : 1;
-    		$value = $rec->amount * $sign;
+    		$value = round($rec->amount * $sign, 2);
     		
     		// Добавяне на записа за индикатора
     		hr_Indicators::addIndicatorToArray($result, $rec->valior, $personId, $rec->id, $classId, $iRec->id, $value, $isRejected);

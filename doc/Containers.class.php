@@ -3115,7 +3115,7 @@ class doc_Containers extends core_Manager
     		}
     		
     		$limit = $query->count() * 0.005;
-    		core_App::setTimeLimit($limit, FALSE, 600);
+    		core_App::setTimeLimit($limit, FALSE, 2000);
     		
     		$rArr = self::regenerateSerchKeywords($force, $query);
     		

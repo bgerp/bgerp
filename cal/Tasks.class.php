@@ -771,6 +771,10 @@ class cal_Tasks extends embed_Manager
                 }
             }
         }
+        
+        if ($form->isSubmitted() && ($rec->state != 'draft')) {
+            $mvc->calculateExpectationTime($rec);
+        }
     }
 	
 	
