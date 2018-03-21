@@ -357,7 +357,8 @@ class planning_ProductionTaskDetails extends core_Detail
     	if(!$Driver = cat_Products::getDriver($productId)) return NULL;
     	$res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
     	
-    	$exRec = self::fetch(array("#serial = '[#1#]' AND #id != '[#2#]'", $serial, $productId));
+    	$canonizedSerial = $Driver->canonizeSerial($productId, $serial);
+    	$exRec = self::fetch(array("#serial = '[#1#]' AND #id != '[#2#]'", $canonizedSerial, $productId));
     	if(!empty($exRec)){
     		$res['type'] = 'existing';
     		$res['productId'] = $exRec->productId;
@@ -369,7 +370,7 @@ class planning_ProductionTaskDetails extends core_Detail
     	} 
     	
     	if($res['productId'] != $productId){
-    		$res['error'] = "Серийния номер е към друг артикул|* " . cat_Products::getHyperlink($res['productId'], TRUE);
+    		$res['error'] = "Серийния номер е към друг артикул|*: <b>" . cat_Products::getHyperlink($res['productId'], TRUE) . "</b>";
     	} elseif(!$Driver->checkSerial($productId, $serial, $error)){
     		$res['error'] = $error;
     	}
