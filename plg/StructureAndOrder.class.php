@@ -260,9 +260,9 @@ class plg_StructureAndOrder extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if($action == 'delete' || $action == 'changestate') {
+        if ($action == 'delete' || $action == 'changestate') {
  
-            if($mvc->fetch("#saoParentId = {$rec->id}")) {
+            if ($rec->id && $mvc->fetch("#saoParentId = {$rec->id}")) {
                 $requiredRoles = 'no_one';
             }
         }
