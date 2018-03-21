@@ -71,7 +71,7 @@ class export_Xls extends core_Mvc
     function getExportTitle($clsId, $objId)
     {
         
-        return 'Таблица';
+        return 'XLS таблица';
     }
     
     
