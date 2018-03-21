@@ -102,7 +102,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	/**
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
-	public $searchFields = 'reason, contragentName, amount, id';
+	public $searchFields = 'reason, contragentName, amount';
 	
 	
 	/**

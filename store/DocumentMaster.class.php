@@ -346,8 +346,8 @@ abstract class store_DocumentMaster extends core_Master
     	
     	if(store_DocumentPackagingDetail::haveRightFor('add', (object)array('documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id))){
     		
-    		$btnIn = ht::createBtn("Предаване (Амбалаж)", array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'type' => 'out','ret_url' => TRUE), FALSE, FALSE, 'title=Предаване на амбалаж,ef_icon=img/16/lorry_add.png');
-    		$btnOut = ht::createBtn("Приемане (Амбалаж)", array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'type' => 'in','ret_url' => TRUE), FALSE, FALSE, 'title=Приемане на амбалаж,ef_icon=img/16/lorry_add.png');
+    		$btnIn = ht::createBtn("Отг.пазене: ПРЕДАВАНЕ", array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'type' => 'out','ret_url' => TRUE), FALSE, FALSE, 'title=Отговорно пазене: предаване КЪМ Контрагент,ef_icon=img/16/lorry_add.png');
+    		$btnOut = ht::createBtn("Отг.пазене: ПРИЕМАНЕ", array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'type' => 'in','ret_url' => TRUE), FALSE, FALSE, 'title=Отговорно пазене: приемане ОТ Контрагент,ef_icon=img/16/lorry_add.png');
     		$tpl->append($btnIn, 'PACKAGING_BTNS');
     		$tpl->append($btnOut, 'PACKAGING_BTNS');
     	}
