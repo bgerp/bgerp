@@ -223,7 +223,7 @@ class cal_Setup extends core_ProtoSetup
         $keepMinutes = 10000;
         $depends = 'cal_Calendar';
         
-        $resArr = core_Cache::get($type, $handler, $keepMinutes, 'cal_Calendar');
+        $resArr = core_Cache::get($type, $handler, $keepMinutes, $depends);
         
         if ($resArr) return $resArr;
         
