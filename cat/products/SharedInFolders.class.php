@@ -319,4 +319,27 @@ class cat_products_SharedInFolders extends core_Manager
     	
     	return $res;
     }
+    
+    
+    /**
+     * Лимитира заявката за достъпни артикули в папка
+     * 
+     * @param core_Query $query
+     * @param int $folderId
+     * @return void
+     */
+    public static function limitQuery(&$query, $folderId)
+    {
+    	expect($query->mvc instanceof cat_Products);
+    	$sharedProducts = cat_products_SharedInFolders::getSharedProducts($folderId);
+    	
+    	// Избираме всички публични артикули, или частните за тази папка
+    	$query->where("#isPublic = 'yes'");
+    	if(count($sharedProducts)){
+    		$sharedProducts = implode(',', $sharedProducts);
+    		$query->orWhere("#isPublic = 'no' AND (#folderId = {$folderId} OR #id IN ({$sharedProducts}))");
+    	} else {
+    		$query->orWhere("#isPublic = 'no' AND #folderId = {$folderId}");
+    	}
+    }
 }
