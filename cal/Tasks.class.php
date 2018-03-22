@@ -2670,6 +2670,9 @@ class cal_Tasks extends embed_Manager
      */
     static public function calculateExpectationTime (&$rec)
     {
+        $stringTz = date_default_timezone_get();
+        date_default_timezone_set('UTC');
+        
     	// сега
     	$now = dt::verbal2mysql(); 
     	
@@ -2762,6 +2765,8 @@ class cal_Tasks extends embed_Manager
 
     	$rec->expectationTimeStart = $expStart;
     	$rec->expectationTimeEnd = $expEnd;
+    	
+    	date_default_timezone_set($stringTz);
     }
     
     
