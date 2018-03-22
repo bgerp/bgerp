@@ -292,7 +292,7 @@ class doc_Containers extends core_Manager
             $query = self::getQuery();
             $query->groupBy('docClass');
         }
-        
+       
         $resArr = array();
         
         while ($rec = $query->fetch()) {
@@ -3091,30 +3091,59 @@ class doc_Containers extends core_Manager
     {
         requireRole('admin');
         
-        core_App::setTimeLimit(600);
+        $form = cls::get('core_Form');
+        $form->title = 'Поправка на ключовите думи';
+        $form->FLD('types', 'keylist(mvc=core_Classes)', 'caption=Документи');
+        $form->FLD('force', 'varchar', 'input=hidden,silent');
+        $form->FLD('from', 'datetime', 'caption=Създадени след');
+    	$form->setSuggestions('types', core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title'));
+    	$form->input(NULL, 'silent');
+    	$form->input();
+    	
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		$force = ($rec->force) ? TRUE : FALSE;
+    		
+    		$query = self::getQuery();
+    		if(isset($rec->types)){
+    			$types = keylist::toArray($rec->types);
+    			$query->in('docClass', $types);
+    		}
+    		
+    		if(isset($rec->from)){
+    			$query->where("#createdOn >= '{$rec->from}'");
+    		}
+    		
+    		$limit = $query->count() * 0.005;
+    		core_App::setTimeLimit($limit, FALSE, 2000);
+    		
+    		$rArr = self::regenerateSerchKeywords($force, $query);
+    		
+    		$retUrl = getRetUrl();
+    		if (!$retUrl) {
+    			$retUrl = array('core_Packs');
+    		}
+    		
+    		if (empty($rArr)) {
+    			$msg = '|Няма документи за ре-индексиране';
+    		} else {
+    			$cnt = $rArr[0];
+    			if ($cnt == 1) {
+    				$msg = "|Ре-индексиран|* 1 |документ";
+    			} else {
+    				$msg = "|Ре-индексирани|* {$cnt} |документа";
+    			}
+    		}
+    		
+    		return new Redirect($retUrl, $msg);
+    	}
         
-        $force = Request::get('force');
-        
-        $rArr = self::regenerateSerchKeywords($force);
-        
-        $retUrl = getRetUrl();
-        
-        if (!$retUrl) {
-            $retUrl = array('core_Packs');
-        }
-        
-        if (empty($rArr)) {
-            $msg = '|Няма документи за ре-индексиране';
-        } else {
-            $cnt = $rArr[0];
-            if ($cnt == 1) {
-                $msg = "|Ре-индексиран|* 1 |документ";
-            } else {
-                $msg = "|Ре-индексирани|* {$cnt} |документа";
-            }
-        }
-        
-        return new Redirect($retUrl, $msg);
+    	$form->toolbar->addSbBtn('Поправка', 'save', 'ef_icon = img/16/disk.png, title = Поправка');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+    	 
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	 
+    	return $tpl;
     }
     
     

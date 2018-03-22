@@ -120,13 +120,14 @@
          </tr>
       </tbody>
    </table>
+   <!--ET_BEGIN store_DocumentPackagingDetail-->
    <div class='scrolling-holder' style="margin-top: 10px;">
-      <!--ET_BEGIN store_DocumentPackagingDetail-->
       <div class="details smallerText" >
+         <p style="margin: 10px 0 5px; font-weight:bold">Отговорно пазене</p>
          [#store_DocumentPackagingDetail#]
       </div>
-      <!--ET_END store_DocumentPackagingDetail-->
    </div>
+   <!--ET_END store_DocumentPackagingDetail-->
    <!--ET_BEGIN PACKAGING_BTNS-->
    <div style='margin-top:10px'>[#PACKAGING_BTNS#]</div>
    <!--ET_END PACKAGING_BTNS-->

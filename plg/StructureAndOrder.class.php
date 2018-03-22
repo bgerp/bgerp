@@ -56,12 +56,12 @@ class plg_StructureAndOrder extends core_Plugin
         if($rec->id) {
             $id = $rec->id;
         } else {
-            $id = self::getOrSetLastId();
+            $id = self::getOrSetLastId($mvc->className);
         }
-
+        
         $form->setDefault('saoRelative', $id);
 
-        $options = self::getOptiopns($mvc, $rec->id);
+        $options = self::getOptiopns($mvc, $rec);
 
         if(count($options)) {
             $form->setField('saoPosition', 'input');
@@ -87,24 +87,26 @@ class plg_StructureAndOrder extends core_Plugin
     /**
      * Подготвя опциите за saoPosition
      */
-    private static function getOptiopns($mvc, $removeId)
+    private static function getOptiopns($mvc, $rec)
     {
         $res = array();
         $removeIds = array();
-        if($removeId) {
-            $removeIds[$removeId] = $removeId;
+        
+        if ($rId) {
+            $removeIds[$rec->id] = $rec->id;
         }
+        
         $items = $mvc->getSaoItems($rec);
         $items = self::orderItems($items);
         if(is_array($items)) {
-            foreach($items as $rec) {
+            foreach($items as $iRec) {
                 if(count($removeIds)) {
-                    if($removeIds[$rec->saoParentId]) {
-                        $removeIds[$rec->id] = $rec->id;
+                    if($removeIds[$iRec->saoParentId]) {
+                        $removeIds[$iRec->id] = $iRec->id;
                         continue;
                     }
                 }
-                $res[$rec->id] = $mvc->saoGetTitle($rec);
+                $res[$iRec->id] = $mvc->saoGetTitle($iRec);
             }
         }
 
@@ -189,10 +191,10 @@ class plg_StructureAndOrder extends core_Plugin
     /**
      * Връща или записва в сесията id-то на последния добавен запис
      */
-    private static function getOrSetLastId($id = NULL)
+    private static function getOrSetLastId($className, $id = NULL)
     {
-        $key = 'lastAddId_' .$mvc->className;
-
+        $key = 'lastAddId_' . $className;
+        
         if($id) {
             Mode::setPermanent($key, $id);
         } else {
@@ -209,7 +211,7 @@ class plg_StructureAndOrder extends core_Plugin
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        self::getOrSetLastId($rec->id);
+        self::getOrSetLastId($mvc->className, $rec->id);
     }
 
 
@@ -260,9 +262,9 @@ class plg_StructureAndOrder extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if($action == 'delete' || $action == 'changestate') {
+        if ($action == 'delete' || $action == 'changestate') {
  
-            if($mvc->fetch("#saoParentId = {$rec->id}")) {
+            if ($rec->id && $mvc->fetch("#saoParentId = {$rec->id}")) {
                 $requiredRoles = 'no_one';
             }
         }

@@ -51,7 +51,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'productId=Амбалаж, packagingId, packQuantity,type,packPrice, amount';
+	public $listFields = 'productId=Артикул, packagingId, packQuantity,type,packPrice, amount';
 	
 	
 	/**
@@ -131,7 +131,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     			$requiredRoles = 'no_one';
     		} elseif(isset($rec->documentClassId) && isset($rec->documentId)){
     			$Document = new core_ObjectReference($rec->documentClassId, $rec->documentId);
-    			$dRec = $Document->fetch('state,contragentClassId,contragentId');
+    			$dRec = $Document->fetch('state,contragentClassId,contragentId,folderId');
     			$isCons = cond_Parameters::getParameter($dRec->contragentClassId, $dRec->contragentId, 'consignmentContragents');
     			
     			if(!$Document->isInstanceOf('store_DocumentMaster')){
@@ -140,7 +140,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     				$requiredRoles = 'no_one';
     			} elseif($dRec->state != 'draft'){
     				$requiredRoles = 'no_one';
-    			} elseif(!self::getPackagingProducts(TRUE)){
+    			} elseif(!self::getPackagingProducts($dRec->folderId, TRUE)){
     				$requiredRoles = 'no_one';
     			}
     		}
@@ -182,16 +182,17 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
 	 * @param string $onlyCount - само бройка или не
 	 * @return int|array
 	 */
-	private static function getPackagingProducts($onlyCount = FALSE)
+	private static function getPackagingProducts($folderId, $onlyCount = FALSE)
 	{
 		$groupId = cat_Groups::fetchField("#sysId = 'packagings'", 'id');
-		$where = "LOCATE('|{$groupId}|', #groups) AND #state = 'active' AND #canStore = 'yes'";
-		if($onlyCount === TRUE) return cat_Products::count($where);
+		$pQuery = cat_Products::getQuery();
+		$pQuery->where("LOCATE('|{$groupId}|', #groups) AND #state = 'active' AND #canStore = 'yes'");
+		cat_products_SharedInFolders::limitQuery($pQuery, $folderId);
+		$pQuery->show('id,name,isPublic,code');
+		
+		if($onlyCount === TRUE) return $pQuery->count();
 		
 		$options = array();
-		$pQuery = cat_Products::getQuery();
-		$pQuery->where($where);
-		$pQuery->show('id,name,isPublic,code');
 		while($pRec = $pQuery->fetch()){
 			$options[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
 		}
@@ -206,7 +207,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
 	protected function getProducts($masterRec)
 	{
 		// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-		$products = self::getPackagingProducts();
+		$products = self::getPackagingProducts($masterRec->folderId);
 	
 		return $products;
 	}

@@ -1306,16 +1306,7 @@ class cat_Products extends embed_Manager {
     	if(isset($customerClass) && isset($customerId)){
     		$reverseOrder = TRUE;
     		$folderId = cls::get($customerClass)->forceCoverAndFolder($customerId);
-    		$sharedProducts = cat_products_SharedInFolders::getSharedProducts($folderId);
-    		
-    		// Избираме всички публични артикули, или частните за тази папка
-    		$query->where("#isPublic = 'yes'");
-    		if(count($sharedProducts)){
-    			$sharedProducts = implode(',', $sharedProducts);
-    			$query->orWhere("#isPublic = 'no' AND (#folderId = {$folderId} OR #id IN ({$sharedProducts}))");
-    		} else {
-    			$query->orWhere("#isPublic = 'no' AND #folderId = {$folderId}");
-    		}
+    		cat_products_SharedInFolders::limitQuery($query, $folderId);
     	}
     	
     	$query->show('isPublic,folderId,meta,id,code,name');
