@@ -89,8 +89,8 @@ class colab_FolderToPartners extends core_Manager
     function description()
     {
         // Информация за нишката
-        $this->FLD('folderId', 'key2(mvc=doc_Folders)', 'caption=Папка,silent,input=hidden,after=contractorId');
-        $this->FLD('contractorId', 'key(mvc=core_Users,select=names)', 'caption=Потребител,notNull,silent');
+        $this->FLD('folderId', 'key2(mvc=doc_Folders, selectSourceArr=colab_FolderToPartners::getFolderOptions, exludeContractors=' . Request::get('contractorId') . ')', 'caption=Папка,silent,input=hidden,after=contractorId,mandatory');
+        $this->FLD('contractorId', 'key2(mvc=core_Users, titleFld=names, rolesArr=partner, selectSourceArr=colab_FolderToPartners::getContractorOptions, excludeFolders=' . Request::get('folderId') . ')', 'caption=Потребител,notNull,silent,mandatory');
          
         // Поставяне на уникални индекси
         $this->setDbUnique('folderId,contractorId');
@@ -98,33 +98,82 @@ class colab_FolderToPartners extends core_Manager
         $this->setDbIndex('contractorId');
         $this->setDbIndex('folderId');
     }
-
+    
     
     /**
-     * Връща опции за избор на потребители контрактори / които нямат споделена папка
+     * 
+     *
+     * @param array $params
+     * @param NULL|integer $limit
+     * @param string $q
+     * @param NULL $onlyIds
+     * @param boolean $includeHiddens
+     *
+     * @return array
+     */
+    public static function getFolderOptions($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+        $resArr = doc_Folders::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
+        
+        if (!empty($resArr) && ($params['removeDuplicate'] || $params['exludeContractors'])) {
+            $query = self::getQuery();
+            $fArr = array_keys($resArr);
+            
+            $query->in('contractorId', $uArr);
+            
+            $query->show('folderId');
+            
+            if ($params['exludeContractors']) {
+                $cArr = explode('|', $params['exludeContractors']);
+                $query->orWhereArr('contractorId', $cArr);
+            }
+            
+            while ($rec = $query->fetch()) {
+                unset($resArr[$rec->folderId]);
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param array $params
+     * @param NULL|integer $limit
+     * @param string $q
+     * @param NULL $onlyIds
+     * @param boolean $includeHiddens
      * 
      * @return array
      */
-	public static function getContractorOptions($folderId)
-	{
-		$uQuery = core_Users::getQuery();
-		$uQuery->where("#state = 'active'");
-		$cId = core_Roles::fetchByName('partner');
-		$uQuery->like('roles', "|{$cId}|");
-		$uQuery->show('id,names');
-		
-		$options = array();
-		
-		while ($uRec = $uQuery->fetch()){
- 	        if(!static::fetch("#contractorId = {$uRec->id}")){
-		        $options[$uRec->id] = $uRec->names;
-		    } 
-		}
-		
-		return $options;
-	}
+    public static function getContractorOptions($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+        $resArr = core_Users::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
+        
+        if (!empty($resArr) && ($params['removeDuplicate'] || $params['excludeFolders'])) {
+            $query = self::getQuery();
+            $uArr = array_keys($resArr);
+            
+            $query->in('contractorId', $uArr);
+            
+            $query->show('contractorId');
+            
+            if ($params['excludeFolders']) {
+                $foldersArr = explode('|', $params['excludeFolders']);
+                $query->orWhereArr('folderId', $foldersArr);
+            }
+            
+            while ($rec = $query->fetch()) {
+                unset($resArr[$rec->contractorId]);
+            }
+        }
+        
+        return $resArr;
+    }
 	
-	
+    
 	/**
 	 * След подготовка на формата
 	 */
@@ -144,8 +193,14 @@ class colab_FolderToPartners extends core_Manager
         	
         		$form->setDefault('folderId', cls::get($coverClassId)->forceCoverAndFolder($coverId));
         	}
-        	
-        	$form->setOptions('contractorId', array('' => '') + self::getContractorOptions($form->rec->folderId));
+        }
+        
+        if ($form->rec->folderId) {
+            $form->fields['contractorId']->type->params['excludeFolders'] = $form->rec->folderId;
+        }
+        
+        if ($form->rec->contractorId) {
+            $form->fields['folderId']->type->params['exludeContractors'] = $form->rec->contractorId;
         }
     }
 
