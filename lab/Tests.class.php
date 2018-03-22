@@ -240,7 +240,7 @@ class lab_Tests extends core_Master
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
 
-        $compTest = Mode::get('testCompare_' . $this->getHandle($data->rec->id));
+        $compTest = Mode::get('testCompare_' . $mvc->getHandle($data->rec->id));
        // bp($compTest);
        
         
