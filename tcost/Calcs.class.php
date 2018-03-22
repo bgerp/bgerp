@@ -548,9 +548,9 @@ class tcost_Calcs extends core_Manager
     				// Проверка дали цената е допустима спрямо сумата на транспорта
     				$amount = round($rec->{$map['price']} * $rec->{$map['quantity']}, 2);
     				
-    				if($amount <= round($rec->fee, 2)){
+    				if($amount < round($rec->fee, 2)){
     					$fee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->fee / $masterRec->{$map['currencyRate']});
-    					$form->setError('packPrice', "Сумата на артикула без ДДС е по-малка от сумата на скрития транспорт|* <b>{$fee}</b> {$masterRec->{$map['currencyId']}}, |без ДДС|*");
+    					$form->setWarning('packPrice', "Сумата на артикула без ДДС е по-малка от сумата на скрития транспорт|* <b>{$fee}</b> {$masterRec->{$map['currencyId']}}, |без ДДС|*");
     					$vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
     					$rec->{$map['packPrice']} = deals_Helper::getDisplayPrice($rec->{$map['packPrice']}, $vat, $masterRec->{$map['currencyRate']}, $masterRec->{$map['chargeVat']});
     				}
