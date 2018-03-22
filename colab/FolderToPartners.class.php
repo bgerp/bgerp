@@ -119,7 +119,7 @@ class colab_FolderToPartners extends core_Manager
             $query = self::getQuery();
             $fArr = array_keys($resArr);
             
-            $query->in('contractorId', $uArr);
+            $query->in('folderId', $fArr);
             
             $query->show('folderId');
             
