@@ -70,6 +70,13 @@ class backup_Start extends core_Manager
      */
     private static function full()
     {
+        $confErr = backup_Setup::checkConfig_();
+        if (!is_null($confErr)) {
+            self::logErr($confErr);
+            
+            return ("Грешка в конфигурацията!");
+        }
+        
         if (!self::lock()) {
             self::logWarning("Full Backup не може да вземе Lock!");
             
