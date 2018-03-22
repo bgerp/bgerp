@@ -185,13 +185,14 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
 	private static function getPackagingProducts($folderId, $onlyCount = FALSE)
 	{
 		$groupId = cat_Groups::fetchField("#sysId = 'packagings'", 'id');
-		$where = "LOCATE('|{$groupId}|', #groups) AND #state = 'active' AND #canStore = 'yes'";
-		if($onlyCount === TRUE) return cat_Products::count($where);
+		$pQuery = cat_Products::getQuery();
+		$pQuery->where("LOCATE('|{$groupId}|', #groups) AND #state = 'active' AND #canStore = 'yes'");
+		cat_products_SharedInFolders::limitQuery($pQuery, $folderId);
+		$pQuery->show('id,name,isPublic,code');
+		
+		if($onlyCount === TRUE) return $pQuery->count();
 		
 		$options = array();
-		$pQuery = cat_Products::getQuery();
-		$pQuery->where($where);
-		$pQuery->show('id,name,isPublic,code');
 		while($pRec = $pQuery->fetch()){
 			$options[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
 		}

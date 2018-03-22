@@ -190,6 +190,23 @@ class tcost_FeeZones extends core_Master
     	// Ако няма, цената няма да може да се изчисли
     	if(empty($weightRow)) return array('fee' => tcost_CostCalcIntf::EMPTY_WEIGHT_ERROR);
     	
+
+        // Ако продукта има параметър със сис ид aggregateQuantity, то взема общото влуметрично тегло и го сравнява с $totalWeight
+        $aggregateQuantityId = cat_Params::force('aggregateQuantity', 'Обобщено количество', 'double', NULL, '');
+        $aggregateQuantity   = cat_Products::getParams($productId, $aggregateQuantityId);
+
+         
+        if($aggregateQuantity > 0) {
+            $aggregateWeight = cat_Products::getTransportWeight($productId, $aggregateQuantity);
+    	    $aggregateVolume    = cat_Products::getTransportVolume($productId, $aggregateQuantity);
+            if($aggregateWeight && $aggregateVolume) {
+    	        $aggregateWeight = $this->getVolumicWeight($aggregateWeight, $aggregateVolume);
+            }
+            if($aggregateWeight > $totalWeight) {
+                $totalWeight = $aggregateWeight;
+            }
+        }
+ 
     	// Опит за калкулиране на цена по посочените данни
     	$fee = tcost_Fees::calcFee($deliveryTermId, $toCountry, $toPostalCode, $totalWeight, $weightRow);
     	

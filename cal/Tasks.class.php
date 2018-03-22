@@ -1954,6 +1954,8 @@ class cal_Tasks extends embed_Manager
      */
     static function renderGanttTimeType($data)
     {
+        $stringTz = date_default_timezone_get();
+        
         // Сетваме времевата зона
         date_default_timezone_set('UTC');
         
@@ -1985,8 +1987,6 @@ class cal_Tasks extends embed_Manager
     		
     	// ако периода на таблицата е по-голям от година
     		case 'Years': 
-    		    
-    		    date_default_timezone_set('UTC');
     		    
 	    		// делението е година/месец
 	    		$otherParams['mainHeaderCaption'] = tr('година');
@@ -2026,8 +2026,6 @@ class cal_Tasks extends embed_Manager
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour4' :
     		    
-    		    date_default_timezone_set('UTC');
-    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -2065,8 +2063,6 @@ class cal_Tasks extends embed_Manager
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour6' :
     		
-    		    date_default_timezone_set('UTC');
-    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -2104,8 +2100,6 @@ class cal_Tasks extends embed_Manager
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour' :
     		    
-    		    date_default_timezone_set('UTC');
-    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -2142,8 +2136,6 @@ class cal_Tasks extends embed_Manager
    		
     		// ако периода на таблицата е в рамките на седмица - месец
     		case 'WeekDay' :
-    		    
-    		    date_default_timezone_set('UTC');
     		    
 	    		// делението е седмица/ден
 	    		$otherParams['mainHeaderCaption'] = tr('седмица');
@@ -2188,8 +2180,6 @@ class cal_Tasks extends embed_Manager
     	   // ако периода на таблицата е в рамките на месец - ден
     		case 'Months' :
     		    
-    		    date_default_timezone_set('UTC');
-    		    
 	    		// делението е месец/ден
 	    		$otherParams['mainHeaderCaption'] = tr('месец');
 	    		$otherParams['subHeaderCaption'] = tr('ден');
@@ -2232,8 +2222,6 @@ class cal_Tasks extends embed_Manager
     	  
     	   // ако периода на таблицата е в рамките на година - седмици
     		case 'YearWeek' :
-    		    
-    		    date_default_timezone_set('UTC');
     		    
 	    		// делението е месец/седмица
 	    		$otherParams['mainHeaderCaption'] = tr('година');
@@ -2297,6 +2285,8 @@ class cal_Tasks extends embed_Manager
     		
     		break; 
     	}
+    	
+    	date_default_timezone_set($stringTz);
     	
     	return (object) array('otherParams' => $otherParams, 'headerInfo' => $headerInfo);
     }
@@ -2680,6 +2670,9 @@ class cal_Tasks extends embed_Manager
      */
     static public function calculateExpectationTime (&$rec)
     {
+        $stringTz = date_default_timezone_get();
+        date_default_timezone_set('UTC');
+        
     	// сега
     	$now = dt::verbal2mysql(); 
     	
@@ -2772,6 +2765,8 @@ class cal_Tasks extends embed_Manager
 
     	$rec->expectationTimeStart = $expStart;
     	$rec->expectationTimeEnd = $expEnd;
+    	
+    	date_default_timezone_set($stringTz);
     }
     
     
