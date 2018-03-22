@@ -1288,7 +1288,6 @@ abstract class deals_Helper
 			}
 			
 			while($pRec = $pQuery->fetch()){
-				
 				$sign = ($pRec->isReverse == 'yes') ? -1 : 1;
 				if(in_array($Pay, array('findeals_CreditDocuments', 'findeals_DebitDocuments'))){
 					$type = 'intercept';
@@ -1327,8 +1326,18 @@ abstract class deals_Helper
 			}
 			
 			if(count($found)){
-				foreach ($found as $fId => $o){
-					$newInvoiceArr[$k]['current'] -= $o->amount;
+				foreach ($found as $fId => &$o){
+					$clone = clone $o;
+					
+					if($newInvoiceArr[$k]['current'] >= $o->amount){
+						$newInvoiceArr[$k]['current'] -= $o->amount;
+					} else{
+						$o->amount -= $newInvoiceArr[$k]['current'];
+						$clone->amount = $newInvoiceArr[$k]['current'];
+						$newInvoiceArr[$k]['current'] = 0;
+						$notAllocated[$fId] = $o;
+					}
+					
 					if(!empty($newInvoiceArr[$k]['total'])){
 						@$percent = min(round($o->amount / $newInvoiceArr[$k]['total'], 4), 1);
 						$totalPercent -= $percent;
@@ -1336,33 +1345,34 @@ abstract class deals_Helper
 						$percent = 0;
 					}
 				
-					$paid[$k]->payments[$fId] = (object)array('containerId' => $fId, 'percent' => $percent, 'type' => $o->type, 'isReverse' => $o->isReverse, 'amount' => $o->amount);
+					$paid[$k]->payments[$fId] = (object)array('containerId' => $fId, 'percent' => $percent, 'type' => $clone->type, 'isReverse' => $clone->isReverse, 'amount' => $clone->amount);
 				}
 			}
-			
+		}
+		
+		foreach ($newInvoiceArr as $k => $o){
 			if($newInvoiceArr[$k]['current'] <= 0) continue;
+			if(!count($notAllocated)) continue;
 			
-			if(count($notAllocated)){
-				foreach ($notAllocated as $nId => &$o1){
-					
-					$unset = FALSE;
-					if($o1->amount > $newInvoiceArr[$k]['current']){
-						$percent = $totalPercent;
-						$o1->amount -= $newInvoiceArr[$k]['current'];
-						$pAmount = $newInvoiceArr[$k]['current'];
-						$newInvoiceArr[$k]['current'] = 0;
-					} else {
-						$percent = min(round($o1->amount / $newInvoiceArr[$k]['total'], 2), 1);
-						$totalPercent -= $percent;
-						$newInvoiceArr[$k]['current'] -= $o1->amount;
-						$pAmount = $o1->amount;
-						$unset = TRUE;
-					}
+			foreach ($notAllocated as $nId => &$o1){
 						
-					$paid[$k]->payments[$nId] = (object)array('containerId' => $nId, 'percent' => $percent, 'type' => $o1->type, 'isReverse' => $o1->isReverse, 'amount' => $pAmount);
-					if($unset === TRUE){
-						unset($notAllocated[$nId]);
-					}
+				$unset = FALSE;
+				if($o1->amount > $newInvoiceArr[$k]['current']){
+					$percent = $totalPercent;
+					$o1->amount -= $newInvoiceArr[$k]['current'];
+					$pAmount = $newInvoiceArr[$k]['current'];
+					$newInvoiceArr[$k]['current'] = 0;
+				} else {
+					$percent = min(round($o1->amount / $newInvoiceArr[$k]['total'], 2), 1);
+					$totalPercent -= $percent;
+					$newInvoiceArr[$k]['current'] -= $o1->amount;
+					$pAmount = $o1->amount;
+					$unset = TRUE;
+				}
+			
+				$paid[$k]->payments[$nId] = (object)array('containerId' => $nId, 'percent' => $percent, 'type' => $o1->type, 'isReverse' => $o1->isReverse, 'amount' => $pAmount);
+				if($unset === TRUE){
+					unset($notAllocated[$nId]);
 				}
 			}
 		}
