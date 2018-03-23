@@ -1683,6 +1683,8 @@ class cal_Tasks extends embed_Manager
      */
     static function getGantt ($data)
     {
+        $assignedUsersArr = array();
+        
         // масив с цветове
     	$colors = array( "#610b7d", 
 				    	"#1b7d23",
@@ -1756,9 +1758,9 @@ class cal_Tasks extends embed_Manager
 		    		} else {
 		    			$timeEnd = $rec->timeEnd;
 		    		}
-    	    	            
+		    		
     	    		// масив с шернатите потребители
-    	    		$sharedUsers[$rec->sharedUsers] = keylist::toArray($rec->sharedUsers);
+		    		$assignedUsersArr[$rec->assign] = keylist::toArray($rec->assign);
     	    		
     	    		// Ако имаме права за достъп до сингъла
     	    		if (cal_Tasks::haveRightFor('single', $rec)) {
@@ -1771,7 +1773,7 @@ class cal_Tasks extends embed_Manager
 		            	// масива със задачите
     		    		$resTask[]=array( 
     			    					'taskId' => $rec->id,
-    			    					'rowId' =>  keylist::toArray($rec->sharedUsers),
+    		    		                'rowId' =>  keylist::toArray($rec->assign),
     		    						'timeline' => array (
     		    											'0' => array(
     		                								'duration' => $timeDuration,  
@@ -1785,26 +1787,22 @@ class cal_Tasks extends embed_Manager
         		}
         	} 
         	
-        	if (is_array($sharedUsers)) {
+        	if (!empty($assignedUsersArr)) {
 	        	// правим масив с ресурсите или в нашия случай това са потребителитя
-	        	foreach($sharedUsers as $key=>$users){
-	        		if(count($users) >=2 ) {
-	        			unset ($sharedUsers[$key]);
-	        		}
-	        		
+        	    foreach ($assignedUsersArr as $users){
 	        		// има 2 полета ид = номера на потребителя
 	        		// и линк към профила му
 	        		foreach($users as $id => $resors){
 	                    $link = crm_Profiles::createLink($resors);
-	    	    		$resorses[$id]['name'] = (string) crm_Profiles::createLink($resors);
-	    	    		$resorses[$id]['id'] = $resors;
+	    	    		$resources[$id]['name'] = (string) crm_Profiles::createLink($resors);
+	    	    		$resources[$id]['id'] = $resors;
 	        		}
 	        	}
         	}
         	
-        	if(is_array($resorses)) {
+        	if(is_array($resources)) {
 	        	// номерирваме ги да почват от 0
-	        	foreach($resorses as $res) {
+	        	foreach($resources as $res) {
 	        		$resUser[] = $res;
 	        	}
         	}
@@ -1829,8 +1827,8 @@ class cal_Tasks extends embed_Manager
 	        	// за всяко едно ид от $rowArr търсим отговарящия му ключ от $resUser
 	        	foreach($rowArr as $k => $v){
 	        		
-	        		foreach($v as $a=>$t){
-	        			foreach($resUser as $key=>$value){
+	        		foreach($v as $a => $t){
+	        			foreach($resUser as $key => $value){
 	        				if($t == $value['id']) {
 	        					$resTask[$k]['rowId'][$a] = $key; 
 	        				}
