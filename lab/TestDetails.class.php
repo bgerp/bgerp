@@ -44,6 +44,13 @@ class lab_TestDetails extends core_Detail
     public $canAdd = 'ceo,lab,masterLab';
 
     /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canEdit = 'ceo,lab,masterLab';
+
+    /**
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'ceo,lab,masterLab';
@@ -75,7 +82,8 @@ class lab_TestDetails extends core_Detail
     {
         $this->FLD('testId', 'key(mvc=lab_Tests, select=title)', 
             'caption=Тест, input=hidden, silent,mandatory,smartCenter');
-        $this->FLD('paramName', 'varchar', 'caption=Параметър, notSorting,smartCenter');
+        $this->FLD('paramName', 'key(mvc=lab_Parameters, select=name)', 
+            'caption=Параметър, notSorting,smartCenter,silent');
         $this->FLD('methodId', 'key(mvc=lab_Methods, select=name)', 'caption=Метод, notSorting,mandatory,smartCenter');
         $this->FLD('value', 'varchar(64)', 'caption=Стойност, notSorting, input=none,smartCenter');
         $this->FLD('refValue', 'varchar(64)', 'caption=Реф.Стойност, notSorting, input=none,smartCenter');
@@ -100,6 +108,10 @@ class lab_TestDetails extends core_Detail
         $rows = &$res->rows;
         $recs = &$res->recs;
         
+        $this->listFields ="methodId,paramName";
+        
+       // bp($this->listFields);
+        
         $compTest = Mode::get('testCompare_' . lab_Tests::getHandle($data->masterId));
         if ($compTest) {
             $dQuery = lab_TestDetails::getQuery();
@@ -113,21 +125,18 @@ class lab_TestDetails extends core_Detail
                         
                         if ($recs[$key]->methodId == $testsDet->methodId) {
                             
-                            $row->refValue = $testsDet->value;
+                            $row->refValue = "<div style='float: right'>" . number_format($testsDet->value, 2, ',', ' ') . "</div>";
                             $recs[$key]->refValue = $testsDet->value;
-                            $deviation = core_Type::getByName('percent')->toVerbal(($recs[$key]->refValue - $recs[$key]->value)/$recs[$key]->refValue);
-                       $row->error = ht::styleIfNegative($deviation, $deviation);
-                          //  $row->error= $deviation;
-                        //  bp($recs,$rec, $rec->methodId,$testsDet,$testsDet->value);
+                            $deviation = core_Type::getByName('percent')->toVerbal(
+                                ($recs[$key]->refValue - $recs[$key]->value) / $recs[$key]->refValue);
+                            $row->error = ht::styleIfNegative($deviation, $deviation);
                         }
-                        
-                        // bp($recs,lab_TestDetails::fetch(Mode::get('testCompare_' . lab_Tests::getHandle($data->masterId))));
                     }
                 }
             }
         }
         
-       // bp($recs,$rows);
+        // bp($recs,$rows);
     }
 
     /**
@@ -139,6 +148,11 @@ class lab_TestDetails extends core_Detail
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
+        $paramsIdSelectArr = array(
+            $data->form->rec->paramName => lab_Parameters::getTitleById($data->form->rec->paramName)
+        );
+        // bp($paramsIdSelectArr);
+        $data->form->setOptions('paramName', $paramsIdSelectArr);
         
         // allMethodsArr
         $Methods = cls::get('lab_Methods');
@@ -147,17 +161,25 @@ class lab_TestDetails extends core_Detail
         $allMethodsArr = array();
         
         while ($mRec = $queryAllMethods->fetch("1=1")) {
-            $allMethodsArr[$mRec->id] = $mRec->name;
+            
+            if ($mRec->paramId == $data->form->rec->paramName) {
+                $allMethodsArr[$mRec->id] = $mRec->name;
+            }
         }
         $data->allMethodsArr = $allMethodsArr;
         
-        // $methodIdSelectArr
-        foreach ($allMethodsArr as $k => $v) {
-            if (! $mvc->fetchField("#testId = {$data->form->rec->testId} AND #methodId = {$k}", 'id')) {
-                $methodIdSelectArr[$k] = $v;
+        if (!empty($data->allMethodsArr)) {
+            
+           
+            // $methodIdSelectArr
+            foreach ($allMethodsArr as $k => $v) {
+                if (! $mvc->fetchField("#testId = {$data->form->rec->testId} AND #methodId = {$k}", 'id')) {
+                    $methodIdSelectArr[$k] = $v;
+                }
             }
+        }else{
+            $methodIdSelectArr=array();
         }
-        
         // Ако сме в режим 'добави' избираме метод, който не е използван
         // за текущия тест. Ако сме в режим 'редактирай' полето за избор на метод е скрито.
         
@@ -167,28 +189,6 @@ class lab_TestDetails extends core_Detail
         } else {
             $data->form->setOptions('methodId', $methodIdSelectArr);
         }
-        
-        //Params
-        
-        $Params = cls::get('lab_Parameters');
-        $queryAllParams = $Params->getQuery();
-        $allParamsArr = array();
-        while ($pRec = $queryAllParams->fetch()) {
-            $allParamsArr[$pRec->id] = $pRec->name;
-        }
-        
-        $data->allParamsArr = $allParamsArr;
-        
-        
-    foreach ($allParamsArr as $k => $v) {
-            if (! $mvc->fetchField("#testId = {$data->form->rec->testId} AND #methodId = {$k}", 'id')) {
-                $methodIdSelectArr[$k] = $v;
-            }
-        }
-       // bp($mvc->fetchField($data->form->rec->testId),$allParamsArr,$allMethodsArr);
-        
-        
-        
     }
 
     /**
@@ -196,6 +196,7 @@ class lab_TestDetails extends core_Detail
      */
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
+        
         // Заглавие
         $testHandler = $mvc->Tests->fetchField($data->form->rec->testId, 'title');
         
@@ -217,10 +218,6 @@ class lab_TestDetails extends core_Detail
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         
-     
-        
-       
-        
         // $row->value
         if (is_numeric($row->value)) {
             $row->value = "<div style='float: right'>" . number_format($row->value, 2, ',', ' ') . "</div>";
@@ -233,17 +230,12 @@ class lab_TestDetails extends core_Detail
         $paramRec = $mvc->Params->fetch($paramId);
         $row->paramName = $paramRec->name . ($paramRec->dimension ? ', ' : '') . $paramRec->dimension;
         
-        if ($row->error) {
-            $row->error = $row->error;
-        }
-         
-       //$row->refValue = $rec->refValue ;
-        $row->error = 'err'; 
+        $row->refValue='---';
         
-      //  bp($row,$rec);
-
+        
     }
-
+    
+    
     /**
      * Създаване $rec->value, $rec->error и запис на lastChangeOn в 'lab_Tests'
      *
@@ -305,9 +297,7 @@ class lab_TestDetails extends core_Detail
             $rec->value = $resultsArr[0];
             $rec->error = NULL;
         }
-        if (Mode::get('testCompare_' . lab_Tests::getHandle($data->masterId))) {
-            bp(lab_TestDetails::fetch(Mode::get('testCompare_' . lab_Tests::getHandle($data->masterId))));
-        }
+        
         // bp($rec);
         
         // END Обработки в зависимост от типа на параметъра
@@ -327,6 +317,8 @@ class lab_TestDetails extends core_Detail
     static function on_AfterPrepareListToolbar($mvc, $data, $rec)
     {
         $data->toolbar->removeBtn('btnPrint');
+      
+        $data->toolbar->addSelectBtn(array('' => '', 1 => 'ergre', '/coresdf/sdfds' => 'sfsfsd dsg sdfsdfsdf'));
         
         // Count all methods
         $allMethodsQuery = $mvc->Methods->getQuery();

@@ -50,7 +50,7 @@
     </div>
     <!--ET_END XXX-->
     <div class='scrolling-holder'>
-        <div style='display:inline-block;margin-top:10px;'>
+        <div style='display:inline-block;margin-top:10px;margin-bottom:10px;'>
             <div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'>|Резултати от измерванията|*</div>
             <!--ET_BEGIN DETAILS-->
             <div class='details'>
@@ -59,7 +59,7 @@
             <!--ET_END DETAILS-->
         </div>
     </div>
-    <div class='fleft' style='width:50%'>
+   
     <div class='block_right'>
         <!--ET_BEGIN note-->
         <div class='clear_both'><b>|Описание|*</b></div>
@@ -84,9 +84,5 @@
         </div>
     </div>
 </div>
-</div>
-<div class='fright' style='width:50%'>
-<div class='clear_both'><b>|Избрани параметри|*</b></div>
-<div style='margin-top:10px'>[#ParametersStr#]</div>
-       
-    </div>
+
+

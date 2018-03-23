@@ -170,13 +170,28 @@ class lab_Tests extends core_Master
         $this->FLD('searchd', 'text', 'caption=searchd, input=none, notSorting');
         
         $this->FNC('title', 'varchar(128)', 'caption=Наименование,input=none,oldFieldName=handler');
-//         $this->FLD('refTitle', 'varchar(64)', 'input=none,notSorting');
-//         $this->FLD('refProvider', 'varchar(64)', 'input=none,notSorting');
-//         $this->FLD('refBatch', 'varchar(64)', 'input=none,notSorting');
-//         $this->FLD('refType', 'varchar(64)', 'input=none,notSorting');
-        
-        
+
     }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param frame2_driver_Proto $Driver
+     *            $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = $data->form;
+        $rec = $form->rec;
+        if (!lab_TestDetails::haveRightFor('add')) {
+        
+            $form->setField('referention', 'input=none');
+        }
+    }
+    
     public function on_CalcTitle($mvc, $rec)
     {
         $rec->title = 'xxx' . $rec->id;
@@ -257,12 +272,27 @@ class lab_Tests extends core_Master
         
         $parameters = keylist::toArray($data->rec->parameters);
       
-        
+       // bp($data->rec->id);
         foreach ($parameters as $param){
             
-            $parametersStr .= lab_Parameters::getTitleById($param)."<br>";
-        }
+      
+            $parameter = lab_Parameters::getTitleById($param);
+            if (lab_TestDetails::haveRightFor('add')) {
+                $parametersStr.=ht::createLink($parameter,
+              
+                    array(
+                        'lab_TestDetails',
+                        'add',
+                        'testId' => $data->rec->id,
+                        'ret_url' => TRUE,
+                        'paramName'=>$param
+                    ))."<br>";
+            }
             
+        }
+        
+        
+           
         $data->row->ParametersStr = $parametersStr;
         
     }
