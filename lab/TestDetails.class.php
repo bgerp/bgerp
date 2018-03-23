@@ -34,7 +34,7 @@ class lab_TestDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'methodId,paramName,value,refValue,error';
+    var $listFields = 'methodId,paramName,value';
 
     /**
      * Кой има право да добавя?
@@ -91,8 +91,8 @@ class lab_TestDetails extends core_Detail
         $this->FLD('comment', 'varchar', 
             'caption=Коментари, notSorting,after=results, column=none,class=" w50, rows= 1"');
         
-        $this->FLD('better', 'enum(up=По-големия,down=По-малкия)', 
-            'caption=По-добрия резултат е,after=title,maxRadio=2,columns=2');
+        $this->FLD('better', 'enum(up=по-големия,down=по-малкия)', 
+            'caption=По-добрия е=>резултат,after=title');
         
         $this->FLD('results', 'table(columns=value,captions=Стойност,widths=8em)', 
             "caption=Измервания||Additional,autohide,advanced,after=title,single=none");
@@ -108,12 +108,13 @@ class lab_TestDetails extends core_Detail
         $rows = &$res->rows;
         $recs = &$res->recs;
         
-        $this->listFields ="methodId,paramName";
-        
-       // bp($this->listFields);
         
         $compTest = Mode::get('testCompare_' . lab_Tests::getHandle($data->masterId));
         if ($compTest) {
+        	
+        	array($data->listFields['refValue']='Реф.Стойност');
+        	array($data->listFields['error']='Отклонение');
+        	
             $dQuery = lab_TestDetails::getQuery();
             $dQuery->where("#testId = {$compTest}");
             
@@ -152,7 +153,7 @@ class lab_TestDetails extends core_Detail
             $data->form->rec->paramName => lab_Parameters::getTitleById($data->form->rec->paramName)
         );
         // bp($paramsIdSelectArr);
-        $data->form->setOptions('paramName', $paramsIdSelectArr);
+      //  $data->form->setOptions('paramName', $paramsIdSelectArr);
         
         // allMethodsArr
         $Methods = cls::get('lab_Methods');
@@ -168,8 +169,7 @@ class lab_TestDetails extends core_Detail
         }
         $data->allMethodsArr = $allMethodsArr;
         
-        if (!empty($data->allMethodsArr)) {
-            
+      
            
             // $methodIdSelectArr
             foreach ($allMethodsArr as $k => $v) {
@@ -177,9 +177,7 @@ class lab_TestDetails extends core_Detail
                     $methodIdSelectArr[$k] = $v;
                 }
             }
-        }else{
-            $methodIdSelectArr=array();
-        }
+       
         // Ако сме в режим 'добави' избираме метод, който не е използван
         // за текущия тест. Ако сме в режим 'редактирай' полето за избор на метод е скрито.
         
@@ -317,8 +315,13 @@ class lab_TestDetails extends core_Detail
     static function on_AfterPrepareListToolbar($mvc, $data, $rec)
     {
         $data->toolbar->removeBtn('btnPrint');
+        
+        $parameters = array();
       
-        $data->toolbar->addSelectBtn(array('' => '', 1 => 'ergre', '/coresdf/sdfds' => 'sfsfsd dsg sdfsdfsdf'));
+        $parameters =keylist::toArray(lab_Tests::fetch($data->masterId)->parameters);
+       
+     // bp($parameters);
+        $data->toolbar->addSelectBtn(array('' => '', '/webroot/lab_TestDetails/add/' => 'fgn', '/coresdf/sdfds' => 'sfsfsd dsg sdfsdfsdf'));
         
         // Count all methods
         $allMethodsQuery = $mvc->Methods->getQuery();

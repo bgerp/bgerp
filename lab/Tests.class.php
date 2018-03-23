@@ -261,7 +261,7 @@ class lab_Tests extends core_Master
         
         if ($compTest) {
             $cRec = $mvc->fetch($compTest);
-            $data->row->RefHandle = $this->getHandle($compTest);
+            $data->row->RefHandle = $mvc->getHandle($compTest);
             $data->row->RefTitle = $mvc->getVerbal($cRec, 'title');
             $data->row->RefType = $mvc->getVerbal($cRec, 'type');
             $data->row->RefProvider = $mvc->getVerbal($cRec, 'provider');
@@ -352,11 +352,11 @@ class lab_Tests extends core_Master
         while ($rec = $queryRight->fetch("#id != {$leftTestId} AND state='active'")) {
             
            
-           
-            $rightTestSelectArr[$rec->id] = $rec->title;
+          
+            $rightTestSelectArr[$rec->id] =$this->getHandle($rec->id)."-".$rec->title;
         }
-        
-        // END Prepare right test
+       
+        // END repare right test
         
         // Prepare form
         $form->title = "Сравнение на тест|* 'No " . $leftTestId . ". " . $leftTestName . "' |с друг тест|*";
@@ -389,14 +389,15 @@ class lab_Tests extends core_Master
             expect($rRec);
             
             $this->requireRightFor('compare', $rRec);
-            
-           // bp($this->getHandle($lRec->id) . '|' . $lRec->id, $rRec->id);
+           
             Mode::setPermanent('testCompare_' . $this->getHandle($lRec->id), $rRec->id);
             
             
             return new Redirect(getRetUrl());
             
+          //////////////////////////////////////////////////////////////////////
           
+            
             $queryTestDetailsLeft = $TestDetails->getQuery();
             
             while ($rec = $queryTestDetailsLeft->fetch("#testId = {$cRec->leftTestId}")) {
