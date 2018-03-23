@@ -2384,7 +2384,7 @@ class core_Users extends core_Manager
      * @param array $params
      * @param NULL|integer $limit
      * @param string $q
-     * @param NULL $onlyIds
+     * @param NULL|integer|array $onlyIds
      * @param boolean $includeHiddens
      * 
      * @return array
@@ -2393,7 +2393,7 @@ class core_Users extends core_Manager
     {
         $query = self::getQuery();
         
-        if(is_array($onlyIds)) {
+        if (is_array($onlyIds)) {
             if(!count($onlyIds)) {
                 return array();
             }
@@ -2428,8 +2428,8 @@ class core_Users extends core_Manager
         $titleFld = $params['titleFld'];
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
         
-        if($q) {
-            if($q{0} == '"') $strict = TRUE;
+        if ($q) {
+            if ($q{0} == '"') $strict = TRUE;
             
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
@@ -2442,12 +2442,12 @@ class core_Users extends core_Manager
             }
             
             $pBegin = type_Key2::getRegexPatterForSQLBegin();
-            foreach($qArr as $w) {
+            foreach ($qArr as $w) {
                 $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         }
         
-        if($limit) {
+        if ($limit) {
             $query->limit($limit);
         }
         
@@ -2455,7 +2455,7 @@ class core_Users extends core_Manager
         
         $res = array();
         
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec->{$titleFld};
         }
         

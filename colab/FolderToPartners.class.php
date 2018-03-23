@@ -106,7 +106,7 @@ class colab_FolderToPartners extends core_Manager
      * @param array $params
      * @param NULL|integer $limit
      * @param string $q
-     * @param NULL $onlyIds
+     * @param NULL|integer|array $onlyIds
      * @param boolean $includeHiddens
      *
      * @return array
@@ -143,7 +143,7 @@ class colab_FolderToPartners extends core_Manager
      * @param array $params
      * @param NULL|integer $limit
      * @param string $q
-     * @param NULL $onlyIds
+     * @param NULL|integer|array $onlyIds
      * @param boolean $includeHiddens
      * 
      * @return array
