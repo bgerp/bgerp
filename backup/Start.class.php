@@ -70,7 +70,8 @@ class backup_Start extends core_Manager
      */
     private static function full()
     {
-        $confErr = backup_Setup::checkConfig_();
+        $me = cls::get('backup_Setup');
+        $confErr = $me->checkConfig();
         if (!is_null($confErr)) {
             self::logErr($confErr);
             
@@ -490,9 +491,9 @@ class backup_Start extends core_Manager
      */
     public function act_Full()
     {
-        self::initialize();
+        $this->initialize();
         
-        return self::full();
+        return $this->full();
     }
     
     /**

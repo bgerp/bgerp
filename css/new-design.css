@@ -392,31 +392,57 @@ body {
   font-size: 0.85em; }
 
 .bookmark-links {
-  font-size: 0.9em; }
+  font-size: 0.9em;
+  margin-top: 12px; }
   .bookmark-links ul {
     padding-left: 0; }
-    .bookmark-links ul li {
+  .bookmark-links li {
+    display: block; }
+  .bookmark-links a,
+  .bookmark-links span {
+    background: url("../img/12/star-yellow.png") 3px center no-repeat;
+    margin-left: 0px;
+    padding-left: 20px;
+    outline: none;
+    color: #fff612;
+    display: block;
+    font-size: 0.97em;
+    border-bottom: 1px dashed rgba(254, 253, 214, 0.5);
+    padding-top: 5px;
+    padding-bottom: 5px; }
+    .bookmark-links a.bookmark-external-url.out,
+    .bookmark-links span.bookmark-external-url.out {
+      color: #fefdd6; }
+      .bookmark-links a.bookmark-external-url.out:visited,
+      .bookmark-links span.bookmark-external-url.out:visited {
+        color: #febb44; }
+    .bookmark-links a:hover,
+    .bookmark-links span:hover {
+      color: #fefdd6; }
+    .bookmark-links a.out,
+    .bookmark-links span.out {
+      background: url("../img/12/star-out.png") 3px center no-repeat; }
+  .bookmark-links .ul-group {
+    margin: 0; }
+    .bookmark-links .ul-group .bookmark-group {
       border-bottom: 1px dashed rgba(254, 253, 214, 0.5);
-      padding: 5px 0 5px 0px;
-      display: block; }
-      .bookmark-links ul li:last-child {
-        border-bottom: none; }
-    .bookmark-links ul a {
-      background: url("../img/12/star-yellow.png") 4px 3px no-repeat;
-      margin-left: 0;
-      padding-left: 20px;
-      outline: none;
-      color: #fff612;
+      padding-top: 5px;
+      padding-bottom: 5px;
       display: block;
-      font-size: 0.97em; }
-      .bookmark-links ul a.bookmark-external-url.out {
-        color: #fefdd6; }
-        .bookmark-links ul a.bookmark-external-url.out:visited {
-          color: #febb44; }
-      .bookmark-links ul a:hover {
-        color: #fefdd6; }
-      .bookmark-links ul a.out {
-        background: url("../img/12/star-out.png") 4px 3px no-repeat; }
+      font-weight: bold; }
+    .bookmark-links .ul-group:hover {
+      cursor: pointer; }
+    .bookmark-links .ul-group.open .bookmark-group {
+      background: url("../img/12/minus-border.png") 2px center no-repeat; }
+    .bookmark-links .ul-group:not(.open) .bookmark-group {
+      background: url("../img/12/plus-border.png") 2px center no-repeat; }
+    .bookmark-links .ul-group .bookmark-group {
+      padding-left: 20px;
+      color: #fffb99; }
+    .bookmark-links .ul-group a {
+      padding-left: 28px;
+      background-position: 12px center;
+      margin-left: 0px; }
 
 .bookmark-wrong-url {
   color: #bb1111; }

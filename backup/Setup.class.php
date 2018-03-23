@@ -215,7 +215,7 @@ class backup_Setup extends core_ProtoSetup
         // Отключваме процеса, ако не е бил легално отключен
         backup_Start::unLock();
         
-        $cfgRes = $this->checkConfig_();
+        $cfgRes = $this->checkConfig();
 
         // Имаме грешка в конфигурацията - не добавяме задачите на крона
         if (!is_null($cfgRes)) {
@@ -278,9 +278,13 @@ class backup_Setup extends core_ProtoSetup
      *
      * @return NULL|string
      */
-    public function checkConfig_()
+    public function checkConfig()
     {
-        
+        $caller = debug_backtrace(FALSE, 2);
+
+        if ($caller[1]['function'] != 'act_Config' && $caller[1]['function'] != 'full') {
+            return;
+        }
         $conf = core_Packs::getConfig('backup');
 
         $storage = core_Cls::get("backup_" . $conf->BACKUP_STORAGE_TYPE);

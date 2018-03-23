@@ -367,14 +367,17 @@ class plg_StructureAndOrder extends core_Plugin
     private static function orderItems($items, $level = 1, $parentId = NULL, &$orderedItems = array())
     {
         $selArr = array();
-        reset($items);
-        foreach($items as $rec) {
-            if($rec->saoParentId == $parentId) {
-                if($rec->saoLevel != $level) {
-                    $rec->saoLevel = $level;
-                    $rec->_mustSave = TRUE;
+        
+        if ($items) {
+            reset($items);
+            foreach($items as $rec) {
+                if($rec->saoParentId == $parentId) {
+                    if($rec->saoLevel != $level) {
+                        $rec->saoLevel = $level;
+                        $rec->_mustSave = TRUE;
+                    }
+                    $selArr[$rec->id] = $rec;
                 }
-                $selArr[$rec->id] = $rec;
             }
         }
 
