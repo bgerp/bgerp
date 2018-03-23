@@ -128,7 +128,7 @@ class type_Table extends type_Blob {
             $row = '';
             foreach($columns as $field => $fObj) {
                 if(isset($opt[$field])) {
-                    $row .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][0]), $attr[$field]) . "</td>";
+                    $row .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][$i]), $attr[$field]) . "</td>";
                 } else {
                 	$readOnlyFld = $field . '_ro';
                 	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][$i]) && empty($this->errorFields[$field][$i])){
