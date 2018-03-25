@@ -1616,7 +1616,7 @@ class doc_Containers extends core_Manager
             $thRec = doc_Threads::fetch($rec->threadId);
             $title = doc_Threads::recToVerbal($thRec)->onlyTitle;
         } else {
-            $title = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+            $title = doc_Folders::getFolderTitle($rec->folderId);
         }
 
         // Извличане на потенциалните класове на нови документи

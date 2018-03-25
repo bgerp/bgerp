@@ -232,6 +232,33 @@ class type_UserList extends type_Keylist
         
         return parent::fromVerbal_($value);
     }
+
+
+	/**
+     * Форматира числото в удобна за четене форма
+     */
+    function toVerbal_($value)
+    {
+    	$ids = keylist::toArray($value);
+        
+        $uar = core_Users::getRolesWithUsers();
+        
+        $res = '';
+
+        foreach($ids as $id) {
+
+            if(!($nick = $uar['r'][$id]->nick)) {
+ 
+                $res = parent::toVerbal_($value);
+                break;
+            }
+
+            $res .= ($res ? ', ' : '') . $nick;
+        }
+ 
+        return $res;
+    }
+
     
     
     /**

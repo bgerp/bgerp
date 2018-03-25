@@ -343,7 +343,7 @@ class planning_Tasks extends core_Master
 			$row->inputInTask = planning_Tasks::getLink($rec->inputInTask);
 		}
 		
-		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+		$row->folderId = doc_Folders::getFolderTitle($rec->folderId);
 		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
 		

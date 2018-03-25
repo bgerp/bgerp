@@ -575,8 +575,8 @@ class doc_DocumentPlg extends core_Plugin
         
         if($fields['-list']){
             if($rec->folderId) {
-        	    $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-            
+        	    $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
+           
         	    if($invoker->hasPlugin('plg_RowTools2')){
         	    	if(doc_Folders::haveRightFor('single', $rec->folderId)) {
         	    		core_RowToolbar::createIfNotExists($row->_rowTools);

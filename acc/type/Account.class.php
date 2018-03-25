@@ -90,60 +90,70 @@ class acc_type_Account extends type_Key
      */
     public static function filterSuggestions($list, &$suggestions)
     {
-        $arr = explode('|', $list);
-        expect(count($arr) <= 3, 'Най-много могат да са зададени 3 интерфейса');
-       
-        foreach ($arr as $index => $el){
-        	if($el == 'none') continue;
-            expect($arr[$index] = core_Interfaces::fetchField("#name = '{$el}'", 'id'), "Няма интерфейс '{$el}'");
-        }
-        
-        if(count($suggestions)){
-           
-            // За всяка сметка
-            foreach ($suggestions as $id => $sug){
+        $hand = md5(json_encode(array($list, $suggestions)));
 
-            	if(is_object($sug)) continue;
-                
-                // Извличане на записа на сметката
-                $rec = acc_Accounts::fetch($id);
-                
-                
-                foreach (range(0, 2) as $i){
-                	$fld = "groupId" . ($i + 1);
-                	
-                	if(isset($arr[$i]) && $arr[$i] != 'none' && !isset($rec->{$fld})){
-                		unset($suggestions[$id]);
-                		break;
-                	}
-                	
-                	if(empty($rec->{$fld})) continue;
-                	
-                	// Ако има аналитичност, се извлича интерфейса, който поддържа
-                	$listIntf = acc_Lists::fetchField($rec->{$fld}, 'regInterfaceId');
-                	
-                	if($listIntf != $arr[$i]){
-                		unset($suggestions[$id]);
-                		break;
-                	}
+        $res = core_Cache::get('accSuggestions', $hand);
+        
+        if(!is_array($res)) {
+            $arr = explode('|', $list);
+            expect(count($arr) <= 3, 'Най-много могат да са зададени 3 интерфейса');
+           
+            foreach ($arr as $index => $el){
+                if($el == 'none') continue;
+                expect($arr[$index] = core_Interfaces::fetchField("#name = '{$el}'", 'id'), "Няма интерфейс '{$el}'");
+            }
+            
+            if(count($suggestions)){
+               
+                // За всяка сметка
+                foreach ($suggestions as $id => $sug){
+
+                    if(is_object($sug)) continue;
+                    
+                    // Извличане на записа на сметката
+                    $rec = acc_Accounts::fetch($id);
+                    
+                    
+                    foreach (range(0, 2) as $i){
+                        $fld = "groupId" . ($i + 1);
+                        
+                        if(isset($arr[$i]) && $arr[$i] != 'none' && !isset($rec->{$fld})){
+                            unset($suggestions[$id]);
+                            break;
+                        }
+                        
+                        if(empty($rec->{$fld})) continue;
+                        
+                        // Ако има аналитичност, се извлича интерфейса, който поддържа
+                        $listIntf = acc_Lists::fetchField($rec->{$fld}, 'regInterfaceId');
+                        
+                        if($listIntf != $arr[$i]){
+                            unset($suggestions[$id]);
+                            break;
+                        }
+                    }
                 }
             }
-        }
-        
-        if(is_array($suggestions)){
-        	$resetArr = array_values($suggestions);
-        	$map = array_combine(array_keys($resetArr), array_keys($suggestions));
-        	
-        	// От опциите махаме групите на сметките, ако в тях не са останали сметки
-        	foreach ($resetArr as $i => $v){
-        		$vNext = $resetArr[$i+1];
-        		
-        		// Ако текущото предложение е група и след нея следва друга група, я махаме
-        		if(is_object($v) && (is_object($vNext) || !$vNext)){
-        			$unsetKey = $map[$i];
-        			unset($suggestions[$unsetKey]);
-        		}
-        	}
+            
+            if(is_array($suggestions)){
+                $resetArr = array_values($suggestions);
+                $map = array_combine(array_keys($resetArr), array_keys($suggestions));
+                
+                // От опциите махаме групите на сметките, ако в тях не са останали сметки
+                foreach ($resetArr as $i => $v){
+                    $vNext = $resetArr[$i+1];
+                    
+                    // Ако текущото предложение е група и след нея следва друга група, я махаме
+                    if(is_object($v) && (is_object($vNext) || !$vNext)){
+                        $unsetKey = $map[$i];
+                        unset($suggestions[$unsetKey]);
+                    }
+                }
+            }
+             core_Cache::set('accSuggestions', $hand, $suggestions, 14400, array('acc_Accounts'));
+
+        } else {  
+            $suggestions = $res;
         }
     }
 }
