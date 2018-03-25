@@ -729,6 +729,15 @@ class crm_Profiles extends core_Master
      */
     static function prepareUnusedUserOptions($data, $limit=NULL)
     {
+        $type = 'prepareUnusedUserOptions';
+        $handler = 'unusedUserOptions' . '|' . $limit . '|' . $data->form->rec->id;
+        $keepMinutes = 10000;
+        $depends = 'crm_Profiles';
+        
+        $opt = core_Cache::get($type, $handler, $keepMinutes, $depends);
+        
+        if (isset($opt) && ($opt !== FALSE)) return $opt;
+        
         $query = self::getQuery();
         $query->show('userId');
         
@@ -750,6 +759,8 @@ class crm_Profiles extends core_Master
                 if (isset($limit) && !--$limit) break;
             }
         }
+        
+        core_Cache::set($type, $handler, $opt, $keepMinutes, $depends);
         
         return $opt;
     }

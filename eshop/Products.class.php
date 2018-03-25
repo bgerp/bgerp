@@ -32,7 +32,7 @@ class eshop_Products extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg, plg_Search, plg_Sorting';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg, plg_Search, plg_Sorting, plg_StructureAndOrder';
     
     
     /**
@@ -119,8 +119,7 @@ class eshop_Products extends core_Master
     function description()
     {
         $this->FLD('code', 'varchar(10)', 'caption=Код');
-        $this->FLD('order', 'int', 'caption=Подредба');
-        $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name,allowEmpty)', 'caption=Група, mandatory, silent');
+        $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name,allowEmpty)', 'caption=Група,mandatory,silent,refreshForm');
         $this->FLD('name', 'varchar(64)', 'caption=Продукт, mandatory,width=100%');
         
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1');
@@ -134,7 +133,7 @@ class eshop_Products extends core_Master
 
         // Запитване за нестандартен продукт
         $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId,silent');
-        $this->FLD('proto', "keylist(mvc=cat_Products,allowEmpty,select=name)", "caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти");
+        $this->FLD('proto', "keylist(mvc=cat_Products,allowEmpty,select=name,select2MinItems=100)", "caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти");
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
         $this->FLD('quantityCount', 'enum(3=3 количества,2=2 количества,1=1 количество,0=Без количество)', 'caption=Запитване->Брой количества');
@@ -287,7 +286,7 @@ class eshop_Products extends core_Master
     public static function prepareGroupList($data)
     {
         $pQuery = self::getQuery();
-        $pQuery->orderBy("#order,#code");
+
         while($pRec = $pQuery->fetch("#state = 'active' AND #groupId = {$data->groupId}")) {
             $data->recs[] = $pRec;
             $pRow = $data->rows[] = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
@@ -619,4 +618,37 @@ class eshop_Products extends core_Master
             }
         }
     }
+
+
+    /**
+     * Имплементация на метод, необходим за plg_StructureAndOrder
+     */
+    public function saoCanHaveSublevel($rec, $newRec = NULL)
+    {        
+        return FALSE;
+    }
+    
+
+    /**
+     * Необходим метод за подреждането
+     */
+    public static function getSaoItems($rec)
+    {
+        $res = array();
+        $groupId = Request::get('groupId', 'int');
+        if(!$groupId) {
+            $groupId = $rec->groupId;
+        }
+        
+        if(!$groupId) return $res;
+
+        $query = self::getQuery();
+        $query->where("#groupId = {$groupId}");
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = $rec;
+        }
+
+        return $res;
+    }
+
 }

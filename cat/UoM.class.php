@@ -496,6 +496,11 @@ class cat_UoM extends core_Manager
         $sameMeasures = cat_UoM::getSameTypeMeasures($typeUom->id);
         unset($sameMeasures[""]);
        
+        if($sysId == 'l'){
+        	$sameMeasures = array();
+        	$sameMeasures[$typeUom->id] = $typeUom->name;
+        }
+        
         if(count($sameMeasures) == 1){
         	
         	// Ако мярката няма сродни мерки, сумата се конвертира в нея и се връща

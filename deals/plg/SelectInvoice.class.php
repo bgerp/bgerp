@@ -24,7 +24,7 @@ class deals_plg_SelectInvoice extends core_Plugin
 	 */
 	public static function on_AfterDescription(core_Master &$mvc)
 	{
-		$mvc->FLD('fromContainerId', 'int', 'caption=От фактура,input=hidden,silent');
+		$mvc->FLD('fromContainerId', 'int', 'caption=Към фактура,input=hidden,silent');
 		$mvc->setDbIndex('fromContainerId');
 	}
 	
@@ -56,7 +56,7 @@ class deals_plg_SelectInvoice extends core_Plugin
 			}
 		}
 		
-		if(!Mode::isReadOnly()){
+		if(!Mode::isReadOnly() && !isset($fields['-list'])){
 			if($mvc->haveRightFor('selectinvoice', $rec)){
 				$row->fromContainerId = (!empty($rec->fromContainerId)) ? $row->fromContainerId : "<div class=border-field></div>";
 				$row->fromContainerId = $row->fromContainerId . ht::createLink('', array($mvc, 'selectInvoice', $rec->id, 'ret_url' => TRUE), FALSE, 'title=Смяна на фактурата към която е документа,ef_icon=img/16/edit.png');
