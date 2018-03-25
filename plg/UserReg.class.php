@@ -420,11 +420,13 @@ class plg_UserReg extends core_Plugin
             
             if (!$form->gotErrors())
             $form->info = tr("Попълнете полетата и натиснете бутона за изпращане.|*<br>|" .
-                "Имейл адресът трябва да бъде този, с който сте се регистрирали.|* <br>" .
+                "Имейл адресът трябва да бъде този, с който сте се регистрирали.|* <br>|" .
                 "На този имейл ще получите линк за избор на нова парола за достъп.");
             
             $form->addAttr("email", array('style' => 'width:300px'));
             
+            $form->setField('email', 'caption=Имейл');
+
             $content = $form->renderHtml("email,captcha", $rec);
             
             return FALSE;
