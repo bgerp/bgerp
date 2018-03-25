@@ -54,7 +54,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = "valior, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy";
+	public $listFields = "valior, title=Документ, reason, fromContainerId, folderId, currencyId, amount, state, createdOn, createdBy";
 	
 	
 	/**

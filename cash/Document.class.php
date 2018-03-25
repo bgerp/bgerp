@@ -49,7 +49,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "termDate=Очаквано,valior=Вальор, title=Документ, reason, folderId, currencyId=Валута, amount,state, createdOn, createdBy";
+    public $listFields = "termDate=Очаквано,valior=Вальор, title=Документ, reason, fromContainerId, folderId, currencyId=Валута, amount,state, createdOn, createdBy";
     
     
     /**

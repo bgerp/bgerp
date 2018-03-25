@@ -218,7 +218,7 @@ class cat_products_SharedInFolders extends core_Manager
     	
     	foreach ($data->recs as $id => $rec){
     		$row = static::recToVerbal($rec);
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		$row->folderId = doc_Folders::getFolderTitle($rec->folderId);
     		$data->rows[$id] = $row;
     	}
     	

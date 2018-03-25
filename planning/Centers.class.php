@@ -187,7 +187,7 @@ class planning_Centers extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-list'])){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		$row->folderId = doc_Folders::getFolderTitle($rec->folderId);
     	}
     	
     	if(isset($rec->departmentId)){

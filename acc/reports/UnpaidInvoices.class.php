@@ -33,25 +33,11 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
      */
     protected $groupByField = 'className';
 
-    /**
-     * Полета за хеширане на таговете
-     *
-     * @see uiext_Labels
-     * @var string
-     */
-    protected $hashField;
-
-    /**
-     * Кое поле от $data->recs да се следи, ако има нов във новата версия
-     *
-     * @var string
-     */
-    protected $newFieldToCheck;
 
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields;
+    protected $changeableFields= 'contragent,checkDate';
 
     /**
      * Добавя полетата на драйвера към Fieldset

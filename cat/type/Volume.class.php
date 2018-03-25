@@ -24,7 +24,7 @@ class cat_type_Volume extends cat_type_Uom {
 	function init($params = array())
     {
     	// Основната мярка на типа е кубични метра
-    	$this->params['unit'] = 'cub.m';
+    	$this->params['unit'] = 'l';
     	if(is_array($params['params'])){
     		$this->params = array_merge($this->params, $params['params']);
     	}

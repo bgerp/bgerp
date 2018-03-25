@@ -34,8 +34,8 @@ class findeals_DebitDocuments extends deals_Document
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,doc_plg_HidePrices,
-                     plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg,deals_plg_SelectInvoice';
+                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,deals_plg_SelectInvoice,doc_plg_HidePrices,
+                     plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg';
     
     
     /**

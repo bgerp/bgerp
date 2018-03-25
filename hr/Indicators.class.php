@@ -576,7 +576,11 @@ class hr_Indicators extends core_Manager
     	$data->listFilter->FLD('document', 'varchar(16)', 'caption=Документ,silent,placeholder=Всички');
     	$data->listFilter->input(NULL, 'silent');
     	
-    	$data->listFilter->setOptions('period', array('' => '') + dt::getRecentMonths(10));
+    	$cloneQuery = clone $data->query;
+    	$cloneQuery->XPR('minDate', 'date', 'min(#date)');
+    	$min = $cloneQuery->fetch()->minDate;
+    	
+    	$data->listFilter->setOptions('period', array('' => '') + dt::getMonthsBetween($min));
     	$data->listFilter->showFields = 'period,document';
     	$data->query->orderBy('date', "DESC");
     	

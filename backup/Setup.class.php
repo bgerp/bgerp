@@ -219,7 +219,7 @@ class backup_Setup extends core_ProtoSetup
 
         // Имаме грешка в конфигурацията - не добавяме задачите на крона
         if (!is_null($cfgRes)) {
-            
+
             return $html;
         }
         
@@ -280,7 +280,11 @@ class backup_Setup extends core_ProtoSetup
      */
     public function checkConfig()
     {
+        $caller = debug_backtrace(FALSE, 2);
 
+        if ($caller[1]['function'] != 'act_Config' && $caller[1]['function'] != 'full') {
+            return;
+        }
         $conf = core_Packs::getConfig('backup');
 
         $storage = core_Cls::get("backup_" . $conf->BACKUP_STORAGE_TYPE);
