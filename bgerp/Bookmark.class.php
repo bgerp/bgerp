@@ -216,9 +216,7 @@ class bgerp_Bookmark extends core_Manager
 	    
 	    $query = self::getQuery();
 	    $query->where("#user = '{$userId}'");
-	    
-	    self::orderQuery($query);
-	    
+	    	    
 	    if (is_null($limit)) {
 	        $limit = 60;
 	    }
@@ -286,16 +284,6 @@ class bgerp_Bookmark extends core_Manager
 	}
     
 
-	/**
-	 * Подрежда записите в зависимост от подредбата на потребители и броя на показванията
-	 * 
-	 * @param core_Query $query
-	 */
-	protected static function orderQuery($query)
-	{
-	    $query->orderBy('saoOrder');
-	}
-	
 	
 	/**
 	 * 
@@ -392,7 +380,6 @@ class bgerp_Bookmark extends core_Manager
         $userId = (int) $rec->user;
         
         $data->query->where("#user = {$userId}");
-        self::orderQuery($data->query);
         
         $data->listFilter->fields['user']->refreshForm = 'refreshForm';
     }
@@ -488,18 +475,4 @@ class bgerp_Bookmark extends core_Manager
 
         return $res;
     }
-
-
-    /**
-     * Имплементация на метод, необходим за plg_StructureAndOrder
-     */
-    public function saoCanHaveSublevel($rec, $newRec = NULL)
-    {
-        if($newRec && $newRec->type == 'group') return FALSE;
-
-        $res = ($rec->type == 'group') && ($rec->saoLevel == 1);
-        
-        return $res;
-    }
-
 }

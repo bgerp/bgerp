@@ -204,10 +204,6 @@ class core_Array
         uasort($array, function($a, $b) use ($field) {
             
             // Ако липсва да се подредят най накрая
-//            if (!isset($a->$field)) return 1;
-//            if (!isset($a->$field)) return -1;
-            
-//            if($a->{$field} == $b->{$field})  return 0;
             // Ако има 2 елемента с еднакви стойности, първия срещнат да си остане първи
             if($a->{$field} == $b->{$field})  return 1;
 

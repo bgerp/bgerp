@@ -277,7 +277,7 @@ class plg_StructureAndOrder extends core_Plugin
      */
     function on_AfterGetQuery($mvc, $query)
     {
-        $query->orderBy('#saoOrder', 'ASC', TRUE);
+        $query->orderBy('#saoOrder', 'ASC', -100);
     }
 
 
