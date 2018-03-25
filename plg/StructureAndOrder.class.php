@@ -58,7 +58,7 @@ class plg_StructureAndOrder extends core_Plugin
         } else {
             $id = self::getOrSetLastId($mvc->className);
         }
-        
+       
         $form->setDefault('saoRelative', $id);
 
         $options = self::getOptiopns($mvc, $rec);
@@ -71,9 +71,10 @@ class plg_StructureAndOrder extends core_Plugin
             $form->setOptions('saoRelative', array('' => '') + $options);
             
             $canHaveSublevel = FALSE;
-            foreach($options as $r) {
-                if($mvc->SaoCanHaveSublevel($rec)) {
-                    $canHaveSublevel = TRUE;
+            foreach($options as $id => $title) {
+                $r = $mvc->fetch($id);
+                if($mvc->saoCanHaveSublevel($r, $rec)) {
+                    $canHaveSublevel = TRUE; 
                 }
             }
 
@@ -137,7 +138,7 @@ class plg_StructureAndOrder extends core_Plugin
                     $form->setError('saoRelative', 'Не е посочен родителски елемент');
                     return;
                 }
-                if(!$mvc->saoCanHaveSublevel($items[$rec->saoRelative])) {
+                if(!$mvc->saoCanHaveSublevel($items[$rec->saoRelative], $rec)) {
                     $form->setError('saoRelative', 'Този елемент не може да има подниво');
                     return;
                 }
@@ -270,13 +271,13 @@ class plg_StructureAndOrder extends core_Plugin
         }
     }
 
-    
+        
     /**
-     * Подреждане на записите в листови изглед
+     * След като се поготви заявката за модела
      */
-    public static function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_AfterGetQuery($mvc, $query)
     {
-        $data->query->orderBy('#saoOrder', 'ASC', TRUE);
+        $query->orderBy('#saoOrder', 'ASC', TRUE);
     }
 
 
@@ -285,10 +286,12 @@ class plg_StructureAndOrder extends core_Plugin
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-        if($f = $mvc->saoTitleField) {
+        if(is_array($data->rows)) {
             foreach($data->rows as $id => &$row) {
-                $rec = $data->recs[$id];
-                $row->{$f} = $mvc->saoGetTitle($rec, $row->{$f});
+                $rec = $data->recs[$id]; 
+                if($f = $mvc->saoTitleField) {
+                    $row->{$f} = $mvc->saoGetTitle($rec, $row->{$f});
+                }
                 $ddTools = $row->_rowTools;
                 if($lastRec && $rec->saoLevel == $lastRec->saoLevel && $mvc->haveRightFor('edit', $rec)) {
                     $row->_rowTools->addLink('Нагоре', array($mvc, 'SaoMove', $rec->id, 'direction' => 'up', 'rId' => $lastRec->id, 'ret_url' => TRUE), 
