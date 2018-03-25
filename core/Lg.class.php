@@ -302,10 +302,7 @@ class core_Lg extends core_Manager
         return $res;
     }
     
-    function act_Test()
-    {
-        bp(tr("|*<small>|Произведено|*</small>"));
-    }
+ 
 
     /**
      * Подготвяме думите в речника
@@ -341,9 +338,14 @@ class core_Lg extends core_Manager
         $lg = Mode::get('lg');
         
         if (!$lg) {
-            $lg = self::getDefaultLang();
+            if(!haveRole('user')) {
+                $lg = cms_Content::getLang();
+            } else {
+                $lg = self::getDefaultLang();
+            }
+            core_Lg::set($lg);
         }
-        
+     
         return $lg;
     }
 
