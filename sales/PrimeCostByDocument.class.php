@@ -561,17 +561,27 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-    	$data->listFilter->FLD('documentId', 'varchar', 'caption=Документ');
+    	$data->listFilter->FLD('documentId', 'varchar', 'caption=Документ, silent');
     	$data->listFilter->showFields = 'documentId';
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->input(NULL, 'silent');
     	$data->listFilter->input();
     	$data->query->orderBy('valior', "DESC");
     	
     	if($rec = $data->listFilter->rec){
     		if(!empty($rec->documentId)){
+    			
+    			// Търсене и на последващите документи
     			if($document = doc_Containers::getDocumentByHandle($rec->documentId)){
-    				$data->query->where("#containerId = {$document->fetchField('containerId')}");
+    				$in = array($document->fetchField('containerId'));
+    				if($document->isInstanceOf('sales_Sales')){
+    					$descendants = $document->getDescendants();
+    					$descendantArr = array_values(array_map(function($obj) use ($field) {return $obj->fetchField('containerId');}, $descendants));
+    					$in = array_merge($in, $descendantArr);
+    				}
+    				
+    				$data->query->in("containerId", $in);
     			}
     		}
     	}
