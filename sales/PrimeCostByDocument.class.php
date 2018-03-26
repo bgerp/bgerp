@@ -105,7 +105,7 @@ class sales_PrimeCostByDocument extends core_Manager
 	 */
 	protected static function on_CalcDelta(core_Mvc $mvc, $rec)
 	{
-		if(isset($rec->primeCost)){
+		if(isset($rec->primeCost) && isset($rec->sellCost)){
 			$delta = $rec->sellCost - $rec->primeCost;
 			$rec->delta = $delta * $rec->quantity;
 		}
@@ -367,6 +367,14 @@ class sales_PrimeCostByDocument extends core_Manager
 		$indicatorRecs = $iQuery->fetchAll();
 		core_App::setTimeLimit(count($indicatorRecs) * 0.8);
 		
+		
+		// Ако няма делта се пропуска
+		foreach ($indicatorRecs as $k => $r2){
+			if(!isset($r2->delta)){
+				unset($indicatorRecs[$k]);
+			}
+		}
+		
 		if($dPercent = sales_Setup::get('DELTA_MIN_PERCENT')){
 			foreach ($indicatorRecs as &$r1){
 				if(isset($r1->delta)){
@@ -595,5 +603,85 @@ class sales_PrimeCostByDocument extends core_Manager
     			$doc->getInstance()->logInAct("Обновяване на дилъра и/или инициатора на делтата", $doc->that);
     		}
     	}
+    }
+    
+    
+    /**
+     * Колко е себестойноста на продажбата
+     *
+     * @param int $productId
+     * @param int $packagingId
+     * @param double $quantity
+     * @param stdClass $saleRec
+     * @param int $listId
+     * @return NULL|double $primeCost
+     */
+    public static function getPrimeCostInSale($productId, $packagingId, $quantity, $saleRec, $listId)
+    {
+    	$productRec = cat_Products::fetch($productId, 'isPublic,code');
+    	if($productRec->isPublic == 'yes'){
+    		$primeCost = price_ListRules::getPrice($listId, $productId, $packagingId, $saleRec->valior);
+    	} else {
+    		$Driver = cat_Products::getDriver($productId);
+    		$primeCost = $Driver->getPrice($productId, $quantity, 0, 0, $saleRec->valior);
+    		
+    		// Ако няма себестойност от драйвера, търсим тази по рецепта
+    		if(!isset($primeCost)){
+    			$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
+    			if(empty($bomRec)){
+    				$bomRec = cat_Products::getLastActiveBom($productId, 'production');
+    			}
+    	
+    			if($bomRec){
+    				$primeCost = cat_Boms::getBomPrice($bomRec, $quantity, 0, 0, $saleRec->valior, $listId);
+    			}
+    		}
+    	}
+    	
+    	if(isset($primeCost)){
+    		$costs = sales_Sales::getCalcedTransports($saleRec->threadId);
+    		if(isset($costs[$productId])){
+    			$primeCost += $costs[$productId]->fee / $costs[$productId]->quantity;
+    		}
+    	}
+    		
+    	// Ако артикулът е 'Надценка' няма себестойност
+    	if($productRec->code == 'surcharge'){
+    		$primeCost = 0;
+    	}
+    	
+    	return $primeCost;
+    }
+    
+    
+    /**
+     * Колко е себестойноста на документа според продажбата към която е
+     * 
+     * @param int $productId
+     * @param int $packagingId
+     * @param double $quantity
+     * @param int $containerId
+     * @return NULL|double
+     */
+    public static function getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId)
+    {
+    	$threadId = doc_Containers::fetchField($containerId, 'threadId');
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	if(!$firstDoc->isInstanceOf('sales_Sales')) return NULL;
+    	
+    	$containerId = $firstDoc->fetchField('containerId');
+    	$query = self::getQuery();
+    	$query->where("#containerId = {$containerId} AND #productId = {$productId}");
+    	$sum = $totalQ = 0;
+    	
+    	while($rec = $query->fetch()){
+    		$sum += $rec->quantity * $rec->primeCost;
+    		$totalQ += $rec->quantity;
+    	}
+    	
+    	// Сумата на себестойноста е среднопритеглената себестойност
+    	if(isset($totalQ)) return $sum / $totalQ;
+    	
+    	return NULL;
     }
 }
