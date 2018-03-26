@@ -88,7 +88,6 @@ class pos_Favourites extends core_Manager {
     	$this->FLD('image', 'fileman_FileType(bucket=pos_ProductsImages)', 'caption=Картинка');
     	
     	$this->setDbUnique('productId, packagingId');
-    	$this->setDbIndex('pointId');
     }
     
     
