@@ -1590,6 +1590,10 @@ form .inputAdvanced {
     background-color:#dfd !important;
 }
 
+.inlineForm .listFilter form {
+	float: none !important;
+}
+
 .inputWarning {
     border: solid 1px blue;
 }
