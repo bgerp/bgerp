@@ -668,7 +668,9 @@ class sales_PrimeCostByDocument extends core_Manager
     public static function getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId)
     {
     	$threadId = doc_Containers::fetchField($containerId, 'threadId');
+    	if(empty($threadId)) return NULL;
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	
     	if(!$firstDoc->isInstanceOf('sales_Sales')) return NULL;
     	
     	$containerId = $firstDoc->fetchField('containerId');
@@ -682,7 +684,7 @@ class sales_PrimeCostByDocument extends core_Manager
     	}
     	
     	// Сумата на себестойноста е среднопритеглената себестойност
-    	if(isset($totalQ)) return $sum / $totalQ;
+    	if(!empty($totalQ)) return $sum / $totalQ;
     	
     	return NULL;
     }
