@@ -121,4 +121,15 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 		// Запис
 		cls::get('sales_PrimeCostByDocument')->saveArray($save);
 	}
+	
+	
+	/**
+     * След подготовка на тулбара за единичен изглед
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        if (haveRole('admin,ceo,debug') && $data->rec->state == 'active') {
+            $data->toolbar->addBtn('Делти', array('sales_PrimeCostByDocument', 'list', 'documentId' => "#" . $mvc->getHandle($data->rec)), 'ef_icon=img/16/bug.png,title=Делти по документа,row=2');
+        }
+    }
 }
