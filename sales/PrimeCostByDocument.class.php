@@ -623,7 +623,9 @@ class sales_PrimeCostByDocument extends core_Manager
     		$primeCost = price_ListRules::getPrice($listId, $productId, $packagingId, $saleRec->valior);
     	} else {
     		$Driver = cat_Products::getDriver($productId);
-    		$primeCost = $Driver->getPrice($productId, $quantity, 0, 0, $saleRec->valior);
+    		if(is_object($Driver)){
+    			$primeCost = $Driver->getPrice($productId, $quantity, 0, 0, $saleRec->valior);
+    		}
     		
     		// Ако няма себестойност от драйвера, търсим тази по рецепта
     		if(!isset($primeCost)){
