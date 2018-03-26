@@ -19,7 +19,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Себестойности към документ
      */
-    public $title = 'Делти при продажба';
+    public $title = 'Делти в нишки на продажба';
     
     
     /**
