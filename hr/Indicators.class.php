@@ -21,7 +21,7 @@ class hr_Indicators extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Индикатори';
+    public $title = 'Показатели';
     
     
     /**
@@ -557,7 +557,7 @@ class hr_Indicators extends core_Manager
     	// Рендиране на сумарната информация за индикаторите
     	$tpl->replace($data->IData->salary, 'salary');
     	$table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-    	$tpl->append($table->get($data->IData->summaryRows, 'indicatorId=Индикатор,value=Сума'), 'I_S_TABLE');
+    	$tpl->append($table->get($data->IData->summaryRows, 'indicatorId=Име,value=Сума'), 'I_S_TABLE');
     	
     	return $tpl;
     }
@@ -722,12 +722,12 @@ class hr_Indicators extends core_Manager
     	// Ако няма данни, добавят се
     	if(!array_key_exists($key, $result)){
     		$result[$key] = (object)array('date'        => $valior,
-    				'personId'    => $personId,
-    				'docId'       => $docId,
-    				'docClass'    => $docClassId,
-    				'indicatorId' => $indicatorId,
-    				'value'       => $value,
-    				'isRejected'  => $isRejected,);
+										  'personId'    => $personId,
+    									  'docId'       => $docId,
+    									  'docClass'    => $docClassId,
+    									  'indicatorId' => $indicatorId,
+    									  'value'       => $value,
+    									  'isRejected'  => $isRejected,);
     	} else {
     
     		// Ако има вече се сумират
