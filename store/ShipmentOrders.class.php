@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -37,7 +37,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,trans_LogisticDataIntf,label_SequenceIntf,deals_InvoiceSourceIntf';
+                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,trans_LogisticDataIntf,label_SequenceIntf=store_iface_ShipmentLabelImpl,deals_InvoiceSourceIntf';
     
     
     /**
@@ -501,79 +501,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
-     * Връща данни за етикети
-     *
-     * @param int $id - ид на store_ShipmentOrders
-     * @param number $labelNo - номер на етикета
-     * @return array $res - данни за етикетите
-     *
-     * @see label_SequenceIntf
-     */
-    public function getLabelData($id, $labelNo = 0)
-    {  
-    	$rec = $this->fetchRec($id);
-    	
-    	$res = array();
-    	$res['NOMER'] = $rec->id;
-
-    	$res['Текущ_етикет'] = ($labelNo == 0) ? 'Текущ_етикет' : $labelNo;
-    	$logisticData = $this->getLogisticData($rec);
-    	$res['DESTINATION'] = "{$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toCountry']}";
-    	
-    	$allowSkip = FALSE;
-    	if($count = $this->getEstimateCnt($id, $allowSkip)){
-    		$res['Общо_етикети'] = $count;
-    	}
-    	
-    	if(isset($rec->lineId)){
-    		$res['SPEDITOR'] = trans_Lines::getTitleById($rec->lineId);
-    	}
-    	
-    	$res['DATE'] = dt::mysql2verbal(dt::today(), 'd/m/y');
-    	
-    	return $res;
-    }
-    
-    
-    /**
-     * Броя на етикетите, които могат да се отпечатат
-     *
-     * @param integer $id
-     * @param string $allowSkip
-     * @return integer
-     *
-     * @see label_SequenceIntf
-     */
-    public function getEstimateCnt($id, &$allowSkip)
-    {
-    	$rec = $this->fetchRec($id);
-    	$count = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
-    	if($count){
-    		$count = ceil($count);
-    		if($count % 2 == 1) $count++;
-    	}
-    	
-    	return $count;
-    }
-    
-    
-    /**
-     * Кои плейсхолдъри немогат да се предефинират от потребителя
-     *
-     * @param int $id
-     * @return array
-     * 
-     * @see label_SequenceIntf
-     */
-    public function getReadOnlyPlaceholders($id)
-    {
-    	$arr = arr::make(array('Текущ_етикет'), TRUE);
-    	
-    	return $arr;
-    }
-    
-    
-    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
@@ -590,6 +517,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             }
         }
     }
+    
     
     /**
      * След подготовка на тулбара на единичен изглед.

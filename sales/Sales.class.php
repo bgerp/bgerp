@@ -1122,10 +1122,6 @@ class sales_Sales extends deals_DealMaster
     		$row->priceListId = price_Lists::getHyperlink($rec->priceListId, TRUE);
     	}
 
-        if(isset($fields['-list'])){  
-            $row->title .= "<div>{$row->folderId}</div>";
-        }
-
     	if(isset($fields['-single'])){
     		
     		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, "commonConditionSale")){
@@ -1155,6 +1151,20 @@ class sales_Sales extends deals_DealMaster
     				$link = ht::createLink('Добавяне', $url, FALSE, array('ef_icon' => 'img/16/lorry_go.png', "style" => 'font-weight:normal;font-size: 0.8em', 'title' => 'Добавяне на допълнителен транспорт'));
     				$row->btnTransport = $link->getContent();
     			}
+    		}
+    	}
+    	
+    	if(isset($fields['-list'])){
+    		$class = NULL;
+    		if(planning_Jobs::fetchField("#state IN ('active','stopped','wakeup') AND #saleId = {$rec->id}")){
+    			$class = 'sale-with-active-job';
+    		} elseif(planning_Jobs::fetchField("#state IN ('closed') AND #saleId = {$rec->id}")){
+    			$class = 'sale-with-closed-job';
+    		}
+    		
+    		if(!empty($class)){
+    			$row->title->prepend("<span class='{$class}'>");
+    			$row->title->append("</span>");
     		}
     	}
     }
