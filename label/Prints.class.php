@@ -313,7 +313,7 @@ class label_Prints extends core_Master
                 }
             }
             
-            core_Lg::pop($lang);
+            core_Lg::pop();
             
             // Добавяме полетата от детайла на шаблона
             label_TemplateFormats::addFieldForTemplate($form, $rec->templateId);
@@ -359,7 +359,7 @@ class label_Prints extends core_Master
             
             $lName = $intfInst->getLabelName($objId);
             if ($lName) {
-                $form->setDefault(title, $lName);
+                $form->setDefault('title', $lName);
             }
             
             $estCnt = $intfInst->getLabelEstimatedCnt($objId);
@@ -489,7 +489,7 @@ class label_Prints extends core_Master
             
             $renderView = FALSE;
             
-            if (!$renderView && $rec->id) {
+            if ($rec->id) {
                 $renderView = TRUE;
             }
             
