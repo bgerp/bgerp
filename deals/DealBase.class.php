@@ -388,23 +388,26 @@ abstract class deals_DealBase extends core_Master
     
     
     /**
-     * След преобразуване на записа в четим за хора вид
+     * Добавяме полетата от драйвера, ако са указани
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    public static function recToVerbal_($rec, &$fields = array())
     {
+    	$row = parent::recToVerbal_($rec, $fields);
+    	
     	if($rec->closedDocuments){
     		$docs = keylist::toArray($rec->closedDocuments);
     		$row->closedDocuments = '';
-    		
     		foreach ($docs as $docId){
-    			$row->closedDocuments .= ht::createLink($mvc->getHandle($docId), array($mvc, 'single', $docId)) . ", ";
+    			$row->closedDocuments .= ht::createLink(static::getHandle($docId), array(get_called_class(), 'single', $docId)) . ", ";
     		}
     		$row->closedDocuments = trim($row->closedDocuments, ", ");
     	}
-    	
+    	 
     	if($fields['-list']){
-    		$row->title = $mvc->getLink($rec->id, 0) . "<div class='smallerTextInTable'>" . doc_Folders::getTitleById($rec->folderId) . "</div>";
+    		$row->title = static::getLink($rec->id);
     	}
+    	
+    	return $row;
     }
     
     

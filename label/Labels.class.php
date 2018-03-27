@@ -11,6 +11,7 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @deprecated
  */
 class label_Labels extends core_Master
 {
@@ -368,18 +369,19 @@ class label_Labels extends core_Master
         $form->title = "Избор на шаблон за етикет";
         
         if ($classId && $objId) {
-        	$form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getFormTitleLink($objId);
         	
-        	try{
+        	$form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getLabelSourceLink($objId);
+        	
+//         	try{
 				// Взимане на данни от шаблона
 				$intfInst = cls::getInterface('label_SequenceIntf', $classId);
 				$labelDataArr = $intfInst->getLabelData($objId, 0);
 				$readOnlyArr = $intfInst->getReadOnlyPlaceholders($objId);
 				$labelDataArr = arr::make(array_keys($labelDataArr), TRUE);
 				$labelDataArr = array_diff_key($labelDataArr, $readOnlyArr);
-			} catch (label_exception_Redirect $e){
-				followRetUrl(NULL, $e->getMessage(), 'error');
-			}
+// 			} catch (label_exception_Redirect $e){
+// 				followRetUrl(NULL, $e->getMessage(), 'error');
+// 			}
         }
        
         // Добавяме функционално поле
