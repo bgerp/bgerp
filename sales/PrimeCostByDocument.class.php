@@ -708,6 +708,7 @@ class sales_PrimeCostByDocument extends core_Manager
     	$containerId = $firstDoc->fetchField('containerId');
     	$query = self::getQuery();
     	$query->where("#containerId = {$containerId} AND #productId = {$productId}");
+    	$query->show('quantity,primeCost');
     	$sum = $totalQ = 0;
     	
     	while($rec = $query->fetch()){
