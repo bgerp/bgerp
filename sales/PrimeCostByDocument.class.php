@@ -313,7 +313,8 @@ class sales_PrimeCostByDocument extends core_Manager
 				// Ако документа е обратен
 				$sign = ($masters[$rec->containerId][2] == 'yes') ? -1 : 1;
 				$delta = round($sign * $rec->delta, 2);
-							
+				$delta = self::addSurchargeToDelta($delta, $rec->productId);
+				
 				// Ако няма данни, добавят се
 				if(!array_key_exists($key, $result)){
 					$result[$key] = (object)array('date'        => $rec->valior,
@@ -334,6 +335,25 @@ class sales_PrimeCostByDocument extends core_Manager
 		
 		// Връщане на записите
 		return $result;
+	}
+	
+	
+	/**
+	 * Добавя надценка от артикула към делтата
+	 * 
+	 * @param double $delta
+	 * @param int $productId
+	 * @return double $delta
+	 */
+	public static function addSurchargeToDelta($delta, $productId)
+	{
+		$surcharge = 1;
+		if($Driver = cat_Products::getDriver($productId)){
+			$surcharge = $Driver->getDeltaSurcharge($productId);
+		}
+		$delta = $delta * $surcharge;
+		
+		return $delta;
 	}
 	
 	
@@ -446,6 +466,8 @@ class sales_PrimeCostByDocument extends core_Manager
 					// Индикатор за делта по групите
 					$indicatorDeltaId = $selectedGroups[$groupId]->deltaRec->id;
 					$delta = $sign * (round($rec->delta / $delimiter, 2));
+					$delta = self::addSurchargeToDelta($delta, $rec->productId);
+					
 					hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorDeltaId, $delta, $isRejected);
 				
 					// Сумиране по индикатор на общата сума на групите
