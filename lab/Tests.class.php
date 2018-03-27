@@ -568,6 +568,8 @@ class lab_Tests extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
+        
+      
         // Check wether the table has records
         $hasRecords = $mvc->fetchField("#id != 0", 'id');
         
