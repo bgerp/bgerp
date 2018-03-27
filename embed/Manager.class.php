@@ -383,7 +383,7 @@ class embed_Manager extends core_Master
     	// Ако има драйвер и той може да се зареди, инстанцираме го
     	if(isset($rec->{$self->driverClassField}) && cls::load($rec->{$self->driverClassField}, TRUE)){
     		
-    		return cls::get($rec->{$self->driverClassField});
+    		return cls::get($rec->{$self->driverClassField}, array('driverRec' => $rec));
     	}
     	
     	return FALSE;

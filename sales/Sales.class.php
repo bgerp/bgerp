@@ -1421,8 +1421,8 @@ class sales_Sales extends deals_DealMaster
     public static function getCalcedTransports($threadId)
     {
     	$res = array();
-    	
     	$Doc = doc_Threads::getFirstDocument($threadId);
+    	if(empty($Doc)) return $res;
     	if(!$Doc->isInstanceOf('sales_Sales')) return $res;
     	
     	$saleClassId = sales_Sales::getClassId();

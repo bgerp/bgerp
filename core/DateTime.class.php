@@ -978,4 +978,33 @@ class core_DateTime
     	
     	return $months;
     }
+    
+    
+    /**
+     * Намира месеците между две дати
+     *
+     * @param date $startDate    - начална дата
+     * @param date|NULL $endDate - дата, NULL за текущата
+     * @return string $mask      - маска
+     * @return array $months     - масив с месеци
+     */
+    public static function getMonthsBetween($startDate, $endDate = NULL, $mask = 'M Y')
+    {
+    	$endDate = isset($endDate) ? $endDate : dt::today();
+    	$endDate = new DateTime($endDate);
+    	$endDate = $endDate->format('Y-m-01');
+    	
+    	$months = array();
+    	$date = new DateTime($startDate);
+    	$nextDate = $date->format('Y-m-01');
+    	$months[$nextDate] = dt::mysql2verbal($nextDate, $mask);
+    	
+    	while($nextDate < $endDate){
+    		$date->modify("next month");
+    		$nextDate = $date->format('Y-m-01');
+    		$months[$nextDate] = dt::mysql2verbal($nextDate, $mask);
+    	}
+    	
+    	return $months;
+    }
 }

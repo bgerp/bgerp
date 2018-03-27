@@ -72,7 +72,7 @@ class bgerp_Bookmark extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'bgerp_Wrapper, plg_Created, plg_Modified, plg_RowTools2, plg_Search, plg_Sorting, plg_StructureAndOrder';
+    public $loadList = 'bgerp_Wrapper, plg_Created, plg_Modified, plg_RowTools2, plg_Search, plg_Sorting, plg_StructureAndOrder,plg_RemoveCache';
     
     
     /**
@@ -84,6 +84,8 @@ class bgerp_Bookmark extends core_Manager
     public $saoTitleField = 'url';
 
     static $curRec;
+
+    const CACHE_KEY = 'BookmarksPerUser';
     
     /**
      * Полета на модела
@@ -105,20 +107,44 @@ class bgerp_Bookmark extends core_Manager
      */
     static function renderBookmarks()
     {
-        $tpl = new ET("<div class='sideBarTitle'>[#BOOKMARK_TITLE#][#BOOKMARK_BTN#]</div><div class='bookmark-links'>[#BOOKMARK_LINKS#]</div>");
-        
-        $cur = new stdClass();
-        
-        $links = bgerp_Bookmark::getLinks();
-        $title = bgerp_Bookmark::getTitle();
-        $btn = bgerp_Bookmark::getBtn();
-        
-        $tpl->append($title, 'BOOKMARK_TITLE');
-        $tpl->append($links, 'BOOKMARK_LINKS');
-        $tpl->append($btn, 'BOOKMARK_BTN');
-        
-        
+        $screen = Mode::is('screenMode', 'narrow') ? 'm' : 'd';
+ 
+        $userId = core_Users::getCurrent();
+
+        $tpl = core_Cache::get(self::CACHE_KEY, $userId);
+
+        $cookie = '';
+        if (isset($_COOKIE['bookmarkInfo'])) {
+            $cookie = $_COOKIE['bookmarkInfo'];
+        }
+
+        if(!$tpl || ($tpl->cookie != $cookie . $screen) || TRUE) {
+            $tpl = new ET("<div class='sideBarTitle'>[#BOOKMARK_TITLE#][#BOOKMARK_BTN#]</div><div class='bookmark-links'>[#BOOKMARK_LINKS#]</div>");
+            
+            $cur = new stdClass();
+            
+            $links = bgerp_Bookmark::getLinks($cookie);
+            $title = bgerp_Bookmark::getTitle();
+            $btn = bgerp_Bookmark::getBtn();
+            
+            $tpl->append($title, 'BOOKMARK_TITLE');
+            $tpl->append($links, 'BOOKMARK_LINKS');
+            $tpl->append($btn, 'BOOKMARK_BTN');
+            $tpl->cookie = $cookie . $screen;
+            
+	    	core_Cache::set(self::CACHE_KEY, $userId, $tpl, 2000);
+        } 
+   
         return $tpl;
+    }
+
+
+    /**
+     * Функция за плъгина plg_RemoveCache
+     */
+    public function removeCache($rec)
+    {
+        return array(self::CACHE_KEY, $rec->user);
     }
 
     
@@ -180,7 +206,7 @@ class bgerp_Bookmark extends core_Manager
 	 * 
 	 * @return string
 	 */
-	public static function getLinks($limit = NULL, $userId = NULL)
+	public static function getLinks($cookie = NULL, $limit = NULL, $userId = NULL)
 	{
 	    if (!$userId) {
 	        $userId = core_Users::getCurrent();
@@ -190,9 +216,7 @@ class bgerp_Bookmark extends core_Manager
 	    
 	    $query = self::getQuery();
 	    $query->where("#user = '{$userId}'");
-	    
-	    self::orderQuery($query);
-	    
+	    	    
 	    if (is_null($limit)) {
 	        $limit = 60;
 	    }
@@ -202,8 +226,17 @@ class bgerp_Bookmark extends core_Manager
 	    }
         
         $localUrl = str_replace('/default', '', toUrl(getCurrentUrl(), 'local'));
+        
+        $opened = array();
+        if($cookie) {
+            $cArr = explode(',', trim($cookie, ','));
+            foreach($cArr as $b) {
+                $b = str_replace('bm', '', $b);
+                $opened[$b] = $b;
+            }
+        }
  
-	    $res = '<ul>';
+        $res = '<ul>';
 	    while ($rec = $query->fetch()) {
 	        
 	        $title = self::getVerbal($rec, 'title');
@@ -213,41 +246,44 @@ class bgerp_Bookmark extends core_Manager
             if($rec->color) {
                 $attr['style'] = "color:" . $rec->color;
             }
+         
+            // Затваряме група
+            if($openGroup > 0 && $openGroup !=  $rec->saoParentId) {
+                $res .= "</ul></ul>";
+                $openGroup = NULL;
+            }
 
-            //$attr = array();
+            if($rec->type == 'group') {
+                $class = 'ul-group';
+                $display = "style='display:none;'";
+                if($opened[$rec->id]) {
+                    $class .= ' open';
+                    $display = '';
+                }
+                $attr['class'] = 'bookmark-group';
+                $res .= "<ul class='{$class}' id='bm{$rec->id}'>\n" .
+                         ht::createElement('li', $attr, $title) .
+                        "\n<ul class='subBookmark' {$display}>";
+                $openGroup = $rec->id;
+            } else {
 
-            $link = self::getLinkFromUrl($rec->url, $title, $attr);
+                $link = self::getLinkFromUrl($rec->url, $title, $attr);
 
-            if(stripos($rec->url, $localUrl) !== FALSE) {
-   	            $attr['class'] = 'active';
-   	            $attr['style'] .= ';background-color:#503A66';
-                self::$curRec = $rec;
-            }  
-            $res .= ht::createElement('li', $attr, $link); 
-            
+                if(stripos($rec->url, $localUrl) !== FALSE) {
+                    $attr['class'] = 'active';
+                    $attr['style'] .= ';background-color:#503A66';
+                    self::$curRec = $rec;
+                }  
+                $res .= ht::createElement('li', $attr, $link); 
+            }            
 	    }
 
 	    $res .= '</ul>';
+
 	    return $res;
 	}
     
 
-    public function saoCanHaveSublevel($rec)
-    {
-
-        return FALSE;
-    }
-	
-	/**
-	 * Подрежда записите в зависимост от подредбата на потребители и броя на показванията
-	 * 
-	 * @param core_Query $query
-	 */
-	protected static function orderQuery($query)
-	{
-	    $query->orderBy('saoOrder');
-	}
-	
 	
 	/**
 	 * 
@@ -311,6 +347,15 @@ class bgerp_Bookmark extends core_Manager
     
     
     /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        $data->toolbar->addBtn('Група', array($mvc, 'add', 'type' => 'group', 'ret_url' => TRUE), FALSE, "ef_icon=img/16/plus.png,title=Добавяне на група от букмарки");
+    }
+
+    
+    /**
      * Подготовка на филтър формата
      * 
      * @param bgerp_Bookmark $mvc
@@ -335,7 +380,6 @@ class bgerp_Bookmark extends core_Manager
         $userId = (int) $rec->user;
         
         $data->query->where("#user = {$userId}");
-        self::orderQuery($data->query);
         
         $data->listFilter->fields['user']->refreshForm = 'refreshForm';
     }
@@ -409,7 +453,11 @@ class bgerp_Bookmark extends core_Manager
     {
         $title = $mvc->getVerbal($rec, 'title');
         
-        $row->url = self::getLinkFromUrl($rec->url, $title);
+        if($rec->type == 'group') {
+            $row->url = "<span class='linkWithIcon' style=\"" . ht::getIconStyle('img/16/plus.png') . "\">{$title}</span>";
+        } else {
+            $row->url = self::getLinkFromUrl($rec->url, $title);
+        }
     }
 
 

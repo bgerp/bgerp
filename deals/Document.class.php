@@ -20,7 +20,7 @@ abstract class deals_Document extends deals_PaymentDocument
     /**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = "valior, title=Документ, currencyId=Валута, folderId, amount, state, createdOn, createdBy";
+	public $listFields = "valior, title=Документ, fromContainerId, currencyId=Валута, folderId, amount, state, createdOn, createdBy";
 	
 	
 	/**

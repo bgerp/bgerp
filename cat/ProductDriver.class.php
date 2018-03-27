@@ -711,4 +711,16 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
     	return 1;
     }
+    
+    
+    /**
+     * Надценка на делтата
+     *
+     * @param mixed $rec
+     * @return int
+     */
+    public function getDeltaSurcharge($rec)
+    {
+    	return 1;
+    }
 }

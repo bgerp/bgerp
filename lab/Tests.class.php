@@ -138,6 +138,10 @@ class lab_Tests extends core_Master
      */
     public $cloneDetails = 'lab_TestDetails';
 
+    
+    public $canCompare = 'ceo, lab, masterLab';
+    
+    
     /**
      * Полета, които при клониране да не са попълнени
      *
@@ -150,20 +154,57 @@ class lab_Tests extends core_Master
      */
     function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Наименование,input=none,oldFieldName=handler');
-        $this->FLD('type', 'varchar(64)', 'caption=Образец,notSorting');
+        $this->FLD('referention', 'set()','caption=Референтен');
+        $this->FLD('type', 'varchar(64)', 'caption=Образец,after=referention,notSorting');
         $this->FLD('provider', 'varchar(64)', 'caption=Доставчик,notSorting');
         $this->FLD('batch', 'varchar(64)', 'caption=Партида,notSorting');
-        $this->FLD('referention', 'set()','caption=Референция,after=title');
+        
         $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Описание,notSorting');
         $this->FLD('parameters', 'keylist(mvc=lab_Parameters,select=name)', 'caption=Параметри,notSorting,after=bringing');
-      //  $this->FLD('bringing', 'enum(vendor=Възложителя,performer=Изпълнителя)', "caption=Мострата се доставя от,maxRadio=2,columns=2,after=batch");
+        $this->FLD('bringing', 'enum(vendor=Възложителя,performer=Изпълнителя)', "caption=Мострата се доставя от,maxRadio=2,columns=2,after=batch");
         $this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Нотифициране->Потребители,mandatory');
         $this->FLD('activatedOn', 'datetime', 'caption=Активиран на,input=none,notSorting');
         $this->FLD('lastChangedOn', 'datetime', 'caption=Последна промяна,input=none,notSorting');
         $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит,pending=Зявка)', 
             'caption=Статус,input=none,notSorting');
         $this->FLD('searchd', 'text', 'caption=searchd, input=none, notSorting');
+        
+        $this->FNC('title', 'varchar(128)', 'caption=Наименование,input=none,oldFieldName=handler');
+
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param frame2_driver_Proto $Driver
+     *            $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = $data->form;
+        $rec = $form->rec;
+        if (!lab_TestDetails::haveRightFor('add')) {
+        
+            $form->setField('referention', 'input=none');
+        }
+    }
+    
+    public function on_CalcTitle($mvc, $rec)
+    {
+        $rec->title = 'xxx' . $rec->id;
+        
+        $testTitle = $rec->type.'/'.$rec->provider.'/'.$rec->batch;
+        
+         
+        if (is_numeric($rec->referention)){
+        
+            $testTitle.=' -РЕФЕРЕНТЕН';
+        
+        }
+        $rec->title = $testTitle;
     }
 
     public static function on_AfterInputeditForm($mvc, &$form)
@@ -192,7 +233,6 @@ class lab_Tests extends core_Master
     public static function on_BeforeSave($mvc, $id, $rec)//
     {
       
-       
         if ($rec->foreignId) {
             
             $rec->originId = $rec->foreignId;
@@ -208,6 +248,56 @@ class lab_Tests extends core_Master
         self::sendNotification($rec);
         
     }
+   
+  
+    
+    
+    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+
+        $compTest = Mode::get('testCompare_' . $mvc->getHandle($data->rec->id));
+       // bp($compTest);
+       
+        
+        if ($compTest) {
+            $cRec = $mvc->fetch($compTest);
+            $data->row->RefHandle = $mvc->getHandle($compTest);
+            $data->row->RefTitle = $mvc->getVerbal($cRec, 'title');
+            $data->row->RefType = $mvc->getVerbal($cRec, 'type');
+            $data->row->RefProvider = $mvc->getVerbal($cRec, 'provider');
+            $data->row->RefBatch = $mvc->getVerbal($cRec, 'batch');
+           
+        }
+        $parameters = array();
+        
+        $parameters = keylist::toArray($data->rec->parameters);
+      
+       // bp($data->rec->id);
+        foreach ($parameters as $param){
+            
+      
+            $parameter = lab_Parameters::getTitleById($param);
+            if (lab_TestDetails::haveRightFor('add')) {
+                $parametersStr.=ht::createLink($parameter,
+              
+                    array(
+                        'lab_TestDetails',
+                        'add',
+                        'testId' => $data->rec->id,
+                        'ret_url' => TRUE,
+                        'paramName'=>$param
+                    ))."<br>";
+            }
+            
+        }
+        
+        
+           
+        $data->row->ParametersStr = $parametersStr;
+        
+    }
+    
+    
     
 
     /**
@@ -221,7 +311,7 @@ class lab_Tests extends core_Master
             $url = array(
                 $mvc,
                 'compareTwoTests',
-                'id' => $data->rec->id,
+                $data->rec->id,
                 'ret_url' => TRUE
             );
             $data->toolbar->addBtn('Сравняване', $url, 
@@ -236,12 +326,16 @@ class lab_Tests extends core_Master
      */
     function act_CompareTwoTests()
     {
-      
+      $this->requireRightFor('compare');
         $cRec = new stdClass();
         
-        $form = cls::get('core_form', array(
-            'method' => 'GET'
-        ));
+        $leftTestId = Request::get('id', 'int');
+        $lRec = $this->fetch($leftTestId);
+        expect($lRec);
+        
+        $this->requireRightFor('compare', $lRec);
+        
+        $form = cls::get('core_Form');
         
        
         $TestDetails = cls::get('lab_TestDetails');
@@ -249,39 +343,61 @@ class lab_Tests extends core_Master
         $Params = cls::get('lab_Parameters');
         
         // Prepare left test
-        $leftTestId = Request::get('id', 'int');
-        $leftTestName = $this->fetchField($leftTestId, 'title');
+        
+        $leftTestName = $this->getVerbal($lRec, 'title');
         
         // Prepare right test
         $queryRight = $this->getQuery();
         
         while ($rec = $queryRight->fetch("#id != {$leftTestId} AND state='active'")) {
+            
            
-            $rightTestSelectArr[$rec->id] = $rec->title;
+          
+            $rightTestSelectArr[$rec->id] =$this->getHandle($rec->id)."-".$rec->title;
         }
-        
-        // END Prepare right test
+       
+        // END repare right test
         
         // Prepare form
-        $form->title = "Сравнение на тест|* 'No " . $leftTestId . ". " . $leftTestName . "' с друг тест";
-        $form->FNC('leftTestId', 'int', 'input=none');
-        $form->FNC('rightTestId', 'int', 'caption=Избери тест');
-        $form->showFields = 'rightTestId';
-        $form->view = 'vertical';
-        $form->toolbar->addSbBtn('Сравни');
+        $form->title = "Сравнение на тест|* 'No " . $leftTestId . ". " . $leftTestName . "' |с друг тест|*";
+//         $form->FNC('leftTestId', 'int', 'input=none');
+        $form->FNC('rightTestId', 'int', 'caption=Избери тест, mandatory, input');
+        
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
         $form->setOptions('rightTestId', $rightTestSelectArr);
        
         // END Prepare form
+        
+       
       
         $cRec = $form->input();
-        $formSubmitted = (boolean) count((array) $cRec);
+        
+     
+     //   bp($this->fetch($cRec->rightTestId));
+        
+        
+//         $formSubmitted = (boolean) count((array) $cRec);
         
         // Ако формата е submit-ната
-        if ($formSubmitted) {
+        if ($form->isSubmitted(``)) {
             // Left test
             $cRec->leftTestId = $leftTestId;
             $rightTestName = $this->fetchField($cRec->rightTestId, 'title');
+            
+            $rRec = $this->fetch($form->rec->rightTestId);
+            expect($rRec);
+            
+            $this->requireRightFor('compare', $rRec);
+           
+            Mode::setPermanent('testCompare_' . $this->getHandle($lRec->id), $rRec->id);
+            
+            
+            return new Redirect(getRetUrl());
+            
+          //////////////////////////////////////////////////////////////////////
           
+            
             $queryTestDetailsLeft = $TestDetails->getQuery();
             
             while ($rec = $queryTestDetailsLeft->fetch("#testId = {$cRec->leftTestId}")) {
@@ -452,6 +568,8 @@ class lab_Tests extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
+        
+      
         // Check wether the table has records
         $hasRecords = $mvc->fetchField("#id != 0", 'id');
         
@@ -700,4 +818,7 @@ class lab_Tests extends core_Master
         }
     }
     
+   
+    
 }
+

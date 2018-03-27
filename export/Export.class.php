@@ -176,7 +176,12 @@ class export_Export extends core_Mvc
         $tpl = $form->renderHtml();
         
         $inst->currentTab = 'Нишка';
-    	
+        if(core_Packs::isInstalled('colab')){
+        	if (core_Users::haveRole('partner')) {
+        		plg_ProtoWrapper::changeWrapper($inst, 'cms_ExternalWrapper');
+        	}
+        }
+        
 	    $tpl = $inst->renderWrapping($tpl);
         
         return $tpl;

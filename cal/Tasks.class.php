@@ -771,6 +771,10 @@ class cal_Tasks extends embed_Manager
                 }
             }
         }
+        
+        if ($form->isSubmitted() && ($rec->state != 'draft')) {
+            $mvc->calculateExpectationTime($rec);
+        }
     }
 	
 	
@@ -1679,6 +1683,8 @@ class cal_Tasks extends embed_Manager
      */
     static function getGantt ($data)
     {
+        $assignedUsersArr = array();
+        
         // масив с цветове
     	$colors = array( "#610b7d", 
 				    	"#1b7d23",
@@ -1752,9 +1758,9 @@ class cal_Tasks extends embed_Manager
 		    		} else {
 		    			$timeEnd = $rec->timeEnd;
 		    		}
-    	    	            
+		    		
     	    		// масив с шернатите потребители
-    	    		$sharedUsers[$rec->sharedUsers] = keylist::toArray($rec->sharedUsers);
+		    		$assignedUsersArr[$rec->assign] = keylist::toArray($rec->assign);
     	    		
     	    		// Ако имаме права за достъп до сингъла
     	    		if (cal_Tasks::haveRightFor('single', $rec)) {
@@ -1767,7 +1773,7 @@ class cal_Tasks extends embed_Manager
 		            	// масива със задачите
     		    		$resTask[]=array( 
     			    					'taskId' => $rec->id,
-    			    					'rowId' =>  keylist::toArray($rec->sharedUsers),
+    		    		                'rowId' =>  keylist::toArray($rec->assign),
     		    						'timeline' => array (
     		    											'0' => array(
     		                								'duration' => $timeDuration,  
@@ -1781,26 +1787,22 @@ class cal_Tasks extends embed_Manager
         		}
         	} 
         	
-        	if (is_array($sharedUsers)) {
+        	if (!empty($assignedUsersArr)) {
 	        	// правим масив с ресурсите или в нашия случай това са потребителитя
-	        	foreach($sharedUsers as $key=>$users){
-	        		if(count($users) >=2 ) {
-	        			unset ($sharedUsers[$key]);
-	        		}
-	        		
+        	    foreach ($assignedUsersArr as $users){
 	        		// има 2 полета ид = номера на потребителя
 	        		// и линк към профила му
 	        		foreach($users as $id => $resors){
 	                    $link = crm_Profiles::createLink($resors);
-	    	    		$resorses[$id]['name'] = (string) crm_Profiles::createLink($resors);
-	    	    		$resorses[$id]['id'] = $resors;
+	    	    		$resources[$id]['name'] = (string) crm_Profiles::createLink($resors);
+	    	    		$resources[$id]['id'] = $resors;
 	        		}
 	        	}
         	}
         	
-        	if(is_array($resorses)) {
+        	if(is_array($resources)) {
 	        	// номерирваме ги да почват от 0
-	        	foreach($resorses as $res) {
+	        	foreach($resources as $res) {
 	        		$resUser[] = $res;
 	        	}
         	}
@@ -1825,8 +1827,8 @@ class cal_Tasks extends embed_Manager
 	        	// за всяко едно ид от $rowArr търсим отговарящия му ключ от $resUser
 	        	foreach($rowArr as $k => $v){
 	        		
-	        		foreach($v as $a=>$t){
-	        			foreach($resUser as $key=>$value){
+	        		foreach($v as $a => $t){
+	        			foreach($resUser as $key => $value){
 	        				if($t == $value['id']) {
 	        					$resTask[$k]['rowId'][$a] = $key; 
 	        				}
@@ -1950,6 +1952,8 @@ class cal_Tasks extends embed_Manager
      */
     static function renderGanttTimeType($data)
     {
+        $stringTz = date_default_timezone_get();
+        
         // Сетваме времевата зона
         date_default_timezone_set('UTC');
         
@@ -1981,8 +1985,6 @@ class cal_Tasks extends embed_Manager
     		
     	// ако периода на таблицата е по-голям от година
     		case 'Years': 
-    		    
-    		    date_default_timezone_set('UTC');
     		    
 	    		// делението е година/месец
 	    		$otherParams['mainHeaderCaption'] = tr('година');
@@ -2022,8 +2024,6 @@ class cal_Tasks extends embed_Manager
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour4' :
     		    
-    		    date_default_timezone_set('UTC');
-    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -2061,8 +2061,6 @@ class cal_Tasks extends embed_Manager
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour6' :
     		
-    		    date_default_timezone_set('UTC');
-    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -2100,8 +2098,6 @@ class cal_Tasks extends embed_Manager
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour' :
     		    
-    		    date_default_timezone_set('UTC');
-    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -2138,8 +2134,6 @@ class cal_Tasks extends embed_Manager
    		
     		// ако периода на таблицата е в рамките на седмица - месец
     		case 'WeekDay' :
-    		    
-    		    date_default_timezone_set('UTC');
     		    
 	    		// делението е седмица/ден
 	    		$otherParams['mainHeaderCaption'] = tr('седмица');
@@ -2184,8 +2178,6 @@ class cal_Tasks extends embed_Manager
     	   // ако периода на таблицата е в рамките на месец - ден
     		case 'Months' :
     		    
-    		    date_default_timezone_set('UTC');
-    		    
 	    		// делението е месец/ден
 	    		$otherParams['mainHeaderCaption'] = tr('месец');
 	    		$otherParams['subHeaderCaption'] = tr('ден');
@@ -2228,8 +2220,6 @@ class cal_Tasks extends embed_Manager
     	  
     	   // ако периода на таблицата е в рамките на година - седмици
     		case 'YearWeek' :
-    		    
-    		    date_default_timezone_set('UTC');
     		    
 	    		// делението е месец/седмица
 	    		$otherParams['mainHeaderCaption'] = tr('година');
@@ -2293,6 +2283,8 @@ class cal_Tasks extends embed_Manager
     		
     		break; 
     	}
+    	
+    	date_default_timezone_set($stringTz);
     	
     	return (object) array('otherParams' => $otherParams, 'headerInfo' => $headerInfo);
     }
@@ -2676,6 +2668,9 @@ class cal_Tasks extends embed_Manager
      */
     static public function calculateExpectationTime (&$rec)
     {
+        $stringTz = date_default_timezone_get();
+        date_default_timezone_set('UTC');
+        
     	// сега
     	$now = dt::verbal2mysql(); 
     	
@@ -2768,6 +2763,8 @@ class cal_Tasks extends embed_Manager
 
     	$rec->expectationTimeStart = $expStart;
     	$rec->expectationTimeEnd = $expEnd;
+    	
+    	date_default_timezone_set($stringTz);
     }
     
     
