@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на отчети за Индикаторите
+ * Мениджър на отчети за Показателите
  *
  *
  * @category  bgerp
@@ -50,7 +50,6 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         }
 		$recs = array();
         
-        // Индикатора Делта
         $deltaId = hr_IndicatorNames::fetchField("#name = 'Delta'", 'id');
 
         foreach($rec->targets['month'] as $i => $month) {

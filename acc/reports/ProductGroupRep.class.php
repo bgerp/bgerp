@@ -93,7 +93,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
         $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
 
 	    $num = 1;
-    	// за всеки един индикатор
+    	// за всеки един показател
     	while($recPrime = $query->fetch()){ 
     		$Document = doc_Containers::getDocument($recPrime->containerId);
     		$state = $Document->fetchField('state');
