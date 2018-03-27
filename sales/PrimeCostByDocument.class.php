@@ -599,7 +599,7 @@ class sales_PrimeCostByDocument extends core_Manager
     				$in = array($document->fetchField('containerId'));
     				if($document->isInstanceOf('sales_Sales')){
     					$descendants = $document->getDescendants();
-    					$descendantArr = array_values(array_map(function($obj) use ($field) {return $obj->fetchField('containerId');}, $descendants));
+    					$descendantArr = array_values(array_map(function($obj) {return $obj->fetchField('containerId');}, $descendants));
     					$in = array_merge($in, $descendantArr);
     				}
     				
@@ -716,7 +716,7 @@ class sales_PrimeCostByDocument extends core_Manager
     	}
     	
     	// Сумата на себестойноста е среднопритеглената себестойност
-    	if(!empty($totalQ)) return $sum / $totalQ;
+    	if($totalQ) return $sum / $totalQ;
     	
     	return NULL;
     }
