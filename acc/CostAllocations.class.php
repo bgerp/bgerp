@@ -714,7 +714,7 @@ class acc_CostAllocations extends core_Manager
 	{
 		$result = array();
 		 
-		// Индикатор за делта на търговеца
+		// Показател за делта на търговеца
 		$rec = hr_IndicatorNames::force('salesExpenses', __CLASS__, 1);
 		$result[$rec->id] = $rec->name;
 		
@@ -733,15 +733,15 @@ class acc_CostAllocations extends core_Manager
 	 * 		    o personId    - ид на лицето
 	 *          o docId       - ид на документа
 	 *          o docClass    - клас ид на документа
-	 *          o indicatorId - ид на индикатора
-	 *          o value       - стойноста на индикатора
-	 *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
+	 *          o indicatorId - ид на показател
+	 *          o value       - стойноста на показател
+	 *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от показателите
 	 */
 	public static function getIndicatorValues($timeline)
 	{
 		$result = array();
 		
-		// Индикатор за делта на търговеца
+		// Показател за делта на търговеца
 		$expenseIndicatorId = hr_IndicatorNames::force('salesExpenses', __CLASS__, 1)->id;
 		$eQuery = self::getIndicatorQuery($timeline);
 		

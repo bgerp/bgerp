@@ -39,12 +39,6 @@ defIfNot('EF_ROUND_SIGNIFICANT_DIGITS', '6');
 
 
 /**
- * Минимален брой видими нули при подравняване
- */
-defIfNot('CORE_MIN_ALIGN_DIGITS', 2);
-
-
-/**
  * @todo Чака за документация...
  */
 defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
@@ -296,8 +290,6 @@ class core_Setup extends core_ProtoSetup {
            'CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се регистрират нови потребители от логин формата->Избор'),
            
            'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),
-        
-           'CORE_MIN_ALIGN_DIGITS' => array('int', 'caption=Минимален брой видими нули при подравняване->Брой'),
     );
     
     

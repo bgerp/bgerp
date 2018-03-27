@@ -1486,6 +1486,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 form .inputAdvanced {
   background-color: #ddffdd !important; }
 
+.inlineForm .listFilter form {
+  float: none !important; }
+
 .inputWarning {
   border: solid 1px blue; }
 
