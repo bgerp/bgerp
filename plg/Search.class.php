@@ -583,13 +583,17 @@ class plg_Search extends core_Plugin
             
             $maxId = $rec->id;
             
-            $generatedKeywords = $clsInst->getSearchKeywords($rec);
-            
-            if ($generatedKeywords == $rec->searchKeywords) continue;
-            
-            $rec->searchKeywords = $generatedKeywords;
-            
-            $clsInst->save_($rec, 'searchKeywords');
+            try {
+                $generatedKeywords = $clsInst->getSearchKeywords($rec);
+                
+                if ($generatedKeywords == $rec->searchKeywords) continue;
+                
+                $rec->searchKeywords = $generatedKeywords;
+                
+                $clsInst->save_($rec, 'searchKeywords');
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+            }
         }
         
         $clsInst->logNotice('Регенерирани ключови думи до id=' . $maxId);
