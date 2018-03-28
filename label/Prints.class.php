@@ -1244,7 +1244,7 @@ class label_Prints extends core_Master
         label_Media::markMediaAsUsed($rec->mediaId);
         
         // Обновяваме броя на отпечатванията и за текущия отпечатък
-        $rec->printedCnt += ($rec->labelsCnt * $rec->copiesCnt);
+        $rec->printedCnt += $pData->allCnt;
         
         $this->save($rec, 'printedCnt');
         
