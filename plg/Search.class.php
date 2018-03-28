@@ -541,4 +541,59 @@ class plg_Search extends core_Plugin
     {
         $searchFieldsArr = arr::make($mvc->searchFields);
     }
+    
+    
+    /**
+     * Функция за проверка на свалените имейли
+     * Ако хеша го няма - предизвиква сваляне
+     *
+     * @param string $emlStatus
+     */
+    public static function callback_repairSerchKeywords($clsName)
+    {
+        $pKey = $clsName . '|repairSearchKeywords';
+        
+        $clsInst = cls::get($clsName);
+        
+        $maxTime = dt::addSecs(40);
+        
+        $kVal = core_Permanent::get($pKey);
+        
+        $query = $clsInst->getQuery();
+        
+        if (isset($kVal)) {
+            $query->where(array("#id > '[#1#]'", $kVal));
+        }
+        
+        if (!$query->count()) {
+            core_Permanent::remove($pKey);
+            
+            $clsInst->logNotice('Приключи регенерирането на ключови думи');
+            
+            return ;
+        }
+        
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $clsName, $callOn);
+        
+        $query->orderBy('id', 'ASC');
+        
+        while ($rec = $query->fetch()) {
+            if (dt::now() >= $maxTime) break;
+            
+            $maxId = $rec->id;
+            
+            $generatedKeywords = $clsInst->getSearchKeywords($rec);
+            
+            if ($generatedKeywords == $rec->searchKeywords) continue;
+            
+            $rec->searchKeywords = $generatedKeywords;
+            
+            $clsInst->save_($rec, 'searchKeywords');
+        }
+        
+        $clsInst->logNotice('Регенерирани ключови думи до id=' . $maxId);
+        
+        core_Permanent::set($pKey, $maxId, 100000);
+    }
 }
