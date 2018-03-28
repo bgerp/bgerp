@@ -157,7 +157,7 @@ class select2_Adapter
     {
         if (!$hnd || !($sugg = unserialize(core_Cache::get($type, $hnd)))) {
         
-            core_App::getJson(array(
+            core_App::outputJson(array(
                 (object)array('text' => tr('Липсват допълнителни опции'))
             ));
         	
@@ -230,6 +230,6 @@ class select2_Adapter
             if ($cnt >= $maxSuggestions) break;
         }
         
-        core_App::getJson($resArr);
+        core_App::outputJson($resArr);
     }
 }

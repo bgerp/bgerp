@@ -53,7 +53,8 @@ class plg_AlignDecimals2 extends core_Plugin
 				
 				if(isset($rows[$id]->{$fName})){
 					$Type = clone $mvc->fields[$fName]->type;
-					$Type->params['decimals'] = max(${"{$fName}FracLen"}, $Type->params['minDecimals']);
+					$max = (${"{$fName}FracLen"} > 5) ? 5 : ${"{$fName}FracLen"};
+					$Type->params['decimals'] = max($max, $Type->params['minDecimals']);
 					
 					$rows[$id]->{$fName} = $Type->toVerbal($rec->{$fName});
 				}

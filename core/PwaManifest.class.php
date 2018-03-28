@@ -73,6 +73,6 @@ class core_PwaManifest extends core_Mvc
             )
         );
 
-        core_App::getJson($json);
+        core_App::outputJson($json);
     }
 }

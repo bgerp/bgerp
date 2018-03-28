@@ -1211,7 +1211,7 @@ class core_Form extends core_FieldSet
         
         $res->url = toUrl($sf);
         
-        core_App::getJson($res);
+        core_App::outputJson($res);
     }
 
 

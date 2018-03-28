@@ -812,6 +812,14 @@ class label_Prints extends core_Master
             if ($rec->createdBy != $userId) {
                 $requiredRoles = 'labelMaster, admin, ceo';
             }
+            
+            if($rec->objectId && $rec->classId) {
+                if (cls::load($rec->classId, TRUE)) {
+                    if(!cls::haveInterface('label_SequenceIntf', $rec->classId)) {
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
         }
     }
     

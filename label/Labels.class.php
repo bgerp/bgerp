@@ -44,19 +44,19 @@ class label_Labels extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'label, admin, ceo';
+    public $canEdit = 'admin, debug';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'label, admin, ceo';
+    public $canAdd = 'admin, debug';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'label, admin, ceo';
+    public $canList = 'admin, debug';
     
     
     /**
@@ -128,6 +128,18 @@ class label_Labels extends core_Master
         $this->setDbUnique('title');
     }
     
+    
+    /**
+     * 
+     * 
+     * @see core_Manager::act_Add()
+     */
+    function act_Add()
+    {
+        wp('Deprecated');
+        
+        return Request::forward(array('label_Prints', 'add'));
+    }
     
     /**
      * Обновява броя на отпечатванията
@@ -838,8 +850,8 @@ class label_Labels extends core_Master
  	/**
  	 * Изпълнява се след подготовката на формата за филтриране
  	 * 
- 	 * @param unknown_type $mvc
- 	 * @param unknown_type $data
+ 	 * @param label_Labels $mvc
+ 	 * @param stdClass $data
  	 */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
