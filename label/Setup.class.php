@@ -62,6 +62,7 @@ class label_Setup extends core_ProtoSetup
     	'migrate::removePlugin3',
     	'migrate::barcodeToSerial',
     	'migrate::templateSource',
+    	'migrate::repairSerchKeywords',
     );
     
 
@@ -309,5 +310,15 @@ class label_Setup extends core_ProtoSetup
             
             label_Templates::save($tRec, 'classId');
         }
+    }
+    
+    
+    /**
+     * Миграция за регенериране на ключовите думи
+     */
+    public static function repairSerchKeywords()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'label_Prints', $callOn);
     }
 }
