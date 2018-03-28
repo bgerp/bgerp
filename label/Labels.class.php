@@ -130,6 +130,18 @@ class label_Labels extends core_Master
     
     
     /**
+     * 
+     * 
+     * @see core_Manager::act_Add()
+     */
+    function act_Add()
+    {
+        wp('Deprecated');
+        
+        return Request::forward(array('label_Prints', 'add'));
+    }
+    
+    /**
      * Обновява броя на отпечатванията
      * 
      * @param integer $id
@@ -838,8 +850,8 @@ class label_Labels extends core_Master
  	/**
  	 * Изпълнява се след подготовката на формата за филтриране
  	 * 
- 	 * @param unknown_type $mvc
- 	 * @param unknown_type $data
+ 	 * @param label_Labels $mvc
+ 	 * @param stdClass $data
  	 */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
