@@ -134,11 +134,11 @@ class label_Labels extends core_Master
      * 
      * @see core_Manager::act_Add()
      */
-    function act_Add()
+    function act_Manage()
     {
         wp('Deprecated');
         
-        return Request::forward(array('label_Prints', 'add'));
+        return Request::forward(array('label_Prints', 'Manage'));
     }
     
     /**
