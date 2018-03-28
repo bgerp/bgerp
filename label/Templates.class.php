@@ -353,7 +353,7 @@ class label_Templates extends core_Master
  	/**
  	 * Изпълнява се след подготовката на формата за филтриране
  	 * 
- 	 * @param core_Master_type $mvc
+ 	 * @param label_Templates $mvc
  	 * @param stdClass $data
  	 */
     protected static function on_AfterPrepareListFilter($mvc, $data)
@@ -382,7 +382,7 @@ class label_Templates extends core_Master
         }
         
         // Подреждане по състояние
-        $data->query->orderBy('#state=ASC,#lastUsedOn=DESC');
+        $data->query->orderBy('#state=ASC, #modifiedOn=DESC');
 
         if($state = $data->listFilter->rec->fState) {
             $data->query->where(array("#state = '[#1#]'", $state));
@@ -527,17 +527,6 @@ class label_Templates extends core_Master
                 if ($rec->state == 'rejected') {
                     
                     // Оттеглените да не могат да се редактират
-                    $requiredRoles = 'no_one';
-                }
-            }
-            
-            // Ако оттегляме
-            if ($action == 'reject') {
-                
-                // Ако е активно
-                if ($rec->state == 'active') {
-                    
-                    // Активните да не могат да се оттеглят
                     $requiredRoles = 'no_one';
                 }
             }
