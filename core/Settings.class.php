@@ -510,7 +510,7 @@ class core_Settings extends core_Manager
                 $instanceOfEnum = (boolean)($form->fields[$valKey]->type instanceof type_Enum);
                 
                 // Ако няма стойност или стойността е default за enum поле, да се премахне от масива
-                if ((!$value && !$instanceOfEnum) || ($value == 'default' && $instanceOfEnum)) {
+                if ((!$value && !$instanceOfEnum && ($value !== 0)) || ($value == 'default' && $instanceOfEnum)) {
                     unset($sForAllValArr[$valKey]);
                     unset($recArr[$valKey]);
                 }
