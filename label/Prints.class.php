@@ -140,7 +140,7 @@ class label_Prints extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'mediaId, mediaId, title, labelsCnt';
+    public $searchFields = 'mediaId, templateId, title, labelsCnt, classId';
     
     
     /**
