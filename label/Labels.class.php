@@ -44,19 +44,19 @@ class label_Labels extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'label, admin, ceo';
+    public $canEdit = 'admin, debug';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'label, admin, ceo';
+    public $canAdd = 'admin, debug';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'label, admin, ceo';
+    public $canList = 'admin, debug';
     
     
     /**
