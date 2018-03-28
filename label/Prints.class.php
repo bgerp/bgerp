@@ -672,7 +672,7 @@ class label_Prints extends core_Master
         // По подразбиране да се показват черновите записи най-отпред
         $data->query->orderBy("createdOn", "DESC");
         
-        $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin, rolesForTeams=label|ceo|admin)', 'caption=От', array('removeAndRefreshForm' => "search"));
+        $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin, rolesForTeams=label|ceo|admin)', 'caption=От, refreshForm');
         
         $data->listFilter->showFields = 'author, search';
         
