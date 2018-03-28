@@ -154,11 +154,6 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
                 
-                if (! in_array(core_Users::getCurrent(), $assignedUsers)) {
-                    $tempUser = core_Users::getCurrent();
-                    $assignedUsers[$tempUser] = $tempUser;
-                }
-                
                 if (keylist::isIn($assignedUsers, $task->assign)) {
                     
                     if (! array_key_exists($jobsesId, $recs)) {
