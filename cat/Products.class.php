@@ -871,6 +871,10 @@ class cat_Products extends embed_Manager {
     	static::expandFilter($data->listFilter);
     	$data->listFilter->setDefault('order', 'standard');
     	
+    	$data->listFilter->FNC('type', 'class', 'caption=Вид');
+    	$classes = core_Classes::getOptionsByInterface('cat_ProductDriverIntf', 'title');
+    	$data->listFilter->setOptions('type', array('' => '') + $classes);
+    	
     	$data->listFilter->FNC('meta1', 'enum(all=Свойства,
        							canSell=Продаваеми,
                                 canBuy=Купуваеми,
@@ -882,8 +886,8 @@ class cat_Products extends embed_Manager {
     							fixedAssetStorable=Дълготрайни материални активи,
     							fixedAssetNotStorable=Дълготрайни НЕматериални активи,
         					    canManifacture=Производими)', 'input,autoFilter');
-        $data->listFilter->showFields = 'search,order,meta1,groupId';
-        $data->listFilter->input('order,groupId,search,meta1', 'silent');
+        $data->listFilter->showFields = 'search,order,type,meta1,groupId';
+        $data->listFilter->input('order,groupId,search,meta1,type', 'silent');
         
         // Сортираме по име
         $order = 'name';
@@ -894,6 +898,10 @@ class cat_Products extends embed_Manager {
         	if($gRec->orderProductBy == 'code'){
         		$order = 'code';
         	}
+        }
+        
+        if ($data->listFilter->rec->type) {
+        	$data->query->where("#innerClass = {$data->listFilter->rec->type}");
         }
         
         switch($data->listFilter->rec->order){
