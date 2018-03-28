@@ -1354,10 +1354,25 @@ a.profile {
 	background-color: rgba(165, 170, 255, 0.7);
 }
 
+.sale-with-active-job {
+	background-color: #a0e7b2;
+	padding: 1px !important;
+	border-radius: 5px;
+	display: inline-block;
+}
+
+.sale-with-closed-job {
+	background-color: #bbb;
+	padding: 1px !important;
+	border-radius: 5px;
+	display: inline-block;
+}
+
 .document .state-rejected.state, .document .state-rejected.state a {
 	color: #444 !important;
 	text-decoration: none !important;
 }
+
 .detail-info.state-rejected {
     td, th, a, p, span, ul, ol, li, div {
         color: #999 !important;
