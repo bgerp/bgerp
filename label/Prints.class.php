@@ -278,7 +278,9 @@ class label_Prints extends core_Master
             
             $form->setOptions('templateId', array('' => '') + $optArr);
             
-            $form->setDefault('templateId', key($optArr));
+            $defOptKey = $mvc->getDefaultTemplateId($optArr, $rec->classId);
+            
+            $form->setDefault('templateId', $defOptKey);
         }
         
         $className = '';
@@ -375,6 +377,56 @@ class label_Prints extends core_Master
         
         $form->setDefault('labelsCnt', $estCnt);
         $form->setDefault('copiesCnt', 1);
+    }
+    
+    
+    /**
+     * Намира най-добрият шаблон за използване и връща id-то му
+     * 
+     * @param array $optArr
+     * @param NULL|integer $classId
+     * 
+     * @return integer
+     */
+    protected static function getDefaultTemplateId($optArr, $classId = NULL)
+    {
+        $qLimit = 5;
+        
+        $query = self::getQuery();
+        if ($classId) {
+            $query->where(array("#classId = '[#1#]'", $classId));
+        }
+        
+        if (!empty($optArr)) {
+            $optKeysArr = array_keys($optArr);
+            $optKeysArr = arr::make($optKeysArr, TRUE);
+            
+            $query->in('templateId', $optKeysArr);
+        }
+        
+        $query->where(array("#createdBy = '[#1#]'", core_Users::getCurrent()));
+        
+        $query->orderBy('createdOn', 'DESC');
+        
+        $query->limit($qLimit);
+        
+        $tArr = array();
+        while ($rec = $query->fetch()) {
+            $tArr[$rec->templateId] += 1 + ($qLimit-- * 0.1);
+        }
+        
+        if (empty($tArr)) {
+            reset($optArr);
+            $defOptKey = key($optArr);
+        } else {
+            if (count($tArr) > 1) {
+                arsort($tArr);
+            }
+            reset($tArr);
+            $defOptKey = key($tArr);
+        }
+        
+        return $defOptKey;
     }
     
     
@@ -672,7 +724,7 @@ class label_Prints extends core_Master
         // По подразбиране да се показват черновите записи най-отпред
         $data->query->orderBy("createdOn", "DESC");
         
-        $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin, rolesForTeams=label|ceo|admin)', 'caption=От', array('removeAndRefreshForm' => "search"));
+        $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin, rolesForTeams=label|ceo|admin)', 'caption=От, refreshForm');
         
         $data->listFilter->showFields = 'author, search';
         

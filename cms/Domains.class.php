@@ -574,4 +574,19 @@ class cms_Domains extends core_Embedder
     }
 
 
+    /**
+     * Опции от наличните домейни
+     * 
+     * @return array $options - опции домейни
+     */
+    public static function getDomainOptions()
+    {
+    	$options = array();
+    	$query = self::getQuery();
+    	while($rec = $query->fetch()){
+    		$options[$rec->id] = $rec->domain . " ($rec->lang)";
+    	}
+    	
+    	return $options;
+    }
 }

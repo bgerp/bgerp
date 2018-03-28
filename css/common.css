@@ -1274,13 +1274,13 @@ a.profile {
   background-color: rgba(165, 170, 255, 0.7); }
 
 .sale-with-active-job {
-  background-color: #a0e7b2;
+  background-color: #b1ebc0;
   padding: 1px !important;
   border-radius: 5px;
   display: inline-block; }
 
 .sale-with-closed-job {
-  background-color: #bbbbbb;
+  background-color: #cccccc;
   padding: 1px !important;
   border-radius: 5px;
   display: inline-block; }
