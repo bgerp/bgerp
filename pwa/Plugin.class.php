@@ -2,18 +2,26 @@
 
 
 /**
- * Клас създаване на Progressive web application manifest -
+ * Клас създаване на Progressive web application manifest
  *
- * @package   core
+ * @package   pwa
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class core_PwaManifest extends core_Mvc
+class pwa_Plugin extends core_Plugin
 {
 
-    static function act_Default()
+    function on_Output(&$invoker)
+    {
+        $manifestUrl = toUrl(array('pwa_Plugin'));
+
+        $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"$manifestUrl\">", "HEAD");
+    }
+
+
+    function act_Default()
     {
         $icon72 = sbf('img/icons/icon-72x72.png', '');
         $icon96 = sbf("img/icons/icon-96x96.png", "");
