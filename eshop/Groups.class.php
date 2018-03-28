@@ -510,7 +510,7 @@ class eshop_Groups extends core_Master
             $l->url['PU'] = 1;
         }
         
-        $l->title = tr('Всички продукти');;
+        $l->title = tr('Продуктови групи');;
         $l->level = 1;
         $data->links[] = $l;
         
