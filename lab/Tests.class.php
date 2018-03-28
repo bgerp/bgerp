@@ -18,12 +18,13 @@ class lab_Tests extends core_Master
      * Заглавие
      */
     var $title = 'Лабораторни тестове';
-    
+
     /**
      * Дефолтен текст за нотификация
      */
     protected static $defaultNotificationText = "Имате заявен лабораторен тест";
-   // protected static $defaultNotificationText = "|*[#handle#] |има актуална версия от|* '[#lastRefreshed#]'";
+    // protected static $defaultNotificationText = "|*[#handle#] |има актуална версия от|* '[#lastRefreshed#]'";
+    var $canChangestate = 'ceo,lab,masterLab';
 
     /**
      * Плъгини за зареждане
@@ -138,10 +139,8 @@ class lab_Tests extends core_Master
      */
     public $cloneDetails = 'lab_TestDetails';
 
-    
     public $canCompare = 'ceo, lab, masterLab';
-    
-    
+
     /**
      * Полета, които при клониране да не са попълнени
      *
@@ -154,14 +153,16 @@ class lab_Tests extends core_Master
      */
     function description()
     {
-        $this->FLD('referention', 'set()','caption=Референтен');
+        $this->FLD('referention', 'set()', 'caption=Референтен');
         $this->FLD('type', 'varchar(64)', 'caption=Образец,after=referention,notSorting');
         $this->FLD('provider', 'varchar(64)', 'caption=Доставчик,notSorting');
         $this->FLD('batch', 'varchar(64)', 'caption=Партида,notSorting');
         
         $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Описание,notSorting');
-        $this->FLD('parameters', 'keylist(mvc=lab_Parameters,select=name)', 'caption=Параметри,notSorting,after=bringing');
-        $this->FLD('bringing', 'enum(vendor=Възложителя,performer=Изпълнителя)', "caption=Мострата се доставя от,maxRadio=2,columns=2,after=batch");
+        $this->FLD('parameters', 'keylist(mvc=lab_Parameters,select=name)', 
+            'caption=Параметри,notSorting,after=bringing');
+        $this->FLD('bringing', 'enum(vendor=Възложителя,performer=Изпълнителя)', 
+            "caption=Мострата се доставя от,maxRadio=2,columns=2,after=batch");
         $this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Нотифициране->Потребители,mandatory');
         $this->FLD('activatedOn', 'datetime', 'caption=Активиран на,input=none,notSorting');
         $this->FLD('lastChangedOn', 'datetime', 'caption=Последна промяна,input=none,notSorting');
@@ -170,94 +171,92 @@ class lab_Tests extends core_Master
         $this->FLD('searchd', 'text', 'caption=searchd, input=none, notSorting');
         
         $this->FNC('title', 'varchar(128)', 'caption=Наименование,input=none,oldFieldName=handler');
-
     }
-    
-    
+
     /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param frame2_driver_Proto $Driver
      *            $Driver
-     * @param embed_Manager $Embedder
-     * @param stdClass $data
+     * @param embed_Manager $Embedder            
+     * @param stdClass $data            
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
         $rec = $form->rec;
-        if (!lab_TestDetails::haveRightFor('add')) {
         
+        if (! core_Users::haveRole('masterLab')) {
+            
             $form->setField('referention', 'input=none');
         }
     }
-    
+
     public function on_CalcTitle($mvc, $rec)
     {
         $rec->title = 'xxx' . $rec->id;
         
-        $testTitle = $rec->type.'/'.$rec->provider.'/'.$rec->batch;
+        $testTitle = $rec->type . '/' . $rec->provider . '/' . $rec->batch;
         
-         
-        if (is_numeric($rec->referention)){
-        
-            $testTitle.=' -РЕФЕРЕНТЕН';
-        
+        if (is_numeric($rec->referention)) {
+            
+            $testTitle .= ' -РЕФЕРЕНТЕН';
         }
         $rec->title = $testTitle;
     }
 
     public static function on_AfterInputeditForm($mvc, &$form)
     {
-        
         $rec = $form->rec;
-
         
         if ($rec->foreignId) {
-
-        $firstDocument = doc_Threads::getFirstDocument(doc_Containers::fetch($rec->foreignId)->threadId);
-        
-        $handle = $firstDocument->getHandle();
-        
-       $form->setDefault('batch', "{$handle}");
-        
+            
+            $firstDocument = doc_Threads::getFirstDocument(doc_Containers::fetch($rec->foreignId)->threadId);
+            
+            $handle = $firstDocument->getHandle();
+            
+            $form->setDefault('batch', "{$handle}");
         }
-         $form->setDefault('bringing', 'vendor');
-
-      
+        $form->setDefault('bringing', 'vendor');
     }
 
     /**
      * Преди запис в модела
      */
-    public static function on_BeforeSave($mvc, $id, $rec)//
+    public static function on_BeforeSave($mvc, $id, $rec) //
     {
-      
         if ($rec->foreignId) {
             
             $rec->originId = $rec->foreignId;
         }
-        
-        
     }
-    
+
     public static function on_AfterSavePendingDocument($mvc, &$rec)
     {
-    	
-    	
         self::sendNotification($rec);
-        
     }
-   
-  
-    
-    
+
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-
+        if ($data->rec->id && $data->rec->state == 'active') {
+            
+            $handle = $mvc->getHandle($data->rec->id);
+            
+            $msg = 'Лаборанорен тест ' . $handle . ' е активиран';
+            
+            $url = array(
+                'lab_Tests',
+                'single',
+                $data->rec->id
+            );
+            
+            $userId = $data->rec->createdBy;
+            
+            bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
+        }
+        
         $compTest = Mode::get('testCompare_' . $mvc->getHandle($data->rec->id));
-       // bp($compTest);
-       
+        // bp($compTest);
         
         if ($compTest) {
             $cRec = $mvc->fetch($compTest);
@@ -266,47 +265,36 @@ class lab_Tests extends core_Master
             $data->row->RefType = $mvc->getVerbal($cRec, 'type');
             $data->row->RefProvider = $mvc->getVerbal($cRec, 'provider');
             $data->row->RefBatch = $mvc->getVerbal($cRec, 'batch');
-           
         }
         $parameters = array();
         
         $parameters = keylist::toArray($data->rec->parameters);
-      
-       // bp($data->rec->id);
-        foreach ($parameters as $param){
+        
+        // bp($data->rec->id);
+        foreach ($parameters as $param) {
             
-      
             $parameter = lab_Parameters::getTitleById($param);
             if (lab_TestDetails::haveRightFor('add')) {
-                $parametersStr.=ht::createLink($parameter,
-              
+                $parametersStr .= ht::createLink($parameter, 
+                    
                     array(
                         'lab_TestDetails',
                         'add',
                         'testId' => $data->rec->id,
                         'ret_url' => TRUE,
-                        'paramName'=>$param
-                    ))."<br>";
+                        'paramName' => $param
+                    )) . "<br>";
             }
-            
         }
         
-        
-           
         $data->row->ParametersStr = $parametersStr;
-        
     }
-    
-    
-    
 
     /**
      * Добавя бутоните в лентата с инструменти на единичния изглед
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-    	
-    	
         if ($mvc->haveRightFor('compare', $data->rec)) {
             $url = array(
                 $mvc,
@@ -326,7 +314,7 @@ class lab_Tests extends core_Master
      */
     function act_CompareTwoTests()
     {
-      $this->requireRightFor('compare');
+        $this->requireRightFor('compare');
         $cRec = new stdClass();
         
         $leftTestId = Request::get('id', 'int');
@@ -337,7 +325,6 @@ class lab_Tests extends core_Master
         
         $form = cls::get('core_Form');
         
-       
         $TestDetails = cls::get('lab_TestDetails');
         $Methods = cls::get('lab_Methods');
         $Params = cls::get('lab_Parameters');
@@ -351,33 +338,27 @@ class lab_Tests extends core_Master
         
         while ($rec = $queryRight->fetch("#id != {$leftTestId} AND state='active'")) {
             
-           
-          
-            $rightTestSelectArr[$rec->id] =$this->getHandle($rec->id)."-".$rec->title;
+            $rightTestSelectArr[$rec->id] = $this->getHandle($rec->id) . "-" . $rec->title;
         }
-       
+        
         // END repare right test
         
         // Prepare form
         $form->title = "Сравнение на тест|* 'No " . $leftTestId . ". " . $leftTestName . "' |с друг тест|*";
-//         $form->FNC('leftTestId', 'int', 'input=none');
+        // $form->FNC('leftTestId', 'int', 'input=none');
         $form->FNC('rightTestId', 'int', 'caption=Избери тест, mandatory, input');
         
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
         $form->setOptions('rightTestId', $rightTestSelectArr);
-       
+        
         // END Prepare form
         
-       
-      
         $cRec = $form->input();
         
-     
-     //   bp($this->fetch($cRec->rightTestId));
+        // bp($this->fetch($cRec->rightTestId));
         
-        
-//         $formSubmitted = (boolean) count((array) $cRec);
+        // $formSubmitted = (boolean) count((array) $cRec);
         
         // Ако формата е submit-ната
         if ($form->isSubmitted(``)) {
@@ -389,14 +370,12 @@ class lab_Tests extends core_Master
             expect($rRec);
             
             $this->requireRightFor('compare', $rRec);
-           
-            Mode::setPermanent('testCompare_' . $this->getHandle($lRec->id), $rRec->id);
             
+            Mode::setPermanent('testCompare_' . $this->getHandle($lRec->id), $rRec->id);
             
             return new Redirect(getRetUrl());
             
-          //////////////////////////////////////////////////////////////////////
-          
+            // ////////////////////////////////////////////////////////////////////
             
             $queryTestDetailsLeft = $TestDetails->getQuery();
             
@@ -410,9 +389,7 @@ class lab_Tests extends core_Master
             $queryTestDetailsLeft = $TestDetails->getQuery();
             
             while ($rec = $queryTestDetailsLeft->fetch("#testId = {$cRec->rightTestId}")) {
-            	
-            	
-            	
+                
                 $testDetailsRight[] = (array) $rec;
             }
             
@@ -432,7 +409,7 @@ class lab_Tests extends core_Master
                 $allMethodsArr[$rec->id]['methodName'] = $rec->name;
                 $allMethodsArr[$rec->id]['paramId'] = $rec->paramId;
                 $allMethodsArr[$rec->id]['paramName'] = $allParamsArr[$rec->paramId];
-            }//
+            } //
             
             $methodsLeft = $methodsRight = array();
             if (count($testDetailsLeft)) {
@@ -493,9 +470,6 @@ class lab_Tests extends core_Master
             $data = new stdClass();
             $data->listFields = arr::make($this->listFields, TRUE);
             
-          
-            
-            
             $tpl = $table->get($tableData, 
                 "counter=N,methodName=Метод,paramName=Параметър,resultsLeft=Тест No {$cRec->leftTestId},resultsRight=Тест No {$cRec->rightTestId}");
             
@@ -537,12 +511,10 @@ class lab_Tests extends core_Master
                 $viewCompareTests .= "<tr>
                                           <td>" . $tableRow['counter'] . "</td>
                                           <td>" . $tableRow['methodName'] . "</td>
-                                          <td>" . $tableRow['paramName'] .
-                     "</td>
+                                          <td>" . $tableRow['paramName'] . "</td>
                                           <td style='text-align: " .
                      ($tableRow['resultsLeft'] == '---' ? 'center; background: #f0f0f0' : 'right') . ";'>" .
-                     nl2br($tableRow['resultsLeft']) .
-                     "</td>
+                     nl2br($tableRow['resultsLeft']) . "</td>
                                           <td style='text-align: " .
                      ($tableRow['resultsRight'] == '---' ? 'center; background: #f0f0f0' : 'right') . ";'>" .
                      nl2br($tableRow['resultsRight']) . "</td>
@@ -569,7 +541,6 @@ class lab_Tests extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         
-      
         // Check wether the table has records
         $hasRecords = $mvc->fetchField("#id != 0", 'id');
         
@@ -732,10 +703,8 @@ class lab_Tests extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	
-    	
         if ($action == 'activate') {
-              
+            
             if (is_object($rec) && $rec->id) {
                 
                 $haveDetail = is_object(lab_TestDetails::fetch("#testId = {$rec->id}"));
@@ -785,40 +754,43 @@ class lab_Tests extends core_Master
         
         return $row;
     }
-    
+
     /**
      * Изпращане на нотификации на споделените потребители
      *
-     * @param stdClass $rec
+     * @param stdClass $rec            
      * @return void
      */
     public static function sendNotification($rec)
     {
+        
         // Ако няма избрани потребители за нотифициране, не се прави нищо
         $userArr = keylist::toArray($rec->sharedUsers);
-        if(!count($userArr)) return;
-         
-        $text = (!empty($rec->notificationText)) ? $rec->notificationText : self::$defaultNotificationText;
+        if (! count($userArr))
+            return;
+        
+        $handle = (lab_Tests::getHandle($rec->id));
+        $user = core_Users::getTitleById(core_Users::getCurrent());
+        $text = self::$defaultNotificationText . $handle;
+        if ($rec->bringing == 'performer') {
+            $text .= '.  Трябва да вземете мострата от ' . "{$user}";
+        } else {
+            
+            $text .= '.  Мострата ще Ви бъде доставена';
+        }
         $msg = new core_ET($text);
-         
-        // Заместване на параметрите в текста на нотификацията
-//         if($Driver = self::getDriver($rec)){
-//             $params = $Driver->getNotificationParams($rec);
-//             if(is_array($params)){
-//                 $msg->placeArray($params);
-//             }
-//         }
-         
-        $url = array('lab_Test', 'single', $rec->id);
+        
+        $url = array(
+            'lab_Tests',
+            'single',
+            $rec->id
+        );
         $msg = $msg->getContent();
-         
+        
         // На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
-        foreach ($userArr as $userId){
+        foreach ($userArr as $userId) {
             bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
         }
     }
-    
-   
-    
 }
 

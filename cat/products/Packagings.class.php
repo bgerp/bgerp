@@ -441,7 +441,7 @@ class cat_products_Packagings extends core_Detail
         }
         
         $data->recs = $data->rows = array();
-        $fields = self::selectFields();
+        $fields = $this->selectFields();
         $fields['-list'] = TRUE;
       
         $query = self::getQuery();
