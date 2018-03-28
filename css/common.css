@@ -1273,6 +1273,18 @@ a.profile {
   background-color: #a5aaff;
   background-color: rgba(165, 170, 255, 0.7); }
 
+.sale-with-active-job {
+  background-color: #a0e7b2;
+  padding: 1px !important;
+  border-radius: 5px;
+  display: inline-block; }
+
+.sale-with-closed-job {
+  background-color: #bbbbbb;
+  padding: 1px !important;
+  border-radius: 5px;
+  display: inline-block; }
+
 .document .state-rejected.state,
 .document .state-rejected.state a {
   color: #444444 !important;
