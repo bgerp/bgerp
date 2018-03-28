@@ -2,27 +2,35 @@
 
 
 /**
- * Клас създаване на Progressive web application manifest -
+ * Клас създаване на Progressive web application manifest
  *
- * @package   core
+ * @package   pwa
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class core_PwaManifest extends core_Mvc
+class pwa_Plugin extends core_Plugin
 {
 
-    static function act_Default()
+    function on_Output(&$invoker)
     {
-        $icon72 = sbf('img/icons/icon-72x72.png', '');
-        $icon96 = sbf("img/icons/icon-96x96.png", "");
-        $icon128 = sbf("img/icons/icon-128x128.png", "");
-        $icon144 = sbf("img/icons/icon-144x144.png", "");
-        $icon152 = sbf("img/icons/icon-152x152.png", "");
-        $icon192 = sbf("img/icons/icon-192x192.png", "");
-        $icon384 = sbf("img/icons/icon-384x384.png", "");
-        $icon512 = sbf("img/icons/icon-512x512.png", "");
+        $manifestUrl = toUrl(array('pwa_Plugin'));
+
+        $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"$manifestUrl\">", "HEAD");
+    }
+
+
+    function act_Default()
+    {
+        $icon72 = sbf('pwa/icons/icon-72x72.png', '');
+        $icon96 = sbf("pwa/icons/icon-96x96.png", "");
+        $icon128 = sbf("pwa/icons/icon-128x128.png", "");
+        $icon144 = sbf("pwa/icons/icon-144x144.png", "");
+        $icon152 = sbf("pwa/icons/icon-152x152.png", "");
+        $icon192 = sbf("pwa/icons/icon-192x192.png", "");
+        $icon384 = sbf("pwa/icons/icon-384x384.png", "");
+        $icon512 = sbf("pwa/icons/icon-512x512.png", "");
 
         $json = array(
             "short_name" => "bgERP",

@@ -839,15 +839,12 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	$containerId = ($rec->type != 'dc_note') ? $rec->containerId : $rec->originId;
     	
-    	$paidArr = $invoicePayments[$containerId]->payments;
-    	if(count($paidArr) && isset($paidArr)){
-    		$hasCash = $hasBank = $hasIntercept = FALSE;
-    		
-    		array_walk($paidArr, function($a) use (&$hasCash, &$hasBank, &$hasIntercept){
-    			if($a->type == 'cash' && $a->isReverse !== TRUE) {$hasCash = TRUE;}
-    			elseif($a->type == 'intercept' && $a->isReverse !== TRUE){$hasIntercept = TRUE;}
-    			elseif($a->type == 'bank' && $a->isReverse !== TRUE){$hasBank = TRUE;}
-    		});
+    	$payments = $invoicePayments[$containerId]->payments;
+    	
+    	if(count($payments) && isset($payments)){
+    		$hasCash = array_key_exists('cash', $payments);
+    		$hasBank = array_key_exists('bank', $payments);
+    		$hasIntercept = array_key_exists('intercept', $payments);
     		
     		if($hasCash === TRUE && $hasBank === FALSE && $hasIntercept === FALSE) return 'cash';
     		if($hasBank === TRUE && $hasCash === FALSE && $hasIntercept === FALSE) return 'bank';

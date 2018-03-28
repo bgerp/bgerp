@@ -24,8 +24,6 @@ class page_Html extends core_ET {
         
         $bodyId = str::getRand();
 
-        $manifestUrl = toUrl(array('core_PwaManifest'));
-
         parent::__construct(
             "<!doctype html>" .
             
@@ -42,7 +40,6 @@ class page_Html extends core_ET {
             "<!--ET_BEGIN PAGE_TITLE-->\n<title>[#NOT_CNT#][#PAGE_TITLE#]</title><!--ET_END PAGE_TITLE-->" .
             "<!--ET_BEGIN STYLE_IMPORT-->\n<style type=\"text/css\">[#STYLE_IMPORT#]\n</style><!--ET_END STYLE_IMPORT-->" .
             "<!--ET_BEGIN STYLES-->\n<style type=\"text/css\">[#STYLES#]\n</style><!--ET_END STYLES-->" .
-            "<!--ET_BEGIN MANIFEST-->\n<link rel=\"manifest\" href=\"{$manifestUrl}\">\n<!--ET_END MANIFEST-->" .
             "<!--ET_BEGIN HEAD-->[#HEAD#]<!--ET_END HEAD-->" .
             "\n</head>" .
             "\n<body<!--ET_BEGIN ON_LOAD--> onload=\"[#ON_LOAD#]\"<!--ET_END ON_LOAD--> id= \"{$bodyId}\" class=\"{$bodyClass} [#BODY_CLASS_NAME#]\">" .
