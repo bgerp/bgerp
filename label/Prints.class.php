@@ -318,6 +318,8 @@ class label_Prints extends core_Master
             // Добавяме полетата от детайла на шаблона
             label_TemplateFormats::addFieldForTemplate($form, $rec->templateId);
             
+            $form->input(NULL, TRUE);
+            
             // Обхождаме масива
             foreach ((array)$placeholdersArr as $fieldName => $v) {
                 
