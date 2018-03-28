@@ -108,7 +108,7 @@ class label_Prints extends core_Master
     /**
      * Кои полета да не се клонират
      */
-    public $fieldsNotToClone = 'searchKeywords,printedCnt,modifiedOn,modifiedBy,state,exState,lastUsedOn,createdOn,createdBy, rows, params';
+    public $fieldsNotToClone = 'searchKeywords,printedCnt,modifiedOn,modifiedBy,state,exState,lastUsedOn,createdOn,createdBy, rows';
     
     
     /**
