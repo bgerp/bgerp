@@ -190,7 +190,7 @@ class smssync_SMS extends core_Manager
         }
         
         // Връщаме резултата в JSON формат и спираме процеса
-        core_App::getJson($res);
+        core_App::outputJson($res);
     }
     
     
