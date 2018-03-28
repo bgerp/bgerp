@@ -128,7 +128,7 @@ class label_Prints extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, mediaId=Медия, source=Източник, labelsCnt=Брой->Етикети, copiesCnt=Брой->Копия, printedCnt=Брой->Отпечатвания, createdOn, createdBy';
+    public $listFields = 'title, mediaId=Медия, source=Източник, templateId, labelsCnt=Брой->Етикети, copiesCnt=Брой->Копия, printedCnt=Брой->Отпечатвания, createdOn, createdBy';
     
     
     /**
