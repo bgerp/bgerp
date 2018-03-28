@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -79,7 +79,7 @@ class label_CounterItems extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, labelId, number, modifiedOn, modifiedBy, createdOn, createdBy';
+    var $listFields = 'id, printId, number, modifiedOn, modifiedBy, createdOn, createdBy';
     
     
     /**
@@ -100,15 +100,18 @@ class label_CounterItems extends core_Detail
     function description()
     {
         $this->FLD('counterId', 'key(mvc=label_Counters, select=name)', 'caption=Брояч, mandatory');
-        $this->FLD('labelId', 'key(mvc=label_Labels, select=title)', 'caption=Етикет, mandatory');
+        $this->FLD('printId', 'key(mvc=label_Prints, select=title)', 'caption=Етикет, mandatory');
         $this->FLD('number', 'int', 'caption=Номер');
+        
+        $this->setDbIndex('number, counterId');
+        $this->setDbIndex('counterId, printId');
     }
     
     
     /**
      * Връща най - голямата стойност за брояча
      * 
-     * @param id $counterId - id на брояча
+     * @param integer $counterId - id на брояча
      */
     static function getMax($counterId)
     {
@@ -129,15 +132,15 @@ class label_CounterItems extends core_Detail
      * Обновяваме брояча
      * 
      * @param integer $counterId - id на брояча
-     * @param integer $labelId - id на етикета
+     * @param integer $printId - id на етикета
      * @param integer $number - Стойността на брояча
      * 
      * @return integer - id на записа
      */
-    static function updateCounter($counterId, $labelId, $number)
+    static function updateCounter($counterId, $printId, $number)
     {
         // Вземаме записа
-        $rec = static::fetch(array("#counterId = '[#1#]' AND #labelId = '[#2#]'", $counterId, $labelId));
+        $rec = static::fetch(array("#counterId = '[#1#]' AND #printId = '[#2#]'", $counterId, $printId));
         
         // Ако няма запис
         if (!$rec) {
@@ -145,7 +148,7 @@ class label_CounterItems extends core_Detail
             // Създаваме нов
             $rec = new stdClass();
             $rec->counterId = $counterId;
-            $rec->labelId = $labelId;
+            $rec->printId = $printId;
         }
         
         // Добавяме номера
@@ -165,5 +168,22 @@ class label_CounterItems extends core_Detail
     static function on_AfterPrepareListFilter($mvc, &$data)
 	{
 	    $data->query->orderBy('modifiedOn', 'DESC');
-	}
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if ($rec->printId) {
+            if (label_Prints::haveRightFor('single', $rec->printId)) {
+                $row->printId = label_Prints::getLinkToSingle($rec->printId, 'title');
+            }
+        }
+    }
 }

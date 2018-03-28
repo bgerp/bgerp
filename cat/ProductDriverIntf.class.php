@@ -477,4 +477,16 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	{
 		return $this->class->getDifficulty($rec);
 	}
+	
+	
+	/**
+	 * Надценка на делтата
+	 *
+	 * @param mixed $rec
+	 * @return int
+	 */
+	public function getDeltaSurcharge($rec)
+	{
+		return $this->class->getDeltaSurcharge($rec);
+	}
 }

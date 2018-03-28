@@ -300,6 +300,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
 		}
 		
+		// @TODO ревербализиране на описанието
+		if(!empty($data->rec->info)){
+			$data->row->info = core_Type::getByName('richtext')->toVerbal($data->rec->info);
+		}
+		
 		// Ако не е зададен шаблон, взимаме дефолтния
 		$layout = ($data->isSingle !== TRUE) ? 'cat/tpl/SingleLayoutBaseDriverShort.shtml' : 'cat/tpl/SingleLayoutBaseDriver.shtml';
 		$tpl = getTplFromFile($layout);

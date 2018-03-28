@@ -19,6 +19,12 @@ class cat_products_Packagings extends core_Detail
     
     
     /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    public $interfaces = 'label_SequenceIntf=cat_interface_PackLabelImpl';
+    
+    
+    /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'productId';
@@ -435,14 +441,16 @@ class cat_products_Packagings extends core_Detail
         }
         
         $data->recs = $data->rows = array();
-        
+        $fields = $this->selectFields();
+        $fields['-list'] = TRUE;
+      
         $query = self::getQuery();
         $query->where("#productId = {$data->masterId}");
         $query->orderBy('quantity', 'ASC');
         $query->orderBy('packagingId', 'ASC');
         while($rec = $query->fetch()){
             $data->recs[$rec->id] = $rec;
-            $data->rows[$rec->id] = self::recToVerbal($rec);
+            $data->rows[$rec->id] = self::recToVerbal($rec, $fields);
         }
         
         $data->retUrl = (isset($data->retUrl)) ? $data->retUrl : cat_Products::getSingleUrlArray($data->masterId);

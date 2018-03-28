@@ -13,7 +13,7 @@
 Срок на доставка,cond_type_Time,,term,,,no,active,,no
 Широчина,cond_type_Double,см,width,,,yes,active,,yes
 Режийни разходи,cond_type_Percent,,expenses,,,no,active,,no
-Изглед||Preview,cond_type_Image,,preview,,,no,active,,no
+Изглед||Preview,cond_type_Image,,preview,,,no,active,,yes
 На етикета||Label text,cond_type_Text,,labelText,,,no,active,,yes
 Спецификация,cond_type_Text,,specTpl,,,no,active,,no
 Условия към продажба,cond_type_Text,,commonConditionSale,,,no,active,,no
