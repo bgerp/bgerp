@@ -39,6 +39,7 @@ class label_plg_Print extends core_Plugin
 		if(isset($fields['-list']) && $mvc->hasPlugin('plg_RowTools2')){
 			$btnParams = self::getLabelBtnParams($mvc, $rec);
 			if(!empty($btnParams['url'])){
+				core_RowToolbar::createIfNotExists($row->_rowTools);
 				$btnParams['attr'] = arr::make($btnParams['attr']);
 				$btnParams['attr']['style'] = 'position: relative; top: -2px;';
 				$row->_rowTools->addLink('Етикети', $btnParams['url'], $btnParams['attr'], 'alwaysShow');
