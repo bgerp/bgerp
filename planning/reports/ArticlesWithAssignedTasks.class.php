@@ -65,9 +65,9 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     {
         $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 'caption=Отговорници,mandatory,after = title');
         $fieldset->FLD('typeOfSorting', 'enum(up=Възходящо,down=Низходящо)', 
-            'caption=Подредени,maxRadio=2,columns=2,mandatory,after=title');
+            'caption=Подередени по->Ред,maxRadio=2,columns=2,mandatory,after=title');
         $fieldset->FLD('orderingDate', 'enum(activated=Дата на активиране,pay=Дата на падеж)', 
-            'caption=Подредени,maxRadio=2,columns=2,mandatory,after=title');
+            'caption=Подередени по->Дата,maxRadio=2,columns=2,mandatory,after=title');
     }
 
     /**
@@ -99,7 +99,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         $jobsQuery = planning_Jobs::getQuery();
         
         $jobsQuery->where("#state = 'active' OR #state = 'wakeup'");
-        $jobsQuery->where("#saleId IS NOT NULL");
+        // $jobsQuery->where("#saleId IS NOT NULL");
         
         /*
          * Масив с артикули по задания за производство
@@ -163,6 +163,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                             'productId' => $jobsProdId,
                             'jobsId' => $jobses->id,
                             'folderId' => $jobses->folderId,
+                            'saleId' => $jobses->saleId,
                             'containerId' => $jobses->containerId,
                             'tasksFolderId' => $task->folderId,
                             'tasksContainerId' => $task->containerId,
@@ -221,6 +222,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                             'productId' => $jobsProdId,
                             'jobsId' => $jobses->id,
                             'folderId' => $jobses->folderId,
+                            'saleId' => $jobses->saleId,
                             'containerId' => $jobses->containerId,
                             'tasksFolderId' => $task->folderId,
                             'tasksContainerId' => $task->containerId,
@@ -357,7 +359,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         
         $row->jobsId = planning_Jobs::getHyperlink($dRec->jobsId) . "<br>";
         
-        $row->jobsId .= "<span class= 'small' >" . "$typeOfDatеText" . $Date->toVerbal($typeOfDate) . "</span>";
+        $row->jobsId .= "<span class= 'small' >" . "$typeOfDateText" . $Date->toVerbal($typeOfDate) . "</span>";
         
         foreach ($tasksContainerIdArr as $k => $v) {
             
@@ -371,7 +373,10 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $state = cal_Tasks::fetch($Task->that)->state;
             
             $handle = $Task->getHandle();
-            
+            if ($dRec->saleId) {
+                $saleNandle = (sales_Sales::getHandle($dRec->saleId));
+                $saleState = (sales_Sales::fetch($dRec->saleId)->state);
+            }
             $folder = doc_Folders::fetch($tasksFolderIdArr[$k])->title;
             
             $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
@@ -395,7 +400,10 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $state = cal_Tasks::fetch($Task->that)->state;
             
             $handle = $Task->getHandle();
-            
+            if ($dRec->saleId) {
+                $saleNandle = (sales_Sales::getHandle($dRec->saleId));
+                $saleState = (sales_Sales::fetch($dRec->saleId)->state);
+            }
             $folder = doc_Folders::fetch($tasksFolderIdArr[$k])->title;
             
             $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
