@@ -90,6 +90,8 @@ class doclog_Used extends core_Manager
      */
     public static function add($cid, $usedCid)
     {
+        if (!$cid || !$usedCid) return ;
+        
         // За да се гарантира извикването на on_Shutdown
         cls::get(get_called_class());
         if (!$cid || !$usedCid) error('Липсва стойност', $cid, $usedCid);
