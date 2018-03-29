@@ -515,6 +515,11 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function getDefaultInCharge()
     {
+    	// Ако текущия потребител е ceo или admin той е отговорник на папката
+    	if($cu = core_Users::getCurrent('id', FALSE)){
+    		if(haveRole('ceo,admin', $cu)) return $cu;
+    	}
+    	
     	// Ид на ролята "admin"
     	$adminRoleId = core_Roles::fetchByName('admin');
     	
