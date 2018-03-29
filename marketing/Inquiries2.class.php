@@ -255,9 +255,11 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	$cu = core_Users::getCurrent('id', FALSE);
     	if(isset($cu) && !core_Users::isPowerUser()){
-    		$uRec = core_Users::fetch($cu);
-    		$form->setDefault('personNames', $uRec->names);
-    		$form->setDefault('email', $uRec->email);
+    		$personRec = crm_Profiles::getProfile($cu);
+    		$emails = type_Emails::toArray($personRec->buzEmail);
+    		$marketingEmail = count($emails) ? $emails[0] : $personRec->email;
+    		$form->setDefault('personNames', $personRec->name);
+    		$form->setDefault('email', $marketingEmail);
     	}
     	
     	$hide = (isset($cu) && core_Users::haveRole('partner', $cu)) ? TRUE : FALSE;
@@ -795,16 +797,15 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	$form = $this->prepareForm($drvId);
+    	$form->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'input=hidden,silent');
     	$form->FLD('moq', 'double', 'input=hidden,silent');
     	$form->FLD('drvId', 'class', 'input=hidden,silent');
     	$form->FLD('quantityCount', 'double', 'input=hidden,silent');
     	$form->FLD('protos', 'varchar', 'input=hidden,silent');
     	
     	$form->input(NULL, 'silent');
-    	$form->setDefault('measureId', Request::get('measureId'));
     	
     	if(count($proto)){
-    		
     		$form->setOptions('proto', $proto);
     		if(count($proto) === 1){
     			$form->setDefault('proto', key($proto));
@@ -815,19 +816,22 @@ class marketing_Inquiries2 extends embed_Manager
     	} else {
     		$form->setField('proto', 'input=none');
     	}
-
-    	$form->setDefault('country', $this->getDefaultCountry($form->rec));
+    	
     	$data = (object)array('form' => $form);
     	
     	if(cls::load($form->rec->{$this->driverClassField}, TRUE)){
 
-            
     		$Driver = cls::get($form->rec->{$this->driverClassField}, array('Embedder' => $this));
     		$data->Driver = $Driver;
     		
     		$Driver->addFields($data->form);
-    		
     		$this->expandEditForm($data);
+    		
+    		if($countryId = $this->getDefaultCountry($form->rec)){
+    			$form->setDefault('country', $countryId);
+    		} else {
+    			$form->setField('country', 'input');
+    		}
     		
     		$Driver->invoke('AfterPrepareEditForm', array($this, &$data, &$data));
     		
@@ -850,10 +854,9 @@ class marketing_Inquiries2 extends embed_Manager
     		$rec->state = 'active';
     		$rec->ip = core_Users::getRealIpAddr();
     		$rec->brid = log_Browsers::getBrid();
-    	
-    		if(empty($rec->folderId)){
-    			$rec->folderId = marketing_InquiryRouter::route($rec);
-    		}
+    		
+    		// Винаги се рутира към правилната папка
+    		$rec->folderId = marketing_InquiryRouter::route($rec);
     		
     		// Запис и редирект
     		if($this->haveRightFor('new')){
@@ -881,7 +884,11 @@ class marketing_Inquiries2 extends embed_Manager
                 }
 
     			$id = $this->save($rec);
-    		 
+    			doc_Threads::doUpdateThread($rec->threadId);
+    			
+    			$singleUrl = self::getSingleUrlArray($id);
+    			if(count($singleUrl)) return redirect($singleUrl, FALSE, '|Благодарим Ви за запитването', 'success');
+    			
     			return followRetUrl(NULL, '|Благодарим Ви за запитването', 'success');
     		}
     	}
@@ -889,7 +896,8 @@ class marketing_Inquiries2 extends embed_Manager
     	$form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/disk.png,title=Изпращане на запитването');
     	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png,title=Oтказ');
     	$tpl = $form->renderHtml();
-    	 
+    	core_Form::preventDoubleSubmission($tpl, $form);
+    	
     	// Поставяме шаблона за външен изглед
     	Mode::set('wrapper', 'cms_page_External');
     	
@@ -1025,6 +1033,11 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public static function getDefaultCountry($rec)
     {
+    	if($cu = core_Users::getCurrent('id', FALSE)){
+    		$profileRec = crm_Profiles::getProfile($cu);
+    		if(isset($profileRec->country)) return $profileRec->country;
+    	}
+    	
     	if(cms_Content::getLang() == 'bg'){
     		$countryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
     	} else {

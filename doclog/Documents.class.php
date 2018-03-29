@@ -2027,6 +2027,8 @@ class doclog_Documents extends core_Manager
      */
     static function removeHistoryFromCache($threadId)
     {
+        if (!$threadId) return ;
+        
         $cacheKey = static::getHistoryCacheKey($threadId);
         
         core_Cache::remove(static::CACHE_TYPE, $cacheKey);

@@ -67,7 +67,7 @@ class core_page_Internal extends core_page_Active
 
         // Ако сме в широк изглед извикваме функцията за мащабиране
         if(Mode::is('screenMode', 'wide')){
-        	$this->append("scaleViewport();", "START_SCRIPTS");
+        	$this->append("scaleViewport();", "SCRIPTS");
         } else {
         	jquery_Jquery::run($this, "checkForElementWidthChange();");
         }

@@ -101,7 +101,31 @@ class colab_FolderToPartners extends core_Manager
     
     
     /**
+     * Коя е първата споделена папка на фирма на партньор
      * 
+     * @param int|NULL $userId - ид на партньор
+     * @return NULL|int $folderId - първата споделена папка
+     */
+    public static function getLastSharedCompanyFolder($userId = NULL)
+    {
+    	$cu = isset($cu) ? $cu : core_Users::getCurrent('id', FALSE);
+    	if(empty($cu) || !core_Users::isContractor($cu)) return NULL;
+    	
+    	$query = self::getQuery();
+    	$query->where("#contractorId = {$cu}");
+    	$query->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
+    	$query->where("#coverClass =" . crm_Companies::getClassId());
+    	
+    	$query->orderBy("#createdOn", 'ASC');
+    	$query->show('folderId');
+    	$folderId = $query->fetch()->folderId;
+    	
+    	return (!empty($folderId)) ? $folderId : NULL;
+    }
+    
+    
+    /**
+     * Връща опциите за папки
      *
      * @param array $params
      * @param NULL|integer $limit

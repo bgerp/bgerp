@@ -69,7 +69,9 @@ class core_page_InternalModern extends core_page_Active
         $this->prepend(' modern-theme', 'BODY_CLASS_NAME');
 
         // Забраняваме мащабирането
-        $this->append("disableScale();", "START_SCRIPTS");
+        if(Mode::is('screenMode', 'narrow')) {
+            $this->append("disableScale();", "SCRIPTS");
+        }
 
         // Вкарваме съдържанието
         $this->replace(self::getTemplate(), 'PAGE_CONTENT');

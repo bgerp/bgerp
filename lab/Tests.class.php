@@ -23,7 +23,7 @@ class lab_Tests extends core_Master
      * Дефолтен текст за нотификация
      */
     protected static $defaultNotificationText = "Имате заявен лабораторен тест";
-    // protected static $defaultNotificationText = "|*[#handle#] |има актуална версия от|* '[#lastRefreshed#]'";
+
     var $canChangestate = 'ceo,lab,masterLab';
 
     /**
@@ -70,32 +70,32 @@ class lab_Tests extends core_Master
      *
      * @var string|array
      */
-    public $canAdd = 'ceo,lab';
+    public $canAdd = 'ceo,lab,masterLab';
 
     /**
      * Роли, които могат да записват
      */
-    var $canWrite = 'lab,ceo';
+    var $canWrite = 'lab,ceo,masterLab';
 
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'lab,ceo';
+    var $canRead = 'lab,ceo,masterLab';
 
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'lab,ceo';
+    var $canReject = 'lab,ceo,masterLab';
 
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'lab,ceo';
+    var $canList = 'lab,ceo,masterLab';
 
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'lab,ceo';
+    var $canSingle = 'lab,ceo,masterLab';
 
     /**
      * Заглавие на единичен документ
@@ -186,7 +186,7 @@ class lab_Tests extends core_Master
         $form = $data->form;
         $rec = $form->rec;
         
-        if (! core_Users::haveRole('masterLab')) {
+        if (! core_Users::haveRole('masterLab,ceo')) {
             
             $form->setField('referention', 'input=none');
         }
@@ -256,7 +256,7 @@ class lab_Tests extends core_Master
         }
         
         $compTest = Mode::get('testCompare_' . $mvc->getHandle($data->rec->id));
-        // bp($compTest);
+       
         
         if ($compTest) {
             $cRec = $mvc->fetch($compTest);
@@ -270,7 +270,7 @@ class lab_Tests extends core_Master
         
         $parameters = keylist::toArray($data->rec->parameters);
         
-        // bp($data->rec->id);
+       
         foreach ($parameters as $param) {
             
             $parameter = lab_Parameters::getTitleById($param);
@@ -355,10 +355,7 @@ class lab_Tests extends core_Master
         // END Prepare form
         
         $cRec = $form->input();
-        
-        // bp($this->fetch($cRec->rightTestId));
-        
-        // $formSubmitted = (boolean) count((array) $cRec);
+       
         
         // Ако формата е submit-ната
         if ($form->isSubmitted(``)) {
@@ -377,155 +374,151 @@ class lab_Tests extends core_Master
             
             // ////////////////////////////////////////////////////////////////////
             
-            $queryTestDetailsLeft = $TestDetails->getQuery();
+//             $queryTestDetailsLeft = $TestDetails->getQuery();
             
-            while ($rec = $queryTestDetailsLeft->fetch("#testId = {$cRec->leftTestId}")) {
-                $testDetailsLeft[] = (array) $rec;
-            }
+//             while ($rec = $queryTestDetailsLeft->fetch("#testId = {$cRec->leftTestId}")) {
+//                 $testDetailsLeft[] = (array) $rec;
+//             }
             
-            // END Left test
+//             // END Left test
             
-            // Right test
-            $queryTestDetailsLeft = $TestDetails->getQuery();
+//             // Right test
+//             $queryTestDetailsLeft = $TestDetails->getQuery();
             
-            while ($rec = $queryTestDetailsLeft->fetch("#testId = {$cRec->rightTestId}")) {
+//             while ($rec = $queryTestDetailsLeft->fetch("#testId = {$cRec->rightTestId}")) {
                 
-                $testDetailsRight[] = (array) $rec;
-            }
+//                 $testDetailsRight[] = (array) $rec;
+//             }
             
-            // END Right test
+//             // END Right test
             
-            // allParamsArr
-            $queryAllParams = $Params->getQuery();
+//             // allParamsArr
+//             $queryAllParams = $Params->getQuery();
             
-            while ($rec = $queryAllParams->fetch("#id != 0")) {
-                $allParamsArr[$rec->id] = $rec->name;
-            }
+//             while ($rec = $queryAllParams->fetch("#id != 0")) {
+//                 $allParamsArr[$rec->id] = $rec->name;
+//             }
             
-            // allMethodsArr
-            $queryAllMethods = $Methods->getQuery();
+//             // allMethodsArr
+//             $queryAllMethods = $Methods->getQuery();
             
-            while ($rec = $queryAllMethods->fetch("#id != 0")) {
-                $allMethodsArr[$rec->id]['methodName'] = $rec->name;
-                $allMethodsArr[$rec->id]['paramId'] = $rec->paramId;
-                $allMethodsArr[$rec->id]['paramName'] = $allParamsArr[$rec->paramId];
-            } //
+//             while ($rec = $queryAllMethods->fetch("#id != 0")) {
+//                 $allMethodsArr[$rec->id]['methodName'] = $rec->name;
+//                 $allMethodsArr[$rec->id]['paramId'] = $rec->paramId;
+//                 $allMethodsArr[$rec->id]['paramName'] = $allParamsArr[$rec->paramId];
+//             } //
             
-            $methodsLeft = $methodsRight = array();
-            if (count($testDetailsLeft)) {
-                foreach ($testDetailsLeft as $lRec) {
-                    $methodsLeft[] = $lRec['methodId'];
-                }
-            }
+//             $methodsLeft = $methodsRight = array();
+//             if (count($testDetailsLeft)) {
+//                 foreach ($testDetailsLeft as $lRec) {
+//                     $methodsLeft[] = $lRec['methodId'];
+//                 }
+//             }
             
-            if (count($methodsRight)) {
-                foreach ($testDetailsRight as $rRec) {
-                    $methodsRight[] = $rRec['methodId'];
-                }
-            }
+//             if (count($methodsRight)) {
+//                 foreach ($testDetailsRight as $rRec) {
+//                     $methodsRight[] = $rRec['methodId'];
+//                 }
+//             }
             
-            $methodsUnion = array_unique(array_merge($methodsLeft, $methodsRight));
+//             $methodsUnion = array_unique(array_merge($methodsLeft, $methodsRight));
             
-            // END Prepare $methodsUnion
+//             // END Prepare $methodsUnion
             
-            //
-            $counter = 0;
-            $tableRow = array();
-            $tableData = array();
+//             //
+//             $counter = 0;
+//             $tableRow = array();
+//             $tableData = array();
             
-            // Prepare table data for compare two tests
-            foreach ($methodsUnion as $methodId) {
-                $counter ++;
-                $tableRow['counter'] = $counter;
-                $tableRow['methodName'] = $allMethodsArr[$methodId]['methodName'];
-                $tableRow['paramName'] = $allMethodsArr[$methodId]['paramName'];
+//             // Prepare table data for compare two tests
+//             foreach ($methodsUnion as $methodId) {
+//                 $counter ++;
+//                 $tableRow['counter'] = $counter;
+//                 $tableRow['methodName'] = $allMethodsArr[$methodId]['methodName'];
+//                 $tableRow['paramName'] = $allMethodsArr[$methodId]['paramName'];
                 
-                $tableRow['resultsLeft'] = "---";
+//                 $tableRow['resultsLeft'] = "---";
                 
-                if (count($testDetailsLeft)) {
-                    foreach ($testDetailsLeft as $v) {
-                        if ($v['methodId'] == $methodId) {
-                            $tableRow['resultsLeft'] = $v['value'];
-                        }
-                    }
-                }
+//                 if (count($testDetailsLeft)) {
+//                     foreach ($testDetailsLeft as $v) {
+//                         if ($v['methodId'] == $methodId) {
+//                             $tableRow['resultsLeft'] = $v['value'];
+//                         }
+//                     }
+//                 }
                 
-                $tableRow['resultsRight'] = "---";
+//                 $tableRow['resultsRight'] = "---";
                 
-                if (count($testDetailsRight)) {
-                    foreach ($testDetailsRight as $v) {
-                        if ($v['methodId'] == $methodId) {
-                            $tableRow['resultsRight'] = $v['value'];
-                        }
-                    }
-                }
+//                 if (count($testDetailsRight)) {
+//                     foreach ($testDetailsRight as $v) {
+//                         if ($v['methodId'] == $methodId) {
+//                             $tableRow['resultsRight'] = $v['value'];
+//                         }
+//                     }
+//                 }
                 
-                $tableData[] = $tableRow;
-            }
+//                 $tableData[] = $tableRow;
+//             }
             
-            $table = cls::get('core_TableView', array(
-                'mvc' => $this
-            ));
+//             $table = cls::get('core_TableView', array(
+//                 'mvc' => $this
+//             ));
             
-            $data = new stdClass();
-            $data->listFields = arr::make($this->listFields, TRUE);
+//             $data = new stdClass();
+//             $data->listFields = arr::make($this->listFields, TRUE);
             
-            $tpl = $table->get($tableData, 
-                "counter=N,methodName=Метод,paramName=Параметър,resultsLeft=Тест No {$cRec->leftTestId},resultsRight=Тест No {$cRec->rightTestId}");
+//             $tpl = $table->get($tableData, 
+//                 "counter=N,methodName=Метод,paramName=Параметър,resultsLeft=Тест No {$cRec->leftTestId},resultsRight=Тест No {$cRec->rightTestId}");
             
-            $tpl->prepend(
-                "<div style='margin-bottom: 20px;'>
-                               <b>Сравнение на тестове</b>
-                               <br/>" . $cRec->leftTestId . ". " .
-                     $leftTestName . "
-                               <br/>" . $cRec->rightTestId . ". " .
-                     $rightTestName . "
-                           </div>");
+//             $tpl->prepend(
+//                 "<div style='margin-bottom: 20px;'>
+//                                <b>Сравнение на тестове</b>
+//                                <br/>" . $cRec->leftTestId . ". " . $leftTestName . "
+//                                <br/>" . $cRec->rightTestId . ". " . $rightTestName . "
+//                            </div>");
             
-            // END Prepare table data for compare two tests
+//             // END Prepare table data for compare two tests
             
-            // Prepare html table
-            $viewCompareTests .= "<style type='text/css'>
-                                  TABLE.listTable td {background: #ffffff;}
-                                  TABLE.listTable TR.title td {background: #f6f6f6;}
-                                  </style>";
-            $viewCompareTests .= "<table class='listTable'>";
-            $viewCompareTests .= "<tr>
-                                      <td colspan='5' style='text-align: center;'>
-                                          <b>Сравнение на тестове</b>
-                                          <br/>" . $cRec->leftTestId .
-                 ". " . $leftTestName . "
-                                          <br/>" . $cRec->rightTestId .
-                 ". " . $rightTestName . "
-                                      </td>
-                                  </tr>";
-            $viewCompareTests .= "<tr class='title'>
-                                     <td>#</td>
-                                     <td>Метод</td>
-                                     <td>Параметър</td>
-                                     <td>Тест № " . $cRec->leftTestId . "</td>
-                                     <td>Тест № " . $cRec->rightTestId . "</td>
-                                  </tr>";
+//             // Prepare html table
+//             $viewCompareTests .= "<style type='text/css'>
+//                                   TABLE.listTable td {background: #ffffff;}
+//                                   TABLE.listTable TR.title td {background: #f6f6f6;}
+//                                   </style>";
+//             $viewCompareTests .= "<table class='listTable'>";
+//             $viewCompareTests .= "<tr>
+//                                       <td colspan='5' style='text-align: center;'>
+//                                           <b>Сравнение на тестове</b>
+//                                           <br/>" . $cRec->leftTestId . ". " . $leftTestName . "
+//                                           <br/>" . $cRec->rightTestId . ". " . $rightTestName . "
+//                                       </td>
+//                                   </tr>";
+//             $viewCompareTests .= "<tr class='title'>
+//                                      <td>#</td>
+//                                      <td>Метод</td>
+//                                      <td>Параметър</td>
+//                                      <td>Тест № " . $cRec->leftTestId . "</td>
+//                                      <td>Тест № " . $cRec->rightTestId . "</td>
+//                                   </tr>";
             
-            foreach ($tableData as $tableRow) {
-                $viewCompareTests .= "<tr>
-                                          <td>" . $tableRow['counter'] . "</td>
-                                          <td>" . $tableRow['methodName'] . "</td>
-                                          <td>" . $tableRow['paramName'] . "</td>
-                                          <td style='text-align: " .
-                     ($tableRow['resultsLeft'] == '---' ? 'center; background: #f0f0f0' : 'right') . ";'>" .
-                     nl2br($tableRow['resultsLeft']) . "</td>
-                                          <td style='text-align: " .
-                     ($tableRow['resultsRight'] == '---' ? 'center; background: #f0f0f0' : 'right') . ";'>" .
-                     nl2br($tableRow['resultsRight']) . "</td>
-                                      </tr>";
-            }
+//             foreach ($tableData as $tableRow) {
+//                 $viewCompareTests .= "<tr>
+//                                           <td>" . $tableRow['counter'] . "</td>
+//                                           <td>" . $tableRow['methodName'] . "</td>
+//                                           <td>" . $tableRow['paramName'] . "</td>
+//                                           <td style='text-align: " .
+//                      ($tableRow['resultsLeft'] == '---' ? 'center; background: #f0f0f0' : 'right') . ";'>" .
+//                      nl2br($tableRow['resultsLeft']) . "</td>
+//                                           <td style='text-align: " .
+//                      ($tableRow['resultsRight'] == '---' ? 'center; background: #f0f0f0' : 'right') . ";'>" .
+//                      nl2br($tableRow['resultsRight']) . "</td>
+//                                       </tr>";
+//             }
             
-            $viewCompareTests .= "</table>";
+//             $viewCompareTests .= "</table>";
             
-            // END Prepare html table
+//             // END Prepare html table
             
-            return $this->renderWrapping($tpl);
+//             return $this->renderWrapping($tpl);
         } else {
             
             return $this->renderWrapping($form->renderHtml());

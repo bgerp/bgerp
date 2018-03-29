@@ -261,7 +261,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	 */
 	public function canChangeBatchUniquePerProduct()
 	{
-		return FALSE;
+		return TRUE;
 	}
 	
 	
