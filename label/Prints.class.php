@@ -1300,6 +1300,8 @@ class label_Prints extends core_Master
         
         $this->save($rec, 'printedCnt');
         
+        $this->logRead('Отпечатване', $rec->id);
+        
         return $tpl;
     }
 }
