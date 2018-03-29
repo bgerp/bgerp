@@ -815,19 +815,22 @@ class marketing_Inquiries2 extends embed_Manager
     	} else {
     		$form->setField('proto', 'input=none');
     	}
-
-    	$form->setDefault('country', $this->getDefaultCountry($form->rec));
+    	
     	$data = (object)array('form' => $form);
     	
     	if(cls::load($form->rec->{$this->driverClassField}, TRUE)){
 
-            
     		$Driver = cls::get($form->rec->{$this->driverClassField}, array('Embedder' => $this));
     		$data->Driver = $Driver;
     		
     		$Driver->addFields($data->form);
-    		
     		$this->expandEditForm($data);
+    		
+    		if($countryId = $this->getDefaultCountry($form->rec)){
+    			$form->setDefault('country', $countryId);
+    		} else {
+    			$form->setField('country', 'input');
+    		}
     		
     		$Driver->invoke('AfterPrepareEditForm', array($this, &$data, &$data));
     		
@@ -1026,6 +1029,11 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public static function getDefaultCountry($rec)
     {
+    	if($cu = core_Users::getCurrent('id', FALSE)){
+    		$profileRec = crm_Profiles::getProfile($cu);
+    		if(isset($profileRec->country)) return $profileRec->country;
+    	}
+    	
     	if(cms_Content::getLang() == 'bg'){
     		$countryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
     	} else {
