@@ -216,6 +216,8 @@ class label_Prints extends core_Master
         $objId = $rec->objectId;
         $templateId = $rec->templateId;
         
+        $labelDataArr = array();
+        
         if(isset($classId) && isset($objId)){
         	$intfInst = cls::getInterface('label_SequenceIntf', $classId);
         	
@@ -309,27 +311,16 @@ class label_Prints extends core_Master
             
             core_Lg::push($lang);
             
-            $placeholdersArr = array();
-            if ($rec->classId && $rec->objectId) {
-            	$intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
-        	    $lang = label_Templates::fetchField($rec->templateId, 'lang');
-            	core_Mode::push('prepareLabel', TRUE);
-        	    core_Lg::push($lang);
-            	$placeholdersArr = $intfInst->getLabelPlaceholders($rec->objectId);
-        	    core_Lg::pop();
-            	core_Mode::pop('prepareLabel');
-            }
-            
 			// При редакция да се попълват стойностите
             if ($rec->id) {
                 foreach ((array)$rec->params as $fieldName => $val) {
-                    if (!$placeholdersArr[$fieldName]) {
+                    if (!$labelDataArr[$fieldName]) {
                         $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
-                        if (!$placeholdersArr[$fieldName]) {
-                            $placeholdersArr[$fieldName] = new stdClass;
+                        if (!$labelDataArr[$fieldName]) {
+                            $labelDataArr[$fieldName] = new stdClass;
                         }
                     }
-                    $placeholdersArr[$fieldName]->example = $val;
+                    $labelDataArr[$fieldName]->example = $val;
                 }
             }
             
@@ -341,7 +332,7 @@ class label_Prints extends core_Master
             $form->input(NULL, TRUE);
             
             // Обхождаме масива
-            foreach ((array)$placeholdersArr as $fieldName => $v) {
+            foreach ((array)$labelDataArr as $fieldName => $v) {
                 
                 $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
                 
