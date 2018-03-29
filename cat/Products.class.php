@@ -3189,6 +3189,12 @@ class cat_Products extends embed_Manager {
     		if($dQuery->fetch()) return TRUE;
     	}
     	
+    	$jQuery = planning_Jobs::getQuery();
+    	$jQuery->where("#productId = {$productId} AND #state IN ('active', 'wakeup', 'stopped')");
+    	$jQuery->show('id');
+    	$jQuery->limit(1);
+    	if($jQuery->fetch()) return TRUE;
+    	
     	return FALSE;
     }
     
@@ -3204,7 +3210,7 @@ class cat_Products extends embed_Manager {
     protected static function on_BeforeChangeState(core_Mvc $mvc, &$rec, $newState)
     {
     	if($newState == 'closed' && $mvc->isUsedInActiveDeal($rec)){
-    		core_Statuses::newStatus("Артикулът не може да бъде затворен, докато се използва в активни договори", 'error');
+    		core_Statuses::newStatus("Артикулът не може да бъде затворен, докато се използва в активни договори и/или задания", 'error');
     		return FALSE;
     	}
     }
@@ -3216,7 +3222,7 @@ class cat_Products extends embed_Manager {
     protected static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
     	if($mvc->isUsedInActiveDeal($id)){
-    		core_Statuses::newStatus("Артикулът не може да бъде оттеглен, докато се използва в активни договори", 'error');
+    		core_Statuses::newStatus("Артикулът не може да бъде оттеглен, докато се използва в активни договори и/или задания", 'error');
     		return FALSE;
     	}
     }

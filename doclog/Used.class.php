@@ -105,10 +105,15 @@ class doclog_Used extends core_Manager
      */
     public static function remove($cid, $usedCid)
     {
+        if (!$cid || !$usedCid) return ;
+        
         self::delete("#containerId = {$cid} AND #usedContainerId = {$usedCid}");
         
         $threadId = doc_Containers::fetchField($usedCid, 'threadId');
-        doclog_Documents::removeHistoryFromCache($threadId);
+        
+        if ($threadId) {
+            doclog_Documents::removeHistoryFromCache($threadId);
+        }
     }
     
     

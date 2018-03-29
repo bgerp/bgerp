@@ -354,12 +354,10 @@ class label_Prints extends core_Master
         
         $estCnt = NULL;
         
-        $labelDataArr = array();
         if ($classId && $objId) {
             $mvc->requireRightFor('add', (object)array('classId' => $classId, 'objectId' => $objId));
             
             $intfInst = cls::getInterface('label_SequenceIntf', $classId);
-            $labelDataArr = $intfInst->getLabelPlaceholders($objId);
             
             $lName = $intfInst->getLabelName($objId);
             if ($lName) {
@@ -523,7 +521,6 @@ class label_Prints extends core_Master
         if ($form->isSubmitted()) {
             if ($rec->classId && $rec->objectId) {
             	$intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
-                $placeholdersArr = $intfInst->getLabelPlaceholders($rec->objectId);
                 
                 $estCnt = $intfInst->getLabelEstimatedCnt($rec->objectId);
                 
