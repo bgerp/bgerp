@@ -797,16 +797,15 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	$form = $this->prepareForm($drvId);
+    	$form->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'input=hidden,silent');
     	$form->FLD('moq', 'double', 'input=hidden,silent');
     	$form->FLD('drvId', 'class', 'input=hidden,silent');
     	$form->FLD('quantityCount', 'double', 'input=hidden,silent');
     	$form->FLD('protos', 'varchar', 'input=hidden,silent');
     	
     	$form->input(NULL, 'silent');
-    	$form->setDefault('measureId', Request::get('measureId'));
     	
     	if(count($proto)){
-    		
     		$form->setOptions('proto', $proto);
     		if(count($proto) === 1){
     			$form->setDefault('proto', key($proto));
