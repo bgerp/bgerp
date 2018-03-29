@@ -108,6 +108,12 @@ class store_iface_ShipmentLabelImpl
 	 */
 	public function getLabelData($id, $cnt, $onlyPreview = FALSE)
 	{
+	    static $resArr = array();
+	    
+	    $key = $id . '|' . $cnt . '|' . $onlyPreview;
+	    
+	    if (isset($resArr[$key])) return $resArr[$key];
+	    
 		$rec = $this->class->fetchRec($id);
 		$logisticData = $this->class->getLogisticData($rec);
 		$destination = trim("{$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toCountry']}");
@@ -123,6 +129,8 @@ class store_iface_ShipmentLabelImpl
 			$arr[] = $res;
 		}
 		
-		return $arr;
+		$resArr[$key] = $arr;
+		
+		return $resArr[$key];
 	}
 }
