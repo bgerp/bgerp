@@ -342,7 +342,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         $row = new stdClass();
         
         if ($rec->orderingDate == 'activated') {
-            $typeOfDateText = 'Активиран : ';
+            $typeOfDateText = 'Активиране : ';
             $typeOfDate = $dRec->activatedDate;
         }
         
@@ -359,7 +359,21 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         
         $row->jobsId = planning_Jobs::getHyperlink($dRec->jobsId) . "<br>";
         
-        $row->jobsId .= "<span class= 'small' >" . "$typeOfDateText" . $Date->toVerbal($typeOfDate) . "</span>";
+        if ($dRec->saleId) {
+            
+            $Sale = doc_Containers::getDocument(sales_Sales::fetch($dRec->saleId)->containerId);
+            
+            $saleNandle = sales_Sales::getHandle($dRec->saleId);
+            $saleState = (sales_Sales::fetch($dRec->saleId)->state);
+            $singleUrl = $Sale->getUrlWithAccess($Sale->getInstance(), $Sale->that);
+            
+            $row->jobsId .= "<span class= 'small' >" . "$typeOfDateText" . $Date->toVerbal($typeOfDate) . "</span>" .
+                 ' »  ' . "<span class= 'state-{$saleState} document-handler' >" . ht::createLink("#{$saleNandle}", 
+                    $singleUrl, FALSE, "ef_icon={$Sale->singleIcon}") . "</span>";
+        } else {
+            
+            $row->jobsId .= "<span class= 'small' >" . "$typeOfDateText" . $Date->toVerbal($typeOfDate) . "</span>";
+        }
         
         foreach ($tasksContainerIdArr as $k => $v) {
             
@@ -373,17 +387,14 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $state = cal_Tasks::fetch($Task->that)->state;
             
             $handle = $Task->getHandle();
-            if ($dRec->saleId) {
-                $saleNandle = (sales_Sales::getHandle($dRec->saleId));
-                $saleState = (sales_Sales::fetch($dRec->saleId)->state);
-            }
+            
             $folder = doc_Folders::fetch($tasksFolderIdArr[$k])->title;
             
             $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
             
             $row->jobsId .= "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" . ht::createLink(
                 "#{$handle}", $singleUrl, FALSE, "ef_icon={$Task->singleIcon}") . "</span>" . ' »  ' .
-                 "<span class= 'quiet small'>" . $folderLink . "</span>" . "</div>";
+                 "<span class= 'quiet small'>" . $folderLink . "</span>" . ' »  ' . "</div>";
         }
         
         $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name') . '<br>';
@@ -400,10 +411,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $state = cal_Tasks::fetch($Task->that)->state;
             
             $handle = $Task->getHandle();
-            if ($dRec->saleId) {
-                $saleNandle = (sales_Sales::getHandle($dRec->saleId));
-                $saleState = (sales_Sales::fetch($dRec->saleId)->state);
-            }
+            
             $folder = doc_Folders::fetch($tasksFolderIdArr[$k])->title;
             
             $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
