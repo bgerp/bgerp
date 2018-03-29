@@ -885,7 +885,11 @@ class marketing_Inquiries2 extends embed_Manager
                 }
 
     			$id = $this->save($rec);
-    		 
+    			doc_Threads::doUpdateThread($rec->threadId);
+    			
+    			$singleUrl = self::getSingleUrlArray($id);
+    			if(count($singleUrl)) return redirect($singleUrl, FALSE, '|Благодарим Ви за запитването', 'success');
+    			
     			return followRetUrl(NULL, '|Благодарим Ви за запитването', 'success');
     		}
     	}
