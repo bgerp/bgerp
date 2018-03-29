@@ -218,7 +218,20 @@ class label_Prints extends core_Master
         
         if(isset($classId) && isset($objId)){
         	$intfInst = cls::getInterface('label_SequenceIntf', $classId);
+        	
+        	$lang = '';
+        	if ($rec->templateId) {
+        	    $lang = label_Templates::fetchField($rec->templateId, 'lang');
+        	}
+        	core_Mode::push('prepareLabel', TRUE);
+        	if ($lang) {
+        	    core_Lg::push($lang);
+        	}
             $labelDataArr = $intfInst->getLabelPlaceholders($objId);
+            if ($lang) {
+                core_Lg::pop();
+            }
+            core_Mode::pop('prepareLabel');
         }
         
         // Определяме най-добрия шаблон
@@ -299,7 +312,12 @@ class label_Prints extends core_Master
             $placeholdersArr = array();
             if ($rec->classId && $rec->objectId) {
             	$intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
-                $placeholdersArr = $intfInst->getLabelPlaceholders($rec->objectId);
+        	    $lang = label_Templates::fetchField($rec->templateId, 'lang');
+            	core_Mode::push('prepareLabel', TRUE);
+        	    core_Lg::push($lang);
+            	$placeholdersArr = $intfInst->getLabelPlaceholders($rec->objectId);
+        	    core_Lg::pop();
+            	core_Mode::pop('prepareLabel');
             }
             
 			// При редакция да се попълват стойностите
@@ -329,8 +347,12 @@ class label_Prints extends core_Master
                 
                 if (!$form->fields[$fieldName]) continue;
                 
-                // Добавяме данните от записите
-                $rec->{$fieldName} = $v->example;
+                if (!$form->cmd || $form->cmd == 'refresh') {
+                    // Добавяме данните от записите
+                    $rec->{$fieldName} = $v->example;
+                    Request::push(array($fieldName => $v->example));
+                }
+                
                 if ($v->hidden) {
                     $form->setField($fieldName, 'input=hidden');
                 } elseif ($v->readonly) {
