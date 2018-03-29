@@ -78,6 +78,12 @@ class eshop_Carts extends core_Master
     
     
     /**
+     * Детайла, на модела
+     */
+    public $details = 'eshop_ProductDetails';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -110,6 +116,9 @@ class eshop_Carts extends core_Master
     	$this->FLD('salutation', 'varchar(255)', 'caption=Данни на лице->Обръщение,class=contactData,hint=Обръщение||Salutation');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Данни на лице->Имейл,hint=Вашият имейл||Your email,mandatory');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Данни на лице->Телефони,hint=Вашият телефон,mandatory');
+    	
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащания->Валута');
+    	$this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащания->ДДС режим');
     	
     	$this->setDbIndex('brid');
     	$this->setDbIndex('userId');

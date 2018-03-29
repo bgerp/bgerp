@@ -67,6 +67,7 @@ class eshop_Setup extends core_ProtoSetup
     		'eshop_DeliveryTerms',
     		'eshop_ProductDetails',
     		'eshop_Carts',
+    		'eshop_CartDetails',
             'migrate::migrateProductOrdering',
             'migrate::migrateGroupOrdering',
         );
