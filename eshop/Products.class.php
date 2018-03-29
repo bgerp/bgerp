@@ -51,12 +51,6 @@ class eshop_Products extends core_Master
      * Икона за единичен изглед
      */
     public $singleIcon = 'img/16/wooden-box.png';
-
-    
-    /**
-     * Кой може да чете
-     */
-    public $canRead = 'eshop,ceo';
     
     
     /**
@@ -111,6 +105,12 @@ class eshop_Products extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'code,name,info,longInfo';
+    
+    
+    /**
+     * Детайла, на модела
+     */
+    public $details = 'eshop_ProductDetails';
     
     
     /**
