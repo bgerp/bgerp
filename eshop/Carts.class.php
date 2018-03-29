@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class eshop_Cart extends core_Master
+class eshop_Carts extends core_Master
 {
     
     
