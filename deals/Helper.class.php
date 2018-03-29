@@ -1318,7 +1318,7 @@ abstract class deals_Helper
 		}
 		
 		self::allocationOfPayments($newInvoiceArr, $payArr);
-		//self::allocationOfPayments($newInvoiceArr, $payArr, TRUE);
+		self::allocationOfPayments($newInvoiceArr, $payArr, TRUE);
 		
 		return $newInvoiceArr;
 	}

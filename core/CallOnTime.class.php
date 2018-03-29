@@ -66,7 +66,7 @@ class core_CallOnTime extends core_Manager
 	    $this->FLD('hash', 'varchar(32)', 'caption=Хеш, input=none');
 	    $this->FLD('className', 'varchar(128)', 'caption=Kлас');
 	    $this->FLD('methodName', 'varchar(128)', 'caption=Функция');
-	    $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни');
+	    $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни, input=none');
 	    $this->FLD('callOn', 'datetime(format=smartTime)', 'caption=Време');
 	    $this->FLD('state', 'enum(draft=Чернова, pending=Чакащо)', 'caption=Състояние, input=none');
 	    
@@ -239,7 +239,7 @@ class core_CallOnTime extends core_Manager
 			// Ако сме се доближили до края - да приключваме процеса
             if (core_Cron::getTimeLeft() < 5) {
                 
-                self::logNotice('Спря процес, поради свършване на времето');
+                self::logDebug('Отложен процес, поради свършване на времето');
                 
                 break;
             }
