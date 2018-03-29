@@ -596,7 +596,7 @@ class plg_Search extends core_Plugin
             }
         }
         
-        $clsInst->logNotice('Регенерирани ключови думи до id=' . $maxId);
+        $clsInst->logDebug('Регенерирани ключови думи до id=' . $maxId);
         
         core_Permanent::set($pKey, $maxId, 100000);
     }
