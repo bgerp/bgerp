@@ -77,7 +77,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 			if($mvc instanceof sales_Sales){
 				$primeCost = sales_PrimeCostByDocument::getPrimeCostInSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec, $primeCostListId);
 			} else {
-				$primeCost = sales_PrimeCostByDocument::getPrimeCostFromSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec->containerId);
+				$primeCost = sales_PrimeCostByDocument::getPrimeCostFromSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec->containerId, $primeCostListId);
 			}
 			
 			$sellCost = $dRec->{$mvc->detailSellPriceFld};
