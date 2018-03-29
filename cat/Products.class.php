@@ -2072,6 +2072,17 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Иконка за еденичен изглед
+     *
+     * @param int $id
+     */
+    public function getSingleIcon($id)
+    {
+    	return $this->getIcon($id);
+    }
+    
+    
+    /**
      * Затваряне на перата на частните артикули, по които няма движения
      * в продължение на няколко затворени периода
      */

@@ -1153,20 +1153,6 @@ class sales_Sales extends deals_DealMaster
     			}
     		}
     	}
-    	
-    	if(isset($fields['-list'])){
-    		$class = NULL;
-    		if(planning_Jobs::fetchField("#state IN ('active','stopped','wakeup') AND #saleId = {$rec->id}")){
-    			$class = 'sale-with-active-job';
-    		} elseif(planning_Jobs::fetchField("#state IN ('closed') AND #saleId = {$rec->id}")){
-    			$class = 'sale-with-closed-job';
-    		}
-    		
-    		if(!empty($class)){
-    			$row->title->prepend("<span class='{$class}'>");
-    			$row->title->append("</span>");
-    		}
-    	}
     }
     
     
