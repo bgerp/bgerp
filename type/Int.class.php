@@ -143,7 +143,7 @@ class type_Int extends core_Type {
     {
         setIfNot($this->params[0], $this->params['size'], 11);
         
-        setIfNot($attr['maxlength'], max(16, $this->params[0]+1));
+        setIfNot($attr['maxlength'], max(16, $this->params[0]));
         
         // В мобилен режим слагаме тип = number, за да форсираме цифрова клавиатура
         if(Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
