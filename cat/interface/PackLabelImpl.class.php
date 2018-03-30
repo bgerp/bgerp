@@ -142,7 +142,7 @@ class cat_interface_PackLabelImpl
 		$arr = array();
 		for($i = 1; $i <= $cnt; $i++){
 			$res = array('CODE' => $code, 'NAME' => $name, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity);	
-			if(!empty(($catalogPrice))){
+			if(!empty($catalogPrice)){
 				$res['CATALOG_PRICE'] = $catalogPrice;
 				$res['CATALOG_CURRENCY'] = $currencyCode;
 			}
