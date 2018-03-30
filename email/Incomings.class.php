@@ -809,7 +809,6 @@ class email_Incomings extends core_Master
             }
             
             self::calcAllToAndCc($rec);
-            self::calcSpamScore($rec);
             
             $errEmailInNameStr = 'Имейлът в името не съвпада с оригиналния|*.';
             
@@ -1358,6 +1357,8 @@ class email_Incomings extends core_Master
       * 
       * @param stdClass $rec
       * @param boolean $saveIfNotExist
+      * 
+      * @deprecated
       */
      public static function calcSpamScore($rec, $saveIfNotExist = TRUE)
      {
