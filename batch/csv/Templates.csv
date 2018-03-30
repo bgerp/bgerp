@@ -7,3 +7,4 @@
 Дата на производство,batch_definitions_ProductionDate,active,"format=Ymd"
 Символи/цифри,batch_definitions_Component,active,"delimiter=/,numberLetters=2"
 Номер/Срок на годност,batch_definitions_StringAndDate,active,"delimiter=/,format=m.Y,length=10"
+Цифри(255),batch_definitions_Digits,active,"length=255"
