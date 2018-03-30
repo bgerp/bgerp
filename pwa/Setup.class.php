@@ -1,5 +1,12 @@
 <?php
 
+
+/**
+ * FileHandler на логото за PWA
+ */
+defIfNot('PWA_IMAGE', '');
+
+
 /**
  * Клас 'pwa_Setup' -  bgERP progressive web application
  *

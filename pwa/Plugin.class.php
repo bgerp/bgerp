@@ -1,10 +1,5 @@
 <?php
 
-/**
- * FileHandler на логото за PWA
- */
-defIfNot('PWA_IMAGE', '');
-
 
 /**
  * Клас създаване на Progressive web application manifest
