@@ -161,6 +161,12 @@ class doclog_Documents extends core_Manager
     
     
     /**
+     * Екшън за създаване на връзка
+     */
+    const ACTION_LINK = 'link';
+    
+    
+    /**
      * Екшъна за сваляне
      */
     const ACTION_DOWNLOAD = 'download';
@@ -206,6 +212,7 @@ class doclog_Documents extends core_Manager
             self::ACTION_FAX     . '=факс',
             self::ACTION_PDF     . '=PDF',
             self::ACTION_EXPORT     . '=експорт',
+            self::ACTION_LINK     . '=връзка',
             self::ACTION_DOWNLOAD . '=сваляне',
             self::ACTION_CHANGE . '=промяна',
             self::ACTION_FORWARD . '=препращане',
@@ -513,7 +520,7 @@ class doclog_Documents extends core_Manager
         $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_PRINT));
         
         // Екшъните
-        $actionArr = array(static::ACTION_PRINT, static::ACTION_PDF, static::ACTION_EXPORT);
+        $actionArr = array(static::ACTION_PRINT, static::ACTION_PDF, static::ACTION_EXPORT, static::ACTION_LINK);
         
         // Вземаме записите
         $recs = static::getRecs($cid, $actionArr, NULL, $data->pager);
@@ -2020,6 +2027,8 @@ class doclog_Documents extends core_Manager
      */
     static function removeHistoryFromCache($threadId)
     {
+        if (!$threadId) return ;
+        
         $cacheKey = static::getHistoryCacheKey($threadId);
         
         core_Cache::remove(static::CACHE_TYPE, $cacheKey);
@@ -2193,6 +2202,7 @@ class doclog_Documents extends core_Manager
                 static::ACTION_FAX => array('факс', 'факс'),
                 static::ACTION_PDF => array('pdf', 'pdf'),
                 static::ACTION_EXPORT => array('експорт', 'експорта'),
+                static::ACTION_LINK => array('връзка', 'връзки'),
             );
             
             $wordingsTitle = $wordings;
@@ -2212,6 +2222,7 @@ class doclog_Documents extends core_Manager
                     static::ACTION_FAX => array('факс', 'факс'),
                     static::ACTION_PDF => array('pdf', 'pdf'),
                     static::ACTION_EXPORT => array('експ', 'експ'),
+                    static::ACTION_LINK => array('врз', 'врз'),
                 );
             }
         }
@@ -2225,6 +2236,7 @@ class doclog_Documents extends core_Manager
                 static::ACTION_PRINT   => static::ACTION_PRINT,
                 static::ACTION_PDF     => static::ACTION_PRINT,
                 static::ACTION_EXPORT     => static::ACTION_PRINT,
+                static::ACTION_LINK     => static::ACTION_PRINT,
                 static::ACTION_OPEN    => static::ACTION_OPEN,
                 static::ACTION_DOWNLOAD    => static::ACTION_DOWNLOAD,
                 static::ACTION_CHANGE    => static::ACTION_CHANGE,
@@ -2340,6 +2352,8 @@ class doclog_Documents extends core_Manager
                 return tr('Отпечатване|* / ') . static::getVerbal($rec, 'createdOn');
             case static::ACTION_EXPORT:
                 return tr('Експортиране|* / ') . static::getVerbal($rec, 'createdOn');
+            case static::ACTION_LINK:
+                return tr('Връзка|* / ') . static::getVerbal($rec, 'createdOn');
             case static::ACTION_OPEN:
                 if ($deep && !empty($rec->parentId)) {
                     $parentRec = static::fetch($rec->parentId);
@@ -2475,7 +2489,7 @@ class doclog_Documents extends core_Manager
             
             // Трябва да има един такъв екшън
             while ($rec = $query->fetch()) {
-                if (in_array($rec->action, array(self::ACTION_SEND, self::ACTION_OPEN, self::ACTION_PRINT, self::ACTION_FAX, self::ACTION_PDF, self::ACTION_EXPORT, self::ACTION_USED))) {
+                if (in_array($rec->action, array(self::ACTION_SEND, self::ACTION_OPEN, self::ACTION_PRINT, self::ACTION_FAX, self::ACTION_PDF, self::ACTION_EXPORT, self::ACTION_LINK, self::ACTION_USED))) {
                     
                     return $rec;
                 }

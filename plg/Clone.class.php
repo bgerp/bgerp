@@ -408,7 +408,7 @@ class plg_Clone extends core_Plugin
      * 
      * @param core_Mvc $mvc
      * @param NULL|integer $res
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     public static function on_AfterGetClonedFromId($mvc, &$res, $rec)
     {

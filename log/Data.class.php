@@ -130,7 +130,7 @@ class log_Data extends core_Manager
      * @param string $type
      * @param string $message
      * @param string|object|NULL $className
-     * @param integer|NULL|stdObject $objectId
+     * @param integer|NULL|stdClass $objectId
      * @param integer $lifeDays
      */
     public static function add($type, $message, $className = NULL, $objectId = NULL, $lifeDays = 180)

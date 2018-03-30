@@ -25,12 +25,6 @@ class planning_Tasks extends core_Master
 	
 	
 	/**
-	 * Интерфейси
-	 */
-    public $interfaces = 'label_SequenceIntf=planning_interface_TaskLabel';
-	
-	
-	/**
 	 * Шаблон за единичен изглед
 	 */
 	public $singleLayoutFile = 'planning/tpl/SingleLayoutTask.shtml';
@@ -189,7 +183,7 @@ class planning_Tasks extends core_Master
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,inputInTask,totalQuantity';
+	public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,inputInTask,totalQuantity,plannedQuantity';
 	
 	
 	/**
@@ -343,7 +337,7 @@ class planning_Tasks extends core_Master
 			$row->inputInTask = planning_Tasks::getLink($rec->inputInTask);
 		}
 		
-		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+		$row->folderId = doc_Folders::getFolderTitle($rec->folderId);
 		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
 		
@@ -688,7 +682,7 @@ class planning_Tasks extends core_Master
 			if($id = cat_products_Params::fetchField("#classId = {$tasksClassId} AND #productId = {$rec->id} AND #paramId = {$o->paramId}", 'id')){
 				$nRec->id = $id;
 			}
-					
+			
 			cat_products_Params::save($nRec, NULL, "REPLACE");
 		}
 	}
@@ -748,7 +742,8 @@ class planning_Tasks extends core_Master
 					$paramRec = cat_Params::fetch($pId);
 					$name = cat_Params::getVerbal($paramRec, 'name');
 					$form->FLD("paramcat{$pId}", 'double', "caption=Параметри на задачата->{$name},mandatory,before=description");
-					$form->setFieldType("paramcat{$pId}", cat_Params::getTypeInstance($pId, $mvc, $rec->id));
+					$ParamType = cat_Params::getTypeInstance($pId, $mvc, $rec->id);
+					$form->setFieldType("paramcat{$pId}", $ParamType);
 				
 					// Дефолта е параметъра от дефолтната задача за този артикул, ако има такава
 					if(isset($rec->systemId) && isset($tasks[$rec->systemId])){
@@ -761,7 +756,11 @@ class planning_Tasks extends core_Master
 					}
 				
 					if(isset($v)){
-						$form->setSuggestions("paramcat{$pId}", array('' => '', $v => $v));
+						if($ParamType instanceof fileman_FileType){
+							$form->setDefault("paramcat{$pId}", $v);
+						} else {
+							$form->setSuggestions("paramcat{$pId}", array('' => '', "{$v}" => "{$v}"));
+						}
 					}
 				
 					$rec->params["paramcat{$pId}"] = (object)array('paramId' => $pId);
@@ -967,37 +966,6 @@ class planning_Tasks extends core_Master
 	}
     
     
-	/**
-	 * Помощна функция извличаща параметрите на операцията
-	 * 
-	 * @param stdClass $rec     - запис
-	 * @param boolean $verbal   - дали параметрите да са вербални
-	 * @return array $params    - масив с обеднението на параметрите на операцията и тези на артикула
-	 */
-	public static function getTaskProductParams($rec, $verbal = FALSE)
-	{
-		// Кои са параметрите на артикула
-		$classId = planning_Tasks::getClassId();
-		$productParams = cat_Products::getParams($rec->productId, NULL, TRUE);
-		
-		// Кои са параметрите на операцията
-		$params = array();
-		$query = cat_products_Params::getQuery();
-		$query->where("#classId = {$classId} AND #productId = {$rec->id}");
-		$query->show('paramId,paramValue');
-		while($dRec = $query->fetch()){
-			$dRec->paramValue = ($verbal === TRUE) ? cat_Params::toVerbal($dRec->paramId, $classId, $rec->id, $dRec->paramValue) : $dRec->paramValue;
-			$params[$dRec->paramId] = $dRec->paramValue;
-		}
-		
-		// Обединяване на параметрите на операцията с тези на артикула
-		$params = $params + $productParams;
-		
-		// Връщане на параметрите
-		return $params;
-	}
-    
-    
     /**
      * Ф-я връщаща полетата специфични за артикула от драйвера
      *
@@ -1096,7 +1064,7 @@ class planning_Tasks extends core_Master
     	if($onlyActive === TRUE){
     		$query->where("#state = 'active' || #state = 'wakeup' || #state = 'stopped'");
     	} else {
-    		$query->where("#state != 'rejected' AND #state != 'draft'");
+    		$query->where("#state != 'rejected'");
     	}
     	
     	while($rec = $query->fetch()){
@@ -1180,7 +1148,7 @@ class planning_Tasks extends core_Master
      * Връща името на операцията готово за партида
      * 
      * @param mixed $taskId       - ид на операцията
-     * @return varchar $batchName - името на партидата, генерирана от операцията
+     * @return string $batchName - името на партидата, генерирана от операцията
      */
     public static function getBatchName($taskId)
     {

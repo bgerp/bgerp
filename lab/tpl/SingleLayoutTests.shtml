@@ -1,5 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <div class='block_left'>
+
+    <div class='fleft' style='width:50%'>
         <table class='top-table'>
             <tr>
                 <td class='aright'>|Относно|*:</td>
@@ -10,21 +11,46 @@
                 <td>[#type#]</td>
             </tr>
             <tr>
-                <td class='aright'>|Произход|*:</td>
-                <td>[#origin#]</td>
+                <td class='aright'>|Доставчик|*:</td>
+                <td>[#provider#]</td>
             </tr>
             <tr>
-                <td class='aright'>|Възложител|*:</td>
-                <td>[#assignor#]</td>
+                <td class='aright'>|Партида|*:</td>
+                <td>[#batch#]</td>
             </tr>
-            <tr>
-                <td class='aright'>|Изпълнител|*:</td>
-                <td>[#madeBy#]</td>
-            </tr>
+            
         </table>
     </div>
+    <!--ET_BEGIN XXX-->
+    [#XXX#]
+    <div class='fright' style='width:50%'>
+        <table class='top-table'>
+            <tr>
+                <td class='aright'>|Референтен тест|*:</td>
+                <td><b>[#RefHandle#]</b></td>
+            </tr>
+            <tr>
+                <td class='aright'>|Относно|*:</td>
+                <td><b>[#RefTitle#]</b></td>
+            </tr>
+            <tr>
+                <td class='aright'>|Вид|*:</td>
+                <td>[#RefType#]</td>
+            </tr>
+            <tr>
+                <td class='aright'>|Доставчик|*:</td>
+                <td>[#RefProvider#]</td>
+            </tr>
+            <tr>
+                <td class='aright'>|Партида|*:</td>
+                <td>[#RefBatch#]</td>
+            </tr>
+           
+        </table>
+    </div>
+    <!--ET_END XXX-->
     <div class='scrolling-holder'>
-        <div style='display:inline-block;margin-top:10px;'>
+        <div style='display:inline-block;margin-top:10px;margin-bottom:10px;'>
             <div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'>|Резултати от измерванията|*</div>
             <!--ET_BEGIN DETAILS-->
             <div class='details'>
@@ -33,10 +59,10 @@
             <!--ET_END DETAILS-->
         </div>
     </div>
-    
+   
     <div class='block_right'>
         <!--ET_BEGIN note-->
-        <div class='clear_both'><b>|Заключение|*</b></div>
+        <div class='clear_both'><b>|Описание|*</b></div>
         <div class='clear_l note'>
             [#note#]
         </div>
@@ -58,3 +84,5 @@
         </div>
     </div>
 </div>
+
+

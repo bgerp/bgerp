@@ -3,14 +3,13 @@
 
 
 /**
- * Мениджър на отчети за Индикаторите
- *
+ * Мениджър на отчети за Показателите
  *
  *
  * @category  bgerp
- * @package   hr
+ * @package   acc
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Счетоводство » Общи цели
@@ -26,37 +25,6 @@ class acc_reports_TotalRep extends frame2_driver_TableData
 
     
     /**
-     * Полета от таблицата за скриване, ако са празни
-     *
-     * @var int
-     */
-    //protected $filterEmptyListFields = 'deliveryTime';
-    
-    
-    /**
-     * По-кое поле да се групират листовите данни
-     */
-    // protected $groupByField = 'person';
-    
-    
-    /**
-     * Полета за хеширане на таговете
-     *
-     * @see uiext_Labels
-     * @var varchar
-     */
-    // protected $hashField = '$recIndic';
-    
-    
-    /**
-     * Кое поле от $data->recs да се следи, ако има нов във новата версия
-     *
-     * @var varchar
-     */
-    // protected $newFieldToCheck = 'docId';
-
-    
-    /**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
 	 * @param core_Fieldset $fieldset
@@ -65,20 +33,6 @@ class acc_reports_TotalRep extends frame2_driver_TableData
 	{
 	    $fieldset->FLD('roleId', 'keylist(mvc=core_Roles,select=role,groupBy=type, orderBy=orderByRole)', 'caption=Роли');
 	    $fieldset->FLD('targets', 'table(columns=month|year|target,captions=Месец|Година|Таргет,widths=8em|8em|10em,month_opt=01|02|03|04|05|06|07|08|09|10|11|12,year_opt=2017|2018|2019)', "caption=Цели,single=none");
-	}
-      
-
-    /**
-	 * Преди показване на форма за добавяне/промяна.
-	 *
-	 * @param frame2_driver_Proto $Driver $Driver
-	 * @param embed_Manager $Embedder
-	 * @param stdClass $data
-	 */
-	protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
-	{
-	    $form = &$data->form;
-	    
 	}
     
 	
@@ -96,7 +50,6 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         }
 		$recs = array();
         
-        // Индикатора Делта
         $deltaId = hr_IndicatorNames::fetchField("#name = 'Delta'", 'id');
 
         foreach($rec->targets['month'] as $i => $month) {
@@ -138,8 +91,6 @@ class acc_reports_TotalRep extends frame2_driver_TableData
 	protected function getTableFieldSet($rec, $export = FALSE)
 	{
 		$fld = cls::get('core_FieldSet');
-	
-	 
 	    $fld->FLD('period', 'varchar','caption=Период');
 	    $fld->FLD('speed', 'double', 'caption=Резултат');
 	 
@@ -156,9 +107,6 @@ class acc_reports_TotalRep extends frame2_driver_TableData
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
 	{ 
-		$isPlain = Mode::is('text', 'plain');
-		$Int = cls::get('type_Int');
-		$Date = cls::get('type_Date');
 		$Double = cls::get('type_Double');
 		$Double->params['decimals'] = 2;
 		$row = new stdClass();
@@ -173,6 +121,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         return $row;
 	}
 
+	
     /**
      * След рендиране на единичния изглед
      *
@@ -184,7 +133,6 @@ class acc_reports_TotalRep extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
         $arr = array();
-        
         $key = date("m/Y");
         
         $ratio = self::getWorkingDaysBetween(date("Y-m-01"), dt::now()) / self::getWorkingDaysBetween(date("Y-m-01"),  date("Y-m-t"));
@@ -213,6 +161,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         $tpl->append($gauge, 'DRIVER_FIELDS');
     }
 
+    
     /**
      * Връша броя на работните дни между посочените дати
      */
@@ -229,6 +178,4 @@ class acc_reports_TotalRep extends frame2_driver_TableData
 
         return $res;
     }
-    
-    
  }

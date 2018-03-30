@@ -370,7 +370,7 @@ class spcheck_Dictionary extends core_Manager
      * Подготовка на филтър формата
      * 
      * @param spcheck_Dictionary $mvc
-     * @param stdObject $data
+     * @param stdClass $data
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {

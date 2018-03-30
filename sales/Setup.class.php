@@ -152,6 +152,12 @@ defIfNot('SALES_PROD_NAME_LENGTH', '20');
 
 
 /**
+ * % Неснижаема делта по дефолт
+ */
+defIfNot('SALES_DELTA_MIN_PERCENT', '');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -218,7 +224,8 @@ class sales_Setup extends core_ProtoSetup
 			'SALES_DELTA_CAT_GROUPS'               => array('keylist(mvc=cat_Groups,select=name)', 'caption=Групи продажбени артикули за изчисляване на ТРЗ индикатори->Групи'),
 			'SALES_ROUTES_CLOSE_DELAY'             => array('int(min=1)', 'caption=Изчакване преди да се затворят изпълнените търговски маршрути->Дни'),
 			'SALES_DEFAULT_VALIDITY_OF_QUOTATION'  => array('time', 'caption=Оферти->Валидност'),
-			'SALES_PROD_NAME_LENGTH'               => array('int', 'caption=Дължина на артикула в името на продажбата->Дължина, customizeBy=powerUser'),
+			'SALES_PROD_NAME_LENGTH'               => array('int(min=0)', 'caption=Дължина на артикула в името на продажбата->Дължина, customizeBy=powerUser'),
+			'SALES_DELTA_MIN_PERCENT'              => array('percent', 'caption=Неснижаема делта->Стойност'),
 	);
 	
 	

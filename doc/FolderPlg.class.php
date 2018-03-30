@@ -515,6 +515,11 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function getDefaultInCharge()
     {
+    	// Ако текущия потребител е ceo или admin той е отговорник на папката
+    	if($cu = core_Users::getCurrent('id', FALSE)){
+    		if(haveRole('ceo,admin', $cu)) return $cu;
+    	}
+    	
     	// Ид на ролята "admin"
     	$adminRoleId = core_Roles::fetchByName('admin');
     	
@@ -525,9 +530,11 @@ class doc_FolderPlg extends core_Plugin
         	
         $query2 = clone $query;
         $query->like("roles", "|{$adminRoleId}|");
-        	
+        $query->limit(1);
+        
         // Ако няма такъв администратор, намираме първия 'ceo'
         if(!$userRec = $query->fetch()){
+            $query2->limit(1);
         	$ceoId = core_Roles::fetchByName('ceo');
         	$query2->like("roles", "|{$ceoId}|");
         	$userRec = $query2->fetch();

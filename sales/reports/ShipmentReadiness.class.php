@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Драйвер за готовност за експедиция на документи
  *
@@ -8,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Логистика » Готовност за експедиция
@@ -26,7 +27,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	/**
 	 * Кое поле от $data->recs да се следи, ако има нов във новата версия
 	 *
-	 * @var varchar
+	 * @var string
 	 */
 	protected $newFieldToCheck = 'containerId';
 	
@@ -67,7 +68,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	 * Полета за хеширане на таговете
 	 * 
 	 * @see uiext_Labels
-	 * @var varchar
+	 * @var string
 	 */
 	protected $hashField = 'containerId';
 
@@ -85,11 +86,13 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-		$fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Търговци,after=title,single=none');
-		$fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,after=dealers,single=none');
-		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=countries');
+		$fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Потребители,after=title,single=none');
+		$fieldset->FLD('dealerType', 'enum(,dealer=Търговец,inCharge=Отговорник на папка)', 'caption=Тип потребител,after=dealers,single=none');
+		$fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,after=dealerType,single=none');
+		$fieldset->FLD('ignore', 'enum(,yes=Да)', 'caption=Без избраните,after=countries,single=none');
+		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=ignore');
 		$fieldset->FLD('horizon', 'time(uom=days,Min=0)', 'caption=Падиращи до,after=precision');
-		$fieldset->FLD('orderBy', 'enum(readiness=Готовност,contragents=Клиенти,execDate=Срок за изпълнение,dueDate=Дата на падеж)', 'caption=Подредба,after=precision');
+		$fieldset->FLD('orderBy', 'enum(readiness=Готовност,contragents=Клиенти,execDate=Срок за изпълнение,dueDate=Дата на падеж)', 'caption=Подредба,after=horizon');
 	}
 	
 	
@@ -139,6 +142,28 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	
 	
 	/**
+	 * При събмитване на формата
+	 *
+	 * @param frame2_driver_Proto $Driver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param core_Form $form
+	 */
+	protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
+	{
+		if(!$form->isSubmitted()) return;
+		$rec = &$form->rec;
+		
+		if($rec->ignore == 'yes' && empty($rec->countries)){
+			$form->setError('countries,ignore', 'Трябва да има избрани държави, за изключване');
+		}
+		
+		if(empty($rec->dealers) && !empty($rec->dealerType)){
+			$form->setError('dealers,dealerType', 'Не са избрани потребители, за да е посочен тип');
+		}
+	}
+	
+	
+	/**
 	 * Вербализиране на редовете, които ще се показват на текущата страница в отчета
 	 *
 	 * @param stdClass $rec  - записа
@@ -147,7 +172,6 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
 	{
-		$isPlain = Mode::is('text', 'plain');
 		$row = new stdClass();
 		$Document = doc_Containers::getDocument($dRec->containerId);
 		
@@ -157,9 +181,6 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		}
 		
 		$row->dealerId = self::$dealers[$dRec->dealerId];
-		if($isPlain){
-			$row->dealerId = strip_tags(($row->dealerId instanceof core_ET) ? $row->dealerId->getContent() : $row->dealerId);
-		}
 		
 		// Линк към контрагента
 		$key = "{$dRec->contragentClassId}|{$dRec->contragentId}";
@@ -167,18 +188,13 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 			self::$contragentNames[$key] = cls::get($dRec->contragentClassId)->getShortHyperlink($dRec->contragentId);
 		}
 		$row->contragentName = self::$contragentNames[$key];
-		if($isPlain){
-			$row->contragentName = strip_tags($row->contragentName);
-			$row->contragentName = str_replace('&nbsp;', ' ', $row->contragentName);
-			$row->contragentName = str_replace(';', '', $row->contragentName);
-		}
 		
 		// Линк към документа
 		$singleUrl = $Document->getSingleUrlArray();
 		$handle = $Document->getHandle();
 		
 		$row->document = "#{$handle}";
-		if(!Mode::isReadOnly() && !$isPlain){
+		if(!Mode::isReadOnly()){
 			$row->document = ht::createLink("#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}");
 			$dTable = $this->getSaleDetailTable($Document->that);
 			if(!empty($dTable)){
@@ -186,9 +202,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 			}
 		}
 		
-		$row->readiness = ($isPlain) ?  frame_CsvLib::toCsvFormatDouble($dRec->readiness * 100) : cls::get('type_Percent')->toVerbal($dRec->readiness);
+		$row->readiness = cls::get('type_Percent')->toVerbal($dRec->readiness);
 		
-		if(!Mode::isReadOnly() && !$isPlain){
+		if(!Mode::isReadOnly()){
 			$row->ROW_ATTR['class'] = "state-{$Document->fetchField('state')}";
 			
 			if($dRec->readiness == 0){
@@ -209,25 +225,19 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		
 		foreach (array('deliveryTime', 'dueDateMin', 'dueDateMax', 'execDate') as $dateFld){
 			if(isset($dRec->{$dateFld})){
-				if($isPlain){
-					$row->{$dateFld} = frame_CsvLib::toCsvFormatData($dRec->{$dateFld});
-				} else {
-					$DeliveryDate = new DateTime($dRec->{$dateFld});
-					$delYear = $DeliveryDate->format('Y');
-					$curYear = date('Y');
-					$mask = ($delYear == $curYear) ? 'd.M' : 'd.M.y';
-					$row->{$dateFld} = dt::mysql2verbal($dRec->{$dateFld}, $mask);
-				}
+				$DeliveryDate = new DateTime($dRec->{$dateFld});
+				$delYear = $DeliveryDate->format('Y');
+				$curYear = date('Y');
+				$mask = ($delYear == $curYear) ? 'd.M' : 'd.M.y';
+				$row->{$dateFld} = dt::mysql2verbal($dRec->{$dateFld}, $mask);
 			}
 		}
 		
-		if(!$isPlain){
-			if(isset($row->dueDateMin) && isset($row->dueDateMax)){
-				if($row->dueDateMin == $row->dueDateMax){
-					$row->dueDates = $row->dueDateMin;
-				} else {
-					$row->dueDates = "{$row->dueDateMin}-{$row->dueDateMax}";
-				}
+		if(isset($row->dueDateMin) && isset($row->dueDateMax)){
+			if($row->dueDateMin == $row->dueDateMax){
+				$row->dueDates = $row->dueDateMin;
+			} else {
+				$row->dueDates = "{$row->dueDateMin}-{$row->dueDateMax}";
 			}
 		}
 		
@@ -309,12 +319,22 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	{
 		$fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>|Държави|*: [#countries#]</div><!--ET_END countries--><!--ET_BEGIN horizon-->|Падиращи до|* [#horizon#]<!--ET_END horizon--></small></fieldset><!--ET_END BLOCK-->"));
+							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->[#CAPTION_DEALERS#]: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>[#COUNTRY_CAPTION#]: [#countries#]</div><!--ET_END countries--><!--ET_BEGIN horizon-->|Падиращи до|* [#horizon#]<!--ET_END horizon--></small></fieldset><!--ET_END BLOCK-->"));
 		
 		foreach (array('dealers', 'countries', 'horizon') as $fld){
 			if(isset($data->rec->{$fld})){
 				$fieldTpl->append($data->row->{$fld}, $fld);
 			}
+		}
+		
+		if(isset($data->rec->dealers)){
+			$caption = ($data->rec->dealerType == 'dealer') ? tr('Търговци') : (($data->rec->dealerType == 'inCharge') ? tr('Отговорници') : tr('Потребители'));
+			$fieldTpl->append($caption, 'CAPTION_DEALERS');
+		}
+		
+		if(isset($data->rec->countries)){
+			$countryCaption = ($data->rec->ignore == 'yes') ? tr('Без държави') : tr('Държави');
+			$fieldTpl->append($countryCaption, 'COUNTRY_CAPTION');
 		}
 		
 		$tpl->append($fieldTpl, 'DRIVER_FIELDS');
@@ -361,7 +381,17 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		$sQuery->EXT('inCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
 		if(count($dealers)){
 			$dealers = implode(',', $dealers);
-			$sQuery->where("#inCharge IN ({$dealers}) OR #dealerId IN ({$dealers})");
+			switch($rec->dealerType){
+				case 'dealer':
+					$sQuery->where("#dealerId IN ({$dealers})");
+					break;
+				case 'inCharge':
+					$sQuery->where("#inCharge IN ({$dealers})");
+					break;
+				default:
+					$sQuery->where("#inCharge IN ({$dealers}) OR #dealerId IN ({$dealers})");
+					break;
+			}
 		}
 		
 		// За всяка
@@ -370,7 +400,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 			// Ако има филтър по държава
 			if($cCount){
 				$contragentCountryId = cls::get($sRec->contragentClassId)->fetchField($sRec->contragentId, 'country');
-				if(!array_key_exists($contragentCountryId, $countries)) continue;
+				if($rec->ignore == 'yes'){
+					if(array_key_exists($contragentCountryId, $countries)) continue;
+				} else {
+					if(!array_key_exists($contragentCountryId, $countries)) continue;
+				}
 			}
 				
 			// Изчислява се готовността
@@ -417,11 +451,15 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 				$dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
 						
 				$dueDates = $this->getSaleDueDates($sRec);
-						
+				if(isset($dueDates['minDel'])){
+					$dueDates['minDel'] = dt::verbal2mysql($dueDates['minDel'], TRUE);
+					$minDel = min($minDel, $dueDates['minDel']);
+				}
+				
 				$add = TRUE;
 				if(isset($rec->horizon)){
 					$horizon = dt::addSecs($rec->horizon);
-					$compareDate = isset($dueDates['min']) ? $dueDates['min'] : (isset($dueDates['max']) ? $dueDates['max'] : (isset($delTime) ? $delTime : NULL));
+					$compareDate = isset($dueDates['min']) ? $dueDates['min'] : (isset($dueDates['max']) ? $dueDates['max'] : (isset($minDel) ? $minDel : NULL));
 					if(!empty($compareDate) && $compareDate > $horizon){
 						$add = FALSE;
 					}
@@ -498,39 +536,54 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	protected function getTableFieldSet($rec, $export = FALSE)
 	{
 		$fld = cls::get('core_FieldSet');
+		$fld->FLD('dealerId', 'key(mvc=core_Users,select=nick)', 'smartCenter,caption=Търговец');
 		
 		if($export === FALSE){
-			$fld->FLD('dealerId', 'varchar', 'smartCenter,caption=Търговец');
 			$fld->FLD('contragentName', 'varchar', 'caption=Клиент');
 			
 			if($rec->orderBy != 'execDate'){
-				$fld->FLD('dueDates', 'varchar', 'tdClass=small centered,caption=Падеж');
+				$fld->FLD('dueDates', 'date', 'tdClass=small centered,caption=Падеж');
 			}
 			
 			if($rec->orderBy != 'dueDate'){
-				$fld->FLD('execDate', 'varchar', 'tdClass=small centered,caption=Изпълнение');
+				$fld->FLD('execDate', 'date', 'tdClass=small centered,caption=Изпълнение');
 			}
 			
 			$fld->FLD('document', 'varchar', 'caption=Документ');
 			$fld->FLD('readiness', 'double', 'caption=Готовност');
 		} else {
-			$fld->FLD('dealerId', 'varchar','caption=Търговец');
-			$fld->FLD('contragentName', 'varchar','caption=Клиент');
+			$fld->FLD('folderId', 'key(mvc=doc_Folders,select=title)','caption=Клиент');
 			
 			if($rec->orderBy != 'execDate'){
-				$fld->FLD('dueDateMin', 'varchar','caption=Падеж мин');
-				$fld->FLD('dueDateMax', 'varchar','caption=Падеж макс');
+				$fld->FLD('dueDateMin', 'date','caption=Падеж мин');
+				$fld->FLD('dueDateMax', 'date','caption=Падеж макс');
 			}
 				
 			if($rec->orderBy != 'dueDate'){
-				$fld->FLD('execDate', 'varchar','caption=Изпълнение');
+				$fld->FLD('execDate', 'date','caption=Изпълнение');
 			}
 			
 			$fld->FLD('document', 'varchar','caption=Документ');
-			$fld->FLD('readiness', 'varchar','caption=Готовност %');
+			$fld->FLD('readiness', 'percent','caption=Готовност %');
 		}
 		
 		return $fld;
+	}
+	
+	
+	/**
+	 * След подготовка на реда за експорт
+	 * 
+	 * @param frame2_driver_Proto $Driver - драйвер
+	 * @param stdClass $res               - резултатен запис
+	 * @param stdClass $rec               - запис на справката
+	 * @param stdClass $dRec              - запис на реда
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+	 */
+	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
+	{
+		$Document = doc_Containers::getDocument($dRec->containerId);
+		$res->document = "#" . $Document->getHandle();
 	}
 	
 	
@@ -545,12 +598,20 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		$jQuery->where("#saleId = {$saleRec->id} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup' OR #state = 'closed')");
 		$jQuery->XPR('max', 'int', "MAX(#dueDate)");
 		$jQuery->XPR('min', 'int', "MIN(#dueDate)");
-		$jQuery->show('min,max');
+		$jQuery->XPR('maxDel', 'int', "MAX(#deliveryDate)");
+		$jQuery->XPR('minDel', 'int', "MIN(#deliveryDate)");
+		
+		$jQuery->show('min,max,maxDel,minDel');
 		
 		$fRec = $jQuery->fetch();
 		if(isset($fRec->min) || isset($fRec->max)){
 			$dates['min'] = $fRec->min;
 			$dates['max'] = $fRec->max;
+		}
+		
+		if(isset($fRec->minDel) || isset($fRec->maxDel)){
+			$dates['minDel'] = $fRec->minDel;
+			$dates['maxDel'] = $fRec->maxDel;
 		}
 		
 		return $dates;
@@ -578,7 +639,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		$shippedAmount = $dealInfo->get('deliveryAmount');
 		
 		// Ако доставеното по сделката е над 90% от сумата и, то тя се пропуска
-		if ($agreed && ($shippedAmount / $agreed > 0.9)) return NULL;
+		//if ($agreed && ($shippedAmount / $agreed > 0.9)) return NULL;
 		
 		$agreedProducts = $dealInfo->get('products');
 		$shippedProducts = $dealInfo->get('shippedProducts');
@@ -613,7 +674,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 					if(isset($shippedProducts[$pId])){
 						$produced = planning_Jobs::fetchField($closedJobId, 'quantityProduced');
 						if($shippedProducts[$pId]->quantity >= ($produced * 0.9)){
-							$ignore = TRUE;
+							$quantityInStore = store_Products::getQuantity($productRec->id);
+							if($quantityInStore <= 1){
+								$ignore = TRUE;
+							}
 						}
 					}
 				}

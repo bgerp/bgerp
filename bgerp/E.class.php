@@ -10,6 +10,7 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @deprecated
  */
 class bgerp_E extends core_Manager
 {

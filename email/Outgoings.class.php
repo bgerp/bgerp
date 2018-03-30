@@ -137,7 +137,13 @@ class email_Outgoings extends core_Master
      * Нов темплейт за показване
      */
     var $singleLayoutFile = 'email/tpl/SingleLayoutOutgoings.shtml';
-    
+
+
+    /**
+     * Нов темплейт за показване в мобилен
+     */
+    var $singleLayoutFileNarrow = 'email/tpl/SingleLayoutOutgoingsNarrow.shtml';
+
     
     /**
      * Икона по подразбиране за единичния обект
@@ -1815,10 +1821,10 @@ class email_Outgoings extends core_Master
     /**
      * Прави опит да определи контрагент данните и връща резултат за тях
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param boolean $isForwarding
      * 
-     * @return NULL|stdObject
+     * @return NULL|stdClass
      */
     protected static function prepareContragentData($rec, $isForwarding=FALSE)
     {
@@ -1910,8 +1916,8 @@ class email_Outgoings extends core_Master
     /**
      * Задава стойности на контрагент данните
      * 
-     * @param stdObject $contragentData
-     * @param stdObject $rec
+     * @param stdClass $contragentData
+     * @param stdClass $rec
      */
     protected static function setContragentDataToRec($contragentData, &$rec)
     {
@@ -2412,15 +2418,27 @@ class email_Outgoings extends core_Master
         switch (true)
         {
             case Mode::is('text', 'plain') :
-            $tpl = 'email/tpl/SingleLayoutOutgoings.txt';
+                $tpl = 'email/tpl/SingleLayoutOutgoings.txt';
             break;
             
             case (Mode::is('printing') || Mode::is('text', 'xhtml')) :
-            $tpl = 'email/tpl/SingleLayoutSendOutgoings.shtml';
+                $tpl = 'email/tpl/SingleLayoutSendOutgoings.shtml';
             break;
             
             default :
-            $tpl = 'email/tpl/SingleLayoutOutgoings.shtml';
+                
+                $tpl = 'email/tpl/SingleLayoutOutgoings.shtml';
+                
+                if (Mode::is('screenMode', 'narrow') && isset($this->singleLayoutFileNarrow)) {
+                    $tpl = $this->singleLayoutFileNarrow;
+                }
+                
+            break;
+        }
+        
+        $layoutText = getTplFromFile($this->singleLayoutFile);
+        if(Mode::is('screenMode', 'narrow') && isset($this->singleLayoutFileNarrow)) {
+            $layoutText = getTplFromFile($this->singleLayoutFileNarrow);
         }
         
         $tpl = getTplFromFile($tpl);
@@ -2611,7 +2629,7 @@ class email_Outgoings extends core_Master
      * Добавяме нотификация на съответния потребител за чакащ имейл
      *
      * @param integer|NULL $userId
-     * @param stdObject|NULL $rec
+     * @param stdClass|NULL $rec
      */
     static function addWaitingEmailNotification($userId = NULL, $rec = NULL)
     {
@@ -2730,7 +2748,7 @@ class email_Outgoings extends core_Master
     static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         //Добавяме бутона, ако състоянието не е чернова или отхвърлена, и ако имаме права за изпращане
-        if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
+        if ($data->rec->state != 'rejected') {
             
             // Подготвяме ret_url' то
             $retUrl = array('email_Outgoings', 'single', $data->rec->id);
@@ -2757,7 +2775,7 @@ class email_Outgoings extends core_Master
                 }
             }
             
-            if ($mvc->haveRightFor('add')) {
+            if (($data->rec->state != 'draft') && $mvc->haveRightFor('add')) {
                 // Добавяме бутон за препращане на имейла
                 $data->toolbar->addBtn('Препращане', array(
                         'email_Outgoings',

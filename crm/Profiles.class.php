@@ -721,29 +721,47 @@ class crm_Profiles extends core_Master
 
     /**
      * Подготвя списък с потребители, които нямат профили
+     * 
+     * @param stdClass $data
+     * @param NULL|integer $limit
+     * 
+     * @return array
      */
-    static function prepareUnusedUserOptions($data)
+    static function prepareUnusedUserOptions($data, $limit=NULL)
     {
-        $usersQuery = core_Users::getQuery();
-
-        $opt = array();
-
+        $type = 'prepareUnusedUserOptions';
+        $handler = 'unusedUserOptions' . '|' . $limit . '|' . $data->form->rec->id;
+        $keepMinutes = 10000;
+        $depends = 'crm_Profiles';
+        
+        $opt = core_Cache::get($type, $handler, $keepMinutes, $depends);
+        
+        if (isset($opt) && ($opt !== FALSE)) return $opt;
+        
         $query = self::getQuery();
-
+        $query->show('userId');
+        
         $used = array();
-
         while($rec = $query->fetch()) {
             if(!isset($data->form->rec->id) || $rec->id != $data->form->rec->id) {
                 $used[$rec->userId] = TRUE;
             }
         }
- 
+        
+        $usersQuery = core_Users::getQuery();
+        $usersQuery->show('id, nick');
+        
+        $opt = array();
         while($uRec = $usersQuery->fetch("#state = 'active'")) {
-            if(!$used[$uRec->id]) {
+            if (!$used[$uRec->id]) {
                 $opt[$uRec->id] = $uRec->nick;
+                
+                if (isset($limit) && !--$limit) break;
             }
         }
-
+        
+        core_Cache::set($type, $handler, $opt, $keepMinutes, $depends);
+        
         return $opt;
     }
 
@@ -753,7 +771,6 @@ class crm_Profiles extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-
         $opt = self::prepareUnusedUserOptions($data);
 
         $data->form->setOptions('userId', $opt);
@@ -1161,7 +1178,7 @@ class crm_Profiles extends core_Master
         
         
         if ($mvc->haveRightFor('add')) {
-           if(count(self::prepareUnusedUserOptions($data))) {
+           if (count(self::prepareUnusedUserOptions($data, 1))) {
                 $toolbar->addBtn('Асоцииране', array(
                         $mvc,
                         'add'

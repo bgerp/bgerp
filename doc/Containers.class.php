@@ -292,7 +292,7 @@ class doc_Containers extends core_Manager
             $query = self::getQuery();
             $query->groupBy('docClass');
         }
-        
+       
         $resArr = array();
         
         while ($rec = $query->fetch()) {
@@ -837,9 +837,9 @@ class doc_Containers extends core_Manager
         }
         
         // Дали документа се активира в момента, и кой го активира
-        if(empty($rec->activatedBy) && $rec->state != 'draft' && $rec->state != 'rejected') {
+        if(!isset($rec->activatedBy) && $rec->state != 'draft' && $rec->state != 'rejected') {
             
-            $rec->activatedBy = core_Users::getCurrent();
+            $rec->activatedBy = (int)core_Users::getCurrent();
             
             if (!$updateAll) {
                 $updateField['activatedBy'] = 'activatedBy';
@@ -874,8 +874,11 @@ class doc_Containers extends core_Manager
                 // Масис със споделените потребители
                 $sharedArr = keylist::toArray($shared);
                 
+                // Вземаме, ако има приоритета от документа
+                $priority = ($docRec && $docRec->priority) ? $docRec->priority : 'normal';
+
                 // Нотифицираме споделените
-                self::addNotifications($sharedArr, $docMvc, $rec, 'сподели', FALSE);
+                self::addNotifications($sharedArr, $docMvc, $rec, 'сподели', FALSE, $priority);
                 
                 // Всички абонирани потребилите
                 $subscribedArr = doc_ThreadUsers::getSubscribed($rec->threadId);
@@ -1058,7 +1061,6 @@ class doc_Containers extends core_Manager
             // Ако е избран вид документ за който да се спре или дава нотификация
             $pSettingsNotifyArr = core_Settings::fetchUsers($pSettingsKey);
             $globalNotifyStr = doc_Setup::get('NOTIFY_NEW_DOC_TYPE');
-            $globalNotifyStrStop = doc_Setup::get('STOP_NOTIFY_NEW_DOC_TYPE');
             
             $clsId = $docMvc->getClassId();
             
@@ -1075,16 +1077,6 @@ class doc_Containers extends core_Manager
                 if (isset($settingsArr[$clsId])) {
                     $usersArr[$oUserId] = $oUserId;
                 }
-                
-                // Ако няма да се нотифицира за съответния документ, премахваме потребителя
-                $settingsStop =  $pSettingsNotifyArr[$oUserId]['DOC_STOP_NOTIFY_NEW_DOC_TYPE'];
-                if (!isset($settingsStop)) {
-                    $settingsStop = $globalNotifyStrStop;
-                }
-                $settingsStopArr = type_Keylist::toArray($settingsStop);
-                if (isset($settingsStopArr[$clsId])) {
-                    unset($usersArr[$oUserId]);
-                }
             }
             
             // Ако е зададено в настройките на папката
@@ -1097,6 +1089,23 @@ class doc_Containers extends core_Manager
             
             // Ако е зададено в настройките на нишката
             self::prepareUsersArrForNotifications($usersArr, doc_Threads::getSettingsKey($rec->threadId), 'notify', $rec->threadId);
+            
+            // Ако е зададено за някои документи да не се получава нотификация - спираме ги
+            $globalNotifyStrStop = doc_Setup::get('STOP_NOTIFY_NEW_DOC_TYPE');
+            foreach ((array)$oUsersArr as $oUserId) {
+                
+                if ($oUserId < 1) continue;
+                
+                // Ако няма да се нотифицира за съответния документ, премахваме потребителя
+                $settingsStop =  $pSettingsNotifyArr[$oUserId]['DOC_STOP_NOTIFY_NEW_DOC_TYPE'];
+                if (!isset($settingsStop)) {
+                    $settingsStop = $globalNotifyStrStop;
+                }
+                $settingsStopArr = type_Keylist::toArray($settingsStop);
+                if (isset($settingsStopArr[$clsId])) {
+                    unset($usersArr[$oUserId]);
+                }
+            }
         }
         
         // Ако няма потребители за нотифирциране
@@ -1607,7 +1616,7 @@ class doc_Containers extends core_Manager
             $thRec = doc_Threads::fetch($rec->threadId);
             $title = doc_Threads::recToVerbal($thRec)->onlyTitle;
         } else {
-            $title = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+            $title = doc_Folders::getFolderTitle($rec->folderId);
         }
 
         // Извличане на потенциалните класове на нови документи
@@ -2387,7 +2396,7 @@ class doc_Containers extends core_Manager
     /**
      * Помощна функция за поправка на docClass
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     protected static function repairDocClass($rec)
     {
@@ -2431,7 +2440,7 @@ class doc_Containers extends core_Manager
     /**
      * Помощна функция за поправка на id на документи
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return boolean
      */
@@ -3082,30 +3091,59 @@ class doc_Containers extends core_Manager
     {
         requireRole('admin');
         
-        core_App::setTimeLimit(600);
+        $form = cls::get('core_Form');
+        $form->title = 'Поправка на ключовите думи';
+        $form->FLD('types', 'keylist(mvc=core_Classes)', 'caption=Документи');
+        $form->FLD('force', 'varchar', 'input=hidden,silent');
+        $form->FLD('from', 'datetime', 'caption=Създадени след');
+    	$form->setSuggestions('types', core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title'));
+    	$form->input(NULL, 'silent');
+    	$form->input();
+    	
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		$force = ($rec->force) ? TRUE : FALSE;
+    		
+    		$query = self::getQuery();
+    		if(isset($rec->types)){
+    			$types = keylist::toArray($rec->types);
+    			$query->in('docClass', $types);
+    		}
+    		
+    		if(isset($rec->from)){
+    			$query->where("#createdOn >= '{$rec->from}'");
+    		}
+    		
+    		$limit = $query->count() * 0.005;
+    		core_App::setTimeLimit($limit, FALSE, 2000);
+    		
+    		$rArr = self::regenerateSerchKeywords($force, $query);
+    		
+    		$retUrl = getRetUrl();
+    		if (!$retUrl) {
+    			$retUrl = array('core_Packs');
+    		}
+    		
+    		if (empty($rArr)) {
+    			$msg = '|Няма документи за ре-индексиране';
+    		} else {
+    			$cnt = $rArr[0];
+    			if ($cnt == 1) {
+    				$msg = "|Ре-индексиран|* 1 |документ";
+    			} else {
+    				$msg = "|Ре-индексирани|* {$cnt} |документа";
+    			}
+    		}
+    		
+    		return new Redirect($retUrl, $msg);
+    	}
         
-        $force = Request::get('force');
-        
-        $rArr = self::regenerateSerchKeywords($force);
-        
-        $retUrl = getRetUrl();
-        
-        if (!$retUrl) {
-            $retUrl = array('core_Packs');
-        }
-        
-        if (empty($rArr)) {
-            $msg = '|Няма документи за ре-индексиране';
-        } else {
-            $cnt = $rArr[0];
-            if ($cnt == 1) {
-                $msg = "|Ре-индексиран|* 1 |документ";
-            } else {
-                $msg = "|Ре-индексирани|* {$cnt} |документа";
-            }
-        }
-        
-        return new Redirect($retUrl, $msg);
+    	$form->toolbar->addSbBtn('Поправка', 'save', 'ef_icon = img/16/disk.png, title = Поправка');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+    	 
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	 
+    	return $tpl;
     }
     
     

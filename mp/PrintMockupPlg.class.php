@@ -18,8 +18,8 @@ class mp_PrintMockupPlg extends core_Plugin
     /**
      * 
      * @param core_Manager $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {

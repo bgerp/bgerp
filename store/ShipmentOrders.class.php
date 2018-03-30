@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -37,14 +37,14 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,trans_LogisticDataIntf,label_SequenceIntf,deals_InvoiceSourceIntf';
+                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,trans_LogisticDataIntf,label_SequenceIntf=store_iface_ShipmentLabelImpl,deals_InvoiceSourceIntf';
     
     
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter,store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting,store_plg_Request, acc_plg_Contable, cond_plg_DefaultValues,
-                    plg_Clone,doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, doc_plg_TplManager,
+                    plg_Clone,doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, doc_plg_TplManager,deals_plg_SelectInvoice,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
 
     
@@ -55,6 +55,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @see doc_SharablePlg
      */
     public $shareUserRoles = 'ceo, store';
+    
+    
+    /**
+     * Кой може да избира ф-ра по документа?
+     */
+    public $canSelectinvoice = 'cash, ceo, purchase, sales, acc, store';
     
     
     /**
@@ -183,6 +189,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @see plg_Clone
      */
     public $cloneDetails = 'store_ShipmentOrderDetails';
+    
+    
+    /**
+     * Шаблон за изглед при рендиране в транспортна линия
+     */
+    public $layoutFileInLine = 'store/tpl/ShortShipmentOrder.shtml';
     
     
     /**
@@ -348,9 +360,15 @@ class store_ShipmentOrders extends store_DocumentMaster
     public function renderShipments($data)
     {
     	if(count($data->shipmentOrders)){
-    		$table = cls::get('core_TableView');
+    		$tableMvc = clone $this;
+    		$tableMvc->FNC('documentHtml', 'varchar', 'tdClass=mergedDetailWideTD');
+    		$table = cls::get('core_TableView', array('mvc' => $tableMvc));
     		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCount=Палети,collection=Инкасиране,address=@Адрес";
-    		$fields = core_TableView::filterEmptyColumns($data->shipmentOrders, $fields, 'collection,palletCount');
+    		if(Mode::is('printing')){
+    			$fields .= ',documentHtml=@';
+    		}
+    		
+    		$fields = core_TableView::filterEmptyColumns($data->shipmentOrders, $fields, 'collection,palletCount,documentHtml');
     		
     		return $table->get($data->shipmentOrders, $fields);
     	}
@@ -483,76 +501,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
-     * Връща данни за етикети
-     *
-     * @param int $id - ид на store_ShipmentOrders
-     * @param number $labelNo - номер на етикета
-     * @return array $res - данни за етикетите
-     *
-     * @see label_SequenceIntf
-     */
-    public function getLabelData($id, $labelNo = 0)
-    {  
-    	$rec = $this->fetchRec($id);
-    	
-    	$res = array();
-    	$res['NOMER'] = $rec->id;
-
-    	$res['Текущ_етикет'] = ($labelNo == 0) ? 'Текущ_етикет' : $labelNo;
-    	$logisticData = $this->getLogisticData($rec);
-    	$res['DESTINATION'] = "{$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toCountry']}";
-    	
-    	$allowSkip = FALSE;
-    	if($count = $this->getEstimateCnt($id, $allowSkip)){
-    		$res['Общо_етикети'] = $count;
-    	}
-    	
-    	if(isset($rec->lineId)){
-    		$res['SPEDITOR'] = trans_Lines::getTitleById($rec->lineId);
-    	}
-    	
-    	$res['DATE'] = dt::mysql2verbal(dt::today(), 'd/m/y');
-    	
-    	return $res;
-    }
-    
-    
-    /**
-     * Броя на етикетите, които могат да се отпечатат
-     *
-     * @param integer $id
-     * @param string $allowSkip
-     * @return integer
-     *
-     * @see label_SequenceIntf
-     */
-    public function getEstimateCnt($id, &$allowSkip)
-    {
-    	$rec = $this->fetchRec($id);
-    	$count = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
-    	$count = ($count) ? $count : NULL;
-    	 
-    	return $count;
-    }
-    
-    
-    /**
-     * Кои плейсхолдъри немогат да се предефинират от потребителя
-     *
-     * @param int $id
-     * @return array
-     * 
-     * @see label_SequenceIntf
-     */
-    public function getReadOnlyPlaceholders($id)
-    {
-    	$arr = arr::make(array('Текущ_етикет'), TRUE);
-    	
-    	return $arr;
-    }
-    
-    
-    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
@@ -569,6 +517,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             }
         }
     }
+    
     
     /**
      * След подготовка на тулбара на единичен изглед.
@@ -599,30 +548,21 @@ class store_ShipmentOrders extends store_DocumentMaster
     		}
     		
     		if(deals_Helper::showInvoiceBtn($rec->threadId) && in_array($rec->state, array('draft', 'active', 'pending'))){
-    				
-    				// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
-    				if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
-    					if(sales_Invoices::haveRightFor('single', $iRec)){
-    						$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
-    						$data->toolbar->addBtn("Фактура|* {$arrow}", array('sales_Invoices', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на фактурата издадена към експедиционното нареждането,ef_icon=img/16/invoice.png');
-    					}
-    				} else {
-    					if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
-    						$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/invoice.png,row=2');
-    					}
-    				}
-    			}
-    		}
-    		
-    		// Бутони за редакция и добавяне на ЧМР-та
-    		if(in_array($rec->state, array('active', 'pending'))) {
-    			if($cmrId = trans_Cmrs::fetchField("#originId = {$rec->containerId} AND #state != 'rejected'")){
-    				if(trans_Cmrs::haveRightFor('single', $cmrId)){
-    					$data->toolbar->addBtn("ЧМР", array('trans_Cmrs', 'single', $cmrId, 'ret_url' => TRUE), "title=Преглед на|* #CMR{$cmrId},ef_icon=img/16/lorry_go.png");
-    				}
-    			} elseif(trans_Cmrs::haveRightFor('add', (object)array('originId' => $rec->containerId))){
-    				$data->toolbar->addBtn("ЧМР", array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/lorry_add.png');
+    			if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
+    				$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/invoice.png,row=2');
     			}
     		}
     	}
+    	
+    	// Бутони за редакция и добавяне на ЧМР-та
+    	if(in_array($rec->state, array('active', 'pending'))) {
+    		if($cmrId = trans_Cmrs::fetchField("#originId = {$rec->containerId} AND #state != 'rejected'")){
+    			if(trans_Cmrs::haveRightFor('single', $cmrId)){
+    				$data->toolbar->addBtn("ЧМР", array('trans_Cmrs', 'single', $cmrId, 'ret_url' => TRUE), "title=Преглед на|* #CMR{$cmrId},ef_icon=img/16/lorry_go.png");
+    			}
+    		} elseif(trans_Cmrs::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+    			$data->toolbar->addBtn("ЧМР", array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/lorry_add.png');
+    		}
+    	}
+    }
 }

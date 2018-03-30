@@ -115,7 +115,7 @@ class tcost_Calcs extends core_Manager
      * @param double $quantity     - к-во
      * @param double $totalWeight  - общо тегло   
      * @param int $toCountryId     - ид на държава
-     * @param varchar $toPcodeId   - пощенски код
+     * @param string $toPcodeId   - пощенски код
      * @return FALSE|array $res         - информация за цената на транспорта или NULL, ако няма
      * 					['totalFee']  - обща сума на целия транспорт, в основна валута без ДДС
      * 					['singleFee'] - цената от транспорта за 1-ца от артикула, в основна валута без ДДС
@@ -320,11 +320,11 @@ class tcost_Calcs extends core_Manager
     /**
      * Показване на хинт при изчисление на цена
      * 
-     * @param varchar $amountRow           - вербалната сума на реда
+     * @param string $amountRow           - вербалната сума на реда
      * @param double $amountFee            - вербалната транспортна такса
      * @param double $vat                  - процент ДДС
      * @param double $currencyRate         - валутен курс
-     * @param varchar $chargeVat           - режим на ДДС
+     * @param string $chargeVat           - режим на ДДС
      * @return core_ET|varchar $amountRow  - сумата на реда с хинт
      */
     public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat)
@@ -548,9 +548,9 @@ class tcost_Calcs extends core_Manager
     				// Проверка дали цената е допустима спрямо сумата на транспорта
     				$amount = round($rec->{$map['price']} * $rec->{$map['quantity']}, 2);
     				
-    				if($amount <= round($rec->fee, 2)){
+    				if($amount < round($rec->fee, 2)){
     					$fee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->fee / $masterRec->{$map['currencyRate']});
-    					$form->setError('packPrice', "Сумата на артикула без ДДС е по-малка от сумата на скрития транспорт|* <b>{$fee}</b> {$masterRec->{$map['currencyId']}}, |без ДДС|*");
+    					$form->setWarning('packPrice', "Сумата на артикула без ДДС е по-малка от сумата на скрития транспорт|* <b>{$fee}</b> {$masterRec->{$map['currencyId']}}, |без ДДС|*");
     					$vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
     					$rec->{$map['packPrice']} = deals_Helper::getDisplayPrice($rec->{$map['packPrice']}, $vat, $masterRec->{$map['currencyRate']}, $masterRec->{$map['chargeVat']});
     				}

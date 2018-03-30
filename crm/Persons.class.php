@@ -1875,7 +1875,6 @@ class crm_Persons extends core_Master
 			if(!count($locations)){
 				$form->setField('buzLocationId', 'input=none');
 			}
-            $form->title = "Добавяне на служител към|* " . crm_Companies::getLinkToSingle($form->rec->buzCompanyId);
         }
         
         crm_Companies::autoChangeFields($form);
@@ -1890,7 +1889,7 @@ class crm_Persons extends core_Master
         $form = &$data->form;
 
         if($form->rec->buzCompanyId){
-            $form->title = "Добавяне на служител към|* " . crm_Companies::getHyperlink($form->rec->buzCompanyId);
+           $form->title = core_Detail::getEditTitle('crm_Companies', $form->rec->buzCompanyId, 'служител', $form->rec->id);
         }
     }
     
@@ -1900,7 +1899,7 @@ class crm_Persons extends core_Master
      * 
      * Връща масив с действия, които могат да се извършат с дадения файл
      * 
-     * @param stdObject $fRec - Обект са данни от модела
+     * @param stdClass $fRec - Обект са данни от модела
      * 
      * @return array $arr - Масив с данните
      * $arr['url'] - array URL на действието
@@ -2305,7 +2304,7 @@ class crm_Persons extends core_Master
     /**
      * Проверява дали полето име и полето ЕГН се дублират. Ако се дублират сетваме грешка.
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $fields
      * 
      * @return string
@@ -2371,7 +2370,7 @@ class crm_Persons extends core_Master
     /**
      * Връща масив с възможните съвпадения
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $fields
      * 
      * @return array
@@ -2686,7 +2685,7 @@ class crm_Persons extends core_Master
      * Форсира контрагент в дадена група
      * 
      * @param int $id -ид на продукт
-     * @param varchar $groupSysId - sysId или ид на група
+     * @param string $groupSysId - sysId или ид на група
      * @param boolean $isSysId  - дали е систем ид
      */
     public static function forceGroup($id, $groupSysId, $isSysId = TRUE)

@@ -1,14 +1,13 @@
 <?php 
 
 
-
 /**
  * Шаблони за създаване на етикети
  * 
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -53,12 +52,6 @@ class label_Templates extends core_Master
     
     
     /**
-     * Кой има право да създва етикет?
-     */
-    public $canCreatelabel = 'label, admin, ceo';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
     public $canList = 'label, admin, ceo';
@@ -83,6 +76,12 @@ class label_Templates extends core_Master
     
     
     /**
+     * Кой има право да клонира системни данни?
+     */
+    public $canClonesysdata = 'ceo, powerUser';
+    
+    
+    /**
      * Кой има право да го изтрие?
      */
     public $canDelete = 'no_one';
@@ -97,7 +96,7 @@ class label_Templates extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy, state';
+    public $listFields = 'id, title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy, lastUsedOn=Последно, state';
 
     
     /**
@@ -140,6 +139,12 @@ class label_Templates extends core_Master
     public $fieldsNotToClone = 'sysId,state,exState,lastUsedOn,createdOn,createdBy';
     
     
+    /**
+     * Кои са системните плейсхолдъри на етикетите
+     */
+    public static $systemPlaceholders = array('Текущ_етикет', 'Общо_етикети', 'Страница');
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
@@ -154,22 +159,23 @@ class label_Templates extends core_Master
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
         
         $this->setDbUnique('sysId');
+        $this->setDbIndex('classId');
     }
     
     
     /**
      * След подготовка на тулбара за еденичния изглед
      * 
-     * @param unknown_type $mvc
-     * @param unknown_type $data
+     * @param labeL_Templates $mvc
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         // Ако имаме права за добавяне на етикет
-        if ($mvc->haveRightFor('createlabel', $data->rec->id)) {
+        if (label_Prints::haveRightFor('add', (object)array('templateId' => $data->rec->id))) {
         
         	// Добавяме бутон за нов етикет
-            $data->toolbar->addBtn('Нов етикет', array('label_Labels', 'add', 'templateId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/price_tag_label.png, title=Създаване на нов етикет');
+            $data->toolbar->addBtn('Нов етикет', array('label_Prints', 'add', 'templateId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/price_tag_label.png, title=Създаване на нов етикет');
         }
     }
     
@@ -347,7 +353,7 @@ class label_Templates extends core_Master
  	/**
  	 * Изпълнява се след подготовката на формата за филтриране
  	 * 
- 	 * @param core_Master_type $mvc
+ 	 * @param label_Templates $mvc
  	 * @param stdClass $data
  	 */
     protected static function on_AfterPrepareListFilter($mvc, $data)
@@ -376,10 +382,7 @@ class label_Templates extends core_Master
         }
         
         // Подреждане по състояние
-        $data->query->orderBy('#state=ASC');
-        
-        // Подреждаме по дата на създаване
-        $data->query->orderBy('#createdOn=DESC');
+        $data->query->orderBy('#state=ASC, #modifiedOn=DESC');
 
         if($state = $data->listFilter->rec->fState) {
             $data->query->where(array("#state = '[#1#]'", $state));
@@ -400,12 +403,16 @@ class label_Templates extends core_Master
      * 
      * @param integer $id - id на записа
      * 
-     * @retunr integer - id на записа
+     * @retunr integer|NULL - id на записа
      */
     public static function activateTemplate($id)
     {
+        if (!$id) return ;
+        
         // Вземаме записа
         $rec = static::fetch($id);
+        
+        if (!$rec) return ;
         
         // Очакваме да не е оттеглен
         expect($rec->state != 'rejected');
@@ -502,7 +509,7 @@ class label_Templates extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
-     * @param label_Labels $mvc
+     * @param label_Templates $mvc
      * @param string $requiredRoles
      * @param string $action
      * @param stdClass $rec
@@ -523,33 +530,11 @@ class label_Templates extends core_Master
                     $requiredRoles = 'no_one';
                 }
             }
-            
-            // Ако оттегляме
-            if ($action == 'reject') {
-                
-                // Ако е активно
-                if ($rec->state == 'active') {
-                    
-                    // Активните да не могат да се оттеглят
-                    $requiredRoles = 'no_one';
-                }
-            }
         }
         
         // Ако ще се клонира, трябва да има права за добавяне
         if ($action == 'cloneuserdata') {
             if (!$mvc->haveRightFor('add', $rec, $userId)) {
-                $requiredRoles = 'no_one';
-            }
-        }
-        
-        // Ако ще добавяме нов етикет
-        if ($action == 'createlabel') {
-            
-            // Ако състоянието е оттеглено
-            if ($rec && $rec->state == 'rejected') {
-                
-                // Никой да не може да създава
                 $requiredRoles = 'no_one';
             }
         }
@@ -626,10 +611,8 @@ class label_Templates extends core_Master
     {
     	$res = '';
     	$modified = $skipped = 0;
-    	$array = array('defaultTpl' => array('title' => 'Базов шаблон за етикети', 'path' => 'label/tpl/DefaultLabelBG.shtml', 'lang' => 'bg', 'class' => 'planning_Tasks', 'sizes' => array('100', '72')),
-    			       'defaultTplJob' => array('title' => 'Етикети от задания', 'path' => 'label/tpl/DefaultLabelJob.shtml', 'lang' => 'bg', 'class' => 'planning_Jobs', 'sizes' => array('100', '72')),
-    				   'defaultTplEn' => array('title' => 'Default label template', 'path' => 'label/tpl/DefaultLabelEN.shtml', 'lang' => 'en', 'class' => 'planning_Tasks', 'sizes' => array('100', '72')),
-    			       'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
+    	$array = array('defaultTplPack' => array('title' => 'Етикети от опаковки', 'path' => 'label/tpl/DefaultLabelPack.shtml', 'lang' => 'bg', 'class' => 'cat_products_Packagings', 'sizes' => array('100', '72')),
+    				   'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
     	);
     	
     	core_Users::forceSystemUser();
@@ -641,6 +624,8 @@ class label_Templates extends core_Master
     			$arr = $this->getPlaceholders($tRec->template);
     			if(is_array($arr)){
     				foreach ($arr as $placeholder){
+    					if(in_array($placeholder, self::$systemPlaceholders)) continue;
+    					
     					if($placeholder == 'BARCODE'){
     						$params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '160', 'Height' => '60', 'Rotation' => 'yes');
     						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
@@ -674,7 +659,9 @@ class label_Templates extends core_Master
      * Връща шаблоните достъпни за избор от даден документ
      * 
      * @param mixed $class
+     * @param integer $objectId
      * @param boolean $onlyIds
+     * 
      * @return array $res
      */
     public static function getTemplatesByDocument($class, $objectId, $onlyIds = FALSE)
@@ -690,12 +677,10 @@ class label_Templates extends core_Master
     	
     	$res = array();
     	while($tRec = $tQuery->fetch()){
-    		if($intfInst->canSelectTemplate($objectId, $tRec->id)){
-    			$res[$tRec->id] = $tRec;
-    		}
+			$res[$tRec->id] = $tRec;
     	}
     	
-    	if($onlyIds === TRUE){
+    	if ($onlyIds === TRUE){
     		$res = arr::extractValuesFromArray($res, 'id');
     	}
     	

@@ -538,11 +538,8 @@ class core_App
     		$resObj = new stdClass();
     		$resObj->func = "redirect";
     		$resObj->arg = array('url' => $url);
-            
-//     		header('Content-Type: application/json');
-//     		echo json_encode(array($resObj));
-            
-    		return self::getJson(array($resObj), FALSE);
+                        
+    		return self::outputJson(array($resObj), FALSE);
     	} else {
 
             // Забранява кеширането. Дали е необходимо тук?
@@ -577,11 +574,11 @@ class core_App
     
     
     /**
-     * Връща резултата, като JSON и спира процеса
+     * Изкарва (към клиента) резултата, като JSON и спира процеса
      * 
      * $resArr array
      */
-    public static function getJson($resArr, $sendOutupt = TRUE)
+    public static function outputJson($resArr, $sendOutupt = TRUE)
     {
         // За да не се кешира
         header("Expires: Sun, 19 Nov 1978 05:00:00 GMT");

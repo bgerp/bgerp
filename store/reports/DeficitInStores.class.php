@@ -41,14 +41,14 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
-     * @var varchar
+     * @var string
      */
     protected $hashField;
 
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
-     * @var varchar
+     * @var string
      */
     protected $newFieldToCheck = 'conditionQuantity';
 
@@ -569,7 +569,6 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         
         if ($export === FALSE) {
-            
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
             if ($rec->typeOfQuantity == 'TRUE') {
@@ -581,37 +580,36 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
             $fld->FLD('receiptQuantity', 'double', 'caption=Количество->За получаване,smartCenter');
             $fld->FLD('shipmentQuantity', 'double', 'caption=Количество->Необходимо->За експедиция,smartCenter');
             $fld->FLD('jobsQuantity', 'double', 'caption=Количество->Необходимо->За производство,smartCenter');
-            $fld->FLD('deliveryQuatity', 'double', 'caption=Количество->За доставка,smartCenter');
+            $fld->FLD('deliveryQuantity', 'double', 'caption=Количество->За доставка,smartCenter');
         } else {
-            $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+        	$fld->FLD('code', 'varchar', 'caption=Код');
+            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
             $fld->FLD('neseseryQuantity', 'double', 'caption=Необходимо->количество,smartCenter');
-            $fld->FLD('deliveryQuatity', 'double', 'caption=Количество->за доставка,smartCenter');
+            $fld->FLD('deliveryQuantity', 'double', 'caption=Количество->за доставка,smartCenter');
         }
         
         return $fld;
     }
 
+    
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param stdClass $rec-
-     *            записа
-     * @param stdClass $dRec-
-     *            чистия запис
+     * @param stdClass $rec  - записа
+     * @param stdClass $dRec - чистия запис
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-        $isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
         
         $row = new stdClass();
         
         if (isset($dRec->productId)) {
-            $row->productId = cat_Products::getShortHyperlink($dRec->productId);
+        	$row->productId = cat_Products::getShortHyperlink($dRec->productId);
         }
         
         if (isset($dRec->quantity)) {
@@ -627,7 +625,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         }
         
         if (isset($dRec->shipmentQuantity)) {
-            $row->shipmentQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->shipmentQuantity);
+            $row->shipmentQuantity =  core_Type::getByName('double(decimals=2)')->toVerbal($dRec->shipmentQuantity);
         }
         
         if (isset($dRec->storeId)) {
@@ -645,17 +643,16 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         }
         
         if ($dRec->quantity < 0) {
-            
             $dRec->quantity = 0;
         }
         $deliveryQuantity = ($dRec->shipmentQuantity + $dRec->jobsQuantity) - ($dRec->receiptQuantity + $dRec->quantity);
         
         if ($deliveryQuantity > 0) {
-            $row->deliveryQuatity = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryQuantity);
+            $row->deliveryQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryQuantity);
         }
         
         if ($deliveryQuantity <= 0) {
-            $row->deliveryQuatity = 'не';
+            $row->deliveryQuantity = 'не';
         }
         
         if ((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))) {
@@ -665,6 +662,25 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         return $row;
     }
 
+    
+    /**
+	 * След подготовка на реда за експорт
+	 * 
+	 * @param frame2_driver_Proto $Driver - драйвер
+	 * @param stdClass $res               - резултатен запис
+	 * @param stdClass $rec               - запис на справката
+	 * @param stdClass $dRec              - запис на реда
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+	 */
+	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
+    {
+    	$code = cat_Products::fetchField($dRec->productId, 'code');
+        $res->code = ($code) ? $code : "Art{$dRec->productId}";
+        $res->quantity = ($dRec->quantity < 0) ? 0 : $dRec->quantity;
+        $res->deliveryQuantity = ($dRec->shipmentQuantity + $dRec->jobsQuantity) - ($dRec->receiptQuantity + $dRec->quantity);
+    }
+    
+    
     /**
      * Изчиства повтарящи се стойности във формата
      *

@@ -166,9 +166,9 @@ class sales_Quotations extends core_Master
         'email' 		      => 'lastDocUser|lastDoc|clientData',
     	'tel' 			      => 'lastDocUser|lastDoc|clientData',
         'fax' 			      => 'lastDocUser|lastDoc|clientData',
-        'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
-        'pCode' 		      => 'lastDocUser|lastDoc|clientData',
-    	'place' 		      => 'lastDocUser|lastDoc|clientData',
+        'contragentCountryId' => 'clientData',
+        'pCode' 		      => 'clientData',
+    	'place' 		      => 'clientData',
     	'address' 		      => 'clientData',
     	'template' 		      => 'lastDocUser|lastDoc|defMethod',
     );
@@ -442,40 +442,42 @@ class sales_Quotations extends core_Master
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-    	if(isset($rec->originId)){
+    	if (isset($rec->originId)) {
     		
     		// Намиране на ориджина
     		$origin = doc_Containers::getDocument($rec->originId);
-    		$originRec = $origin->fetch('id,measureId');
-    		$vat = cat_Products::getVat($origin->that, $rec->date);
-    		
-    		// Ако в река има 1 от 3 к-ва
-    		foreach (range(1, 3) as $i){
-    			
-    			// Ако има дефолтно количество
-    			$quantity = $rec->{"quantity{$i}"};
-    			$price = $rec->{"price{$i}"};
-    			if(!$quantity) continue;
-    				 
-    			// Прави се опит за добавянето на артикула към реда
-    			try{
-    				if(!empty($price)){
-    					$price = deals_Helper::getPurePrice($price, $vat, $rec->currencyRate, $rec->chargeVat);
-    				}
-    				sales_Quotations::addRow($rec->id, $originRec->id, $quantity, $originRec->measureId, $price);
-    			} catch(core_exception_Expect $e){
-    				reportException($e);
-    		
-    				if(haveRole('debug')){
-    					$dump  = $e->getDump();
-    					core_Statuses::newStatus($dump[0], 'warning');
-    				}
-    			}
+    		if ($origin && cls::haveInterface('cat_ProductAccRegIntf', $origin->instance)) {
+    		    $originRec = $origin->fetch('id,measureId');
+    		    $vat = cat_Products::getVat($origin->that, $rec->date);
+    		    
+    		    // Ако в река има 1 от 3 к-ва
+    		    foreach (range(1, 3) as $i){
+    		        
+    		        // Ако има дефолтно количество
+    		        $quantity = $rec->{"quantity{$i}"};
+    		        $price = $rec->{"price{$i}"};
+    		        if(!$quantity) continue;
+    		        
+    		        // Прави се опит за добавянето на артикула към реда
+    		        try{
+    		            if(!empty($price)){
+    		                $price = deals_Helper::getPurePrice($price, $vat, $rec->currencyRate, $rec->chargeVat);
+    		            }
+    		            sales_Quotations::addRow($rec->id, $originRec->id, $quantity, $originRec->measureId, $price);
+    		        } catch(core_exception_Expect $e){
+    		            reportException($e);
+    		            
+    		            if(haveRole('debug')){
+    		                $dump  = $e->getDump();
+    		                core_Statuses::newStatus($dump[0], 'warning');
+    		            }
+    		        }
+    		    }
+    		    
+    		    // Споделяме текущия потребител със нишката на заданието
+    		    $cu = core_Users::getCurrent();
+    		    doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
     		}
-    		
-    		// Споделяме текущия потребител със нишката на заданието
-    		$cu = core_Users::getCurrent();
-    		doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
     	}
     }
     
@@ -955,7 +957,16 @@ class sales_Quotations extends core_Master
      */
     private function createSale($rec)
     {
-    	$templateId = sales_Sales::getDefaultTemplate((object)array('folderId' => $rec->folderId));
+    	$Sales = cls::get('sales_Sales');
+    	$templateId = cond_plg_DefaultValues::getFromLastDocument($Sales, $rec->folderId, 'template');
+    	
+    	if(empty($templateId)){
+    		$templateId = cond_plg_DefaultValues::getFromLastDocument($Sales, $rec->folderId, 'template', FALSE);
+    	}
+    	
+    	if(empty($templateId)){
+    		$templateId = sales_Sales::getDefaultTemplate((object)array('folderId' => $rec->folderId));
+    	}
     	
     	// Подготвяме данните на мастъра на генерираната продажба
     	$fields = array('currencyId'         => $rec->currencyId,
@@ -1573,42 +1584,42 @@ class sales_Quotations extends core_Master
         
         if (!$rec) return $res;
         
+        $res = '';
+        
         if ($rec->reff) {
-            $res = $rec->reff . ' ' . $this->getHandle($id);
-        } else {
-            $dQuery = sales_QuotationsDetails::getQuery();
-            $dQuery->where(array("#quotationId = '[#1#]'", $id));
+            $res = $rec->reff . ' ';
+        }
+        
+        
+        $dQuery = sales_QuotationsDetails::getQuery();
+        $dQuery->where(array("#quotationId = '[#1#]'", $id));
+        
+        // Показваме кода на продукта с най високата сума
+        $maxAmount = NULL;
+        $productId = 0;
+        $pCnt = 0;
+        while($dRec = $dQuery->fetch()) {
+            $amount = $dRec->price * $dRec->quantity;
             
-            // Показваме кода на продукта с най високата сума
-            $maxAmount = NULL;
-            $productId = 0;
-            $pCnt = 0;
-            while($dRec = $dQuery->fetch()) {
-                $amount = $dRec->price * $dRec->quantity;
+            if ($dRec->discount) {
+                $amount = $amount * (1 - $dRec->discount);
                 
-                if ($dRec->discount) {
-                    $amount = $amount * (1 - $dRec->discount);
-                    
-                }
-                
-                if (!isset($maxAmount) || ($amount > $maxAmount)) {
-                    $maxAmount = $amount;
-                    $productId = $dRec->productId;
-                }
-                
-                $pCnt++;
             }
             
-            $pCnt--;
-            if ($productId) {
-                $pRec = cat_products::fetch($productId);
-                cat_Products::setCodeIfEmpty($pRec);
-                
-                $res = $pRec->code;
-                
-                if ($pCnt > 0) {
-                    $res .= ' + ' . tr('още') . ' ' . $pCnt;
-                }
+            if (!isset($maxAmount) || ($amount > $maxAmount)) {
+                $maxAmount = $amount;
+                $productId = $dRec->productId;
+            }
+            
+            $pCnt++;
+        }
+        
+        $pCnt--;
+        if ($productId) {
+            $res .= cat_products::getTitleById($productId);
+            
+            if ($pCnt > 0) {
+                $res .= ' ' . tr('и още') . '...';
             }
         }
         

@@ -19,7 +19,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Себестойности към документ
      */
-    public $title = 'Делти при продажба';
+    public $title = 'Делти в нишки на продажба';
     
     
     /**
@@ -105,8 +105,9 @@ class sales_PrimeCostByDocument extends core_Manager
 	 */
 	protected static function on_CalcDelta(core_Mvc $mvc, $rec)
 	{
-		if(isset($rec->primeCost)){
-			$rec->delta = ($rec->sellCost - $rec->primeCost) * $rec->quantity;
+		if(isset($rec->primeCost) && isset($rec->sellCost)){
+			$delta = $rec->sellCost - $rec->primeCost;
+			$rec->delta = $delta * $rec->quantity;
 		}
 	}
 	
@@ -312,7 +313,8 @@ class sales_PrimeCostByDocument extends core_Manager
 				// Ако документа е обратен
 				$sign = ($masters[$rec->containerId][2] == 'yes') ? -1 : 1;
 				$delta = round($sign * $rec->delta, 2);
-							
+				$delta = self::addSurchargeToDelta($delta, $rec->productId);
+				
 				// Ако няма данни, добавят се
 				if(!array_key_exists($key, $result)){
 					$result[$key] = (object)array('date'        => $rec->valior,
@@ -333,6 +335,25 @@ class sales_PrimeCostByDocument extends core_Manager
 		
 		// Връщане на записите
 		return $result;
+	}
+	
+	
+	/**
+	 * Добавя надценка от артикула към делтата
+	 * 
+	 * @param double $delta
+	 * @param int $productId
+	 * @return double $delta
+	 */
+	public static function addSurchargeToDelta($delta, $productId)
+	{
+		$surcharge = 1;
+		if($Driver = cat_Products::getDriver($productId)){
+			$surcharge = $Driver->getDeltaSurcharge($productId);
+		}
+		$delta = $delta * $surcharge;
+		
+		return $delta;
 	}
 	
 	
@@ -365,6 +386,22 @@ class sales_PrimeCostByDocument extends core_Manager
 		// Всички записи
 		$indicatorRecs = $iQuery->fetchAll();
 		core_App::setTimeLimit(count($indicatorRecs) * 0.8);
+		
+		
+		// Ако няма делта се пропуска
+		foreach ($indicatorRecs as $k => $r2){
+			if(!isset($r2->delta)){
+				unset($indicatorRecs[$k]);
+			}
+		}
+		
+		if($dPercent = sales_Setup::get('DELTA_MIN_PERCENT')){
+			foreach ($indicatorRecs as &$r1){
+				if(isset($r1->delta)){
+					$r1->delta = max($r1->delta, ($r1->sellCost * $r1->quantity * $dPercent));
+				}
+			}
+		}
 		
 		// Връщане на индикаторите за делта на търговеца и инициатора
 		$result1 = self::getDeltaIndicators($indicatorRecs, $masters, $personIds);
@@ -424,60 +461,28 @@ class sales_PrimeCostByDocument extends core_Manager
 					// Сумата е X / броя на групите в които се среща от тези, които се следят
 					$indicatorId = $selectedGroups[$groupId]->groupRec->id;
 					$value = $sign * (round(($rec->quantity * $rec->sellCost) / $delimiter, 2));
-					self::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorId, $value, $isRejected);
+					hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorId, $value, $isRejected);
 				
 					// Индикатор за делта по групите
 					$indicatorDeltaId = $selectedGroups[$groupId]->deltaRec->id;
 					$delta = $sign * (round($rec->delta / $delimiter, 2));
-					self::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorDeltaId, $delta, $isRejected);
+					$delta = self::addSurchargeToDelta($delta, $rec->productId);
+					
+					hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorDeltaId, $delta, $isRejected);
 				
 					// Сумиране по индикатор на общата сума на групите
-					self::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $groupSumId, $value, $isRejected);
+					hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $groupSumId, $value, $isRejected);
 				}
 			} else {
 				
 				// Сумиране на индикатор без група
 				$value = $sign * (round(($rec->quantity * $rec->sellCost), 2));
-				self::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $noGroupSumId, $value, $isRejected);
+				hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $noGroupSumId, $value, $isRejected);
 			}
 		}
 		
 		// Връщане на индикаторите
 		return $result;
-	}
-	
-	
-	/**
-	 * Помощна ф-я за събиране на индикаторите в масив
-	 * 
-	 * @param array $result
-	 * @param datetime $valior
-	 * @param int $personId
-	 * @param int $docId
-	 * @param int $docClassId
-	 * @param int $indicatorId
-	 * @param double $value
-	 * @param boolean $isRejected
-	 */
-	public static function addIndicatorToArray(&$result, $valior, $personId, $docId, $docClassId, $indicatorId, $value, $isRejected)
-	{
-		$key = "{$personId}|{$docClassId}|{$docId}|{$valior}|{$indicatorId}";
-		
-		// Ако няма данни, добавят се
-		if(!array_key_exists($key, $result)){
-			$result[$key] = (object)array('date'        => $valior,
-					 					  'personId'    => $personId,
-										  'docId'       => $docId,
-										  'docClass'    => $docClassId,
-										  'indicatorId' => $indicatorId,
-										  'value'       => $value,
-										  'isRejected'  => $isRejected,);
-		} else {
-		
-			// Ако има вече се сумират
-			$ref = &$result[$key];
-			$ref->value += $value;
-		}
 	}
 	
 	
@@ -578,18 +583,145 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-    	$data->listFilter->FLD('documentId', 'varchar', 'caption=Документ');
+    	$data->listFilter->FLD('documentId', 'varchar', 'caption=Документ, silent');
     	$data->listFilter->showFields = 'documentId';
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->input(NULL, 'silent');
     	$data->listFilter->input();
+    	$data->query->orderBy('valior', "DESC");
     	
     	if($rec = $data->listFilter->rec){
     		if(!empty($rec->documentId)){
+    			
+    			// Търсене и на последващите документи
     			if($document = doc_Containers::getDocumentByHandle($rec->documentId)){
-    				$data->query->where("#containerId = {$document->fetchField('containerId')}");
+    				$in = array($document->fetchField('containerId'));
+    				if($document->isInstanceOf('sales_Sales')){
+    					$descendants = $document->getDescendants();
+    					$descendantArr = array_values(array_map(function($obj) {return $obj->fetchField('containerId');}, $descendants));
+    					$in = array_merge($in, $descendantArr);
+    				}
+    				
+    				$data->query->in("containerId", $in);
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Обновява дилърите и инциаторите на подадените документи
+     * 
+     * @param array $containerIds
+     * @return void
+     */
+    public static function updatePersons($containerIds)
+    {
+    	$containerIds = arr::make($containerIds);
+    	if(!count($containerIds)) return;
+    	
+    	$query = self::getQuery();
+    	$query->in('containerId', $containerIds);
+    	while($rec = $query->fetch()){
+    		$persons = self::getDealerAndInitiatorId($rec->containerId);
+    		if($rec->dealerId != $persons['dealerId'] || $rec->initiatorId != $persons['initiatorId']){
+    			$rec->dealerId = $persons['dealerId'];
+    			$rec->initiatorId = $persons['initiatorId'];
+    			self::save($rec);
+    			
+    			$doc = doc_Containers::getDocument($rec->containerId);
+    			$doc->touchRec();
+    			$doc->getInstance()->logInAct("Обновяване на дилъра и/или инициатора на делтата", $doc->that);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Колко е себестойноста на продажбата
+     *
+     * @param int $productId
+     * @param int $packagingId
+     * @param double $quantity
+     * @param stdClass $saleRec
+     * @param int $listId
+     * @return NULL|double $primeCost
+     */
+    public static function getPrimeCostInSale($productId, $packagingId, $quantity, $saleRec, $listId)
+    {
+    	$productRec = cat_Products::fetch($productId, 'isPublic,code');
+    	if($productRec->isPublic == 'yes'){
+    		$primeCost = price_ListRules::getPrice($listId, $productId, $packagingId, $saleRec->valior);
+    	} else {
+    		$Driver = cat_Products::getDriver($productId);
+    		if(is_object($Driver)){
+    			$primeCost = $Driver->getPrice($productId, $quantity, 0, 0, $saleRec->valior);
+    		}
+    		
+    		// Ако няма себестойност от драйвера, търсим тази по рецепта
+    		if(!isset($primeCost)){
+    			$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
+    			if(empty($bomRec)){
+    				$bomRec = cat_Products::getLastActiveBom($productId, 'production');
+    			}
+    	
+    			if($bomRec){
+    				$primeCost = cat_Boms::getBomPrice($bomRec, $quantity, 0, 0, $saleRec->valior, $listId);
+    			}
+    		}
+    	}
+    	
+    	if(isset($primeCost)){
+    		$costs = sales_Sales::getCalcedTransports($saleRec->threadId);
+    		if(isset($costs[$productId])){
+    			$primeCost += $costs[$productId]->fee / $costs[$productId]->quantity;
+    		}
+    	}
+    		
+    	// Ако артикулът е 'Надценка' няма себестойност
+    	if($productRec->code == 'surcharge'){
+    		$primeCost = 0;
+    	}
+    	
+    	return $primeCost;
+    }
+    
+    
+    /**
+     * Колко е себестойноста на документа според продажбата към която е
+     * 
+     * @param int $productId
+     * @param int $packagingId
+     * @param double $quantity
+     * @param int $containerId
+     * @param int|NULL $listId
+     * @return NULL|double
+     */
+    public static function getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId, $listId = NULL)
+    {
+    	$threadId = doc_Containers::fetchField($containerId, 'threadId');
+    	if(empty($threadId)) return NULL;
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	
+    	if(!$firstDoc->isInstanceOf('sales_Sales')) return NULL;
+    	
+    	$containerId = $firstDoc->fetchField('containerId');
+    	$query = self::getQuery();
+    	$query->where("#containerId = {$containerId} AND #productId = {$productId}");
+    	$query->show('quantity,primeCost');
+    	$sum = $totalQ = 0;
+    	
+    	while($rec = $query->fetch()){
+    		$sum += $rec->quantity * $rec->primeCost;
+    		$totalQ += $rec->quantity;
+    	}
+    	
+    	// Сумата на себестойноста е среднопритеглената себестойност
+    	if($totalQ) return $sum / $totalQ;
+    	
+    	if(isset($listId)) return self::getPrimeCostInSale($productId, $packagingId, $quantity, $firstDoc->fetch(), $listId);
+    	
+    	return NULL;
     }
 }

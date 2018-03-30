@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -51,13 +51,13 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin';
     
     
     /**
-     * Активен таб на менюто
+     * Полетата, които могат да се променят с change_Plugin
      */
-    public $menuPage = 'Търговия:Продажби';
+    public $changableFields = 'dealerId,initiatorId';
     
     
     /**
@@ -210,16 +210,20 @@ class sales_Sales extends deals_DealMaster
      * Позволени операции на последващите платежни документи
      */
     public $allowedPaymentOperations = array(
-    		'customer2caseAdvance' => array('title' => 'Авансово плащане от Клиент', 'debit' => '501', 'credit' => '412'),
-    		'customer2bankAdvance' => array('title' => 'Авансово плащане от Клиент', 'debit' => '503', 'credit' => '412'),
-    		'customer2case'        => array('title' => 'Плащане от Клиент', 'debit' => '501', 'credit' => '411'),
-    		'customer2bank'        => array('title' => 'Плащане от Клиент', 'debit' => '503', 'credit' => '411'),
-    		'case2customer'        => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '501', 'reverse' => TRUE),
-    		'bank2customer'        => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '503', 'reverse' => TRUE),
-    		'caseAdvance2customer' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '501', 'reverse' => TRUE),
-    		'bankAdvance2customer' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '503', 'reverse' => TRUE),
-    		'debitDeals'           => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '411'),
-    		'creditDeals'          => array('title' => 'Прихващане на задължение', 'debit' => '411', 'credit' => '*', 'reverse' => TRUE), 
+    		'customer2caseAdvance'    => array('title' => 'Авансово плащане от Клиент', 'debit' => '501', 'credit' => '412'),
+    		'customer2bankAdvance'    => array('title' => 'Авансово плащане от Клиент', 'debit' => '503', 'credit' => '412'),
+    		'customer2case'           => array('title' => 'Плащане от Клиент', 'debit' => '501', 'credit' => '411'),
+    		'customer2bank'           => array('title' => 'Плащане от Клиент', 'debit' => '503', 'credit' => '411'),
+    		'case2customer'           => array('title' => 'Прихващане на плащане', 'debit' => '411', 'credit' => '501', 'reverse' => TRUE),
+    		'bank2customer'           => array('title' => 'Прихващане на плащане', 'debit' => '411', 'credit' => '503', 'reverse' => TRUE),
+    		'case2customerRet'        => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '501', 'reverse' => TRUE),
+    		'bank2customerRet'        => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '503', 'reverse' => TRUE),
+    		'caseAdvance2customer'    => array('title' => 'Прихванат аванс на Клиент', 'debit' => '412', 'credit' => '501', 'reverse' => TRUE),
+    		'bankAdvance2customer'    => array('title' => 'Прихванат аванс на Клиент', 'debit' => '412', 'credit' => '503', 'reverse' => TRUE),
+    		'caseAdvance2customerRet' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '501', 'reverse' => TRUE),
+    		'bankAdvance2customerRet' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '503', 'reverse' => TRUE),
+    		'debitDeals'              => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '411'),
+    		'creditDeals'             => array('title' => 'Прихващане на задължение', 'debit' => '411', 'credit' => '*', 'reverse' => TRUE), 
     		);
 
     
@@ -275,6 +279,12 @@ class sales_Sales extends deals_DealMaster
      * Кои които трябва да имат потребителите да се изберат като дилъри
      */
     public $dealerRolesList = 'sales,ceo';
+    
+    
+    /**
+     * Кои роли може да променят активна продажбата
+     */
+    public $canChangerec = 'ceo,salesMaster';
     
     
     /**
@@ -631,6 +641,14 @@ class sales_Sales extends deals_DealMaster
             	$p->batches = $bQuery->fetchAll();
             }
             
+            if($tRec = tcost_Calcs::get(sales_Sales::getClassId(), $rec->id, $dRec->id)){
+            	if($tRec->fee > 0){
+            		$p->fee = $tRec->fee;
+            		$p->deliveryTimeFromFee = $tRec->deliveryTime;
+            		$p->syncFee = TRUE;
+            	}
+            }
+             
             $agreed[] = $p;
             
             $p1 = clone $p;
@@ -678,7 +696,9 @@ class sales_Sales extends deals_DealMaster
     			unset($allowedPaymentOperations['customer2caseAdvance'], 
     					$allowedPaymentOperations['customer2bankAdvance'], 
     					$allowedPaymentOperations['caseAdvance2customer'],
-    					$allowedPaymentOperations['bankAdvance2customer']);
+    					$allowedPaymentOperations['bankAdvance2customer'],
+    					$allowedPaymentOperations['caseAdvance2customerRet'],
+    					$allowedPaymentOperations['bankAdvance2customerRet']);
     		}
     	}
     	 
@@ -841,7 +861,7 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	// Слагаме iframe заради касовата бележка, ако не принтираме
-    	if(!Mode::is('printing')){
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
     		$tpl->append("<iframe name='iframe_a' style='display:none'></iframe>");
     		
     		if(is_array($data->jobs) === TRUE){
@@ -1102,10 +1122,6 @@ class sales_Sales extends deals_DealMaster
     		$row->priceListId = price_Lists::getHyperlink($rec->priceListId, TRUE);
     	}
 
-        if(isset($fields['-list'])){  
-            $row->title .= "<div>{$row->folderId}</div>";
-        }
-
     	if(isset($fields['-single'])){
     		
     		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, "commonConditionSale")){
@@ -1340,14 +1356,16 @@ class sales_Sales extends deals_DealMaster
     	 
     	$query = self::getQuery();
     	$query->where("#state = 'active' || #state = 'closed' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
-    	$query->where("#activatedOn >= '{$timeline}'");
-    	$query->show('activatedBy,activatedOn,state');
+    	$query->where("#modifiedOn >= '{$timeline}'");
+    	$query->show('valior,activatedOn,activatedBy,state,createdBy');
     	 
     	while($rec = $query->fetch()){
-    		$personId = crm_Profiles::fetchField("#userId = {$rec->activatedBy}", 'personId');
+    		$activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
+    		if(empty($activatedBy)) continue;
+    		$personId = crm_Profiles::fetchField("#userId = {$activatedBy}", 'personId');
     		if(empty($personId)) continue;
     		
-    		$result[] = (object)array('date'        => dt::verbal2mysql($rec->activatedOn, FALSE),
+    		$result[] = (object)array('date'        => dt::verbal2mysql($rec->valior, FALSE),
     								  'personId'    => $personId,
     								  'docId'       => $rec->id,
     								  'docClass'    => sales_Sales::getClassId(),
@@ -1358,5 +1376,65 @@ class sales_Sales extends deals_DealMaster
     	}
     
     	return $result;
+    }
+    
+    
+    /**
+     * Прихваща извикването на AfterSaveLogChange в change_Plugin
+     * Добавя нотификация след промяна на документа
+     *
+     * @param $mvc $mvc
+     * @param array $recsArr - Масив със записаните данни
+     */
+    protected static function on_AfterSaveLogChange($mvc, $recsArr)
+    {
+    	if(is_array($recsArr)){
+    		if($fRec = $recsArr[0]){
+    			if($fRec->docClass && $fRec->docId){
+    				$rec = cls::get($fRec->docClass)->fetch($fRec->docId, 'threadId,containerId');
+    				
+    				// Кои са контейнерите в нишката
+    				$tRec = doc_Containers::getQuery();
+    				$tRec->where("#threadId = {$rec->threadId}");
+    				$tRec->show('id');
+    				$containerIds = arr::extractValuesFromArray($tRec->fetchAll(), 'id');
+    				$containerIds[$fRec->containerId] = $rec->containerId;
+    				
+    				// Ще им се преизчисляват делтите
+    				sales_PrimeCostByDocument::updatePersons($containerIds);
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Връща разпределените разходи по сделката
+     * 
+     * @param int $threadId
+     * @return array $res
+     */
+    public static function getCalcedTransports($threadId)
+    {
+    	$res = array();
+    	$Doc = doc_Threads::getFirstDocument($threadId);
+    	if(empty($Doc)) return $res;
+    	if(!$Doc->isInstanceOf('sales_Sales')) return $res;
+    	
+    	$saleClassId = sales_Sales::getClassId();
+    	$tCostQuery = tcost_Calcs::getQuery();
+    	$tCostQuery->where("#docClassId = {$saleClassId} AND #docId = {$Doc->that}");
+    	$tCostQuery->where("#fee > 0");
+    	while($tRec = $tCostQuery->fetch()){
+    		$dRec = sales_SalesDetails::fetch($tRec->recId, 'productId,quantity');
+    		if(!array_key_exists($dRec->productId, $res)){
+    			$costs[$dRec->productId] = new stdClass();
+    		}
+    			
+    		$costs[$dRec->productId]->fee += $tRec->fee;
+    		$costs[$dRec->productId]->quantity += $dRec->quantity;
+    	}
+    	
+    	return $costs;
     }
 }

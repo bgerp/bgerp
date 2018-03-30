@@ -27,6 +27,10 @@ en,"Моля, посочете _dd0b",Please specify where to move selected thre
 en,"Не може да добавите продукта като опционален, защото фигурира вече като задължителен!","Unable to add product as optional because already included as mandatory!"
 en,"Неполучени, върнати писма","Not received, returned mails"
 en,"Обекти, достъп_a7851",Available objects for publishing
+en,Обнови,Refresh
+en,обнови,refresh
+en,Обновяване,Refresh
+en,обновяване,refresh
 en,"Отчети и доклади, за любителите на цифрите",Records and reports for lovers of numbers
 en,"Параметри, под_a428f","Parameters, supported by the sensors"
 en,"Позиция по въпроси касаещи България, Европа и света","Position on issues relating to Bulgaria, Europe and the world"
@@ -556,7 +560,7 @@ en,Език,Language
 en,Езици,Languages
 en,Екип,Team
 en,Екипен,Team
-en,Експедиране,Shipping
+en,Експедиране,Shipment
 en,Експедици,Shipping orders
 en,Експедиции,Shipments
 en,Експедиционни _b21d,Shipping orders
@@ -1060,6 +1064,7 @@ en,Наистина ли же_c9dfa,Do you really want to correct the document?
 en,Наистина ли же_eb7d0,Do you really want to create a folder for documents to
 en,Наистина ли имейла започва с, Are you sure that the email begins with
 en,Наистина ли ис_9f50b,Are you sure you want to ACTIVATE the document?
+en,Наистина ли желаете документът да бъде контиран?,Are you sure you want to post the document?
 en,Наклонен текст,Italic
 en,Наличност,Availability
 en,Наличности,Stock
@@ -1656,7 +1661,7 @@ en,Пускане,Release
 en,Пускане в експ_8dd6f,Commissioning of LTA
 en,Първи документ,First document
 en,Първи документ_e7b9,First document in the thread
-en,Първо отворените,First opens
+en,Първо отворените,First opened
 en,Първо чакащите,First waitings
 en,Път до хранилище,Path to repository
 en,Път,Path
@@ -2313,6 +2318,7 @@ en,отпечатвания,prints
 en,оттеглени,rejected
 en,оферта,quotation
 en,още,more
+en,и още,and more
 en,пакет,package
 en,палет,pallet
 en,платен,paid
@@ -2430,3 +2436,13 @@ en,товарителница,cmr waybill
 en,с просрочия,with overdue
 en,Има просрочени сделки,There are overdue deals
 en,Клиент от,Client from
+en,Възстановяване на забравена парола за,Password recovery for
+en,Разпознаване,Recognition
+en,Тук въведете предходните цифри,Please enter the digits from the left
+en,Изпрати заявка,Send request
+en,За публикуване в сайта,For site publishing
+en,Виж още на,See more on
+en,Попълнете полетата и натиснете бутона за изпращане.,Fill the form and send request.
+en,"Имейл адресът трябва да бъде този, с който сте се регистрирали.",The email address should be the one you signed up for.
+en,На този имейл ще получите линк за избор на нова парола за достъп.,At this email address you will receive a link to choice a new password.
+en,Продуктови групи,Product groups

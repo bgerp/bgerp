@@ -346,8 +346,8 @@ abstract class store_DocumentMaster extends core_Master
     	
     	if(store_DocumentPackagingDetail::haveRightFor('add', (object)array('documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id))){
     		
-    		$btnIn = ht::createBtn("Предаване (Амбалаж)", array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'type' => 'out','ret_url' => TRUE), FALSE, FALSE, 'title=Предаване на амбалаж,ef_icon=img/16/lorry_add.png');
-    		$btnOut = ht::createBtn("Приемане (Амбалаж)", array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'type' => 'in','ret_url' => TRUE), FALSE, FALSE, 'title=Приемане на амбалаж,ef_icon=img/16/lorry_add.png');
+    		$btnIn = ht::createBtn("Отг.пазене: ПРЕДАВАНЕ", array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'type' => 'out','ret_url' => TRUE), FALSE, FALSE, 'title=Отговорно пазене: предаване КЪМ Контрагент,ef_icon=img/16/lorry_add.png');
+    		$btnOut = ht::createBtn("Отг.пазене: ПРИЕМАНЕ", array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'type' => 'in','ret_url' => TRUE), FALSE, FALSE, 'title=Отговорно пазене: приемане ОТ Контрагент,ef_icon=img/16/lorry_add.png');
     		$tpl->append($btnIn, 'PACKAGING_BTNS');
     		$tpl->append($btnOut, 'PACKAGING_BTNS');
     	}
@@ -568,9 +568,9 @@ abstract class store_DocumentMaster extends core_Master
     	$row->address = str_replace('<br>', ',', $row->address);
     	$row->address = "<span style='font-size:0.8em'>{$contragentTitle}, {$row->address}</span>";
     	 
-    	$row->storeId = store_Stores::getHyperlink($rec->storeId);
+    	$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
-    	$row->docId = $this->getLink($rec->id, 0);
+    	$row->docId = (!Mode::is('printing')) ? $this->getLink($rec->id, 0) : "#" . $this->getHandle($rec->id);
     	
     	return $row;
     }
@@ -592,6 +592,12 @@ abstract class store_DocumentMaster extends core_Master
     	while($dRec = $query->fetch()){
     		$dRec->rowNumb = $i;
     		$arr[$dRec->id] = $this->prepareLineRows($dRec);
+    		
+    		if(Mode::is('printing') && Request::get('Width') && isset($this->layoutFileInLine)){
+    			Mode::push('renderHtmlInLine', TRUE);
+    			$arr[$dRec->id]->documentHtml = $this->getInlineDocumentBody($dRec->id);
+    			Mode::pop('renderHtmlInLine');
+    		}
     		$i++;
     		
     		if(!empty($dRec->weight) && $masterData->weight !== FALSE){
@@ -614,6 +620,18 @@ abstract class store_DocumentMaster extends core_Master
     }
 
 
+    /**
+     * Променяме шаблона в зависимост от мода
+     */
+    protected static function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	if(Mode::is('renderHtmlInLine') && isset($mvc->layoutFileInLine)){
+    		$data->singleLayout = getTplFromFile($mvc->layoutFileInLine);
+    		unset($data->_selectTplForm);
+    	}
+    }
+    
+    
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */

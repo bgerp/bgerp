@@ -83,7 +83,7 @@ class plg_Rejected extends core_Plugin
             $rejCnt = $data->rejQuery->count();
 
             if($rejCnt) {
-                $data->rejQuery->orderBy('#modifiedOn', 'DESC', TRUE);
+                $data->rejQuery->orderBy('#modifiedOn', 'DESC', 100);
                 $data->rejQuery->limit(1);
                 $lastRec = $data->rejQuery->fetch();
                 $color = dt::getColorByTime($lastRec->modifiedOn);

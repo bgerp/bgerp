@@ -38,7 +38,7 @@ class distro_ActionsDriverIntf extends embed_DriverIntf
     /**
      * Връща стринга, който ще се пуска за обработка
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     function getActionStr($rec)
     {
@@ -50,7 +50,7 @@ class distro_ActionsDriverIntf extends embed_DriverIntf
     /**
      * Вика се след приключване на обработката
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     function afterProcessFinish($rec)
     {

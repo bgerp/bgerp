@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -69,6 +69,12 @@ class acc_CostAllocations extends core_Manager
 	 * Кои полета да се извличат при изтриване
 	 */
 	public $fetchFieldsBeforeDelete = 'containerId';
+	
+	
+	/**
+	 * Поддържани интерфейси
+	 */
+	public $interfaces = 'hr_IndicatorsSourceIntf';
 	
 	
     /**
@@ -306,7 +312,7 @@ class acc_CostAllocations extends core_Manager
 	/**
 	 * След преобразуване на записа в четим за хора вид
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$uomId = key(cat_Products::getPacks($rec->productId));
 		
@@ -347,6 +353,14 @@ class acc_CostAllocations extends core_Manager
 		if(isset($hint)){
 			$row->expenseItemId = ht::createHint($row->expenseItemId, $hint, 'warning', FALSE, array('height' => 14, 'width' => 14))->getContent();
 			$row->expenseItemId = "<span style='opacity: 0.7;'>{$row->expenseItemId}</span>";
+		}
+		
+		if(isset($fields['-list'])){
+			try{
+				$row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
+			} catch(core_exception_Expect $e){
+				$row->containerId = "<span class='red'>" . tr('Проблем с показването') . "</span>";
+			}
 		}
 	}
 	
@@ -688,5 +702,131 @@ class acc_CostAllocations extends core_Manager
 		
 		// връщане на редовете
 		return $res;
+	}
+	
+	
+	/**
+	 * Интерфейсен метод на hr_IndicatorsSourceIntf
+	 *
+	 * @return array $result
+	 */
+	public static function getIndicatorNames()
+	{
+		$result = array();
+		 
+		// Показател за делта на търговеца
+		$rec = hr_IndicatorNames::force('salesExpenses', __CLASS__, 1);
+		$result[$rec->id] = $rec->name;
+		
+		return $result;
+	}
+	
+	
+	/**
+	 * Метод за вземане на резултатност на хората. За определена дата се изчислява
+	 * успеваемостта на човека спрямо ресурса, които е изпозлвал
+	 *
+	 * @param date $timeline  - Времето, след което да се вземат всички модифицирани/създадени записи
+	 * @return array $result  - масив с обекти
+	 *
+	 * 			o date        - дата на стайноста
+	 * 		    o personId    - ид на лицето
+	 *          o docId       - ид на документа
+	 *          o docClass    - клас ид на документа
+	 *          o indicatorId - ид на показател
+	 *          o value       - стойноста на показател
+	 *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от показателите
+	 */
+	public static function getIndicatorValues($timeline)
+	{
+		$result = array();
+		
+		// Показател за делта на търговеца
+		$expenseIndicatorId = hr_IndicatorNames::force('salesExpenses', __CLASS__, 1)->id;
+		$eQuery = self::getIndicatorQuery($timeline);
+		
+		$wh = $eQuery->getWhereAndHaving();
+		if(empty($wh->w)) return $result;
+		
+		while($eRec = $eQuery->fetch()){
+			$saleRec = cls::get($eRec->expenseClassId)->fetch($eRec->expenseObjectId);
+			
+			$persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($saleRec->containerId);
+			if(empty($persons['dealerId'])) continue;
+			
+			$Document = doc_Containers::getDocument($eRec->containerId);
+			if(!acc_Journal::fetchByDoc($Document->getInstance(), $Document->that)) continue;
+			$dRec = cls::get($eRec->detailClassId)->fetch($eRec->detailRecId);
+			$amount = $dRec->amount;
+			
+			$sign = ($dRec->isReverse == 'yes') ? -1 : 1;
+			$personId = crm_Profiles::fetchField("#userId = '{$persons['dealerId']}'", 'personId');
+			$key = "{$personId}|{$Document->getClassId()}|{$Document->that}|{$saleRec->valior}|{$expenseIndicatorId}";
+			
+			// Ако няма данни, добавят се
+			if(!array_key_exists($key, $result)){
+				$result[$key] = (object)array('date'        => $saleRec->valior,
+					 					      'personId'    => $personId,
+										      'docId'       => $Document->that,
+										      'docClass'    => $Document->getClassId(),
+										      'indicatorId' => $expenseIndicatorId,
+										      'value'       => round($sign * $amount, 4),
+										      'isRejected'  => $dRec->state == 'rejected',);
+			} else {
+		
+				// Ако има вече се сумират
+				$ref = &$result[$key];
+				$ref->value += round($sign * $amount, 4);
+			}
+		}
+		
+		return $result;
+	}
+	
+	
+	/**
+	 * Кои са последно модифицираните контейнери
+	 */
+	private static function getLastModifiedContainers($timeline)
+	{
+		$containers = array();
+		
+		// Кои документи ще се проверяват дали са променяни
+		$documents = array('purchase_Purchases', 'purchase_Services', 'sales_Services', 'findeals_AdvanceReports', 'planning_DirectProductionNote');
+		
+		foreach ($documents as $docName){
+			$Doc = cls::get($docName);
+			$dQuery = $Doc->getQuery();
+			$dQuery->where("#modifiedOn >= '{$timeline}'");
+			$dQuery->where("#state != 'draft' AND #state != 'pending' AND #state != 'stopped'");
+			$dQuery->show('containerId');
+			$containers += arr::extractValuesFromArray($dQuery->fetchAll(), 'containerId');
+		}
+		
+		return $containers;
+	}
+	
+	
+	/**
+	 * Заявката към записите от модела, чиито документи са променяни след $timeline
+	 *
+	 * @param datetime $timeline  - времева линия след който ще се филтрират документите
+	 * @param array $masters      - помощен масив
+	 * @return core_Query $iQuery - подготвената заявка
+	 */
+	public static function getIndicatorQuery($timeline)
+	{
+		$timeline = '';
+		$eQuery = self::getQuery();
+		
+		$containers = self::getLastModifiedContainers($timeline);
+		if(!count($containers)) return $eQuery;
+		
+		$eQuery->EXT('expenseClassId', 'acc_Items', "externalName=classId,externalKey=expenseItemId");
+		$eQuery->EXT('expenseObjectId', 'acc_Items', "externalName=objectId,externalKey=expenseItemId");
+		$eQuery->where("#expenseClassId = " . sales_Sales::getClassId());
+		$eQuery->in('containerId', $containers);
+		
+		return $eQuery;
 	}
 }

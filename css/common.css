@@ -1273,6 +1273,18 @@ a.profile {
   background-color: #a5aaff;
   background-color: rgba(165, 170, 255, 0.7); }
 
+.sale-with-active-job {
+  background-color: #b1ebc0;
+  padding: 1px !important;
+  border-radius: 5px;
+  display: inline-block; }
+
+.sale-with-closed-job {
+  background-color: #cccccc;
+  padding: 1px !important;
+  border-radius: 5px;
+  display: inline-block; }
+
 .document .state-rejected.state,
 .document .state-rejected.state a {
   color: #444444 !important;
@@ -1485,6 +1497,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 form .inputAdvanced {
   background-color: #ddffdd !important; }
+
+.inlineForm .listFilter form {
+  float: none !important; }
 
 .inputWarning {
   border: solid 1px blue; }

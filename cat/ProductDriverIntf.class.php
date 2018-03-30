@@ -1,5 +1,7 @@
 <?php
 
+
+
 /**
  * Интерфейс за създаване на отчети от различни източници в системата
  *
@@ -7,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -398,5 +400,93 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	public function getTransportVolume($rec, $quantity)
 	{
 		return $this->class->getTransportVolume($rec, $quantity);
+	}
+	
+	
+	/**
+	 * Връща сериен номер според източника
+	 * 
+	 * @param mixed $id             - ид или запис на артикул
+	 * @param mixed $sourceClassId  - клас
+	 * @param mixed $sourceObjectId - ид на обект
+	 * @return string $serial       - генериран сериен номер
+	 */
+	public function generateSerial($id, $sourceClassId = NULL, $sourceObjectId = NULL)
+	{
+		return $this->class->generateSerial($id, $sourceClassId, $sourceObjectId);
+	}
+	
+	
+	/**
+	 * Регистрира дадения сериен номер, към обекта (ако има)
+	 *
+	 * @param mixed $id                - ид или запис на артикул
+	 * @param mixed $serial            - сериен номер
+	 * @param mixed $sourceClassId     - клас на обекта
+	 * @param int|NULL $sourceObjectId - ид на обекта
+	 */
+	public function assignSerial($id, $serial, $sourceClassId = NULL, $sourceObjectId = NULL)
+	{
+		return $this->class->assignSerial($id, $serial, $sourceClassId, $sourceObjectId);
+	}
+	
+	
+	/**
+	 * Записа на артикула отговарящ на серийния номер
+	 *
+	 * @param int $serial
+	 * @return stdClass|NULL
+	 */
+	public function getRecBySerial($serial)
+	{
+		return $this->class->getRecBySerial($serial);
+	}
+	
+	
+	/**
+	 * Канонизиране генерирания номер
+	 *
+	 * @param string $serial
+	 * @return string
+	 */
+	public function canonizeSerial($id, $serial)
+	{
+		return $this->class->canonizeSerial($id, $serial);
+	}
+	
+	
+	/**
+	 * Проверяване на серийния номер
+	 *
+	 * @param string $serial
+	 * @return string
+	 */
+	public function checkSerial($id, $serial, &$error)
+	{
+		return $this->class->checkSerial($id, $serial, $error);
+	}
+	
+	
+	/**
+	 * Връща сложността на артикула
+	 *
+	 * @param mixed $rec
+	 * @return int
+	 */
+	public function getDifficulty($rec)
+	{
+		return $this->class->getDifficulty($rec);
+	}
+	
+	
+	/**
+	 * Надценка на делтата
+	 *
+	 * @param mixed $rec
+	 * @return int
+	 */
+	public function getDeltaSurcharge($rec)
+	{
+		return $this->class->getDeltaSurcharge($rec);
 	}
 }

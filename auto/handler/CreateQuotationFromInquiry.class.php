@@ -57,7 +57,14 @@ class auto_handler_CreateQuotationFromInquiry {
     	}
     	
     	// Опит за създаване на артикул от запитване
-    	$productId = $this->createProduct($marketingRec, $Cover, $document);
+    	try{
+    		$productId = $this->createProduct($marketingRec, $Cover, $document);
+    	} catch(core_exception_Expect $e){
+    		$productId = NULL;
+    		marketing_Inquiries2::logDebug($error, $marketingRec->id);
+    		reportException($e);
+    	}
+    	
     	if(!$productId){
     		marketing_Inquiries2::logDebug("Проблем при опит за създаване на автоматичен артикул към запитване", $marketingRec->id);
     		return;

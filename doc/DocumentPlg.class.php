@@ -147,18 +147,14 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->fetchFieldsBeforeDelete .= ',';
         }
         $mvc->fetchFieldsBeforeDelete = 'containerId';
-        
-        // За експорт при принтиране
-        setIfNot($mvc->exportInExternalField, 'productId=cat_Products');
-        setIfNot($mvc->exportInExternalFieldAll, 'productId=code, packQuantity, packagingId, packPrice, batch');
     }
     
     
     /**
      * Помощна функция за показване на текста на оригиналния файл във формата
      *
-     * @param stdObject $fRec
-     * @param NULL|stdObject $form
+     * @param stdClass $fRec
+     * @param NULL|stdClass $form
      * @param NULL|string $form
      */
     public static function showOriginalFile($fRec, $form = NULL, $localUrl = NULL)
@@ -438,8 +434,8 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($mvc->haveRightFor('exportdoc', $data->rec)) {
             Request::setProtected(array('classId', 'docId'));
-            $data->toolbar->addBtn("Сваляне", toUrl(array('bgerp_E', 'export', 'classId' => $mvc->getClassId(), 'docId' => $data->rec->id)),
-                            "id=btnDownloadDoc{$data->rec->containerId}, row=2, order=19.6,title=" . tr('Сваляне на документа'),  'ef_icon = img/16/down16.png');
+            $data->toolbar->addBtn("Експорт", toUrl(array('export_Export', 'Export', 'classId' => $mvc->getClassId(), 'docId' => $data->rec->id)),
+                            "id=btnDownloadDoc{$data->rec->containerId}, row=2, order=19.6,title=" . tr('Експорт на документа'),  'ef_icon = img/16/export.png');
             Request::removeProtected(array('classId', 'docId'));
         }
         
@@ -512,7 +508,7 @@ class doc_DocumentPlg extends core_Plugin
      * Подготовка на филтър формата
      * 
      * @param core_Manager $mvc
-     * @param stdObject $data
+     * @param stdClass $data
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
@@ -579,8 +575,8 @@ class doc_DocumentPlg extends core_Plugin
         
         if($fields['-list']){
             if($rec->folderId) {
-        	    $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-            
+        	    $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
+           
         	    if($invoker->hasPlugin('plg_RowTools2')){
         	    	if(doc_Folders::haveRightFor('single', $rec->folderId)) {
         	    		core_RowToolbar::createIfNotExists($row->_rowTools);
@@ -731,21 +727,23 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
-        if($rec->state == 'active' || $rec->state == 'rejected' && !Mode::is('MassImporting')){
-            
+        if (!Mode::is('MassImporting') && (($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected') || $rec->state != 'draft')) {
             $usedDocuments = $mvc->getUsedDocs($rec->id);
             foreach((array)$usedDocuments as $usedCid){
-                $uDoc = doc_Containers::getDocument($usedCid);
+                $msg = '';
                 
-                if($rec->state == 'rejected'){
+                if (($rec->state == 'rejected') || ($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected')) {
                     doclog_Used::remove($containerId, $usedCid);
                     $msg = 'Премахнато използване';
-                } else {
+                } elseif (($rec->state != 'draft') && ($rec->state != 'rejected')) {
                     doclog_Used::add($containerId, $usedCid);
                     $msg = 'Използване на документа';
                 }
-                
-                $uDoc->instance->logRead($msg, $uDoc->that);
+
+                if ($msg) {
+                    $uDoc = doc_Containers::getDocument($usedCid);
+                    $uDoc->instance->logRead($msg, $uDoc->that);
+                }
             }
         }
         
@@ -1312,103 +1310,6 @@ class doc_DocumentPlg extends core_Plugin
             $res = new Redirect($linkToSingle);
             
             return FALSE;
-    	}
-    	
-    	// Екшън при експортиране във външната част
-    	if ($action == 'exportinexternal') { 
-    	    
-    	    $id = Request::get('id', 'int');
-    	    expect($id);
-    	    
-    	    $mId = Request::get('mid');
-    	    
-    	    $mRec = $mvc->fetch($id);
-    	    expect($mRec && $mRec->containerId);
-    	    expect($mRec->state != 'rejected');
-    	    
-    	    expect($action = doclog_Documents::opened($mRec->containerId, $mId));
-    	    doclog_Documents::popAction();
-    	    
-    	    // Ако е избран друг шаблон за отпечатване
-    	    if ($action->data->tplManagerId) {
-    	        $mRec->template = $action->data->tplManagerId;
-    	    }
-    	    
-    	    $lg = '';
-    	    if ($mRec->template) {
-    	        $lg = $mvc->pushTemplateLg($mRec->template);
-    	    }
-    	    
-    	    $activatedBy = $action->createdBy;
-    	    
-    	    if (!$activatedBy || $activatedBy <= 0) {
-    	        $activatedBy = $mRec->activatedBy;
-    	    }
-    	    
-    	    if ($action->containerId) {
-    	        if (!$activatedBy || $activatedBy <= 0) {
-    	            
-    	            $sContainerRec = doc_Containers::fetch($action->containerId);
-    	            $activatedBy = $sContainerRec->activatedBy;
-    	        }
-    	    }
-    	    
-    	    if ($activatedBy <= 0 && $mRec->containerId) {
-    	        $sContainerRec = doc_Containers::fetch($mRec->containerId);
-    	        
-    	        if ($sContainerRec->modifiedBy >= 0) {
-    	            $activatedBy = $sContainerRec->modifiedBy;
-    	        } elseif ($sContainerRec->createdBy >= 0) {
-    	            $activatedBy = $sContainerRec->createdBy;
-    	        }
-    	    }
-    	    
-    	    if (!$lg) {
-    	        $lg = doc_Containers::getLanguage($mRec->containerId);
-    	        if ($lg && !core_Lg::isGoodLg($lg)) {
-    	            $lg = 'en';
-    	        }
-    	        core_Lg::push($lg);
-    	    }
-    	    
-    	    $recs = array();
-    	    
-    	    try {
-    	        if (strpos($mvc->exportInExternalField, '=')) {
-    	            list(,$exportFCls) = explode('=', $mvc->exportInExternalField);
-    	            $csvFields = new core_FieldSet();
-    	            $recs = $exportFCls::getRecsForExportInExternal($mvc, $mRec, $csvFields, $activatedBy);
-    	        }
-    	    } catch (core_exception_Expect $e) {}
-    	    
-    	    if (!empty($recs)) {
-    	        $csv = csv_Lib::createCsv($recs, $csvFields);
-    	        
-    	        if ($lg) {
-    	            core_Lg::pop();
-    	        }
-    	        
-    	        $fileName = $mvc->getHandle($mRec->id) . '_Export.csv';
-    	        
-    	        $fileName = str_replace(' ', '_', Str::utf2ascii($fileName));
-    	        
-    	        header("Content-type: application/csv");
-    	        header("Content-Disposition: attachment; filename={$fileName}");
-    	        header("Pragma: no-cache");
-    	        header("Expires: 0");
-    	        
-    	        echo $csv;
-    	        
-    	        shutdown();
-    	    }
-    	    
-    	    if ($lg) {
-    	        core_Lg::pop();
-    	    }
-    	    
-    	    $res = new Redirect(getRetUrl(), '|Няма данни за експорт');
-    	    
-    	    return FALSE;
     	}
     }
     
@@ -2203,7 +2104,6 @@ class doc_DocumentPlg extends core_Plugin
             $data = $mvc->prepareDocument($id, $options);
             $res  = $mvc->renderDocument($id, $data);
         } catch (core_exception_Expect $e) {
-            
             // Възстановяване на текущия потребител
             core_Users::exitSudo($sudoUser);
             expect(FALSE, $e);
@@ -2468,7 +2368,8 @@ class doc_DocumentPlg extends core_Plugin
         
         // Проверка, дали има права за експорт на документа
         if ($action == 'exportdoc') {
-            if ($rec->state == 'rejected' || $rec->state == 'draft' || !$mvc->haveRightFor('single', $rec) || !$mvc->getExportFormats()) {
+            $possibleExportsArr = export_Export::getPossibleExports($mvc->getClassId(), $rec->id, 1);
+            if (empty($possibleExportsArr)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -4230,7 +4131,7 @@ class doc_DocumentPlg extends core_Plugin
      * 
      * @param core_Manager $mvc
      * @param NULL|array $res
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     function on_AfterGetUsersArrForNotifyInDoc($mvc, &$res, $rec)
     {
@@ -4344,7 +4245,7 @@ class doc_DocumentPlg extends core_Plugin
      *
      * @param core_Mvc $mvc
      * @param NULL|string $res
-     * @param integer|stdObject $rec
+     * @param integer|stdClass $rec
      */
     public static function on_AfterIsVisibleForPartners($mvc, &$res, $rec)
     {
@@ -4379,55 +4280,6 @@ class doc_DocumentPlg extends core_Plugin
     		$rec->activatedBy = core_Users::getCurrent();
     		$mvc->save_($rec, 'activatedOn,activatedBy');
     	}
-    }
-    
-    
-    /**
-     * Връща URL за експортване във външната част
-     * 
-     * @param core_Master $mvc
-     * @param NULL|array $res
-     * @param integer $id
-     */
-    public static function on_AfterGetExportUrl($mvc, &$res, $id, $mid)
-    {
-        setIfNot($res, array());
-        
-        if (!$mvc instanceof core_Master) return ;
-        
-        $detArr = arr::make($mvc->details);
-        
-        if (empty($detArr)) return ;
-        
-        $rec = $mvc->fetch($id);
-        
-        if (!$rec) return ;
-        
-        if (strpos($mvc->exportInExternalField, '=')) {
-            list($exportFStr, $exportFCls) = explode('=', $mvc->exportInExternalField);
-        } else {
-            $exportFStr = $mvc->exportInExternalField;
-            $exportFCls = NULL;
-        }
-        
-        foreach ($detArr as $dName) {
-            if (!cls::load($dName, TRUE)) continue;
-            
-            $dInst = cls::get($dName);
-            
-            if (!$dInst->fields[$exportFStr]) continue;
-            
-            if ($exportFCls) {
-                $exportFCls = cls::get($exportFCls);
-                if (!($exportFCls instanceof $dInst->fields[$exportFStr]->type->params['mvc'])) continue;
-            }
-            
-            if (!$dInst->masterKey) continue;
-            
-            $res = array($mvc, 'exportInExternal', $id, 'mid' => $mid, 'ret_url' => TRUE);
-            
-            break;
-        }
     }
     
     

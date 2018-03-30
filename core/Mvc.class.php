@@ -313,6 +313,8 @@ class core_Mvc extends core_FieldSet
         $rec = $id;
         if (!is_object($rec)) {
             $rec = static::fetch($id, $fields, $cache);
+        } elseif(!$cache) {
+            $rec = static::fetch($id->id, $fields, $cache);
         }
         
         return $rec;
@@ -854,11 +856,7 @@ class core_Mvc extends core_FieldSet
             $title = $inst->className;
         }
         
-        if(Mode::is('text', 'plain')) {
-            $link = $title;
-        } else {
-            $link = ht::createLink($title, array($me, 'list', $objId));
-        }
+        $link = $title;
         
         return $link;
     }
@@ -931,7 +929,7 @@ class core_Mvc extends core_FieldSet
      */
     function setupMVC()
     {
-        $html .= "<li>Създаване на модела <b>" . $this->className . "</b></li><ul style='margin-bottom:10px;'>";
+        $html = "<li>Създаване на модела <b>" . $this->className . "</b></li><ul style='margin-bottom:10px;'>";
 
         // Запалваме събитието on_BeforeSetup
         if ($this->invoke('BeforeSetupMVC', array(&$html)) === FALSE) {

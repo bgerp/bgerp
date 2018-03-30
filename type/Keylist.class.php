@@ -455,7 +455,7 @@ class type_Keylist extends core_Type {
             }
             
             if($orderBy = $this->params['orderBy']) {
-                $query->orderBy("#{$orderBy}", NULL, TRUE); 
+                $query->orderBy("#{$orderBy}", NULL, 100); 
             }
              
             if($select != "*") {

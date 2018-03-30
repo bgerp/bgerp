@@ -29,6 +29,17 @@ class doc_SharablePlg extends core_Plugin
         if (!$mvc->getField('sharedUsers', FALSE)) {
             $mvc->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
         }
+
+        // Поле за потребителите, с които е споделен документа (ако няма)
+        if (!$mvc->getField('priority', FALSE)) {
+        	$columns = (Mode::is('screenMode', 'narrow')) ? 2 : 4;
+            $mvc->FLD('priority', 'enum(normal=Нормален,
+                                     low=Нисък,
+                                     high=Спешен,
+                                     critical=Критичен)',
+            "caption=Споделяне->Приоритет,maxRadio=4,columns={$columns},notNull,value=normal,autohide,changable");
+        }
+
         // Поле за първите виждания на документа от потребителите с които той е споделен
         if (!$mvc->getField('sharedViews', FALSE)) {
             // Стойността на полето е сериализиран масив с ключ - потребител и стойност - дата
@@ -305,7 +316,10 @@ class doc_SharablePlg extends core_Plugin
             $subscribedArr = doc_ThreadUsers::getSubscribed($mRec->threadId);
             $subscribedArr += $sharedArr;
             
-            doc_Containers::addNotifications($subscribedArr, $mvc, $cRec, 'промени');
+            // Вземаме, ако има приоритета от документа
+            $priority = ($mRec && $mRec->priority) ? $mRec->priority : 'normal';
+
+            doc_Containers::addNotifications($subscribedArr, $mvc, $cRec, 'промени', TRUE, $priority);
             
             break;
         }

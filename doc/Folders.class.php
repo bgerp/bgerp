@@ -393,56 +393,11 @@ class doc_Folders extends core_Master
         
         $row->threads .= "<span style='float:right;'>&nbsp;&nbsp;&nbsp;" . $mvc->getVerbal($rec, 'allThreadsCnt') . "</span>";
         
+        $row->title = self::getFolderTitle($rec, $row->title);
+        
         $attr = array();
         $attr['class'] = 'linkWithIcon';
-        
-        if(mb_strlen($rec->title) > self::maxLenTitle) {
-            $attr['title'] = $row->title;
-            
-            $title = str::limitLen($rec->title, self::maxLenTitle);
-            $row->title = $mvc->fields['title']->type->escape($title);
-        }
-        
-        $haveRight = $mvc->haveRightFor('single', $rec);
-        if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
-        	$haveRight = colab_Folders::haveRightFor('single', $rec);
-        }
-        
-        // Иконката на папката според достъпа и
-        $img = static::getIconImg($rec, $haveRight);
-        
-        // Ако състоянието е оттеглено
-        if ($rec->state == 'rejected') {
-            
-           // Добавяме към класа да е оттеглено
-            $attr['class'] .= ' state-rejected';
-        }
-        
-        if($haveRight) {
-            $attr['style'] = 'background-image:url(' . $img . ');';
-            if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner'))){
-            	$link = array('doc_Threads', 'list', 'folderId' => $rec->id);
-            } else {
-            	$link = array('colab_Threads', 'list', 'folderId' => $rec->id);
-            }
-            
-            // Ако е оттеглен
-            if ($rec->state == 'rejected') {
-                
-                // Да сочи към коша
-                $link['Rejected'] = 1;
-            }
-            
-            if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
-            	$link = array();
-            }
-            
-            $row->title = ht::createLink($row->title, $link, NULL, $attr);
-        } else {
-            $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
-            $row->title = ht::createElement('span', $attr, $row->title);
-        }
-        
+
 		if(cls::load($rec->coverClass, TRUE)){
 			$typeMvc = cls::get($rec->coverClass);
 			$signleIcon = $typeMvc->getSingleIcon($rec->coverId);
@@ -458,6 +413,72 @@ class doc_Folders extends core_Master
 		} else {
 			$row->type = "<span class='red'>" . tr('Проблем при показването') . "</span>";
 		}
+    }
+
+
+    /**
+     * Връща линк към папката
+     */
+    public static function getFolderTitle($rec, $title = NULL)
+    {
+        $mvc = cls::get('doc_Folders');
+
+        if(is_numeric($rec)) {
+            $rec = $mvc->fetch($rec);
+        }
+
+        $attr = array();
+        $attr['class'] = 'linkWithIcon';
+        
+        if($title === NULL) {
+            $title = $mvc->getVerbal($rec, 'title');
+        }
+
+        if(mb_strlen($rec->title) > self::maxLenTitle) {
+            $attr['title'] = $title;
+            $title = str::limitLen($rec->title, self::maxLenTitle);
+            $title = $mvc->fields['title']->type->escape($title);
+        }
+        
+        if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
+        	$haveRight = colab_Folders::haveRightFor('single', $rec);
+            $link = array('doc_Threads', 'list', 'folderId' => $rec->id);
+        } else {
+            $haveRight = $mvc->haveRightFor('single', $rec);
+            $link = array('colab_Threads', 'list', 'folderId' => $rec->id);
+        }
+        
+        // Иконката на папката според достъпа и
+        $img = self::getIconImg($rec, $haveRight);
+        
+        // Ако състоянието е оттеглено
+        if ($rec->state == 'rejected') {
+            
+           // Добавяме към класа да е оттеглено
+            $attr['class'] .= ' state-rejected';
+        }
+
+        if($haveRight) {
+            $attr['style'] = 'background-image:url(' . $img . ');';
+
+            // Ако е оттеглен
+            if ($rec->state == 'rejected') {
+                
+                // Да сочи към коша
+                $link['Rejected'] = 1;
+            }
+            
+            if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+            	$link = array();
+            }
+            
+            $title = ht::createLink($title, $link, NULL, $attr);
+        } else {
+            $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
+            $title = ht::createElement('span', $attr, $title);
+        }
+
+        return $title;
     }
     
 
@@ -670,7 +691,7 @@ class doc_Folders extends core_Master
     /**
      * Връща масив с потребители, които ще се нотифицират за действия в папката
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return array
      */
@@ -1452,7 +1473,7 @@ class doc_Folders extends core_Master
     /**
      * Опитва се да извлече точки за записа
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return number
      */
@@ -1477,7 +1498,7 @@ class doc_Folders extends core_Master
     /**
      * Прави миграция на папките към несортирани. Използва се при поправка на документите.
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param NULL|integer $currUser
      * 
      * @return array
@@ -1607,6 +1628,8 @@ class doc_Folders extends core_Master
      * @param boolean $removeCurrent - Дали да се премахне текущия потребител от резултатите
      * 
      * @return array $sharedUsersArr - Масив с всички споделени потребители
+     * 
+     * @deprecated
      */
     static function getSharedUsersArr($folderId, $removeCurrent=FALSE)
     {
@@ -1755,9 +1778,7 @@ class doc_Folders extends core_Master
         $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From` за изходящите писма от тази папка->Имейл, input=input');
         
 		// Показва се само когато се настройват всички потребители
-        if ($form->rec->_userOrRole && (type_UserOrRole::getRoleIdFromSys($form->rec->_userOrRole) === 0)) {
-            $form->FNC('closeTime' , 'time(suggestions=1 ден|3 дни|7 дни)', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty, input=input');
-        }
+        $form->FNC('closeTime' , 'time(suggestions=1 ден|3 дни|7 дни)', "caption=Автоматично затваряне на нишките след->Време, allowEmpty, input=input, settingForAll={$rec->inCharge}");
         
         // Изходящ имейл по-подразбиране за съответната папка
         try {

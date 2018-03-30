@@ -1832,9 +1832,9 @@ class doc_Threads extends core_Manager
     /**
      * Помощна функция за изчисляване на броя на документите
      * 
-     * @param stdObject $rec
-     * @param NULL|stdObject $firstDcRec
-     * @param NULL|stdObject $lastDcRec
+     * @param stdClass $rec
+     * @param NULL|stdClass $firstDcRec
+     * @param NULL|stdClass $lastDcRec
      */
     protected static function prepareDocCnt(&$rec, &$firstDcRec, &$lastDcRec)
     {

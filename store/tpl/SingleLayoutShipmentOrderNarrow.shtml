@@ -66,12 +66,17 @@
          <tr>
             <td class="topCell first vtop" style='width:50%;'>
                <table class='shipment-table' style='width:100%;'>
-                  <!--ET_BEGIN deliveryTime-->
+               	<!--ET_BEGIN deliveryTime-->
                   <tr>
                      <td class='quiet nowrap aright' style='width:1%;'>|Натоварване|*:</td>
                      <td>[#deliveryTime#]</td>
                   </tr>
                   <!--ET_END deliveryTime-->
+                  <!--ET_BEGIN fromContainerId-->
+                  <tr>
+                     <td colspan='2'><span class='quiet'>|Към фактура|*:</span> [#fromContainerId#]</td>
+                  </tr>
+                  <!--ET_END fromContainerId-->
                   <!--ET_BEGIN deliveryAddressBlock-->
                   [#deliveryAddressBlock#]
                   <tr>
@@ -117,13 +122,14 @@
          </tr>
       </tbody>
    </table>
+   <!--ET_BEGIN store_DocumentPackagingDetail-->
    <div class='scrolling-holder' style="margin-top: 10px;">
-      <!--ET_BEGIN store_DocumentPackagingDetail-->
       <div class="details smallerText" >
+         <p style="margin: 10px 0 5px; font-weight:bold">Отговорно пазене</p>
          [#store_DocumentPackagingDetail#]
       </div>
-      <!--ET_END store_DocumentPackagingDetail-->
    </div>
+   <!--ET_END store_DocumentPackagingDetail-->
    <!--ET_BEGIN PACKAGING_BTNS-->
    <div style='margin-top:10px'>[#PACKAGING_BTNS#]</div>
    <!--ET_END PACKAGING_BTNS-->

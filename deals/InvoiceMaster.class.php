@@ -727,7 +727,12 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     			
     			$origin = doc_Containers::getDocument($rec->originId);
-    			$originRec = $origin->fetch('dpAmount,dpOperation,dealValue');
+    			$originRec = $origin->fetch('dpAmount,dpOperation,dealValue,date');
+    			
+    			if($rec->date < $originRec->date){
+    				$oDate = dt::mysql2verbal($originRec->date, 'd.m.Y');
+    				$form->setError('date', "Датата трябва да е по-голяма или равна на тази от оригиналната фактура|* <b>{$oDate}</b>");
+    			}
     			
     			if($originRec->dpOperation == 'accrued' || isset($rec->changeAmount)){
     				$diff = ($rec->changeAmount * $rec->rate);
@@ -824,7 +829,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	$rec = $this->fetchRec($rec);
     	if($fromCache === TRUE){
-    		$invoicePayments = core_Cache::get('threadInvoices', "t{$rec->threadId}");
+    		$invoicePayments = core_Cache::get('threadInvoices1', "t{$rec->threadId}");
     		if($invoicePayments === FALSE){
     			$invoicePayments = deals_Helper::getInvoicePayments($rec->threadId);
     		}
@@ -834,18 +839,17 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	$containerId = ($rec->type != 'dc_note') ? $rec->containerId : $rec->originId;
     	
-    	$paidArr = $invoicePayments[$containerId];
-    	if(count($paidArr) && isset($paidArr)){
-    		$hasCash = $hasBank = FALSE;
+    	$payments = $invoicePayments[$containerId]->payments;
+    	
+    	if(count($payments) && isset($payments)){
+    		$hasCash = array_key_exists('cash', $payments);
+    		$hasBank = array_key_exists('bank', $payments);
+    		$hasIntercept = array_key_exists('intercept', $payments);
     		
-    		array_walk($paidArr, function($a) use (&$hasCash, &$hasBank){
-    			if($a->type == 'cash' && $a->isReverse !== TRUE) {$hasCash = TRUE;}
-    			elseif($a->type == 'bank' && $a->isReverse !== TRUE){$hasBank = TRUE;}
-    		});
-    		
-    		if($hasCash === TRUE && $hasBank === FALSE) return 'cash';
-    		if($hasBank === TRUE && $hasCash === FALSE) return 'bank';
-    		if($hasBank === TRUE && $hasCash === TRUE) return 'mixed';
+    		if($hasCash === TRUE && $hasBank === FALSE && $hasIntercept === FALSE) return 'cash';
+    		if($hasBank === TRUE && $hasCash === FALSE && $hasIntercept === FALSE) return 'bank';
+    		if($hasIntercept === TRUE && $hasCash === FALSE && $hasBank === FALSE) return 'intercept';
+    		if($hasBank === TRUE || $hasCash === TRUE || $hasIntercept === TRUE) return 'mixed';
     	}
     	 
     	return NULL;
@@ -882,9 +886,9 @@ abstract class deals_InvoiceMaster extends core_Master
     		$row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($novatToVerbal);
     		$row->vatAmount = $mvc->getFieldType('dealValue')->toVerbal($amountToVerbal);
     		
-    		$row->dealValue = ht::styleIfNegative($row->dealValue, $total);
-    		$row->valueNoVat = ht::styleIfNegative($row->valueNoVat, $total);
-    		$row->vatAmount = ht::styleIfNegative($row->vatAmount, $total);
+    		$row->dealValue = ht::styleNumber($row->dealValue, $total);
+    		$row->valueNoVat = ht::styleNumber($row->valueNoVat, $total);
+    		$row->vatAmount = ht::styleNumber($row->vatAmount, $total);
     	}
     	
     	if(empty($rec->paymentType) && isset($rec->autoPaymentType)){

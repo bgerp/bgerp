@@ -69,7 +69,8 @@ class acc_plg_Contable extends core_Plugin
     public static function on_BeforeAction(core_Manager $mvc, &$res, $action)
     {
         if(strtolower($action) == strtolower('getTransaction')) {
-            $id = Request::get('id', 'int');
+            requireRole('debug');
+        	$id = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
             $transaction       = $transactionSource->getTransaction($rec);
@@ -762,7 +763,7 @@ class acc_plg_Contable extends core_Plugin
     	$message = "{$currUserNick} |контира|* \"|{$docTitle}|*\" |в нишка|* \"{$folderTitle}\"";
     	foreach ($userArr as $uId) {
     	    
-    	    if (!$mvc->haveRightFor('single', $rec->id, $uId)) continue;
+//     	    if (!$mvc->haveRightFor('single', $rec->id, $uId)) continue;
     	    
     		bgerp_Notifications::add($message, array($mvc, 'single', $rec->id), $uId);
     	}

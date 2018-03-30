@@ -117,7 +117,7 @@ class cms_Content extends core_Manager
     static function getLang()
     {
         $lang = cms_Domains::getPublicDomain('lang');
-        
+ 
         return $lang;
     }
 
@@ -129,6 +129,11 @@ class cms_Content extends core_Manager
     {
         core_Lg::set($lang, !haveRole('user'));
         cms_Domains::getPublicDomain(NULL, $lang);
+
+        $langsArr = arr::make(core_Lg::getLangs());
+        if($langsArr[$lang]) {
+            core_Lg::push($lang);
+        }
     }
 
 
@@ -450,16 +455,14 @@ class cms_Content extends core_Manager
      */
     static function setCurrent($menuId = NULL, $layout = NULL)
     {
-        if($menuId && $rec = cms_Content::fetch($menuId)) {
-            Mode::set('cMenuId', $menuId);
+        if($menuId && ($rec = cms_Content::fetch($menuId))) {
+            Mode::set('cMenuId', $menuId); 
             cms_Domains::setPublicDomain($rec->domainId);
-        } else {
-            $lg = cms_Domains::getPublicDomain('lang');
-            $langsArr = arr::make(core_Lg::getLangs());
-            if($langsArr[$lg]) {
-                core_Lg::push($lg);
-            }
         }
+        
+        $lg = cms_Domains::getPublicDomain('lang');
+        
+        self::setLang($lg);
 
         Mode::set('wrapper', 'cms_page_External');
     }

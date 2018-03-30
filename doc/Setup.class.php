@@ -262,7 +262,8 @@ class doc_Setup extends core_ProtoSetup
         'migrate::receiveEmailUnsortedN',
         'migrate::regenerateSearchKeywords',
         'migrate::taskDocumentsToLinked',
-        'migrate::autoCloseToAllFolder'
+        'migrate::autoCloseToAllFolder',
+        'migrate::setActivatedBy'
     );
 	
     
@@ -1099,6 +1100,30 @@ class doc_Setup extends core_ProtoSetup
             $valArr['closeTime'] = $rec->closeTime;
             
             core_Settings::setValues($fKey, $valArr, $allSysTeamId, TRUE);
+        }
+    }
+    
+    
+    /**
+     * Миграция за попълване на `activatedBy` полетата
+     */
+    public static function setActivatedBy()
+    {
+        $Containers = cls::get('doc_Containers');
+        
+        $query = $Containers->getQuery();
+        $query->where("#state != 'rejected'");
+        $query->where("#state != 'draft'");
+        $query->where("#activatedBy IS NULL");
+        
+        while ($rec = $query->fetch()) {
+            $rec->activatedBy = 0;
+            
+            try {
+                $Containers->save_($rec, 'activatedBy');
+            } catch (Exception $e) {
+                reportException($e);
+            }
         }
     }
 }

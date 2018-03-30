@@ -40,7 +40,7 @@ class type_Nick extends type_Varchar {
         
         $value = self::normalize($value);
         
-        if (!$this->isValid($value)) {
+        if (!$this->isValidNick($value, $this->params['allowEmail'])) {
             $this->error = 'Въвели сте недопустима стойност:|* ' . parent::escape($value);
 
             return FALSE;
@@ -68,9 +68,19 @@ class type_Nick extends type_Varchar {
     
     /**
      * Проверява дали е валиден
+     *
+     * @param string $nick
+     * @param boolean $allowEmail
+     * 
+     * @return boolean
      */
-    function isValid($value)
+    public function isValidNick($value, $allowEmail = FALSE)
     {
+        if($allowEmail && type_Email::isValidEmail($value)) {
+
+            return TRUE;
+        }
+
         // Шаблон за потребителско име. 
         // Позволени са малки и големи латински букви, цифри, долни черти и точки.
         // Трябва да започва с буква.

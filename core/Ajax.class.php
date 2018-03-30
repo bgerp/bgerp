@@ -166,7 +166,7 @@ class core_Ajax extends core_Mvc
         // Нулираме масива за игнориране
         Request::resetIgnoreParams();
         
-        core_App::getJson($jResArr);
+        core_App::outputJson($jResArr);
     }
     
     

@@ -296,9 +296,9 @@ class csv_Lib
         }
 
         setIfNot($csvDelimiter, $params['delimiter'], $delimiter);
-        setIfNot($decPoint, $params['decPoint'], html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', TRUE), ENT_COMPAT | ENT_HTML401, 'UTF-8'));
-        setIfNot($dateFormat, $params['dateFormat'], core_Setup::get('EF_DATE_FORMAT', TRUE));
-        setIfNot($datetimeFormat, $params['datetimeFormat'], 'd.m.y H:i');
+        setIfNot($decPoint, $params['decPoint'], html_entity_decode(csv_Setup::get('DEC_POINT'), ENT_COMPAT | ENT_HTML401, 'UTF-8'), html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', TRUE), ENT_COMPAT | ENT_HTML401, 'UTF-8'));
+        setIfNot($dateFormat, $params['dateFormat'], csv_Setup::get('DATE_MASK'), core_Setup::get('EF_DATE_FORMAT', TRUE));
+        setIfNot($datetimeFormat, $params['datetimeFormat'], csv_Setup::get('DATE_TIME_MASK'), 'd.m.y H:i');
         setIfNot($thousandsSep, $params['thousandsSep'], '');
         setIfNot($enclosure, $params['enclosure'], '"');
         setIfNot($decimals, $params['decimals'], 2);
@@ -340,11 +340,15 @@ class csv_Lib
                     $type->params['decimals'] = $decimals;
                     $value = $type->toVerbal($rec->{$name});
                 } elseif ($type instanceof type_Datetime) {
-                    $value = dt::mysql2verbal($rec->{$name}, $datetimeFormat);
-                    $value = strip_tags($value);
+                	if($rec->{$name}){
+                		$value = dt::mysql2verbal($rec->{$name}, $datetimeFormat);
+                		$value = strip_tags($value);
+                	}
                 } elseif ($type instanceof type_Date) {
-                    $value = dt::mysql2verbal($rec->{$name}, $dateFormat);
-                    $value = strip_tags($value);
+                	if($rec->{$name}){
+                		$value = dt::mysql2verbal($rec->{$name}, $dateFormat);
+                		$value = strip_tags($value);
+                	}
                 } elseif ($type instanceof type_Richtext && !empty($params['text'])) {
                     Mode::push('text', $params['text']);
                     $value = $type->toVerbal($rec->{$name});
@@ -477,8 +481,15 @@ class csv_Lib
      */
     public static function getCsvRowsFromFile($csvData, $params = array())
     {  
-        list($handle, $params['delimiter'], $params['enclosure']) = self::analyze($csvData, $params['delimiter'], $params['enclosure']);
+        list($handle, $params['delimiter'], $params['enclosure'], $params['firstRow']) = self::analyze($csvData, $params['delimiter'], $params['enclosure']);
  
+        if($params['delimiter'] === NULL) {
+            $params['delimiter'] = chr(0);
+        }
+        if($params['enclosure'] === NULL) {
+            $params['enclosure'] = chr(1);
+        }
+
         setIfNot($params['length'], 0);
 
         setIfNot($params['escape'], '\\');
@@ -528,6 +539,106 @@ class csv_Lib
     }
 
 
+    public static function getColumnTypes($data)
+    {
+        $maxRows = 1000;
+        $res = array();
+        foreach($data as $row) {
+            foreach($row as $i => $col) {
+
+                $col = trim($col);
+                if(strlen($col) == 0) continue;
+
+                // Положително цяло число
+                if($res[$i]['unsigned'] !== FALSE && preg_match("/^[0-9 ]*$/", $col)) {
+                    $res[$i]['unsigned'] = TRUE;
+                } else {
+                    $res[$i]['unsigned'] = FALSE;
+                }
+
+                // Цяло число
+                if($res[$i]['int'] !== FALSE && preg_match("/^[\+\-]?[0-9 ]*$/", $col)) {
+                    $res[$i]['int'] = TRUE;
+                } else {
+                    $res[$i]['int'] = FALSE;
+                }
+                
+                // Пари
+                if($res[$i]['money'] !== FALSE && preg_match("/^[\+\-]?[0-9 ]*[\,\.][0-9]{2}$/", $col)) {
+                    $res[$i]['money'] = TRUE;
+                } else {
+                    $res[$i]['money'] = FALSE;
+                }
+
+                // Число
+                if($res[$i]['number'] !== FALSE && preg_match("/^[\+\-]?[0-9 ]*([\,\.][0-9]*|)$/", $col)) {
+                    $res[$i]['number'] = TRUE;
+                } else {
+                    $res[$i]['number'] = FALSE;
+                }
+
+                // Процент
+                if($res[$i]['percent'] !== FALSE && preg_match("/^[\+\-]?[0-9 ]*[\,\.][0-9]*\%$/", $col)) {
+                    $res[$i]['percent'] = TRUE;
+                } else {
+                    $res[$i]['percent'] = FALSE;
+                }
+
+                // Телефон
+
+                // Код
+                if($res[$i]['code'] !== FALSE && preg_match("/^[0-9A-Z \-\_]{3,16}$/i", $col)) {
+                    $res[$i]['code'] = TRUE;
+                } else { 
+                    $res[$i]['code'] = FALSE;
+                }
+
+                // Ник
+                
+                // Имейли
+                if($res[$i]['email'] !== FALSE && type_Email::isValidEmail($col)) {
+                    $res[$i]['email'] = TRUE;
+                } else { 
+                    $res[$i]['email'] = FALSE;
+                }
+
+                // Имейли
+                if($res[$i]['emails'] !== FALSE && !count(type_Emails::getInvalidEmails($col))) {
+                    $res[$i]['emails'] = TRUE;
+                } else { 
+                    $res[$i]['emails'] = FALSE;
+                }
+                
+
+                // URL
+
+                $res[$i]['minLen'] = $res[$i]['minLen'] ? min($res[$i]['minLen'], strlen($col)) : strlen($col);
+                $res[$i]['maxLen'] = $res[$i]['maxLen'] ? max($res[$i]['maxLen'], strlen($col)) : strlen($col);
+            }
+
+            if($maxRows-- == 0) break;
+        }
+       
+        $res1 = array();
+
+        foreach($res as $i => $arr) {
+            if($maxRows < 999 && $arr['minLen'] == $arr['maxLen']) {
+                $res1['fixed_' . $i] = TRUE;
+            }
+            if(is_array($arr)) {
+                foreach($arr as $type => $bool) {
+                    if($bool) {
+                        $res1[$i] = $type;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $res1;
+    }
+
+
     /**
      * Функция, която се опитва да анализира CSV файл
      */
@@ -560,7 +671,7 @@ class csv_Lib
         if(strlen($enclosure)) {
             $eArr = array($enclosure);
         } else {
-            $eArr = array("\"", "'", chr(8));
+            $eArr = array("\"", '\'');
         }
 
         $nlCnt = substr_count($csv, $nl);
@@ -583,9 +694,9 @@ class csv_Lib
                 $totalFields = 0;
 
                 // Опитваме да парсираме първите 100 реда
-                while (($data = fgetcsv($fp, NULL, $d, $e)) !== FALSE && $lCnt <= $maxLinesCheck) {
-    
-                    // Пропускаме празните линии
+                while ((($data = fgetcsv($fp, NULL, $d, $e)) !== FALSE) && ($lCnt <= $maxLinesCheck)) {
+ 
+                     // Пропускаме празните линии
                     if(!is_array($data) || !count($data) || (count($data) == 1 && trim($data[0]) == '')) continue;
 
                     $res[] = $data;
@@ -605,18 +716,16 @@ class csv_Lib
                     if($cnt == $cellsPerRow) {
                         $points += 1;
                     } else {
-                        $points -= -1;
+                        $points -= 1;
                     }
                 }
-               
-
+ 
                 // Добавка за срещанията на ображдащия символ до разделител или нов ред
                 $deCntL = substr_count($csv, $d . $e) + substr_count($csv, $nl . $e);
-                $deCntR = substr_count($csv, $e . $d) +substr_count($csv, $e . $nl) ;
-                $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * count($res);
-                $points -= ($deCntL > 0) && ($deCntL != $deCntR) * count($res);
-         
-
+                $deCntR = substr_count($csv, $e . $d) + substr_count($csv, $e . $nl);
+                $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * count($res) + min($deCntL , $deCntR) / $nlCnt;
+                $points -= ($deCntL > 0) && ($deCntL != $deCntR) * count($res) ;
+       
                 // Среща ли се $е самостоятелно
                 preg_match_all("/[^\\{$d}\\{$e}]\\{$e}[^\\{$d}\\{$e}]/u", $d . str_replace($nl, $d, $csv) . $d, $matches);
                 $soloUse = count($matches[0]);
@@ -633,8 +742,35 @@ class csv_Lib
         }
  
         rewind($fp);
+        
+        $fr = 0;
+        
+        if(is_array($parse[0])) {
+            foreach($parse[0] as $i => $c0) {
+                $c1 = $parse[1][$i];
+                $c2 = $parse[2][$i];
+
+                if(strlen(trim($c0)) == 0) {
+                    $fr += -1; 
+                } elseif(preg_match("/[0-9]/", $c0)) {
+                    $fr += -0.5;
+                } elseif(preg_match("/@/", $c0)) {
+                    $fr += -1;
+                } elseif(preg_match("/[0-9\@]/", $c1)) {
+                    $fr += 1; 
+                }
+                 
+                if(strlen($c0)) {
+                    if("{$c0}" === "{$c1}") {
+                        $fr += -1;
+                    } elseif("{$c1}" === "{$c2}") {
+                         $fr += 0.5;
+                    }
+                }
+            }
+        }
  
-        return array($fp, $delimiter, $enclosure);
+        return array($fp, $delimiter, $enclosure, $fr > 0 ? 'columnNames' : 'data');
     }
 
 
@@ -653,5 +789,20 @@ class csv_Lib
 
         return $d;
     }
+
+
+    // Определяме 4-ките Д,Е,C и Еск които могат да бъдат във файла
+    // Рейтингуваме четворките
+    // Последователно се пробваме да извадим редовете макс(1000 или Зададените + Офсета)
+    // Там, където успеем, обявяваме това за резултата
+    // Гледаме дали първия му ред е колони
+
+    // Анализираме типовете на колонките, като се опитваме да открием съвпадение
+
+
+    public static function parse($csvString, $papams = array())
+    {
+    }
+
     
 }

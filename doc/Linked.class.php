@@ -115,6 +115,8 @@ class doc_Linked extends core_Manager
         $this->FLD('state', 'enum(active=Активно, rejected=Оттеглено)', 'caption=Състояние, input=none');
         
         $this->setDbUnique('outType, outVal, inType, inVal');
+        $this->setDbIndex('outType, outVal');
+        $this->setDbIndex('inType, inVal');
     }
     
     
@@ -138,8 +140,8 @@ class doc_Linked extends core_Manager
         
         $query->limit($limit);
         
-        $query->where(array("#outType = '[#1#]' AND #outVal = '[#2#]'", $type, $id));
-        $query->orWhere(array("#inType = '[#1#]' AND #inVal = '[#2#]'", $type, $id));
+        $query->setUnion(array("#outType = '[#1#]' AND #outVal = '[#2#]'", $type, $id));
+        $query->setUnion(array("#inType = '[#1#]' AND #inVal = '[#2#]'", $type, $id));
         
         $query->orderBy('createdOn', 'DESC');
         
@@ -579,6 +581,10 @@ class doc_Linked extends core_Manager
                 
                 $form->layout->append($tpl);
             }
+        }
+        
+        if ($form->cmd != 'refresh') {
+            doc_Linked::showLinkedInForm($form, $originFId, $type);
         }
         
         $form->title = "Свързване на файлове и документи с|* " . $clsInst->getLinkToSingle($fId);
@@ -1421,6 +1427,13 @@ class doc_Linked extends core_Manager
             $attr = array();
             $attr['ef_icon'] = $doc->getIcon($doc->that);
             $attr['title'] = 'Документ|*: ' . $docRow->title;
+            
+            // Ако документа е оттеглен
+            $dRec = $doc->fetch();
+            if ($dRec->state == 'rejected') {
+                $attr['class'] = 'state-rejected';
+                $attr['style'] = 'text-decoration: line-through; color: #666;';
+            }
             
             $link = ht::createLink($hnd, $url, NULL, $attr);
             

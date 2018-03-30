@@ -39,12 +39,15 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 	public static function on_AfterActivation($mvc, &$rec)
 	{
 		$save = array();
+		$onlySelfValue = FALSE;
 		
 		if($mvc instanceof sales_Sales){
 			
 			// Ако е продажба и не е експедирано, не се записва нищо
 			$actions = type_Set::toArray($rec->contoActions);
-			if(!isset($actions['ship'])) return;
+			if(!isset($actions['ship'])) {
+				$onlySelfValue = TRUE;
+			}
 		} else {
 			
 			// Ако не е продажба но документа НЕ е в нишка на продажба, не се записва нищо
@@ -71,24 +74,10 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 		$valior =  $rec->{$mvc->valiorFld};
 		while($dRec = $query->fetch()){
 			
-			$isPublic = cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'isPublic');
-			if($isPublic == 'yes'){
-				$primeCost = price_ListRules::getPrice($primeCostListId, $dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $valior);
+			if($mvc instanceof sales_Sales){
+				$primeCost = sales_PrimeCostByDocument::getPrimeCostInSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec, $primeCostListId);
 			} else {
-				$Driver = cat_Products::getDriver($dRec->{$mvc->detailProductFld});
-				$primeCost = $Driver->getPrice($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailQuantityFld}, 0, 0, $valior);
-				
-				// Ако няма себестойност от драйвера, търсим тази по рецепта
-				if(!isset($primeCost)){
-					$bomRec = cat_Products::getLastActiveBom($dRec->{$mvc->detailProductFld}, 'sales');
-    				if(empty($bomRec)){
-    					$bomRec = cat_Products::getLastActiveBom($dRec->{$mvc->detailProductFld}, 'production');
-    				}
-    		
-    				if($bomRec){
-    					$primeCost = cat_Boms::getBomPrice($bomRec, $dRec->{$mvc->detailQuantityFld}, 0, 0, $valior, $primeCostListId);
-    				}
-				}
+				$primeCost = sales_PrimeCostByDocument::getPrimeCostFromSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec->containerId, $primeCostListId);
 			}
 			
 			$sellCost = $dRec->{$mvc->detailSellPriceFld};
@@ -102,10 +91,8 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 				$sellCost = $sellCost * (1 - $correctPercent);
 			}
 			
-			// Ако артикулът е 'Надценка' няма себестойност
-			$code = cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'code');
-			if($code == 'surcharge'){
-				$primeCost = 0;
+			if($onlySelfValue === TRUE){
+				$sellCost = NULL;
 			}
 			
 			// Изчисляване на цената по политика
@@ -134,4 +121,15 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 		// Запис
 		cls::get('sales_PrimeCostByDocument')->saveArray($save);
 	}
+	
+	
+	/**
+     * След подготовка на тулбара за единичен изглед
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        if (haveRole('admin,ceo,debug') && ($data->rec->state == 'active' || $data->rec->state == 'closed')) {
+            $data->toolbar->addBtn('Делти', array('sales_PrimeCostByDocument', 'list', 'documentId' => "#" . $mvc->getHandle($data->rec)), 'ef_icon=img/16/bug.png,title=Делти по документа,row=2');
+        }
+    }
 }

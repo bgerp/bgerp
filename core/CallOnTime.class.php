@@ -66,7 +66,7 @@ class core_CallOnTime extends core_Manager
 	    $this->FLD('hash', 'varchar(32)', 'caption=Хеш, input=none');
 	    $this->FLD('className', 'varchar(128)', 'caption=Kлас');
 	    $this->FLD('methodName', 'varchar(128)', 'caption=Функция');
-	    $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни');
+	    $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни, input=none');
 	    $this->FLD('callOn', 'datetime(format=smartTime)', 'caption=Време');
 	    $this->FLD('state', 'enum(draft=Чернова, pending=Чакащо)', 'caption=Състояние, input=none');
 	    
@@ -236,6 +236,14 @@ class core_CallOnTime extends core_Manager
         $query->where("#state != 'pending'");
         while ($rec = $query->fetch()) {
             
+			// Ако сме се доближили до края - да приключваме процеса
+            if (core_Cron::getTimeLeft() < 5) {
+                
+                self::logDebug('Отложен процес, поради свършване на времето');
+                
+                break;
+            }
+            
             // Променяме състоянието, за да не може да се извика повторно
             $nRec = clone $rec;
             $nRec->state = 'pending';
@@ -254,6 +262,8 @@ class core_CallOnTime extends core_Manager
             } catch (core_exception_Expect $e) {
                 $res .= "Грешка при извикване на '{$rec->className}->callback_{$rec->methodName}'";
                 self::logErr("Грешка при извикване на функция", $rec->id);
+                
+                reportException($e);
             }
         }
         

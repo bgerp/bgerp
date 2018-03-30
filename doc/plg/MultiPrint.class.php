@@ -63,9 +63,9 @@ class doc_plg_MultiPrint extends core_Plugin
     	
     	$originalTpl = clone($tpl);
     	$tpl = new ET('');
-    		
-    	$copiesNum = (count($mvc->printParams)) ? count($mvc->printParams) : 2;
-    		
+        
+    	$copiesNum = isset($mvc->copiesOnPrint) ? $mvc->copiesOnPrint : ((count($mvc->printParams)) ? count($mvc->printParams) : 2);
+    	
 	    for($i = 1; $i <= $copiesNum; $i++) {
 	    			
 	    	// Ако сме в режим принтиране, добавяме копие на ордера

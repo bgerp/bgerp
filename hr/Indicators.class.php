@@ -21,7 +21,7 @@ class hr_Indicators extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Индикатори';
+    public $title = 'Показатели';
     
     
     /**
@@ -101,7 +101,16 @@ class hr_Indicators extends core_Manager
             $row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
         }
         
-        $row->docId = cls::get($rec->docClass)->getLink($rec->docId, 0);
+        if(cls::load($rec->docClass, TRUE)){
+        	$Class = cls::get($rec->docClass);
+        	if(cls::existsMethod($Class, 'getLink')){
+        		$row->docId = cls::get($rec->docClass)->getLink($rec->docId, 0);
+        	} else {
+        		$row->docId = cls::get($rec->docClass)->getTitleById($rec->docId, 0);
+        	}
+        } else {
+        	$row->docId = "<span class='red'>" . tr('Проблем при зареждането') . "</span>";
+        }
     }
     
     
@@ -428,15 +437,15 @@ class hr_Indicators extends core_Manager
     	$data->IData->query = self::getQuery();
     	
     	// Позицията от трудовия договор
-    	$positionId = hr_EmployeeContracts::fetchField("#state = 'active' AND #personId = {$data->masterId}", 'positionId');
-    	$data->IData->render = FALSE;
+    	$contractRec = hr_EmployeeContracts::fetch("#state = 'active' AND #personId = {$data->masterId}");
     	
+    	$data->IData->render = FALSE;
     	if(Request::get('Tab') != 'PersonsDetails') return;
     	
-    	if(!empty($positionId)){
+    	if(!empty($contractRec->positionId)){
     		
     		// Ако има формула за заплата
-    		$formula = hr_Positions::fetchField($positionId, 'formula');
+    		$formula = hr_Positions::fetchField($contractRec->positionId, 'formula');
     		
     		if(!empty($formula)){
     			
@@ -455,6 +464,7 @@ class hr_Indicators extends core_Manager
     	
     	// Подготовка на заявката
     	$data->IData->query->where("#personId = {$data->masterId}");
+    	$data->IData->query->where("#date >= '{$contractRec->startFrom}'");
     	$data->IData->query->orderBy('date', 'DESC');
     	$data->IData->recs = $data->IData->rows = array();
     	$data->IData->fullQuery = clone $data->IData->query;
@@ -496,6 +506,10 @@ class hr_Indicators extends core_Manager
     		$data->IData->summaryRows[$iId] = (object)array('indicatorId' => $indicatorVerbal , 'value' => core_Type::getByName('double(smartRound)')->toVerbal($value));
     	}
     	
+    	if(!empty($contractRec->salaryBase)){
+    		$context["$" . 'BaseSalary'] = $contractRec->salaryBase;
+    	}
+    	
     	// Опит за изчисление на заплатата по формулата
     	$expr = strtr($formula, $context);
     	if(str::prepareMathExpr($expr) === FALSE) {
@@ -525,7 +539,7 @@ class hr_Indicators extends core_Manager
 		$listTableMvc = clone $this;
 		$listTableMvc->setField('indicatorId', 'tdClass=leftCol');
     	
-    	$tpl = new core_ET(tr("|*<div style='margin-bottom:20px'><div style1 ='margin-top:10px'>|Заплата|* : <b>[#salary#]</b></div>[#I_S_TABLE#]</div>[#listFilter#][#ListToolbarTop#][#I_TABLE#][#ListToolbarBottom#]"));
+    	$tpl = new core_ET(tr("|*<div style='margin-bottom:6px'>[#I_S_TABLE#]</div><div style='text-align:right;'><hr />|Формула|* : <b>[#salary#]</b><hr /></div><div class='inlineForm' style='margin-top:20px'>[#listFilter#][#ListToolbarTop#][#I_TABLE#][#ListToolbarBottom#]</div>"));
     	$tpl->append($this->renderListFilter($data->IData), 'listFilter');
     	
     	// Рендиране на подробната информация на индикаторите
@@ -543,7 +557,7 @@ class hr_Indicators extends core_Manager
     	// Рендиране на сумарната информация за индикаторите
     	$tpl->replace($data->IData->salary, 'salary');
     	$table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-    	$tpl->append($table->get($data->IData->summaryRows, 'indicatorId=Индикатор,value=Сума'), 'I_S_TABLE');
+    	$tpl->append($table->get($data->IData->summaryRows, 'indicatorId=Име,value=Сума'), 'I_S_TABLE');
     	
     	return $tpl;
     }
@@ -562,7 +576,11 @@ class hr_Indicators extends core_Manager
     	$data->listFilter->FLD('document', 'varchar(16)', 'caption=Документ,silent,placeholder=Всички');
     	$data->listFilter->input(NULL, 'silent');
     	
-    	$data->listFilter->setOptions('period', array('' => '') + dt::getRecentMonths(10));
+    	$cloneQuery = clone $data->query;
+    	$cloneQuery->XPR('minDate', 'date', 'min(#date)');
+    	$min = $cloneQuery->fetch()->minDate;
+    	
+    	$data->listFilter->setOptions('period', array('' => '') + dt::getMonthsBetween($min));
     	$data->listFilter->showFields = 'period,document';
     	$data->query->orderBy('date', "DESC");
     	
@@ -681,6 +699,40 @@ class hr_Indicators extends core_Manager
     				$requiredRoles = 'powerUser';
     			}
     		}
+    	}
+    }
+    
+    
+    /**
+     * Помощна ф-я за събиране на индикаторите в масив
+     *
+     * @param array $result
+     * @param datetime $valior
+     * @param int $personId
+     * @param int $docId
+     * @param int $docClassId
+     * @param int $indicatorId
+     * @param double $value
+     * @param boolean $isRejected
+     */
+    public static function addIndicatorToArray(&$result, $valior, $personId, $docId, $docClassId, $indicatorId, $value, $isRejected)
+    {
+    	$key = "{$personId}|{$docClassId}|{$docId}|{$valior}|{$indicatorId}";
+    
+    	// Ако няма данни, добавят се
+    	if(!array_key_exists($key, $result)){
+    		$result[$key] = (object)array('date'        => $valior,
+										  'personId'    => $personId,
+    									  'docId'       => $docId,
+    									  'docClass'    => $docClassId,
+    									  'indicatorId' => $indicatorId,
+    									  'value'       => $value,
+    									  'isRejected'  => $isRejected,);
+    	} else {
+    
+    		// Ако има вече се сумират
+    		$ref = &$result[$key];
+    		$ref->value += $value;
     	}
     }
 }

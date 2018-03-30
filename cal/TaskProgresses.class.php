@@ -112,9 +112,45 @@ class cal_TaskProgresses extends core_Detail
         $this->FLD('message',    'richtext(rows=5, bucket=calTasks)', 'caption=Съобщение');
         
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,column=none,input=none,notNull,forceField');
+        
+        $this->setDbIndex('createdOn');
     }
-
-
+    
+    
+    /**
+     * Връща създателя на последния прогрес
+     * 
+     * @param integer $taskId
+     * @param boolean $removeRejected
+     * 
+     * @return FALSE|stdClass
+     */
+    public static function getLastProgressAuthor($taskId, $removeRejected = TRUE)
+    {
+        $query = self::getQuery();
+        $query->where(array("#taskId = '[#1#]'", $taskId));
+        
+        if ($removeRejected) {
+            $query->where("#state != 'rejected'");
+        }
+        
+        $query->orderBy('createdOn', 'DESC');
+        
+        $query->limit(1);
+        
+        $query->show('createdBy');
+        
+        $lProggress = $query->fetch();
+        
+        $author = '';
+        if ($lProggress) {
+            $author = self::getVerbal($lProggress, 'createdBy');
+        }
+        
+        return $author;
+    }
+    
+	
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -446,7 +482,7 @@ class cal_TaskProgresses extends core_Detail
 	/**
 	 * 
 	 * 
-	 * @param stdObject $data
+	 * @param stdClass $data
 	 */
 	public function prepareDetail_($data)
 	{
@@ -587,9 +623,9 @@ class cal_TaskProgresses extends core_Detail
 	 * Извлича редовете, които ще се покажат на текущата страница
 	 * За да покажем и оттеглените задачи
 	 * 
-	 * @param stdObject $data
+	 * @param stdClass $data
 	 * 
-	 * @return stdObject
+	 * @return stdClass
 	 */
 	function prepareListRecs(&$data)
 	{

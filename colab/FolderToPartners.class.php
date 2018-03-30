@@ -89,8 +89,8 @@ class colab_FolderToPartners extends core_Manager
     function description()
     {
         // Информация за нишката
-        $this->FLD('folderId', 'key2(mvc=doc_Folders)', 'caption=Папка,silent,input=hidden,after=contractorId');
-        $this->FLD('contractorId', 'key(mvc=core_Users,select=names)', 'caption=Потребител,notNull,silent');
+        $this->FLD('folderId', 'key2(mvc=doc_Folders, selectSourceArr=colab_FolderToPartners::getFolderOptions, exludeContractors=' . Request::get('contractorId') . ')', 'caption=Папка,silent,input=hidden,after=contractorId,mandatory');
+        $this->FLD('contractorId', 'key2(mvc=core_Users, titleFld=names, rolesArr=partner, selectSourceArr=colab_FolderToPartners::getContractorOptions, excludeFolders=' . Request::get('folderId') . ')', 'caption=Потребител,notNull,silent,mandatory');
          
         // Поставяне на уникални индекси
         $this->setDbUnique('folderId,contractorId');
@@ -98,33 +98,106 @@ class colab_FolderToPartners extends core_Manager
         $this->setDbIndex('contractorId');
         $this->setDbIndex('folderId');
     }
-
+    
     
     /**
-     * Връща опции за избор на потребители контрактори / които нямат споделена папка
+     * Коя е първата споделена папка на фирма на партньор
+     * 
+     * @param int|NULL $userId - ид на партньор
+     * @return NULL|int $folderId - първата споделена папка
+     */
+    public static function getLastSharedCompanyFolder($userId = NULL)
+    {
+    	$cu = isset($cu) ? $cu : core_Users::getCurrent('id', FALSE);
+    	if(empty($cu) || !core_Users::isContractor($cu)) return NULL;
+    	
+    	$query = self::getQuery();
+    	$query->where("#contractorId = {$cu}");
+    	$query->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
+    	$query->where("#coverClass =" . crm_Companies::getClassId());
+    	
+    	$query->orderBy("#createdOn", 'ASC');
+    	$query->show('folderId');
+    	$folderId = $query->fetch()->folderId;
+    	
+    	return (!empty($folderId)) ? $folderId : NULL;
+    }
+    
+    
+    /**
+     * Връща опциите за папки
+     *
+     * @param array $params
+     * @param NULL|integer $limit
+     * @param string $q
+     * @param NULL|integer|array $onlyIds
+     * @param boolean $includeHiddens
+     *
+     * @return array
+     */
+    public static function getFolderOptions($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+        $resArr = doc_Folders::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
+        
+        if (!empty($resArr) && ($params['removeDuplicate'] || $params['exludeContractors'])) {
+            $query = self::getQuery();
+            $fArr = array_keys($resArr);
+            
+            $query->in('folderId', $fArr);
+            
+            $query->show('folderId');
+            
+            if ($params['exludeContractors']) {
+                $cArr = explode('|', $params['exludeContractors']);
+                $query->orWhereArr('contractorId', $cArr);
+            }
+            
+            while ($rec = $query->fetch()) {
+                unset($resArr[$rec->folderId]);
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param array $params
+     * @param NULL|integer $limit
+     * @param string $q
+     * @param NULL|integer|array $onlyIds
+     * @param boolean $includeHiddens
      * 
      * @return array
      */
-	public static function getContractorOptions($folderId)
-	{
-		$uQuery = core_Users::getQuery();
-		$uQuery->where("#state = 'active'");
-		$cId = core_Roles::fetchByName('partner');
-		$uQuery->like('roles', "|{$cId}|");
-		$uQuery->show('id,names');
-		
-		$options = array();
-		
-		while ($uRec = $uQuery->fetch()){
- 	        if(!static::fetch("#contractorId = {$uRec->id}")){
-		        $options[$uRec->id] = $uRec->names;
-		    } 
-		}
-		
-		return $options;
-	}
+    public static function getContractorOptions($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+        $resArr = core_Users::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
+        
+        if (!empty($resArr) && ($params['removeDuplicate'] || $params['excludeFolders'])) {
+            $query = self::getQuery();
+            $uArr = array_keys($resArr);
+            
+            $query->in('contractorId', $uArr);
+            
+            $query->show('contractorId');
+            
+            if ($params['excludeFolders']) {
+                $foldersArr = explode('|', $params['excludeFolders']);
+                $query->orWhereArr('folderId', $foldersArr);
+            }
+            
+            while ($rec = $query->fetch()) {
+                unset($resArr[$rec->contractorId]);
+            }
+        }
+        
+        return $resArr;
+    }
 	
-	
+    
 	/**
 	 * След подготовка на формата
 	 */
@@ -144,8 +217,14 @@ class colab_FolderToPartners extends core_Manager
         	
         		$form->setDefault('folderId', cls::get($coverClassId)->forceCoverAndFolder($coverId));
         	}
-        	
-        	$form->setOptions('contractorId', array('' => '') + self::getContractorOptions($form->rec->folderId));
+        }
+        
+        if ($form->rec->folderId) {
+            $form->fields['contractorId']->type->params['excludeFolders'] = $form->rec->folderId;
+        }
+        
+        if ($form->rec->contractorId) {
+            $form->fields['folderId']->type->params['exludeContractors'] = $form->rec->contractorId;
         }
     }
 
@@ -584,5 +663,55 @@ class colab_FolderToPartners extends core_Manager
     	
     	
     	return $tpl;
+    }
+    
+    
+    /**
+     * Тестова функция за създаване на потребители
+     */
+    function act_CreateTestUsers()
+    {
+        requireRole('admin');
+        requireRole('debug');
+        
+        expect(core_Packs::isInstalled('colab'));
+        
+        core_App::setTimeLimit(600);
+        
+        $nickCnt = Request::get('cnt', 'int');
+        setIfNot($nickCnt, 1000);
+        if ($nickCnt > 20000) {
+            $nickCnt = 20000;
+        }
+        
+        $pass = Request::get('pass');
+        setIfNot($pass, '123456');
+        
+        $nickPref = Request::get('nickPref');
+        setIfNot($nickPref, 'test_');
+        
+        $pRoleId = core_Roles::fetchByName('partner');
+        $dRoleId = core_Roles::fetchByName('distributor');
+        $aRoleId = core_Roles::fetchByName('agent');
+        
+        while ($nickCnt--) {
+            $uRec = new stdClass();
+            $uRec->nick = $nickPref . str::getRand();
+            $uRec->names = $uRec->nick . ' Name';
+            $uRec->email = $uRec->nick . '@bgerp.com';
+            $uRec->state = 'active';
+            $uRec->rolesInput = array($pRoleId => $pRoleId);
+            
+            if (rand(1,3) == 1) {
+                $uRec->rolesInput[$dRoleId] = $dRoleId;
+            }
+            if (rand(1,3) == 3) {
+                $uRec->rolesInput[$aRoleId] = $aRoleId;
+            }
+            $uRec->rolesInput = type_Keylist::fromArray($uRec->rolesInput);
+            $uRec->ps5Enc = core_Users::encodePwd($pass, $uRec->nick);
+            
+            core_Users::save($uRec, NULL, 'IGNORE');
+        }
     }
 }

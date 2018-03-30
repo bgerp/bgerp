@@ -300,6 +300,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
 		}
 		
+		// @TODO ревербализиране на описанието
+		if(!empty($data->rec->info)){
+			$data->row->info = core_Type::getByName('richtext')->toVerbal($data->rec->info);
+		}
+		
 		// Ако не е зададен шаблон, взимаме дефолтния
 		$layout = ($data->isSingle !== TRUE) ? 'cat/tpl/SingleLayoutBaseDriverShort.shtml' : 'cat/tpl/SingleLayoutBaseDriver.shtml';
 		$tpl = getTplFromFile($layout);
@@ -352,5 +357,62 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	public function getDeliveryTime($id, $quantity)
 	{
 		return $this->getParams(cat_Products::getClassId(), $id, 'term');
+	}
+	
+	
+	/**
+	 * Връща масив с допълнителните плейсхолдъри при печат на етикети
+	 *
+	 * @param mixed $rec              - ид или запис на артикул
+	 * @param mixed $labelSourceClass - клас източник на етикета
+	 * @return array                  - Допълнителните полета при печат на етикети
+	 * 		[Плейсхолдър] => [Стойност]
+	 */
+	public function getAdditionalLabelData($rec, $labelSourceClass = NULL)
+	{
+		$res = array();
+		
+		$preview = cat_Products::getParams($rec, 'preview');
+		if(!empty($preview)){
+			$res['PREVIEW'] = $preview;
+		}
+		
+		return $res;
+	}
+	
+	
+	/**
+	 * Връща транспортното тегло за подаденото количество
+	 *
+	 * @param mixed $rec    - ид или запис на продукт
+	 * @param int $quantity - общо количество
+	 * @return double|NULL  - транспортното тегло на общото количество
+	 */
+	public function getTransportWeight($rec, $quantity)
+	{
+		$weight = $this->getParams(cat_Products::getClassId(), $rec->id, 'transportWeight');
+		if($weight){
+			$weight *= $quantity;
+			return round($weight, 2);
+		}
+		
+		return NULL;
+	}
+	
+	
+	/**
+	 * Връща транспортния обем за подаденото количество
+	 *
+	 * @param mixed $rec     - ид или запис на артикул
+	 * @param int $quantity  - общо количество
+	 * @return double        - транспортния обем на общото количество
+	 */
+	public function getTransportVolume($rec, $quantity)
+	{
+		$volume = $this->getParams(cat_Products::getClassId(), $rec->id, 'transportVolume');
+    	if($volume){
+    		$volume *= $quantity;
+    		return round($volume, 2);
+    	}
 	}
 }

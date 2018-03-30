@@ -1,63 +1,56 @@
 <?php
 
+
+
 /**
- * Мениджър на отчети за продадени артикули 
- *продукти по групи и търговци
+ * Мениджър на отчети за продадени артикули продукти по групи и търговци
  *
  *
  * @category  bgerp
  * @package   sales
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Продажби » Продадени артикули
  */
 class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 	
+	
 	/**
 	 * Кой може да избира драйвъра
 	 */
 	public $canSelectDriver = 'ceo, acc, rep_acc,rep_cat,sales';
 	
-	/**
-	 * Полета от таблицата за скриване, ако са празни
-	 *
-	 * @var int
-	 */
-	// protected $filterEmptyListFields = 'deliveryTime';
 	
 	/**
 	 * Полета за хеширане на таговете
 	 *
 	 * @see uiext_Labels
-	 * @var varchar
+	 * @var string
 	 */
 	protected $hashField = '$recIndic';
+	
 	
 	/**
 	 * Кое поле от $data->recs да се следи, ако има нов във новата версия
 	 *
-	 * @var varchar
+	 * @var string
 	 */
 	protected $newFieldToCheck = 'docId';
 	
-	/**
-	 * Какви продукти да могат да се избират в детайла
-	 *
-	 * @var enum(canManifacture=Производими,canConvert=Вложими)
-	 */
-	// protected $defaultMeta = 'canSell';
 	
 	/**
 	 * По-кое поле да се групират листовите данни
 	 */
 	protected $groupByField = 'group';
 	
+	
 	/**
 	 * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
 	 */
 	protected $changeableFields = 'from,to,compare,group,dealers,contragent,articleType';
+	
 	
 	/**
 	 * Добавя полетата на драйвера към Fieldset
@@ -69,11 +62,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 		$fieldset->FLD ( 'to', 'date(smartTime)', 'caption=До,after=from,single=none,mandatory' );
 		$fieldset->FLD ( 'compare', 'enum(no=Без, previous=Предходен, year=Миналогодишен)', 'caption=Сравнение,after=to,single=none' );
 		$fieldset->FLD ( 'group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=compare,single=none' );
-		// $fieldset->FLD('article', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикул,after=group,single=none');
 		$fieldset->FLD ( 'articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', "caption=Тип артикули,maxRadio=3,columns=3,removeAndRefreshForm,after=group" );
 		$fieldset->FLD ( 'dealers', 'users(rolesForAll=ceo|rep_cat, rolesForTeams=ceo|manager|rep_acc|rep_cat,allowEmpty)', 'caption=Търговци,after=to' );
 		$fieldset->FLD ( 'contragent', 'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,after=dealers' );
 	}
+	
 	
 	/**
 	 * След рендиране на единичния изглед
@@ -83,27 +76,26 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 	 * @param core_Form $form        	
 	 * @param stdClass $data        	
 	 */
-	protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form) {
-		if ($form->isSubmitted ()) {
-			
-			if (! ($form->rec->dealers)) {
-				
+	protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form) 
+	{
+		if($form->isSubmitted()){
+			if (! ($form->rec->dealers)){
 				$form->setError ( 'dealers', 'Нямате избран дилър' );
 			}
 		}
 	}
 	
+	
 	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
 	 * @param frame2_driver_Proto $Driver
-	 *        	$Driver
 	 * @param embed_Manager $Embedder        	
 	 * @param stdClass $data        	
 	 */
-	protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data) {
+	protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data) 
+	{
 		$form = &$data->form;
-		
 		$form->setDefault ( 'articleType', 'all' );
 		
 		// Размяна, ако периодите са объркани
@@ -114,6 +106,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 		}
 	}
 	
+	
 	/**
 	 * Кои записи ще се показват в таблицата
 	 *
@@ -121,11 +114,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 	 * @param stdClass $data        	
 	 * @return array
 	 */
-	protected function prepareRecs($rec, &$data = NULL) {
-		$recs = array ();
-		$recsLast = array ();
-		$recsYear = array ();
-		$products = array ();
+	protected function prepareRecs($rec, &$data = NULL) 
+	{
+		$products = $recsYear = $recsLast = $recs = array();
 		
 		// Обръщаме се към трудовите договори ????
 		$query = sales_PrimeCostByDocument::getQuery ();
@@ -352,41 +343,33 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 	 *        	- таблицата за експорт ли е
 	 * @return core_FieldSet - полетата
 	 */
-	protected function getTableFieldSet($rec, $export = FALSE) {
+	protected function getTableFieldSet($rec, $export = FALSE) 
+	{
 		$fld = cls::get ( 'core_FieldSet' );
 		
-		if ($export === FALSE) {
-			$fld->FLD ( 'kod', 'varchar', 'caption=Код' );
-			$fld->FLD ( 'productId', 'varchar', 'caption=Артикул' );
-			$fld->FLD ( 'measure', 'varchar', 'caption=Мярка,tdClass=centered' );
-			$fld->FLD ( 'quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество->Продадено' );
-			$fld->FLD ( 'quantityLast', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество->Сравнение' );
-			$fld->FLD ( 'primeCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност' );
-		} else {
-			$fld->FLD ( 'kod', 'varchar', 'caption=Код' );
-			$fld->FLD ( 'productId', 'varchar', 'caption=Артикул' );
-			$fld->FLD ( 'measure', 'varchar', 'caption=Мярка' );
-			$fld->FLD ( 'quantity', 'varchar', 'caption=Кол.Продадено' );
-			$fld->FLD ( 'quantityLast', 'varchar', 'caption=Кол.Сравнение' );
-			$fld->FLD ( 'primeCost', 'varchar', 'caption=Стойност' );
+		$fld->FLD('kod', 'varchar', 'caption=Код');
+		$fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+		$fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+		$fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество->Продадено');
+		$fld->FLD('quantityLast', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество->Сравнение');
+		$fld->FLD('primeCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност');
+		if($export === TRUE){
+			$fld->FLD('group', 'keylist(mvc=cat_groups,select=name)', 'caption=Група');
 		}
 		
 		return $fld;
 	}
 	
+	
 	/**
 	 * Вербализиране на редовете, които ще се показват на текущата страница в отчета
 	 *
-	 * @param stdClass $rec
-	 *        	- записа
-	 * @param stdClass $dRec
-	 *        	- чистия запис
+	 * @param stdClass $rec  - записа
+	 * @param stdClass $dRec - чистия запис
 	 * @return stdClass $row - вербалния запис
 	 */
-	protected function detailRecToVerbal($rec, &$dRec) {
-		
-		// bp($dRec);
-		$isPlain = Mode::is ( 'text', 'plain' );
+	protected function detailRecToVerbal($rec, &$dRec) 
+	{
 		$Int = cls::get ( 'type_Int' );
 		$Date = cls::get ( 'type_Date' );
 		$Double = cls::get ( 'type_Double' );
@@ -395,25 +378,17 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 		$row = new stdClass ();
 		
 		if (isset ( $dRec->kod )) {
-			$row->kod = ($isPlain) ? $dRec->kod : $dRec->kod;
+			$row->kod = $dRec->kod;
 		}
 		
-		if (isset ( $dRec->productId )) {
-			// $row->productId = cat_Products::getShortHyperlink($dRec->productId);
-			$row->productId = ($isPlain) ? cat_Products::getVerbal ( $dRec->productId, 'name' ) : cat_Products::getLinkToSingle_ ( $dRec->productId, 'name' );
-		}
+		$row->productId = cat_Products::getLinkToSingle_ ( $dRec->productId, 'name' );
 		
 		if (isset ( $dRec->measure )) {
 			$row->measure = cat_UoM::fetchField ( $dRec->measure, 'shortName' );
 		}
 		
-		foreach ( array (
-				'quantity',
-				'primeCost',
-				// 'sellCost',
-				'quantityLast' 
-		) as $fld ) {
-			$row->{$fld} = ($isPlain) ? frame_CsvLib::toCsvFormatDouble ( $dRec->{$fld} ) : $Double->toVerbal ( $dRec->{$fld} );
+		foreach (array ('quantity','primeCost','quantityLast') as $fld ) {
+			$row->{$fld} = $Double->toVerbal($dRec->{$fld});
 			if ($dRec->{$fld} < 0) {
 				$row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
 			}
@@ -421,11 +396,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 		
 		if (isset ( $dRec->group )) {
 			// и збраната позиция
-			// $rGroup = cat_Groups::getDescendantArray($dRec->group);
-			$rGroup = keylist::toArray ( $dRec->group );
-			
+			$rGroup = keylist::toArray ($dRec->group );
 			foreach ( $rGroup as &$g ) {
-				
 				$gro = cat_Groups::getVerbal ( $g, 'name' );
 			}
 			
@@ -486,6 +458,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 		$row->compare = $arrCompare [$rec->compare];
 	}
 	
+	
 	/**
 	 * След рендиране на единичния изглед
 	 *
@@ -535,7 +508,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 	 * @param stdClass $data        	
 	 * @return array
 	 */
-	private function groupRecs($recs, $group) {
+	private function groupRecs($recs, $group) 
+	{
 		$ordered = array ();
 		
 		$groups = keylist::toArray ( $group );

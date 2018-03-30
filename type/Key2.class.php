@@ -336,7 +336,7 @@ class type_Key2 extends type_Int
         }
                            
 
-        core_App::getJson($res);
+        core_App::outputJson($res);
     }
     
     

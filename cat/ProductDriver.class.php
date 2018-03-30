@@ -1,5 +1,7 @@
 <?php
 
+
+
 /**
  * Базов драйвер за драйвер на артикул
  *
@@ -7,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Базов драйвер за драйвер на артикул
@@ -621,5 +623,104 @@ abstract class cat_ProductDriver extends core_BaseClass
     public function getTransportVolume($rec, $quantity)
     {
     	return NULL;
+    }
+    
+    
+    /**
+	 * Връща сериен номер според източника
+	 * 
+	 * @param mixed $id             - ид или запис на артикул
+	 * @param mixed $sourceClassId  - клас
+	 * @param mixed $sourceObjectId - ид на обект
+	 * @return string $serial       - генериран сериен номер
+	 */
+	public function generateSerial($id, $sourceClassId = NULL, $sourceObjectId = NULL)
+    {
+    	return cat_Serials::generateSerial($sourceClassId, $sourceObjectId);
+    }
+    
+    
+    /**
+     * Регистрира дадения сериен номер, към обекта (ако има)
+     *
+     * @param mixed $id                - ид или запис на артикул
+     * @param mixed $serial            - сериен номер
+     * @param mixed $sourceClassId     - клас на обекта
+     * @param int|NULL $sourceObjectId - ид на обекта
+     */
+    public function assignSerial($id, $serial, $sourceClassId = NULL, $sourceObjectId = NULL)
+    {
+    	return cat_Serials::assignSerial($serial, $sourceClassId, $sourceObjectId);
+    }
+    
+    
+    /**
+     * Записа на артикула отговарящ на серийния номер
+     *
+     * @param int $serial
+     * @return stdClass|NULL
+     */
+    public function getRecBySerial($serial)
+    {
+    	if($sRec = cat_Serials::getRecBySerial($serial)){
+    		if(cls::load($sRec->sourceClassId, TRUE)){
+    			$Source = cls::get($sRec->sourceClassId);
+    			if($Source->getField('productId', FALSE)){
+    				if($productId = $Source->fetchField($sRec->sourceObjectId, 'productId')){
+    					return cat_Products::fetch($productId);
+    				}
+    			}
+    		}
+    	}
+    	
+    	return NULL;
+    }
+    
+    
+    /**
+     * Канонизиране генерирания номер
+     *
+     * @param string $serial
+     * @return string
+     */
+    public function canonizeSerial($id, $serial)
+    {
+    	return cat_Serials::canonize($serial);
+    }
+    
+    
+    /**
+     * Проверяване на серийния номер
+     *
+     * @param string $serial
+     * @return string
+     */
+    public function checkSerial($id, $serial, &$error)
+    {
+    	return cat_Serials::check($serial, $error);
+    }
+    
+    
+    /**
+     * Връща сложността на артикула
+     * 
+     * @param mixed $rec
+     * @return int
+     */
+    public function getDifficulty($rec)
+    {
+    	return 1;
+    }
+    
+    
+    /**
+     * Надценка на делтата
+     *
+     * @param mixed $rec
+     * @return int
+     */
+    public function getDeltaSurcharge($rec)
+    {
+    	return 1;
     }
 }

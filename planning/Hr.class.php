@@ -335,9 +335,12 @@ class planning_Hr extends core_Master
     	$code = planning_Hr::fetchField("#personId = {$personId}", 'code');
     	$name = crm_Persons::getVerbal($personId, 'name');
     	 
-    	$singleUrl = crm_Persons::getSingleUrlArray($personId);
-    	if(count($singleUrl)){
-    		$singleUrl['Tab'] = 'PersonsDetails';
+    	$singleUrl = array();
+    	if(!Mode::isReadOnly()){
+    		$singleUrl = crm_Persons::getSingleUrlArray($personId);
+    		if(count($singleUrl)){
+    			$singleUrl['Tab'] = 'PersonsDetails';
+    		}
     	}
     	
     	$link = ht::createLink($code, $singleUrl, FALSE, "title=Към визитката на|* '{$name}'");

@@ -61,6 +61,15 @@ class eshop_Setup extends core_ProtoSetup
     var $managers = array(
             'eshop_Groups',
             'eshop_Products',
+    		'eshop_Payments',
+    		'eshop_Settings',
+    		'eshop_DeliveryTimes',
+    		'eshop_DeliveryTerms',
+    		'eshop_ProductDetails',
+    		'eshop_Carts',
+    		'eshop_CartDetails',
+            'migrate::migrateProductOrdering',
+            'migrate::migrateGroupOrdering',
         );
 
         
@@ -86,6 +95,12 @@ class eshop_Setup extends core_ProtoSetup
 	);
 
     
+	/**
+	 * Дефинирани класове, които имат интерфейси
+	 */
+	public $defClasses = "eshop_interfaces_Cod,eshop_interfaces_FreeDelivery";
+	
+	
     /**
      * Инсталиране на пакета
      */
@@ -111,4 +126,56 @@ class eshop_Setup extends core_ProtoSetup
         
         return $res;
     }
+
+    /**
+     * Миграция за подредбата на продуктите
+     */
+    public static function migrateProductOrdering()
+    {
+        $mvc = cls::get('eshop_Products');
+
+        $query = $mvc->getQuery();
+        $query->FLD('order', 'int', 'caption=Подредба');
+
+        $query->orderBy("#order,#code");
+         
+        $i = array();
+        $cnt = 0;
+        while($rec = $query->fetch()) {
+            if(!isset($i[$rec->groupId])) {
+                $i[$rec->groupId] = 1;
+            }
+            $rec->saoOrder = $i[$rec->groupId]++;
+            $rec->saoLevel = 1;
+            $mvc->save_($rec, 'saoOrder, saoLevel');
+            $cnt++;
+        }
+ 
+        return "<li>Мигрирана подредбата на eshop продукти: " . $cnt;    
+    }
+
+    /**
+     * Миграция за подредбата на продуктите
+     */
+    public static function migrateGroupOrdering()
+    {
+        $mvc = cls::get('eshop_Groups');
+
+        $query = $mvc->getQuery();
+        
+        $i = array();
+        $cnt = 0;
+        while($rec = $query->fetch()) {
+            if(!isset($i[$rec->menuId])) {
+                $i[$rec->menuId] = 1;
+            }
+            $rec->saoOrder = $i[$rec->menuId]++;
+            $rec->saoLevel = 1;
+            $mvc->save_($rec, 'saoOrder, saoLevel');
+            $cnt++;
+        }
+ 
+        return "<li>Мигрирана подредбата на eshop групи: " . $cnt;
+    }
+
 }

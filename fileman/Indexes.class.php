@@ -673,7 +673,7 @@ class fileman_Indexes extends core_Manager
     /**
      * Пуска обработка на текстовата част и пълним ключовите думи
      *
-     * @param stdObject $dRec
+     * @param stdClass $dRec
      * @param datetime $endOn
      * 
      * @return boolean
@@ -883,7 +883,7 @@ class fileman_Indexes extends core_Manager
      * @param string|NULL $fName
      * 
      * 
-     * @return FALSE|stdObject
+     * @return FALSE|stdClass
      */
     protected static function getDrvForMethod($ext, $methodName, $fName = NULL)
     {
@@ -936,7 +936,7 @@ class fileman_Indexes extends core_Manager
      * След извличане на записите от базата данни
      * 
      * @param fileman_Indexes $mvc
-     * @param stdObject $data
+     * @param stdClass $data
      */
     public static function on_AfterPrepareListRecs(fileman_Indexes $mvc, $data)
     {
@@ -953,7 +953,7 @@ class fileman_Indexes extends core_Manager
      * След преобразуване на записа в четим за хора вид
      * 
      * @param fileman_Indexes $mvc
-     * @param stdObject $data
+     * @param stdClass $data
      */
     public static function on_AfterPrepareListRows(fileman_Indexes $mvc, $data)
     {
@@ -981,7 +981,7 @@ class fileman_Indexes extends core_Manager
      * Подготовка на филтър формата
      *
      * @param fileman_Indexes $mvc
-     * @param stdObject $data
+     * @param stdClass $data
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {

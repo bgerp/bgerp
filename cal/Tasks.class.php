@@ -266,19 +266,23 @@ class cal_Tasks extends embed_Manager
     function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%,changable,silent');
-        $this->FLD('priority', 'enum(low=Нисък,
-                                    normal=Нормален,
-                                    high=Висок,
-                                    critical=Критичен)',
-            'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal');
+        
+        $this->FLD('description', 'richtext(bucket=calTasks, passage=Общи)', 'caption=Описание,changable');
+
+        // Споделяне
+        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,changable,autohide');
+        
+        // Приоритет
+        $this->FLD('priority', 'enum(normal=Нормален,
+                                     low=Нисък,
+                                     high=Спешен,
+                                     critical=Критичен)',
+            'caption=Споделяне->Приоритет,maxRadio=4,columns=4,notNull,value=normal,autohide,changable');
+        
         if(Mode::is('screenMode', 'narrow')) {
             $this->setField('priority', "columns=2");
             $this->setFieldTypeParams('priority',"columns=2" );
         }
-        $this->FLD('description', 'richtext(bucket=calTasks, passage=Общи)', 'caption=Описание,changable');
-
-        // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,changable');
         
         // Начало на задачата
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)',
@@ -767,6 +771,10 @@ class cal_Tasks extends embed_Manager
                 }
             }
         }
+        
+        if ($form->isSubmitted() && ($rec->state != 'draft')) {
+            $mvc->calculateExpectationTime($rec);
+        }
     }
 	
 	
@@ -961,7 +969,7 @@ class cal_Tasks extends embed_Manager
 
         // изчисляваме очакваните времена
         self::calculateExpectationTime($rec);
-
+        
         // проверяваме дали може да стане задачата в активно състояние
         $canActivate = self::canActivateTask($rec);
         
@@ -1469,6 +1477,32 @@ class cal_Tasks extends embed_Manager
         //Заглавие
         $row->title = $this->getVerbal($rec, 'title');
         
+        $row->subTitle = '';
+        
+        if ($rec->progress) {
+            $Driver = $this->getDriver($rec->id);
+            
+            if ($Driver) {
+                $progressArr = $Driver->getProgressSuggestions($rec);
+            } else {
+                $progressArr = array();
+            }
+            
+            Mode::push('text', 'plain');
+            $pVal = $this->getVerbal($rec, 'progress');
+            Mode::pop('text');
+            
+            $pValStr = $progressArr[$pVal];
+            
+            if ($pValStr && ($pValStr != $pVal)) {
+                $row->subTitle .= $pValStr;
+            } else {
+                $row->subTitle .= $this->getVerbal($rec, 'progress');
+            }
+            
+            $row->subTitle .= ' (' .cal_TaskProgresses::getLastProgressAuthor($rec->id) . ')';
+        }
+        
         $usersArr = type_Keylist::toArray($rec->assign);
         if (!empty($usersArr)) {
             
@@ -1481,7 +1515,8 @@ class cal_Tasks extends embed_Manager
             
             $Users = cls::get('type_userList');
             // В заглавието добавяме потребителя
-            $row->subTitle = $Users->toVerbal(type_userList::fromArray($usersArr));
+            $row->subTitle .= $row->subTitle ? ' - ' : '';
+            $row->subTitle .= $Users->toVerbal(type_userList::fromArray($usersArr));
             $row->subTitle .= $othersStr;
         }
        
@@ -1489,11 +1524,12 @@ class cal_Tasks extends embed_Manager
         $row->state = $rec->state;
         
         $date = '';
+		
         if ($rec->state == 'active' && $rec->timeEnd) {
-            $date = $rec->timeEnd; 
+            $date = $rec->timeEnd;
         }
         
-        if ($rec->state = 'waiting' && $rec->timeStart) {
+        if (($rec->state == 'waiting' || $rec->state == 'pending') && $rec->timeStart) {
             $date = $rec->timeStart;
         }
     
@@ -1647,6 +1683,8 @@ class cal_Tasks extends embed_Manager
      */
     static function getGantt ($data)
     {
+        $assignedUsersArr = array();
+        
         // масив с цветове
     	$colors = array( "#610b7d", 
 				    	"#1b7d23",
@@ -1720,9 +1758,9 @@ class cal_Tasks extends embed_Manager
 		    		} else {
 		    			$timeEnd = $rec->timeEnd;
 		    		}
-    	    	            
+		    		
     	    		// масив с шернатите потребители
-    	    		$sharedUsers[$rec->sharedUsers] = keylist::toArray($rec->sharedUsers);
+		    		$assignedUsersArr[$rec->assign] = keylist::toArray($rec->assign);
     	    		
     	    		// Ако имаме права за достъп до сингъла
     	    		if (cal_Tasks::haveRightFor('single', $rec)) {
@@ -1735,7 +1773,7 @@ class cal_Tasks extends embed_Manager
 		            	// масива със задачите
     		    		$resTask[]=array( 
     			    					'taskId' => $rec->id,
-    			    					'rowId' =>  keylist::toArray($rec->sharedUsers),
+    		    		                'rowId' =>  keylist::toArray($rec->assign),
     		    						'timeline' => array (
     		    											'0' => array(
     		                								'duration' => $timeDuration,  
@@ -1749,26 +1787,22 @@ class cal_Tasks extends embed_Manager
         		}
         	} 
         	
-        	if (is_array($sharedUsers)) {
+        	if (!empty($assignedUsersArr)) {
 	        	// правим масив с ресурсите или в нашия случай това са потребителитя
-	        	foreach($sharedUsers as $key=>$users){
-	        		if(count($users) >=2 ) {
-	        			unset ($sharedUsers[$key]);
-	        		}
-	        		
+        	    foreach ($assignedUsersArr as $users){
 	        		// има 2 полета ид = номера на потребителя
 	        		// и линк към профила му
 	        		foreach($users as $id => $resors){
 	                    $link = crm_Profiles::createLink($resors);
-	    	    		$resorses[$id]['name'] = (string) crm_Profiles::createLink($resors);
-	    	    		$resorses[$id]['id'] = $resors;
+	    	    		$resources[$id]['name'] = (string) crm_Profiles::createLink($resors);
+	    	    		$resources[$id]['id'] = $resors;
 	        		}
 	        	}
         	}
         	
-        	if(is_array($resorses)) {
+        	if(is_array($resources)) {
 	        	// номерирваме ги да почват от 0
-	        	foreach($resorses as $res) {
+	        	foreach($resources as $res) {
 	        		$resUser[] = $res;
 	        	}
         	}
@@ -1793,8 +1827,8 @@ class cal_Tasks extends embed_Manager
 	        	// за всяко едно ид от $rowArr търсим отговарящия му ключ от $resUser
 	        	foreach($rowArr as $k => $v){
 	        		
-	        		foreach($v as $a=>$t){
-	        			foreach($resUser as $key=>$value){
+	        		foreach($v as $a => $t){
+	        			foreach($resUser as $key => $value){
 	        				if($t == $value['id']) {
 	        					$resTask[$k]['rowId'][$a] = $key; 
 	        				}
@@ -1875,7 +1909,7 @@ class cal_Tasks extends embed_Manager
     
     /**
      * Прави линкове към по-голям и по-маък тип гант
-     * @param varchar $ganttType
+     * @param string $ganttType
      */
     static public function getNextGanttType ($ganttType)
     {
@@ -1918,6 +1952,8 @@ class cal_Tasks extends embed_Manager
      */
     static function renderGanttTimeType($data)
     {
+        $stringTz = date_default_timezone_get();
+        
         // Сетваме времевата зона
         date_default_timezone_set('UTC');
         
@@ -1949,8 +1985,6 @@ class cal_Tasks extends embed_Manager
     		
     	// ако периода на таблицата е по-голям от година
     		case 'Years': 
-    		    
-    		    date_default_timezone_set('UTC');
     		    
 	    		// делението е година/месец
 	    		$otherParams['mainHeaderCaption'] = tr('година');
@@ -1990,8 +2024,6 @@ class cal_Tasks extends embed_Manager
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour4' :
     		    
-    		    date_default_timezone_set('UTC');
-    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -2029,8 +2061,6 @@ class cal_Tasks extends embed_Manager
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour6' :
     		
-    		    date_default_timezone_set('UTC');
-    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -2068,8 +2098,6 @@ class cal_Tasks extends embed_Manager
     		// ако периода на таблицата е в рамките на една една седмица
     		case 'WeekHour' :
     		    
-    		    date_default_timezone_set('UTC');
-    		    
 	    		// делението е ден/час
 	    		$otherParams['mainHeaderCaption'] = tr('ден');
 	    		$otherParams['subHeaderCaption'] = tr('часове');
@@ -2106,8 +2134,6 @@ class cal_Tasks extends embed_Manager
    		
     		// ако периода на таблицата е в рамките на седмица - месец
     		case 'WeekDay' :
-    		    
-    		    date_default_timezone_set('UTC');
     		    
 	    		// делението е седмица/ден
 	    		$otherParams['mainHeaderCaption'] = tr('седмица');
@@ -2152,8 +2178,6 @@ class cal_Tasks extends embed_Manager
     	   // ако периода на таблицата е в рамките на месец - ден
     		case 'Months' :
     		    
-    		    date_default_timezone_set('UTC');
-    		    
 	    		// делението е месец/ден
 	    		$otherParams['mainHeaderCaption'] = tr('месец');
 	    		$otherParams['subHeaderCaption'] = tr('ден');
@@ -2196,8 +2220,6 @@ class cal_Tasks extends embed_Manager
     	  
     	   // ако периода на таблицата е в рамките на година - седмици
     		case 'YearWeek' :
-    		    
-    		    date_default_timezone_set('UTC');
     		    
 	    		// делението е месец/седмица
 	    		$otherParams['mainHeaderCaption'] = tr('година');
@@ -2261,6 +2283,8 @@ class cal_Tasks extends embed_Manager
     		
     		break; 
     	}
+    	
+    	date_default_timezone_set($stringTz);
     	
     	return (object) array('otherParams' => $otherParams, 'headerInfo' => $headerInfo);
     }
@@ -2478,7 +2502,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Добавя нотификация за приключена задача
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $msg
      * @param array $notifyUsersArr
      * @param boolean $removeOldNotify
@@ -2543,7 +2567,7 @@ class cal_Tasks extends embed_Manager
      * 
      * 
      * @param cal_Tasks $mvc
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $state
      */
     protected function on_AfterChangeState($mvc, $rec, $state)
@@ -2644,6 +2668,9 @@ class cal_Tasks extends embed_Manager
      */
     static public function calculateExpectationTime (&$rec)
     {
+        $stringTz = date_default_timezone_get();
+        date_default_timezone_set('UTC');
+        
     	// сега
     	$now = dt::verbal2mysql(); 
     	
@@ -2661,12 +2688,11 @@ class cal_Tasks extends embed_Manager
 	    	    foreach($arrCond as $cond) {
 	    	    	 // правим масив с всички изчислени времена
 	    			$calcTimeS[] = self::calculateTimeToStart($rec, $cond);
-    	    		//$timeEnd = self::fetchField($cond->dependId, "expectationTimeEnd");
 	    	    }
 	    	    
 		     	// взимаме и началното време на текущата задача,
 		     	// ако има такова
-		     	$timeStartRec = self::fetchField($rec->id, "timeStart");
+	    	    $timeStartRec = $rec->timeStart;
 		     	
 		     	if (!$timeStartRec) { 
 		     		// в противен случай го слагаме 0
@@ -2682,9 +2708,9 @@ class cal_Tasks extends embed_Manager
 
 		     // ако не е зависима от други взимаме нейните начало и край
 	    	} else {
-	    		$timeStart = self::fetchField($rec->id, "timeStart");
-    	    	$timeEnd = self::fetchField($rec->id, "timeEnd");
-    	    	$timeDuration = self::fetchField($rec->id, "timeDuration");
+	    		$timeStart = $rec->timeStart;
+    	    	$timeEnd = $rec->timeEnd;
+    	    	$timeDuration = $rec->timeDuration;
     	    	
     	    	if($timeDuration && !$timeEnd){
     	    		$timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($timeStart) + $timeDuration);
@@ -2717,7 +2743,7 @@ class cal_Tasks extends embed_Manager
 	    } elseif ($timeEnd && !$timeStart && !$rec->timeDuration) {
 	    	$expEnd = $timeEnd;
 	    	if ($rec->id) {
-	    		$expStart = self::fetchField($rec->id, "modifiedOn");
+	    	    $expStart = $rec->modifiedOn;
 	    	}	
 	    // ако има и начало и край
 	    // то очакваните начало и край са тези
@@ -2737,6 +2763,8 @@ class cal_Tasks extends embed_Manager
 
     	$rec->expectationTimeStart = $expStart;
     	$rec->expectationTimeEnd = $expEnd;
+    	
+    	date_default_timezone_set($stringTz);
     }
     
     
@@ -3037,6 +3065,7 @@ class cal_Tasks extends embed_Manager
         if ($form->isSubmitted()) {
             
             $form->rec->state = 'active';
+            $form->rec->activatedBy = (int)core_Users::getCurrent();
             
             if ($systemId){
                 $form->rec->folderId = support_Systems::forceCoverAndFolder($systemId);

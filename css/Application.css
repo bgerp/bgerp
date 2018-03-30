@@ -665,6 +665,21 @@ div.productImage {
     position: relative;
     top: -1px; }
 
+  .printing .document .mergedDetailsholder table.listTable>thead>tr>th {
+    background: none !important;
+    font-weight: normal;
+    font-size: 0.8em; }
+  .printing .document .mergedDetailsholder table.listTable>tbody>tr>td {
+    background: white !important; }
+  .printing .document table.listTable>tbody>tr>td.mergedDetailWideTD {
+    padding: 0 !important; }
+    .printing .document .listTable .mergedDetails .no-border td {
+      border: none !important;
+      vertical-align: top !important;
+      padding: 1px; }
+    .printing .document .listTable .mergedDetails div > table.listTable>thead>tr>th {
+      background: none !important; }
+
 .products-table .rowtoolsGroup.modal-toolbar.iw-contextMenu {
   max-width: 200px; }
 
@@ -1910,7 +1925,7 @@ pre.document {
   white-space: nowrap; }
 
 .wrapText {
-  white-space: normal; }
+  white-space: normal !important; }
 
 .shipment-table tr td {
   padding: 1px 3px !important; }
@@ -2369,6 +2384,9 @@ ul.history {
       background-color: purple; }
     ul.history .action.pdf b {
       background-color: #888888;
+      color: white; }
+    ul.history .action.link b {
+      background-color: #999999;
       color: white; }
     ul.history .action.changed b {
       background-color: #660000; }
@@ -4294,11 +4312,37 @@ row-fluid {
   font-size: 0.7em;
   font-weight: bold; }
 
-  .cmr-table td {
-    border-left: 1px solid black !important;
-    border-right: 1px solid black !important; }
-    .cmr-table td.border-top {
-      border-top: 1px solid black !important; }
+.cmr-holder {
+  color: black; }
+  .cmr-holder td {
+    border-left: 1px solid black;
+    border-right: 1px solid black; }
+    .cmr-holder td.border-top {
+      border-top: 1px solid black; }
+
+.cmr-red {
+  color: #ed1748; }
+  .cmr-red td {
+    border-left: 1px solid #ed1748;
+    border-right: 1px solid #ed1748; }
+    .cmr-red td.border-top {
+      border-top: 1px solid #ed1748; }
+
+.cmr-green {
+  color: #00a94f; }
+  .cmr-green td {
+    border-left: 1px solid #00a94f;
+    border-right: 1px solid #00a94f; }
+    .cmr-green td.border-top {
+      border-top: 1px solid #00a94f; }
+
+.cmr-blue {
+  color: #0082c8; }
+  .cmr-blue td {
+    border-left: 1px solid #0082c8;
+    border-right: 1px solid #0082c8; }
+    .cmr-blue td.border-top {
+      border-top: 1px solid #0082c8; }
 
 @media handheld,
 only screen and (min-width: 1240px) {
@@ -4857,6 +4901,8 @@ only screen and (max-width: 320px) {
     .external .hideLink.inlineLinks {
       margin-left: 0;
       display: inline-block; }
+  .external span.linkWithIcon {
+    padding-left: 23px !important; }
 
 .narrow .external div.hideLink {
   margin-top: 10px; }
@@ -4872,6 +4918,10 @@ only screen and (max-width: 320px) {
   .narrow .external .document {
     margin: 0;
     width: 95%; }
+
+.labelBreak {
+  page-break-after: auto;
+  page-break-inside: avoid; }
 
 /*
  * стилове за принтиране
@@ -5150,7 +5200,11 @@ only screen and (max-width: 320px) {
     margin: 5px 0;
     border: none;
     padding: 0;
-    width: 100%; }
+    width: 100%;
+    background: none; }
+    .printing .antetka .small {
+      line-height: 1.5em;
+      font-size: 0.85em !important; }
     .printing .antetka .top-table {
       border-collapse: collapse; }
       .printing .antetka .top-table td {
@@ -5193,6 +5247,12 @@ only screen and (max-width: 320px) {
     font-size: 0.85em; }
   .printing .miniText {
     font-size: 0.65em; }
+  .printing h3.richtext-title {
+    padding: 20px 0 !important;
+    margin-bottom: 0;
+    font-size: 1.1em; }
+  .printing .em-holder .top-table td {
+    border: none !important; }
 
 .narrow .printing .document {
   width: 850px; }

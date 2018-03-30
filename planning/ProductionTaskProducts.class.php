@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -446,9 +446,6 @@ class planning_ProductionTaskProducts extends core_Detail
     {
     	if(!empty($rec->inputedQuantity)){
     		$dRec = (object)array('taskId' => $rec->taskId, 'productId' => $rec->productId, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity);
-    		if($rec->type == 'production'){
-    			$dRec->serial = planning_TaskSerials::forceAutoNumber($dRec);
-    		}
     		planning_ProductionTaskDetails::save($dRec);
     	}
     }
@@ -463,15 +460,15 @@ class planning_ProductionTaskProducts extends core_Detail
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
     		
-    		if(cat_Products::getByProperty('canConvert', NULL, 1)){
-    			if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'input'))){
-    				$data->toolbar->addBtn('За влагане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложим артикул');
-    			}
-    		}
-    		
     		if(cat_Products::getByProperty('canManifacture', NULL, 1)){
     			if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'production'))){
     				$data->toolbar->addBtn('За произвеждане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/package.png,title=Добавяне на вложим артикул');
+    			}
+    		}
+    		
+    		if(cat_Products::getByProperty('canConvert', NULL, 1)){
+    			if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'input'))){
+    				$data->toolbar->addBtn('За влагане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложим артикул');
     			}
     		}
     		
@@ -481,8 +478,6 @@ class planning_ProductionTaskProducts extends core_Detail
     			}
     		}
     	}
-    	 
-    	$data->toolbar->removeBtn('binBtn');
     }
     
     

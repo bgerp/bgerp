@@ -182,7 +182,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                 $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore, $foundQuantity);
                 $form->info = $storeInfo->formInfo;
                 if(!empty($foundQuantity) && $foundQuantity > 0){
-                	$form->setSuggestions('baseQuantity', array('' => '', $foundQuantity => $foundQuantity));
+                	$form->setSuggestions('baseQuantity', array('' => '', "{$foundQuantity}" => $foundQuantity));
                 }
             }
             
@@ -418,12 +418,10 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             if($err2) {
                 $data->masterData->row->logisticInfo = ht::createHint($data->masterData->row->logisticInfo, $err2, 'error');
             }
-
         }
-
-        if(!$haveTransInfo) {
-            unset($data->listFields['info']);
-        }
+        
+        // Временно спиране
+        unset($data->listFields['info']);
     	
     	core_Lg::pop();
     }

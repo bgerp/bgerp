@@ -910,8 +910,8 @@ class core_DateTime
     /**
      * Дали дадена дата е във формата на подадената маска
      * 
-     * @param varchar $date - дата
-     * @param varchar $mask - маска
+     * @param string $date - дата
+     * @param string $mask - маска
      * @return boolean
      */
     public static function checkByMask($date, $mask)
@@ -939,8 +939,8 @@ class core_DateTime
     /**
      * Опитва се да обърне подаден стринг с дадена маска, в mysql-ски формат дата
      * 
-     * @param varchar $string     - стринг
-     * @param varchar $mask       - маска (e.g dd.mm.yyyy)
+     * @param string $string     - стринг
+     * @param string $mask       - маска (e.g dd.mm.yyyy)
      * @return string|FALSE       - mysql датата в формат 'Y-m-d', или FALSE ако има проблем
      */
     public static function getMysqlFromMask($string, $mask)
@@ -974,6 +974,35 @@ class core_DateTime
     	
     		$thisMonth = $date->format('Y-m-01');
     		$months[$thisMonth] = dt::mysql2verbal($thisMonth, 'M Y');
+    	}
+    	
+    	return $months;
+    }
+    
+    
+    /**
+     * Намира месеците между две дати
+     *
+     * @param date $startDate    - начална дата
+     * @param date|NULL $endDate - дата, NULL за текущата
+     * @return string $mask      - маска
+     * @return array $months     - масив с месеци
+     */
+    public static function getMonthsBetween($startDate, $endDate = NULL, $mask = 'M Y')
+    {
+    	$endDate = isset($endDate) ? $endDate : dt::today();
+    	$endDate = new DateTime($endDate);
+    	$endDate = $endDate->format('Y-m-01');
+    	
+    	$months = array();
+    	$date = new DateTime($startDate);
+    	$nextDate = $date->format('Y-m-01');
+    	$months[$nextDate] = dt::mysql2verbal($nextDate, $mask);
+    	
+    	while($nextDate < $endDate){
+    		$date->modify("next month");
+    		$nextDate = $date->format('Y-m-01');
+    		$months[$nextDate] = dt::mysql2verbal($nextDate, $mask);
     	}
     	
     	return $months;

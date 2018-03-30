@@ -3,13 +3,13 @@
 
 
 /**
- * Нов мениджър за справки
+ * Мениджър за динамични справки
  *
  *
  * @category  bgerp
  * @package   frame2
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -75,12 +75,6 @@ class frame2_Reports extends embed_Manager
      * Права за писане
      */
     public $canEdit = 'powerUser';
-    
-    
-    /**
-     * Права за писане
-     */
-    public $canExport = 'powerUser';
     
     
     /**
@@ -200,19 +194,36 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'title,driverClass';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие');
-    	$this->FLD('changeFields', 'set', 'caption=Промяна на->Избор,autohide,input=none');
     	$this->FLD('updateDays', 'set(monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя)', 'caption=Обновяване и известяване->Дни,autohide');
     	$this->FLD('updateTime', 'set(08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00)', 'caption=Обновяване и известяване->Час,autohide');
     	$this->FLD('notificationText', 'varchar', 'caption=Обновяване и известяване->Текст,autohide');
     	$this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Обновяване и известяване->Потребители,autohide');
-    	$this->FLD('maxKeepHistory', 'int(Min=0)', 'caption=Запазване на предишни състояния->Версии,autohide,placeholder=Неограничено');
+    	$this->FLD('changeFields', 'set', 'caption=Други настройки->Промяна,autohide,input=none');
+    	$this->FLD('maxKeepHistory', 'int(Min=0)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
     	$this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
     	$this->FLD('lastRefreshed', 'datetime', 'caption=Последно актуализиране,input=none');
+    }
+    
+    
+    /**
+     * След дефиниране на полетата на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Master &$mvc)
+    {
+    	$mvc->setField('priority', 'caption=Обновяване и известяване->Приоритет,after=sharedUsers');
     }
     
     
@@ -387,7 +398,7 @@ class frame2_Reports extends embed_Manager
     	
     	// На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
     	foreach ($userArr as $userId){
-    		bgerp_Notifications::add($msg, $url, $userId);
+    		bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
     	}
     }
     
@@ -436,10 +447,6 @@ class frame2_Reports extends embed_Manager
     		$data->toolbar->addBtn('Обнови', array($mvc, 'refresh', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на отчета');
     	}
     	
-    	if($mvc->haveRightFor('export', $rec)){
-    		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=2');
-    	}
-    	
     	$url = array($mvc, 'single', $rec->id);
     	$icon = 'img/16/checked.png';
     	if(!Request::get('vId', 'int')){
@@ -464,7 +471,7 @@ class frame2_Reports extends embed_Manager
     	expect($rec = $this->fetch($id));
     	$this->requireRightFor('refresh', $rec);
     	
-    	self::refresh($rec, $save = TRUE);
+    	self::refresh($rec);
     	frame2_ReportVersions::unSelectVersion($rec->id);
     	
     	return followRetUrl();
@@ -482,7 +489,7 @@ class frame2_Reports extends embed_Manager
     	if($Driver = $mvc->getDriver($rec)){
     		$tpl->replace($Driver->renderData($rec)->getContent(), 'DRIVER_DATA');
     	} else {
-    		$tpl->replace("<span class='red'><b>" . tr('Несъществуващ драйвер') . "</b></span>", 'DRIVER_DATA');
+    		$tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на отчета') . "</b></span>", 'DRIVER_DATA');
     	}
     	
     	// Връщане на оригиналния рек ако е пушнат
@@ -625,8 +632,6 @@ class frame2_Reports extends embed_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-
-
     	if($action == 'refresh' && isset($rec)){
     		if($Driver = $mvc->getDriver($rec)){
     			$dates = $Driver->getNextRefreshDates($rec);
@@ -640,12 +645,6 @@ class frame2_Reports extends embed_Manager
     		}
     	}
     	
-    	if($action == 'export' && isset($rec)){
-    		if(!$mvc->haveRightFor('single', $rec)){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
-    	
     	// Документа може да бъде създаван ако потребителя може да избере поне един драйвер
     	if($action == 'add'){
     		$options = self::getAvailableDriverOptions($userId);
@@ -655,12 +654,9 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	// За модификация, потребителя трябва да има права и за драйвера
-    	if(in_array($action, array('write', 'refresh', 'export')) && isset($rec->driverClass)){
-
+    	if(in_array($action, array('write', 'refresh')) && isset($rec->driverClass)){
     		if($Driver = $mvc->getDriver($rec)){
     			if(!$Driver->canSelectDriver($userId)){
-
-
     				$requiredRoles = 'no_one';
     			}
     		}
@@ -780,50 +776,6 @@ class frame2_Reports extends embed_Manager
     			$row->nextUpdate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($callOn);
     		}
     	}
-    }
-    
-    
-    /**
-     * Екшън който експортира данните
-     */
-    public function act_Export()
-    {
-		// Проверка за права
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	$this->requireRightFor('export', $rec);
-    
-    	// Ако е избрана версия експортира се тя
-    	if($versionId = self::getSelectedVersionId($id)){
-    		if($versionRec = frame2_ReportVersions::fetchField($versionId, 'oldRec')){
-    			$rec = $versionRec;
-    		}
-    	}
-    	
-    	// Подготовка на данните
-    	$csvExportRows = $fields = array();
-    	if($Driver = $this->getDriver($rec)){
-    		$csvExportRows = $Driver->getCsvExportRows($rec);
-    		$fields = $Driver->getCsvExportFieldset($rec);
-    	}
-    	
-    	// Проверка има ли данни за експорт
-    	if(!count($csvExportRows)) followRetUrl(NULL, 'Няма данни за експортиране');
-    	
-    	// Създаване на csv-то
-    	$csv = csv_Lib::createCsv($csvExportRows, $fields);
-    	$csv .= "\n";
-    	
-    	// Подсигуряване че енкодига е UTF8
-    	$csv = mb_convert_encoding($csv, 'UTF-8', 'UTF-8');
-    	$csv = iconv('UTF-8', "UTF-8//IGNORE", $csv);
-    	
-    	// Записване във файловата система
-    	$fileName = str_replace(' ', '_', str::utf2ascii($rec->title));
-    	$fh = fileman::absorbStr($csv, 'exportCsv', "{$fileName}_{$rec->id}.csv");
-    	 
-    	// Редирект към експортиртния файл
-    	return new Redirect(array('fileman_Files', 'single', $fh), 'Справката е експортирана успешно');
     }
     
     

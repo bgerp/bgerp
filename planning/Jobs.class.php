@@ -21,7 +21,7 @@ class planning_Jobs extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf,hr_IndicatorsSourceIntf,label_SequenceIntf=planning_interface_JobLabel';
+    public $interfaces = 'doc_DocumentIntf,hr_IndicatorsSourceIntf';
     
     
     /**
@@ -59,7 +59,7 @@ class planning_Jobs extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'dueDate,quantity,notes,tolerance';
+    public $changableFields = 'dueDate,quantity,notes,tolerance,sharedUsers';
     
     
     /**
@@ -132,13 +132,13 @@ class planning_Jobs extends core_Master
     /**
      * Шаблон за единичен изглед
      */
-    public $singleLayoutFile = 'planning/tpl/SingleLayoutJob.shtml';//SingleLayoutJobEP
+    public $singleLayoutFile = 'planning/tpl/SingleLayoutJob.shtml';
     
     
     /**
      * Поле за дата по което ще филтрираме
      */
-    public $filterDateField = 'createdOn, dueDate,deliveryDate,modifiedOn';
+    public $filterDateField = 'createdOn,dueDate,deliveryDate,modifiedOn';
     
     
     /**
@@ -558,6 +558,10 @@ class planning_Jobs extends core_Master
     	$rec = &$form->rec;
     	
     	if($form->isSubmitted()){
+    		if(isset($rec->deliveryDate) && $rec->deliveryDate < $rec->dueDate){
+    			$form->setWarning('deliveryDate', 'Срокът за доставка не може да е преди падежа');
+    		}
+    		
     		if(empty($rec->department)){
     			$form->setWarning('department', 'В Заданието липсва избран ц-р на дейност и ще бъде записано в нишката');
     		}
@@ -662,13 +666,13 @@ class planning_Jobs extends core_Master
     		}
     	}
     	
-    	if($fields['-list']){
+    	if(isset($fields['-list'])){
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     		
     		if($rec->quantityNotStored > 0){
     			if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
     				core_RowToolbar::createIfNotExists($row->_rowTools);
-    				$row->_rowTools->addLink('Нов протокол', array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), array('order' => 19, 'ef_icon' => "img/16/page_paste.png", 'title' => "Създаване на протокол за производство"));
+    				$row->_rowTools->addLink('Произвеждане', array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), array('order' => 19, 'ef_icon' => "img/16/page_paste.png", 'title' => "Създаване на протокол за производство"));
     				$row->quantityNotStored = ht::createHint($row->quantityNotStored, 'Заданието очаква да се създаде протокол за производство', 'warning', FALSE);
     			}
     		}
@@ -677,12 +681,13 @@ class planning_Jobs extends core_Master
     	}
     	 
     	if(isset($rec->saleId)){
-    		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
-    		$saleRec = sales_Sales::fetch($rec->saleId, 'folderId,deliveryAdress');
+    		$row->saleId = sales_Sales::getlink($rec->saleId);
+    		$saleRec = sales_Sales::fetch($rec->saleId, 'folderId,deliveryAdress,state');
     		$row->saleFolderId = doc_Folders::recToVerbal(doc_Folders::fetch($saleRec->folderId))->title;
     		if(!empty($saleRec->deliveryAdress)){
     			$row->saleDeliveryAddress = core_Type::getByName('varchar')->toVerbal($saleRec->deliveryAdress);
     		}
+    		$row->saleId = "<span class='state-{$saleRec->state}'>{$row->saleId}</span>";
     	}
     	
     	$row->measureId = cat_UoM::getShortName($rec->packagingId);
@@ -830,7 +835,8 @@ class planning_Jobs extends core_Master
     			
     			// Ако се създава към продажба, тя трябва да е активна
     			if(!empty($rec->saleId)){
-    				if(sales_Sales::fetchField($rec->saleId, "state") != 'active'){
+    				$saleState = sales_Sales::fetchField($rec->saleId, "state");
+    				if($saleState != 'active' && $saleState != 'closed'){
     					$res = 'no_one';
     				}
     			}
@@ -952,6 +958,10 @@ class planning_Jobs extends core_Master
     	$data->packagingData->masterMvc = cls::get('cat_Products');
     	$data->packagingData->masterId = $data->rec->productId;
     	$data->packagingData->tpl = new core_ET("[#CONTENT#]");
+    	$data->packagingData->retUrl = planning_Jobs::getSingleUrlArray($data->rec->id);
+    	if($data->rec->state == 'rejected'){
+    		$data->packagingData->rejected = TRUE;
+    	}
     	cls::get('cat_products_Packagings')->preparePackagings($data->packagingData);
     	
     	$data->components = array();
@@ -1206,6 +1216,9 @@ class planning_Jobs extends core_Master
     	$result = array();
     	$rec = hr_IndicatorNames::force('Активирани_задания', __CLASS__, 1);
     	$result[$rec->id] = $rec->name;
+    	
+    	$rec = hr_IndicatorNames::force('Сложност_на_задания', __CLASS__, 2);
+    	$result[$rec->id] = $rec->name;
     
     	return $result;
     }
@@ -1230,24 +1243,31 @@ class planning_Jobs extends core_Master
     {
     	$result = array();
     	$iRec = hr_IndicatorNames::force('Активирани_задания', __CLASS__, 1);
+    	$iRec2 = hr_IndicatorNames::force('Сложност_на_задания', __CLASS__, 2);
     	
     	$query = self::getQuery();
-    	$query->where("#state = 'active' || #state = 'closed' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
-    	$query->where("#activatedOn >= '{$timeline}'");
-    	$query->show('activatedBy,activatedOn,state');
+    	$query->where("#state = 'active' || #state = 'closed' || #state = 'wakeup' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
+    	$query->where("#modifiedOn >= '{$timeline}'");
+    	$query->show('activatedBy,activatedOn,state,createdBy,productId');
     	
     	while($rec = $query->fetch()){
-    		$personId = crm_Profiles::fetchField("#userId = {$rec->activatedBy}", 'personId');
-    		$result[] = (object)array('date'        => dt::verbal2mysql($rec->activatedOn, FALSE),
-    								  'personId'    => $personId,
-    								  'docId'       => $rec->id,
-    				                  'docClass'    => planning_Jobs::getClassId(),
-    				                  'indicatorId' => $iRec->id,
-    								  'value'       => 1,
-    								  'isRejected'  => $rec->state == 'rejected',
-    		);
+    		$activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
+    		if(empty($activatedBy)) continue;
+    		$personId = crm_Profiles::fetchField("#userId = {$activatedBy}", 'personId');
+    		$classId = planning_Jobs::getClassId();
+    		$date = dt::verbal2mysql($rec->activatedOn, FALSE);
+    		$isRejected = ($rec->state == 'rejected');
+    		
+    		hr_Indicators::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec->id, 1, $isRejected);
+    		
+    		if($Driver = cat_Products::getDriver($rec->productId)){
+    			$difficulty = $Driver->getDifficulty($rec->productId);
+    			if(isset($difficulty)){
+    				hr_Indicators::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec2->id, $difficulty, $isRejected);
+    			}
+    		}
     	}
-    
+    	
     	return $result;
     }
     

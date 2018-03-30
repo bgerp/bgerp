@@ -1352,7 +1352,7 @@ class core_Users extends core_Manager
 
         Mode::setPermanent('currentUserRec', $userRec);
         
-        if(!Request::get('ajax_mode') && dt::mysql2timestamp($userRec->lastActivityTime) < (time() - 3*60)) {
+        if(!Request::get('ajax_mode') && dt::mysql2timestamp($userRec->lastActivityTime) < (time() - 2*60)) {
             $userRec->lastActivityTime = $now;
             self::save($userRec, 'lastActivityTime');
         }
@@ -1370,7 +1370,7 @@ class core_Users extends core_Manager
     /**
      * 
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $tpl
      * @param string $subject
      * @param string $act
@@ -1656,7 +1656,7 @@ class core_Users extends core_Manager
     /**
      * Връща масив от роли, които са от посочения тип, за посочения потребител
      */
-    static function getUserRolesByType($userId = NULL, $type = NULL, $result = 'keylist')
+    static function getUserRolesByType($userId = NULL, $type = NULL, $result = 'keylist', $removeClosed = TRUE)
     {
         $roles = core_Users::getRoles($userId);
         
@@ -1665,11 +1665,17 @@ class core_Users extends core_Manager
         $roleQuery = core_Roles::getQuery();
 
         $roleQuery->orderBy("#role", 'ASC');
-
+        
+        $cond = '';
         if($type) {
-            $cond = "#type = '{$type}' AND #state != 'closed'";
+            $cond = "#type = '{$type}'";
+            if ($removeClosed) {
+                $cond .= " AND #state != 'closed'";
+            }
         } else {
-            $cond = "#state != 'closed'";
+            if ($removeClosed) {
+                $cond = "#state != 'closed'";
+            }
         }
         
         while($roleRec = $roleQuery->fetch($cond)) {
@@ -2371,5 +2377,88 @@ class core_Users extends core_Manager
 		
         return $me->getRecTitle($rec, $escaped);
     }
-
+    
+    
+    /**
+     * 
+     * @param array $params
+     * @param NULL|integer $limit
+     * @param string $q
+     * @param NULL|integer|array $onlyIds
+     * @param boolean $includeHiddens
+     * 
+     * @return array
+     */
+    public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+        $query = self::getQuery();
+        
+        if (is_array($onlyIds)) {
+            if(!count($onlyIds)) {
+                return array();
+            }
+            
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            
+            $query->where("#id IN ($ids)");
+        } elseif(ctype_digit("{$onlyIds}")) {
+            $query->where("#id = $onlyIds");
+        }
+        
+        if ($params['rolesArr']) {
+            $rolesArr = explode('|', $params['rolesArr']);
+            $rolesIdArr = array();
+            foreach ($rolesArr as $role) {
+                $cId = core_Roles::fetchByName($role);
+                $rolesIdArr[$cId] = $cId;
+            }
+            
+            if (!empty($rolesIdArr)) {
+                $query->likekeylist('roles', $rolesIdArr);
+            }
+        }
+        
+        setIfNot($params['showStates'], 'active');
+        
+        $showStatesArr = explode('|', $params['showStates']);
+        
+        $query->orWhereArr('state', $showStatesArr);
+        
+        $titleFld = $params['titleFld'];
+        $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
+        
+        if ($q) {
+            if ($q{0} == '"') $strict = TRUE;
+            
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            
+            $q = mb_strtolower($q);
+            
+            if($strict) {
+                $qArr = array(str_replace(' ', '.*', $q));
+            } else {
+                $qArr = explode(' ', $q);
+            }
+            
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
+            foreach ($qArr as $w) {
+                $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+            }
+        }
+        
+        if ($limit) {
+            $query->limit($limit);
+        }
+        
+        $query->show('id,' . $titleFld);
+        
+        $res = array();
+        
+        while ($rec = $query->fetch()) {
+            $res[$rec->id] = $rec->{$titleFld};
+        }
+        
+        return $res;
+    }
 }

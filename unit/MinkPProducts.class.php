@@ -28,13 +28,14 @@ class unit_MinkPProducts extends core_Manager {
         $res = '';
         $res .= "<br>".'MinkPProducts';
         $res .= "  1.".$this->act_EditProduct();
-        $res .= "  2.".$this->act_AddProductPrice();
-        $res .= "  3.".$this->act_CreateProductBom();
-        $res .= "  4.".$this->act_CreateBom();
-        $res .= "  5.".$this->act_CreatePlanningJob();
-        $res .= "  6.".$this->act_CreateCloning();
-        $res .= "  7.".$this->act_CreateTemplate();
-        $res .= "  8.".$this->act_CreateSaleBaseMeasure();
+        $res .= "  2.".$this->act_AddPackParams();
+        $res .= "  3.".$this->act_AddProductPrice();
+        $res .= "  4.".$this->act_CreateProductBom();
+        $res .= "  5.".$this->act_CreateBom();
+        $res .= "  6.".$this->act_CreatePlanningJob();
+        $res .= "  7.".$this->act_CreateCloning();
+        $res .= "  8.".$this->act_CreateTemplate();
+        $res .= "  9.".$this->act_CreateSaleBaseMeasure();
         return $res;
     }
     
@@ -78,7 +79,29 @@ class unit_MinkPProducts extends core_Manager {
     }
     
     /**
-     * 2. Добавяне ценова група на артикул, опаковка/мярка, лимит, себестойност и влагане 
+     * 2. Добавяне на размери за опаковка
+     */
+    //http://localhost/unit_MinkPProducts/AddPackParams/
+    function act_AddPackParams()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        $browser->click('Каталог');
+        $browser->click('Мерки');
+        $browser->click('Размери');
+        $browser->press('Нов запис');
+        $browser->setValue('packagingId', 'стек');
+        $browser->setValue('tareWeight[lP]', '0.2');
+        $browser->setValue('sizeWidth[lP]', '27');
+        $browser->setValue('sizeHeight[lP]', '10');
+        $browser->setValue('sizeDepth[lP]', '51');
+        $browser->press('Запис');
+         
+    }
+    
+    /**
+     * 3. Добавяне ценова група на артикул, опаковка/мярка, лимит, себестойност и влагане 
      */
     //http://localhost/unit_MinkPProducts/AddProductPrice/
     function act_AddProductPrice()
@@ -104,10 +127,6 @@ class unit_MinkPProducts extends core_Manager {
             $browser->setValue('packagingId', 'стек');
             $browser->setValue('quantity', '100');
             $browser->setValue('isBase', 'yes');
-            $browser->setValue('tareWeight[lP]', '0.002');
-            $browser->setValue('sizeWidth[lP]', '0.27');
-            $browser->setValue('sizeHeight[lP]', '0.10');
-            $browser->setValue('sizeDepth[lP]', '0.51');
             $browser->setValue('eanCode', '1234567893341');
             $browser->press('Запис');
             
@@ -144,7 +163,7 @@ class unit_MinkPProducts extends core_Manager {
     }
     
     /**
-     * 3. Създаване на артикул - продукт през папката. Добавяне на рецепта.
+     * 4. Създаване на артикул - продукт през папката. Добавяне на рецепта.
      */
     //http://localhost/unit_MinkPProducts/CreateProductBom/
     function act_CreateProductBom()
@@ -190,7 +209,7 @@ class unit_MinkPProducts extends core_Manager {
     }
     
     /**
-     * 4. Създаване на рецепта
+     * 5. Създаване на рецепта
      */
     //http://localhost/unit_MinkPProducts/CreateBom/
     function act_CreateBom()
@@ -228,7 +247,7 @@ class unit_MinkPProducts extends core_Manager {
     }
     
     /**
-     * 5. Създава задание за производство
+     * 6. Създава задание за производство
      */
     //http://localhost/unit_MinkPProducts/CreatePlanningJob/
     function act_CreatePlanningJob()
@@ -303,7 +322,7 @@ class unit_MinkPProducts extends core_Manager {
     }
  
     /**
-     * 6. Клониране на артикул
+     * 7. Клониране на артикул
      */
     //http://localhost/unit_MinkPProducts/CreateCloning/
     function act_CreateCloning()
@@ -334,7 +353,7 @@ class unit_MinkPProducts extends core_Manager {
     }
    
     /**
-     * 7. Създаване на шаблон и артикул от него
+     * 8. Създаване на шаблон и артикул от него
      */
     //http://localhost/unit_MinkPProducts/CreateTemplate/
     function act_CreateTemplate()
@@ -369,7 +388,7 @@ class unit_MinkPProducts extends core_Manager {
     }
     
     /**
-     * Продажба в основна мярка (стек)
+     * 9. Продажба в основна мярка (стек)
      */
      
     //http://localhost/unit_MinkPProducts/CreateSaleBaseMeasure/

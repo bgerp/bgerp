@@ -69,6 +69,22 @@ defIfNot('BGERP_START_OF_WORKING_DAY', '08:00');
 defIfNot('BGERP_CLOSE_UNDELIVERED_OVER', '1');
 
 
+
+/**
+ * Колко секунди за изчака, преди да сигнализира за известия
+ */
+defIfNot('BGERP_NOTIFY_ALERT', 60);
+defIfNot('BGERP_NOTIFY_WARNING', 1800);
+defIfNot('BGERP_NOTIFY_NORMAL', 86400);
+
+/**
+ * В кой часови пояс да се блокира изпращане на сигнали за известия
+ */
+defIfNot('BGERP_BLOCK_ALERT', 'never');
+defIfNot('BGERP_BLOCK_WARNING', 'night');
+defIfNot('BGERP_BLOCK_NORMAL', 'nonworking');
+
+
 /**
  * Клавиши за бързо избиране на бутони
  */
@@ -151,6 +167,18 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_CLOSE_UNDELIVERED_OVER'    => array('percent(min=0)', 'caption=Допустимо автоматично приключване на сделка при "Доставено" минимум->Процент'),
          
         'BGERP_ACCESS_KEYS'    => array('text(rows=6)', 'caption=Клавиши за бързо избиране на бутони->Дефиниции, customizeBy=powerUser'),
+
+        'BGERP_NOTIFY_ALERT'    => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Критични,placeholder=Неограничено, customizeBy=powerUser'),
+
+        'BGERP_NOTIFY_WARNING'    => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Спешни,placeholder=Неограничено, customizeBy=powerUser'),
+
+        'BGERP_NOTIFY_NORMAL'    => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Нормални,placeholder=Неограничено, customizeBy=powerUser'),
+
+        'BGERP_BLOCK_ALERT' =>  array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Критични, customizeBy=powerUser'),
+
+        'BGERP_BLOCK_WARNING' =>  array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Спешни, customizeBy=powerUser'),
+
+        'BGERP_BLOCK_NORMAL' =>  array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Нормални, customizeBy=powerUser'),
     );
     
     
@@ -171,6 +199,7 @@ class bgerp_Setup extends core_ProtoSetup {
      */
     var $managers = array(
             'migrate::addThreadIdToRecently',
+            'migrate::migrateBookmarks2',
         );
     
     
@@ -212,7 +241,6 @@ class bgerp_Setup extends core_ProtoSetup {
             'bgerp_Recently',
             'bgerp_Bookmark',
             'bgerp_LastTouch',
-            'bgerp_E',
             'bgerp_F',
         );
         
@@ -237,7 +265,7 @@ class bgerp_Setup extends core_ProtoSetup {
                   email,crm, cat, trans, price, blast,hr,lab,dec,sales,import2,planning,marketing,store,cash,bank,
                   budget,tcost,purchase,accda,permanent,sens2,cams,frame,frame2,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
-                  callcenter,social,hyphen,status,phpmailer,label,webkittopdf,jqcolorpicker";
+                  callcenter,social,hyphen,status,phpmailer,label,webkittopdf,jqcolorpicker,export";
         
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
         if (defined('EF_PRIVATE_PATH')) {
@@ -501,5 +529,35 @@ class bgerp_Setup extends core_ProtoSetup {
                 continue;
             }
         }
+    }
+
+
+    /**
+     * Миграция за подредбата на букмарките
+     */
+    public static function migrateBookmarks2()
+    {
+        $mvc = cls::get('bgerp_Bookmark');
+
+        $query = $mvc->getQuery();
+        
+	    $query->orderBy('modifiedOn', 'DESC');
+	    $query->orderBy('createdOn', 'DESC');
+        
+        $arr = array();
+        $i = array();
+        $cnt = 0;
+        while($rec = $query->fetch()) {
+            if(!isset($i[$rec->user])) {
+                $i[$rec->user] = 1;
+            }
+            $rec->saoOrder = $i[$rec->user]++;
+            $rec->saoLevel = 1;
+            $mvc->save_($rec, 'saoOrder, saoLevel');
+            $cnt++;
+         }
+ 
+  
+        return "<li>Мигрирани букмарки: " . $cnt;    
     }
 }

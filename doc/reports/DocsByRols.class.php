@@ -3,8 +3,7 @@
 
 
 /**
- * Мениджър на отчети за създадени документи от служители
- * с избрана роля.
+ * Мениджър на отчети за създадени документи от служители с избрана роля.
  *
  * @category  bgerp
  * @package   doc
@@ -22,14 +21,12 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'manager,ceo';
-
-    public $listFields = 'person,document,value,roleId,from,to,documents';
+    
 
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'roleId,from,to,documents,order';
-
 
 
     /**
@@ -39,8 +36,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-
-        $fieldset->FLD('roleId', 'key(mvc=core_Roles,select=role,allowEmpty)', 'caption=Роля,after=title,mandatory');
+		$fieldset->FLD('roleId', 'key(mvc=core_Roles,select=role,allowEmpty)', 'caption=Роля,after=title,mandatory');
         $fieldset->FLD('from', 'date', 'caption=Период->От,mandatory,after=documents');
         $fieldset->FLD('to', 'date', 'caption=Период->До,mandatory');
         $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=name)', 'caption=Документи,after=roleId');
@@ -56,9 +52,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
-
-        if ($form->isSubmitted()) {
-
+		if ($form->isSubmitted()) {
             if ($form->rec->from > $form->rec->to) {
                 $form->setError('from, to', 'Началната дата не може да бъде по-голяма от крайната дата');
             }
@@ -75,24 +69,19 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = NULL)
     {
-
-        $query = doc_Containers::getQuery();
-
-        $query->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
-
-        $query->where("#state != 'rejected'");
+		$query = doc_Containers::getQuery();
+		$query->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
+		$query->where("#state != 'rejected'");
 
         if(isset($rec->documents)){
-
             $documentsForCheck = type_Keylist::toArray($rec->documents);
-
             $query->whereArr("docClass", $documentsForCheck, TRUE);
 
         }
+        
         $recs = array();
 
         if(core_Users::getByRole($rec->roleId)) {
-
             $query->in('createdBy', core_Users::getByRole($rec->roleId));
 
             $documentsForCheck = $query->fetchAll();
@@ -107,19 +96,10 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
 
                 $dDoc[$doc->createdBy][$doc->docClass][$doc->docId] = $doc->docId;
 
-
-
                 foreach ($dDoc[$doc->createdBy] as $clsId => $objArr) {
-
-
-
                     if(cls::load($clsId,TRUE)) {
-
                         $clsInst = cls::get($clsId);
                     }
-
-
-
                     if ($clsInst->details) {
 
                         $clsInst->details = arr::make($clsInst->details);
@@ -149,16 +129,11 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
                             }
 
                         }
-
                     }
-
                 }
-
-
-
             }
 
-        } //проверка за наличие на роля//
+        }
 
         return $recs;
 
@@ -175,19 +150,9 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = FALSE)
     {
         $fld = cls::get('core_FieldSet');
-
-        if($export === FALSE){
-            //  $fld->FLD('num', 'varchar','caption=№');
-            $fld->FLD('person', 'varchar', 'caption=Служител');
-            $fld->FLD('document', 'varchar', 'caption=Тип документ');
-            $fld->FLD('value', 'double(smartRound,decimals=2)', 'smartCenter,caption=Брой');
-
-        } else {
-            //    $fld->FLD('num', 'varchar','caption=№');
-            $fld->FLD('person', 'varchar', 'caption=Служител');
-            $fld->FLD('document', 'varchar', 'caption=Тип документ');
-            $fld->FLD('value', 'double(smartRound,decimals=2)', 'smartCenter,caption=Брой');
-        }
+        $fld->FLD('person', 'key(mvc=core_Users,select=nick)', 'caption=Служител,smartCenter');
+        $fld->FLD('document', 'varchar', 'caption=Тип документ');
+        $fld->FLD('value', 'double(smartRound,decimals=2)', 'smartCenter,caption=Брой');
 
         return $fld;
     }
@@ -202,17 +167,11 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-
-        $cntx = 0;
-
-        $cnty = 0;
-
-        //  $Int = cls::get('type_Int');
+    	$cnty = $cntx = 0;
 
         $row = new stdClass();
-
         $row->person = crm_Profiles::createLink($dRec['user']);
-
+		
         $vClassArr = array();
         $vClsNameArr = array();
         foreach ($dRec['classes'] as $key => $value){
@@ -280,9 +239,8 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
             $cnty++;
 
         }
-
         $row->document.='</table>';
-
+        
         $row->value = $cntx . ' от ' . $cnty;
 
         return $row;

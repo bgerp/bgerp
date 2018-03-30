@@ -36,7 +36,6 @@ class planning_Wrapper extends plg_ProtoWrapper
     	
     	$this->TAB('planning_AssetGroups', 'Настройки->Видове оборудване', 'ceo,planning');
     	$this->TAB('planning_FoldersWithResources', 'Настройки->Папки с ресурси', 'ceo,planning');
-    	$this->TAB('planning_TaskSerials', 'Серийни номера', 'debug');
     	
         $this->title = 'Планиране';
     }

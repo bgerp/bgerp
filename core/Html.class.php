@@ -1399,4 +1399,31 @@ class core_Html
     	
     	return $verbal;
     }
+    
+    
+    /**
+     * Стилизира числото според стойноста му:
+     * 		ако е отрицателно го оцветява в червено
+     * 		ако е положително не го променя
+     * 		ако е 0, го засивява
+     * 
+     * @param mixed $verbal
+     * @param double $notVerbal
+     * @return mixed $verbal
+     */
+    public static function styleNumber($verbal, $notVerbal)
+    {
+    	if($notVerbal == 0){
+    		if($verbal instanceof core_ET){
+    			$verbal->prepend("<span class='quiet'>");
+    			$verbal->append("</span>");
+    		} else {
+    			$verbal = "<span class='quiet'>{$verbal}</span>";
+    		}
+    		
+    		return $verbal;
+    	}
+    	
+    	return self::styleIfNegative($verbal, $notVerbal);
+    }
 }

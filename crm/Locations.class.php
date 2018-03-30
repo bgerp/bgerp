@@ -168,8 +168,8 @@ class crm_Locations extends core_Master {
      * Извиква се преди подготовката на формата за редактиране/добавяне $data->form
      * 
      * @param crm_Locations $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
@@ -181,8 +181,8 @@ class crm_Locations extends core_Master {
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      * 
      * @param crm_Locations $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {

@@ -55,8 +55,10 @@ class plg_Search extends core_Plugin
      */
     public static function on_BeforeSave($mvc, $id, $rec, &$fields=NULL)
     {
-        if (!$fields || arr::haveSection($fields, $mvc->getSearchFields()) || ($fields == 'searchKeywords')) {
-            if ($fields !== NULL) {
+		$fieldArr = arr::make($fields, TRUE);
+		if (!$fields || arr::haveSection($fields, $mvc->getSearchFields()) || ($fields == 'searchKeywords') || array_key_exists('searchKeywords', $fieldArr)) {
+			
+			if ($fields !== NULL) {
                 $fields = arr::make($fields, TRUE);
                 $fields['searchKeywords'] = 'searchKeywords';
             }
@@ -284,7 +286,7 @@ class plg_Search extends core_Plugin
                     $w = trim($w, '%');
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if (self::isStopWord($w) || $minWordLen <= $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0) {  
+                    if (self::isStopWord($w) || $minWordLen < $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0) {  
                         if($limit > 0 && $like == 'LIKE') {
                             $field1 =  "LEFT(#{$field}, {$limit})";
                         } else {
@@ -538,5 +540,64 @@ class plg_Search extends core_Plugin
     public static function on_AfterGetSearchFields($mvc, &$searchFieldsArr)
     {
         $searchFieldsArr = arr::make($mvc->searchFields);
+    }
+    
+    
+    /**
+     * Функция за проверка на свалените имейли
+     * Ако хеша го няма - предизвиква сваляне
+     *
+     * @param string $emlStatus
+     */
+    public static function callback_repairSerchKeywords($clsName)
+    {
+        $pKey = $clsName . '|repairSearchKeywords';
+        
+        $clsInst = cls::get($clsName);
+        
+        $maxTime = dt::addSecs(40);
+        
+        $kVal = core_Permanent::get($pKey);
+        
+        $query = $clsInst->getQuery();
+        
+        if (isset($kVal)) {
+            $query->where(array("#id > '[#1#]'", $kVal));
+        }
+        
+        if (!$query->count()) {
+            core_Permanent::remove($pKey);
+            
+            $clsInst->logDebug('Приключи регенерирането на ключови думи');
+            
+            return ;
+        }
+        
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $clsName, $callOn);
+        
+        $query->orderBy('id', 'ASC');
+        
+        while ($rec = $query->fetch()) {
+            if (dt::now() >= $maxTime) break;
+            
+            $maxId = $rec->id;
+            
+            try {
+                $generatedKeywords = $clsInst->getSearchKeywords($rec);
+                
+                if ($generatedKeywords == $rec->searchKeywords) continue;
+                
+                $rec->searchKeywords = $generatedKeywords;
+                
+                $clsInst->save_($rec, 'searchKeywords');
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+            }
+        }
+        
+        $clsInst->logDebug('Регенерирани ключови думи до id=' . $maxId);
+        
+        core_Permanent::set($pKey, $maxId, 100000);
     }
 }

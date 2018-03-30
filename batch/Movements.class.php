@@ -374,7 +374,7 @@ class batch_Movements extends core_Detail {
      * Връща масив с линкове към движенията на партидите
      * 
      * @param int $productId
-     * @param varchar $batch
+     * @param string $batch
      * @return array $batch
      */
     public static function getLinkArr($productId, $batch)

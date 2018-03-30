@@ -636,14 +636,14 @@ class core_String
                     if($lastLen !== FALSE && $lastLen < strlen($out)) {
                         // Записваме думата между $lastLen до края на аутпут буфера
                         $res[] = substr($out, $lastLen);
-
+                        
                         // Ако е зададен колбек - викаме го
                         if($callback) {
-                            $callback($out, $lastLen, $lastTag);
+                            call_user_func_array($callback, array(&$out, $lastLen, $lastTag));
                         }
                     }
                 }
-                $lastLen = FALSE;;
+                $lastLen = FALSE;
             } else {
                 if($lastLen === FALSE) {
                     $lastLen = strlen($out);
@@ -836,13 +836,16 @@ class core_String
      * Подготвя аритметичен израз за изчисляване
      */
     static function prepareMathExpr($expr, $contex = array())
-    {
+    {  
         // Ако има променливи, заместваме ги в израза
         if(count($contex)) {
             uksort($contex, "str::sortByLengthReverse");
+            array_walk($contex, function(&$value, $key) {
+                $value = ($value < 0) ? '(' . $value . ')' : (($value === NULL || $value === '') ? '0' : $value);
+            });
             $expr  = strtr($expr, $contex);
         }
-
+ 
         // Remove whitespaces
         $expr = preg_replace('/\s+/', '', $expr);
                 
@@ -866,7 +869,7 @@ class core_String
         } else {
             $result = FALSE;
         }
-
+ 
         return $result;
     }
 
@@ -876,18 +879,23 @@ class core_String
      * Предварително израза трябва да се подготви 
      */
     static function calcMathExpr($expr, &$success = NULL)
-    { 
+    {  
         $expr = self::prepareMathExpr($expr);
-        
+
         if(strlen($expr)) {
-            $last = error_reporting(0);
+            set_error_handler(function ($errno, $errstr) {
+                throw new Exception("{$errno}: {$errstr}");
+            });
             try {
                 eval('$result = ' . $expr . ';');
+            } catch (Exception $t) {
+                $result = NULL;
+                $success = FALSE;
             } catch (Throwable $t) {
                 $result = NULL;
                 $success = FALSE;
             }
-
+            restore_error_handler();
         }
 
         return $result;
@@ -1096,9 +1104,9 @@ class core_String
     /**
      * Маха всички празни стрингове от стринга
      * 
-     * @param varchar $string  - стринг в който да се замести
-     * @param varchar $replace - стринг за заместване
-     * @return varchar
+     * @param string $string  - стринг в който да се замести
+     * @param string $replace - стринг за заместване
+     * @return string
      */
     public static function removeWhitespaces($string, $replace = '')
     {

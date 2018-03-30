@@ -32,21 +32,9 @@ defIfNot('PLANNING_PRODUCTION_NOTE_REJECTION', 'no');
 
 
 /**
- * До колко символа да е серийния номер на произвеодствените операции
- */
-defIfNot('PLANNING_SERIAL_STRING_PAD', '10');
-
-
-/**
  * Име за показване на неопределения център на дейност
  */
 defIfNot('PLANNING_UNDEFINED_CENTER_DISPLAY_NAME', 'Неопределен');
-
-
-/**
- * Дефолтни опаковки за принтиране на етикет от задания
- */
-defIfNot('PLANNING_LABEL_DEFAULT_PACKAGINGS', '');
 
 
 /**
@@ -99,13 +87,11 @@ class planning_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
     		'PLANNING_TASK_SERIAL_COUNTER'           => array('int', 'caption=Производствени операции->Стартов сериен номер'),
-    		'PLANNING_SERIAL_STRING_PAD'             => array('int', 'caption=Производствени операции->Макс. дължина'),
     		'PLANNING_TASK_LABEL_PREVIEW_WIDTH'      => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
     		'PLANNING_TASK_LABEL_PREVIEW_HEIGHT'     => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
     		'PLANNING_CONSUMPTION_USE_AS_RESOURCE'   => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
     		'PLANNING_PRODUCTION_NOTE_REJECTION'     => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
     		'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределенен център на дейност->Име'),
-    		'PLANNING_LABEL_DEFAULT_PACKAGINGS'      => array('keylist(mvc=cat_UoM,select=name,allowEmpty)', 'optionsFunc=cat_UoM::getPackagingOptions,caption=Дефолти на етикети от задания->Опаковки'),
     );
     
     
@@ -127,7 +113,6 @@ class planning_Setup extends core_ProtoSetup
             'planning_AssetResourceFolders',
     		'planning_ProductionTaskDetails',
     		'planning_ProductionTaskProducts',
-    		'planning_TaskSerials',
     		'planning_AssetGroups',
     		'planning_AssetResourcesNorms',
     		'planning_Centers',
@@ -206,11 +191,6 @@ class planning_Setup extends core_ProtoSetup
     	$query = doc_Containers::getQuery();
     	$query->where("#docClass = {$taskClassId}");
     	$query->delete();
-    	
-    	$Serials = cls::get('planning_TaskSerials');
-    	$Serials->fillSearchKeywordsOnSetup = FALSE;
-    	$Serials->setupMvc();
-    	$Serials->truncate();
     	
     	$Assets = cls::get('planning_AssetResources');
     	$Assets->fillSearchKeywordsOnSetup = FALSE;

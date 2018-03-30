@@ -20,7 +20,7 @@ abstract class deals_Document extends deals_PaymentDocument
     /**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = "valior, title=Документ, currencyId=Валута, folderId, amount, state, createdOn, createdBy";
+	public $listFields = "valior, title=Документ, fromContainerId, currencyId=Валута, folderId, amount, state, createdOn, createdBy";
 	
 	
 	/**
@@ -51,6 +51,12 @@ abstract class deals_Document extends deals_PaymentDocument
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
 	public $searchFields = 'operationSysId,name,dealId,dealHandler,currencyId,description,contragentId,contragentClassId';
+	
+	
+	/**
+	 * Кой може да избира ф-ра по документа?
+	 */
+	public $canSelectinvoice = 'cash, ceo, purchase, sales, acc';
 	
 	
     /**

@@ -37,7 +37,7 @@ class cat_Products extends embed_Manager {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,acc_RegistryDefaultCostIntf';
+    public $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,acc_RegistryDefaultCostIntf,export_DetailExportCsvIntf';
     
     
     /**
@@ -473,7 +473,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	// Ако артикула е създаден от източник
-    	if(isset($rec->originId)){
+    	if(isset($rec->originId) && $form->cmd != 'refresh'){
     		$document = doc_Containers::getDocument($rec->originId);
     	
     		// Задаваме за дефолти полетата от източника
@@ -482,8 +482,10 @@ class cat_Products extends embed_Manager {
     		$sourceRec = $document->rec();
     		
     		$form->setDefault('name', $sourceRec->title);
-    		foreach ($fields as $name => $fld){
-    			$form->rec->{$name} = $sourceRec->driverRec[$name];
+    		if(empty($rec->id)){
+    			foreach ($fields as $name => $fld){
+    				$form->rec->{$name} = $sourceRec->driverRec[$name];
+    			}
     		}
     	}
     	
@@ -690,7 +692,7 @@ class cat_Products extends embed_Manager {
      * Обработка, преди импортиране на запис при начално зареждане
      * 
      * @param cat_Products $mvc
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     protected static function on_BeforeImportRec($mvc, $rec)
     {
@@ -869,6 +871,10 @@ class cat_Products extends embed_Manager {
     	static::expandFilter($data->listFilter);
     	$data->listFilter->setDefault('order', 'standard');
     	
+    	$data->listFilter->FNC('type', 'class', 'caption=Вид');
+    	$classes = core_Classes::getOptionsByInterface('cat_ProductDriverIntf', 'title');
+    	$data->listFilter->setOptions('type', array('' => '') + $classes);
+    	
     	$data->listFilter->FNC('meta1', 'enum(all=Свойства,
        							canSell=Продаваеми,
                                 canBuy=Купуваеми,
@@ -880,8 +886,8 @@ class cat_Products extends embed_Manager {
     							fixedAssetStorable=Дълготрайни материални активи,
     							fixedAssetNotStorable=Дълготрайни НЕматериални активи,
         					    canManifacture=Производими)', 'input,autoFilter');
-        $data->listFilter->showFields = 'search,order,meta1,groupId';
-        $data->listFilter->input('order,groupId,search,meta1', 'silent');
+        $data->listFilter->showFields = 'search,order,type,meta1,groupId';
+        $data->listFilter->input('order,groupId,search,meta1,type', 'silent');
         
         // Сортираме по име
         $order = 'name';
@@ -892,6 +898,10 @@ class cat_Products extends embed_Manager {
         	if($gRec->orderProductBy == 'code'){
         		$order = 'code';
         	}
+        }
+        
+        if ($data->listFilter->rec->type) {
+        	$data->query->where("#innerClass = {$data->listFilter->rec->type}");
         }
         
         switch($data->listFilter->rec->order){
@@ -1304,16 +1314,7 @@ class cat_Products extends embed_Manager {
     	if(isset($customerClass) && isset($customerId)){
     		$reverseOrder = TRUE;
     		$folderId = cls::get($customerClass)->forceCoverAndFolder($customerId);
-    		$sharedProducts = cat_products_SharedInFolders::getSharedProducts($folderId);
-    		
-    		// Избираме всички публични артикули, или частните за тази папка
-    		$query->where("#isPublic = 'yes'");
-    		if(count($sharedProducts)){
-    			$sharedProducts = implode(',', $sharedProducts);
-    			$query->orWhere("#isPublic = 'no' AND (#folderId = {$folderId} OR #id IN ({$sharedProducts}))");
-    		} else {
-    			$query->orWhere("#isPublic = 'no' AND #folderId = {$folderId}");
-    		}
+    		cat_products_SharedInFolders::limitQuery($query, $folderId);
     	}
     	
     	$query->show('isPublic,folderId,meta,id,code,name');
@@ -1595,12 +1596,6 @@ class cat_Products extends embed_Manager {
     	
     		// Връща се намереното тегло
     		$volume = $brutoVolume * $quantity;
-    		return round($volume, 2);
-    	}
-    	
-    	$volume = static::getParams($productId, 'transportVolume');
-    	if($volume){
-    		$volume *= $quantity;
     		return round($volume, 2);
     	}
     	
@@ -2073,6 +2068,17 @@ class cat_Products extends embed_Manager {
     	} else {
     		return 'img/16/error-red.png';
     	}
+    }
+    
+    
+    /**
+     * Иконка за еденичен изглед
+     *
+     * @param int $id
+     */
+    public function getSingleIcon($id)
+    {
+    	return $this->getIcon($id);
     }
     
     
@@ -2935,33 +2941,52 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     *
+     *
+     * @return string
+     */
+    function getExportMasterFieldName()
+    {
+        
+        return 'productId';
+    }
+    
+    
+    /**
+     *
+     *
+     * @return array
+     */
+    function getExportFieldsNameFromMaster()
+    {
+        
+        return array('productId' => 'code', 'packQuantity', 'packagingId', 'packPrice', 'batch');
+    }
+    
+    /**
      * 
      * 
-     * @param core_Mvc $mvc
+     * @param core_Mvc $masterMvc
      * @param integer $id
      * @param core_FieldSet $csvFields
      * 
      * @return array
      */
-    public static function getRecsForExportInExternal($mvc, $mRec, &$csvFields, $activatedBy)
+    public function getRecsForExportInDetails($masterMvc, $mRec, &$csvFields, $activatedBy)
     {
         expect($mRec);
         
         $canSeePrice = haveRole('seePrice', $activatedBy);
         $pStrName = 'price';
         
-        $detArr = arr::make($mvc->details);
+        $detArr = arr::make($masterMvc->details);
         
         expect(!empty($detArr));
         
         $recs = array();
         
-        if (strpos($mvc->exportInExternalField, '=')) {
-            list($exportFStr, $exportFCls) = explode('=', $mvc->exportInExternalField);
-        } else {
-            $exportFStr = $mvc->exportInExternalField;
-            $exportFCls = NULL;
-        }
+        $exportFStr = $this->getExportMasterFieldName();
+        $exportFCls = cls::get(get_called_class());
         
         foreach ($detArr as $dName) {
             if (!cls::load($dName, TRUE)) continue;
@@ -2972,10 +2997,7 @@ class cat_Products extends embed_Manager {
             
             if (!$dInst->fields[$exportFStr]) continue;
             
-            if ($exportFCls) {
-                $exportFCls = cls::get($exportFCls);
-                if (!($exportFCls instanceof $dInst->fields[$exportFStr]->type->params['mvc'])) continue;
-            }
+            if (!($exportFCls instanceof $dInst->fields[$exportFStr]->type->params['mvc'])) continue;
             
             if (!$dInst->masterKey) continue;
             
@@ -2988,7 +3010,7 @@ class cat_Products extends embed_Manager {
             }
             
             // Подготвяме полетата, които ще се експортират
-            $exportArr = arr::make($mvc->exportInExternalFieldAll, TRUE);
+            $exportArr = arr::make($this->getExportFieldsNameFromMaster(), TRUE);
             
             // За бачовете - ако не е инсталиран пакета - премахваме полето
             if ($exportArr['batch'] && !core_Packs::isInstalled('batch')) {
@@ -3082,7 +3104,7 @@ class cat_Products extends embed_Manager {
                 }
                 
                 // За добавяне на бачовете
-                if ($fFieldsArr['batch'] && $mvc->storeFieldName && $mRec->{$mvc->storeFieldName}) {
+                if ($fFieldsArr['batch'] && $masterMvc->storeFieldName && $mRec->{$masterMvc->storeFieldName}) {
                     
                     $Def = batch_Defs::getBatchDef($dRec->{$dInst->productFld});
                     if ($recs[$dRec->id] && isset($recs[$dRec->id]->packQuantity) && $Def) {
@@ -3167,6 +3189,12 @@ class cat_Products extends embed_Manager {
     		if($dQuery->fetch()) return TRUE;
     	}
     	
+    	$jQuery = planning_Jobs::getQuery();
+    	$jQuery->where("#productId = {$productId} AND #state IN ('active', 'wakeup', 'stopped')");
+    	$jQuery->show('id');
+    	$jQuery->limit(1);
+    	if($jQuery->fetch()) return TRUE;
+    	
     	return FALSE;
     }
     
@@ -3182,7 +3210,7 @@ class cat_Products extends embed_Manager {
     protected static function on_BeforeChangeState(core_Mvc $mvc, &$rec, $newState)
     {
     	if($newState == 'closed' && $mvc->isUsedInActiveDeal($rec)){
-    		core_Statuses::newStatus("Артикулът не може да бъде затворен, докато се използва в активни договори", 'error');
+    		core_Statuses::newStatus("Артикулът не може да бъде затворен, докато се използва в активни договори и/или задания", 'error');
     		return FALSE;
     	}
     }
@@ -3194,7 +3222,7 @@ class cat_Products extends embed_Manager {
     protected static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
     	if($mvc->isUsedInActiveDeal($id)){
-    		core_Statuses::newStatus("Артикулът не може да бъде оттеглен, докато се използва в активни договори", 'error');
+    		core_Statuses::newStatus("Артикулът не може да бъде оттеглен, докато се използва в активни договори и/или задания", 'error');
     		return FALSE;
     	}
     }

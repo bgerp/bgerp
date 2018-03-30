@@ -123,7 +123,7 @@ class log_System extends core_Manager
      * Добавяне на събитие в лога
      * 
      * @param string $className
-     * @param integer|NULL|stdObject $objectId
+     * @param integer|NULL|stdClass $objectId
      * @param string $action
      * @param string $type
      * @param integer $lifeDays
@@ -504,8 +504,8 @@ class log_System extends core_Manager
     /**
      * Подрежда подадените данни - използва се от uasort
      * 
-     * @param stdObject $a
-     * @param stdObject $b
+     * @param stdClass $a
+     * @param stdClass $b
      * 
      * @return integer
      */

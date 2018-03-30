@@ -984,7 +984,7 @@ class fileman_Files2 extends core_Master
     /**
      * Обновява времето на последно използване на файла
      * 
-     * @param string|stdObject $fh
+     * @param string|stdClass $fh
      * @param NULL|datetime $lastUse
      * 
      * @return boolean

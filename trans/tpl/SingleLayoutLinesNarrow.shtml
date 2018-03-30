@@ -42,7 +42,7 @@
 	    </table>
     </div>
 	<div class="lines"></div>
-
+	<div class='mergedDetailsholder'>
 		<!--ET_BEGIN Shipments-->
 		<div class='line-detail'>
 		    <div class='line-header'>|Експедиции|*</div>
@@ -78,7 +78,7 @@
             </div>
 		</div>
 		<!--ET_END Transfers-->
-		
+		</div>
 		<!--ET_BEGIN TOTAL-->
 		<div class='line-detail'>
 			[#TOTAL#]

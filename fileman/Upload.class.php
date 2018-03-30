@@ -151,7 +151,7 @@ class fileman_Upload extends core_Manager
             }
             
             if (Request::get('ajax_mode')) {
-                core_App::getJson(array("success" => $success, "res" => $resEt->getContent()));
+                core_App::outputJson(array("success" => $success, "res" => $resEt->getContent()));
             } else {
                 $add->prepend($resEt);
             }
