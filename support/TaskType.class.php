@@ -94,8 +94,11 @@ class support_TaskType extends core_Mvc
         $form->setField('systemId', 'input=hidden');
         $form->setField('typeId', 'input');
         $form->setField('assetResourceId', 'input=none');
-        $form->setField('name', 'input');
-        $form->setField('email', 'input');
+        if (!haveRole('user')) {
+            $form->setField('name', 'input');
+            $form->setField('email', 'input');
+        }
+        
         $form->setField('url', 'input=hidden, silent');
         
         $systemId = Request::get('systemId', 'int');

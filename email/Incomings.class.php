@@ -809,7 +809,6 @@ class email_Incomings extends core_Master
             }
             
             self::calcAllToAndCc($rec);
-            self::calcSpamScore($rec);
             
             $errEmailInNameStr = 'Имейлът в името не съвпада с оригиналния|*.';
             
@@ -1352,57 +1351,6 @@ class email_Incomings extends core_Master
         }
      }
      
-     
-     /**
-      * Преизчислява спам рейтинга, ако е необходими
-      * 
-      * @param stdClass $rec
-      * @param boolean $saveIfNotExist
-      */
-     public static function calcSpamScore($rec, $saveIfNotExist = TRUE)
-     {
-         if (isset($rec->spamScore)) return ;
-        
-         // Ако няма хедъри
-         if (!$rec->headers && $rec->emlFile) {
-         
-             // Манипулатора на eml файла
-             $fh =  fileman_Files::fetchField($rec->emlFile, 'fileHnd');
-         
-             // Съдържаниетое
-             $rawEmail = fileman_Files::getContent($fh);
-         
-             // Инстанция на класа
-             $mime = cls::get('email_Mime');
-         
-             // Парсираме имейла
-             $mime->parseAll($rawEmail);
-         
-             // Вземаме хедърите
-             $headersArr = $mime->parts[1]->headersArr;
-         
-             // Ако няма хедъри, записваме ги
-             $nRec = new stdClass();
-             $nRec->id = $rec->id;
-             $nRec->headers = $headersArr;
-         
-             $eInc = cls::get('email_Incomings');
-         
-             $eInc->save_($nRec, 'headers');
-         } else {
-         
-             // Хедърите ги преобразуваме в масив
-             $headersArr = $rec->headers;
-         }
-         
-         $rec->spamScore = email_Spam::getSpamScore($headersArr);
-         
-         if ($rec->id && $saveIfNotExist) {
-             $inst = cls::get(get_called_class());
-             $inst->save_($rec, 'spamScore');
-         }
-     }
-    
  
     /**
      * Да сваля имейлите по - крон
@@ -1999,7 +1947,7 @@ class email_Incomings extends core_Master
      * 
      * @param integer|stdClass $cId
      * 
-     * @return NULL|iteger
+     * @return NULL|integer
      */
     protected static function getDocRating($cId)
     {
@@ -2634,9 +2582,9 @@ class email_Incomings extends core_Master
      * Проверява дали документа може да се праща по имейл
      * В зависимост от големината на EML файла
      * 
-     * @param unknown_type $mvc
-     * @param unknown_type $res
-     * @param unknown_type $id
+     * @param email_Incomings $mvc
+     * @param mixed $res
+     * @param integer $id
      */
     function on_BeforeCheckSizeForAttach($mvc, &$res, $id)
     {

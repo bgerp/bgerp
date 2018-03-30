@@ -437,12 +437,11 @@ class acc_Balances extends core_Master
     	$pQuery->orderBy('#end', 'ASC');
     	$pQuery->where("#state != 'closed'");
     	$pQuery->where("#state != 'draft'");
+        
+        // Правим заключване за дълго време: MAX_PERIOD_CALC_TIME
+        core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1);
     		 
     	while($pRec = $pQuery->fetch()) {
-            
-            // Подновяваме заключването за 5 минути от сега нататък
-            core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1);
-            core_App::setTimeLimit(self::MAX_PERIOD_CALC_TIME);
  
     		$rec = new stdClass();
     			 
