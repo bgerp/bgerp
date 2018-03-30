@@ -61,6 +61,13 @@ class eshop_Setup extends core_ProtoSetup
     var $managers = array(
             'eshop_Groups',
             'eshop_Products',
+    		'eshop_Payments',
+    		'eshop_Settings',
+    		'eshop_DeliveryTimes',
+    		'eshop_DeliveryTerms',
+    		'eshop_ProductDetails',
+    		'eshop_Carts',
+    		'eshop_CartDetails',
             'migrate::migrateProductOrdering',
             'migrate::migrateGroupOrdering',
         );
@@ -88,6 +95,12 @@ class eshop_Setup extends core_ProtoSetup
 	);
 
     
+	/**
+	 * Дефинирани класове, които имат интерфейси
+	 */
+	public $defClasses = "eshop_interfaces_Cod,eshop_interfaces_FreeDelivery";
+	
+	
     /**
      * Инсталиране на пакета
      */

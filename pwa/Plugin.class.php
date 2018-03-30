@@ -23,62 +23,31 @@ class pwa_Plugin extends core_Plugin
 
     function act_Default()
     {
-        $icon72 = sbf('pwa/icons/icon-72x72.png', '');
-        $icon96 = sbf("pwa/icons/icon-96x96.png", "");
-        $icon128 = sbf("pwa/icons/icon-128x128.png", "");
-        $icon144 = sbf("pwa/icons/icon-144x144.png", "");
-        $icon152 = sbf("pwa/icons/icon-152x152.png", "");
-        $icon192 = sbf("pwa/icons/icon-192x192.png", "");
-        $icon384 = sbf("pwa/icons/icon-384x384.png", "");
-        $icon512 = sbf("pwa/icons/icon-512x512.png", "");
+        $iconSizes = array(72, 96, 128, 144, 152, 192, 384, 512);
+        $iconInfoArr = array();
+        $conf = core_Packs::getConfig('pwa');
+
+        foreach($iconSizes as $size) {
+            if($conf->PWA_IMAGE) {
+                // Създаваме thumbnail с определени размери
+                $thumb = new thumb_Img(array($conf->PWA_IMAGE, $size, $size, 'fileman', 'mode' => 'small-no-change'));
+                $tempArray = array();
+                $img = $thumb->getUrl('deferred');
+                $tempArray['src'] = $img;
+            } else {
+                $tempArray['src'] = sbf("pwa/icons/icon-{$size}x{$size}.png", '');
+            }
+            $tempArray['sizes'] = $size .  "x" . $size;
+            $tempArray['type'] = "image/png";
+            $iconInfoArr[] = $tempArray;
+        }
 
         $json = array(
             "short_name" => "bgERP",
             "name" => "bgERP - система за управление на бизнеса",
             "display" => "standalone",
             "start_url" => "/",
-            "icons" => array (
-                array(
-                    "src" =>$icon72,
-                    "sizes"=> "72x72",
-                    "type"=> "image/png"
-                ),
-                array(
-                    "src" =>$icon96,
-                    "sizes"=> "96x96",
-                    "type"=> "image/png"
-                ),
-                array(
-                    "src" =>$icon128,
-                    "sizes"=> "128x128",
-                    "type"=> "image/png"
-                ),
-                array(
-                    "src" =>$icon144,
-                    "sizes"=> "144x144",
-                    "type"=> "image/png"
-                ),
-                array(
-                    "src" =>$icon152,
-                    "sizes"=> "152x152",
-                    "type"=> "image/png"
-                ),
-                array(
-                    "src" =>$icon192,
-                    "sizes"=> "192x192",
-                    "type"=> "image/png"
-                ),
-                array(
-                    "src" =>$icon384,
-                    "sizes"=> "384x384",
-                    "type"=> "image/png"
-                ),
-                array(
-                    "src" =>$icon512,
-                    "sizes"=> "512x512",
-                    "type"=> "image/png"
-                )
-            )
+            "icons" => $iconInfoArr
         );
 
         core_App::outputJson($json);

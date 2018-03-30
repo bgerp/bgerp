@@ -101,6 +101,12 @@ class cat_interface_PackLabelImpl
 	 */
 	public function getLabelData($id, $cnt, $onlyPreview = FALSE)
 	{
+	    static $resArr = array();
+	    
+	    $key = $id . '|' . $cnt . '|' . $onlyPreview;
+	    
+	    if (isset($resArr[$key])) return $resArr[$key];
+	    
 		expect($rec = cat_products_Packagings::fetchRec($id));
 		$pRec = cat_Products::fetch($rec->productId, 'code,measureId');
 		$quantity = $rec->quantity;
@@ -168,7 +174,9 @@ class cat_interface_PackLabelImpl
 			$arr[] = $res;
 		}
 		
-		return $arr;
+		$resArr[$key] = $arr;
+		
+		return $resArr[$key];
 	}
 	
 	

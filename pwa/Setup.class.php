@@ -1,5 +1,12 @@
 <?php
 
+
+/**
+ * FileHandler на логото за PWA
+ */
+defIfNot('PWA_IMAGE', '');
+
+
 /**
  * Клас 'pwa_Setup' -  bgERP progressive web application
  *
@@ -13,7 +20,15 @@
 class pwa_Setup extends core_ProtoSetup
 {
 	var $info = "bgERP progressive web application";
-	
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        'PWA_IMAGE' => array ('fileman_FileType(bucket=gallery_Pictures)', 'caption=Икона за приложението (512x512px)->Изображение'),
+    );
+
 	
 	/**
      * Инсталиране на пакета
