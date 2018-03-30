@@ -440,7 +440,7 @@ class core_Mvc extends core_FieldSet
         $maxLen = CORE_MAX_SQL_QUERY - strlen($queryBegin) - strlen($queryEnd);
     	
         // Конвертираме всеки запис към стойности в db заявката
-        $values = '';
+        $query = '';
     	foreach($recs as $rec) {
             $row = '(';
             foreach($fieldsArr as $key => $field) {
@@ -450,19 +450,17 @@ class core_Mvc extends core_FieldSet
             $row = rtrim($row, ',') . '),';
 			
             // Ако надвишаваме максималната заявка или сме изчерпали записите - записваме всичко до сега
-            if(strlen($row) + strlen($values) >= $maxLen) {
+            if(strlen($row) + strlen($query) >= $maxLen) {
                 // Изпълняваме заявката
-                $query = $queryBegin . rtrim($values, ',') . $queryEnd;
-    	        if(!$this->db->query($query)) return FALSE;
-                $values = '';
+    	        if(!$this->db->query($queryBegin . rtrim($query, ',') . $queryEnd)) return FALSE;
+                $query = '';
             }
-            $values .= $row;
+            $query .= $row;
         }
         
         // Ако имаме някакви натрупани стойности - записваме ги и тях
-        if($values) {
-            $query = $queryBegin . rtrim($values, ',') . $queryEnd;
-    	    if(!$this->db->query($query)) return FALSE;
+        if($query) {
+    	    if(!$this->db->query($queryBegin . rtrim($query, ',') . $queryEnd)) return FALSE;
         }
 
         return TRUE;
