@@ -33,6 +33,11 @@ class email_Sent
      */
     static function sendOne($boxFrom, $emailsTo, $subject, $body, $options, $emailsCc = NULL, &$error = NULL)
     {
+        // Премахване на всички картинки, които са в css стилове за фон
+        if($body->html) {
+            $body->html = preg_replace("/(<[^>]+)background\\-image\\:\\s*url\\(\\'[^\\']+\\'\\)\\s*\\;/i", '$1', $body->html);
+        }
+
         if ($options['encoding'] == 'ascii') {
             $body->html = str::utf2ascii($body->html);
             $body->text = str::utf2ascii($body->text);

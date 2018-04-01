@@ -488,7 +488,7 @@ class type_Richtext extends type_Blob
         Debug::startTimer('RichtextReplaceList');
         $lines = explode("\n", $text);
         $lines[] = '';
-        
+        $textMode = Mode::get('text');
         $state = array();
         
         $linesCnt = count($lines);
@@ -523,8 +523,12 @@ class type_Richtext extends type_Blob
                 } else {
                     $type = 'ul';
                 }
-
-                $l = "<li> " . $matches['text'] . "</li>";
+                
+                if($textMode == 'plain') {
+                    $l = str_repeat(" ", 3 * $level) . '* ' . $matches['text'];
+                } else {
+                    $l = "<li> " . $matches['text'] . "</li>";
+                }
             }
 
             while(($oldLevel = count($state)) < $level) {
