@@ -601,13 +601,14 @@ class hr_Indicators extends core_Manager
         // В хоризонтален вид
     	$data->listFilter->class = 'simpleForm fleft';
     	
+        // Да не може да избира служителя, ако няма права за CEO/HR master
     	if(!haveRole('ceo,hrMaster')){
-    		foreach (array('personId', 'indicatorId', 'period', 'document') as $fld){
+    		foreach (array('personId') as $fld){
     			$data->listFilter->setReadOnly($fld);
     		}
-    	} else {
-    		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	}
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
     	
     	// Филтриране на записите
     	if($fRec = $data->listFilter->rec){
