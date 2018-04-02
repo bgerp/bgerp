@@ -148,7 +148,7 @@ class bgerp_Portal extends core_Manager
 
         if(Mode::is('screenMode', 'narrow')) {
             // подаваме времето на последната нотификация
-            jquery_Jquery::run($tpl, "openCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime()) . "'); ");
+            jquery_Jquery::run($tpl, "openCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime(core_Users::getCurrent())) . "'); ");
             // Добавяме календара
             $tpl->append($calendarHeader, 'CALENDAR_COLUMN');
             // Добавяме "Наскоро" - документи и папки с които е работено наскоро
