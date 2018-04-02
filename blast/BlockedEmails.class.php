@@ -53,7 +53,7 @@ class blast_BlockedEmails extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'blast_Wrapper, plg_RowTools2, plg_Sorting';
+    public $loadList = 'blast_Wrapper, plg_RowTools2, plg_Sorting, bgerp_plg_Import';
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
@@ -73,6 +73,58 @@ class blast_BlockedEmails extends core_Manager
         $this->FLD('checkPoint', 'int', 'caption=Проверка->Точки, input=none');
         
         $this->setDbUnique('email');
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param blast_BlockedEmails $mvc
+     * @param array $fields
+     * 
+     * @see bgerp_plg_Import
+     */
+    function on_AfterPrepareImportFields($mvc, &$fields)
+    {
+        $fields['state'] = array('caption' => 'Състояние', 'mandatory' => 'mandatory');
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param blast_BlockedEmails $mvc
+     * @param stdClass $rec
+     * 
+     * @return boolean
+     * 
+     * @see bgerp_plg_Import
+     */
+    function on_BeforeImportRec($mvc, &$rec)
+    {
+        if (!trim($rec->email) || !type_Email::isValidEmail($rec->email)) return FALSE;
+        
+        if (!$rec->state) {
+            $rec->state = 'ok';
+        }
+        
+        // Опитваме се да определим състоянието
+        if (!$rec->state) {
+            $rec->state = 'ok';
+        }
+        
+        if (!$mvc->fields['state']->type->options[$rec->state]) {
+            $state = mb_strtolower($rec->state);
+            if ($mvc->fields['state']->type->options[$state]) {
+                $rec->state = $state;
+            } else {
+                $state = str::mbUcfirst($state);
+                
+                $rec->state = array_search($state, $mvc->fields['state']->type->options);
+            }
+        }
+        
+        if (!$rec->state) return FALSE;
     }
     
     
