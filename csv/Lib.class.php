@@ -532,6 +532,11 @@ class csv_Lib
                 $resArr['firstRow'] = $data;
             } else {
                 $resArr['data'][] = $data;
+                
+                if ($isFirst) {
+                    $resArr['firstRow'] = $data;
+                    $isFirst = FALSE;
+                }
             }
         }
         
