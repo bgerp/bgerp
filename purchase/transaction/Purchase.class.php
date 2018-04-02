@@ -20,7 +20,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	
     /**
      * 
-     * @var puchase_Purchases
      */
     public $class;
     
@@ -443,10 +442,13 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     					
     				if($groupByStore === TRUE){
     					$storePositionId = acc_Lists::getPosition(acc_Accounts::fetchField($p->debitAccId, 'systemId'), 'store_AccRegIntf');
-    					$storeItem = acc_Items::fetch($p->{"debitItem{$storePositionId}"});
     					
-    					$res[$index]->inStores[$storeItem->objectId]['amount'] += $p->amount;
-    					$res[$index]->inStores[$storeItem->objectId]['quantity'] += $p->debitQuantity;
+    					if ($p->{"debitItem{$storePositionId}"}) {
+    					    $storeItem = acc_Items::fetch($p->{"debitItem{$storePositionId}"});
+    					    
+    					    $res[$index]->inStores[$storeItem->objectId]['amount'] += $p->amount;
+    					    $res[$index]->inStores[$storeItem->objectId]['quantity'] += $p->debitQuantity;
+    					}
     				}
     			}
     		}
