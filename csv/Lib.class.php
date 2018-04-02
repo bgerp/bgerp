@@ -719,11 +719,13 @@ class csv_Lib
                         $points -= 1;
                     }
                 }
- 
+                
                 // Добавка за срещанията на ображдащия символ до разделител или нов ред
                 $deCntL = substr_count($csv, $d . $e) + substr_count($csv, $nl . $e);
                 $deCntR = substr_count($csv, $e . $d) + substr_count($csv, $e . $nl);
-                $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * count($res) + min($deCntL , $deCntR) / $nlCnt;
+                if ($nlCnt) {
+                    $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * count($res) + min($deCntL , $deCntR) / $nlCnt;
+                }
                 $points -= ($deCntL > 0) && ($deCntL != $deCntR) * count($res) ;
        
                 // Среща ли се $е самостоятелно
