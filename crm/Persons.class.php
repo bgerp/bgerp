@@ -1236,7 +1236,7 @@ class crm_Persons extends core_Master
        	while($rec = $query->fetch()){
        		$data->recs[$rec->id] = $rec;
        		$row = self::recToVerbal($rec, 'name,tel,buzEmail,email');
-       		$row->name = crm_Persons::getHyperlink($rec, TRUE);
+       		$row->name = crm_Persons::getHyperlink($rec->id, TRUE);
        		$row->buzTel = (!empty($rec->buzTel)) ? $row->buzTel : ((!empty($rec->tel)) ? $row->tel : NULL);
        		$row->buzEmail = (!empty($rec->buzEmail)) ? $row->buzEmail : ((!empty($rec->email)) ? $row->email : NULL);
        		
