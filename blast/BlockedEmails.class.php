@@ -102,7 +102,7 @@ class blast_BlockedEmails extends core_Manager
      */
     function on_BeforeImportRec($mvc, &$rec)
     {
-        if (!trim($rec->email) || !type_Email::isValidEmail($rec->email)) return FALSE;
+        if (!trim($rec->email)) return FALSE;
         
         if (!$rec->state) {
             $rec->state = 'ok';
