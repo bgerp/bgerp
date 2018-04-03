@@ -216,9 +216,24 @@ class label_Prints extends core_Master
         $objId = $rec->objectId;
         $templateId = $rec->templateId;
         
+        $labelDataArr = array();
+        
         if(isset($classId) && isset($objId)){
         	$intfInst = cls::getInterface('label_SequenceIntf', $classId);
+        	
+        	$lang = '';
+        	if ($rec->templateId) {
+        	    $lang = label_Templates::fetchField($rec->templateId, 'lang');
+        	}
+        	core_Mode::push('prepareLabel', TRUE);
+        	if ($lang) {
+        	    core_Lg::push($lang);
+        	}
             $labelDataArr = $intfInst->getLabelPlaceholders($objId);
+            if ($lang) {
+                core_Lg::pop();
+            }
+            core_Mode::pop('prepareLabel');
         }
         
         // Определяме най-добрия шаблон
@@ -296,22 +311,16 @@ class label_Prints extends core_Master
             
             core_Lg::push($lang);
             
-            $placeholdersArr = array();
-            if ($rec->classId && $rec->objectId) {
-            	$intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
-                $placeholdersArr = $intfInst->getLabelPlaceholders($rec->objectId);
-            }
-            
 			// При редакция да се попълват стойностите
             if ($rec->id) {
                 foreach ((array)$rec->params as $fieldName => $val) {
-                    if (!$placeholdersArr[$fieldName]) {
+                    if (!$labelDataArr[$fieldName]) {
                         $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
-                        if (!$placeholdersArr[$fieldName]) {
-                            $placeholdersArr[$fieldName] = new stdClass;
+                        if (!$labelDataArr[$fieldName]) {
+                            $labelDataArr[$fieldName] = new stdClass;
                         }
                     }
-                    $placeholdersArr[$fieldName]->example = $val;
+                    $labelDataArr[$fieldName]->example = $val;
                 }
             }
             
@@ -323,14 +332,18 @@ class label_Prints extends core_Master
             $form->input(NULL, TRUE);
             
             // Обхождаме масива
-            foreach ((array)$placeholdersArr as $fieldName => $v) {
+            foreach ((array)$labelDataArr as $fieldName => $v) {
                 
                 $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
                 
                 if (!$form->fields[$fieldName]) continue;
                 
-                // Добавяме данните от записите
-                $rec->{$fieldName} = $v->example;
+                if (!$form->cmd || $form->cmd == 'refresh') {
+                    // Добавяме данните от записите
+                    $rec->{$fieldName} = $v->example;
+                    Request::push(array($fieldName => $v->example));
+                }
+                
                 if ($v->hidden) {
                     $form->setField($fieldName, 'input=hidden');
                 } elseif ($v->readonly) {
@@ -354,12 +367,10 @@ class label_Prints extends core_Master
         
         $estCnt = NULL;
         
-        $labelDataArr = array();
         if ($classId && $objId) {
             $mvc->requireRightFor('add', (object)array('classId' => $classId, 'objectId' => $objId));
             
             $intfInst = cls::getInterface('label_SequenceIntf', $classId);
-            $labelDataArr = $intfInst->getLabelPlaceholders($objId);
             
             $lName = $intfInst->getLabelName($objId);
             if ($lName) {
@@ -523,7 +534,6 @@ class label_Prints extends core_Master
         if ($form->isSubmitted()) {
             if ($rec->classId && $rec->objectId) {
             	$intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
-                $placeholdersArr = $intfInst->getLabelPlaceholders($rec->objectId);
                 
                 $estCnt = $intfInst->getLabelEstimatedCnt($rec->objectId);
                 

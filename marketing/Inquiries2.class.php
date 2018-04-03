@@ -854,10 +854,9 @@ class marketing_Inquiries2 extends embed_Manager
     		$rec->state = 'active';
     		$rec->ip = core_Users::getRealIpAddr();
     		$rec->brid = log_Browsers::getBrid();
-    	
-    		if(empty($rec->folderId)){
-    			$rec->folderId = marketing_InquiryRouter::route($rec);
-    		}
+    		
+    		// Винаги се рутира към правилната папка
+    		$rec->folderId = marketing_InquiryRouter::route($rec);
     		
     		// Запис и редирект
     		if($this->haveRightFor('new')){
@@ -885,7 +884,11 @@ class marketing_Inquiries2 extends embed_Manager
                 }
 
     			$id = $this->save($rec);
-    		 
+    			doc_Threads::doUpdateThread($rec->threadId);
+    			
+    			$singleUrl = self::getSingleUrlArray($id);
+    			if(count($singleUrl)) return redirect($singleUrl, FALSE, '|Благодарим Ви за запитването', 'success');
+    			
     			return followRetUrl(NULL, '|Благодарим Ви за запитването', 'success');
     		}
     	}

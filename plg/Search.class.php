@@ -568,7 +568,7 @@ class plg_Search extends core_Plugin
         if (!$query->count()) {
             core_Permanent::remove($pKey);
             
-            $clsInst->logNotice('Приключи регенерирането на ключови думи');
+            $clsInst->logDebug('Приключи регенерирането на ключови думи');
             
             return ;
         }

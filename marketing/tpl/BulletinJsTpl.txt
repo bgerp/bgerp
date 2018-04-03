@@ -493,6 +493,7 @@ function loadShowFormWindow()
 	}
 }
 
+ 
 
 /**
  * След зареждане на JQuery стартираме функцията
@@ -501,4 +502,6 @@ $(document).ready(function() {
 	loadCSS();
 	startProcessing();
 	checkForButton();
+	var hash = location.hash.substr(1);
+	if(hash == 'ob') bulletinFormOpen();
 });

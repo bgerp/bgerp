@@ -366,51 +366,44 @@ class acc_Balances extends core_Master
      */
     function calc($rec)
     {
-    	//$recalcBalance = TRUE;
-    	//$count = 1;
-        
-    	// Вземаме инстанция на детайлите на баланса
+        // Вземаме инстанция на детайлите на баланса
     	$bD = cls::get('acc_BalanceDetails');
-    	$bD->updatedBalances = array();
+    	    		
+    	// Зануляваме флага, за да не се преизчисли баланса отново
+    	$recalcBalance = FALSE;
     	
-    	//while($recalcBalance){
-    		
-    		// Зануляваме флага, за да не се преизчисли баланса отново
-    		$recalcBalance = FALSE;
-    		
-    		// Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
-    		$lastRec = $this->getBalanceBefore($rec->toDate);
-    		
-    		if($lastRec) {
-    			 
-    			// Ако има зададен период не е междинен баланса, иначе е
-    			$isMiddleBalance = (!empty($lastRec->periodId)) ? FALSE : TRUE;
-    			 
-    			// Зареждаме баланса
-    			$bD->loadBalance($lastRec->id, $isMiddleBalance);
-    			$firstDay = dt::addDays(1, $lastRec->toDate);
-    			$firstDay = dt::verbal2mysql($firstDay, FALSE);
-    		} else {
-    			$firstDay = self::TIME_BEGIN;
-    		}
-    		
-    		// Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
-    		$isMiddleBalance = ($rec->periodId) ? FALSE : TRUE;
-    		$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
-    	    
+    	// Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
+    	$lastRec = $this->getBalanceBefore($rec->toDate);
+    	
+    	if($lastRec) {
+    		 
+    		// Ако има зададен период не е междинен баланса, иначе е
+    		$isMiddleBalance = (!empty($lastRec->periodId)) ? FALSE : TRUE;
+    		 
+    		// Зареждаме баланса
+    		$bD->loadBalance($lastRec->id, $isMiddleBalance);
+    		$firstDay = dt::addDays(1, $lastRec->toDate);
+    		$firstDay = dt::verbal2mysql($firstDay, FALSE);
+    	} else {
+    		$firstDay = self::TIME_BEGIN;
+    	}
+    	
+    	// Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
+    	$isMiddleBalance = ($rec->periodId) ? FALSE : TRUE;
+    	$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
+    	
  
-            // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
-            if($bD->saveBalance($rec->id)) {
-                $rec->lastCalculateChange = 'yes';
-            } else {
-                $rec->lastCalculateChange = 'no';
-            }
-                                
-            // Отбелязваме, кога за последно е калкулиран този баланс
-            $rec->lastCalculate = dt::now();
-            self::save($rec, 'lastCalculate,lastCalculateChange');
-    		
-     }
+        // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
+        if($bD->saveBalance($rec->id)) {
+            $rec->lastCalculateChange = 'yes';
+        } else {
+            $rec->lastCalculateChange = 'no';
+        }
+                            
+        // Отбелязваме, кога за последно е калкулиран този баланс
+        $rec->lastCalculate = dt::now();
+        self::save($rec, 'lastCalculate,lastCalculateChange');
+    }
     
     
     /**
@@ -437,12 +430,11 @@ class acc_Balances extends core_Master
     	$pQuery->orderBy('#end', 'ASC');
     	$pQuery->where("#state != 'closed'");
     	$pQuery->where("#state != 'draft'");
+        
+        // Правим заключване за дълго време: MAX_PERIOD_CALC_TIME
+        core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1);
     		 
     	while($pRec = $pQuery->fetch()) {
-            
-            // Подновяваме заключването за 5 минути от сега нататък
-            core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1);
-            core_App::setTimeLimit(self::MAX_PERIOD_CALC_TIME);
  
     		$rec = new stdClass();
     			 

@@ -542,6 +542,8 @@ class email_Outgoings extends core_Master
                     
                     // Записваме имейла, като върнат
                     doclog_Documents::returned($rec->__mid);
+                    
+                    blast_BlockedEmails::addEmail($emailTo, TRUE, 'error');
                 }
             }
             

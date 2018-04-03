@@ -856,7 +856,7 @@ class acc_BalanceDetails extends core_Detail
                             	}
                             }
                             
-                            // Закръгляме количествата само ако закръглени равнят на нула
+                            // Закръгляме количествата, само ако закръглени равнят на нула
                             foreach (array('blQuantity', 'baseQuantity') as $fld){
                             	if(!is_null($rec[$fld])){
                             		if(!is_null($rec[$fld]) && round($rec[$fld], 8) == 0){
@@ -876,7 +876,10 @@ class acc_BalanceDetails extends core_Detail
 
         $sum = self::getCheckSum($balanceId);
         
-        // Записваме всички данни на веднъж
+        // Изтриваме всякакви записи за баланс с id == -1
+        $this->delete("#balanceId = -1");
+
+        // Записваме всички данни наведнъж
         $this->saveArray($toSave);
         
         // Изтриваме запаметените изчислени данни
@@ -925,7 +928,9 @@ class acc_BalanceDetails extends core_Detail
     public function loadBalance($balanceId, $isMiddleBalance = FALSE, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
     {
         $query = $this->getQuery();
-       
+        
+        $this->balance = array();
+
         static::filterQuery($query, $balanceId, $accs, $itemsAll, $items1, $items2, $items3);
         
         // Да се пропускат записите с нулево крайно салдо, при зареждането на не-междинен баланс
@@ -1044,10 +1049,8 @@ class acc_BalanceDetails extends core_Detail
                 if($update){
                     $JournalDetails->save_($rec);
                    
-                    // Дигаме флага за преизчисляване само ако, записан не е бил обновяван до сега
-                    //if(!isset($this->updatedBalances[$rec->id])){
-                    	$hasUpdatedJournal = TRUE;
-                   // }
+                    // Дигаме флага за преизчисляване
+                    $hasUpdatedJournal = TRUE;
                 }
             }
             

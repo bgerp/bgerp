@@ -41,6 +41,6 @@ class vkeyboard_Plugin extends core_Plugin
         $tpl->push("vkeyboard/css/keyboard.css", 'CSS');
         $tpl->push("vkeyboard/css/keyboard-basic.css", 'CSS');
 
-        jquery_Jquery::run($tpl, 'keyboardAction();');
+        jquery_Jquery::run($tpl, 'keyboardAction();', TRUE);
     }
 }

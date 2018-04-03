@@ -412,6 +412,9 @@ class blast_Emails extends core_Master
         $query->where("#state = 'active'");
         $query->orWhere("#state = 'waiting'");
         
+        $query->XPR('order', 'double', 'RAND()');
+        $query->orderBy('#order');
+        
         $conf = core_Packs::getConfig('blast');
         
         // За да получим минути
@@ -588,7 +591,9 @@ class blast_Emails extends core_Master
                     blast_EmailSend::setTimeAndEmail(array($detId => $toEmail));
                 } else {
                     // Ако възникне грешка при изпращане, записваме имейла, като върнат
-                    $this->logWarning("Върнато писмо", $rec->id);
+                    $this->logNotice("Върнато писмо", $rec->id);
+                    
+                    blast_BlockedEmails::addEmail($toEmail, TRUE, 'error');
                 }
                 
                 unset($notSendDataArr[$detId]);

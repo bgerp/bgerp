@@ -43,7 +43,6 @@ class page_Html extends core_ET {
             "<!--ET_BEGIN HEAD-->[#HEAD#]<!--ET_END HEAD-->" .
             "\n</head>" .
             "\n<body<!--ET_BEGIN ON_LOAD--> onload=\"[#ON_LOAD#]\"<!--ET_END ON_LOAD--> id= \"{$bodyId}\" class=\"{$bodyClass} [#BODY_CLASS_NAME#]\">" .
-        	"<!--ET_BEGIN START_SCRIPTS-->\n<script type=\"text/javascript\">[#START_SCRIPTS#]\n</script><!--ET_END START_SCRIPTS-->" .
             "<!--ET_BEGIN PAGE_CONTENT-->[#PAGE_CONTENT#]<!--ET_END PAGE_CONTENT-->" .
             "<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n</script><!--ET_END JQRUN-->" .
             "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->" .

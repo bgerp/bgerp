@@ -625,9 +625,9 @@ en,Записи на индикаторите,Indicators records
 en,Записи на камера,Records from cam
 en,Записи от сензорите,Records from sensors
 en,Записи,Recordings
-en,Запитване за поръчков продукт,Custom Product Inquiry
-en,Запитване за,Inquiry about
-en,Запитване,Inquiry
+en,Запитване за поръчков продукт,Custom Product Еnquiry
+en,Запитване за,Еnquiry about
+en,Запитване,Еnquiry
 en,Запитване->Драйвер,Inquiry->Driver
 en,Запитване->МКП,Inquiry->MOQ
 en,Запитване->Параметри,Inquiry->Parameters
@@ -2383,7 +2383,7 @@ en,час,hour
 en,часа,hours
 en,чрез,via
 en,чувал,sack
-en,ще го пазим поверително,will keep it confidential
+en,ще го пазим поверително,we will keep it confidential
 en,юли,July
 en,юни,June
 en,януари,January
@@ -2446,3 +2446,4 @@ en,Попълнете полетата и натиснете бутона за �
 en,"Имейл адресът трябва да бъде този, с който сте се регистрирали.",The email address should be the one you signed up for.
 en,На този имейл ще получите линк за избор на нова парола за достъп.,At this email address you will receive a link to choice a new password.
 en,Продуктови групи,Product groups
+en,Детайли за,Details for

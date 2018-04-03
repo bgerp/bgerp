@@ -25,6 +25,12 @@ class marketing_InquiryRouter extends core_Manager
 	 */
 	public static function route($rec)
 	{
+		if(core_Packs::isInstalled('colab')){
+			$firstFolderId = colab_FolderToPartners::getLastSharedCompanyFolder();
+			
+			if(!empty($firstFolderId)) return $firstFolderId;
+		}
+		
 		// Кой ще е отговорника на папката
 		$inCharge = marketing_Router::getInChargeUser($rec->place, $rec->country);
 		
