@@ -1013,7 +1013,6 @@ class blast_Emails extends core_Master
      */
     function act_Activation()
     {
-        // TODO - проверка дали ще ги свърши и кога - да се показва
         // Права за работа с екшън-а
         $this->requireRightFor('activate');
         
