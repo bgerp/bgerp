@@ -483,6 +483,7 @@ class fconv_Script
                     log_System::add('fconv_Remote', "Липсва програма: " . $path, $rRec->id, 'warning');
                     
                     return FALSE;
+                }
             }
         }
         
