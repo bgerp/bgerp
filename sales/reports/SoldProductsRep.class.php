@@ -204,8 +204,19 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     
                     $saleId = sales_SalesDetails::fetch($recPrime->detailRecId)->saleId;
                     
-                    if (sales_Sales::fetch($saleId)->contoActions != 'activate,ship')
+                    $actionStr = (sales_Sales::fetch($saleId)->contoActions);
+                    
+                    $actionStrArr = explode(',', $actionStr);
+                    
+                    foreach ($actionStrArr as $v) {
+                        if ($v == 'ship') {
+                            $marker = TRUE;
+                        }
+                    }
+                    
+                    if (! $marker)
                         continue;
+                    $marker = FALSE;
                 }
                 if ($origin->fetchField('state') != 'rejected') {
                     
