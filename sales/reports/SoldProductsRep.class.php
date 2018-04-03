@@ -199,35 +199,41 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         continue;
                     }
                 }
-                if (! $DetClass instanceof sales_SalesDetails) {
-                    if ($origin->fetchField('state') != 'rejected') {
+                
+                if ($DetClass instanceof sales_SalesDetails) {
+                    
+                    $saleId = sales_SalesDetails::fetch($recPrime->detailRecId)->saleId;
+                    
+                    if (sales_Sales::fetch($saleId)->contoActions != 'activate,ship')
+                        continue;
+                }
+                if ($origin->fetchField('state') != 'rejected') {
+                    
+                    if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
+                        $quantity = (- 1) * $recPrime->quantity;
+                        $primeCost = (- 1) * $recPrime->sellCost * $recPrime->quantity;
+                    } else {
+                        $quantity = $recPrime->quantity;
+                        $primeCost = $recPrime->sellCost * $recPrime->quantity;
+                    }
+                    
+                    // добавяме в масива събитието
+                    if (! array_key_exists($id, $recs)) {
                         
-                        if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
-                            $quantity = (- 1) * $recPrime->quantity;
-                            $primeCost = (- 1) * $recPrime->sellCost * $recPrime->quantity;
-                        } else {
-                            $quantity = $recPrime->quantity;
-                            $primeCost = $recPrime->sellCost * $recPrime->quantity;
-                        }
-                        
-                        // добавяме в масива събитието
-                        if (! array_key_exists($id, $recs)) {
+                        $recs[$id] = (object) array(
                             
-                            $recs[$id] = (object) array(
-                                
-                                'kod' => (cat_Products::fetchField($recPrime->productId, 'code')) ? cat_Products::fetchField(
-                                    $recPrime->productId, 'code') : "Art{$recPrime->productId}",
-                                'measure' => cat_Products::getProductInfo($recPrime->productId)->productRec->measureId,
-                                'productId' => $recPrime->productId,
-                                'quantity' => $quantity,
-                                'primeCost' => $primeCost,
-                                'group' => cat_Products::fetchField($recPrime->productId, 'groups')
-                            );
-                        } else {
-                            $obj = &$recs[$id];
-                            $obj->quantity += $quantity;
-                            $obj->primeCost += $primeCost;
-                        }
+                            'kod' => (cat_Products::fetchField($recPrime->productId, 'code')) ? cat_Products::fetchField(
+                                $recPrime->productId, 'code') : "Art{$recPrime->productId}",
+                            'measure' => cat_Products::getProductInfo($recPrime->productId)->productRec->measureId,
+                            'productId' => $recPrime->productId,
+                            'quantity' => $quantity,
+                            'primeCost' => $primeCost,
+                            'group' => cat_Products::fetchField($recPrime->productId, 'groups')
+                        );
+                    } else {
+                        $obj = &$recs[$id];
+                        $obj->quantity += $quantity;
+                        $obj->primeCost += $primeCost;
                     }
                 }
             }
