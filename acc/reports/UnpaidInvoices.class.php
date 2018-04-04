@@ -47,7 +47,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
     {
         $fieldset->FLD('contragent', 
             'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 
-            'caption=Контрагент,single=none,mandatory,after=title');
+            'caption=Контрагент,single=none,after=title');
         $fieldset->FLD('checkDate', 'date', 'caption=Към дата,after=contragent,mandatory');
         
         $fieldset->FLD('salesTotalNotPaid', 'double', 'input=none,single=none');
@@ -135,7 +135,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                     // фактура от нишката и масив от платежни документи по тази фактура//
                     foreach ($invoicePayments as $inv => $paydocs) {
                         
-                        if ($paydocs->payout >= $paydocs->amount)
+                        if (($paydocs->payout > $paydocs->amount-0.01) && ($paydocs->payout < $paydocs->amount+0.01))
                             continue;
                         
                         $Invoice = doc_Containers::getDocument($inv);
@@ -316,7 +316,8 @@ protected function getTableFieldSet($rec, $export = FALSE)
         $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
         $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума');
         $fld->FLD('paidDates', 'varchar', 'caption=Платено->плащания,smartCenter');
-        $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Остатък');
+        $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Неплатено');
+        $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Надплатено');
     } else {
         
         $fld->FLD('invoiceNo', 'varchar', 'caption=Фактура No,smartCenter');
@@ -327,7 +328,8 @@ protected function getTableFieldSet($rec, $export = FALSE)
         $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
         $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума');
         $fld->FLD('paidDates', 'varchar', 'caption=Платено->плащания,smartCenter');
-        $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Остатък');
+        $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Неплатено');
+        $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Надплатено');
     }
     return $fld;
 }
@@ -414,11 +416,7 @@ private static function getDueDate($dRec, $verbal = TRUE, $rec)
         
         if ($dRec->dueDate) {
             $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = "d.m.y");
-            
-            // if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
-            
-            // $dueDate .= ' *';
-            // }
+           
         } else {
             $dueDate = '';
         }
@@ -462,9 +460,16 @@ protected function detailRecToVerbal($rec, &$dRec)
     $invoiceValue = $dRec->invoiceValue + $dRec->invoiceVat;
     
     $row->invoiceValue = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
-    
+
+    if ($dRec->invoiceCurrentSumm > 0){
     $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm);
-    
+    }
+
+    if ($dRec->invoiceCurrentSumm < 0){
+        $invoiceOverSumm = -1 * $dRec->invoiceCurrentSumm;
+        $row->invoiceOverSumm = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceOverSumm);
+        
+    }
     $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
     
     $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, TRUE) . "</span>";
@@ -548,6 +553,15 @@ protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, 
     $res->paidDates = self::getPaidDates($dRec, FALSE);
     
     $res->dueDate = self::getDueDate($dRec, FALSE, $rec);
+    
+    if ($dRec->invoiceCurrentSumm > 0){
+        $res->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm);
+    }
+    
+    if ($dRec->invoiceCurrentSumm < 0){
+        $invoiceOverSumm = -1 * $dRec->invoiceCurrentSumm;
+        $res->invoiceOverSumm = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceOverSumm);
+    }
     
     if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
         
