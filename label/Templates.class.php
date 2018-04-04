@@ -382,7 +382,7 @@ class label_Templates extends core_Master
         }
         
         // Подреждане по състояние
-        $data->query->orderBy('#state=ASC, #modifiedOn=DESC');
+        $data->query->orderBy('createdOn', 'DESC');
 
         if($state = $data->listFilter->rec->fState) {
             $data->query->where(array("#state = '[#1#]'", $state));
