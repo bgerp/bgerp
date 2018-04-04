@@ -263,7 +263,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 
                 $saleId = sales_SalesDetails::fetch($recPrimeLast->detailRecId)->saleId;
                 
-                $contoActionArr = explode(',', sales_Sales::fetch($saleId)->contoActions);
+                if (! is_null($saleId)) {
+                    $contoActionArr = explode(',', sales_Sales::fetch($saleId)->contoActions);
+                } else
+                    continue;
                 
                 foreach ($contoActionArr as $v) {
                     if ($v == 'ship') {
