@@ -191,6 +191,8 @@ class auto_handler_CreateQuotationFromInquiry {
     	if(!($form->isSubmitted() && !$form->gotErrors())){
     		$errorMsg = core_Type::mixedToString($form->errors);
     		marketing_Inquiries2::logDebug($errorMsg, $marketingRec->id);
+    		wp($form, $Products, $marketingRec, $Cover, $document, $form->isSubmitted(), $form->gotErrors());
+    		
     		return;
     	}
     	
