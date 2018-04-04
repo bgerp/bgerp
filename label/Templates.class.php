@@ -673,8 +673,6 @@ class label_Templates extends core_Master
     		$tQuery->show('id');
     	}
     	
-    	$intfInst = cls::getInterface('label_SequenceIntf', $class);
-    	
     	$res = array();
     	while($tRec = $tQuery->fetch()){
 			$res[$tRec->id] = $tRec;

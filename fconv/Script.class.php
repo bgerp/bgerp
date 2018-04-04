@@ -465,7 +465,12 @@ class fconv_Script
         }
         
         $checkProgramsArr = $this->getCheckProgramsArr();
+
         // Ако са зададени програми, които да се проверят преди обработка.
+        $which = 'which';
+        if (stristr(PHP_OS, 'WIN')) {
+            $which = 'where.exe';
+        }
         if (!empty($checkProgramsArr)) {
             foreach ($checkProgramsArr as $program) {
                 if (isset($this->programs[$program])) {
@@ -474,22 +479,7 @@ class fconv_Script
                     $path = escapeshellcmd($program);
                 }
                 
-                exec($path . ' --help', $output, $code);
-                
-                if ($code == 127 || ($code == 1)) {
-                    if ($code == 1) {
-                        exec($path . ' -h', $output, $code);
-                        
-                        if ($code === 0) continue ;
-                        
-                        if ($code == 1) {
-                            
-                            exec("which {$path}", $output, $code);
-                            
-                            if ($code === 0) continue ;
-                        }
-                    }
-                    
+                if (!(is_executable($path) || exec("{$which} {$path}"))) {
                     log_System::add('fconv_Remote', "Липсва програма: " . $path, $rRec->id, 'warning');
                     
                     return FALSE;
