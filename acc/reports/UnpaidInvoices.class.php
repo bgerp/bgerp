@@ -45,7 +45,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
     {
         $fieldset->FLD('contragent', 
             'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 
-            'caption=Контрагент,single=none,after=title');
+            'caption=Контрагент,mandatory,single=none,after=title');
         $fieldset->FLD('checkDate', 'date', 'caption=Към дата,after=contragent,mandatory');
         
         $fieldset->FLD('salesTotalNotPaid', 'double', 'input=none,single=none');
@@ -518,7 +518,7 @@ protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embe
                                 <small><div><!--ET_BEGIN contragent-->|Контрагент|*: <b>[#contragent#]</b><!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN salesTotalNotPaid-->|фактури ПРОДАЖБИ »    НЕПЛАТЕНИ|*: <b>[#salesTotalNotPaid#]</b><!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN salesTotalOverDue-->|фактури ПРОДАЖБИ »   ПРОСРОЧЕНИ|*: <b>[#salesTotalOverDue#]</b><!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN salesTotalOverPaid-->|фактури ПРОДАЖБИ »   НАДПЛАТЕНО|*: <b>[#salesTotalOverPaid#]</b><!--ET_END to--></div></small>
+                                <small><div><!--ET_BEGIN salesTotalOverPaid-->|фактури ПРОДАЖБИ »   НАДПЛАТЕНИ|*: <b>[#salesTotalOverPaid#]</b><!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN purchaseTotalNotPaid-->|фактури ПОКУПКИ »  НЕПЛАТЕНИ|*: <b>[#purchaseTotalNotPaid#]</b><!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN purchaseTotalOverDue-->|фактури ПОКУПКИ » ПРОСРОЧЕНИ|*: <b>[#purchaseTotalOverDue#]</b><!--ET_END to--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
