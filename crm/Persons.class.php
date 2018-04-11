@@ -2518,7 +2518,7 @@ class crm_Persons extends core_Master
     /**
      * Създава папка на лице по указаните данни
      */
-    static function getPersonFolder($salutation, $name, $country, $pCode, $place, $address, $email, $tel, $website)
+    static function getPersonFolder($salutation, $name, $country, $pCode, $place, $address, $email, $tel, $website, $inCharge, $access, $shared)
     {
         $rec = new stdClass();
         $rec->salutation = $salutation;
@@ -2535,7 +2535,11 @@ class crm_Persons extends core_Master
         $rec->tel   = $tel;
         $rec->website = $website;
         
-         
+        // Достъп/права
+        $rec->inCharge = $inCharge;
+        $rec->access   = $access;
+        $rec->shared = $shared;
+
         $Persons = cls::get('crm_Persons');
         
         $folderId = $Persons->forceCoverAndFolder($rec);

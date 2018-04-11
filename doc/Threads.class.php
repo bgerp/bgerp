@@ -1109,6 +1109,7 @@ class doc_Threads extends core_Manager
         $exp->functions['haveaccess'] = 'doc_Folders::haveRightToFolder';
         $exp->functions['checkmovetime'] = 'doc_Threads::checkExpectationMoveTime';
         $exp->functions['getfolderopt'] = 'doc_Threads::getFolderOpt';
+        $exp->functions['getcurrentuser'] = 'core_Users::getCurrent';
 
         $exp->DEF('dest=Преместване към', 'enum(exFolder=Съществуваща папка, 
                                                 newCompany=Нова папка на фирма,
@@ -1117,18 +1118,19 @@ class doc_Threads extends core_Manager
         $exp->ASSUME('#dest', "'exFolder'");
 
         if(count($selArr) > 1) {
-            $exp->question("#dest", tr("Моля, посочете къде да бъдат преместени нишките") . ":", TRUE, 'title=' . tr('Преместване на нишки от документи'));
+            $exp->question("#folderIdSelect,#dest", tr("Моля, посочете къде да бъдат преместени нишките") . ":", TRUE, 'title=' . tr('Преместване на нишки от документи'));
         } else {
             if($tRec->allDocCnt > 1) {
-                $exp->question("#dest", tr("Моля, посочете къде да бъде преместена нишката") . ":", TRUE, 'title=' . tr('Преместване на нишка от документи'));
+                $exp->question("#folderIdSelect,#dest", tr("Моля, посочете къде да бъде преместена нишката") . ":", TRUE, 'title=' . tr('Преместване на нишка от документи'));
             } else {
-                $exp->question("#dest", tr("Моля, посочете къде да бъде преместен документа") . ":", TRUE, 'title=' . tr('Преместване на документ в нова папка'));
+                $exp->question("#folderIdSelect,#dest", tr("Моля, посочете къде да бъде преместен документа") . ":", TRUE, 'title=' . tr('Преместване на документ в нова папка'));
             }
         }
         
-        $exp->DEF('#folderId=Папка', 'key2(mvc=doc_Folders, moveThread=' . $threadId . ', where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\', allowEmpty)', 'class=w100,mandatory');
+        $exp->DEF('#folderId=Папка', 'key2(mvc=doc_Folders, moveThread=' . $threadId . ', where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\')', 'class=w100,mandatory');
+        $exp->DEF('#folderIdSelect=Папка', 'key2(mvc=doc_Folders, allowEmpty, moveThread=' . $threadId . ', where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\', allowEmpty)', 'class=w100');
 
-        //$exp->OPTIONS("#folderId", "getFolderOpt(#threadId,#dest)", '#dest == "exFolder"');
+        $exp->rule("#folderId", "#folderIdSelect", '#folderIdSelect && #dest == "exFolder"');
 
         // Информация за фирма и представител
         $exp->DEF('#company', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
@@ -1163,18 +1165,27 @@ class doc_Threads extends core_Manager
         // Данъчен номер на фирмата
         $exp->DEF('#vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,width=100%');
         
+        // Отговорник
+        $exp->DEF('#inCharge' , 'user(role=powerUser, rolesForAll=executive)', 'caption=Права->Отговорник,formOrder=10000,smartCenter');
+        $exp->DEF('#access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,formOrder=10001,notNull');
+        $exp->DEF('#shared' , 'userList', 'caption=Права->Споделяне,formOrder=10002');
+        $exp->rule("#shared", "''", '#inCharge > 0');
+
+        $exp->ASSUME('#inCharge', "getCurrentUser()", "#dest == 'newCompany' || #dest == 'newPerson'");
+        $exp->ASSUME('#access', "'team'", "#dest == 'newCompany' || #dest == 'newPerson'");
+
         // Проверка за съвпадащи лица или фирми
         $exp->rule("#similarText", "checksimilarcompany(#dest, #company, #vatId, #country, #email)");
         $exp->rule("#similarText", "checksimilarperson(#dest, #name, #country, #email)");
         $exp->WARNING("=#similarText", '#similarText !== ""');
         
-        $exp->question("#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId", tr("Моля, въведете контактните данни на фирмата") . ":", "#dest == 'newCompany'", 'title=' . tr('Преместване в папка на нова фирма'));
+        $exp->question("#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId, #inCharge, #access, #shared", tr("Моля, въведете контактните данни на фирмата") . ":", "#dest == 'newCompany'", 'title=' . tr('Преместване в папка на нова фирма'));
         
-        $exp->question("#salutation, #name, #country, #pCode, #place, #address, #email, #tel, #website", tr("Моля, въведете контактните данни на лицето") . ":", "#dest == 'newPerson'", 'title=' . tr('Преместване в папка на ново лице'));
+        $exp->question("#salutation, #name, #country, #pCode, #place, #address, #email, #tel, #website, #inCharge, #access, #shared", tr("Моля, въведете контактните данни на лицето") . ":", "#dest == 'newPerson'", 'title=' . tr('Преместване в папка на ново лице'));
         
-        $exp->rule('#folderId', "getPersonFolder(#salutation, #name, #country, #pCode, #place, #address, #email, #tel, #website)", TRUE);
+        $exp->rule('#folderId', "getPersonFolder(#salutation, #name, #country, #pCode, #place, #address, #email, #tel, #website, #inCharge, #access, #shared)", TRUE);
 
-        $exp->rule('#folderId', "getCompanyFolder(#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId)", TRUE);
+        $exp->rule('#folderId', "getCompanyFolder(#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId, #inCharge, #access, #shared)", TRUE);
         
         //$exp->ASSUME('#folderId', "doc_Threads_fetchField(#threadId, 'folderId')", TRUE);
         
