@@ -532,6 +532,11 @@ class csv_Lib
                 $resArr['firstRow'] = $data;
             } else {
                 $resArr['data'][] = $data;
+                
+                if ($isFirst) {
+                    $resArr['firstRow'] = $data;
+                    $isFirst = FALSE;
+                }
             }
         }
         
@@ -659,7 +664,7 @@ class csv_Lib
         $csv = i18n_Charset::convertToUtf8($csv, array('UTF-8', 'WIN1251'));
         
         $csv = str_replace(chr(194).chr(160), '', $csv);
- 
+        
         // Определяне на формата
         if(strlen($delimiter)) {
             $delimiter = str_replace('tab', "\t", $delimiter);
@@ -667,7 +672,7 @@ class csv_Lib
         } else {
             $dArr = array("|", "\t", ",", ";", ' ', ':');
         }
-
+        
         if(strlen($enclosure)) {
             $eArr = array($enclosure);
         } else {
@@ -682,7 +687,7 @@ class csv_Lib
         $fp = fopen('php://memory','r+');
         fputs($fp, $csv);
         $best = NULL;
-
+        
         foreach($dArr as $d) {
             foreach($eArr as $e) {
                 if(strpos($csv, $d) === FALSE) continue;
@@ -719,11 +724,13 @@ class csv_Lib
                         $points -= 1;
                     }
                 }
- 
+                
                 // Добавка за срещанията на ображдащия символ до разделител или нов ред
                 $deCntL = substr_count($csv, $d . $e) + substr_count($csv, $nl . $e);
                 $deCntR = substr_count($csv, $e . $d) + substr_count($csv, $e . $nl);
-                $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * count($res) + min($deCntL , $deCntR) / $nlCnt;
+                if ($nlCnt) {
+                    $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * count($res) + min($deCntL , $deCntR) / $nlCnt;
+                }
                 $points -= ($deCntL > 0) && ($deCntL != $deCntR) * count($res) ;
        
                 // Среща ли се $е самостоятелно
@@ -740,7 +747,15 @@ class csv_Lib
                 }
             }
         }
- 
+        
+        if ($delimiter === '') {
+            $delimiter = NULL;
+        }
+        
+        if ($enclosure === '') {
+            $enclosure = NULL;
+        }
+        
         rewind($fp);
         
         $fr = 0;

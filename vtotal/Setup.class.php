@@ -128,11 +128,16 @@ class vtotal_Setup extends core_ProtoSetup
     public function checkConfig()
     {
         $command = escapeshellcmd(self::get('AVAST_COMMAND'));
-        @exec($command . ' --help', $output, $code);
         
-        if ($code == 127) {
-            
+        $which = 'which';
+        if (stristr(PHP_OS, 'WIN')) {
+            $which = 'where.exe';
+        }
+        
+        if (!exec("{$which} {$command}")) {
             return "Програмата Avast за Linux не е инсталирана. За да инсталирате, моля посетете https://www.avast.com/";
         }
+        
+            
     }
 }

@@ -382,7 +382,7 @@ class label_Templates extends core_Master
         }
         
         // Подреждане по състояние
-        $data->query->orderBy('#state=ASC, #modifiedOn=DESC');
+        $data->query->orderBy('createdOn', 'DESC');
 
         if($state = $data->listFilter->rec->fState) {
             $data->query->where(array("#state = '[#1#]'", $state));
@@ -672,8 +672,6 @@ class label_Templates extends core_Master
     	if($onlyIds === TRUE){
     		$tQuery->show('id');
     	}
-    	
-    	$intfInst = cls::getInterface('label_SequenceIntf', $class);
     	
     	$res = array();
     	while($tRec = $tQuery->fetch()){

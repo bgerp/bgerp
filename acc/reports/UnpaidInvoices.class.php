@@ -13,9 +13,7 @@
  */
 class acc_reports_UnpaidInvoices extends frame2_driver_TableData
 {
-    
-    // deals_Helper::getInvoicePayments($threadId)
-    
+
     /**
      * Кой може да избира драйвъра
      */
@@ -33,11 +31,10 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
      */
     protected $groupByField = 'className';
 
-
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields= 'contragent,checkDate';
+    protected $changeableFields = 'contragent,checkDate';
 
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -53,6 +50,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         $fieldset->FLD('salesTotalNotPaid', 'double', 'input=none,single=none');
         $fieldset->FLD('salesTotalOverDue', 'double', 'input=none,single=none');
+        $fieldset->FLD('salesTotalOverPaid', 'double', 'input=none,single=none');
         $fieldset->FLD('purchaseTotalNotPaid', 'double', 'input=none,single=none');
         $fieldset->FLD('purchaseTotalOverDue', 'double', 'input=none,single=none');
     }
@@ -103,6 +101,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             $sQuery->where("#folderId = {$rec->contragent}");
         }
         
+        // Фактури ПРОДАЖБИ
         while ($salesInvoices = $sQuery->fetch()) {
             
             if (sales_Sales::fetch(doc_Threads::getFirstDocument($salesInvoices->threadId)->that)->state == 'closed') {
@@ -122,6 +121,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         $salesTotalNotPaid = 0;
         $salesTotalOverDue = 0;
+        $salesTotalOverPaid = 0;
         
         if (is_array($threadsId)) {
             foreach ($threadsId as $thread) {
@@ -136,7 +136,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                     // фактура от нишката и масив от платежни документи по тази фактура//
                     foreach ($invoicePayments as $inv => $paydocs) {
                         
-                        if ($paydocs->notPaid <= 0)
+                        if (($paydocs->payout > $paydocs->amount - 0.01) && ($paydocs->payout < $paydocs->amount + 0.01))
                             continue;
                         
                         $Invoice = doc_Containers::getDocument($inv);
@@ -147,11 +147,20 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                         $iRec = $Invoice->fetch(
                             'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate');
                         
-                        $salesTotalNotPaid += $paydocs->notPaid;
-                        
-                        if ($iRec->dueDate && $paydocs->total > 0 && $iRec->dueDate < $rec->checkDate) {
+                        if (($paydocs->amount - $paydocs->payout) > 0) {
                             
-                            $salesTotalOverDue += $paydocs->notPaid;
+                            $salesTotalNotPaid += ($paydocs->amount - $paydocs->payout);
+                        }
+                        
+                        if (($paydocs->amount - $paydocs->payout) < 0) {
+                            
+                            $salesTotalOverPaid += - 1 * ($paydocs->amount - $paydocs->payout);
+                        }
+                        
+                        if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > 0 &&
+                             $iRec->dueDate < $rec->checkDate) {
+                            
+                            $salesTotalOverDue += ($paydocs->amount - $paydocs->payout);
                         }
                         // масива с фактурите за показване
                         if (! array_key_exists($iRec->id, $sRecs)) {
@@ -166,10 +175,11 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                                 'invoiceContainerId' => $iRec->containerId,
                                 'currencyId' => $iRec->currencyId,
                                 'rate' => $iRec->rate,
-                                'invoiceValue' => $paydocs->total,
+                                'invoiceValue' => $paydocs->amount,
                                 'invoiceVAT' => $iRec->vatAmount,
-                                'invoiceCurrentSumm' => $paydocs->notPaid,
-                                'payDocuments' => $paydocs->payments
+                                'invoicePayout' => $paydocs->payout,
+                                'invoiceCurrentSumm' => $paydocs->amount - $paydocs->payout,
+                                'payDocuments' => $paydocs->used
                             );
                         }
                     }
@@ -195,6 +205,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             $pQuery->where("#folderId = {$rec->contragent}");
         }
         
+        // Фактури ПОКУПКИ
         while ($purchaseInvoices = $pQuery->fetch()) {
             
             if (purchase_Purchases::fetch(doc_Threads::getFirstDocument($purchaseInvoices->threadId)->that)->state ==
@@ -229,7 +240,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                 // фактура от нишката и масив от платежни документи по тази фактура//
                 foreach ($invoicePayments as $inv => $paydocs) {
                     
-                    if ($paydocs->notPaid <= 0)
+                    if ($paydocs->payout >= $paydocs->amount)
                         continue;
                     
                     $Invoice = doc_Containers::getDocument($inv);
@@ -240,11 +251,13 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                     $iRec = $Invoice->fetch(
                         'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate');
                     
-                    $purchaseTotalNotPaid += $paydocs->notPaid;
+                    if (($paydocs->amount - $paydocs->payout) > 0) {
+                        $purchaseTotalNotPaid += ($paydocs->amount - $paydocs->payout);
+                    }
                     
-                    if ($iRec->dueDate && $paydocs->total > 0 && $iRec->dueDate < $rec->checkDate) {
+                    if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > 0 && $iRec->dueDate < $rec->checkDate) {
                         
-                        $purchaseTotalOverDue += $paydocs->notPaid;
+                        $purchaseTotalOverDue += ($paydocs->amount - $paydocs->payout);
                     }
                     // масива с фактурите за показване
                     if (! array_key_exists($iRec->id, $pRecs)) {
@@ -259,10 +272,11 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                             'invoiceContainerId' => $iRec->containerId,
                             'currencyId' => $iRec->currencyId,
                             'rate' => $iRec->rate,
-                            'invoiceValue' => $paydocs->total,
+                            'invoiceValue' => $paydocs->amount,
                             'invoiceVAT' => $iRec->vatAmount,
-                            'invoiceCurrentSumm' => $paydocs->notPaid,
-                            'payDocuments' => $paydocs->payments
+                            'invoicePayout' => $paydocs->payout,
+                            'invoiceCurrentSumm' => $paydocs->amount - $paydocs->payout,
+                            'payDocuments' => $paydocs->used
                         );
                     }
                 }
@@ -273,6 +287,8 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
     $rec->salesTotalNotPaid = $salesTotalNotPaid;
     
     $rec->salesTotalOverDue = $salesTotalOverDue;
+    
+    $rec->salesTotalOverPaid = $salesTotalOverPaid;
     
     $rec->purchaseTotalNotPaid = $purchaseTotalNotPaid;
     
@@ -315,7 +331,8 @@ protected function getTableFieldSet($rec, $export = FALSE)
         $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
         $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума');
         $fld->FLD('paidDates', 'varchar', 'caption=Платено->плащания,smartCenter');
-        $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Остатък');
+        $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Неплатено');
+        $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Надплатено');
     } else {
         
         $fld->FLD('invoiceNo', 'varchar', 'caption=Фактура No,smartCenter');
@@ -326,7 +343,8 @@ protected function getTableFieldSet($rec, $export = FALSE)
         $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
         $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума');
         $fld->FLD('paidDates', 'varchar', 'caption=Платено->плащания,smartCenter');
-        $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Остатък');
+        $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Неплатено');
+        $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Надплатено');
     }
     return $fld;
 }
@@ -340,10 +358,7 @@ protected function getTableFieldSet($rec, $export = FALSE)
  */
 private static function getPaidAmount($dRec, $verbal = TRUE)
 {
-    foreach ($dRec->payDocuments as $v) {
-        
-        $paidAmount += $v->amount;
-    }
+    $paidAmount = $dRec->invoicePayout;
     
     return $paidAmount;
 }
@@ -357,15 +372,17 @@ private static function getPaidAmount($dRec, $verbal = TRUE)
  */
 private static function getPaidDates($dRec, $verbal = TRUE)
 {
-    foreach ($dRec->payDocuments as $onePayDoc) {
+    if (is_array($dRec->payDocuments)) {
         
-        $Document = doc_Containers::getDocument($onePayDoc->containerId);
-        
-        $payDocClass = $Document->className;
-        
-        $paidDatesList .= "," . $payDocClass::fetch($Document->that)->valior;
+        foreach ($dRec->payDocuments as $onePayDoc) {
+            $containerArr[] = $onePayDoc->containerId;
+            $Document = doc_Containers::getDocument($onePayDoc->containerId);
+            
+            $payDocClass = $Document->className;
+            
+            $paidDatesList .= "," . $payDocClass::fetch($Document->that)->valior;
+        }
     }
-    
     if ($verbal === TRUE) {
         
         $amountsValiors = explode(",", trim($paidDatesList, ','));
@@ -413,12 +430,7 @@ private static function getDueDate($dRec, $verbal = TRUE, $rec)
     } else {
         
         if ($dRec->dueDate) {
-            $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = "d.m.y");
-            
-            // if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
-            
-            // $dueDate .= ' *';
-            // }
+            $dueDate = $dRec->dueDate;
         } else {
             $dueDate = '';
         }
@@ -463,8 +475,14 @@ protected function detailRecToVerbal($rec, &$dRec)
     
     $row->invoiceValue = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
     
-    $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm);
+    if ($dRec->invoiceCurrentSumm > 0) {
+        $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm);
+    }
     
+    if ($dRec->invoiceCurrentSumm < 0) {
+        $invoiceOverSumm = - 1 * $dRec->invoiceCurrentSumm;
+        $row->invoiceOverSumm = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceOverSumm);
+    }
     $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
     
     $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, TRUE) . "</span>";
@@ -497,11 +515,12 @@ protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embe
         tr(
             "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN contragent-->|Контрагент|*: [#contragent#]<!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN salesTotalNotPaid-->|Обща стойност на НЕПЛАТЕНИТЕ задължения по фактури ПРОДАЖБИ|*: [#salesTotalNotPaid#]<!--ET_END from--></div></small>
-                                <small><div><!--ET_BEGIN salesTotalOverDue-->|Обща стойност на ПРОСРОЧЕНИТЕ задължения по фактури ПРОДАЖБИ|*: [#salesTotalOverDue#]<!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN purchaseTotalNotPaid-->|Обща стойност на НЕПЛАТЕНИТЕ задължения по фактури ПОКУПКИ|*: [#purchaseTotalNotPaid#]<!--ET_END from--></div></small>
-                                <small><div><!--ET_BEGIN purchaseTotalOverDue-->|Обща стойност на ПРОСРОЧЕНИТЕ задължения по фактури ПОКУПКИ|*: [#purchaseTotalOverDue#]<!--ET_END to--></div></small>
+                                <small><div><!--ET_BEGIN contragent-->|Контрагент|*: <b>[#contragent#]</b><!--ET_END to--></div></small>
+                                <small><div><!--ET_BEGIN salesTotalNotPaid-->|фактури ПРОДАЖБИ »    НЕПЛАТЕНИ|*: <b>[#salesTotalNotPaid#]</b><!--ET_END from--></div></small>
+                                <small><div><!--ET_BEGIN salesTotalOverDue-->|фактури ПРОДАЖБИ »   ПРОСРОЧЕНИ|*: <b>[#salesTotalOverDue#]</b><!--ET_END to--></div></small>
+                                <small><div><!--ET_BEGIN salesTotalOverPaid-->|фактури ПРОДАЖБИ »   НАДПЛАТЕНИ|*: <b>[#salesTotalOverPaid#]</b><!--ET_END to--></div></small>
+                                <small><div><!--ET_BEGIN purchaseTotalNotPaid-->|фактури ПОКУПКИ »  НЕПЛАТЕНИ|*: <b>[#purchaseTotalNotPaid#]</b><!--ET_END from--></div></small>
+                                <small><div><!--ET_BEGIN purchaseTotalOverDue-->|фактури ПОКУПКИ » ПРОСРОЧЕНИ|*: <b>[#purchaseTotalOverDue#]</b><!--ET_END to--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
     
     if (isset($data->rec->contragent)) {
@@ -518,6 +537,11 @@ protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embe
     if (isset($data->rec->salesTotalOverDue)) {
         $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesTotalOverDue), 
             'salesTotalOverDue');
+    }
+    
+    if (isset($data->rec->salesTotalOverPaid)) {
+        $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesTotalOverPaid), 
+            'salesTotalOverPaid');
     }
     
     if (isset($data->rec->purchaseTotalNotPaid)) {
@@ -541,13 +565,19 @@ protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embe
  * @param stdClass $rec            
  * @param stdClass $dRec            
  */
-protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
 {
-    $res->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
+    $res->paidAmount = (self::getPaidAmount($dRec));
     
     $res->paidDates = self::getPaidDates($dRec, FALSE);
     
     $res->dueDate = self::getDueDate($dRec, FALSE, $rec);
+    
+    if ($dRec->invoiceCurrentSumm < 0) {
+        $invoiceOverSumm = - 1 * $dRec->invoiceCurrentSumm;
+        $res->invoiceCurrentSumm = '';
+        $res->invoiceOverSumm = ($invoiceOverSumm);
+    }
     
     if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
         
