@@ -1731,8 +1731,8 @@ class crm_Companies extends core_Master
     /**
      * Създава папка на фирма по указаните данни
      */
-    public static function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId)
-    {
+    public static function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId, $inCharge, $access, $shared)
+    { 
         $rec = new stdClass();
         $rec->name = $company;
         
@@ -1746,7 +1746,13 @@ class crm_Companies extends core_Master
         $rec->email = $email;
         $rec->tel   = $tel;
         $rec->fax   = $fax;
-        $rec->website = $website;
+        $rec->website = $website;        
+            
+        // Достъп/права
+        $rec->inCharge = $inCharge;
+        $rec->access   = $access;
+        $rec->shared = $shared;
+
         
         if($vatId){
         	// Данъчен номер на фирмата
@@ -1755,7 +1761,7 @@ class crm_Companies extends core_Master
         }
         
         $Companies = cls::get('crm_Companies');
-        
+   
         $folderId = $Companies->forceCoverAndFolder($rec);
          
         return $folderId;

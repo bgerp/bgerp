@@ -664,7 +664,7 @@ class csv_Lib
         $csv = i18n_Charset::convertToUtf8($csv, array('UTF-8', 'WIN1251'));
         
         $csv = str_replace(chr(194).chr(160), '', $csv);
- 
+        
         // Определяне на формата
         if(strlen($delimiter)) {
             $delimiter = str_replace('tab', "\t", $delimiter);
@@ -672,7 +672,7 @@ class csv_Lib
         } else {
             $dArr = array("|", "\t", ",", ";", ' ', ':');
         }
-
+        
         if(strlen($enclosure)) {
             $eArr = array($enclosure);
         } else {
@@ -687,7 +687,7 @@ class csv_Lib
         $fp = fopen('php://memory','r+');
         fputs($fp, $csv);
         $best = NULL;
-
+        
         foreach($dArr as $d) {
             foreach($eArr as $e) {
                 if(strpos($csv, $d) === FALSE) continue;
@@ -747,7 +747,15 @@ class csv_Lib
                 }
             }
         }
- 
+        
+        if ($delimiter === '') {
+            $delimiter = NULL;
+        }
+        
+        if ($enclosure === '') {
+            $enclosure = NULL;
+        }
+        
         rewind($fp);
         
         $fr = 0;

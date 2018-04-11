@@ -130,14 +130,7 @@ class core_Crypt extends core_BaseClass
     static function encode(&$res, $str, $key, $minRand)
     {
         // Генерираме събитие, което дава възможност за бъдещо разширение
-/*        if (static::invoke('beforeEncode', array(
-                    &$res,
-                    &$str,
-                    &$key,
-                    &$minRand
-                )) === FALSE)
-        return;
-*/        
+
         // Установяваме стринга-разделител
         $div = self::getDivStr($key);
         
@@ -166,13 +159,6 @@ class core_Crypt extends core_BaseClass
             self::encode16($pack, md5($key . $res));
             $res .= $pack;
         }
-        
-        // Генерираме събитие след кодирането, с цел за бъдещо разширение
-/*        $this->invoke('afterEncode', array(
-                &$res,
-                $str,
-                $key
-            )); */
     }
     
     
@@ -181,13 +167,6 @@ class core_Crypt extends core_BaseClass
      */
     static function decode(&$res, $str, $key)
     {
-        // Генерираме събитие, което дава възможност за бъдещо разширение
-/*        if ($this->invoke('beforeDecode', array(
-                    &$res,
-                    $str,
-                    $key
-                )) === FALSE)
-        return; */
         
         // Ако дължината не е кратна на 16 връщаме грешка
         if (strlen($str) % 16) {
@@ -228,13 +207,6 @@ class core_Crypt extends core_BaseClass
         
         // Резултата е равен на частта след разделителя
         $res = substr($res, $divPos + strlen($div));
-        
-        // Генерираме събитие след разкодирането, с цел бъдещо разширение
-/*        $this->invoke('afterDecode', array(
-                &$res,
-                $str,
-                $key
-            )); */
     }
     
     
@@ -265,7 +237,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Кодира стринг
      */
-    static function encodeStr($str, $key, $minRand = NULL)
+    static function encodeStr($str, $key, $minRand = 8)
     {
         self::encode($res, $str, $key, $minRand);
         
@@ -287,15 +259,16 @@ class core_Crypt extends core_BaseClass
     /**
      * Кодира променливи, масиви и обекти
      */
-    static function encodeVar($var, $code = EF_CRYPT_CODE, $flat = 'serialize')
+    static function encodeVar($var, $key = EF_CRYPT_CODE, $flat = 'serialize')
     {
         if($flat == 'json') {
             $var = json_encode($var);
         } else {
             $var = serialize($var);
         }
+
         $var = gzcompress($var);
-        $var = self::encodeStr($var, $code . 'encodeVar');
+        $var = self::encodeStr($var, $key . 'encodeVar');
         $var = base64_encode($var);
         
         return $var;
@@ -305,14 +278,14 @@ class core_Crypt extends core_BaseClass
     /**
      * Декодира променливи, масиви и обекти
      */
-    static function decodeVar($var, $code = EF_CRYPT_CODE, $flat = 'serialize')
+    static function decodeVar($var, $key = EF_CRYPT_CODE, $flat = 'serialize')
     {
         $var = base64_decode($var);
         
         if (!$var)
         return FALSE;
         
-        $var = self::decodeStr($var, $code . 'encodeVar');
+        $var = self::decodeStr($var, $key . 'encodeVar');
         
         if (!$var)
         return FALSE;
