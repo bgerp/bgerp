@@ -118,7 +118,7 @@ class cal_Progresses extends core_Mvc
     static function on_AfterInputEditForm($Driver, $mvc, &$form)
     {
         $rec = $form->rec;
-        if ($rec->originId && $form->isSubmitted()) {
+        if ($rec->originId && !$form->rec->__isBeingChanged && $form->isSubmitted()) {
             $tDoc = doc_Containers::getDocument($rec->originId);
             if ($tDoc->instance instanceof cal_Tasks) {
                 $tRec = $tDoc->fetch();
