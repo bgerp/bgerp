@@ -209,6 +209,8 @@ class doc_Comments extends embed_Manager
                 } else {
                     $data->HideDriver = TRUE;
                 }
+            } else {
+                $data->HideDriver = TRUE;
             }
             
             Request::push(array($this->driverClassField => $dClsId));
