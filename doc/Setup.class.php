@@ -263,8 +263,7 @@ class doc_Setup extends core_ProtoSetup
         'migrate::regenerateSearchKeywords',
         'migrate::taskDocumentsToLinked',
         'migrate::autoCloseToAllFolder',
-        'migrate::setActivatedBy',
-        'migrate::addCommentsDriver'
+        'migrate::setActivatedBy'
     );
 	
     
@@ -820,6 +819,7 @@ class doc_Setup extends core_ProtoSetup
         $res .= $this->callMigrate('addDefaultNotifyOptions', 'doc');
         $res .= $this->callMigrate('showDocumentsAsButtonsFrame', 'doc');
         $res .= $this->callMigrate('repairAssignField', 'doc');
+        $res .= $this->callMigrate('addCommentsDriver', 'doc');
         
         return $res;
     }
