@@ -35,7 +35,7 @@ class cal_Progresses extends core_Mvc
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес,after=body, mandatory, changable');
+        $fieldset->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес,after=body, mandatory');
         $fieldset->FLD('workingTime', 'time(suggestions=10 мин.|30 мин.|60 мин.|2 часа|3 часа|5 часа|10 часа)', 'caption=Отработено време,after=progress, changable');
     }
     
@@ -124,7 +124,7 @@ class cal_Progresses extends core_Mvc
                 $tRec = $tDoc->fetch();
                 if ($tRec->progress > $rec->progress) {
                     $form->setWarning('progress', "|Въвели сте по-малък прогрес от предишния. Сигурни ли сте, че искате да продължите?");
-                } elseif ($tRec->progress == $rec->progress && $rec->progress != 1) {
+                } elseif ($tRec->progress == $rec->progress && $rec->progress != 1 && !$form->rec->id) {
                     $form->setWarning('progress', "|Въвели сте прогрес равен на предишния. Сигурни ли сте, че искате да продължите?");
                 }
             }
