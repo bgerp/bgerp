@@ -64,7 +64,6 @@ class cal_Setup extends core_ProtoSetup
     var $managers = array(
             'cal_Calendar',
             'cal_Tasks',
-            'cal_TaskProgresses',
             'cal_Holidays',
         	'cal_Reminders',
             'cal_ReminderSnoozes',
@@ -72,14 +71,14 @@ class cal_Setup extends core_ProtoSetup
     		'cal_LinkedPostponed',
             'migrate::windUpRem',
             'migrate::removePOKey',
-            //'migrate::reCalcNextStart'
+            'migrate::updateTaskProgresses',
         );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = "cal_TaskType";
+    public $defClasses = "cal_TaskType, cal_Progresses";
     
     
     /**
@@ -343,6 +342,22 @@ class cal_Setup extends core_ProtoSetup
         
         expect($clsId);
         
-        $Tasks->db->query("UPDATE `{$Tasks->dbTableName}` SET `{$driverClassField}` = '{$clsId}'");
+        $Tasks->db->query("UPDATE `{$Tasks->dbTableName}` SET `{$driverClassField}` = '{$clsId}' WHERE `{$driverClassField}` IS NULL");
+    }
+    
+    
+    /**
+     * Обновява полетата на модела, ако е инсталиран
+     */
+    public function updateTaskProgresses()
+    {
+        if (!cls::load('cal_TaskProgresses', TRUE)) return ;
+        
+        $Progresses = cls::get('cal_TaskProgresses');
+        
+        // Ако таблицата не е създадена
+        if (!$Progresses->db->tableExists($Progresses->dbTableName)) return ;
+        
+        $Progresses->setupMVC();
     }
 }

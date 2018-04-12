@@ -263,7 +263,8 @@ class doc_Setup extends core_ProtoSetup
         'migrate::regenerateSearchKeywords',
         'migrate::taskDocumentsToLinked',
         'migrate::autoCloseToAllFolder',
-        'migrate::setActivatedBy'
+        'migrate::setActivatedBy',
+        'migrate::addCommentsDriver'
     );
 	
     
@@ -303,7 +304,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
     */
-    var $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder,doc_reports_DocsByRols';
+    var $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder,doc_reports_DocsByRols, doc_ExpandComments';
         
     
     /**
@@ -1125,5 +1126,22 @@ class doc_Setup extends core_ProtoSetup
                 reportException($e);
             }
         }
+    }
+    
+    
+    /**
+     * Миграция за добавяне на драйвер към коментарите
+     */
+    public function addCommentsDriver()
+    {
+        $Comments = cls::get('doc_Comments');
+        
+        $driverClassField = str::phpToMysqlName('driverClass');
+        
+        $clsId = doc_ExpandComments::getClassId();
+        
+        expect($clsId);
+        
+        $Comments->db->query("UPDATE `{$Comments->dbTableName}` SET `{$driverClassField}` = '{$clsId}' WHERE `{$driverClassField}` IS NULL");
     }
 }
