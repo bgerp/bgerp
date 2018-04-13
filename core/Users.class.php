@@ -1570,7 +1570,7 @@ class core_Users extends core_Manager
     {
         $state = Users::getCurrent('state');
         
-        if (!$state == 'active') {
+        if (!Users::getCurrent() || !$state == 'active') {
             
             // Опитваме да получим адрес за връщане от заявката
             $retUrl = $retUrl ? $retUrl :  getCurrentUrl();
