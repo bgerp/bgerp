@@ -1185,8 +1185,9 @@ class core_Users extends core_Manager
 
         $cRec = Mode::get('currentUserRec');
         
-        if (is_null($cRec)) {
-            $cRec = self::fetch(0);
+        if (is_null($cRec) && $part == 'nick') {
+
+            return '@anonymous';
         }
         
         if ($escaped) {
