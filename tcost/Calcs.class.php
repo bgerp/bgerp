@@ -251,6 +251,8 @@ class tcost_Calcs extends core_Manager
      */
     public static function getCodeAndCountryId($contragentClassId, $contragentId, $pCode = NULL, $countryId = NULL, $locationId = NULL)
     {
+
+
     	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
     	
     	// Ако има локация, адресните данни са приоритетни от там
@@ -493,15 +495,25 @@ class tcost_Calcs extends core_Manager
     		$rec->fee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->fee;
     		$rec->deliveryTimeFromFee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->deliveryTime;
     	}
-    	$countryId = !empty($masterRec->{$map['countryId']}) ? $masterRec->{$map['countryId']} : NULL;
-    	$PCode = !empty($masterRec->pCode) ? $masterRec->pCode : NULL;
+ 
+        if($masterRec->deliveryAdress) {
+    	    if($parsePlace = drdata_Address::parsePlace($masterRec->deliveryAdress)){
+                $countryId = $parsePlace->countryId;
+    		    $PCode = $parsePlace->pCode;  
+    	    }
+        }
+
+        if(!$countryId)  {
+            $countryId = !empty($masterRec->{$map['countryId']}) ? $masterRec->{$map['countryId']} : NULL;
+            $PCode = !empty($masterRec->pCode) ? $masterRec->pCode : NULL;
+        }
     	
     	// Ако драйвера не иска да се начислява цената да не се начислява
     	if(isset($rec->{$map['productId']})){
     		$Driver = cat_Products::getDriver($rec->{$map['productId']});
     		if(!$Driver->canCalcTransportFee($rec->{$map['productId']})) return;
     	}
-    	
+    	 
     	// Колко е очаквания транспорт
     	$feeArr = tcost_Calcs::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId, $PCode);
     	

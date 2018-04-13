@@ -1195,7 +1195,7 @@ class sales_Sales extends deals_DealMaster
     	
     	// Изчисляване на общото тегло на офертата
     	$totalWeight = tcost_Calcs::getTotalWeight($products, $TransportCalc);
-    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, NULL, NULL, $rec->deliveryLocationId);
+    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, NULL, NULL, $rec->deliveryLocationId ? $rec->deliveryLocationId : $rec->deliveryAdress);
     	
     	// За всеки артикул се изчислява очаквания му транспорт
     	foreach ($products as $p2){

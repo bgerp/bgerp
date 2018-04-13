@@ -657,13 +657,13 @@ class sales_Quotations extends core_Master
      * @return double $expectedTransport - очаквания транспорт без ддс в основна валута
      */
     private function getExpectedTransportCost($rec)
-    {
+    { 
     	$expectedTransport = 0;
     	
     	// Ако няма калкулатор в условието на доставка, не се изчислява нищо
     	$TransportCalc = cond_DeliveryTerms::getCostDriver($rec->deliveryTermId);
     	if(!is_object($TransportCalc)) return $expectedTransport;
-    	
+    
     	// Подготовка на заявката, взимат се само задължителните складируеми артикули
     	$query = sales_QuotationsDetails::getQuery();
     	$query->where("#quotationId = {$rec->id}");
@@ -679,7 +679,7 @@ class sales_Quotations extends core_Master
     	if(isset($rec->deliveryPlaceId)){
     		$locationId  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id');
     	}
-    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $locationId);
+    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $locationId ? $locationId : $rec->deliveryAdress);
     	 
     	// За всеки артикул се изчислява очаквания му транспорт
     	foreach ($products as $p2){
