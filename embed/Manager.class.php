@@ -293,11 +293,14 @@ class embed_Manager extends core_Master
     {
 		$status = parent::invoke($event, $args);
 		
+		$driverClass = NULL;
+		
         if($status !== FALSE) {
             switch(strtolower($event)) {
                 case 'aftercreate':
                 case 'afterupdate':
                 case 'afterread':
+                case 'afteractivation':
                     $driverClass = $args[0]->{$this->driverClassField};
                     break;
 
@@ -340,11 +343,20 @@ class embed_Manager extends core_Master
                 case 'aftergetfieldforletterhead':
                 case 'aftergetfieldsnottoclone':
                 case 'aftersave':
-                case 'afterrectoverbal': 
+                case 'afterrectoverbal':
+                case 'afterrestore':
+                case 'afterreject':
                 	$driverClass = $args[1]->{$this->driverClassField};
                 	break;
+                case 'aftergetthreadstate':
+                    if ($args[1]) {
+                        $rec = $this->fetchRec($args[1]);
+                        $driverClass = $rec->driverClass;
+                    }
+                    
+                    break;
             }
-
+            
             // Ако има избран драйвер
             if($driverClass) {
             	$dRec = (object)array($this->driverClassField => $driverClass);

@@ -282,10 +282,10 @@ class sales_Quotations extends core_Master
        if(isset($rec->originId) && $data->action != 'clone' && empty($form->rec->id)){
        	
        		// Ако офертата има ориджин
-       		$form->setField('row1,row2,row3', 'input');
        		$origin = doc_Containers::getDocument($rec->originId);
        		
        		if($origin->haveInterface('cat_ProductAccRegIntf')){
+       		    $form->setField('row1,row2,row3', 'input');
        			$rec->productId = $origin->that;
        			
        			// Ако продукта има ориджин който е запитване вземаме количествата от него по дефолт
