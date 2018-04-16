@@ -51,15 +51,9 @@ class trans_Lines extends core_Master
     
     
     /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    public $lastUsedKeys = 'vehicleId';
-    
-    
-    /**
      * По кои полета ще се търси
      */
-    public $searchFields = 'title, vehicleId, forwarderId, forwarderPersonId, id';
+    public $searchFields = 'title, vehicleId, forwarderId, forwarderPersonId';
     
     
     /**
@@ -292,17 +286,23 @@ class trans_Lines extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-single'])){
+    		if(isset($rec->vehicleId)){
+    			$row->vehicleId = trans_Vehicles::getHyperlink($rec->vehicleId, TRUE);
+    			$row->regNumber = trans_Vehicles::getVerbal($rec->vehicleId, 'number');
+    		}
 	    	
-	    	$attr = array();
-	    	if($rec->vehicleId && trans_Vehicles::haveRightFor('read', $rec->vehicleId)){
-	    		$attr['ef_icon'] = 'img/16/tractor.png';
-	    	 	$row->vehicleId = ht::createLink($row->vehicleId, array('trans_Vehicles', 'single', $rec->vehicleId), NULL, $attr);
-	    	}
-	    	
+    		if(isset($rec->forwarderPersonId) && !Mode::isReadOnly()){
+    			$row->forwarderPersonId = ht::createLink($row->forwarderPersonId, crm_Persons::getSingleUrlArray($rec->forwarderPersonId));
+    		}
+    		
 	    	$ownCompanyData = crm_Companies::fetchOwnCompany();
 	    	$row->myCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
 	    	
 	    	$row->logistic = core_Users::getVerbal($rec->createdBy, 'names');
+	    	
+	    	if(isset($rec->vehicleId)){
+	    		
+	    	}
     	}
     	
     	$row->handler = $mvc->getLink($rec->id, 0);
