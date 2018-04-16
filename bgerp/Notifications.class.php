@@ -578,6 +578,8 @@ class bgerp_Notifications extends core_Manager
                     $stopNotifyArr['newThread'] = 'doc_Folders';
                 }
             }
+        } elseif (strpos($msg, '|създаде заявка за|') !== FALSE) {
+            $stopNotifyArr['newPending'] = 'doc_Folders';
         }
         
         $stoppedArr = $valsArr = array();
@@ -634,7 +636,7 @@ class bgerp_Notifications extends core_Manager
         
         // В зависимост от състоянието връщаме/спираме настройките за бъдещите нотификации
         if (is_array($stoppedArr) && $update) {
-            $notifyVerbMap = array('notify' => 'Нов документ', 'personalEmailIncoming' => 'Личен имейл', 'folOpenings' => 'Отворени теми', 'newThread' => 'Нова тема', 'newDoc' => 'Нов документ');
+            $notifyVerbMap = array('notify' => 'Нов документ', 'personalEmailIncoming' => 'Личен имейл', 'folOpenings' => 'Отворени теми', 'newPending' => 'Създадена заявка', 'newThread' => 'Нова тема', 'newDoc' => 'Нов документ');
             
             $notifyMsg = '';
             
@@ -863,7 +865,7 @@ class bgerp_Notifications extends core_Manager
         
         $valsArr = array();
         
-        // Настройки за папк
+        // Настройки за папка
         if ($folderId) {
             $fKey = doc_Folders::getSettingsKey($folderId);
             
@@ -880,16 +882,20 @@ class bgerp_Notifications extends core_Manager
             $enumTypeArr['caption'] = $fCaption . '->Отворени теми';
             $form->FNC('folOpenings', $enumChoice, $enumTypeArr);
             
+            $enumTypeArr['caption'] = $fCaption . '->Създадени заявки';
+            $form->FNC('newPending', $enumChoice, $enumTypeArr);
+            
             $enumTypeArr['caption'] = $fCaption . '->Личен имейл';
             $form->FNC('personalEmailIncoming', $enumChoice, $enumTypeArr);
             
-            $sArr[$fKey] = array('newDoc', 'newThread', 'folOpenings', 'personalEmailIncoming');
+            $sArr[$fKey] = array('newDoc', 'newThread', 'newPending', 'folOpenings', 'personalEmailIncoming');
             
             // Добавяме стойностите по подразбиране
             $valsArr[$fKey] = core_Settings::fetchKeyNoMerge($fKey);
             setIfNot($valsArr[$fKey]['newDoc'], 'default');
             setIfNot($valsArr[$fKey]['newThread'], 'default');
             setIfNot($valsArr[$fKey]['folOpenings'], 'default');
+            setIfNot($valsArr[$fKey]['newPending'], 'default');
         }
         
         // Настройки за нишка
