@@ -374,15 +374,28 @@ class trans_Lines extends core_Master
     function cron_CreateNewLines()
     {
     	$now = dt::now();
+    	$today = dt::today();
+    	
     	$query = $this->getQuery();
     	$query2 = clone $query;
     	$query->where("#state = 'active'");
-    	$query->where("#start < '{$now}'");
     	
     	// Затварят се всички отворени линии, с начало в миналото
     	while($rec = $query->fetch()){
-    		$rec->state = 'closed';
-    		$this->save($rec);
+    		$close = FALSE;
+    		if(strpos($rec->start, ' 00:00:00') !== FALSE){
+    			$rec->start = str_replace(' 00:00:00', '', $rec->start);
+    			if($rec->start < $today){
+    				$close = TRUE;
+    			}
+    		} elseif($rec->start < $now){
+    			$close = TRUE;
+    		}
+    		
+    		if($close === TRUE){
+    			$rec->state = 'closed';
+    			$this->save($rec, 'closed,modifiedOn,modifiedBy');
+    		}
     	}
     	
     	// Намират се затворените линии, които не са повторени и
@@ -396,6 +409,7 @@ class trans_Lines extends core_Master
             $newRec = $this->getNewLine($rec);
     		
             if(self::getDocumentsCnt($rec->id, NULL, 1) || doc_Threads::fetchField($rec->threadId, 'allDocCnt') > 1) {
+                
                 // Ако в старата линия има документи, създава и записва новата линия
                 $sudoUser = core_Users::sudo($rec->createdBy);
                 $this->save($newRec);
