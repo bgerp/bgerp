@@ -337,8 +337,6 @@ class label_Prints extends core_Master
             // Добавяме полетата от детайла на шаблона
             label_TemplateFormats::addFieldForTemplate($form, $rec->templateId);
             
-            $form->input(NULL, TRUE);
-            
             // Обхождаме масива
             foreach ((array)$labelDataArr as $fieldName => $v) {
                 
@@ -358,6 +356,8 @@ class label_Prints extends core_Master
                     $form->setReadonly($fieldName);
                 }
             }
+            
+            $form->input(NULL, TRUE);
         }
         
         if ($rec->templateId) {
