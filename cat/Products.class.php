@@ -413,7 +413,7 @@ class cat_Products extends embed_Manager {
     			$defMetas = type_Set::toArray($defMetas);
     		} else {
                 if($Driver = $mvc->getDriver($rec)){
-                    $defMetas = $Driver->getDefaultMetas();
+                    $defMetas = $Driver->getDefaultMetas($rec->meta);
                     if(count($defMetas)) {
                         $form->setField('meta', 'autohide=any');
                     }
