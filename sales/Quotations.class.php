@@ -162,10 +162,9 @@ class sales_Quotations extends core_Master
         'deliveryTermId'      => 'clientCondition|lastDocUser|lastDoc',
         'deliveryPlaceId'     => 'lastDocUser|lastDoc|',
         'company'             => 'lastDocUser|lastDoc|clientData',
-        'person' 		      => 'lastDocUser|lastDoc|clientData',
-        'email' 		      => 'lastDocUser|lastDoc|clientData',
-    	'tel' 			      => 'lastDocUser|lastDoc|clientData',
-        'fax' 			      => 'lastDocUser|lastDoc|clientData',
+    	'pCode' 		      => 'clientData',
+    	'place' 		      => 'clientData',
+    	'address' 		      => 'clientData',
         'contragentCountryId' => 'clientData',
     	'template' 		      => 'lastDocUser|lastDoc|defMethod',
     );
