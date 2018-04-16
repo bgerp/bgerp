@@ -107,6 +107,7 @@ class pos_Setup extends core_ProtoSetup
         	'pos_Reports',
     		'pos_Stocks',
     		'pos_Cards',
+    		'migrate::updateReceipts',
         );
     
 
@@ -192,4 +193,13 @@ class pos_Setup extends core_ProtoSetup
     				'timeLimit' => 100,
     		),
     );
+    
+    
+    /**
+     * Миграция
+     */
+    public static function updateReceipts()
+    {
+    	pos_ReceiptDetails::delete("#action IS NULL OR (#action NOT LIKE 'sale|%' AND #action NOT LIKE 'payment|%' AND #action NOT LIKE 'discount|%') ");
+    }
 }
