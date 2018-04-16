@@ -103,7 +103,7 @@ class cat_interface_PackLabelImpl
 	{
 	    static $resArr = array();
 	    
-	    $key = $id . '|' . $cnt . '|' . $onlyPreview;
+	    $key = $id . '|' . $cnt . '|' . $onlyPreview . '|' . core_Lg::getCurrent();
 	    
 	    if (isset($resArr[$key])) return $resArr[$key];
 	    
