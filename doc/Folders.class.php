@@ -1769,6 +1769,7 @@ class doc_Folders extends core_Master
         // Добавяме функционални полета
         $form->FNC('newDoc', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Нов документ, input=input');
         $form->FNC('newThread', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Нова тема, input=input');
+        $form->FNC('newPending', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Създаване на заявка, input=input');
         $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Отворени теми, input=input');
         $form->FNC('personalEmailIncoming', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Личен имейл, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
@@ -1795,6 +1796,7 @@ class doc_Folders extends core_Master
         $form->setOptions(defaultEmail, $fromEmailOptions);
         
         $form->setDefault('folOpenings', 'default');
+        $form->setDefault('newPending', 'default');
         $form->setDefault('perPage', 'default');
         $form->setDefault('ordering', 'default');
         $form->setDefault('personalEmailIncoming', 'default');
