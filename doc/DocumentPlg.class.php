@@ -811,6 +811,20 @@ class doc_DocumentPlg extends core_Plugin
         						}
         					}
         				}
+        				
+        				// Възможност за спиране/пускане на нотификациите за заявка в папка
+        				$fKey = doc_Folders::getSettingsKey($rec->folderId);
+        				$newPendingNotifications = core_Settings::fetchUsers($fKey, 'newPending');
+        				foreach ((array)$newPendingNotifications as $userId => $newPending) {
+        				    if ($newPending['newPending'] == 'no') {
+        				        unset($notifyArr[$userId]);
+        				    } else if ($newPending['newPending'] == 'yes') {
+        				        // Може да е абониран, но да няма права
+        				        if ($mvc->haveRightFor('single', $rec, $userId)) {
+        				            $notifyArr[$userId] = $userId;
+        				        }
+        				    }
+        				}
         			}
         			
         			$cu = core_Users::getCurrent();
