@@ -28,9 +28,9 @@
                         <div><b>[#person#]</b></div>
                         <div class='address-block'>
 
-                            [#contragentCountryId#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#],<br>
-                            <!--ET_BEGIN tel-->[#tel#], <!--ET_BEGIN tel--><!--ET_BEGIN fax--> [#fax#], <!--ET_END fax-->[#email#]
-                       </div>
+                            [#contragentCountryId#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]<!--ET_BEGIN tel-->,<br>
+                            <!--ET_BEGIN tel-->[#tel#]<!--ET_END tel--><!--ET_BEGIN fax-->, [#fax#] <!--ET_END fax--><!--ET_BEGIN email-->, [#email#]<!--ET_END email-->
+                        </div>
                     </td>
                 </tr>
                 <tr>
