@@ -327,8 +327,8 @@ abstract class deals_InvoiceMaster extends core_Master
     				$form->rec->changeAmountVat = key($cache->vats);
     				
     				$min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
-    				$min = round($min, 4);
-    				 
+    				$min = round($min, 2);
+    				
     				$form->setFieldTypeParams('changeAmount', array('min' => -1 * $min));
     				 
     				if($invArr['dpOperation'] == 'accrued'){
