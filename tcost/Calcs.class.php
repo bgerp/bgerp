@@ -251,8 +251,6 @@ class tcost_Calcs extends core_Manager
      */
     public static function getCodeAndCountryId($contragentClassId, $contragentId, $pCode = NULL, $countryId = NULL, $locationId = NULL)
     {
-
-
     	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
     	
     	// Ако има локация, адресните данни са приоритетни от там

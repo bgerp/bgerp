@@ -167,9 +167,6 @@ class sales_Quotations extends core_Master
     	'tel' 			      => 'lastDocUser|lastDoc|clientData',
         'fax' 			      => 'lastDocUser|lastDoc|clientData',
         'contragentCountryId' => 'clientData',
-        'pCode' 		      => 'clientData',
-    	'place' 		      => 'clientData',
-    	'address' 		      => 'clientData',
     	'template' 		      => 'lastDocUser|lastDoc|defMethod',
     );
     
@@ -224,15 +221,15 @@ class sales_Quotations extends core_Master
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
         $this->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Място');
         
-		$this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData');
-        $this->FLD('person', 'varchar', 'caption=Получател->Име, changable, class=contactData');
-        $this->FLD('email', 'varchar', 'caption=Получател->Имейл, changable, class=contactData');
-        $this->FLD('tel', 'varchar', 'caption=Получател->Тел., changable, class=contactData');
-        $this->FLD('fax', 'varchar', 'caption=Получател->Факс, changable, class=contactData');
-        $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Получател->Държава,mandatory,contactData,contragentDataField=countryId');
-        $this->FLD('pCode', 'varchar', 'caption=Получател->П. код, changable, class=contactData');
-        $this->FLD('place', 'varchar', 'caption=Получател->Град/с, changable, class=contactData');
-        $this->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData');
+		$this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData,input=hidden');
+        $this->FLD('person', 'varchar', 'caption=Име, changable, class=contactData,after=reff');
+        $this->FLD('email', 'varchar', 'caption=Имейл, changable, class=contactData,after=person');
+        $this->FLD('tel', 'varchar', 'caption=Тел., changable, class=contactData,after=email');
+        $this->FLD('fax', 'varchar', 'caption=Факс, changable, class=contactData,after=tel');
+        $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Получател->Държава,mandatory,contactData,contragentDataField=countryId,input=hidden');
+        $this->FLD('pCode', 'varchar', 'caption=Получател->П. код, changable, class=contactData,input=hidden');
+        $this->FLD('place', 'varchar', 'caption=Получател->Град/с, changable, class=contactData,input=hidden');
+        $this->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData,input=hidden');
     	
     	$this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност,mandatory');
     	$this->FLD('others', 'text(rows=4)', 'caption=Допълнително->Условия');
