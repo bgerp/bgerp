@@ -394,7 +394,7 @@ class trans_Lines extends core_Master
     		
     		if($close === TRUE){
     			$rec->state = 'closed';
-    			$this->save($rec, 'closed,modifiedOn,modifiedBy');
+    			$this->save($rec, 'state,modifiedOn,modifiedBy');
     		}
     	}
     	
