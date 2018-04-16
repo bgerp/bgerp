@@ -218,8 +218,6 @@ class label_Prints extends core_Master
         
         $labelDataArr = array();
         
-        $form->input('templateId');
-        
         $oLang = core_Lg::getCurrent();
         
         if(isset($classId) && isset($objId)){
