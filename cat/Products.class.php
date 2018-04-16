@@ -2735,7 +2735,7 @@ class cat_Products extends embed_Manager {
     		$fRec = $form->rec;
     		
     		if($fRec->meta != $rec->meta){
-    			$this->save((object)array('id' => $id, 'meta' => $fRec->meta), 'meta');
+    			$this->save((object)array('id' => $id, 'meta' => $fRec->meta), 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
     			$this->logInAct('Редактиране', $rec);
     		}
     		
