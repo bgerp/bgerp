@@ -135,11 +135,13 @@ class cat_interface_PackLabelImpl
 		$name = trim(cat_Products::getVerbal($rec->productId, 'name'));
 		$date = date("m/y");
 		
-		// Цена по каталог
+		// Цена по каталог с ДДС
 		if($catalogPrice = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $rec->productId, $rec->packagingId)){
+			$catalogPrice *= 1 + cat_Products::getVat($productId);
 			$catalogPrice = round($catalogPrice * $quantity, 2);
 			$currencyCode = acc_Periods::getBaseCurrencyCode();
 		}
+		
 		$measureId = tr(cat_UoM::getShortName($measureId));
 		
 		// Продуктови параметри
