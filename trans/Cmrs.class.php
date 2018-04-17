@@ -375,9 +375,10 @@ class trans_Cmrs extends core_Master
     			$form->setDefault('cariersData', $carrierData);
     		}
     	
-    		if(isset($lineRec->vehicleId)){
-    			$vehicleReg = trans_Vehicles::fetchField($lineRec->vehicleId, 'number');
-    			$form->setDefault('vehicleReg', $vehicleReg);
+    		if(isset($lineRec->vehicle)){
+    			if($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $lineRec->vehicle))){
+    				$form->setDefault('vehicleReg', $vehicleRec->number);
+    			}
     		}
     	}
     	 
