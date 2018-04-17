@@ -130,8 +130,10 @@ class acc_Setup extends core_ProtoSetup
         'acc_FeatureTitles',
         'acc_CostAllocations',
         'migrate::removeUnusedRole',
-        'migrate::recalcAllGlobalRole'
+        'migrate::recalcAllGlobalRole',
+        'migrate::fixRepRoles'
     );
+    
 
     /**
      * Описание на конфигурационните константи
@@ -256,11 +258,15 @@ class acc_Setup extends core_ProtoSetup
             'acc, invoiceAllGlobal, storeAllGlobal, bankAllGlobal, cashAllGlobal, saleAllGlobal, purchaseAllGlobal, planningAllGlobal'
         ),
         array(
-            'rep_acc'
+            'repAll'
+        ),
+        array(
+            'repAllGlobal',
+            'repAll'
         )
-    )
-    ;
-
+    );
+    
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
@@ -466,5 +472,39 @@ class acc_Setup extends core_ProtoSetup
         core_Users::rebuildRoles();
         
         core_Roles::addOnce('allGlobal');
+    }
+    
+    
+    /**
+     * Миграция за заместване на старите роли "rep_" на потребителите
+     */
+    public static function fixRepRoles()
+    {
+        foreach (array('rep_cat' => 'repAllGlobal', 'rep_acc' => 'repAll') as $oRole => $nRole) {
+            $rRec = core_Roles::fetch("#role = '{$oRole}'");
+            $nRec = core_Roles::fetch("#role = '{$nRole}'");
+            
+            expect($nRec);
+            
+            if ($rRec) {
+                $uQuery = core_Users::getQuery();
+                $uQuery->likeKeylist('rolesInput', $rRec->id);
+                $uQuery->likeKeylist('roles', $rRec->id);
+                
+                while ($uRec = $uQuery->fetch()) {
+                    $uRec->roles = type_Keylist::removeKey($uRec->roles, $rRec->id);
+                    $uRec->rolesInput = type_Keylist::removeKey($uRec->rolesInput, $rRec->id);
+                    
+                    $uRec->roles = type_Keylist::addKey($uRec->roles, $nRec->id);
+                    $uRec->rolesInput = type_Keylist::addKey($uRec->rolesInput, $nRec->id);
+                    
+                    core_Users::save($uRec, 'roles, rolesInput');
+                }
+                
+                // Затваряме ролите
+                $rRec->state = 'closed';
+                core_Roles::save($rRec, 'state');
+            }
+        }
     }
 }

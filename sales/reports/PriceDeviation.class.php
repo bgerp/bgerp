@@ -62,7 +62,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
         $fieldset->FLD('sellPriceToleranceUp', 'double', 'caption=Отклонение от продажна цена по политика->Толеранс над цена,unit= %,after=sellPriceToleranceDown,single=none');
         $fieldset->FLD('from', 'date(smartTime)', 'caption=Отчетен период->От,after=sellPriceToleranceUp,mandatory,single=none');
         $fieldset->FLD('to', 'date(smartTime)', 'caption=Отчетен период->До,after=from,mandatory,single=none');
-        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|rep_cat, rolesForTeams=ceo|manager|rep_acc|rep_cat)', 'caption=Дилъри,placeholder=Всички,after=to');
+        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Дилъри,placeholder=Всички,after=to');
         $fieldset->FLD('articleType', 'enum(all=Всички,yes=Стандартни,no=Нестандартни)', "caption=Тип артикули,maxRadio=3,columns=3,removeAndRefreshForm,after=dealers");
     }
 
