@@ -419,7 +419,7 @@ class unit_MinkPSales extends core_Manager {
             $browser->press('Продажба');
         }
     
-        $browser->setValue('reff', 'DiscountMinus');
+        $browser->setValue('reff', 'Discount101');
         $browser->setValue('note', 'MinkPSaleDiscount101');
         $browser->setValue('paymentMethodId', "В брой при получаване");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
@@ -468,7 +468,7 @@ class unit_MinkPSales extends core_Manager {
             $browser->press('Нов...');
             $browser->press('Продажба');
         }
-         
+        
         //$browser->hasText('Създаване на продажба');
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('shipmentStoreId', '1');
@@ -514,9 +514,9 @@ class unit_MinkPSales extends core_Manager {
             return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - фактура със стара дата', 'warning');
         }
         $browser->press('Отказ');
-        
+       
         // Оттегляне на фактурата с днешна дата
-        $browser->press('btnDelete53');
+        $browser->press('btnDelete54');
         
         // Фактура с вчерашна дата - контиране
         $browser->press('Фактура');
