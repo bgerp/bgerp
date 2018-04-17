@@ -7,7 +7,7 @@
  *
  *
  * @category  bgerp
- * @package   tcost
+ * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
