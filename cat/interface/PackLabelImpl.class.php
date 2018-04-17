@@ -137,7 +137,7 @@ class cat_interface_PackLabelImpl
 		
 		// Цена по каталог с ДДС
 		if($catalogPrice = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $rec->productId, $rec->packagingId)){
-			$catalogPrice *= 1 + cat_Products::getVat($productId);
+			$catalogPrice *= 1 + cat_Products::getVat($rec->productId);
 			$catalogPrice = round($catalogPrice * $quantity, 2);
 			$currencyCode = acc_Periods::getBaseCurrencyCode();
 		}
