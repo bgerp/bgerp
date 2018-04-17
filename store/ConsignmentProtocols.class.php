@@ -484,7 +484,7 @@ class store_ConsignmentProtocols extends core_Master
     {
     	if(count($data->protocols)){
     		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCountInput=Палети,contragentAddress=@Адрес";
+    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCountInput=Палети,contragentAddress=@Адрес,lineNotes=@";
     		 
     		return $table->get($data->protocols, $fields);
     	}

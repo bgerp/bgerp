@@ -363,12 +363,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     		$tableMvc = clone $this;
     		$tableMvc->FNC('documentHtml', 'varchar', 'tdClass=mergedDetailWideTD');
     		$table = cls::get('core_TableView', array('mvc' => $tableMvc));
-    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCount=Палети,collection=Инкасиране,address=@Адрес";
+    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCount=Палети,collection=Инкасиране,address=@Адрес,lineNotes=@";
     		if(Mode::is('printing')){
     			$fields .= ',documentHtml=@';
     		}
     		
-    		$fields = core_TableView::filterEmptyColumns($data->shipmentOrders, $fields, 'collection,palletCount,documentHtml');
+    		$fields = core_TableView::filterEmptyColumns($data->shipmentOrders, $fields, 'collection,palletCount,documentHtml,lineNotes');
     		
     		return $table->get($data->shipmentOrders, $fields);
     	}
