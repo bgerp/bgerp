@@ -19,7 +19,7 @@ class tcost_FeeZones extends core_Master
 	/**
 	 * Поддържани интерфейси
 	 */
-	public $interfaces = 'tcost_CostCalcIntf';
+	public $interfaces = 'cond_TransportCalc';
 	
 	
 	/**
@@ -188,7 +188,7 @@ class tcost_FeeZones extends core_Master
     	$weightRow = $this->getVolumicWeight($weightRow, $volumeRow);
     	
     	// Ако няма, цената няма да може да се изчисли
-    	if(empty($weightRow)) return array('fee' => tcost_CostCalcIntf::EMPTY_WEIGHT_ERROR);
+    	if(empty($weightRow)) return array('fee' => cond_TransportCalc::EMPTY_WEIGHT_ERROR);
     	
 
         // Ако продукта има параметър със сис ид aggregateQuantity, то взема общото влуметрично тегло и го сравнява с $totalWeight

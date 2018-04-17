@@ -3,20 +3,26 @@
 
 
 /**
- * Клас 'tcost_CostCalcIntf' - Интерфейс за класове, които определят цената за транспорт
+ * Клас 'cond_TransportCalc' - Интерфейс за класове, които определят цената за транспорт
  *
  *
  * @category  bgerp
- * @package   tcost
- * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @package   cond
+ * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class tcost_CostCalcIntf
+class cond_TransportCalc
 {
 	
 	
+	/**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'tcost_CostCalcIntf';
+    
+    
 	/**
 	 * Инстанция на мениджъра имащ интерфейса
 	 */
@@ -24,10 +30,20 @@ class tcost_CostCalcIntf
 	
 	
 	/**
-	 * Стойността, която ще се върне ако е имало грешка в изчислението
+	 * Стойността, която ще се върне ако е не може да се намери зона
 	 */
 	const ZONE_FIND_ERROR = -2;
+	
+	
+	/**
+	 * Стойността, която ще се върне ако има грешка при деление
+	 */
     const DELIMITER_ERROR = -4;
+    
+    
+    /**
+     * Стойността, която ще се върне ако артикула няма тегло
+     */
     const EMPTY_WEIGHT_ERROR = -8;
 	
 	

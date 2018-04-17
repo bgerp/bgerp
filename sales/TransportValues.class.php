@@ -339,9 +339,9 @@ class sales_TransportValues extends core_Manager
     	
     	if($amountFee < 0){
     		$hint =  "Скритият транспорт не може да бъде изчислен: ";
-    		if($amountFee == tcost_CostCalcIntf::ZONE_FIND_ERROR){
+    		if($amountFee == cond_TransportCalc::ZONE_FIND_ERROR){
     			$hint .= "липсваща зона";
-    		} elseif($amountFee == tcost_CostCalcIntf::EMPTY_WEIGHT_ERROR){
+    		} elseif($amountFee == cond_TransportCalc::EMPTY_WEIGHT_ERROR){
     			$hint .= "няма транспортно тегло";
     		} else {
     			$hint .= "({$amountFee})";
@@ -400,12 +400,12 @@ class sales_TransportValues extends core_Manager
      * Връща общото тегло на масив с артикули
      * 
      * @param array $products - масив с артикули
-     * @param tcost_CostCalcIntf $TransportCalc - интерфейс за изчисляване на транспортна цена
+     * @param cond_TransportCalc $TransportCalc - интерфейс за изчисляване на транспортна цена
      * @param string $productFld - поле съдържащо ид-то на артикул
      * @param string $quantityFld - поле съдържащо количеството на артикул
      * @return double $totalWeight - общото тегло
      */
-    public static function getTotalWeight($products,tcost_CostCalcIntf $TransportCalc, $productFld = 'productId', $quantityFld = 'quantity',  $packagingFld = 'packagingId')
+    public static function getTotalWeight($products,cond_TransportCalc $TransportCalc, $productFld = 'productId', $quantityFld = 'quantity',  $packagingFld = 'packagingId')
     {
     	$totalWeight = 0;
     	if(!is_array($products)) return $totalWeight;
