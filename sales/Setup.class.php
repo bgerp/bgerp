@@ -246,6 +246,7 @@ class sales_Setup extends core_ProtoSetup
     		'sales_Proformas',
     		'sales_ProformaDetails',
     		'sales_PrimeCostByDocument',
+    		'sales_TransportValues',
         );
 
     

@@ -13,10 +13,16 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class tcost_Calcs extends core_Manager
+class sales_TransportValues extends core_Manager
 {
 
 
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'tcost_Calcs';
+	
+	
 	/**
 	 * Масив за мапване на стойностите от мениджърите
 	 */
@@ -437,11 +443,11 @@ class tcost_Calcs extends core_Manager
     	if(!cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) return NULL;
     	
     	// Пощенския код и ид-то на държавата
-    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($contragentClassId, $contragentId, $pCode, $countryId, $deliveryLocationId);
+    	$codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($contragentClassId, $contragentId, $pCode, $countryId, $deliveryLocationId);
     	
     	// Опит за изчисляване на транспорт
     	$totalWeight = cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingWeight');
-    	$feeArr = tcost_Calcs::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
+    	$feeArr = sales_TransportValues::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
     	
     	return $feeArr;
     }
@@ -489,9 +495,9 @@ class tcost_Calcs extends core_Manager
     	$map = array_merge(self::$map, $map);
     	
     	// Имали вече начислен транспорт
-    	if($cRec = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)){
-    		$rec->fee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->fee;
-    		$rec->deliveryTimeFromFee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->deliveryTime;
+    	if($cRec = sales_TransportValues::get($map['masterMvc'], $masterRec->id, $rec->id)){
+    		$rec->fee = sales_TransportValues::get($map['masterMvc'], $masterRec->id, $rec->id)->fee;
+    		$rec->deliveryTimeFromFee = sales_TransportValues::get($map['masterMvc'], $masterRec->id, $rec->id)->deliveryTime;
     	}
  
         if($masterRec->deliveryAdress) {
@@ -513,7 +519,7 @@ class tcost_Calcs extends core_Manager
     	}
     	 
     	// Колко е очаквания транспорт
-    	$feeArr = tcost_Calcs::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId, $PCode);
+    	$feeArr = sales_TransportValues::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId, $PCode);
     	
     	// Ако има такъв към цената се добавя
     	if(is_array($feeArr)){

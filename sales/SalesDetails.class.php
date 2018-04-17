@@ -173,7 +173,7 @@ class sales_SalesDetails extends deals_DealDetail
     	if($form->isSubmitted()){
     		
     		// Подготовка на сумата на транспорта, ако има
-    		tcost_Calcs::prepareFee($rec, $form, $masterRec);
+    		sales_TransportValues::prepareFee($rec, $form, $masterRec);
     	}
     }
     
@@ -208,9 +208,9 @@ class sales_SalesDetails extends deals_DealDetail
     		}
     		
     		// Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
-    		$fee = tcost_Calcs::get($mvc->Master, $rec->saleId, $rec->id)->fee;
+    		$fee = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id)->fee;
     		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
-    		$row->amount = tcost_Calcs::getAmountHint($row->amount, $fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    		$row->amount = sales_TransportValues::getAmountHint($row->amount, $fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
     	}
     }
     
@@ -221,7 +221,7 @@ class sales_SalesDetails extends deals_DealDetail
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
     	// Преди клониране клонира се и сумата на цената на транспорта
-    	$cRec = tcost_Calcs::get($mvc->Master, $oldRec->saleId, $oldRec->id);
+    	$cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
     	if(isset($cRec)){
     		$rec->fee = $cRec->fee;
     		$rec->deliveryTimeFromFee = $cRec->deliveryTime;
@@ -237,7 +237,7 @@ class sales_SalesDetails extends deals_DealDetail
     {
     	// Синхронизиране на сумата на транспорта
     	if($rec->syncFee === TRUE){
-    		tcost_Calcs::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee);
+    		sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee);
     	}
     }
     
@@ -249,7 +249,7 @@ class sales_SalesDetails extends deals_DealDetail
     {
     	// Инвалидиране на изчисления транспорт, ако има
     	foreach ($query->getDeletedRecs() as $id => $rec) {
-    		tcost_Calcs::sync($mvc->Master, $rec->saleId, $rec->id, NULL);
+    		sales_TransportValues::sync($mvc->Master, $rec->saleId, $rec->id, NULL);
     	}
     }
     

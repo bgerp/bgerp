@@ -403,7 +403,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					}
 					
 					$fields = ($mvc instanceof sales_QuotationsDetails) ? array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId') : array();
-					tcost_Calcs::prepareFee($dRec, $form, $masterRec, $fields);
+					sales_TransportValues::prepareFee($dRec, $form, $masterRec, $fields);
 				
 					$mvc->save($dRec);
 					
