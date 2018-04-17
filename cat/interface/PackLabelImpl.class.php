@@ -102,8 +102,9 @@ class cat_interface_PackLabelImpl
 	public function getLabelData($id, $cnt, $onlyPreview = FALSE)
 	{
 	    static $resArr = array();
+	    $lg = core_Lg::getCurrent();
 	    
-	    $key = $id . '|' . $cnt . '|' . $onlyPreview . '|' . core_Lg::getCurrent();
+	    $key = $id . '|' . $cnt . '|' . $onlyPreview . '|' . $lg;
 	    
 	    if (isset($resArr[$key])) return $resArr[$key];
 	    
@@ -120,8 +121,14 @@ class cat_interface_PackLabelImpl
 		$jQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 2 WHEN 'stopped' THEN 3 END)");
 		$jQuery->where("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
 		$jQuery->orderBy('order', 'ASC');
+		$jQuery->show('id,saleId');
 		if($jRec = $jQuery->fetch()){
 			$jobCode = mb_strtoupper(planning_Jobs::getHandle($jRec->id));
+			if($lg != 'bg' && isset($jRec->saleId)){
+				$lData = cls::get('sales_Sales')->getLogisticData($jRec->saleId);
+				$countryCode = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $lData['fromCountry']), 'letterCode2');
+				$countryCode .= " " . date("m/y");
+			}
 		}
 		
 		$code = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
@@ -170,7 +177,11 @@ class cat_interface_PackLabelImpl
 					$res['SERIAL'] = $Driver->generateSerial($rec->productId, 'cat_products_Packagings', $rec->id);
 				}
 			}
-				
+
+			if(isset($countryCode) && empty($res['OTHER'])){
+				$res['OTHER'] = $countryCode;
+			}
+			
 			$arr[] = $res;
 		}
 		
