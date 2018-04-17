@@ -202,7 +202,7 @@ class sales_SalesDetails extends deals_DealDetail
     		}
     		
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			if(!core_Users::haveRole('partner')){
+    			if(!core_Users::haveRole('partner') && isset($row->packPrice)){
     				$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
     			}
     		}

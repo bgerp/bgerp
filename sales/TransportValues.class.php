@@ -335,7 +335,7 @@ class sales_TransportValues extends core_Manager
      */
     public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat)
     {
-    	if(!haveRole('powerUser')) return $amountRow;
+    	if(!haveRole('powerUser') || !isset($amountRow)) return $amountRow;
     	
     	if($amountFee < 0){
     		$hint =  "Скритият транспорт не може да бъде изчислен: ";
