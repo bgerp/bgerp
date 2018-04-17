@@ -54,7 +54,7 @@ class sales_TransportValues extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "tcost_Wrapper";
+    public $loadList = "sales_Wrapper";
 
 
     /**
