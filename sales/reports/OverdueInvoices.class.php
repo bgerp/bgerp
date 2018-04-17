@@ -43,10 +43,12 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-//         $fieldset->FLD('contragent', 
-//             'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 
-//             'caption=Контрагент,mandatory,single=none,after=title');
+        // $fieldset->FLD('contragent',
+        // 'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)',
+        // 'caption=Контрагент,mandatory,single=none,after=title');
         $fieldset->FLD('checkDate', 'date', 'caption=Към дата,after=contragent,mandatory');
+        $fieldset->FLD('countryGroup', 'key(mvc=drdata_CountryGroups,select=name, allowEmpty)', 
+            'caption=Група държави,after=contragent');
         
         $fieldset->FLD('salesTotalNotPaid', 'double', 'input=none,single=none');
         $fieldset->FLD('salesTotalOverDue', 'double', 'input=none,single=none');
@@ -90,28 +92,29 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $sQuery = sales_Invoices::getQuery();
         
         $sQuery->where("#state != 'rejected'");
-       
         
         $sQuery->where(array(
             "#createdOn < '[#1#]'",
             $rec->checkDate . ' 23:59:59'
         ));
         
-//         if ($rec->contragent) {
-            
-//             $sQuery->where("#folderId = {$rec->contragent}");
-//         }
-        
         // Фактури ПРОДАЖБИ
         while ($salesInvoices = $sQuery->fetch()) {
             
-           $cQuery = crm_ext_ContragentInfo::getQuery();
-           
-           $cQuery->where("#contragentId = {$salesInvoices->contragentId}");
-           
-           if($cQuery->fetch()->overdueSales != 'yes')continue;
-           
-           
+            $cQuery = crm_ext_ContragentInfo::getQuery();
+            
+            $cQuery->where("#contragentId = {$salesInvoices->contragentId}");
+            
+            if ($rec->countryGroup) {
+                
+                $countriesArr = drdata_CountryGroups::fetch($rec->countryGroup)->countries;
+                
+                if (! keylist::isIn($salesInvoices->contragentCountryId, $countriesArr))
+                    continue;
+            }
+            
+            if ($cQuery->fetch()->overdueSales != 'yes')
+                continue;
             
             if (sales_Sales::fetch(doc_Threads::getFirstDocument($salesInvoices->threadId)->that)->state == 'closed') {
                 
@@ -156,22 +159,23 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                         $iRec = $Invoice->fetch(
                             'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate,contragentId');
                         
-//                         if (($paydocs->amount - $paydocs->payout) > 0) {
-                            
-//                             $salesTotalNotPaid += ($paydocs->amount - $paydocs->payout);
-//                         }
+                        // if (($paydocs->amount - $paydocs->payout) > 0) {
                         
-//                         if (($paydocs->amount - $paydocs->payout) < 0) {
-                            
-//                             $salesTotalOverPaid += - 1 * ($paydocs->amount - $paydocs->payout);
-//                         }
-                   //     if ($iRec->number == 365)bp($iRec->dueDate);
+                        // $salesTotalNotPaid += ($paydocs->amount - $paydocs->payout);
+                        // }
+                        
+                        // if (($paydocs->amount - $paydocs->payout) < 0) {
+                        
+                        // $salesTotalOverPaid += - 1 * ($paydocs->amount - $paydocs->payout);
+                        // }
+                        // if ($iRec->number == 365)bp($iRec->dueDate);
                         if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > 0 &&
                              $iRec->dueDate < $rec->checkDate) {
                             
                             $salesTotalOverDue += ($paydocs->amount - $paydocs->payout);
-                        }else continue;
-                        // масива с фактурите за показване
+                        } else
+                            continue;
+                            // масива с фактурите за показване
                         if (! array_key_exists($iRec->id, $sRecs)) {
                             
                             $sRecs[$iRec->id] = (object) array(
@@ -179,7 +183,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                                 'className' => $Invoice->className,
                                 'invoiceId' => $iRec->id,
                                 'invoiceNo' => $iRec->number,
-                                'contragentId'=>$iRec->contragentId,
+                                'contragentId' => $iRec->contragentId,
                                 'invoiceDate' => $iRec->date,
                                 'dueDate' => $iRec->dueDate,
                                 'invoiceContainerId' => $iRec->containerId,
@@ -313,7 +317,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         arr::natOrder($sRecs, 'invoiceDate');
     }
-  
+    
     $recs = $sRecs;
     
     return $recs;
@@ -343,7 +347,7 @@ protected function getTableFieldSet($rec, $export = FALSE)
         $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума');
         $fld->FLD('paidDates', 'varchar', 'caption=Платено->дата,smartCenter');
         $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Неплатено');
-      //  $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Надплатено');
+        // $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Надплатено');
     } else {
         
         $fld->FLD('invoiceNo', 'varchar', 'caption=Фактура No,smartCenter');
@@ -431,10 +435,10 @@ private static function getDueDate($dRec, $verbal = TRUE, $rec)
         if ($dRec->dueDate) {
             $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = "d.m.y");
             
-//             if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
-                
-//                 $dueDate = ht::createHint($dueDate, 'фактурата е просрочена', 'warning');
-//             }
+            // if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
+            
+            // $dueDate = ht::createHint($dueDate, 'фактурата е просрочена', 'warning');
+            // }
         } else {
             $dueDate = '';
         }
@@ -500,10 +504,10 @@ protected function detailRecToVerbal($rec, &$dRec)
     
     $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, TRUE) . "</span>";
     
-//     if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
-        
-//         $row->ROW_ATTR['class'] = 'bold red state-active';
-//     }
+    // if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
+    
+    // $row->ROW_ATTR['class'] = 'bold red state-active';
+    // }
     
     if ($dRec->className == 'sales_Invoices') {
         $row->className = 'Фактури ПРОДАЖБИ';
