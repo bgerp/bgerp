@@ -9,8 +9,7 @@ defIfNot('UNIT_DEFAULT_USER_NAME', 'Тестов потребител');
  * Сървър по подразбиране
  */
 defIfNot('UNIT_DEFAULT_HOST', 'http://localhost');
-//defIfNot('UNIT_DEFAULT_HOST', 'http://127.0.0.1:8080');
-//defIfNot('UNIT_DEFAULT_HOST', 'http://87.120.200.94:8087');
+//defIfNot('UNIT_DEFAULT_HOST', 'http://11.0.0.59:8080');
 
 /**
  * Клас 'unit_Setup'
@@ -20,7 +19,7 @@ defIfNot('UNIT_DEFAULT_HOST', 'http://localhost');
  *
  * @category  bgerp
  * @package   unit
- * @author    Gabriela Petrova <gab4eto@gmail.com>
+ * @author    Pavlinka Dainovska <pdainovska@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1

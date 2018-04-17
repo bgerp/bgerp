@@ -3110,6 +3110,10 @@ function efae() {
     getEO().addEvent(document, 'keypress', function() {
         efaeInst.resetTimeout()
     });
+    
+    getEO().addEvent(document, 'beforeunload', function() {
+        efaeInst.preventRequest = 5;
+    });
 
     // Масив с всички абонирани
     efae.prototype.subscribedArr = new Array();
@@ -3162,6 +3166,9 @@ function efae() {
 
     // Флаг, който указва дали все още се чака резултат от предишна AJAX заявка
     Experta.prototype.isWaitingResponse = false;
+    
+    // Флак за спиране на заявките
+    Experta.prototype.preventRequest = 0;
 	
     // Флаг, който указва колко време да не може да се прави AJAX заявки по часовник
     efae.prototype.waitPeriodicAjaxCall = 0;
@@ -3255,6 +3262,12 @@ efae.prototype.getObjectKeysCnt = function(subscribedObj) {
 efae.prototype.process = function(subscribedObj, otherData, async) {
     // Ако няма URL, което трябва да се извика, връщаме
     if (!this.getObjectKeysCnt(subscribedObj)) return;
+    
+    // Ако са спрени заявките - нищо не правим
+    if (this.preventRequest > 0) {
+        this.preventRequest--;
+        return;
+    }
 
     // Ако не е подададена стойност
     if (typeof async == 'undefined') {
@@ -3335,6 +3348,12 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
             data: dataObj,
             dataType: 'json'
         }).done(function(res) {
+            
+            // Ако са спрени заявките - нищо не правим
+            if (this.preventRequest > 0) {
+                this.preventRequest--;
+                return;
+            }
 
             var n = res.length;
 

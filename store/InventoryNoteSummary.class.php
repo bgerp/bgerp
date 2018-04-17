@@ -213,7 +213,7 @@ class store_InventoryNoteSummary extends doc_Detail
     		$row->ROW_ATTR['class'] = " note-product-row-no-quantity";
     		
     		if(store_InventoryNoteDetails::haveRightFor('add', (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId))){
-    			$row->quantity = ht::createLink('', array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png');
+    			$row->quantity = ht::createLink('', array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Задаване на установено количество');
     		}
     	}
     }

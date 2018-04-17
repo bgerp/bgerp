@@ -218,6 +218,8 @@ class label_Prints extends core_Master
         
         $labelDataArr = array();
         
+        $oLang = core_Lg::getCurrent();
+        
         if(isset($classId) && isset($objId)){
         	$intfInst = cls::getInterface('label_SequenceIntf', $classId);
         	
@@ -228,6 +230,7 @@ class label_Prints extends core_Master
         	core_Mode::push('prepareLabel', TRUE);
         	if ($lang) {
         	    core_Lg::push($lang);
+        	    $oLang = $lang;
         	}
             $labelDataArr = $intfInst->getLabelPlaceholders($objId);
             if ($lang) {
@@ -311,6 +314,11 @@ class label_Prints extends core_Master
             
             core_Lg::push($lang);
             
+			// Ако е променен езика, вземаме данните пак
+            if ($lang != $oLang) {
+                $labelDataArr = $intfInst->getLabelPlaceholders($objId);
+            }
+            
 			// При редакция да се попълват стойностите
             if ($rec->id) {
                 foreach ((array)$rec->params as $fieldName => $val) {
@@ -328,8 +336,6 @@ class label_Prints extends core_Master
             
             // Добавяме полетата от детайла на шаблона
             label_TemplateFormats::addFieldForTemplate($form, $rec->templateId);
-            
-            $form->input(NULL, TRUE);
             
             // Обхождаме масива
             foreach ((array)$labelDataArr as $fieldName => $v) {
@@ -350,6 +356,8 @@ class label_Prints extends core_Master
                     $form->setReadonly($fieldName);
                 }
             }
+            
+            $form->input(NULL, TRUE);
         }
         
         if ($rec->templateId) {

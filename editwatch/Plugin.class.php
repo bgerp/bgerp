@@ -65,7 +65,7 @@ class editwatch_Plugin extends core_Plugin
         
         // Шаблон за информацията
         $info = new ET("<div id='editStatus'>[#1#]</div>", $status);
-        
+   
         // Абонираме процеса
         core_Ajax::subscribe($info, array($mvc, 'showEditwatchStatus', $recId, 'refreshUrl' => $refreshUrlLocal), 'editwatch', $time);
         
@@ -98,7 +98,7 @@ class editwatch_Plugin extends core_Plugin
                 $sign = ', ';
             }
             
-            $info = "<span class='warningMsg'>$info</span>";
+            $info = "<span class='warningMsg'>{$info}</span>";
         }
         
         return $info;

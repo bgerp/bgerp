@@ -18,7 +18,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, acc, rep_acc,rep_cat,sales';
+    public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal, sales';
 
     /**
      * Полета за хеширане на таговете
@@ -60,7 +60,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 
             "caption=Тип артикули,maxRadio=3,columns=3,removeAndRefreshForm,after=group");
         $fieldset->FLD('dealers', 
-            'users(rolesForAll=ceo|rep_cat, rolesForTeams=ceo|manager|rep_acc|rep_cat,allowEmpty)', 
+            'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal,allowEmpty)', 
             'caption=Търговци,after=to');
         $fieldset->FLD('contragent', 
             'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 

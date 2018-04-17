@@ -50,11 +50,14 @@
 					<!--ET_BEGIN forwarderId-->
 					<div style='margin-bottom: 5px;'><b>[#forwarderId#]</b></div>
 					<!--ET_END forwarderId-->
-					<!--ET_BEGIN vehicleId-->
-					<div style='margin-bottom: 5px;'>|Превозно средство|*: [#vehicleId#]</div>
-					<!--ET_END vehicleId-->
+					<!--ET_BEGIN vehicle-->
+					<div style='margin-bottom: 5px;'>|Превозно средство|*: [#vehicle#]</div>
+					<!--ET_END vehicle-->
+					<!--ET_BEGIN regNumber-->
+					<div style='margin-bottom: 5px;'>|Рег. номер|*: <b>[#regNumber#]</b></div>
+					<!--ET_END regNumber-->
 					<!--ET_BEGIN forwarderPersonId-->
-					<div style='margin-bottom: 5px;'>|Превозвач|*: [#forwarderPersonId#]</div>
+					<div style='margin-bottom: 5px;'>|МОЛ|*: [#forwarderPersonId#]</div>
 					<!--ET_END forwarderPersonId-->
 				</div>
 				<table class='signature-table'>

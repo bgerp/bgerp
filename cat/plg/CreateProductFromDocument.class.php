@@ -35,7 +35,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 	public static function on_AfterPrepareListToolbar($mvc, $data)
 	{
 		if($mvc->haveRightFor('createProduct', (object)array($mvc->masterKey => $data->masterId))){
-			$data->toolbar->addBtn('Създаване', array($mvc, 'CreateProduct', $mvc->masterKey => $data->masterId, 'ret_url' => TRUE), "id=btnNewProduct,title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/bag-new.png,order=12');
+			$data->toolbar->addBtn('Създаване||New item', array($mvc, 'CreateProduct', $mvc->masterKey => $data->masterId, 'ret_url' => TRUE), "id=btnNewProduct,title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/bag-new.png,order=12');
 		}
 	}
 	
@@ -403,7 +403,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					}
 					
 					$fields = ($mvc instanceof sales_QuotationsDetails) ? array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId') : array();
-					tcost_Calcs::prepareFee($dRec, $form, $masterRec, $fields);
+					sales_TransportValues::prepareFee($dRec, $form, $masterRec, $fields);
 				
 					$mvc->save($dRec);
 					

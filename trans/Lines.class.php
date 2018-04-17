@@ -51,21 +51,9 @@ class trans_Lines extends core_Master
     
     
     /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    public $lastUsedKeys = 'vehicleId';
-    
-    
-    /**
      * По кои полета ще се търси
      */
-    public $searchFields = 'title, vehicleId, forwarderId, forwarderPersonId, id';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, trans';
+    public $searchFields = 'title, vehicle, forwarderId, forwarderPersonId';
     
     
     /**
@@ -113,7 +101,7 @@ class trans_Lines extends core_Master
     /**
      * Кои полета да могат да се променят след активацията на документа
      */
-    public $changableFields = 'title, repeat, vehicleId, forwarderId, forwarderPersonId';
+    public $changableFields = 'title, repeat, vehicle, forwarderId, forwarderPersonId';
     
     
     /**
@@ -176,7 +164,7 @@ class trans_Lines extends core_Master
     	$this->FLD('repeat', 'time(suggestions=1 ден|1 седмица|1 месец|2 дена|2 седмици|2 месеца|3 седмици)', 'caption=Повторение');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Оттеглен,closed=Затворен)', 'caption=Състояние,input=none');
     	$this->FLD('isRepeated', 'enum(yes=Да,no=Не)', 'caption=Генерирано на повторение,input=none');
-    	$this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Превозвач->Превозно средство');
+    	$this->FLD('vehicle', 'varchar', 'caption=Превозвач->Превозно средство,oldFieldName=vehicleId');
     	$this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,group=suppliers,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
     	$this->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Превозвач->МОЛ');
     	$this->FLD('description', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
@@ -265,8 +253,21 @@ class trans_Lines extends core_Master
     	$this->save($rec);
     	$msg = ($rec->state == 'active') ? '|Линията е отворена успешно' : '|Линията е затворена успешно';
     	
-    	
     	return new Redirect(array($this, 'single', $rec->id), $msg);
+    }
+    
+    
+    /**
+     * След подготовка на формата
+     */
+    protected static function on_AfterPrepareEditForm(core_Mvc $mvc, $data)
+    {
+    	$form = &$data->form;
+    	
+    	$vehicleOptions = trans_Vehicles::makeArray4Select();
+    	if(count($vehicleOptions) && is_array($vehicleOptions)){
+    		$form->setSuggestions('vehicle', array('' => '') + arr::make($vehicleOptions, TRUE));
+    	}
     }
     
     
@@ -292,13 +293,17 @@ class trans_Lines extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-single'])){
+    		if(!empty($rec->vehicle)){
+    			if($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $rec->vehicle))){
+    				$row->vehicle = trans_Vehicles::getHyperlink($vehicleRec->id, TRUE);
+    				$row->regNumber = trans_Vehicles::getVerbal($vehicleRec, 'number');
+    			}
+    		}
 	    	
-	    	$attr = array();
-	    	if($rec->vehicleId && trans_Vehicles::haveRightFor('read', $rec->vehicleId)){
-	    		$attr['ef_icon'] = 'img/16/tractor.png';
-	    	 	$row->vehicleId = ht::createLink($row->vehicleId, array('trans_Vehicles', 'single', $rec->vehicleId), NULL, $attr);
-	    	}
-	    	
+    		if(isset($rec->forwarderPersonId) && !Mode::isReadOnly()){
+    			$row->forwarderPersonId = ht::createLink($row->forwarderPersonId, crm_Persons::getSingleUrlArray($rec->forwarderPersonId));
+    		}
+    		
 	    	$ownCompanyData = crm_Companies::fetchOwnCompany();
 	    	$row->myCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
 	    	
@@ -374,15 +379,28 @@ class trans_Lines extends core_Master
     function cron_CreateNewLines()
     {
     	$now = dt::now();
+    	$today = dt::today();
+    	
     	$query = $this->getQuery();
     	$query2 = clone $query;
     	$query->where("#state = 'active'");
-    	$query->where("#start < '{$now}'");
     	
     	// Затварят се всички отворени линии, с начало в миналото
     	while($rec = $query->fetch()){
-    		$rec->state = 'closed';
-    		$this->save($rec);
+    		$close = FALSE;
+    		if(strpos($rec->start, ' 00:00:00') !== FALSE){
+    			$rec->start = str_replace(' 00:00:00', '', $rec->start);
+    			if($rec->start < $today){
+    				$close = TRUE;
+    			}
+    		} elseif($rec->start < $now){
+    			$close = TRUE;
+    		}
+    		
+    		if($close === TRUE){
+    			$rec->state = 'closed';
+    			$this->save($rec, 'state,modifiedOn,modifiedBy');
+    		}
     	}
     	
     	// Намират се затворените линии, които не са повторени и
@@ -396,6 +414,7 @@ class trans_Lines extends core_Master
             $newRec = $this->getNewLine($rec);
     		
             if(self::getDocumentsCnt($rec->id, NULL, 1) || doc_Threads::fetchField($rec->threadId, 'allDocCnt') > 1) {
+                
                 // Ако в старата линия има документи, създава и записва новата линия
                 $sudoUser = core_Users::sudo($rec->createdBy);
                 $this->save($newRec);
@@ -425,7 +444,7 @@ class trans_Lines extends core_Master
     	$newRec->repeat            = $rec->repeat;
     	$newRec->createdBy         = $rec->createdBy;
     	$newRec->folderId          = $rec->folderId;
-    	$newRec->vehicleId 		   = $rec->vehicleId;
+    	$newRec->vehicle 		   = $rec->vehicle;
     	$newRec->forwarderId 	   = $rec->forwarderId;
     	$newRec->forwarderPersonId = $rec->forwarderPersonId;
     	$newRec->isRepeated 	   = 'no';

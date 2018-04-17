@@ -125,7 +125,11 @@ class core_ProtoSetup
      * Инсталиране на пакета
      */
     public function install()
-    {  
+    {   
+        if(!Mode::get('dbInit')) {
+            Mode::set('dbInit', core_Packs::isFirstSetup() ? 'first' : 'update');
+        }
+
         // Взимаме името на пакета
         $packName = $this->getPackName();
         
@@ -141,9 +145,8 @@ class core_ProtoSetup
             if (stripos($manager, 'migrate::') === 0) {
                 
                 list($migrate, $method) = explode('::', $manager);
-                
                 $html .= $this->callMigrate($method, $packName);
-                
+
                 continue;
             }
 
@@ -168,7 +171,7 @@ class core_ProtoSetup
         foreach(arr::make($this->roles) as $role) {
             $html .= core_Roles::addOnce($role);
         }
-
+        
         return $html;
     }
     
@@ -190,7 +193,11 @@ class core_ProtoSetup
         
         if(!core_Packs::getConfigKey('core', $key)) {
             try {
-                $res = call_user_func(array($this, $method));
+                if(Mode::is('dbInit', 'update')) {
+                    $res = call_user_func(array($this, $method));
+                } else {
+                    $res = "<li class='debug-info'>Миграцията {$packName}::{$method} е пропусната, защото се инициализира празна база</li>";
+                }
                 core_Packs::setConfig('core', array($key => TRUE));
                 if($res) {
                     $html = $res;
@@ -203,7 +210,7 @@ class core_ProtoSetup
            }
         }
         
-        Mode::pop('isMigrate', TRUE);
+        Mode::pop('isMigrate');
         
         return $html;
     }
@@ -360,6 +367,21 @@ class core_ProtoSetup
         }
         
         return $res;
+    }
+
+
+    /**
+     * Връща стойност на дефинирана константа
+     *
+     * @param string $constName
+     * 
+     * @return mixed
+     */
+    public static function getConst($constName)
+    {
+        expect(defined($constName), $constName);
+
+        return constant($constName);
     }
     
     

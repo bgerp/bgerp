@@ -485,7 +485,7 @@ class store_Transfers extends core_Master
     {
     	if(count($data->transfers)){
     		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,fromStore=Склад->Изходящ,toStore=Склад->Входящ,weight=Тегло,volume=Обем,palletCountInput=Палети,address=@Адрес";
+    		$fields = "rowNumb=№,docId=Документ,fromStore=Склад->Изходящ,toStore=Склад->Входящ,weight=Тегло,volume=Обем,palletCountInput=Палети,address=@Адрес,lineNotes=@";
     		 
     		return $table->get($data->transfers, $fields);
     	}

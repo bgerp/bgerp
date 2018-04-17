@@ -37,7 +37,6 @@ class unit_MinkPbgERP extends core_Manager {
      * Стартира последователно всички тестове от Unit 
      */
     //http://localhost/unit_MinkPbgERP/All/
-    //http://127.0.0.1:8080/unit_MinkPbgERP/All/
     
     public function act_All()
     {
@@ -71,7 +70,6 @@ class unit_MinkPbgERP extends core_Manager {
      * Стартира последователно тестовете от MinkPbgERP 
      */
     //http://localhost/unit_MinkPbgERP/Run/
-    //http://127.0.0.1:8080/unit_MinkPbgERP/Run/
     public function act_Run()
     {
 //         try {
@@ -358,7 +356,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Складове"');
         $browser->setValue('name', 'Склад 1');
-        $browser->setValue('chiefs_13_1', '13_1');
+        $browser->setValue('Bgerp', True);
+        //$browser->setValue('chiefs_13_1', '13_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -386,7 +385,8 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->hasText('Добавяне на запис в "Банкови сметки на фирмата"');
         $browser->setValue('iban', '#BG11CREX92603114548401');
         $browser->setValue('currencyId', '1');
-        $browser->setValue('operators_13_1', '13_1');
+        $browser->setValue('Bgerp', True);
+        //$browser->setValue('operators_13_1', '13_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -446,7 +446,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Фирмени каси"');
         $browser->setValue('name', 'КАСА 1');
-        $browser->setValue('cashiers_13_1', '13_1');
+        $browser->setValue('Bgerp', True);
+        //$browser->setValue('cashiers_13_1', '13_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -1058,7 +1059,7 @@ class unit_MinkPbgERP extends core_Manager {
     }
     
     /**
-     * 30.Нова оферта в лева на съществуваща фирма с папка
+     * 30.Нова оферта в лева на съществуваща фирма с папка и продажба от нея
      */
     ///http://localhost/unit_MinkPbgERP/CreateQuotation/
     function act_CreateQuotation()
@@ -1101,9 +1102,24 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Активиране');
         $browser->press('Продажба');
         ////Опционален артикул - не сработва
-        //return $browser->getHtml();
         //$browser->setValue('autoElement7018_2',1);
         $browser->press('Създай');
+        $browser->press('Активиране');
+        
+        //Създаване на връзка
+        $browser->press('Връзка');
+        $browser->setValue('act', 'Отложена задача');
+        //$browser->setValue('act', 'Нов документ');
+        $browser->press('Refresh');
+        //$browser->setValue('linkDocType', 'Задачи');
+        //$browser->press('Refresh');
+        //$browser->setValue('linkFolderId', 'Документите на Bgerp'); //не зарежда папките за избор
+        $browser->press('Запис');
+        //$browser->setValue('assign[]', 'User1');
+        //$valior=strtotime("+1 Day");
+        //$browser->setValue('timeStart[d]', date('d-m-Y', $valior));
+        //$valior=strtotime("+3 Days");
+        //$browser->setValue('timeEnd[d]', date('d-m-Y', $valior));
         $browser->press('Активиране');
         //return $browser->getHtml();
     }
@@ -1502,6 +1518,7 @@ class unit_MinkPbgERP extends core_Manager {
         } else {
             return $this->reportErr('Грешни суми в мастера', 'warning');
         }
+       
         //return $browser->getHtml();
     }  
     
@@ -1817,4 +1834,5 @@ class unit_MinkPbgERP extends core_Manager {
         //return $browser->getHtml();
     
     }
+   
 }

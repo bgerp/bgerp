@@ -696,4 +696,13 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	return $result;
     }
+    
+    
+    /**
+     * След подготовка на лист тулбара
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, $data)
+    {
+    	unset($data->toolbar->buttons['btnAdd']);
+    }
 }

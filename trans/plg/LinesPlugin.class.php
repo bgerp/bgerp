@@ -29,6 +29,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		setIfNot($mvc->totalVolumeFieldName, 'volume');
 		setIfNot($mvc->lineFieldName, 'lineId');
 		setIfNot($mvc->palletCountFieldName, 'palletCount');
+		setIfNot($mvc->lineNoteFieldName, 'lineNotes');
 		
 		// Създаваме поле за избор на линия, ако няма такова
 		if(!$mvc->getField($mvc->lineFieldName, FALSE)){
@@ -58,6 +59,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 			$mvc->setField($mvc->totalWeightFieldName, 'input=none');
 		}
 		
+		$mvc->FLD('lineNotes', 'text(rows=2)', 'input=none,caption=Забележки');
 		$mvc->FLD('weightInput', 'cat_type_Weight', 'input=none');
 		$mvc->FLD('volumeInput', 'cat_type_Volume', 'input=none');
 		$mvc->FLD('palletCountInput', 'int', 'input=none');
@@ -106,10 +108,12 @@ class trans_plg_LinesPlugin extends core_Plugin
 		$form->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
 		$form->FLD('volume', 'cat_type_Volume', 'caption=Обем');
 		$form->FLD('palletsCount', 'int', 'caption=Kолети/палети,unit=бр.');
+		$form->FLD('lineNotes', 'text(rows=2)', 'caption=Забележки');
 		$form->setDefault('lineId', $rec->{$mvc->lineFieldName});
 		$form->setDefault('weight', $rec->weightInput);
 		$form->setDefault('volume', $rec->volumeInput);
 		$form->setDefault('palletsCount', $rec->palletCountInput);
+		$form->setDefault('lineNotes', $rec->lineNotes);
 		
 		$form->input(NULL, 'silent');
 		$form->input();
@@ -120,6 +124,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 			// Обновяваме в мастъра информацията за общото тегло/обем и избраната линия
 			$rec->weightInput = $formRec->weight;
 			$rec->volumeInput = $formRec->volume;
+			$rec->lineNotes = $formRec->lineNotes;
 			$rec->palletCountInput = $formRec->palletsCount;
 			
 			$rec->{$mvc->lineFieldName} = $formRec->lineId;

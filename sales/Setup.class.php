@@ -246,6 +246,7 @@ class sales_Setup extends core_ProtoSetup
     		'sales_Proformas',
     		'sales_ProformaDetails',
     		'sales_PrimeCostByDocument',
+    		'sales_TransportValues',
         );
 
     
@@ -261,7 +262,8 @@ class sales_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     var $defClasses = 'sales_SalesLastPricePolicy,sales_reports_SalesPriceImpl, sales_reports_OweInvoicesImpl, 
-                       sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_ZDDSRep,sales_reports_OverdueByAdvancePayment,sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation';
+                       sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_ZDDSRep,sales_reports_OverdueByAdvancePayment,
+                       sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,sales_reports_OverdueInvoices';
     
     
     /**
