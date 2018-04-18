@@ -106,32 +106,6 @@ class cal_Progresses extends core_Mvc
     }
     
     
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param core_Form $form
-     */
-    static function on_AfterInputEditForm($Driver, $mvc, &$form)
-    {
-        $rec = $form->rec;
-        if ($rec->originId && !$form->rec->__isBeingChanged && $form->isSubmitted()) {
-            $tDoc = doc_Containers::getDocument($rec->originId);
-            if ($tDoc->instance instanceof cal_Tasks) {
-                $tRec = $tDoc->fetch();
-                if ($tRec->progress > $rec->progress) {
-                    $form->setWarning('progress', "|Въвели сте по-малък прогрес от предишния. Сигурни ли сте, че искате да продължите?");
-                } elseif ($tRec->progress == $rec->progress && $rec->progress != 1 && !$form->rec->id) {
-                    $form->setWarning('progress', "|Въвели сте прогрес равен на предишния. Сигурни ли сте, че искате да продължите?");
-                }
-            }
-        }
-    }
-    
-    
     /**
      * 
      * 
