@@ -132,8 +132,17 @@ class sales_TransportValues extends core_Manager
     	$TransportCostDriver = cond_DeliveryTerms::getCostDriver($deliveryTermId);
     	if(!is_object($TransportCostDriver)) return FALSE;
     	
-    	$ourCompany = crm_Companies::fetchOurCompany();	 
-    	$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
+    	$ourCompany = crm_Companies::fetchOurCompany();
+    	$weight = cat_Products::getTransportWeight($productId, $quantity);
+    	$volume = cat_Products::getTransportVolume($productId, $quantity);
+    	 
+    	if(empty($weight) && isset($weight) && empty($volume)) {
+    		$totalFee = NULL;
+    	} else {
+    		$totalWeight = self::normalizeTotalWeight($totalWeight, $productId);
+    		$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $weight, $volume, $totalWeight, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
+    	}
+    	
     	$fee = $totalFee['fee'];
     	
     	$res = array('totalFee' => $fee);
@@ -146,6 +155,55 @@ class sales_TransportValues extends core_Manager
     		$res['deliveryTime'] = $totalFee['deliveryTime'];
     	}
     	
+    	return $res;
+    }
+    
+    
+    /**
+     * Нормализира общото тегло
+     * 
+     * @param double $totalWeight
+     * @param double $totalWeight
+     */
+    private static function normalizeTotalWeight($totalWeight, $productId)
+    {
+    	// Ако продукта има параметър със сис ид aggregateQuantity, то взема общото влуметрично тегло и го сравнява с $totalWeight
+    	$aggregateQuantityId = cat_Params::force('aggregateQuantity', 'Обобщено количество', 'double', NULL, '');
+    	$aggregateQuantity   = cat_Products::getParams($productId, $aggregateQuantityId);
+    	
+    	if($aggregateQuantity > 0) {
+    		$aggregateWeight = cat_Products::getTransportWeight($productId, $aggregateQuantity);
+    		$aggregateVolume    = cat_Products::getTransportVolume($productId, $aggregateQuantity);
+    		if($aggregateWeight && $aggregateVolume) {
+    			$aggregateWeight = $this->getVolumicWeight($aggregateWeight, $aggregateVolume);
+    		}
+    		if($aggregateWeight > $totalWeight) {
+    			$totalWeight = $aggregateWeight;
+    		}
+    	}
+    	
+    	return $totalWeight;
+    }
+    
+    
+    /**
+     * Връща теглото и обема
+     * @param unknown $productId
+     * @param unknown $packagingId
+     * @param unknown $quantity
+     * @return multitype:|multitype:Ambigous <number, NULL, unknown>
+     */
+    public static function getWeightAndVolume($productId, $packagingId, $quantity)
+    {
+    	$res = array();
+    	
+    	// Колко е еденичното транспортно тегло на артикула
+    	$res['weight'] = cat_Products::getTransportWeight($productId, $quantity);
+    	$res['volume'] = cat_Products::getTransportVolume($productId, $quantity);
+    	 
+    	// Ако теглото е 0 и няма обем, да не се изчислява транспорт
+    	if(empty($res['weight']) && isset($res['weight']) && empty($res['volume'])) return array();
+    	 
     	return $res;
     }
     
