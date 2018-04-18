@@ -425,15 +425,11 @@ class acc_Balances extends core_Master
     	// Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
     	// до предходния работен ден и селд това до днес
     	
-    	
     	$pQuery = acc_Periods::getQuery();
     	$pQuery->orderBy('#end', 'ASC');
     	$pQuery->where("#state != 'closed'");
     	$pQuery->where("#state != 'draft'");
-        
-        // Правим заключване за дълго време: MAX_PERIOD_CALC_TIME
-        core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1);
-    		 
+            		 
     	while($pRec = $pQuery->fetch()) {
  
     		$rec = new stdClass();
