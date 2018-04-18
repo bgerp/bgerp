@@ -232,27 +232,112 @@ class cal_Progresses extends core_Mvc
      */
     public static function on_AfterActivation($Driver, $mvc, &$rec)
     {
+        // Да се инвокава AfterChangeState сама при приключване с прогрес
+        $invokeChangeState = TRUE;
+        if ($rec->progress != 1) {
+            $invokeChangeState = FALSE;
+        }
+        
+        $Driver->updateTaskProgress($rec, $rec->progress, $invokeChangeState);
+    }
+    
+    
+    /**
+     * Възстановяване на оттеглен обект
+     *
+     * @param cal_Progresses $Driver
+     * @param doc_Comments $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_AfterRestore($Driver, $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
         if ($rec->originId) {
+            $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
+            
+            $Driver->updateTaskProgress($rec, $lGoodProgress);
+        }
+    }
+    
+    
+    /**
+     * След оттегляне на обект
+     *
+     * @param cal_Progresses $Driver
+     * @param doc_Comments $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_AfterReject($Driver, $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        if ($rec->originId) {
+            $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
+            
+            $Driver->updateTaskProgress($rec, $lGoodProgress);
+        }
+    }
+    
+    
+    /**
+     * Обновява задачата след промяна на прогреса
+     *
+     * @param stdClass $rec
+     * @param NULL|integer $progress
+     * @param boolean $invokeChangeState
+     */
+    public static function updateTaskProgress($rec, $progress = NULL, $invokeChangeState = FALSE)
+    {
+        if ($rec->originId) {
+            
             $tDoc = doc_Containers::getDocument($rec->originId);
             
             $saveArr = array();
             
-            if ($tDoc->instance instanceof cal_Tasks) {
+            if ($tDoc->instance instanceof cal_Tasks && isset($progress)) {
                 $tRec = $tDoc->fetch();
-                $tRec->progress = $rec->progress;
-                $saveArr['progress'] = 'progress';
-            }
-            
-            // Ако прогреса е 100%, тогава затваряме задачата
-            if ($tRec->progress == 1 && $tRec->state != 'closed' && $tRec->state != 'stopped') {
-                $saveArr['state'] = 'state';
+                $oldProgress = $tRec->progress;
+                $oldState = $tRec->state;
                 
-                $tRec->state = 'closed';
-                $tDoc->instance->save($tRec, $saveArr);
-                
-                $tDoc->instance->invoke('AfterChangeState', array(&$tRec, 'closed'));
-            } elseif (!empty($saveArr)) {
-                $tDoc->instance->save($tRec, $saveArr);
+                // Ако има промяна в прогреса
+                if ($oldProgress != $progress) {
+                    $tRec->progress = $progress;
+                    
+                    $saveArr['progress'] = 'progress';
+                    
+                    if (isset($tRec->progress)) {
+                        
+                        // Ако прогреса е 100%, тогава затваряме задачата
+                        if ($tRec->progress == 1) {
+                            $tRec->state = 'closed';
+                            
+                            $saveArr['state'] = 'state';
+                        }
+                        
+                        // Ако връщаме прогреса - връщаме и предишното състояние
+                        if ($oldProgress == 1) {
+                            if ($tRec->brState && $tRec->brState != 'rejected') {
+                                $tRec->state = $tRec->brState;
+                            } else {
+                                $tRec->state = 'active';
+                            }
+                            
+                            $saveArr['state'] = 'state';
+                        }
+                    }
+                    
+                    if (!empty($saveArr)) {
+                        $tDoc->instance->save($tRec, $saveArr);
+                        
+                        // Ако има промяна в състоянито
+                        if ($invokeChangeState && $saveArr['state']) {
+                            $tDoc->instance->invoke('AfterChangeState', array(&$tRec, $tRec->state));
+                        }
+                    }
+                }
             }
         }
     }
@@ -283,58 +368,6 @@ class cal_Progresses extends core_Mvc
         
         return $rec->driverRec['progress'];
         
-    }
-    
-    
-    /**
-     * Възстановяване на оттеглен обект
-     *
-     * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param mixed $res
-     * @param int|stdClass $id
-     */
-    public static function on_AfterRestore($Driver, $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        
-        if ($rec->originId) {
-            $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
-            
-            $tDoc = doc_Containers::getDocument($rec->originId);
-            
-            if ($tDoc->instance instanceof cal_Tasks) {
-                $tRec = $tDoc->fetch();
-                $tRec->progress = $lGoodProgress;
-                $tDoc->instance->save($tRec, 'progress');
-            }
-        }
-    }
-    
-    
-    /**
-     * След оттегляне на обект
-     * 
-     * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param mixed $res
-     * @param int|stdClass $id
-     */
-    public static function on_AfterReject($Driver, $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        
-        if ($rec->originId) {
-            $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
-            
-            $tDoc = doc_Containers::getDocument($rec->originId);
-            
-            if ($tDoc->instance instanceof cal_Tasks) {
-                $tRec = $tDoc->fetch();
-                $tRec->progress = $lGoodProgress;
-                $tDoc->instance->save($tRec, 'progress');
-            }
-        }
     }
     
     
