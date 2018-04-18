@@ -140,7 +140,7 @@ class sales_TransportValues extends core_Manager
     	if(empty($weight) && isset($weight) && empty($volume)) {
     		$totalFee = NULL;
     	} else {
-    		$totalWeight = self::normalizeTotalWeight($totalWeight, $productId);
+    		$totalWeight = self::normalizeTotalWeight($totalWeight, $productId, $TransportCostDriver);
     		$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $weight, $volume, $totalWeight, $totalVolume, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
     	}
     	
@@ -165,8 +165,9 @@ class sales_TransportValues extends core_Manager
      * 
      * @param double $totalWeight
      * @param double $totalWeight
+     * @param cond_TransportCalc $TransportCostDriver
      */
-    private static function normalizeTotalWeight($totalWeight, $productId)
+    private static function normalizeTotalWeight($totalWeight, $productId, cond_TransportCalc $TransportCostDriver)
     {
     	// Ако продукта има параметър със сис ид aggregateQuantity, то взема общото влуметрично тегло и го сравнява с $totalWeight
     	$aggregateQuantityId = cat_Params::force('aggregateQuantity', 'Обобщено количество', 'double', NULL, '');
@@ -176,7 +177,7 @@ class sales_TransportValues extends core_Manager
     		$aggregateWeight = cat_Products::getTransportWeight($productId, $aggregateQuantity);
     		$aggregateVolume    = cat_Products::getTransportVolume($productId, $aggregateQuantity);
     		if($aggregateWeight && $aggregateVolume) {
-    			$aggregateWeight = $this->getVolumicWeight($aggregateWeight, $aggregateVolume);
+    			$aggregateWeight = $TransportCostDriver->getVolumicWeight($aggregateWeight, $aggregateVolume);
     		}
     		if($aggregateWeight > $totalWeight) {
     			$totalWeight = $aggregateWeight;
@@ -189,10 +190,11 @@ class sales_TransportValues extends core_Manager
     
     /**
      * Връща теглото и обема
-     * @param unknown $productId
-     * @param unknown $packagingId
-     * @param unknown $quantity
-     * @return multitype:|multitype:Ambigous <number, NULL, unknown>
+     * 
+     * @param int $productId
+     * @param int $packagingId
+     * @param double $quantity
+     * @return array $res
      */
     public static function getWeightAndVolume($productId, $packagingId, $quantity)
     {
