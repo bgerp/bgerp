@@ -143,9 +143,12 @@ class cal_Progresses extends core_Mvc
      */
     static function on_AfterSave($Driver, $mvc, &$id, $rec, $saveFileds = NULL)
     {
+        $touchRec = FALSE;
         if ($rec->originId) {
             $tDoc = doc_Containers::getDocument($rec->originId);
-            $touchRec = TRUE;
+            if ($tDoc->instance instanceof cal_Tasks) {
+                $touchRec = TRUE;
+            }
         }
         
         // Променяме общото отработено време на задачата
