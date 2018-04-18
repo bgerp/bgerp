@@ -130,7 +130,7 @@ class sales_TransportValues extends core_Manager
     public static function getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $totalVolume, $toCountryId, $toPcodeId)
     {
     	// Имали в условието на доставка, драйвер за изчисляване на цени?
-    	$TransportCostDriver = cond_DeliveryTerms::getCostDriver($deliveryTermId);
+    	$TransportCostDriver = cond_DeliveryTerms::getTransportCalculator($deliveryTermId);
     	if(!is_object($TransportCostDriver)) return FALSE;
     	
     	$ourCompany = crm_Companies::fetchOurCompany();

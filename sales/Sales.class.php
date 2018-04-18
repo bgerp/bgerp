@@ -1183,7 +1183,7 @@ class sales_Sales extends deals_DealMaster
     	$expectedTransport = 0;
     	
     	// Ако няма калкулатор в условието на доставка, не се изчислява нищо
-    	$TransportCalc = cond_DeliveryTerms::getCostDriver($rec->deliveryTermId);
+    	$TransportCalc = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
     	if(!is_object($TransportCalc)) return $expectedTransport;
     	
     	// Подготовка на заявката, взимат се само складируеми артикули
