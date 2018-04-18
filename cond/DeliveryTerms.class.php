@@ -171,13 +171,11 @@ class cond_DeliveryTerms extends core_Master
      * @param mixed $id - ид, запис или NULL
      * @return cond_TransportCalc|NULL
      */
-    public static function getCostDriver($id)
+    public static function getTransportCalculator($id)
     {
     	if(!empty($id)){
     		$rec = self::fetchRec($id);
-    		if(cls::load($rec->costCalc, TRUE)){
-    			return cls::getInterface('cond_TransportCalc', $rec->costCalc);
-    		}
+    		if(cls::load($rec->costCalc, TRUE)) return cls::getInterface('cond_TransportCalc', $rec->costCalc);
     	}
     	
     	return NULL;

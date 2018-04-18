@@ -68,6 +68,7 @@ class cond_TransportCalc
      * @param double $singleWeight   - тегло
      * @param double $singleVolume   - обем
      * @param int $totalWeight       - Общо тегло на товара
+     * @param int $totalVolume       - Общ обем на товара
      * @param int $toCountry         - id на страната на мястото за получаване
      * @param string $toPostalCode   - пощенски код на мястото за получаване
      * @param int $fromCountry       - id на страната на мястото за изпращане
@@ -77,8 +78,8 @@ class cond_TransportCalc
      * 			['fee']              - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
      * 			['deliveryTime']     - срока на доставка в секунди ако го има
      */
-    function getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
+    public function getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $totalVolume, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
-        return $this->class->getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
+        return $this->class->getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $totalVolume, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
     }
 }
