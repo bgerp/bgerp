@@ -22,7 +22,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, acc, rep_acc,rep_cat';
+    public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal';
 
     
     /**

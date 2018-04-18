@@ -572,6 +572,10 @@ abstract class store_DocumentMaster extends core_Master
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
     	$row->docId = (!Mode::is('printing')) ? $this->getLink($rec->id, 0) : "#" . $this->getHandle($rec->id);
     	
+    	if(!empty($oldRow->lineNotes)){
+    		$row->lineNotes = $oldRow->lineNotes;
+    	}
+    	
     	return $row;
     }
     

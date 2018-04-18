@@ -63,7 +63,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Какви детайли има този мастер
      */
-    public $details = 'cal_TaskProgresses, cal_TaskConditions';
+    public $details = 'cal_TaskConditions';
 
 
     /**
@@ -776,20 +776,98 @@ class cal_Tasks extends embed_Manager
             $mvc->calculateExpectationTime($rec);
         }
     }
-	
-	
+    
+    
     /**
-     * Дали може да се добавя прогрес към съответната задача
-     *
-     * @param stdClass $rec
-     *
-     * @return boolean
+     * След подготовка на сингъла
      */
-    public static function canAddProgress($rec)
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        if ($rec->state != 'rejected' && $rec->state != 'draft' && $rec->state != 'template') return TRUE;
+        $pArr = array();
         
-        return FALSE;
+        if (cal_TaskProgresses::isInstalled()) {
+            $pQuery = cal_TaskProgresses::getQuery();
+            $pQuery->where(array("#taskId = [#1#]", $data->rec->id));
+            $pQuery->orderBy('createdOn', 'ASC');
+            
+            while ($pRec = $pQuery->fetch()) {
+                
+                $pRow = cal_TaskProgresses::recToVerbal($pRec);
+                
+                $rowAttr = array();
+                
+                if ($pRec->state == 'rejected') {
+                    $rowAttr['class'] = 'state-' . $pRec->state;
+                }
+                
+                $pArr[] = array('ROW_ATTR' => $rowAttr, 'progress' => $pRow->progress, 'workingTime' => $pRow->workingTime, 'createdOn' => $pRow->createdOn, 'createdBy' => $pRow->createdBy, 'message' => $pRow->message);
+            }
+        }
+        
+        if ($pClsId = cal_Progresses::getClassId() && $data->rec->containerId) {
+            $cQuery = doc_Comments::getQuery();
+            $cQuery->where(array("#originId = '[#1#]'", $data->rec->containerId));
+            $cQuery->where(array("#driverClass = '[#1#]'", cal_Progresses::getClassId()));
+            $cQuery->where("#state != 'draft'");
+            $cQuery->where("#activatedOn IS NOT NULL");
+            
+            $cQuery->orderBy('activatedOn', 'ASC');
+            
+            while ($cRec = $cQuery->fetch()) {
+                
+                $rowAttr = array();
+                
+                if ($cRec->state == 'rejected') {
+                    $rowAttr['class'] = 'state-' . $cRec->state;
+                }
+                
+                $cRow = doc_Comments::recToVerbal($cRec);
+                
+                $message = $cRow->body;
+                $message = strip_tags($message);
+                $message = str::limitLen($message, 150);
+                
+                $pArr[] = array('ROW_ATTR' => $rowAttr, 'links' => doc_Comments::getLinkToSingle($cRec->id, 'id'), 'progress' => $cRow->progress, 'workingTime' => $cRow->workingTime, 'createdOn' => $cRow->createdOn, 'createdBy' => $cRow->createdBy, 'message' => $message);
+            }
+        }
+        
+        $data->Progresses = $pArr;
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     * 
+     * @param core_Manager $mvc
+     * @param core_ET $tpl
+     * @param stdClass $data
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        if ($data->Progresses) {
+            
+            $table = cls::get('core_TableView');
+            
+            $showFieldArr = array('links', 'createdOn', 'createdBy', 'message', 'progress', 'workingTime');
+            
+            if (Mode::is('screenMode', 'narrow')) {
+//                 $showFieldArr = array('progress', 'createdOn', 'createdBy', 'message', 'workingTime');
+            }
+            
+            $tTpl = $table->get($data->Progresses, $showFieldArr);
+            
+            $tplx = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
+                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">Прогрес</div>
+                            <div class="listRows">
+                            [#TABLE#]
+                            </div>
+	                   </div>
+	                ');
+            $tplx->replace($tTpl, 'TABLE');
+            
+            
+            $tpl->append($tplx, 'DETAILS');
+        }
     }
     
     
@@ -801,15 +879,6 @@ class cal_Tasks extends embed_Manager
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        if ($mvc->canAddProgress($data->rec)) {
-            // Ако прогреса е 100%, да е на втори ред
-            $progressRow = 1;
-            if ($data->rec->progress == 1) {
-                $progressRow = 2;
-            }
-            $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/progressbar.png', "title=Добавяне на прогрес към задачата, row={$progressRow}");
-        }
-       
         if (cal_TaskConditions::haveRightFor('add', (object)array('baseId' => $data->rec->id))){
         	$data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
@@ -898,10 +967,6 @@ class cal_Tasks extends embed_Manager
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        if($rec->state == 'pending' && !$rec->sharedUsers && !$rec->assign) { 
-            core_Statuses::newStatus("|Не е избран потребител. Документа е приведен в състояние 'Заявка'|*");
-        } 
-        
         $mvc->updateTaskToCalendar($rec->id);
     }
 
@@ -960,8 +1025,8 @@ class cal_Tasks extends embed_Manager
      *
      * Функция, която се извиква преди активирането на документа
      *
-     * @param unknown_type $mvc
-     * @param unknown_type $rec
+     * @param cal_Tasks $mvc
+     * @param stdClass $rec
      */
     public static function on_BeforeActivation($mvc, $rec)
     {
@@ -986,6 +1051,8 @@ class cal_Tasks extends embed_Manager
             // ако не може, задачата става заявка
         } elseif(empty($sharedUsersArr)) {
             $rec->state = 'pending';
+            
+            core_Statuses::newStatus("|Не е избран потребител. Документа е приведен в състояние 'Заявка'|*");
         } else {
             $rec->state = 'waiting';
         }
@@ -1500,7 +1567,7 @@ class cal_Tasks extends embed_Manager
                 $row->subTitle .= $this->getVerbal($rec, 'progress');
             }
             
-            $row->subTitle .= ' (' .cal_TaskProgresses::getLastProgressAuthor($rec->id) . ')';
+            $row->subTitle .= ' (' . self::getLastProgressAuthor($rec) . ')';
         }
         
         $usersArr = type_Keylist::toArray($rec->assign);
@@ -1552,6 +1619,39 @@ class cal_Tasks extends embed_Manager
         }
         
         return $row;
+    }
+    
+    
+    /**
+     * Връща създателя на последния прогрес
+     *
+     * @param stdClass $rec
+     * @param boolean $removeRejected
+     *
+     * @return FALSE|stdClass
+     */
+    public static function getLastProgressAuthor($rec, $removeRejected = TRUE)
+    {
+        $cQuery = doc_Comments::getQuery();
+        $cQuery->where(array("#driverClass = '[#1#]'", cal_Progresses::getClassId()));
+        $cQuery->where(array("#originId = '[#1#]'", $rec->containerId));
+        $cQuery->where("#state != 'rejected'");
+        $cQuery->where("#state != 'draft'");
+        $cQuery->orderBy('activatedOn', 'DESC');
+        $cQuery->limit(1);
+        $cQuery->show('createdBy');
+        
+        if ($r = $cQuery->fetch()) {
+            $author = doc_Comments::getVerbal($r, 'createdBy');
+        } else {
+            
+            if (cal_TaskProgresses::isInstalled()) {
+                // За съвместимост със старите задачи
+                $author = cal_TaskProgresses::getLastProgressAuthor($rec->id);
+            }
+        }
+        
+        return $author;
     }
     
     
@@ -2359,7 +2459,8 @@ class cal_Tasks extends embed_Manager
      * Може ли една задача да стане в състояние 'active'?
      * 
      * @param stdClass $rec
-     * @return date|NULL|FALSE
+     * 
+     * @return datetime|NULL|FALSE
      */
     static public function canActivateTask($rec)
     {
@@ -2506,34 +2607,12 @@ class cal_Tasks extends embed_Manager
      * @param string $msg
      * @param array $notifyUsersArr
      * @param boolean $removeOldNotify
-     * @param boolean $closeThread
      */
-    public static function notifyForChanges($rec, $msg, $notifyUsersArr = array(), $removeOldNotify = FALSE, $closeThread = FALSE)
+    public static function notifyForChanges($rec, $msg, $notifyUsersArr = array(), $removeOldNotify = FALSE)
     {
         $rec = self::fetchRec($rec);
         
         if (!$rec) return ;
-        
-        if ($closeThread && $rec->threadId) {
-            $tRec = doc_Threads::fetch($rec->threadId);
-            
-            if ($tRec->state != 'closed') {
-                // Да няма входящ имейл в нишката
-                if (!email_Incomings::fetch(array("#threadId = '[#1#]' AND #state != 'rejected'", $tRec->id))) {
-                    // Ако няма други задачи
-                    if (!cal_Tasks::fetch(array("#id != [#1#] AND #threadId = '[#2#]' AND #state != 'rejected' AND #state != 'closed' AND #state != 'stopped' AND #state != 'draft'", $rec->id, $tRec->id))) {
-                        $tRec->state = 'closed';
-                        
-                        doc_Threads::save($tRec, 'state');
-                        doc_Threads::updateThread($tRec->id);
-                        
-                        doc_Threads::logWrite('Затвори нишка', $tRec->id);
-                        
-                        Mode::set('updateThreadState', FALSE);
-                    }
-                }
-            }
-        }
         
         if (isset($notifyUsersArr) && empty($notifyUsersArr)) return ;
         
@@ -2574,17 +2653,14 @@ class cal_Tasks extends embed_Manager
     {
         $msg = '';
         $removeOldNotify = FALSE;
-        $closeThread = FALSE;
         switch ($state) {
             case 'closed':
                 $msg = 'Приключена';
                 $removeOldNotify = TRUE;
-                $closeThread = TRUE;
             break;
             
             case 'stopped':
                 $msg = 'Спряна';
-                $closeThread = TRUE;
             break;
                 
             case 'wakeup':
@@ -2615,7 +2691,7 @@ class cal_Tasks extends embed_Manager
             $cu = core_Users::getCurrent();
             unset($notifyUsersArr[$cu]);
             
-            cal_Tasks::notifyForChanges($rec, $msg, $notifyUsersArr, $removeOldNotify, $closeThread);
+            cal_Tasks::notifyForChanges($rec, $msg, $notifyUsersArr, $removeOldNotify);
         }
         
         // Променяме времето
@@ -2965,28 +3041,6 @@ class cal_Tasks extends embed_Manager
         unset($nRec->workingTime);
         unset($nRec->timeCalc);
         $nRec->notifySent = 'no';
-    }
-    
-    
-    /**
-     * Реализация по подразбиране на интерфейсния метод ::getThreadState()
-     * 
-     * @param integer $id
-     * 
-     * @retun NULL|string
-     */
-    function getThreadState($id)
-    {
-        if (!$id) return ;
-        
-        if (Mode::get('updateThreadState') === FALSE) return ;
-        
-        $rec = $this->fetchRec($id);
-        
-        $Driver = $this->getDriver($rec);
-        $state = $Driver->getThreadState($rec);
-        
-        return $state;
     }
     
     

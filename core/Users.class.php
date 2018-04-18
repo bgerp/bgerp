@@ -1159,12 +1159,13 @@ class core_Users extends core_Manager
                                 'names' => core_Setup::get('SYSTEM_NAME')
                             );
         } elseif(($cond == self::ANONYMOUS_USER) && is_numeric($cond)) {
+            cls::load('core_Setup');
             $res = (object) array(
                                 'id' => self::ANONYMOUS_USER,
                                 'nick' => '@anonym',
                                 'state' => 'active',
-                                'names' => tr('Анонимен')
-                            );
+                    'names' => tr('Анонимен', 0, EF_DEFAULT_LANGUAGE)
+            );
         } else {
             $res = parent::fetch($cond, $fields, $cache);
         }
@@ -1183,12 +1184,18 @@ class core_Users extends core_Manager
         expect($part);
 
         $cRec = Mode::get('currentUserRec');
+        
+        if (is_null($cRec) && $part == 'nick') {
+
+            return '@anonymous';
+        }
+        
         if ($escaped) {
             $res = core_Users::getVerbal($cRec, $part);
         } elseif(is_object($cRec)) {
             $res = $cRec->$part;
         }
-
+        
         return $res;
     }
     
@@ -1564,7 +1571,7 @@ class core_Users extends core_Manager
     {
         $state = Users::getCurrent('state');
         
-        if (!$state == 'active') {
+        if (!Users::getCurrent() || !$state == 'active') {
             
             // Опитваме да получим адрес за връщане от заявката
             $retUrl = $retUrl ? $retUrl :  getCurrentUrl();

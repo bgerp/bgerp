@@ -42,7 +42,7 @@ class doc_AssignPlg extends core_Plugin
         if(!$mvc->fields['assign']) {
             
             // Добавяме в модела
-            $mvc->FLD('assign', 'keylist(mvc=core_Users, select=nick, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'caption=Възложен на, changable, before=sharedUsers');
+            $mvc->FLD('assign', 'keylist(mvc=core_Users, select=nick, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'caption=Възлагане на, changable, before=sharedUsers');
             // TODO - да не се показват колабораторите
         }
         

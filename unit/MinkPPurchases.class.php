@@ -1451,11 +1451,11 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('search', 'Доставчик');
         $browser->press('Филтрирай');
         $browser->click('Информация за перото');
-        
+       
         // ID на покупка 1, за да се избере при разпр. на разход 
-        $purId = "68";
+        //$purId = "69";
         //$purId = $purId .'.16';
-        $purId = '16';
+        
         //Покупка 2 - услуги
         //Отваряне папката на фирмата
         $browser = $this->SetFirm();
@@ -1482,10 +1482,12 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('packQuantity', '1');
         $browser->setValue('packPrice', '100');
         //избор на разходно перо и разпределение
-        $browser->setValue('expenseItemId', $purId);
+        //$browser->setValue('expenseItemId', $purId);
+        $browser->setValue('expenseItemId', 'Pur16/Фирма доставчик/Други стоки (goods) (16 pur)');
         $browser->refresh('Запис');
         $browser->setValue('allocationBy', 'value');
         $browser->refresh('Запис');
+        
         // Записване на артикула
         $browser->press('Запис');
         // активиране на Покупката

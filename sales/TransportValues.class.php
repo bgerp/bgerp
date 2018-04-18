@@ -13,10 +13,16 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class tcost_Calcs extends core_Manager
+class sales_TransportValues extends core_Manager
 {
 
 
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'tcost_Calcs';
+	
+	
 	/**
 	 * Масив за мапване на стойностите от мениджърите
 	 */
@@ -48,7 +54,7 @@ class tcost_Calcs extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "tcost_Wrapper";
+    public $loadList = "sales_Wrapper";
 
 
     /**
@@ -329,7 +335,7 @@ class tcost_Calcs extends core_Manager
      */
     public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat)
     {
-    	if(!haveRole('powerUser')) return $amountRow;
+    	if(!haveRole('powerUser') || !isset($amountRow)) return $amountRow;
     	
     	if($amountFee < 0){
     		$hint =  "Скритият транспорт не може да бъде изчислен: ";
@@ -437,11 +443,11 @@ class tcost_Calcs extends core_Manager
     	if(!cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) return NULL;
     	
     	// Пощенския код и ид-то на държавата
-    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($contragentClassId, $contragentId, $pCode, $countryId, $deliveryLocationId);
+    	$codeAndCountryArr = self::getCodeAndCountryId($contragentClassId, $contragentId, $pCode, $countryId, $deliveryLocationId);
     	
     	// Опит за изчисляване на транспорт
     	$totalWeight = cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingWeight');
-    	$feeArr = tcost_Calcs::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
+    	$feeArr = self::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
     	
     	return $feeArr;
     }
@@ -489,21 +495,31 @@ class tcost_Calcs extends core_Manager
     	$map = array_merge(self::$map, $map);
     	
     	// Имали вече начислен транспорт
-    	if($cRec = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)){
-    		$rec->fee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->fee;
-    		$rec->deliveryTimeFromFee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->deliveryTime;
+    	if($cRec = self::get($map['masterMvc'], $masterRec->id, $rec->id)){
+    		$rec->fee = self::get($map['masterMvc'], $masterRec->id, $rec->id)->fee;
+    		$rec->deliveryTimeFromFee = self::get($map['masterMvc'], $masterRec->id, $rec->id)->deliveryTime;
     	}
-    	$countryId = !empty($masterRec->{$map['countryId']}) ? $masterRec->{$map['countryId']} : NULL;
-    	$PCode = !empty($masterRec->pCode) ? $masterRec->pCode : NULL;
+ 
+        if($masterRec->deliveryAdress) {
+    	    if($parsePlace = drdata_Address::parsePlace($masterRec->deliveryAdress)){
+                $countryId = $parsePlace->countryId;
+    		    $PCode = $parsePlace->pCode;  
+    	    }
+        }
+
+        if(!$countryId)  {
+            $countryId = !empty($masterRec->{$map['countryId']}) ? $masterRec->{$map['countryId']} : NULL;
+            $PCode = !empty($masterRec->pCode) ? $masterRec->pCode : NULL;
+        }
     	
     	// Ако драйвера не иска да се начислява цената да не се начислява
     	if(isset($rec->{$map['productId']})){
     		$Driver = cat_Products::getDriver($rec->{$map['productId']});
     		if(!$Driver->canCalcTransportFee($rec->{$map['productId']})) return;
     	}
-    	
+    	 
     	// Колко е очаквания транспорт
-    	$feeArr = tcost_Calcs::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId, $PCode);
+    	$feeArr = self::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId, $PCode);
     	
     	// Ако има такъв към цената се добавя
     	if(is_array($feeArr)){

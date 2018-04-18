@@ -2855,12 +2855,12 @@ class fileman_Files extends core_Master
             // Ако не може да се създаде
             if(!mkdir($tempPath, 0777, TRUE)) {
                 
-                $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') . ': "' . $tempPath . '"</li>';
+                $res .= '<li class="debug-error">Не може да се създаде директорията: "' . $tempPath . '"</li>';
             } else {
-                $res .= '<li class="debug-new">' . tr('Създадена е директорията') . ': "' . $tempPath . '"</li>';
+                $res .= '<li class="debug-new">Създадена е директорията: "' . $tempPath . '"</li>';
             }
         } else {
-            $res .= '<li>' . tr('Директорията съществува') . ': "' . $tempPath . '"</li>';
+            $res .= '<li>Директорията съществува: "' . $tempPath . '"</li>';
         }
         
         return $res;

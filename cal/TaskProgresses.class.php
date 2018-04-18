@@ -13,6 +13,8 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * 
+ * @deprecated
  */
 class cal_TaskProgresses extends core_Detail
 {
@@ -81,7 +83,7 @@ class cal_TaskProgresses extends core_Detail
     /**
      * 
      */
-    public $canAdd = 'powerUser';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -104,16 +106,27 @@ class cal_TaskProgresses extends core_Detail
         // Колко време е отнело изпълнението?
         $this->FLD('workingTime', 'time(suggestions=10 мин.|30 мин.|60 мин.|2 часа|3 часа|5 часа|10 часа)',     'caption=Отработено време');
         
-        // Очакван край на задачата
-        $this->FLD('expectationTimeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 
-            'caption=Очакван край, silent');
-        
         // Статус съобщение
         $this->FLD('message',    'richtext(rows=5, bucket=calTasks)', 'caption=Съобщение');
         
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,column=none,input=none,notNull,forceField');
         
         $this->setDbIndex('createdOn');
+    }
+    
+    
+    /**
+     * Проверява дали има модел в БД
+     * 
+     * @return boolean
+     */
+    public static function isInstalled()
+    {
+        $Progresses = cls::get(get_called_class());
+        
+        if ($Progresses->db->tableExists($Progresses->dbTableName)) return TRUE;
+        
+        return FALSE;
     }
     
     
@@ -283,25 +296,6 @@ class cal_TaskProgresses extends core_Detail
     
     
     /**
-     * Ако няма записи не вади таблицата
-     *
-     * @param core_Mvc $mvc
-     * @param StdClass $res
-     * @param StdClass $data
-     */
-    static function on_BeforeRenderListTable($mvc, &$res, $data)
-    {
-    	if (count($data->recs)) {
-    		foreach ($data->rows as $row) {
-    			if ($row->expectationTimeEnd !== '') {
-    				$row->expectationTimeEnd = '';
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
      * Добавя след таблицата
      *
      * @param core_Mvc $mvc
@@ -362,7 +356,6 @@ class cal_TaskProgresses extends core_Detail
         $msg = 'Добавен прогрес към задачата';
         
         $removeOldNotify = FALSE;
-        $closeThread = FALSE;
         
         // Определяне на прогреса
         if(isset($rec->progress)) {
@@ -397,7 +390,6 @@ class cal_TaskProgresses extends core_Detail
                         $msg = 'Приключена е задачата';
                         
                         $removeOldNotify = TRUE;
-                        $closeThread = TRUE;
                     }
                 }
                 
@@ -422,7 +414,7 @@ class cal_TaskProgresses extends core_Detail
         
         $notifyUsersArr = type_Keylist::toArray($rec->notifyUsers);
         
-        cal_Tasks::notifyForChanges($tRec, $msg, $notifyUsersArr, $removeOldNotify, $closeThread);
+        cal_Tasks::notifyForChanges($tRec, $msg, $notifyUsersArr, $removeOldNotify);
         
         // Определяне на отработеното време
         if(isset($rec->workingTime) || ($rec->state == 'rejected')) {
@@ -471,9 +463,7 @@ class cal_TaskProgresses extends core_Detail
     		    $requiredRoles = 'no_one';
     		} else {
     		    $mRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-    		    if (!$mvc->Master->canAddProgress($mRec)) {
-    		        $requiredRoles = 'no_one';
-    		    }
+		        $requiredRoles = 'no_one';
     		}
     	}
     }

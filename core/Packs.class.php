@@ -728,89 +728,35 @@ class core_Packs extends core_Manager
     
     
     /**
-     * Проверява:
+     * Проверява дали сетъпваме на празна база
+     *
      * (1) дали таблицата на този модел съществува
      * (2) дали е установен пакета 'core'
      * (3) дали е установен пакета EF_APP_CODE_NAME
      * което и да не е изпълнено - предизвиква начално установяване
+     *
+     * @return bool
      */
-    function checkSetup()
+    public static function isFirstSetup()
     {
-        static $semafor;
+        static $res;
         
-        if($semafor) return;
-        
-        $semafor = TRUE;
-        
-        if (!$this->db->tableExists($this->dbTableName)) {
-            $this->firstSetup();
-        } elseif (!$this->fetch("#name = 'core'") ||
-            (!$this->fetch("#name = '" . EF_APP_CODE_NAME . "'") && cls::load(EF_APP_CODE_NAME . "_Setup", TRUE))) {
-            $this->firstSetup();
-        } else {
+        $me = cls::get('core_Packs');
 
-            return TRUE;
-        }
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function act_Setup()
-    {
-        $this->logWrite('Сетъп на системата');
-        
-        if (isDebug()) {
-            return $this->firstSetup(array('Index'));
-        }
-    }
-    
-    
-    /**
-     * Тази функция получава управлението само след първото стартиране
-     * на системата. Нейната задача е да направи начално установяване
-     * на ядрото на системата и заглавния пакет от приложението
-     */
-    function firstSetup($nextUrl = NULL)
-    {
-        $res = $this->setupPack('core');
-        
-        $res .= $this->setupPack(EF_APP_CODE_NAME);
-        
-        $html = "<html><head>";
-        
-        // Редиректваме към Users->add, с връщане към текущата страница
-        $Users = cls::get('core_Users');
-        
-        if (!$nextUrl) {
-            // Ако нямаме нито един потребител, редиректваме за добавяне на администратор
-            if(!$Users->fetch('1=1')) {
-                $url = array('core_Users', 'add', 'ret_url' => TRUE);
-            } else {
-                $url = getCurrentUrl();
-            }
+        if(isset($res)) return $res;
+      
+        if (!$me->db->tableExists($me->dbTableName)) {
+            $res = TRUE;
+        } elseif (!$me->fetch("#name = 'core'") || (!$me->fetch("#name = '" . EF_APP_CODE_NAME . "'") && cls::load(EF_APP_CODE_NAME . "_Setup", TRUE))) {
+            $res = TRUE;
         } else {
-            $url = $nextUrl;
+            $res = FALSE;
         }
 
-        $url = toUrl($url);
-        
-        $html .= "<meta http-equiv='refresh' content='15;url={$url}' />";
-        
-        $html .= "<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />";
-        $html .= "</head><body>";
-        
-        $html .= $res;
-        
-        $html .= "</body></html>";
-        
-        echo $html;
-        
-        shutdown();
+        return $res;
     }
-    
-    
+
+
     /**
      * Прави начално установяване на посочения пакет. Ако в
      * Setup-а на пакета е указано, че той зависи от други пакети
@@ -825,6 +771,7 @@ class core_Packs extends core_Manager
         
         DEBUG::startTimer("Инсталиране на пакет '{$pack}'");
         
+
         // Имената на пакетите са винаги с малки букви
         $pack = strtolower($pack);
         
@@ -923,7 +870,6 @@ class core_Packs extends core_Manager
             }
 
             Request::pop('full');
-
             // Де-форсираме системния потребител
             core_Users::cancelSystemUser();
             
@@ -970,7 +916,8 @@ class core_Packs extends core_Manager
 			
 			unset($res);
         }
-        
+
+
         DEBUG::stopTimer("Инициализация на пакет '{$pack}'");
         
         if ($setupFlag && $pack == 'bgerp') {

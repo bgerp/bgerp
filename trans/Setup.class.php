@@ -59,7 +59,8 @@ class trans_Setup extends core_ProtoSetup
             'trans_Vehicles',
     		'trans_Lines',
     		'trans_Cmrs',
-    		'migrate::updateVehicles'
+    		'migrate::updateVehicles',
+    		'migrate::updateLineVehicles'
         );
 
         
@@ -108,5 +109,28 @@ class trans_Setup extends core_ProtoSetup
     		$rec->state = 'active';
     		trans_Vehicles::save($rec, 'state');
     	}
+    }
+    
+    
+    /**
+     * Обновява транспортните линии
+     */
+    function updateLineVehicles()
+    {
+    	$Lines = cls::get('trans_Lines');
+    	$Lines->setupMvc();
+    	
+    	$query = trans_Lines::getQuery();
+    	$query->where("#vehicle IS NOT NULL");
+    	
+    	while($rec = $query->fetch()){
+    		if(is_numeric($rec->vehicle)){
+    			if($name = trans_Vehicles::fetchField($rec->vehicle, 'name')){
+    				$rec->vehicle = $name;
+    				$Lines->save($rec, 'vehicle');
+    			}
+    		}
+    	}
+    	
     }
 }
