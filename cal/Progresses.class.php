@@ -203,8 +203,8 @@ class cal_Progresses extends core_Mvc
             $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
         }
         
-        if ($row->progressType || $row->progressType) {
-            $resArr['progressType'] =  array('name' => tr('Тип'), 'val' =>"[#progressType#]");
+        if ($row->ProgressType || $row->ProgressType) {
+            $resArr['ProgressType'] =  array('name' => tr('Тип'), 'val' =>"[#ProgressType#]");
         }
         
         if ($row->workingTime) {
@@ -365,6 +365,8 @@ class cal_Progresses extends core_Mvc
         
         $row->progress = "<span style='color:{$grey};{$bold}'>{$row->progress}</span>";
         
+        $row->ProgressStr = $row->progress;
+        
         // Показване на типа на прогреса
         if ($rec->originId) {
             
@@ -386,7 +388,9 @@ class cal_Progresses extends core_Mvc
             $pValStr = $progressArr[$pVal];
             
             if ($pValStr && ($pValStr != $pVal)) {
-                $row->progressType .= $pValStr;
+                $row->ProgressType = $pValStr;
+                
+                $row->ProgressStr .= ' (' . $pValStr . ')';
             }
         }
     }
