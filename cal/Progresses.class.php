@@ -35,7 +35,7 @@ class cal_Progresses extends core_Mvc
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес,after=body, mandatory');
+        $fieldset->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес,after=body, mandatory, changable');
         $fieldset->FLD('workingTime', 'time(suggestions=10 мин.|30 мин.|60 мин.|2 часа|3 часа|5 часа|10 часа)', 'caption=Отработено време,after=progress, changable');
     }
     
@@ -149,6 +149,12 @@ class cal_Progresses extends core_Mvc
             if ($tDoc->instance instanceof cal_Tasks) {
                 $touchRec = TRUE;
             }
+        }
+        
+		// При промяна на прогрес
+        if ($rec->__isBeingChanged) {
+            $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
+            $Driver->updateTaskProgress($rec, $lGoodProgress);
         }
         
         // Променяме общото отработено време на задачата
