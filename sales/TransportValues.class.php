@@ -434,7 +434,7 @@ class sales_TransportValues extends core_Manager
     	$amount = 0;
     	
     	// Ще се гледат само отбелязаните артикули, като транспорт
-    	$transportArr = keylist::toArray(tcost_Setup::get('TRANSPORT_PRODUCTS_ID'));
+    	$transportArr = keylist::toArray(sales_Setup::get('TRANSPORT_PRODUCTS_ID'));
     	$query->in($productFld, $transportArr);
     	
     	// За всеки намерен, сумата му се събира
