@@ -177,6 +177,8 @@ class cal_Progresses extends core_Mvc
                 }
                 
                 $tDoc->instance->save($tRec, 'workingTime');
+            } else {
+                $touchRec = FALSE;
             }
         }
         
