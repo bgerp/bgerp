@@ -166,6 +166,7 @@ class tcost_FeeZones extends core_Master
      * @param double $singleWeight   - тегло
      * @param double $singleVolume   - обем
      * @param int $totalWeight       - Общо тегло на товара
+     * @param int $totalVolume       - Общ обем на товара
      * @param int $toCountry         - id на страната на мястото за получаване
      * @param string $toPostalCode   - пощенски код на мястото за получаване
      * @param int $fromCountry       - id на страната на мястото за изпращане
@@ -175,12 +176,13 @@ class tcost_FeeZones extends core_Master
      * 			['fee']              - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
      * 			['deliveryTime']     - срока на доставка в секунди ако го има
      */
-    public function getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
+    public function getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $totalVolume, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
     	$singleWeight = $this->getVolumicWeight($singleWeight, $singleVolume);
     	
     	// Ако няма, цената няма да може да се изчисли
     	if(empty($singleWeight)) return array('fee' => cond_TransportCalc::EMPTY_WEIGHT_ERROR);
+    	$totalWeight = $this->getVolumicWeight($totalWeight, $totalVolume);
     	
     	// Опит за калкулиране на цена по посочените данни
     	$fee = tcost_Fees::calcFee($deliveryTermId, $toCountry, $toPostalCode, $totalWeight, $singleWeight);

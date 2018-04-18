@@ -1194,12 +1194,12 @@ class sales_Sales extends deals_DealMaster
     	$products = $query->fetchAll();
     	
     	// Изчисляване на общото тегло на офертата
-    	$totalWeight = sales_TransportValues::getTotalWeight($products, $TransportCalc);
+    	$total = sales_TransportValues::getTotalWeightAndVolume($products);
     	$codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, NULL, NULL, $rec->deliveryLocationId ? $rec->deliveryLocationId : $rec->deliveryAdress);
     	
     	// За всеки артикул се изчислява очаквания му транспорт
     	foreach ($products as $p2){
-    		$fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
+    		$fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total['weight'], $total['volume'], $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
     		
     		// Сумира се, ако е изчислен
     		if(is_array($fee) && $fee['totalFee'] > 0){
