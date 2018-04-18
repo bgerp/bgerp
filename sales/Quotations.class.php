@@ -161,7 +161,7 @@ class sales_Quotations extends core_Master
     	'others'              => 'lastDocUser|lastDoc',
         'deliveryTermId'      => 'clientCondition|lastDocUser|lastDoc',
         'deliveryPlaceId'     => 'lastDocUser|lastDoc|',
-        'company'             => 'lastDocUser|lastDoc|clientData',
+        'company'             => 'clientData',
     	'pCode' 		      => 'clientData',
     	'place' 		      => 'clientData',
     	'address' 		      => 'clientData',
