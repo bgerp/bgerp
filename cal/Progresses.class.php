@@ -203,6 +203,10 @@ class cal_Progresses extends core_Mvc
             $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
         }
         
+        if ($row->progressType || $row->progressType) {
+            $resArr['progressType'] =  array('name' => tr('Тип'), 'val' =>"[#progressType#]");
+        }
+        
         if ($row->workingTime) {
             $resArr['workingTime'] =  array('name' => tr('Отработено време'), 'val' =>"[#workingTime#]");
         }
@@ -360,6 +364,31 @@ class cal_Progresses extends core_Mvc
         }
         
         $row->progress = "<span style='color:{$grey};{$bold}'>{$row->progress}</span>";
+        
+        // Показване на типа на прогреса
+        if ($rec->originId) {
+            
+            $doc = doc_Containers::getDocument($rec->originId);
+            $tRec = $doc->fetch();
+            
+            $tDriver = $doc->getDriver();
+            
+            if ($tDriver) {
+                $progressArr = $tDriver->getProgressSuggestions($tRec);
+            } else {
+                $progressArr = array();
+            }
+            
+            Mode::push('text', 'plain');
+            $pVal = $doc->instance->fields['progress']->type->toVerbal($rec->progress);
+            Mode::pop('text');
+            
+            $pValStr = $progressArr[$pVal];
+            
+            if ($pValStr && ($pValStr != $pVal)) {
+                $row->progressType .= $pValStr;
+            }
+        }
     }
     
     
