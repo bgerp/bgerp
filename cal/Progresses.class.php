@@ -352,14 +352,14 @@ class cal_Progresses extends core_Mvc
     
     
     /**
-     * След подготовка на сингъла
+     * Преди подготовка на сингъла
      * 
      * @param cal_Progresses $Driver
      * @param doc_Comments $mvc
      * @param stdClass $res
      * @param stdClass $data
      */
-    public static function on_AfterPrepareSingle($Driver, $mvc, &$res, $data)
+    public static function on_BeforePrepareSingle($Driver, $mvc, &$res, $data)
     {
         $mvc->singleTitle = 'Прогрес';
     }
