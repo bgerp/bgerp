@@ -110,7 +110,7 @@ class eshop_Products extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'eshop_CartDetails';
+    public $details = 'eshop_ProductDetails';
     
     
     /**
