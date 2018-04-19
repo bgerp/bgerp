@@ -80,8 +80,8 @@ class eshop_Settings extends core_Manager
     	$this->FLD('objectId', 'int', 'caption=Обект,mandatory');
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащания->Валута');
     	$this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащания->ДДС режим');
-    	$this->FLD('payments', 'keylist(mvc=eshop_Payments,select=title)', 'caption=Общи данни->Плащане');
-    	$this->FLD('terms', 'keylist(mvc=eshop_DeliveryTerms,select=title)', 'caption=Общи данни->Доставка');
+    	$this->FLD('payments', 'keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Общи данни->Плащане');
+    	$this->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Общи данни->Доставка');
     	$this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Общи данни->Политика');
     	$this->FLD('info', 'richtext(rows=3)', 'caption=Общи данни->Текст');
     	$this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime)', 'caption=В сила->От,remember');

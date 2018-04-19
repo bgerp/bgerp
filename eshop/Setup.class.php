@@ -61,10 +61,8 @@ class eshop_Setup extends core_ProtoSetup
     var $managers = array(
             'eshop_Groups',
             'eshop_Products',
-    		'eshop_Payments',
     		'eshop_Settings',
     		'eshop_DeliveryTimes',
-    		'eshop_DeliveryTerms',
     		'eshop_ProductDetails',
     		'eshop_Carts',
     		'eshop_CartDetails',
@@ -93,12 +91,6 @@ class eshop_Setup extends core_ProtoSetup
             'ESHOP_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
             'ESHOP_MIN_GROUPS_FOR_NAVIGATION' => array ('int', 'caption=Минимален брой групи за навигация->Брой'),
 	);
-
-    
-	/**
-	 * Дефинирани класове, които имат интерфейси
-	 */
-	public $defClasses = "eshop_interfaces_Cod,eshop_interfaces_FreeDelivery";
 	
 	
     /**
