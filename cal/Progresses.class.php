@@ -35,7 +35,7 @@ class cal_Progresses extends core_Mvc
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес,after=body, mandatory, changable');
+        $fieldset->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес,after=body, changable');
         $fieldset->FLD('workingTime', 'time(suggestions=10 мин.|30 мин.|60 мин.|2 часа|3 часа|5 часа|10 часа)', 'caption=Отработено време,after=progress, changable');
     }
     
@@ -63,6 +63,8 @@ class cal_Progresses extends core_Mvc
      */
     static function on_AfterPrepareEditForm($Driver, $mvc, &$data)
     {
+        $mvc->singleTitle = 'Прогрес';
+        
         $rec = $data->form->rec;
         
         if ($originId = $rec->originId) {
@@ -139,12 +141,14 @@ class cal_Progresses extends core_Mvc
                 $tRec->workingTime = 0;
                 
                 // Това е за да се вземе времената от старите прогреси
-                $query = cal_TaskProgresses::getQuery();
-                $query->where("#taskId = {$tRec->id}");
-                $query->where("#state != 'rejected'");
-                $query->XPR('workingTimeSum', 'int', 'sum(#workingTime)');
-                $query->show('workingTimeSum');
-                $tRec->workingTime = (int)$query->fetch()->workingTimeSum;
+                if (cal_TaskProgresses::isInstalled()) {
+                    $query = cal_TaskProgresses::getQuery();
+                    $query->where("#taskId = {$tRec->id}");
+                    $query->where("#state != 'rejected'");
+                    $query->XPR('workingTimeSum', 'int', 'sum(#workingTime)');
+                    $query->show('workingTimeSum');
+                    $tRec->workingTime = (int)$query->fetch()->workingTimeSum;
+                }
                 
                 // Да се вземе времената на новите прогреси
                 $query = doc_Comments::getQuery();
@@ -184,10 +188,6 @@ class cal_Progresses extends core_Mvc
         
         if ($row->progressBar || $row->progress) {
             $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
-        }
-        
-        if ($row->ProgressType || $row->ProgressType) {
-            $resArr['ProgressType'] =  array('name' => tr('Тип'), 'val' =>"[#ProgressType#]");
         }
         
         if ($row->workingTime) {
@@ -352,6 +352,20 @@ class cal_Progresses extends core_Mvc
     
     
     /**
+     * Преди подготовка на сингъла
+     * 
+     * @param cal_Progresses $Driver
+     * @param doc_Comments $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_BeforePrepareSingle($Driver, $mvc, &$res, $data)
+    {
+        $mvc->singleTitle = 'Прогрес';
+    }
+    
+    
+    /**
      * Подготвяне на вербалните стойности
      * 
      * @param cal_Progresses $Driver
@@ -361,28 +375,6 @@ class cal_Progresses extends core_Mvc
      */
     function on_AfterRecToVerbal($Driver, $mvc, $row, $rec)
     {
-        $grey = new color_Object("#bbb");
-        $blue = new color_Object("#2244cc");
-        
-        $progressPx = min(100, round(100 * $rec->progress));
-        $progressRemainPx = 100 - $progressPx;
-        $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
-        
-        $bold = '';
-        if($rec->progress) {
-            $grey->setGradient($blue, $rec->progress);
-            
-            $lastTime = bgerp_Recently::getLastDocumentSee($rec);
-            if($lastTime < $rec->modifiedOn) {
-                $bold = 'font-weight:bold;';
-            }
-            
-        }
-        
-        $row->progress = "<span style='color:{$grey};{$bold}'>{$row->progress}</span>";
-        
-        $row->ProgressStr = $row->progress;
-        
         // Показване на типа на прогреса
         if ($rec->originId) {
             
@@ -404,9 +396,7 @@ class cal_Progresses extends core_Mvc
             $pValStr = $progressArr[$pVal];
             
             if ($pValStr && ($pValStr != $pVal)) {
-                $row->ProgressType = $pValStr;
-                
-                $row->ProgressStr .= ' (' . $pValStr . ')';
+                $row->progress .= ' (' . $pValStr . ')';
             }
         }
     }

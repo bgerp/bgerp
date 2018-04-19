@@ -8,7 +8,7 @@
 Общи условия,cond_type_Url,commonConditionPur,Покупка,,
 Други условия към фактура,cond_type_Text,invoiceText,,
 Очаквано тегло на доставка (кг),cond_type_Double,calcShippingWeight,Продажба,,
-Очакван обем на доставка (кг),cond_type_Double,calcShippingVolume,Продажба,,
+Очакван обем на доставка (куб.м),cond_type_Double,calcShippingVolume,Продажба,,
 Склад,cond_type_Store,defaultStoreSale,Продажба,,
 Склад,cond_type_Store,defaultStorePurchase,Покупка,,
 Политика за делта,cond_type_PriceList,deltaList,Продажба,,

@@ -699,7 +699,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		 
     		foreach (array('contragentVatNo', 'uicNo') as $numFld){
     			if(!empty($rec->{$numFld})){
-    				if(!preg_match("/^[a-zA-Z0-9_]*$/iu", $rec->{$numFld})){
+    				if(!preg_match("/^[a-zA-Zа-яА-Я0-9_]*$/iu", $rec->{$numFld})){
     					$form->setError($numFld, 'Лоши символи в номера');
     				}
     			}

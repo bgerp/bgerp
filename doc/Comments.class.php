@@ -199,21 +199,9 @@ class doc_Comments extends embed_Manager
     public function prepareEditForm_($data)
     {
         if (!Request::get($this->driverClassField) && !Request::get('id')) {
-            
             $dClsId = doc_ExpandComments::getClassId();
             
-            if ($originId = Request::get('originId')) {
-                $doc = doc_Containers::getDocument($originId);
-                if ($doc->instance instanceof cal_Tasks) {
-                    $dClsId = cal_Progresses::getClassId();
-                } else {
-                    $data->HideDriver = TRUE;
-                }
-            } else {
-                $data->HideDriver = TRUE;
-            }
-            
-            Request::push(array($this->driverClassField => $dClsId));
+			Request::push(array($this->driverClassField => $dClsId));
         }
         
         return parent::prepareEditForm_($data);
@@ -225,9 +213,7 @@ class doc_Comments extends embed_Manager
      */
     static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if ($data->HideDriver) {
-            $data->form->setField($mvc->driverClassField, 'input=hidden');
-        }
+        $data->form->setField($mvc->driverClassField, 'input=hidden');
         
         // Да се цитират документа, ако не се редактира
         if (!$data->form->rec->id) { 

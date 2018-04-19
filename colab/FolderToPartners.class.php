@@ -593,29 +593,40 @@ class colab_FolderToPartners extends core_Manager
                 $form->setOptions('personId', $pOpt);
             }
         }
-
-    	
-    	// Задаваме дефолтните роли
-    	$defRoles = array();
-    	foreach (array('partner') as $role){
-    		$id = core_Roles::fetchByName($role);
-    		$defRoles[$id] = $id;
-    	}
     	
     	$form->setDefault('roleRank', core_Roles::fetchByName('partner'));
     	$Users->invoke('AfterPrepareEditForm', array((object)array('form' => $form), (object)array('form' => $form)));
     	$form->setDefault('state', 'active');
-    	$form->setField('roleRank', 'input=hidden');
+    	$form->setField('roleRank', 'input=none');
     	$form->setField('roleOthers', "caption=Достъп за външен потребител->Роли");
     	
     	if(!$Users->haveRightFor('add')){
-    		$form->setField('rolesInput', 'input=hidden');
-    		$form->setField('roleOthers', 'input=hidden');
-    		$form->setField('state', 'input=hidden');
+    		$form->setField('rolesInput', 'input=none');
+    		$form->setField('roleOthers', 'input=none');
+    		$form->setField('state', 'input=none');
+    	}
+    	
+    	// Задаваме дефолтните роли
+    	$dRolesArr = array('partner');
+    	try {
+    	    $autoCreateQuote = cond_Parameters::getParameter(crm_Companies::getClassId(), $companyId, 'autoCreateQuote');
+    	    
+    	    if ($autoCreateQuote == 'yes') {
+    	        $dRolesArr[] = 'agent';
+    	    }
+    	} catch (core_exception_Expect $e) {
+    	    reportException($e);
+    	}
+    	$defRoles = array();
+    	foreach ($dRolesArr as $role){
+    	    $id = core_Roles::fetchByName($role);
+    	    $defRoles[$id] = $id;
+    	}
+    	if (!empty($defRoles)) {
+    	    $form->setDefault('roleOthers', $defRoles);
     	}
     	
     	$form->input();
-    	$form->rec->rolesInput = keylist::fromArray($defRoles);
     	
     	if($form->isSubmitted()){
     		if(!$Users->isUnique($form->rec, $fields)){
@@ -626,8 +637,7 @@ class colab_FolderToPartners extends core_Manager
     	$Users->invoke('AfterInputEditForm', array(&$form));
     	
     	// След събмит ако всичко е наред създаваме потребител, лице и профил
-    	if($form->isSubmitted()){
-    		
+    	if ($form->isSubmitted()) {
     		$uId = $Users->save($form->rec);
     		$personId = crm_Profiles::fetchField("#userId = {$uId}", 'personId');
     		$personRec = crm_Persons::fetch($personId);
