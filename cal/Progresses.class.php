@@ -35,7 +35,7 @@ class cal_Progresses extends core_Mvc
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес,after=body, mandatory, changable');
+        $fieldset->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес,after=body, changable');
         $fieldset->FLD('workingTime', 'time(suggestions=10 мин.|30 мин.|60 мин.|2 часа|3 часа|5 часа|10 часа)', 'caption=Отработено време,after=progress, changable');
     }
     
@@ -63,6 +63,8 @@ class cal_Progresses extends core_Mvc
      */
     static function on_AfterPrepareEditForm($Driver, $mvc, &$data)
     {
+        $mvc->singleTitle = 'Прогрес';
+        
         $rec = $data->form->rec;
         
         if ($originId = $rec->originId) {
@@ -364,9 +366,11 @@ class cal_Progresses extends core_Mvc
         $grey = new color_Object("#bbb");
         $blue = new color_Object("#2244cc");
         
-        $progressPx = min(100, round(100 * $rec->progress));
-        $progressRemainPx = 100 - $progressPx;
-        $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
+        if (isset($rec->progress)) {
+            $progressPx = min(100, round(100 * $rec->progress));
+            $progressRemainPx = 100 - $progressPx;
+            $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
+        }
         
         $bold = '';
         if($rec->progress) {
@@ -376,10 +380,11 @@ class cal_Progresses extends core_Mvc
             if($lastTime < $rec->modifiedOn) {
                 $bold = 'font-weight:bold;';
             }
-            
         }
         
-        $row->progress = "<span style='color:{$grey};{$bold}'>{$row->progress}</span>";
+        if ($row->progress) {
+            $row->progress = "<span style='color:{$grey};{$bold}'>{$row->progress}</span>";
+        }
         
         $row->ProgressStr = $row->progress;
         
