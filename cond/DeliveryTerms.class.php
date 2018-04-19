@@ -119,7 +119,7 @@ class cond_DeliveryTerms extends core_Master
         $this->FLD('forSeller', 'text', 'caption=За продавача');
         $this->FLD('forBuyer', 'text', 'caption=За купувача');
         $this->FLD('transport', 'text', 'caption=Транспорт');
-        $this->FLD('costCalc', 'class(interface=tcost_CostCalcIntf,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
+        $this->FLD('costCalc', 'class(interface=cond_TransportCalc,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
         $this->FLD('calcCost', 'enum(yes=Включено,no=Изключено)', 'caption=Изчисляване на транспортна себестойност->Скрито,notNull,value=no');
         $this->FLD('address', 'enum(none=Без,receiver=Локацията на получателя,supplier=Локацията на доставчика)', 'caption=Показване на мястото на доставка->Избор,notNull,value=none,default=none');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
@@ -169,15 +169,13 @@ class cond_DeliveryTerms extends core_Master
      * Връща имплементация на драйвера за изчисляване на транспортната себестойност
      * 
      * @param mixed $id - ид, запис или NULL
-     * @return tcost_CostCalcIntf|NULL
+     * @return cond_TransportCalc|NULL
      */
-    public static function getCostDriver($id)
+    public static function getTransportCalculator($id)
     {
     	if(!empty($id)){
     		$rec = self::fetchRec($id);
-    		if(cls::load($rec->costCalc, TRUE)){
-    			return cls::getInterface('tcost_CostCalcIntf', $rec->costCalc);
-    		}
+    		if(cls::load($rec->costCalc, TRUE)) return cls::getInterface('cond_TransportCalc', $rec->costCalc);
     	}
     	
     	return NULL;

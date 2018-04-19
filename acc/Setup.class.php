@@ -130,8 +130,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_FeatureTitles',
         'acc_CostAllocations',
         'migrate::removeUnusedRole',
-        'migrate::recalcAllGlobalRole',
-        'migrate::fixRepRoles'
+        'migrate::recalcAllGlobalRole'
     );
     
 
@@ -389,6 +388,8 @@ class acc_Setup extends core_ProtoSetup
             $this->getCostObjectDocuments();
             $res .= "<li style='color:green'>Добавени са дефолт документи за разходни пера</li>";
         }
+        
+        $res .= $this->callMigrate('fixRepRoles', 'acc');
         
         return $res;
     }

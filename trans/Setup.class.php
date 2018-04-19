@@ -117,6 +117,11 @@ class trans_Setup extends core_ProtoSetup
      */
     function updateLineVehicles()
     {
+    	foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_Transfers', 'store_ConsignmentProtocols') as $Doc){
+    		$D = cls::get($Doc);
+    		$D->setupMvc();
+    	}
+    	
     	$Lines = cls::get('trans_Lines');
     	$Lines->setupMvc();
     	
@@ -131,6 +136,5 @@ class trans_Setup extends core_ProtoSetup
     			}
     		}
     	}
-    	
     }
 }

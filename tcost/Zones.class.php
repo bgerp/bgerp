@@ -106,7 +106,7 @@ class tcost_Zones extends core_Detail
      * @param int $countryId - id на съотверната държава
      * @param string $pCode - пощенски код
      * 
-     * @return array
+     * @return NULL|array
      * 			['zoneId']       - id на намерената зона
      * 			['zoneName']     - име на намерената зона
      * 			['deliveryTime'] - срок на доставка (ако има)

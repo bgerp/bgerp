@@ -7,7 +7,7 @@
  *
  *
  * @category  bgerp
- * @package   tcost
+ * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
@@ -120,20 +120,30 @@ class sales_TransportValues extends core_Manager
      * @param int $packagingId     - ид на опаковка
      * @param double $quantity     - к-во
      * @param double $totalWeight  - общо тегло   
+     * @param double $totalVolume  - общ обем
      * @param int $toCountryId     - ид на държава
-     * @param string $toPcodeId   - пощенски код
-     * @return FALSE|array $res         - информация за цената на транспорта или NULL, ако няма
+     * @param string $toPcodeId    - пощенски код
+     * @return FALSE|array $res       - информация за цената на транспорта или NULL, ако няма
      * 					['totalFee']  - обща сума на целия транспорт, в основна валута без ДДС
      * 					['singleFee'] - цената от транспорта за 1-ца от артикула, в основна валута без ДДС
      */
-    public static function getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $toCountryId, $toPcodeId)
+    public static function getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $totalVolume, $toCountryId, $toPcodeId)
     {
     	// Имали в условието на доставка, драйвер за изчисляване на цени?
-    	$TransportCostDriver = cond_DeliveryTerms::getCostDriver($deliveryTermId);
+    	$TransportCostDriver = cond_DeliveryTerms::getTransportCalculator($deliveryTermId);
     	if(!is_object($TransportCostDriver)) return FALSE;
     	
-    	$ourCompany = crm_Companies::fetchOurCompany();	 
-    	$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
+    	$ourCompany = crm_Companies::fetchOurCompany();
+    	$weight = cat_Products::getTransportWeight($productId, $quantity);
+    	$volume = cat_Products::getTransportVolume($productId, $quantity);
+    	 
+    	if(empty($weight) && isset($weight) && empty($volume)) {
+    		$totalFee = NULL;
+    	} else {
+    		$totalWeight = self::normalizeTotalWeight($totalWeight, $productId, $TransportCostDriver);
+    		$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $weight, $volume, $totalWeight, $totalVolume, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
+    	}
+    	
     	$fee = $totalFee['fee'];
     	
     	$res = array('totalFee' => $fee);
@@ -146,6 +156,57 @@ class sales_TransportValues extends core_Manager
     		$res['deliveryTime'] = $totalFee['deliveryTime'];
     	}
     	
+    	return $res;
+    }
+    
+    
+    /**
+     * Нормализира общото тегло
+     * 
+     * @param double $totalWeight
+     * @param double $totalWeight
+     * @param cond_TransportCalc $TransportCostDriver
+     */
+    private static function normalizeTotalWeight($totalWeight, $productId, cond_TransportCalc $TransportCostDriver)
+    {
+    	// Ако продукта има параметър със сис ид aggregateQuantity, то взема общото влуметрично тегло и го сравнява с $totalWeight
+    	$aggregateQuantityId = cat_Params::force('aggregateQuantity', 'Обобщено количество', 'double', NULL, '');
+    	$aggregateQuantity   = cat_Products::getParams($productId, $aggregateQuantityId);
+    	
+    	if($aggregateQuantity > 0) {
+    		$aggregateWeight = cat_Products::getTransportWeight($productId, $aggregateQuantity);
+    		$aggregateVolume    = cat_Products::getTransportVolume($productId, $aggregateQuantity);
+    		if($aggregateWeight && $aggregateVolume) {
+    			$aggregateWeight = $TransportCostDriver->getVolumicWeight($aggregateWeight, $aggregateVolume);
+    		}
+    		if($aggregateWeight > $totalWeight) {
+    			$totalWeight = $aggregateWeight;
+    		}
+    	}
+    	
+    	return $totalWeight;
+    }
+    
+    
+    /**
+     * Връща теглото и обема
+     * 
+     * @param int $productId
+     * @param int $packagingId
+     * @param double $quantity
+     * @return array $res
+     */
+    public static function getWeightAndVolume($productId, $packagingId, $quantity)
+    {
+    	$res = array();
+    	
+    	// Колко е еденичното транспортно тегло на артикула
+    	$res['weight'] = cat_Products::getTransportWeight($productId, $quantity);
+    	$res['volume'] = cat_Products::getTransportVolume($productId, $quantity);
+    	 
+    	// Ако теглото е 0 и няма обем, да не се изчислява транспорт
+    	if(empty($res['weight']) && isset($res['weight']) && empty($res['volume'])) return array();
+    	 
     	return $res;
     }
     
@@ -339,9 +400,9 @@ class sales_TransportValues extends core_Manager
     	
     	if($amountFee < 0){
     		$hint =  "Скритият транспорт не може да бъде изчислен: ";
-    		if($amountFee == tcost_CostCalcIntf::ZONE_FIND_ERROR){
+    		if($amountFee == cond_TransportCalc::ZONE_FIND_ERROR){
     			$hint .= "липсваща зона";
-    		} elseif($amountFee == tcost_CostCalcIntf::EMPTY_WEIGHT_ERROR){
+    		} elseif($amountFee == cond_TransportCalc::EMPTY_WEIGHT_ERROR){
     			$hint .= "няма транспортно тегло";
     		} else {
     			$hint .= "({$amountFee})";
@@ -376,7 +437,7 @@ class sales_TransportValues extends core_Manager
     	$amount = 0;
     	
     	// Ще се гледат само отбелязаните артикули, като транспорт
-    	$transportArr = keylist::toArray(tcost_Setup::get('TRANSPORT_PRODUCTS_ID'));
+    	$transportArr = keylist::toArray(sales_Setup::get('TRANSPORT_PRODUCTS_ID'));
     	$query->in($productFld, $transportArr);
     	
     	// За всеки намерен, сумата му се събира
@@ -397,30 +458,28 @@ class sales_TransportValues extends core_Manager
     
     
     /**
-     * Връща общото тегло на масив с артикули
+     * Връща общото тегло и общия обем на масив с артикули
      * 
-     * @param array $products - масив с артикули
-     * @param tcost_CostCalcIntf $TransportCalc - интерфейс за изчисляване на транспортна цена
-     * @param string $productFld - поле съдържащо ид-то на артикул
-     * @param string $quantityFld - поле съдържащо количеството на артикул
-     * @return double $totalWeight - общото тегло
+     * @param array $products      - масив с артикули
+     * @param string $productFld   - поле съдържащо ид-то на артикул
+     * @param string $quantityFld  - поле съдържащо количеството на артикул
+     * @return double $res 
+     * 				['weight']     - общо тегло
+     * 				['volume']     - общ обем
      */
-    public static function getTotalWeight($products,tcost_CostCalcIntf $TransportCalc, $productFld = 'productId', $quantityFld = 'quantity',  $packagingFld = 'packagingId')
+    public static function getTotalWeightAndVolume($products, $productFld = 'productId', $quantityFld = 'quantity',  $packagingFld = 'packagingId')
     {
-    	$totalWeight = 0;
-    	if(!is_array($products)) return $totalWeight;
+    	$res = array('weight' => 0, 'volume' => 0);
+    	if(!is_array($products)) return $res;
     	
     	// За всеки артикул в масива
     	foreach ($products as $p1){
-    		
-    		// Намира се обемното му тегло и се съдържа
-    		$singleWeight = cat_Products::getTransportWeight($p1->{$productFld}, $p1->{$quantityFld});
-    		$singleVolume = cat_Products::getTransportVolume($p1->{$productFld}, $p1->{$quantityFld});
-    		$totalWeight += $TransportCalc->getVolumicWeight($singleWeight, $singleVolume);
+    		$res['weight'] += cat_Products::getTransportWeight($p1->{$productFld}, $p1->{$quantityFld});
+    		$res['volume'] += cat_Products::getTransportVolume($p1->{$productFld}, $p1->{$quantityFld});
     	}
     	
     	// Връщане на общото тегло
-    	return $totalWeight;
+    	return $res;
     }
     
     
@@ -447,7 +506,8 @@ class sales_TransportValues extends core_Manager
     	
     	// Опит за изчисляване на транспорт
     	$totalWeight = cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingWeight');
-    	$feeArr = self::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
+    	$totalVolume = cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingVolume');
+    	$feeArr = self::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $totalVolume, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
     	
     	return $feeArr;
     }

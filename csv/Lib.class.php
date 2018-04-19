@@ -92,7 +92,7 @@ class csv_Lib
                     $closeOnce = FALSE;
                 }
           
-                if ($mvc->invoke('BeforeImportRec', array(&$rec)) === FALSE) continue ;
+                if ($mvc->invoke('BeforeImportRec', array(&$rec, $data, $fields, $defaults)) === FALSE) continue ;
                 
                 // Ако таблицата се попълва от нулата, само се добавят редове
                 if($fromZero && $isLarge) {
@@ -110,8 +110,10 @@ class csv_Lib
                 
                 $conflictFields = array();
 
-                if(!$mvc->isUnique($rec, $conflictFields, $exRec)) {
-                    $rec->id = $exRec->id;
+                if($rec->id || !$mvc->isUnique($rec, $conflictFields, $exRec)) {
+                    if(!$rec->id) {
+                        $rec->id = $exRec->id;
+                    }
                     $flagUpdate = TRUE;
                 } else {
                     $res->created++;
