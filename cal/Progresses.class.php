@@ -141,12 +141,14 @@ class cal_Progresses extends core_Mvc
                 $tRec->workingTime = 0;
                 
                 // Това е за да се вземе времената от старите прогреси
-                $query = cal_TaskProgresses::getQuery();
-                $query->where("#taskId = {$tRec->id}");
-                $query->where("#state != 'rejected'");
-                $query->XPR('workingTimeSum', 'int', 'sum(#workingTime)');
-                $query->show('workingTimeSum');
-                $tRec->workingTime = (int)$query->fetch()->workingTimeSum;
+                if (cal_TaskProgresses::isInstalled()) {
+                    $query = cal_TaskProgresses::getQuery();
+                    $query->where("#taskId = {$tRec->id}");
+                    $query->where("#state != 'rejected'");
+                    $query->XPR('workingTimeSum', 'int', 'sum(#workingTime)');
+                    $query->show('workingTimeSum');
+                    $tRec->workingTime = (int)$query->fetch()->workingTimeSum;
+                }
                 
                 // Да се вземе времената на новите прогреси
                 $query = doc_Comments::getQuery();
