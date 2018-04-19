@@ -114,6 +114,12 @@ class eshop_Products extends core_Master
     
     
     /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'name';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -247,10 +253,8 @@ class eshop_Products extends core_Master
             	}
             }
         }
-
-        if($fields['-list']) {
-            $row->name = ht::createLink($row->name, self::getUrl($rec), NULL, 'ef_icon=img/16/monitor.png');
-        }
+        
+        
         
         if(isset($rec->coDriver) && !cls::load($rec->coDriver, TRUE)){
         	$row->coDriver = "<span class='red'>" . tr('Несъществуващ клас') . "</span>";
@@ -258,6 +262,20 @@ class eshop_Products extends core_Master
     }
     
 
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	if(haveRole('powerUser')){
+    		$data->toolbar->addBtn('Преглед', self::getUrl($data->rec), NULL, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
+    	}
+    }
+    
+    
     /**
      * Подготвя информация за всички продукти от активните групи
      */
@@ -452,8 +470,11 @@ class eshop_Products extends core_Master
     {
         $data->rec->info = trim($data->rec->info);
         $data->rec->longInfo = trim($data->rec->longInfo);
-
-        $data->row = $this->recToVerbal($data->rec);
+		
+        $fields = $this->selectFields();
+		$fields['-external'] = TRUE;
+		
+        $data->row = $this->recToVerbal($data->rec, $fields);
         
         if($data->rec->image) {
             $data->row->image = fancybox_Fancybox::getImage($data->rec->image, array(160, 160), array(800, 800), $data->row->name); 
@@ -480,12 +501,14 @@ class eshop_Products extends core_Master
             $data->row->image5 = fancybox_Fancybox::getImage($data->rec->image5, array(160, 160), array(800, 6800), $data->row->name5 . ' 5'); 
         }
 
-        if(self::haveRightFor('edit', $data->rec)) {
-            $editSbf = sbf("img/16/edit.png", '');
-            $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
-            $data->row->editLink = ht::createLink($editImg, array('eshop_Products', 'edit', $data->rec->id, 'ret_url' => TRUE));
+        if(self::haveRightFor('single', $data->rec)) {
+        	$data->row->singleLink = ht::createLink('', array('eshop_Products', 'single', $data->rec->id, 'ret_url' => TRUE), FALSE, "ef_icon={$this->singleIcon},height=16px,width;16px");
         }
- 
+        
+        if(self::haveRightFor('edit', $data->rec)) {
+            $data->row->editLink = ht::createLink('', array('eshop_Products', 'edit', $data->rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,height=16px,width;16px');
+        }
+        
         Mode::set('SOC_TITLE', $data->row->name);
         Mode::set('SOC_SUMMARY', $data->row->info);
 
@@ -498,14 +521,8 @@ class eshop_Products extends core_Master
     public function renderProduct($data)
     {
         $tpl = getTplFromFile("eshop/tpl/ProductShow.shtml");
-        
-        if($data->row->editLink) { 
-            $data->row->name .= '&nbsp;' . $data->row->editLink;
-        }
-        
         $tpl->placeObject($data->row);
     
-
         return $tpl;
     }
 
@@ -593,6 +610,18 @@ class eshop_Products extends core_Master
     
     
     /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$rec = $data->form->rec;
+    	if(isset($rec->id)){
+    		$data->form->title = tr('Редактиране на') . " |*" . $mvc->getFormTitleLink($rec->id);
+    	}
+    }
+    
+    
+    /**
      * Подготовка на филтър формата
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
@@ -650,5 +679,4 @@ class eshop_Products extends core_Master
 
         return $res;
     }
-
 }
