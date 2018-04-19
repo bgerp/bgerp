@@ -657,7 +657,7 @@ class sales_Quotations extends core_Master
     	$expectedTransport = 0;
     	
     	// Ако няма калкулатор в условието на доставка, не се изчислява нищо
-    	$TransportCalc = cond_DeliveryTerms::getCostDriver($rec->deliveryTermId);
+    	$TransportCalc = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
     	if(!is_object($TransportCalc)) return $expectedTransport;
     
     	// Подготовка на заявката, взимат се само задължителните складируеми артикули
@@ -670,7 +670,8 @@ class sales_Quotations extends core_Master
     	$products = $query->fetchAll();
     	
     	// Изчисляване на общото тегло на офертата
-    	$totalWeight = sales_TransportValues::getTotalWeight($products, $TransportCalc);
+    	$total = sales_TransportValues::getTotalWeightAndVolume($products);
+    	
     	$locationId  = NULL;
     	if(isset($rec->deliveryPlaceId)){
     		$locationId  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id');
@@ -679,7 +680,7 @@ class sales_Quotations extends core_Master
     	 
     	// За всеки артикул се изчислява очаквания му транспорт
     	foreach ($products as $p2){
-    		$fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
+    		$fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total['weight'], $total['volume'], $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
     
     		// Сумира се, ако е изчислен
     		if(is_array($fee) && $fee['totalFee'] > 0){

@@ -35,7 +35,7 @@ class cal_Progresses extends core_Mvc
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес,after=body, mandatory');
+        $fieldset->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес,after=body, mandatory, changable');
         $fieldset->FLD('workingTime', 'time(suggestions=10 мин.|30 мин.|60 мин.|2 часа|3 часа|5 часа|10 часа)', 'caption=Отработено време,after=progress, changable');
     }
     
@@ -106,32 +106,6 @@ class cal_Progresses extends core_Mvc
     }
     
     
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param core_Form $form
-     */
-    static function on_AfterInputEditForm($Driver, $mvc, &$form)
-    {
-        $rec = $form->rec;
-        if ($rec->originId && !$form->rec->__isBeingChanged && $form->isSubmitted()) {
-            $tDoc = doc_Containers::getDocument($rec->originId);
-            if ($tDoc->instance instanceof cal_Tasks) {
-                $tRec = $tDoc->fetch();
-                if ($tRec->progress > $rec->progress) {
-                    $form->setWarning('progress', "|Въвели сте по-малък прогрес от предишния. Сигурни ли сте, че искате да продължите?");
-                } elseif ($tRec->progress == $rec->progress && $rec->progress != 1 && !$form->rec->id) {
-                    $form->setWarning('progress', "|Въвели сте прогрес равен на предишния. Сигурни ли сте, че искате да продължите?");
-                }
-            }
-        }
-    }
-    
-    
     /**
      * 
      * 
@@ -143,9 +117,18 @@ class cal_Progresses extends core_Mvc
      */
     static function on_AfterSave($Driver, $mvc, &$id, $rec, $saveFileds = NULL)
     {
+        $touchRec = FALSE;
         if ($rec->originId) {
             $tDoc = doc_Containers::getDocument($rec->originId);
-            $touchRec = TRUE;
+            if ($tDoc->instance instanceof cal_Tasks) {
+                $touchRec = TRUE;
+            }
+        }
+        
+		// При промяна на прогрес
+        if ($rec->__isBeingChanged) {
+            $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
+            $Driver->updateTaskProgress($rec, $lGoodProgress);
         }
         
         // Променяме общото отработено време на задачата
@@ -203,6 +186,10 @@ class cal_Progresses extends core_Mvc
             $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
         }
         
+        if ($row->ProgressType || $row->ProgressType) {
+            $resArr['ProgressType'] =  array('name' => tr('Тип'), 'val' =>"[#ProgressType#]");
+        }
+        
         if ($row->workingTime) {
             $resArr['workingTime'] =  array('name' => tr('Отработено време'), 'val' =>"[#workingTime#]");
         }
@@ -225,27 +212,112 @@ class cal_Progresses extends core_Mvc
      */
     public static function on_AfterActivation($Driver, $mvc, &$rec)
     {
+        // Да се инвокава AfterChangeState сама при приключване с прогрес
+        $invokeChangeState = TRUE;
+        if ($rec->progress != 1) {
+            $invokeChangeState = FALSE;
+        }
+        
+        $Driver->updateTaskProgress($rec, $rec->progress, $invokeChangeState);
+    }
+    
+    
+    /**
+     * Възстановяване на оттеглен обект
+     *
+     * @param cal_Progresses $Driver
+     * @param doc_Comments $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_AfterRestore($Driver, $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
         if ($rec->originId) {
+            $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
+            
+            $Driver->updateTaskProgress($rec, $lGoodProgress);
+        }
+    }
+    
+    
+    /**
+     * След оттегляне на обект
+     *
+     * @param cal_Progresses $Driver
+     * @param doc_Comments $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_AfterReject($Driver, $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        if ($rec->originId) {
+            $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
+            
+            $Driver->updateTaskProgress($rec, $lGoodProgress);
+        }
+    }
+    
+    
+    /**
+     * Обновява задачата след промяна на прогреса
+     *
+     * @param stdClass $rec
+     * @param NULL|integer $progress
+     * @param boolean $invokeChangeState
+     */
+    public static function updateTaskProgress($rec, $progress = NULL, $invokeChangeState = FALSE)
+    {
+        if ($rec->originId) {
+            
             $tDoc = doc_Containers::getDocument($rec->originId);
             
             $saveArr = array();
             
-            if ($tDoc->instance instanceof cal_Tasks) {
+            if ($tDoc->instance instanceof cal_Tasks && isset($progress)) {
                 $tRec = $tDoc->fetch();
-                $tRec->progress = $rec->progress;
-                $saveArr['progress'] = 'progress';
-            }
-            
-            // Ако прогреса е 100%, тогава затваряме задачата
-            if ($tRec->progress == 1 && $tRec->state != 'closed' && $tRec->state != 'stopped') {
-                $saveArr['state'] = 'state';
+                $oldProgress = $tRec->progress;
+                $oldState = $tRec->state;
                 
-                $tRec->state = 'closed';
-                $tDoc->instance->save($tRec, $saveArr);
-                
-                $tDoc->instance->invoke('AfterChangeState', array(&$tRec, 'closed'));
-            } elseif (!empty($saveArr)) {
-                $tDoc->instance->save($tRec, $saveArr);
+                // Ако има промяна в прогреса
+                if ($oldProgress != $progress) {
+                    $tRec->progress = $progress;
+                    
+                    $saveArr['progress'] = 'progress';
+                    
+                    if (isset($tRec->progress)) {
+                        
+                        // Ако прогреса е 100%, тогава затваряме задачата
+                        if ($tRec->progress == 1) {
+                            $tRec->state = 'closed';
+                            
+                            $saveArr['state'] = 'state';
+                        }
+                        
+                        // Ако връщаме прогреса - връщаме и предишното състояние
+                        if ($oldProgress == 1) {
+                            if ($tRec->brState && $tRec->brState != 'rejected') {
+                                $tRec->state = $tRec->brState;
+                            } else {
+                                $tRec->state = 'active';
+                            }
+                            
+                            $saveArr['state'] = 'state';
+                        }
+                    }
+                    
+                    if (!empty($saveArr)) {
+                        $tDoc->instance->save($tRec, $saveArr);
+                        
+                        // Ако има промяна в състоянито
+                        if ($invokeChangeState && $saveArr['state']) {
+                            $tDoc->instance->invoke('AfterChangeState', array(&$tRec, $tRec->state));
+                        }
+                    }
+                }
             }
         }
     }
@@ -280,58 +352,6 @@ class cal_Progresses extends core_Mvc
     
     
     /**
-     * Възстановяване на оттеглен обект
-     *
-     * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param mixed $res
-     * @param int|stdClass $id
-     */
-    public static function on_AfterRestore($Driver, $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        
-        if ($rec->originId) {
-            $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
-            
-            $tDoc = doc_Containers::getDocument($rec->originId);
-            
-            if ($tDoc->instance instanceof cal_Tasks) {
-                $tRec = $tDoc->fetch();
-                $tRec->progress = $lGoodProgress;
-                $tDoc->instance->save($tRec, 'progress');
-            }
-        }
-    }
-    
-    
-    /**
-     * След оттегляне на обект
-     * 
-     * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param mixed $res
-     * @param int|stdClass $id
-     */
-    public static function on_AfterReject($Driver, $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        
-        if ($rec->originId) {
-            $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
-            
-            $tDoc = doc_Containers::getDocument($rec->originId);
-            
-            if ($tDoc->instance instanceof cal_Tasks) {
-                $tRec = $tDoc->fetch();
-                $tRec->progress = $lGoodProgress;
-                $tDoc->instance->save($tRec, 'progress');
-            }
-        }
-    }
-    
-    
-    /**
      * Подготвяне на вербалните стойности
      * 
      * @param cal_Progresses $Driver
@@ -360,6 +380,35 @@ class cal_Progresses extends core_Mvc
         }
         
         $row->progress = "<span style='color:{$grey};{$bold}'>{$row->progress}</span>";
+        
+        $row->ProgressStr = $row->progress;
+        
+        // Показване на типа на прогреса
+        if ($rec->originId) {
+            
+            $doc = doc_Containers::getDocument($rec->originId);
+            $tRec = $doc->fetch();
+            
+            $tDriver = $doc->getDriver();
+            
+            if ($tDriver) {
+                $progressArr = $tDriver->getProgressSuggestions($tRec);
+            } else {
+                $progressArr = array();
+            }
+            
+            Mode::push('text', 'plain');
+            $pVal = $doc->instance->fields['progress']->type->toVerbal($rec->progress);
+            Mode::pop('text');
+            
+            $pValStr = $progressArr[$pVal];
+            
+            if ($pValStr && ($pValStr != $pVal)) {
+                $row->ProgressType = $pValStr;
+                
+                $row->ProgressStr .= ' (' . $pValStr . ')';
+            }
+        }
     }
     
     

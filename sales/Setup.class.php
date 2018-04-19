@@ -2,6 +2,12 @@
 
 
 /**
+ * Начален номер на фактурите
+ */
+defIfNot('SALES_TRANSPORT_PRODUCTS_ID', '');
+
+
+/**
  * Дефолтна валидност на офертата
  */
 defIfNot('SALES_DEFAULT_VALIDITY_OF_QUOTATION', '2592000');
@@ -226,6 +232,7 @@ class sales_Setup extends core_ProtoSetup
 			'SALES_DEFAULT_VALIDITY_OF_QUOTATION'  => array('time', 'caption=Оферти->Валидност'),
 			'SALES_PROD_NAME_LENGTH'               => array('int(min=0)', 'caption=Дължина на артикула в името на продажбата->Дължина, customizeBy=powerUser'),
 			'SALES_DELTA_MIN_PERCENT'              => array('percent', 'caption=Неснижаема делта->Стойност'),
+			'SALES_TRANSPORT_PRODUCTS_ID' => array("keylist(mvc=cat_Products,select=name)", 'mandatory,caption=Транспорт->Артикули,optionsFunc=sales_Setup::getPossibleTransportProducts'),
 	);
 	
 	
@@ -309,6 +316,26 @@ class sales_Setup extends core_ProtoSetup
     
     
     /**
+     * Кои артикули могат да се избират като транспорт
+     *
+     * @return array $suggestions - списък с артикули
+     */
+    public static function getPossibleTransportProducts()
+    {
+    	$suggestions = array();
+    	$pQuery = cat_Products::getQuery();
+    	$pQuery->where("#canStore = 'no'");
+    	$pQuery->show('name');
+    	 
+    	while($pRec = $pQuery->fetch()){
+    		$suggestions[$pRec->id] = $pRec->name;
+    	}
+    	 
+    	return $suggestions;
+    }
+    
+    
+    /**
      * Зареждане на данни
      */
     function loadSetupData($itr = '')
@@ -347,6 +374,17 @@ class sales_Setup extends core_ProtoSetup
     		if(strlen($config->{$const}) === 0){
     			$keylist = core_Roles::getRolesAsKeylist('sales,ceo');
     			core_Packs::setConfig('sales', array($const => $keylist));
+    		}
+    	}
+    	
+    	// Ако няма посочени от потребителя сметки за синхронизация
+    	if(strlen($config->SALES_TRANSPORT_PRODUCTS_ID) === 0){
+    		$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+    		if($transportId){
+    			$products = array($transportId => $transportId);
+    			 
+    			core_Packs::setConfig('sales', array('SALES_TRANSPORT_PRODUCTS_ID' => keylist::fromArray($products)));
+    			$res .= "<li style='color:green'>Добавени са дефолтни артикули за транспорт</b></li>";
     		}
     	}
     	
