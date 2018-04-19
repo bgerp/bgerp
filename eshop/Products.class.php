@@ -511,7 +511,8 @@ class eshop_Products extends core_Master
         
         Mode::set('SOC_TITLE', $data->row->name);
         Mode::set('SOC_SUMMARY', $data->row->info);
-
+        
+        $data->row->productRow = eshop_ProductDetails::prepareExternal($data->rec);
     }
 
 
@@ -523,6 +524,10 @@ class eshop_Products extends core_Master
         $tpl = getTplFromFile("eshop/tpl/ProductShow.shtml");
         $tpl->placeObject($data->row);
     
+        if(is_array($data->row->productRow) && count($data->row->productRow) && haveRole('debug')){
+        	$tpl->replace(eshop_ProductDetails::renderExternal($data->row->productRow), 'PRODUCT_OPT');
+        }
+        
         return $tpl;
     }
 

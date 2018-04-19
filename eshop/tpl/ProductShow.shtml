@@ -19,6 +19,10 @@
 		[#info#]
 		<br>
 		[#longInfo#]
+		<!--ET_BEGIN PRODUCT_OPT-->
+		<br>
+		[#PRODUCT_OPT#]
+		<!--ET_END PRODUCT_OPT-->
 	</td>
 </tr>
 </table>
