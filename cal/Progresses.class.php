@@ -188,10 +188,6 @@ class cal_Progresses extends core_Mvc
             $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
         }
         
-        if ($row->ProgressType || $row->ProgressType) {
-            $resArr['ProgressType'] =  array('name' => tr('Тип'), 'val' =>"[#ProgressType#]");
-        }
-        
         if ($row->workingTime) {
             $resArr['workingTime'] =  array('name' => tr('Отработено време'), 'val' =>"[#workingTime#]");
         }
@@ -377,31 +373,6 @@ class cal_Progresses extends core_Mvc
      */
     function on_AfterRecToVerbal($Driver, $mvc, $row, $rec)
     {
-        $grey = new color_Object("#bbb");
-        $blue = new color_Object("#2244cc");
-        
-        if (isset($rec->progress)) {
-            $progressPx = min(100, round(100 * $rec->progress));
-            $progressRemainPx = 100 - $progressPx;
-            $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
-        }
-        
-        $bold = '';
-        if($rec->progress) {
-            $grey->setGradient($blue, $rec->progress);
-            
-            $lastTime = bgerp_Recently::getLastDocumentSee($rec);
-            if($lastTime < $rec->modifiedOn) {
-                $bold = 'font-weight:bold;';
-            }
-        }
-        
-        if ($row->progress) {
-            $row->progress = "<span style='color:{$grey};{$bold}'>{$row->progress}</span>";
-        }
-        
-        $row->ProgressStr = $row->progress;
-        
         // Показване на типа на прогреса
         if ($rec->originId) {
             
@@ -423,9 +394,7 @@ class cal_Progresses extends core_Mvc
             $pValStr = $progressArr[$pVal];
             
             if ($pValStr && ($pValStr != $pVal)) {
-                $row->ProgressType = $pValStr;
-                
-                $row->ProgressStr .= ' (' . $pValStr . ')';
+                $row->progress .= ' (' . $pValStr . ')';
             }
         }
     }
