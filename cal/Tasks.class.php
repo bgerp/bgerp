@@ -870,6 +870,21 @@ class cal_Tasks extends embed_Manager
         }
     }
     
+	
+    /**
+     * Дали може да се добавя прогрес към съответната задача
+     *
+     * @param stdClass $rec
+     *
+     * @return boolean
+     */
+    public static function canAddProgress($rec)
+    {
+        if ($rec->state != 'rejected' && $rec->state != 'draft' && $rec->state != 'template') return TRUE;
+        
+        return FALSE;
+    }
+    
     
     /**
      * След подготовка на тулбара на единичен изглед.
@@ -879,6 +894,16 @@ class cal_Tasks extends embed_Manager
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
+        if ($mvc->canAddProgress($data->rec)) {
+            // Ако прогреса е 100%, да е на втори ред
+            $progressRow = 1;
+            if ($data->rec->progress == 1) {
+                $progressRow = 2;
+            }
+            
+            $data->toolbar->addBtn('Прогрес', array('doc_Comments', 'add', 'originId' => $data->rec->containerId, cls::get('doc_Comments')->driverClassField => cal_Progresses::getClassId(), 'ret_url' => TRUE), 'ef_icon=img/16/progressbar.png', "title=Добавяне на прогрес към задачата, row={$progressRow}");
+        }
+        
         if (cal_TaskConditions::haveRightFor('add', (object)array('baseId' => $data->rec->id))){
         	$data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
