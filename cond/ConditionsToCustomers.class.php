@@ -38,7 +38,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Кой може да вижда списъчния изглед
      */
-    public $canList = 'no_one';
+    public $canList = 'debug';
     
     
     /**
