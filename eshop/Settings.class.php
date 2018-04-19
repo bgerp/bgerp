@@ -144,6 +144,8 @@ class eshop_Settings extends core_Manager
      */
     public static function getSettings($classId, $objectId)
     {
-    	return self::fetch(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $domainId, $objectId));
+    	$classId = cls::get($classId)->getClassId();
+    	
+    	return self::fetch(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $classId, $objectId));
     }
 }
