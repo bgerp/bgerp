@@ -54,7 +54,6 @@ class csv_Lib
         $closeOnce = FALSE;
         
         $pRowCnt = NULL;
-        $fCnt = count($fields);
         
         while (($data = fgetcsv($handle, $format['length'], $format['delimiter'], $format['enclosure'], $format['escape'])) !== FALSE)
         {
@@ -72,16 +71,13 @@ class csv_Lib
                 continue;
             }
             
-            // Ако броя на колоните не са коректни или не отоговарят на броя на зададени полета
+            // Ако броя на колоните не са коректни
             if (!isset($pRowCnt)) {
                 $pRowCnt = $cRowCnt;
             } else {
                 if ($cRowCnt != $pRowCnt) {
                     wp($data, $cRowCnt, $pRowCnt, $fields);
                 }
-            }
-            if ($fCnt != $cRowCnt) {
-                wp($data, $fCnt, $cRowCnt, $pRowCnt, $fields);
             }
             
             // Ако не са указани полетата, вземаме ги от първия ред
