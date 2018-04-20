@@ -212,13 +212,7 @@ class cal_Progresses extends core_Mvc
      */
     public static function on_AfterActivation($Driver, $mvc, &$rec)
     {
-        // Да се инвокава AfterChangeState сама при приключване с прогрес
-        $invokeChangeState = TRUE;
-        if ($rec->progress != 1) {
-            $invokeChangeState = FALSE;
-        }
-        
-        $Driver->updateTaskProgress($rec, $rec->progress, $invokeChangeState);
+        $Driver->updateTaskProgress($rec, $rec->progress);
         
         if ($rec->originId) {
             $tDoc = doc_Containers::getDocument($rec->originId);
@@ -274,9 +268,8 @@ class cal_Progresses extends core_Mvc
      *
      * @param stdClass $rec
      * @param NULL|integer $progress
-     * @param boolean $invokeChangeState
      */
-    public static function updateTaskProgress($rec, $progress = NULL, $invokeChangeState = FALSE)
+    public static function updateTaskProgress($rec, $progress = NULL)
     {
         if ($rec->originId) {
             
@@ -318,11 +311,6 @@ class cal_Progresses extends core_Mvc
                     
                     if (!empty($saveArr)) {
                         $tDoc->instance->save($tRec, $saveArr);
-                        
-                        // Ако има промяна в състоянито
-                        if ($invokeChangeState && $saveArr['state']) {
-                            $tDoc->instance->invoke('AfterChangeState', array(&$tRec, $tRec->state));
-                        }
                     }
                 }
             }
