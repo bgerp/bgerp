@@ -219,6 +219,13 @@ class cal_Progresses extends core_Mvc
         }
         
         $Driver->updateTaskProgress($rec, $rec->progress, $invokeChangeState);
+        
+        if ($rec->originId) {
+            $tDoc = doc_Containers::getDocument($rec->originId);
+            if ($tDoc->instance instanceof cal_Tasks) {
+                $tDoc->touchRec();
+            }
+        }
     }
     
     
