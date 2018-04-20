@@ -83,7 +83,7 @@ class eshop_ProductDetails extends core_Detail
     	$this->FLD('quantityInPack', 'double', 'input=none');
     	//$this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
     	
-		$this->setDbUnique('eshopProductId,productId,packagingId,quantity');
+		$this->setDbUnique('eshopProductId,productId,packagingId');
 	}
 	
 	
@@ -207,12 +207,22 @@ class eshop_ProductDetails extends core_Detail
 			$row->packagingId = cat_UoM::getShortName($rec->packagingId);
 			$moq = eshop_Products::fetchField($rec->eshopProductId, 'coMoq');
 			$moq = ($moq) ? $moq : NULL;
-			$row->quantity = ht::createTextInput("product{$row->code}", $moq, 'size=6,class=option-quantity-input');
+			$row->quantity = ht::createTextInput("product{$row->code}", $moq, 'size=4,class=option-quantity-input');
 			
-			core_Request::setProtected('eshopProductId,productId');
-			$addUrl = toUrl(array('eshop_Carts', 'addtocart', 'eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId), 'local');
-			core_Request::removeProtected('eshopProductId,productId');
-			$row->btn = ht::createBtn('Добави', array('eshop_Products', 'single', $rec->eshopProductId), 'Ok!', FALSE, array('title'=> 'Добавяне в кошницата', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl));
+			$settings = eshop_Settings::getSettings('cms_Domains', eshop_Products::getDomainId($rec->eshopProductId));
+			if(isset($settings->listId)){
+				if($catalogPrice = price_ListRules::getPrice($settings->listId, $rec->productId, $rec->packagingId)){
+					$catalogPrice *= $rec->quantityInPack;
+					$catalogPrice *= 1 + cat_Products::getVat($rec->productId);
+					$priceVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPrice);
+					$row->catalogPrice = "<span class='option-price'>" . $priceVerbal . "</span>";
+				}
+			}
+			
+			//core_Request::setProtected('eshopProductId,productId');
+			$addUrl = array('eshop_Carts', 'addtocart', 'eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'packQuantity' => 10, 'packPrice' => $catalogPrice);//, 'local');
+			//core_Request::removeProtected('eshopProductId,productId');
+			$row->btn = ht::createBtn('Добави', $addUrl, FALSE, TRUE, array('title'=> 'Добавяне в кошницата', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl));
 		}
 
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
@@ -242,10 +252,16 @@ class eshop_ProductDetails extends core_Detail
 		$fields = cls::get(get_called_class())->selectFields();
 		$fields['-external'] = $fields;
 		
+		$settings = eshop_Settings::getSettings('cms_Domains', eshop_Products::getDomainId($eshopProductRec->id));
+		
 		$query = self::getQuery();
 		$query->where("#eshopProductId = {$eshopProductRec->id}");
 		while($rec = $query->fetch()){
-			$res[$rec->id] = self::recToVerbal($rec, $fields);
+			if(!empty($settings->listId)){
+				if($price = price_ListRules::getPrice($settings->listId, $rec->productId, $rec->packagingId)){
+					$res[$rec->id] = self::recToVerbal($rec, $fields);
+				}
+			}
 		}
 		
 		return $res;
@@ -266,7 +282,8 @@ class eshop_ProductDetails extends core_Detail
 		$fieldset = cls::get(get_called_class());
 		$table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
 		if($count <= 10){
-    		$tpl->append($table->get($products, 'code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,btn=|*&nbsp;'));
+			$priceHead = 'Ед. цена|* ' . acc_Periods::getBaseCurrencyCode();
+    		$tpl->append($table->get($products, "code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,catalogPrice={$priceHead},btn=|*&nbsp;"));
 		} else {
 			$newProducts = array();
 			foreach ($products as $pRow){

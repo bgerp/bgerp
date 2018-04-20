@@ -684,4 +684,16 @@ class eshop_Products extends core_Master
 
         return $res;
     }
+    
+    
+    /**
+     * Връща домейн ид-то на артикула от е-магазина
+     * 
+     * @param int $id
+     * @return mixed
+     */
+    public static function getDomainId($id)
+    {
+    	return cms_Content::fetchField(eshop_Groups::fetchField(eshop_Products::fetchField($id, 'groupId'), 'menuId'), 'domainId');
+    }
 }
