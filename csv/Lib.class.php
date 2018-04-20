@@ -52,22 +52,38 @@ class csv_Lib
         expect(($handle = fopen($path, "r")) !== FALSE);
         
         $closeOnce = FALSE;
-
-        while (($data = fgetcsv($handle, $format['length'], $format['delimiter'], $format['enclosure'], $format['escape'])) !== FALSE) {
- 
+        
+        $pRowCnt = NULL;
+        $fCnt = count($fields);
+        
+        while (($data = fgetcsv($handle, $format['length'], $format['delimiter'], $format['enclosure'], $format['escape'])) !== FALSE)
+        {
+            $cRowCnt = count($data);
+            
             // Пропускаме празните линии
-            if(!count($data) || (count($data) == 1 && trim($data[0]) == '')) continue;
+            if(!$cRowCnt || ($cRowCnt == 1 && trim($data[0]) == '')) continue;
 
             // Пропускаме редовете със знака указан в $skip
             if($data[0]{0} == $format['skip']) {
-
                 if(strtolower(trim($data[0], ' ' . $format['skip'])) == 'closeonce') {
                     $closeOnce = TRUE;
                 }
 
                 continue;
             }
-
+            
+            // Ако броя на колоните не са коректни или не отоговарят на броя на зададени полета
+            if (!isset($pRowCnt)) {
+                $pRowCnt = $cRowCnt;
+            } else {
+                if ($cRowCnt != $pRowCnt) {
+                    wp($data, $cRowCnt, $pRowCnt, $fields);
+                }
+            }
+            if ($fCnt != $cRowCnt) {
+                wp($data, $fCnt, $cRowCnt, $pRowCnt, $fields);
+            }
+            
             // Ако не са указани полетата, вземаме ги от първия ред
             if($firstRow && !count($fields)) {
                 foreach($data as $f) {
@@ -91,7 +107,7 @@ class csv_Lib
                     $rec->state = 'closed';
                     $closeOnce = FALSE;
                 }
-          
+                
                 if ($mvc->invoke('BeforeImportRec', array(&$rec, $data, $fields, $defaults)) === FALSE) continue ;
                 
                 // Ако таблицата се попълва от нулата, само се добавят редове
@@ -142,7 +158,7 @@ class csv_Lib
                 }
             }
         }
-
+		
         if(count($recs)) {
             $mvc->saveArray($recs, NULL, TRUE);
         }
@@ -181,7 +197,7 @@ class csv_Lib
         } catch (core_exception_Expect $e) {
             $confHash = NULL;
         }
-        
+		
         if(($confHash != $hash) || ($delete === 'everytime')) {
  
             // Изтриваме предишното съдържание на модела, ако е сетнат $delete
