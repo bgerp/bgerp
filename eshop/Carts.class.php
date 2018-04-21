@@ -38,7 +38,7 @@ class eshop_Carts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    //public $listFields = 'code,name,groupId,state';
+    public $listFields = 'ip,brid,domainId,userId,state';
     
     
     /**
@@ -80,7 +80,13 @@ class eshop_Carts extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'eshop_ProductDetails';
+    public $details = 'eshop_CartDetails';
+    
+    
+    /**
+     * Кой може да я прави на заявка
+     */
+    public $canPending = 'no_one';
     
     
     /**
@@ -90,12 +96,13 @@ class eshop_Carts extends core_Master
     {
     	$this->FLD('ip', 'varchar', 'caption=Ип,input=none1');
     	$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none1');
-    	$this->FLD('domainId', 'key(mvc=cms_Domains, select=domain)', 'caption=Домейн,silent');
+    	$this->FLD('domainId', 'key(mvc=cms_Domains, select=domain)', 'caption=Брид,silent');
     	$this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,silent');
     	
     	$this->FLD('total', 'double', 'caption=Общи данни->Стойност,silent');
-    	$this->FLD('paymentId', 'key(mvc=eshop_Payments,select=title,allowEmpty)', 'caption=Общи данни->Плащане');
-    	$this->FLD('termId', 'key(mvc=eshop_DeliveryTerms,select=title,allowEmpty)', 'caption=Общи данни->Доставка');
+    	$this->FLD('productCount', 'int', 'caption=Общи данни->Брой,silent');
+    	$this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Общи данни->Плащане');
+    	$this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Общи данни->Доставка');
     	$this->FLD('timeId', 'key(mvc=eshop_DeliveryTimes,select=title,allowEmpty)', 'caption=Общи данни->Време');
     	$this->FLD('info', 'richtext(rows=2)', 'caption=Общи данни->Забележка');
     	
@@ -127,10 +134,76 @@ class eshop_Carts extends core_Master
     
     public function act_addToCart()
     {
+    	//expect(haveRole('debug'));
+    	//core_Request::setProtected('eshopProductId,productId');
     	$this->requireRightFor('addtocart');
+    	expect($eshopProductId = Request::get('eshopProductId', 'int'));
+    	expect($productId = Request::get('productId', 'int'));
+    	expect($packQuantity = Request::get('packQuantity', 'double'));
+    	expect($packPrice = Request::get('packPrice', 'double'));
+    	$packPrice = round($packPrice, 2);
+    	
+    	$cartId = self::force($eshopProductId);
+    	eshop_CartDetails::addToCart($cartId, $eshopProductId, $productId, $packQuantity, $packPrice);
     	
     	
+    	return followRetUrl(NULL, 'Артикулът е успешно добавен в кошницата');
     }
     
     
+    /**
+     * Форсира чернова на нова кошница
+     * 
+     * @param int $eshopProductId - артикул от е-магазина
+     * @param int|NULL $userId    - потребител (ако има)
+     * @param int|NULL $domainId  - домейн, ако не е подаден се взима от менюто в което е групата
+     */
+    public static function force($eshopProductId, $userId = NULL, $domainId = NULL)
+    {
+    	$userId = isset($userId) ? $userId : core_Users::getCurrent('id', FALSE);
+    	
+    	// Дефолтни данни
+    	$domainId = isset($domainId) ? $domainId : eshop_Products::getDomainId($eshopProductId);
+    	$brid = log_Browsers::getBrid();
+    	
+    	// Ако има потребител се търси имали чернова кошница за този потребител, ако не е логнат се търси по Брид-а
+    	$where = (isset($userId)) ? "#userId = '{$userId}'" : "#userId IS NULL AND #brid = '{$brid}'";
+    	$rec = self::fetch("{$where} AND #state = 'draft' AND #domainId = {$domainId}");
+    	
+    	if(empty($rec)){
+    		$settings = eshop_Settings::getSettings('cms_Domains', $domainId);
+    		$chargeVat = isset($settings->chargeVat) ? $settings->chargeVat : 'yes';
+    		$currencyId = isset($settings->chargeVat) ? $settings->currencyId : acc_Periods::getBaseCurrencyCode();
+    		$ip = core_Users::getRealIpAddr();
+    		$rec = (object)array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'currencyId' => $currencyId, 'chargeVat' => $chargeVat, 'state' => 'draft');
+    		self::save($rec);
+    	}
+    	
+    	return $rec->id;
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	if(!$rec) return;
+    	
+    	$dQuery = eshop_CartDetails::getQuery();
+    	$dQuery->where("#cartId = {$rec->id}");
+    	$dQuery->XPR("count", 'int', 'COUNT(#id)');
+    	$dQuery->XPR("sum", 'double', 'SUM(#price * #quantity)');
+    	$dRec = $dQuery->fetch();
+    	
+    	$rec->productCount = (!empty($dRec->count)) ? $dRec->count : 0;
+    	$rec->total = (!empty($dRec->sum)) ? $dRec->sum : 0;
+    	$id = $this->save_($rec, 'productCount,total');
+    	
+    	return $id;
+    }
 }

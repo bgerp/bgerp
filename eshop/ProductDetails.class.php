@@ -44,7 +44,7 @@ class eshop_ProductDetails extends core_Detail
 	/**
 	 * Кои полета да се показват в листовия изглед
 	 */
-	public $listFields = 'eshopProductId=Артикул в е-мага,productId,packagingId,packQuantity,createdOn,createdBy,modifiedOn,modifiedBy';
+	public $listFields = 'eshopProductId=Артикул в е-мага,productId,packagingId,createdOn,createdBy,modifiedOn,modifiedBy';
 	
 	
 	/**
@@ -79,25 +79,11 @@ class eshop_ProductDetails extends core_Detail
 		$this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,input=hidden,silent');
 		$this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=eshop_ProductDetails::getSellableProducts)', 'caption=Артикул,silent,removeAndRefreshForm=packagingId,mandatory');
 		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack');
-		$this->FLD('quantity', 'double', 'caption=Количество,input=none');
+		//$this->FLD('quantity', 'double', 'caption=Количество,input=none');
     	$this->FLD('quantityInPack', 'double', 'input=none');
-    	$this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
+    	//$this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
     	
-		$this->setDbUnique('eshopProductId,productId,packagingId,quantity');
-	}
-	
-	
-	/**
-	 * Изчисляване на количеството на реда в брой опаковки
-	 *
-	 * @param core_Mvc $mvc
-	 * @param stdClass $rec
-	 */
-	protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
-	{
-		if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
-	
-		$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
+		$this->setDbUnique('eshopProductId,productId,packagingId');
 	}
 	
 	
@@ -170,11 +156,9 @@ class eshop_ProductDetails extends core_Detail
 		
 		if(isset($rec->productId)){
 			$form->setField('packagingId', 'input');
-			$form->setField('packQuantity', 'input');
 			$packs = cat_Products::getPacks($rec->productId);
 			$form->setOptions('packagingId', $packs);
 			$form->setDefault('packagingId', key($packs));
-			$form->setDefault('packQuantity', 1);
 		}
 	}
 	
@@ -200,7 +184,6 @@ class eshop_ProductDetails extends core_Detail
 			if(!$form->gotErrors()){
 				$productInfo = cat_Products::getProductInfo($rec->productId);
 				$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-				$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 			}
 		}
 	}
@@ -218,9 +201,31 @@ class eshop_ProductDetails extends core_Detail
 		if(isset($fields['-list'])){
 			$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
 			$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
+		} elseif(isset($fields['-external'])){
+			$row->productId = cat_Products::getVerbal($rec->productId, 'name');
+			$row->code = cat_products::getVerbal($rec->productId, 'code');
+			$row->packagingId = cat_UoM::getShortName($rec->packagingId);
+			$moq = eshop_Products::fetchField($rec->eshopProductId, 'coMoq');
+			$moq = ($moq) ? $moq : NULL;
+			$row->quantity = ht::createTextInput("product{$row->code}", $moq, 'size=4,class=option-quantity-input');
 			
-			deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+			$settings = eshop_Settings::getSettings('cms_Domains', eshop_Products::getDomainId($rec->eshopProductId));
+			if(isset($settings->listId)){
+				if($catalogPrice = price_ListRules::getPrice($settings->listId, $rec->productId, $rec->packagingId)){
+					$catalogPrice *= $rec->quantityInPack;
+					$catalogPrice *= 1 + cat_Products::getVat($rec->productId);
+					$priceVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPrice);
+					$row->catalogPrice = "<span class='option-price'>" . $priceVerbal . "</span>";
+				}
+			}
+			
+			//core_Request::setProtected('eshopProductId,productId');
+			$addUrl = array('eshop_Carts', 'addtocart', 'eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'packQuantity' => 10, 'packPrice' => $catalogPrice);//, 'local');
+			//core_Request::removeProtected('eshopProductId,productId');
+			$row->btn = ht::createBtn('Добави', $addUrl, FALSE, TRUE, array('title'=> 'Добавяне в кошницата', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl));
 		}
+
+		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 	}
 	
 	
@@ -232,5 +237,64 @@ class eshop_ProductDetails extends core_Detail
 		if(isset($data->masterMvc)){
 			unset($data->listFields['eshopProductId']);
 		}
+	}
+	
+	
+	/**
+	 * Подготовка на опциите във външната част
+	 * 
+	 * @param stdClass $eshopProductRec
+	 * @return array $res
+	 */
+	public static function prepareExternal($eshopProductRec)
+	{
+		$res = array();
+		$fields = cls::get(get_called_class())->selectFields();
+		$fields['-external'] = $fields;
+		
+		$settings = eshop_Settings::getSettings('cms_Domains', eshop_Products::getDomainId($eshopProductRec->id));
+		
+		$query = self::getQuery();
+		$query->where("#eshopProductId = {$eshopProductRec->id}");
+		while($rec = $query->fetch()){
+			if(!empty($settings->listId)){
+				if($price = price_ListRules::getPrice($settings->listId, $rec->productId, $rec->packagingId)){
+					$res[$rec->id] = self::recToVerbal($rec, $fields);
+				}
+			}
+		}
+		
+		return $res;
+	}
+	
+	
+	/**
+	 * Рендиране на опциите във външната част
+	 *
+	 * @param array $eshopProductRec
+	 * @return core_ET $tpl
+	 */
+	public static function renderExternal($products)
+	{
+		$tpl = new core_ET("");
+		$count = count($products);
+		
+		$fieldset = cls::get(get_called_class());
+		$table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
+		if($count <= 10){
+			$priceHead = 'Ед. цена|* ' . acc_Periods::getBaseCurrencyCode();
+    		$tpl->append($table->get($products, "code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,catalogPrice={$priceHead},btn=|*&nbsp;"));
+		} else {
+			$newProducts = array();
+			foreach ($products as $pRow){
+				$newProducts[] = strip_tags("{$pRow->code} {$pRow->productId} {$pRow->packagingId}");
+			}
+			//$options = array('productId' => ht::createSmartSelect($newProducts, 'selectedOption'), 'quantity' => ht::createTextInput("product{$row->code}", $moq, 'size=6,class=option-quantity-input'););
+			
+			
+			$tpl->append($table->get($products, 'productId=Артикул,quantity=К-во,btn=|*&nbsp;'));
+		}
+		
+		return $tpl;
 	}
 }

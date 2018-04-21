@@ -2365,7 +2365,8 @@ class crm_Companies extends core_Master
      * Дали артикулът създаден в папката трябва да е публичен (стандартен) или не
      *
      * @param mixed $id - ид или запис
-     * @return public|private|template - Стандартен / Нестандартен / Шаблон
+     * 
+     * @return string public|private|template - Стандартен / Нестандартен / Шаблон
      */
     public function getProductType($id)
     {
@@ -2391,10 +2392,10 @@ class crm_Companies extends core_Master
      */
     public static function on_AfterGetSingleIcon($mvc, &$res, $id)
     {
-    	if(core_Users::isContractor()) return;
+    	if (core_Users::isContractor() || !haveRole('user')) return ;
     	
-    	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
-    		if($extRec->overdueSales == 'yes'){
+    	if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+    		if ($extRec->overdueSales == 'yes'){
     			$res = 'img/16/stop-sign.png';
     		}
     	}

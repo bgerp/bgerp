@@ -141,12 +141,14 @@ class cal_Progresses extends core_Mvc
                 $tRec->workingTime = 0;
                 
                 // Това е за да се вземе времената от старите прогреси
-                $query = cal_TaskProgresses::getQuery();
-                $query->where("#taskId = {$tRec->id}");
-                $query->where("#state != 'rejected'");
-                $query->XPR('workingTimeSum', 'int', 'sum(#workingTime)');
-                $query->show('workingTimeSum');
-                $tRec->workingTime = (int)$query->fetch()->workingTimeSum;
+                if (cal_TaskProgresses::isInstalled()) {
+                    $query = cal_TaskProgresses::getQuery();
+                    $query->where("#taskId = {$tRec->id}");
+                    $query->where("#state != 'rejected'");
+                    $query->XPR('workingTimeSum', 'int', 'sum(#workingTime)');
+                    $query->show('workingTimeSum');
+                    $tRec->workingTime = (int)$query->fetch()->workingTimeSum;
+                }
                 
                 // Да се вземе времената на новите прогреси
                 $query = doc_Comments::getQuery();
@@ -210,13 +212,14 @@ class cal_Progresses extends core_Mvc
      */
     public static function on_AfterActivation($Driver, $mvc, &$rec)
     {
-        // Да се инвокава AfterChangeState сама при приключване с прогрес
-        $invokeChangeState = TRUE;
-        if ($rec->progress != 1) {
-            $invokeChangeState = FALSE;
-        }
+        $Driver->updateTaskProgress($rec, $rec->progress);
         
-        $Driver->updateTaskProgress($rec, $rec->progress, $invokeChangeState);
+        if ($rec->originId) {
+            $tDoc = doc_Containers::getDocument($rec->originId);
+            if ($tDoc->instance instanceof cal_Tasks) {
+                $tDoc->touchRec();
+            }
+        }
     }
     
     
@@ -265,9 +268,8 @@ class cal_Progresses extends core_Mvc
      *
      * @param stdClass $rec
      * @param NULL|integer $progress
-     * @param boolean $invokeChangeState
      */
-    public static function updateTaskProgress($rec, $progress = NULL, $invokeChangeState = FALSE)
+    public static function updateTaskProgress($rec, $progress = NULL)
     {
         if ($rec->originId) {
             
@@ -309,11 +311,6 @@ class cal_Progresses extends core_Mvc
                     
                     if (!empty($saveArr)) {
                         $tDoc->instance->save($tRec, $saveArr);
-                        
-                        // Ако има промяна в състоянито
-                        if ($invokeChangeState && $saveArr['state']) {
-                            $tDoc->instance->invoke('AfterChangeState', array(&$tRec, $tRec->state));
-                        }
                     }
                 }
             }
@@ -350,14 +347,14 @@ class cal_Progresses extends core_Mvc
     
     
     /**
-     * След подготовка на сингъла
+     * Преди подготовка на сингъла
      * 
      * @param cal_Progresses $Driver
      * @param doc_Comments $mvc
      * @param stdClass $res
      * @param stdClass $data
      */
-    public static function on_AfterPrepareSingle($Driver, $mvc, &$res, $data)
+    public static function on_BeforePrepareSingle($Driver, $mvc, &$res, $data)
     {
         $mvc->singleTitle = 'Прогрес';
     }

@@ -26,7 +26,7 @@ class eshop_CartDetails extends core_Detail
 	/**
 	 * Плъгини за зареждане
 	 */
-	//public $loadList = 'eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_Select, plg_AlignDecimals2';
+	public $loadList = 'plg_RowTools2,plg_AlignDecimals2';//eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_Select, plg_AlignDecimals2';
 	
 	
 	/**
@@ -44,31 +44,25 @@ class eshop_CartDetails extends core_Detail
 	/**
 	 * Кои полета да се показват в листовия изглед
 	 */
-	//public $listFields = 'eshopProductId=Артикул в е-мага,productId,packagingId,packQuantity,createdOn,createdBy,modifiedOn,modifiedBy';
+	public $listFields = 'eshopProductId=Артикул в е-мага,productId,packagingId,packQuantity,packPrice=Ед.цена,amount=Сума';
 	
 	
 	/**
 	 * Кой има право да променя?
 	 */
-	//public $canEdit = 'eshop,ceo';
+	public $canEdit = 'eshop,ceo';
 	
 	
 	/**
 	 * Кой има право да добавя?
 	 */
-	//public $canAdd = 'eshop,ceo';
-	
-	
-	/**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'debug';
+	public $canAdd = 'eshop,ceo';
 	
 	
 	/**
 	 * Кой може да изтрива?
 	 */
-	//public $canDelete = 'eshop,ceo';
+	public $canDelete = 'eshop,ceo';
 	
 	
 	/**
@@ -86,10 +80,26 @@ class eshop_CartDetails extends core_Detail
     	$this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
     	$this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
     	$this->FLD('price', 'double', 'caption=Цена,input=none');
+    	$this->FNC('amount', 'double(minDecimals=2)', 'caption=Сума,input,smartCenter');
     	
-	}
+    	$this->setDbUnique('cartId,eshopProductId,productId,packagingId');
+    }
 	
-	
+    
+    /**
+     * Изчисляване на цена за опаковка на реда
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public static function on_CalcAmount(core_Mvc $mvc, $rec)
+    {
+    	if (!isset($rec->price) || empty($rec->quantity)) return;
+    
+    	$rec->amount = $rec->price * $rec->quantity;
+    }
+    
+    
 	/**
 	 * Изчисляване на цена за опаковка на реда
 	 *
@@ -115,5 +125,41 @@ class eshop_CartDetails extends core_Detail
 		if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
 	
 		$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
+	}
+	
+	
+	/**
+	 * Добавя артикул в кошницата
+	 * 
+	 * @param int $cartId          - кошница
+	 * @param int $eshopProductId  - артикул от е-мага
+	 * @param int $productId       - артикул от каталога
+	 * @param double $packQuantity - к-во
+	 * @param double $packPrice    - ед. цена с ДДС, във валутата от настройките
+	 */
+	public static function addToCart($cartId, $eshopProductId, $productId, $packQuantity, $packPrice)
+	{
+		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'draft'"));
+		expect($eshopRec = eshop_Products::fetch($eshopProductId));
+		expect(cat_Products::fetch($productId));
+		expect(cat_UoM::fetch($productId));
+		
+		expect($productRec = eshop_ProductDetails::fetch("#eshopProductId = '{$eshopProductId}' AND #productId = '{$productId}'"));
+		
+		$dRec = (object)array('cartId'         => $cartId, 
+				              'eshopProductId' => $eshopProductId, 
+				              'productId'      => $productId,
+				              'packagingId'    => $productRec->packagingId,
+				              'quantityInPack' => $productRec->quantityInPack,
+				              'price'          => $packPrice / $productRec->quantityInPack,
+				              'quantity'       => $packQuantity * $productRec->quantityInPack,
+		);
+		
+		if($exRec = self::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$productRec->packagingId}")){
+			$exRec->quantity += $dRec->quantity;
+			self::save($exRec, 'quantity');
+		} else {
+			self::save($dRec);
+		}
 	}
 }
