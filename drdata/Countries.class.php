@@ -140,6 +140,26 @@ class drdata_Countries extends core_Manager {
     }
 
 
+
+    /**
+     * Връща най-подходящия език от системните, за съответната страна
+     */
+    public static function getLang($countryId)
+    {
+        $rec = self::fetch($countryId);
+        
+        cls::load('core_Lg');
+        
+        $langArr = arr::make(EF_LANGUAGES);
+        
+        foreach($langArr as $lg => $name) {
+            if(strpos($rec->languages, $lg) !== FALSE) return $lg;
+        }
+
+        return 'en';
+    }
+
+
     /**
      * Попълва езиците, които се говорят в дадена страна
      */
