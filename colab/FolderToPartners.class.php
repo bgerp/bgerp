@@ -424,12 +424,14 @@ class colab_FolderToPartners extends core_Manager
     	expect($companyRec = crm_Companies::fetch($companyId));
     	$companyName = crm_Companies::getVerbal($companyId, 'name');
     	
+        core_Lg::push(drdata_Countries::getLang($companyRec->country));
+
     	$this->requireRightFor('sendemail', $companyRec);
     	
     	$form = cls::get('core_Form');
     	$form->title = "Изпращане на имейл за регистрация на партньори в|* <b>{$companyName}</b>";
     	
-    	$form->FNC('to', 'emails', 'caption=До имейл, width=100%, mandatory, input');
+    	$form->FNC('to', 'email', 'caption=До имейл, width=100%, mandatory, input');
     	$form->FNC('from', 'key(mvc=email_Inboxes,select=email)', 'caption=От имейл, width=100%, mandatory, optionsFunc=email_Inboxes::getAllowedFromEmailOptions, input');
     	$form->FNC('subject', 'varchar', 'caption=Относно,mandatory,width=100%, input');
     	$form->FNC('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory, input');
@@ -444,22 +446,22 @@ class colab_FolderToPartners extends core_Manager
     	
     	$form->setDefault('from', email_Outgoings::getDefaultInboxId());
     	
-    	$subject = "Регистрация в " . EF_APP_NAME; 
+    	$subject = tr("Създайте нов акаунт в") . " " . core_Setup::get('EF_APP_TITLE', TRUE);
+
     	$form->setDefault('subject', $subject);
     	
-    	$url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => $companyId, 'rand' => str::getRand()), 604800);
-    	
+    	$placeHolder = '{{' . tr('линк||link') . '}}';
+
     	$body = new ET(
             tr("Уважаеми потребителю||Dear User") . ",\n\n" . 
             tr("За да се регистрираш като служител на фирма||To have registration as a member of company") .
             " \"[#company#]\", " . 
             tr("моля последвай този||please follow this") .
-            " [link=[#link#]]" . tr("линк||link") . "[/link] - " . 
+            " {$placeHolder} - " . 
             tr("изтича след 7 дена||it expired after 7 days"));
 		
     	$companyName = str_replace(array('&lt;', '&amp;'), array("<", "&"), $companyName);
     	$body->replace($companyName, 'company');
-		$body->replace($url, 'link');
 		
 		$footer = cls::get('email_Outgoings')->getFooter($companyRec->country);
 		$body = $body->getContent() . "\n\n" . $footer;
@@ -467,7 +469,18 @@ class colab_FolderToPartners extends core_Manager
     	$form->setDefault('body', $body);
     	
     	$form->input();
+
+        // Проверка за грешки
+        if($form->isSubmitted()) {
+            if(!strpos($form->rec->body, $placeHolder)) {
+                $form->setError('body', 'Липсва плейсхолдера на линка за регистриране|* - ' . $placeHolder);
+            }
+        }
+
     	if($form->isSubmitted()){
+           
+            $form->rec->companyId = $companyId;
+            $form->rec->placeHolder = $placeHolder;
     		$res = $this->sendRegistrationEmail($form->rec);
     		$msg = ($res) ? 'Успешно изпратен имейл' : 'Проблем при изпращането на имейл';
     		
@@ -480,6 +493,8 @@ class colab_FolderToPartners extends core_Manager
     	$tpl = $this->renderWrapping($form->renderHtml());
     	core_Form::preventDoubleSubmission($tpl, $form);
     	
+        core_Lg::pop();
+
     	return $tpl;
     }
     
@@ -501,13 +516,17 @@ class colab_FolderToPartners extends core_Manager
     			$PML->AddAddress($to);
     		}
     	}
-    	
+        
     	$PML->Encoding = "quoted-printable";
+        
+        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => $rec->companyId, 'email' => $rec->to, 'rand' => str::getRand()), 604800);
     	
+        $rec->body = str_replace($rec->placeHolder, "[link=$url]link[/link]", $rec->body);
+
     	Mode::push('text', 'plain');
     	$bodyAlt = cls::get('type_Richtext')->toVerbal($rec->body);
     	Mode::pop('text');
-    	
+
     	Mode::push('text', 'xhtml');
     	$bodyTpl = cls::get('type_Richtext')->toVerbal($rec->body);
     	email_Sent::embedSbfImg($PML);
@@ -562,10 +581,12 @@ class colab_FolderToPartners extends core_Manager
     	$Users = cls::get('core_Users');
     	$companyRec = crm_Companies::fetch($companyId);
     	
+        core_Lg::push(drdata_Countries::getLang($companyRec->country));
+
     	$rand = Request::get('rand');
     	
     	// Ако не сме дошли от имейл, трябва потребителя да има достъп до обекта
-    	$fromEmail = Request::get('fromEmail');
+    	$fromEmail = Request::get('fromEmail');  
     	if(!$fromEmail){
             requireRole('powerUser');
     		expect(doc_Folders::haveRightToObject($companyRec));
@@ -654,7 +675,7 @@ class colab_FolderToPartners extends core_Manager
     		// Изтриваме линка, да не може друг да се регистрира с него
     		core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => $companyId, 'rand' => $rand), 604800);
     
-    		return followRetUrl(array('core_Users', 'login'), '|Успешно са създадени потребител и визитка на нов партньор');
+    		return followRetUrl(array('colab_Threads', 'list', 'folderId' => $companyId), '|Успешно са създадени потребител и визитка на нов партньор');
     	}
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис');
@@ -671,7 +692,8 @@ class colab_FolderToPartners extends core_Manager
     	}
     	core_Form::preventDoubleSubmission($tpl, $form);
     	
-    	
+    	core_Lg::pop();
+
     	return $tpl;
     }
     
