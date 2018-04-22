@@ -376,7 +376,7 @@ class email_Inboxes extends core_Master
         return self::$allBoxes[$key];
     }
     
-    
+
     /**
      * Намира първия имейл в стринга, който е записан в системата
      */
@@ -387,7 +387,7 @@ class email_Inboxes extends core_Master
         // Ако сметката е частна, то $toBox е нейния имейл
         if($accRec->type == 'single') {
 
-            return self::replaceDomains($accRec->email);
+            return $accRec->email;
         }
         
         // Вземаме всички имейли
@@ -400,19 +400,21 @@ class email_Inboxes extends core_Master
         // Ако няма никакви имейли, към които е изпратено писмото, $toBox е имейла на сметката
         if (!is_array($emailsArr) || !count($emailsArr)) {
 
-            return self::replaceDomains($accRec->email);
+            return $accRec->email;
         }
 
         // Всички вътрешни кутии към тази сметка
         $allBoxes = static::getAllInboxes($accId);
         
         // Търсим във всички съществуващи кутии
-        foreach ($emailsArr as  $eml) {
-                
+        foreach ($emailsArr as  &$eml) {
+            
+            $eml = self::replaceDomains($eml);
+
             // Първия имейл, който отговаря на кутия е $toBox
             if ($allBoxes[$eml]) {
                     
-                return self::replaceDomains($eml);
+                return $eml;
             }
         }
         
@@ -427,7 +429,7 @@ class email_Inboxes extends core_Master
             // Ако имейла е съставен от ник на потребител и домейн на корпоративна сметка
             // тогава създаваме кутия за този имейл, вързана към съответния потребител
             foreach ($emailsArr as $eml) {
-                
+
                 list($nick, $domain) = explode('@', $eml);
                 
                 if(!$nick || !$domain) continue;
@@ -451,18 +453,18 @@ class email_Inboxes extends core_Master
                     
                     self::save($rec);
 
-                    return self::replaceDomains($rec->email);
+                    return $rec->email;
                 }
             }            
         }
         
         if ($bestEmail = self::getClosest($emailsArr)) {
             
-            return self::replaceDomains($bestEmail);
+            return $bestEmail;
         }
         
         // По подразбиране, $toBox е емейла на кутията от където се тегли писмото
-        return self::replaceDomains($accRec->email);
+        return $accRec->email;
     }
 
 
