@@ -116,6 +116,18 @@ class log_System extends core_Manager
         $this->setDbIndex('type, createdOn, className');
         
         $this->dbEngine = 'InnoDB';
+        
+        if (defined('LOG_DB_NAME') && defined('LOG_DB_USER') && defined('LOG_DB_PASS') && defined('LOG_DB_HOST')) {
+            $this->db = cls::get('core_Db',
+                array(  'dbName' => LOG_DB_NAME,
+                    'dbUser' => LOG_DB_USER,
+                    'dbPass' => LOG_DB_PASS,
+                    'dbHost' => LOG_DB_HOST,
+                    'dbCharset' => 'utf8_bin',
+                    'dbCollation' => 'utf8_general_ci',
+                    'dbCharsetClient' => 'utf8',
+                ));
+        }
     }
     
     
