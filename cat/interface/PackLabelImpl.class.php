@@ -140,7 +140,10 @@ class cat_interface_PackLabelImpl
 			
 			$catalogPrice = round($catalogPrice * $quantity, 2);
 			$currencyCode = acc_Periods::getBaseCurrencyCode();
+			
+			Mode::push('text', 'plain');
 			$catalogPrice = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPrice);
+			Mode::pop('text', 'plain');
 		}
 		
 		$quantity = cat_UoM::round($measureId, $quantity);
