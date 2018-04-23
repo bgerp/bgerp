@@ -114,7 +114,6 @@ class cat_interface_PackLabelImpl
 		
 		// Каква е мярката и количеството
 		$measureId = $pRec->measureId;
-		$quantity = cat_UoM::round($measureId, $quantity);
 		
 		// Кое е последното задание към артикула
 		$jQuery = planning_Jobs::getQuery();
@@ -144,6 +143,7 @@ class cat_interface_PackLabelImpl
 			$catalogPrice = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPrice);
 		}
 		
+		$quantity = cat_UoM::round($measureId, $quantity);
 		$measureId = tr(cat_UoM::getShortName($measureId));
 		
 		// Продуктови параметри
