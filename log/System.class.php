@@ -123,9 +123,6 @@ class log_System extends core_Manager
                     'dbUser' => LOG_DB_USER,
                     'dbPass' => LOG_DB_PASS,
                     'dbHost' => LOG_DB_HOST,
-                    'dbCharset' => 'utf8_bin',
-                    'dbCollation' => 'utf8_general_ci',
-                    'dbCharsetClient' => 'utf8',
                 ));
         }
     }
