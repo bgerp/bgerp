@@ -104,7 +104,8 @@ class auto_handler_CreateQuotationFromInquiry {
     			// Активиране на офертата
     			$qRec = (object)array('id' => $quoteId, 'state' => 'active');
     			cls::get('sales_Quotations')->invoke('BeforeActivation', array($qRec));
-    			sales_Quotations::save($qRec, 'state');
+    			$qRec->_isActivated = TRUE;
+    			sales_Quotations::save($qRec, 'state,modifiedOn,modifiedBy,activatedOn,date');
     			sales_Quotations::logInfo("Активиране на автоматично създадена оферта към запитване", $quoteId);
     		}
     		
