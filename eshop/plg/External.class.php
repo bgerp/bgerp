@@ -30,6 +30,7 @@ class eshop_plg_External extends core_Plugin
 			}
 		//}
 		
-		$tpl->push(('eshop/js/Scripts.js'), 'JS');
+		$res->push(('eshop/js/Scripts.js'), 'JS');
+		//jquery_Jquery::run($res, "eshopActions();");
 	}
 }
