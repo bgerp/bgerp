@@ -79,7 +79,7 @@ class eshop_Settings extends core_Manager
     	$this->FLD('classId', 'class', 'caption=Клас,removeAndrefreshForm=objectId,silent,mandatory');
     	$this->FLD('objectId', 'int', 'caption=Обект,mandatory');
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащания->Валута');
-    	$this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащания->ДДС режим');
+    	$this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, no=Без начисляване на ДДС)', 'caption=Плащания->ДДС режим');
     	$this->FLD('payments', 'keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Общи данни->Плащане');
     	$this->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Общи данни->Доставка');
     	$this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Общи данни->Политика');
