@@ -806,7 +806,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$Detail = cls::get($mvc->mainDetail);
     	$dQuery = $Detail->getQuery();
     	$dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-    	$dQuery->where("#tolerance IS NULL || #term IS NULL");
+    	$dQuery->where("#tolerance IS NULL");
     	
     	while($dRec = $dQuery->fetch()){
     		$save = FALSE;
@@ -1058,12 +1058,12 @@ abstract class deals_DealMaster extends deals_DealBase
     	while($rec = $query->fetch()){
     		$term = $rec->term;
     		if(!isset($term)){
-    			if($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)){
-    				$cRec = sales_TransportValues::get($this, $rec->{$Detail->masterKey}, $rec->id);
-    				if(isset($cRec->deliveryTime)){
-    					$term = $cRec->deliveryTime + $term;
-    				}
-    			}
+    			$term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity);
+    		}
+    		
+    		$cRec = sales_TransportValues::get($this, $rec->{$Detail->masterKey}, $rec->id);
+    		if(isset($cRec->deliveryTime)){
+    			$term = $cRec->deliveryTime + $term;
     		}
     		
     		if(isset($term)){
