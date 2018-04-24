@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class eshop_CartDetails extends core_Detail
+class eshop_CartDetails extends eshop_Details
 {
 	
 	
@@ -26,7 +26,7 @@ class eshop_CartDetails extends core_Detail
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools2,plg_AlignDecimals2';//eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_Select, plg_AlignDecimals2';
+	public $loadList = 'plg_RowTools2,plg_AlignDecimals2,plg_Modified';//eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_Select, plg_AlignDecimals2';
 	
 	
 	/**
@@ -54,6 +54,12 @@ class eshop_CartDetails extends core_Detail
 	
 	
 	/**
+	 * Кой може да изтрива от кошницата
+	 */
+	public $canRemoveexternal = 'every_one';
+	
+	
+	/**
 	 * Кой има право да добавя?
 	 */
 	public $canAdd = 'eshop,ceo';
@@ -71,21 +77,17 @@ class eshop_CartDetails extends core_Detail
 	function description()
 	{
 		$this->FLD('cartId', 'key(mvc=eshop_Carts)', 'caption=Кошница,mandatory,input=hidden,silent');
-		$this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,silent');
-		$this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=eshop_ProductDetails::getSellableProducts)', 'caption=Артикул,silent,removeAndRefreshForm=packagingId,mandatory');
-		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack');
+		parent::addFields($this);
+		$this->FLD('finalPrice', 'double(decimals=2)', 'caption=Цена,input,smartCenter');
+		$this->FLD('finalQuantity', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
+		$this->FLD('vat', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=ДДС %,input=none');
+		$this->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,input=none');
+		$this->FNC('amount', 'double(minDecimals=2)', 'caption=Сума,input,smartCenter');
 		
-		$this->FLD('quantity', 'double', 'caption=Количество,input=none');
-    	$this->FLD('quantityInPack', 'double', 'input=none');
-    	$this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
-    	$this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-    	$this->FLD('price', 'double', 'caption=Цена,input=none');
-    	$this->FNC('amount', 'double(minDecimals=2)', 'caption=Сума,input,smartCenter');
-    	
     	$this->setDbUnique('cartId,eshopProductId,productId,packagingId');
     }
 	
-    
+	
     /**
      * Изчисляване на цена за опаковка на реда
      *
@@ -94,40 +96,12 @@ class eshop_CartDetails extends core_Detail
      */
     public static function on_CalcAmount(core_Mvc $mvc, $rec)
     {
-    	if (!isset($rec->price) || empty($rec->quantity)) return;
+    	if (!isset($rec->finalPrice) || empty($rec->finalQuantity)) return;
     
-    	$rec->amount = $rec->price * $rec->quantity;
+    	$rec->amount = $rec->finalPrice * $rec->finalQuantity;
     }
     
     
-	/**
-	 * Изчисляване на цена за опаковка на реда
-	 *
-	 * @param core_Mvc $mvc
-	 * @param stdClass $rec
-	 */
-	public static function on_CalcPackPrice(core_Mvc $mvc, $rec)
-	{
-		if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) return;
-	
-		$rec->packPrice = $rec->price * $rec->quantityInPack;
-	}
-	
-	
-	/**
-	 * Изчисляване на количеството на реда в брой опаковки
-	 *
-	 * @param core_Mvc $mvc
-	 * @param stdClass $rec
-	 */
-	public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
-	{
-		if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
-	
-		$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
-	}
-	
-	
 	/**
 	 * Добавя артикул в кошницата
 	 * 
@@ -135,24 +109,41 @@ class eshop_CartDetails extends core_Detail
 	 * @param int $eshopProductId  - артикул от е-мага
 	 * @param int $productId       - артикул от каталога
 	 * @param double $packQuantity - к-во
-	 * @param double $packPrice    - ед. цена с ДДС, във валутата от настройките
+	 * @param double $packPrice    - ед. цена с ДДС, във валутата от настройките или NULL
 	 */
-	public static function addToCart($cartId, $eshopProductId, $productId, $packQuantity, $packPrice)
+	public static function addToCart($cartId, $eshopProductId, $productId, $packQuantity, $packPrice = NULL)
 	{
 		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'draft'"));
 		expect($eshopRec = eshop_Products::fetch($eshopProductId));
 		expect(cat_Products::fetch($productId));
-		expect(cat_UoM::fetch($productId));
 		
 		expect($productRec = eshop_ProductDetails::fetch("#eshopProductId = '{$eshopProductId}' AND #productId = '{$productId}'"));
+		
+		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
+		$vat = ($settings->chargeVat == 'yes') ? cat_Products::getVat($productId) : NULL;
+		$quantity = $packQuantity * $productRec->quantityInPack;
+		
+		if(!isset($packPrice)){
+			if(isset($settings->listId)){
+				expect($price = price_ListRules::getPrice($settings->listId, $productId, $packagingId), 'Няма цена');
+				$packPrice = $price * $productRec->quantityInPack;
+				if(isset($vat)){
+					$packPrice *= 1 + $vat;
+				}
+				
+				$packPrice = currency_CurrencyRates::convertAmount($packPrice, NULL, NULL, $settings->currencyId);
+			}
+		}
 		
 		$dRec = (object)array('cartId'         => $cartId, 
 				              'eshopProductId' => $eshopProductId, 
 				              'productId'      => $productId,
 				              'packagingId'    => $productRec->packagingId,
 				              'quantityInPack' => $productRec->quantityInPack,
-				              'price'          => $packPrice / $productRec->quantityInPack,
-				              'quantity'       => $packQuantity * $productRec->quantityInPack,
+				              'finalPrice'     => $packPrice,
+							  'finalQuantity'  => $packQuantity,
+							  'vat'            => $vat,
+				              'quantity'       => $quantity,
 		);
 		
 		if($exRec = self::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$productRec->packagingId}")){
@@ -161,5 +152,57 @@ class eshop_CartDetails extends core_Detail
 		} else {
 			self::save($dRec);
 		}
+	}
+	
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
+	 */
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	{
+		if(isset($fields['-external'])){
+			core_RowToolbar::createIfNotExists($row->_rowTools);
+			if($mvc->haveRightFor('removeexternal', $rec)){
+				$row->_rowTools->addLink('Премахване', array('eshop_CartDetails', 'removeexternal', 'id' => $rec->id, 'cartId' => $rec->cartId, 'ret_url' => TRUE), 'ef_icon=img/16/delete.png,title=Премахване от кошницата');
+			}
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'removeexternal'){
+			
+			if(empty($rec->cartId)){
+				$requiredRoles = 'no_one';
+			} elseif(!eshop_Carts::haveRightFor('view', $rec->cartId)){
+				$requiredRoles = 'no_one';
+			}
+		}
+	}
+	
+	
+	function act_removeexternal()
+	{
+		$id = Request::get('id', 'int');
+		$cartId = Request::get('cartId', 'int');
+		$this->requireRightFor('removeexternal', (object)array('cartId' => $cartId));
+		
+		if(isset($id)){
+			$this->delete($id);
+			$msg = 'Артикулът е премахнат от кошницата|*!';
+		} else {
+			$this->delete("#cartId = {$cartId}");
+			$msg = 'Кошницата е изпразнена успешно|*!';
+		}
+		
+		return followRetUrl($retUrl, NULL, $msg);
 	}
 }

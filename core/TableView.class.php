@@ -291,7 +291,12 @@ class core_TableView extends core_BaseClass
             $this->tableClass = 'listTable';
         }
         
-        $tpl = new ET("\n<table [#TABLE_ATTR#] class=\"{$this->tableClass}\"><thead>{$tableHeader}</thead>[#ROW_BEFORE#]{$row}[#ROW_AFTER#]</table>\n");
+        $tableId = '';
+        if (isset($this->tableId)) {
+        	$tableId = " id = \"{$this->tableId}\"";
+        }
+        
+        $tpl = new ET("\n<table [#TABLE_ATTR#] {$tableId} class=\"{$this->tableClass}\"><thead>{$tableHeader}</thead>[#ROW_BEFORE#]{$row}[#ROW_AFTER#]</table>\n");
         
         if (count($rows)) {
             foreach ($rows as $r) {

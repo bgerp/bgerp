@@ -97,6 +97,8 @@ class cms_page_External extends core_page_Active
         if(core_Users::haveRole('partner')){
         	$this->placeExternalUserData();
         }
+        
+        $this->invoke("AfterPrepareExternalPage", array(&$this));
     }
 
     
