@@ -583,7 +583,7 @@ class sales_Quotations extends core_Master
     		}
     		
     		if(!empty($deliveryAdress)){
-				$deliveryAdress1 = (isset($rec->deliveryTermId)) ? (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName') . ": ") : "";
+				$deliveryAdress1 = (isset($rec->deliveryTermId)) ? (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName') . ", ") : "";
 				$deliveryAdress = $deliveryAdress1 . $deliveryAdress;
 				$row->deliveryTermId = $deliveryAdress;
 			}

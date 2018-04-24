@@ -277,7 +277,7 @@ class planning_Jobs extends core_Master
     	}
     	
     	if(isset($rec->saleId)){
-    		$form->setDefault('dueDate', $mvc->getDefaultDueDate($rec->productId, $rec->saleId));
+    		$form->setDefault('dueDate', $mvc->getDefaultDueDate($rec->productId, $rec->saleId, $deliveryDate));
     		
     		$saleRec = sales_Sales::fetch($rec->saleId);
     		$dRec = sales_SalesDetails::fetch("#saleId = {$rec->saleId} AND #productId = {$rec->productId}");
@@ -287,7 +287,7 @@ class planning_Jobs extends core_Master
     		// Ако има данни от продажба, попълваме ги
     		$form->setDefault('storeId', $saleRec->shipmentStoreId);
     		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
-    		$form->setDefault('deliveryDate', $saleRec->deliveryTime);
+    		$form->setDefault('deliveryDate', $deliveryDate);
     		$form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
     		$locations = crm_Locations::getContragentOptions($saleRec->contragentClassId, $saleRec->contragentId);
     		$form->setOptions('deliveryPlace', $locations);
@@ -327,18 +327,28 @@ class planning_Jobs extends core_Master
      * @param int $saleId    - ид на сделка
      * @return NULL|date     - дефолтния падеж
      */
-    private static function getDefaultDueDate($productId, $saleId)
+    private static function getDefaultDueDate($productId, $saleId, &$deliveryDate)
     {
+    	$saleRec = sales_Sales::fetch($saleId);
     	if(empty($saleId)) return NULL;
-    	$sQuery = sales_SalesDetails::getQuery();
-    	$sQuery->where("#productId = {$productId} AND #saleId = {$saleId}");
-    	$sQuery->XPR('max', 'double', 'MAX(#term)');
-    	$sQuery->show('max');
-    	$max = $sQuery->fetch()->max;
     	
-    	if(empty($max)) return NULL;
+    	if(!empty($saleRec->deliveryTime)){
+    		$deliveryDate = $saleRec->deliveryTime;
+    	} elseif(!empty($saleRec->deliveryTermTime)){
+    	    $deliveryDate = dt::addSecs($saleRec->deliveryTermTime, $rec->activatedOn);
+    	}
     	
-    	return dt::addSecs($max, dt::today(), FALSE);
+    	if(empty($deliveryDate)) return NULL;
+    	$deliveryDate = dt::verbal2mysql($deliveryDate, FALSE);
+    	
+    	$saleClassId = sales_Sales::getClassId();
+    	$transRec = sales_TransportValues::fetch("#docClassId = {$saleClassId} AND #docId = {$saleId}", 'deliveryTime');
+    	$subtractTime = 3 * 24 * 60 * 60 +  $transRec->deliveryTime;
+    	$dueDate = dt::addSecs(-1 * $subtractTime, $deliveryDate);
+    	$dueDate = dt::nextWorkingDay($dueDate, -1);
+    	$dueDate = dt::verbal2mysql($dueDate, FALSE);
+    	
+    	return $dueDate;
     }
     
     

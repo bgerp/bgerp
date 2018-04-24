@@ -1,0 +1,10 @@
+<div class='cart-holder-external'>
+[#CART_TABLE#]
+
+[#VAT_STATUS#]
+<div style='margin:10px'>|Обща стойност|*: [#total#] [#currencyId#]</div>
+
+<div style='margin:10px'>|Избрани артикули|*: [#productCount#]</div>
+
+[#EMPTY_BTN#]
+</div>
