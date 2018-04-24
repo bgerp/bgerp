@@ -217,8 +217,8 @@ class eshop_ProductDetails extends eshop_Details
 				$row->catalogPrice .= " <span class='cCode'>" . $settings->currencyId . "</span>";
 			}
 		} elseif(isset($fields['-external'])){
-			$addUrl = array('eshop_Carts', 'addtocart', 'eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'packQuantity' => 10, 'ret_url' => TRUE);//, 'local');
-			$row->btn = ht::createBtn('Добави', $addUrl, FALSE, TRUE, array('title'=> 'Добавяне в кошницата', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl));
+			$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
+			$row->btn = ht::createFnBtn('Добави', NULL, FALSE, array('title'=> 'Добавяне в кошницата', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'cart-add-product-btn'));
 		}
 	}
 	
@@ -275,10 +275,10 @@ class eshop_ProductDetails extends eshop_Details
 		$table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
 		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
 		
-		if($count <= 10){
+		//if($count <= 10){
 			$priceHead = 'Цена|* ' . $settings->currencyId;
     		$tpl->append($table->get($data->rows, "code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,catalogPrice={$priceHead},btn=|*&nbsp;"));
-		} else {
+		/*} else {
 			$newProducts = array();
 			foreach ($data->rows as $pRow){
 				$newProducts[] = strip_tags("{$pRow->code} {$pRow->productId} {$pRow->packagingId}");
@@ -287,7 +287,7 @@ class eshop_ProductDetails extends eshop_Details
 			//cms_Domains::getPublicDomain()
 			
 			$tpl->append($table->get($data->rows, 'productId=Артикул,quantity=К-во,btn=|*&nbsp;'));
-		}
+		}*/
 		
 		return $tpl;
 	}

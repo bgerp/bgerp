@@ -138,15 +138,51 @@ class eshop_Carts extends core_Master
     }
     
     
+    /**
+     * Екшън за добавяне на артикул в кошницата
+     * @return multitype:
+     */
     public function act_addToCart()
     {
+    	// Взимане на данните от заявката
     	$this->requireRightFor('addtocart');
-    	expect($eshopProductId = Request::get('eshopProductId', 'int'));
-    	expect($productId = Request::get('productId', 'int'));
-    	expect($packQuantity = Request::get('packQuantity', 'double'));
+    	$eshopProductId = Request::get('eshopProductId', 'int');
+    	$productId = Request::get('productId', 'int');
+    	$packQuantity = Request::get('packQuantity', 'double');
     	
-    	$cartId = self::force();
-    	eshop_CartDetails::addToCart($cartId, $eshopProductId, $productId, $packQuantity);
+    	$msg = 'Проблем при добавянето на артикулът в кошницата|*!';
+    	$success = FALSE;
+    	if(!empty($eshopProductId) && !empty($productId) && !empty($packQuantity)){
+    		try{
+    			// Форсиране на кошница и добавяне на артикула в нея
+    			$cartId = self::force();
+    			eshop_CartDetails::addToCart($cartId, $eshopProductId, $productId, $packQuantity);
+    			$this->updateMaster($cartId);
+    			$msg = 'Артикулът е успешно добавен в кошницата|*!';
+    			$success = TRUE;
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    			$msg = 'Проблем при добавянето на артикулът в кошницата|*!';
+    		}
+    	}
+    	
+    	// Ако режимът е за AJAX
+    	if (Request::get('ajax_mode')) {
+    		core_Statuses::newStatus($msg, ($success === TRUE) ? 'notice' : 'error');
+    		
+    		// Ще се реплейсне статуса на кошницата
+    		$resObj = new stdClass();
+    		$resObj->func = "html";
+    		$resObj->arg = array('id' => 'cart-external-status', 'html' => self::getStatus($cartId)->getContent(), 'replace' => TRUE);
+    	
+    		$hitTime = Request::get('hitTime', 'int');
+    		$idleTime = Request::get('idleTime', 'int');
+    		$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+    		 
+    		$res = array_merge(array($resObj), (array)$statusData);
+    		
+    		return $res;
+    	}
     	
     	return followRetUrl(NULL, 'Артикулът е успешно добавен в кошницата');
     }
@@ -212,10 +248,10 @@ class eshop_Carts extends core_Master
     /**
      * Какъв е статуса на кошницата
      */
-    public static function getStatus()
+    public static function getStatus($cartId = NULL)
     {
     	$tpl = new core_ET("");
-    	$cartId = self::force(1, NULL, FALSE);
+    	$cartId = ($cartId) ? $cartId : self::force(NULL, NULL, FALSE);
     	if(empty($cartId)) return $tpl;
     	
     	$cartRec = self::fetch($cartId);
@@ -252,26 +288,100 @@ class eshop_Carts extends core_Master
     }
     
     
+    /**
+     * Екшън за показване на външния изглед на кошницата
+     */
     public function act_View()
     {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = self::fetch($id));
     	$this->requireRightFor('view', $rec);
     	
-    	$tpl = new core_ET("");
-    	$row = self::recToVerbal($rec);
-    	$data = (object)array('rec' => $rec, 'row' => $row);
-    	$this->prepareExternalCart($data);
-    	if(!count($data->recs)) return followRetUrl(NULL, 'Кошницата е празна');
+    	$tpl = getTplFromFile("eshop/tpl/SingleLayoutCartExternal.shtml");
+    	$tpl->append(self::renderViewCart($rec), 'CART_TABLE');
+    	$tpl->append(self::renderCartSummary($rec), 'CART_TOTAL');
+    	$tpl->append(self::renderCartSummary($rec, TRUE), 'CART_COUNT');
+    	$tpl->append(self::renderCartToolbar($rec, TRUE), 'CART_COUNT');
     	
-    	$tpl = $this->renderExternalCart($data);
     	Mode::set('wrapper', 'cms_page_External');
     	
     	return $tpl;
     }
     
     
-    private function prepareExternalCart($data)
+    /**
+     * Рендиране на съмарито на кошницата
+     * 
+     * @param mixed $id
+     * @param boolean $onlyCount - само общата бройка или общата сума
+     * @return core_ET $tpl      - шаблон на съмарито
+     */
+    public static function renderCartSummary($id, $onlyCount = FALSE)
+    {
+    	$rec = self::fetchRec($id, '*', FALSE);
+    	$row = self::recToVerbal($rec);
+    	$block = ($onlyCount === TRUE) ? 'CART_COUNT' : 'CART_TOTAL';
+    	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock($block);
+    	$tpl->placeObject($row);
+    	$tpl->removeBlocks();
+    	$tpl->removePlaces();
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Рендиране на тулбара към кошницата
+     *
+     * @param mixed $id
+     * @param boolean $onlyCount - само общата бройка или общата сума
+     * @return core_ET $tpl      - шаблон на съмарито
+     */
+    public static function renderCartToolbar($id)
+    {
+    	$rec = self::fetchRec($id);
+    	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock('CART_TOOLBAR');
+    	
+    	if(eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
+    		$emptyUrl = ($rec->productCount) ? array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => TRUE) : array();
+    		$btn = ht::createBtn('Изпразни', $emptyUrl, NULL, NULL, 'title=Изпразване на кошницата,ef_icon=img/16/bin_closed.png');
+    		$tpl->append($btn, 'CART_TOOLBAR');
+    	}
+    	
+    	$tpl->removeBlocks();
+    	$tpl->removePlaces();
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Рендиране на изгледа на кошницата във външната част
+     *
+     * @param mixed $rec
+     * @return core_ET $tpl      - шаблон на съмарито
+     */
+    public static function renderViewCart($rec)
+    {
+    	$rec = self::fetchRec($rec);
+    	
+    	$tpl = new core_ET("");
+    	$row = self::recToVerbal($rec);
+    	$data = (object)array('rec' => $rec, 'row' => $row);
+    	self::prepareExternalCart($data);
+    	$tpl = self::renderExternalCart($data);
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Подготовка на данните на кошницата
+     *
+     * @param stdClass $data
+     * @return core_ET $tpl      - шаблон на съмарито
+     */
+    private static function prepareExternalCart($data)
     {
     	$fields = cls::get('eshop_CartDetails')->selectFields();
     	$fields['-external'] = TRUE;
@@ -287,27 +397,23 @@ class eshop_Carts extends core_Master
     		$data->recs[$dRec->id] = $dRec;
     		$data->rows[$dRec->id] = eshop_CartDetails::recToVerbal($dRec, $fields);
     	}
-    	
-    	if(eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $data->rec->id))){
-    		$data->emptyCartUrl = toUrl(array('eshop_CartDetails', 'removeexternal', 'cartId' => $data->rec->id), 'absolute');
-    	}
     }
     
     
-    private function renderExternalCart($data)
+    /**
+     * Рендиране на данните на кошницата
+     *
+     * @param stdClass $data
+     * @return core_ET $tpl  - шаблон на съмарито
+     */
+    private static function renderExternalCart($data)
     {
-    	$tpl = getTplFromFile("eshop/tpl/SingleLayoutCartExternal.shtml");
-    	$tpl->placeObject($data->row);
+    	$tpl = new core_ET('');
     	
     	$data->listTableMvc = cls::get('eshop_CartDetails');
-    	$table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => 'optionsTable'));
+    	$table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => 'optionsTable', 'tableId' => 'cart-view-table'));
     	plg_RowTools2::on_BeforeRenderListTable($data->listTableMvc, $tpl, $data);
-    	$tpl->replace($table->get($data->rows, $data->listFields), 'CART_TABLE');
-    	
-    	if(isset($data->emptyCartUrl)){
-    		$emptyBtn = ht::createBtn('Изпразни', $data->emptyCartUrl, NULL, NULL, 'title=Изпразване на кошницата,ef_icon=img/16/bin_closed.png');
-    		$tpl->replace($emptyBtn, 'EMPTY_BTN');
-    	}
+    	$tpl->replace($table->get($data->rows, $data->listFields));
     	
     	return $tpl;
     }
