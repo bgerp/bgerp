@@ -512,7 +512,8 @@ class eshop_Products extends core_Master
         Mode::set('SOC_TITLE', $data->row->name);
         Mode::set('SOC_SUMMARY', $data->row->info);
         
-        $data->row->productRow = eshop_ProductDetails::prepareExternal($data->rec);
+        $data->detailData = (object)array('rec' => $data->rec);
+        eshop_ProductDetails::prepareExternal($data->detailData);
     }
 
 
@@ -524,8 +525,8 @@ class eshop_Products extends core_Master
         $tpl = getTplFromFile("eshop/tpl/ProductShow.shtml");
         $tpl->placeObject($data->row);
     
-        if(is_array($data->row->productRow) && count($data->row->productRow) && haveRole('debug')){
-        	$tpl->replace(eshop_ProductDetails::renderExternal($data->row->productRow), 'PRODUCT_OPT');
+        if(is_array($data->detailData->rows) && count($data->detailData->rows)){
+        	$tpl->replace(eshop_ProductDetails::renderExternal($data->detailData), 'PRODUCT_OPT');
         }
         
         return $tpl;
@@ -683,17 +684,5 @@ class eshop_Products extends core_Master
         }
 
         return $res;
-    }
-    
-    
-    /**
-     * Връща домейн ид-то на артикула от е-магазина
-     * 
-     * @param int $id
-     * @return mixed
-     */
-    public static function getDomainId($id)
-    {
-    	return cms_Content::fetchField(eshop_Groups::fetchField(eshop_Products::fetchField($id, 'groupId'), 'menuId'), 'domainId');
     }
 }
