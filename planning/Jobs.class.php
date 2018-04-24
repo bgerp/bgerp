@@ -334,12 +334,10 @@ class planning_Jobs extends core_Master
     	
     	if(!empty($saleRec->deliveryTime)){
     		$deliveryDate = $saleRec->deliveryTime;
-    	} else {
-    		$maxDeliveryTime = cls::get('sales_Sales')->getMaxDeliveryTime($saleId);
-    		if(!empty($maxDeliveryTime)){
-    			$deliveryDate = dt::addSecs($maxDeliveryTime, $rec->activatedOn);
-    		}
+    	} elseif(!empty($saleRec->deliveryTermTime)){
+    	    $deliveryDate = dt::addSecs($saleRec->deliveryTermTime, $rec->activatedOn);
     	}
+    	
     	if(empty($deliveryDate)) return NULL;
     	$deliveryDate = dt::verbal2mysql($deliveryDate, FALSE);
     	
