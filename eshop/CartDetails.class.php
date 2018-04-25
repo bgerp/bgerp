@@ -177,24 +177,11 @@ class eshop_CartDetails extends eshop_Details
 		$vat = ($settings->chargeVat == 'yes') ? cat_Products::getVat($productId) : NULL;
 		$quantity = $packQuantity * $productRec->quantityInPack;
 		
-		if(!isset($packPrice)){
-			if(isset($settings->listId)){
-				expect($price = price_ListRules::getPrice($settings->listId, $productId, $packagingId), 'Няма цена');
-				$packPrice = $price * $productRec->quantityInPack;
-				if(isset($vat)){
-					$packPrice *= 1 + $vat;
-				}
-				
-				$packPrice = currency_CurrencyRates::convertAmount($packPrice, NULL, NULL, $settings->currencyId);
-			}
-		}
-		
 		$dRec = (object)array('cartId'         => $cartId, 
 				              'eshopProductId' => $eshopProductId, 
 				              'productId'      => $productId,
 				              'packagingId'    => $productRec->packagingId,
 				              'quantityInPack' => $productRec->quantityInPack,
-				              'finalPrice'     => $packPrice,
 							  'vat'            => $vat,
 				              'quantity'       => $quantity,
 		);
@@ -204,6 +191,31 @@ class eshop_CartDetails extends eshop_Details
 			self::save($exRec, 'quantity');
 		} else {
 			self::save($dRec);
+		}
+	}
+	
+	
+	/**
+	 * Преди запис на документ, изчислява стойността на полето `isContable`
+	 *
+	 * @param core_Manager $mvc
+	 * @param stdClass $rec
+	 */
+	protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+	{
+		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
+		$vat = ($settings->chargeVat == 'yes') ? cat_Products::getVat($rec->productId) : NULL;
+		
+		if(!isset($rec->finalPrice)){
+			if(isset($settings->listId)){
+				expect($price = price_ListRules::getPrice($settings->listId, $rec->productId, $rec->packagingId), 'Няма цена');
+				$rec->finalPrice = $price * $rec->quantityInPack;
+				if(isset($vat)){
+					$rec->finalPrice *= 1 + $vat;
+				}
+		
+				$rec->finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, NULL, $settings->currencyId);
+			}
 		}
 	}
 	
