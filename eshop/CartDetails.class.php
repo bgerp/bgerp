@@ -84,10 +84,10 @@ class eshop_CartDetails extends eshop_Details
 	{
 		$this->FLD('cartId', 'key(mvc=eshop_Carts)', 'caption=Кошница,mandatory,input=hidden,silent');
 		parent::addFields($this);
-		$this->FLD('finalPrice', 'double(decimals=2)', 'caption=Цена,input=none,smartCenter');
+		$this->FLD('finalPrice', 'double(decimals=2)', 'caption=Цена,input=none');
 		$this->FLD('vat', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=ДДС %,input=none');
 		$this->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,input=none');
-		$this->FNC('amount', 'double(decimals=2)', 'caption=Сума,smartCenter');
+		$this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
 		
     	$this->setDbUnique('cartId,eshopProductId,productId,packagingId');
     }

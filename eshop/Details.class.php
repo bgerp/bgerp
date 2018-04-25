@@ -27,7 +27,7 @@ abstract class eshop_Details extends core_Detail
 		$mvc->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack');
 		$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
 		$mvc->FLD('quantityInPack', 'double', 'input=none');
-		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
+		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none');
 	}
 	
 	
