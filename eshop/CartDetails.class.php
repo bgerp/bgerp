@@ -44,7 +44,7 @@ class eshop_CartDetails extends eshop_Details
 	/**
 	 * Кои полета да се показват в листовия изглед
 	 */
-	public $listFields = 'eshopProductId=Артикул в е-мага,productId,packagingId,packQuantity,packPrice=Ед.цена,amount=Сума';
+	public $listFields = 'eshopProductId=Артикул в е-мага,productId,packagingId,packQuantity,finalPrice=Цена,amount=Сума';
 	
 	
 	/**

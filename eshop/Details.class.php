@@ -49,11 +49,12 @@ abstract class eshop_Details extends core_Detail
 			$form->setOptions('packagingId', $packs);
 			$form->setDefault('packagingId', key($packs));
 		}
+		
+		if(Request::get('external')){
+			Mode::set('wrapper', 'cms_page_External');
+		}
 	}
 	
-	
-
-
 
 	/**
 	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
@@ -88,7 +89,7 @@ abstract class eshop_Details extends core_Detail
 	 * @param core_Mvc $mvc
 	 * @param stdClass $rec
 	 */
-	public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+	protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
 	{
 		if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
 	

@@ -78,6 +78,8 @@ class eshop_ProductDetails extends eshop_Details
 	{
 		parent::addFields($this);
     	$this->FNC('catalogPrice', 'double(decimals=2)', 'caption=Цена,input=none,smartCenter');
+    	$productType = core_Type::getByName("key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=eshop_ProductDetails::getSellableProducts)");
+    	$this->setFieldType('productId', $productType);
     	
 		$this->setDbUnique('eshopProductId,productId,packagingId');
 	}
@@ -245,6 +247,12 @@ class eshop_ProductDetails extends eshop_Details
 	}
 	
 	
+	/**
+	 * Връща достъпните артикули за избор от домейна
+	 * 
+	 * @param int|NULL $domainId - домейн или текущия ако не е подаден
+	 * @return array $options    - възможните артикули
+	 */
 	public static function getAvailableProducts($domainId = NULL)
 	{
 		$options = array();
