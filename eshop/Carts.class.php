@@ -371,7 +371,7 @@ class eshop_Carts extends core_Master
     	
     	if(eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
     		$emptyUrl = ($rec->productCount) ? array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => TRUE) : array();
-    		$btn = ht::createBtn('Изпразване', $emptyUrl, NULL, NULL, 'title=Изпразване на кошницата,ef_icon=img/16/bin_closed.png');
+    		$btn = ht::createBtn('Изчистване', $emptyUrl, NULL, NULL, 'title=Изпразване на кошницата,ef_icon=img/16/bin_closed.png');
     		$tpl->append($btn, 'CART_TOOLBAR');
     	}
     	

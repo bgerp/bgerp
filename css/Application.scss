@@ -3113,7 +3113,44 @@ fieldset.sharing-history {
 .cmsTopContractor {
     position: relative;
 }
-
+#cart-view-buttons {
+	margin: 20px 0;
+}
+.optionsTable {
+	color: #222;
+	width: 100%;
+	margin-bottom: 20px;
+	th {
+		text-align: center;
+		padding: 5px;
+		border-bottom: 1px solid #ccc;
+	}
+	td {
+		padding: 5px;
+	}
+	tbody tr:nth-child(even){
+		background-color: #F1F1F1;
+	}
+	tbody tr:last-child td {
+		border-bottom: 1px solid #ccc;
+	}
+}
+.summary-holder {
+	float: right;
+}
+.cart-holder-external {
+	padding: 20px;
+}
+.quantity-input-column {
+	text-align: center;
+	input {
+		text-align: right;
+		width: 60px;
+		padding: 2px 5px;
+		border: 1px solid #ccc!important;
+		border-radius:3px;
+	}
+}
 .foldertabs {
     > .tab-row {
         overflow: hidden;
