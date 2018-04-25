@@ -257,6 +257,7 @@ class eshop_ProductDetails extends eshop_Details
 	{
 		$options = array();
 		
+		// Намиране на опциите, които са вързани към артикули от подадения домейн
 		$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
 		$contentQuery = cms_Content::getQuery();
 		$contentQuery->show('id');
@@ -270,12 +271,19 @@ class eshop_ProductDetails extends eshop_Details
 		$groups = arr::extractValuesFromArray($groupQuery->fetchAll(), 'id');
 		if(!count($groups)) return $groups;
 		
+		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
 		$query = self::getQuery();
 		$query->show('productId');
 		$query->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
 		$query->in('groupId', $groups);
 		while($rec = $query->fetch()){
-			$options[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+			
+			// Трябва да имат цени по избраната политика
+			if(!empty($settings->listId)){
+				if(price_ListRules::getPrice($settings->listId, $rec->productId, $rec->packagingId)){
+					$options[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+				}
+			}
 		}
 		
 		return $options;
