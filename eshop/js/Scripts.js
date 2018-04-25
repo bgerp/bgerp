@@ -36,6 +36,9 @@ function eshopActions() {
 		getEfae().process(resObj, data);
 	});
 	
+	// Време за изчакване
+	var timeout1;
+	
 	// Ъпдейт на кошницата след промяна на к-то
 	$(document.body).on('keyup', ".option-quantity-input", function(e){
 		
@@ -49,10 +52,15 @@ function eshopActions() {
 		    if(!url) return;
 		    var data = {packQuantity:packQuantity};
 		    
-		    
-		    resObj = new Object();
-			resObj['url'] = url;
-			getEfae().process(resObj, data);
+		    // След всяко натискане на бутон изчистваме времето на изчакване
+			clearTimeout(timeout1);
+			
+			// Правим Ajax заявката като изтече време за изчакване
+			timeout1 = setTimeout(function(){
+				resObj = new Object();
+				resObj['url'] = url;
+				getEfae().process(resObj, data);
+			}, 2000);
 		}
 	});
 	
