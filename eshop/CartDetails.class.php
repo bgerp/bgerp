@@ -167,7 +167,8 @@ class eshop_CartDetails extends eshop_Details
 		if(isset($fields['-external'])){
 			core_RowToolbar::createIfNotExists($row->_rowTools);
 			if($mvc->haveRightFor('removeexternal', $rec)){
-				$row->_rowTools->addLink('Премахване', array('eshop_CartDetails', 'removeexternal', 'id' => $rec->id, 'cartId' => $rec->cartId, 'ret_url' => TRUE), 'ef_icon=img/16/delete.png,title=Премахване от кошницата');
+				$removeUrl = toUrl(array('eshop_CartDetails', 'removeexternal', $rec->id), 'local');
+				$row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => "img/16/delete.png", 'title' => "Премахване от кошницата", 'data-cart' => $rec->cartId, "data-url" => $removeUrl, "class" => 'remove-from-cart'));
 			}
 		}
 	}
@@ -189,6 +190,9 @@ class eshop_CartDetails extends eshop_Details
 	}
 	
 	
+	/**
+	 * Екшън за изтриване/изпразване на кошницата
+	 */
 	function act_removeexternal()
 	{
 		$id = Request::get('id', 'int');
@@ -201,6 +205,41 @@ class eshop_CartDetails extends eshop_Details
 		} else {
 			$this->delete("#cartId = {$cartId}");
 			$msg = 'Кошницата е изпразнена успешно|*!';
+		}
+		core_Statuses::newStatus($msg);
+		
+		// Ако заявката е по ajax
+		if (Request::get('ajax_mode')) {
+			cls::get('eshop_Carts')->updateMaster($cartId);
+			
+			// Ще реплейснем само бележката
+			$resObj = new stdClass();
+			$resObj->func = "html";
+			$resObj->arg = array('id' => 'cart-view-table', 'html' => eshop_Carts::renderViewCart($cartId)->getContent(), 'replace' => TRUE);
+			
+			// Ще реплейснем само бележката
+			$resObj1 = new stdClass();
+			$resObj1->func = "html";
+			$resObj1->arg = array('id' => 'cart-view-count', 'html' => eshop_Carts::renderCartSummary($cartId, TRUE)->getContent(), 'replace' => TRUE);
+			
+			// Ще реплейснем само бележката
+			$resObj2 = new stdClass();
+			$resObj2->func = "html";
+			$resObj2->arg = array('id' => 'cart-view-total', 'html' => eshop_Carts::renderCartSummary($cartId)->getContent(), 'replace' => TRUE);
+			
+			// Ще реплейснем само бележката
+			$resObj3 = new stdClass();
+			$resObj3->func = "html";
+			$resObj3->arg = array('id' => 'cart-view-buttons', 'html' => eshop_Carts::renderCartToolbar($cartId)->getContent(), 'replace' => TRUE);
+			
+			// Показваме веднага и чакащите статуси
+			$hitTime = Request::get('hitTime', 'int');
+			$idleTime = Request::get('idleTime', 'int');
+			$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+			
+			$res = array_merge(array($resObj, $resObj1, $resObj2, $resObj3), (array)$statusData);
+				
+			return $res;
 		}
 		
 		return followRetUrl($retUrl, NULL, $msg);
