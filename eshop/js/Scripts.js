@@ -1,6 +1,6 @@
 function eshopActions() {
 	
-	// Изтрива ред от кошницата
+	// Изтриване на ред от кошницата
 	$(document.body).on("click", '.remove-from-cart', function(event){
 		
 		var url = $(this).attr("data-url");
@@ -15,6 +15,7 @@ function eshopActions() {
 		getEfae().process(resObj, data);
 	});
 	
+	// Добавяне на артикул в кошницата
 	$(document.body).on("click", '.cart-add-product-btn', function(event){
 		
 		var url = $(this).attr("data-url");
@@ -35,7 +36,7 @@ function eshopActions() {
 		getEfae().process(resObj, data);
 	});
 	
-	// Използване на числата за въвеждане на суми за плащания
+	// Ъпдейт на кошницата след промяна на к-то
 	$(document.body).on('keyup', ".option-quantity-input", function(e){
 		
 		//this.value = this.value.replace(/[^0-9\.]/g,'');
@@ -56,7 +57,7 @@ function eshopActions() {
 	});
 	
 	
-	// Използване на числата за въвеждане на суми за плащания
+	// Оцветяване на инпута, ако има грешка
 	$(document.body).on('keyup', ".eshop-product-option", function(e){
 		$(this).removeClass('cart-input-error');
 		

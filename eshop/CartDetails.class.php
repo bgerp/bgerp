@@ -26,7 +26,7 @@ class eshop_CartDetails extends eshop_Details
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools2,plg_AlignDecimals2,plg_Modified';//eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_Select, plg_AlignDecimals2';
+	public $loadList = 'plg_RowTools2,plg_AlignDecimals2,plg_Modified';
 	
 	
 	/**

@@ -263,10 +263,7 @@ class eshop_Carts extends core_Master
     	return $id;
     }
     
-    function act_test()
-    {
-    	$this->updateMaster(1);
-    }
+    
     /**
      * Какъв е статуса на кошницата
      */
