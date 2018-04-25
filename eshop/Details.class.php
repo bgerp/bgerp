@@ -17,14 +17,68 @@ abstract class eshop_Details extends core_Detail
 {
 	
 	
+	/**
+	 * Доабвяне на полета
+	 */
 	protected static function addFields(&$mvc)
 	{
 		$mvc->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,silent');
-		$mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=eshop_ProductDetails::getSellableProducts)', 'caption=Артикул,silent,removeAndRefreshForm=packagingId,mandatory');
+		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack,mandatory');
 		$mvc->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack');
 		$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
 		$mvc->FLD('quantityInPack', 'double', 'input=none');
 		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
+	}
+	
+	
+	/**
+	 * Преди показване на форма за добавяне/промяна.
+	 *
+	 * @param core_Manager $mvc
+	 * @param stdClass $data
+	 */
+	protected static function on_AfterPrepareEditForm($mvc, &$data)
+	{
+		$form = &$data->form;
+		$rec = $form->rec;
+	
+		if(isset($rec->productId)){
+			$form->setField('packagingId', 'input');
+			$form->setField('packQuantity', 'input');
+			$packs = cat_Products::getPacks($rec->productId);
+			$form->setOptions('packagingId', $packs);
+			$form->setDefault('packagingId', key($packs));
+		}
+	}
+	
+	
+
+
+
+	/**
+	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+	 *
+	 * @param core_Mvc $mvc
+	 * @param core_Form $form
+	 */
+	protected static function on_AfterInputEditForm($mvc, &$form)
+	{
+		$rec = $form->rec;
+	
+		if($form->isSubmitted()){
+				
+			// Проверка на к-то
+			if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
+				$form->setError('packQuantity', $warning);
+			}
+				
+			// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
+			if(!$form->gotErrors()){
+				$productInfo = cat_Products::getProductInfo($rec->productId);
+				$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+				$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+			}
+		}
 	}
 	
 	
@@ -58,16 +112,21 @@ abstract class eshop_Details extends core_Detail
 			$row->productId = cat_Products::getVerbal($rec->productId, 'name');
 			$row->code = cat_products::getVerbal($rec->productId, 'code');
 			$row->packagingId = cat_UoM::getShortName($rec->packagingId);
-				
+			
 			$quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
 			if($mvc instanceof eshop_ProductDetails){
 				$value = NULL;
 				$placeholder = $quantity;
+				$dataUrl = '';
+				$class = 'eshop-product-option';
 			} else {
 				$value = $quantity;
 				$placeholder = NULL;
+				$dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->{$mvc->masterKey}), 'local');
+				$dataCartId = $rec->{$mvc->masterKey};
+				$class = 'option-quantity-input';
 			}
-			$row->quantity = ht::createTextInput("product{$rec->productId}", $value, "size=4,class=option-quantity-input,placeholder={$placeholder},data-quantity={$quantity}");
+			$row->quantity = ht::createTextInput("product{$rec->productId}", $value, "size=4,class={$class},placeholder={$placeholder},data-quantity={$quantity},data-url='{$dataUrl}'");
 		}
 		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);

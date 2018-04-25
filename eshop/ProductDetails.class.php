@@ -140,54 +140,6 @@ class eshop_ProductDetails extends eshop_Details
 	
 	
 	/**
-	 * Преди показване на форма за добавяне/промяна.
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $data
-	 */
-	protected static function on_AfterPrepareEditForm($mvc, &$data)
-	{
-		$form = &$data->form;
-		$rec = $form->rec;
-		
-		if(isset($rec->productId)){
-			$form->setField('packagingId', 'input');
-			$form->setField('packQuantity', 'input');
-			$packs = cat_Products::getPacks($rec->productId);
-			$form->setOptions('packagingId', $packs);
-			$form->setDefault('packagingId', key($packs));
-		}
-	}
-	
-	
-	/**
-	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-	 *
-	 * @param core_Mvc $mvc
-	 * @param core_Form $form
-	 */
-	protected static function on_AfterInputEditForm($mvc, &$form)
-	{
-		$rec = $form->rec;
-		
-		if($form->isSubmitted()){
-			
-			// Проверка на к-то
-			if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
-				$form->setError('packQuantity', $warning);
-			}
-			
-			// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
-			if(!$form->gotErrors()){
-				$productInfo = cat_Products::getProductInfo($rec->productId);
-				$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-				$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-			}
-		}
-	}
-	
-	
-	/**
 	 * След преобразуване на записа в четим за хора вид.
 	 *
 	 * @param core_Mvc $mvc
@@ -290,5 +242,34 @@ class eshop_ProductDetails extends eshop_Details
 		}*/
 		
 		return $tpl;
+	}
+	
+	
+	public static function getAvailableProducts($domainId = NULL)
+	{
+		$options = array();
+		
+		$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
+		$contentQuery = cms_Content::getQuery();
+		$contentQuery->show('id');
+		$contentQuery->where("#domainId = {$domainId}");
+		$contents = arr::extractValuesFromArray($contentQuery->fetchAll(), 'id');
+		if(!count($contents)) return $options;
+		
+		$groupQuery = eshop_Groups::getQuery();
+		$groupQuery->show('id');
+		$groupQuery->in("menuId", $contents);
+		$groups = arr::extractValuesFromArray($groupQuery->fetchAll(), 'id');
+		if(!count($groups)) return $groups;
+		
+		$query = self::getQuery();
+		$query->show('productId');
+		$query->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
+		$query->in('groupId', $groups);
+		while($rec = $query->fetch()){
+			$options[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+		}
+		
+		return $options;
 	}
 }

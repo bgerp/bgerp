@@ -34,4 +34,35 @@ function eshopActions() {
 		resObj['url'] = url;
 		getEfae().process(resObj, data);
 	});
+	
+	// Използване на числата за въвеждане на суми за плащания
+	$(document.body).on('keyup', ".option-quantity-input", function(e){
+		
+		//this.value = this.value.replace(/[^0-9\.]/g,'');
+		$(this).removeClass('cart-input-error');
+		var packQuantity = $(this).val();
+		if(!$.isNumeric(packQuantity)){
+			$(this).addClass('cart-input-error');
+		} else {
+			var url = $(this).attr("data-url");
+		    if(!url) return;
+		    var data = {packQuantity:packQuantity};
+		    
+		    
+		    resObj = new Object();
+			resObj['url'] = url;
+			getEfae().process(resObj, data);
+		}
+	});
+	
+	
+	// Използване на числата за въвеждане на суми за плащания
+	$(document.body).on('keyup', ".eshop-product-option", function(e){
+		$(this).removeClass('cart-input-error');
+		
+		var packQuantity = $(this).val();
+		if(!$.isNumeric(packQuantity)){
+			$(this).addClass('cart-input-error');
+		}
+	});
 };
