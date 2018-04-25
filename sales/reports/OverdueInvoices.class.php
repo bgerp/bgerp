@@ -16,7 +16,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData {
 	/**
 	 * Кой може да избира драйвъра
 	 */
-	public $canSelectDriver = 'ceo';
+	public $canSelectDriver = 'ceo,salesMaster';
 	
 	/**
 	 * Брой записи на страница
@@ -44,11 +44,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData {
 		
 		$fieldset->FLD ( 'checkDate', 'date', 'caption=Към дата,after=contragent,mandatory,single=none' );
 		$fieldset->FLD ( 'countryGroup', 'key(mvc=drdata_CountryGroups,select=name, allowEmpty)', 'caption=Група държави,after=checkDate');
-		$fieldset->FLD ( 'salesTotalNotPaid', 'double', 'input=none,single=none' );
 		$fieldset->FLD ( 'salesTotalOverDue', 'double', 'input=none,single=none' );
-		$fieldset->FLD ( 'salesTotalOverPaid', 'double', 'input=none,single=none' );
-		$fieldset->FLD ( 'purchaseTotalNotPaid', 'double', 'input=none,single=none' );
-		$fieldset->FLD ( 'purchaseTotalOverDue', 'double', 'input=none,single=none' );
 	}
 	
 	/**
@@ -83,7 +79,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData {
 		
 		$sQuery = sales_Invoices::getQuery ();
 		
-		$sQuery->where ( "#state != 'rejected'" );
+		$sQuery->where ( "#state = 'active'" );
 		
 		$sQuery->where ( array (
 				"#createdOn < '[#1#]'",
@@ -91,8 +87,21 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData {
 		) );
 		
 		// Фактури ПРОДАЖБИ
-		while ( $salesInvoices = $sQuery->fetch () ) {
-			
+		while ( $salesAllInvoices = $sQuery->fetch () ) {
+		    
+		    $salesInvoicesArr[]=$salesAllInvoices;
+		    
+		}
+		
+		
+			foreach ($salesInvoicesArr as $salesInvoices){
+		   
+		    $timeLimit = count($salesInvoicesArr) * 0.05;
+		   
+		    if($timeLimit >= 30){
+		        core_App::setTimeLimit($timeLimit);
+		    }
+		    
 			$cQuery = crm_ext_ContragentInfo::getQuery ();
 			
 			$cQuery->where ( "#contragentId = {$salesInvoices->contragentId}" );
@@ -128,7 +137,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData {
 			foreach ( $threadsId as $thread ) {
 				
 				// масив от фактури в тази нишка //
-				$invoicesInThread = (deals_Helper::getInvoicesInThread ( $thread, $rec->checkDate, TRUE, TRUE, TRUE ));
+			//	$invoicesInThread = (deals_Helper::getInvoicesInThread ( $thread, $rec->checkDate, TRUE, TRUE, TRUE ));
 				
 				$invoicePayments = (deals_Helper::getInvoicePayments ( $thread, $rec->checkDate ));
 				
@@ -435,6 +444,32 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData {
 		$contragentName = crm_Companies::getTitleById ( $dRec->contragentId );
 		
 		$res->contragentId = $contragentName;
+	}
+	
+	/**
+	 * Връща следващите три дати, когато да се актуализира справката
+	 *
+	 * @param stdClass $rec
+	 *            - запис
+	 * @return array|FALSE - масив с три дати или FALSE ако не може да се обновява
+	 */
+	public function getNextRefreshDates($rec)
+	{
+	    $date = new DateTime(dt::now());
+	    $date->add(new DateInterval('P1DT0H0M0S'));
+	    $d1 = $date->format('Y-m-d H:i:s');
+	    $date->add(new DateInterval('P1DT0H0M0S'));
+	    $d2 = $date->format('Y-m-d H:i:s');
+	    $date->add(new DateInterval('P1DT0H0M0S'));
+	    $d3 = $date->format('Y-m-d H:i:s');
+	
+	    return array(
+	        $d1,
+	        $d2,
+	        $d3
+	    );
+	    
+	    bp($d1);
 	}
 }
 
