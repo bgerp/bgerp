@@ -455,6 +455,7 @@ class eshop_Carts extends core_Master
     	$data->listTableMvc = cls::get('eshop_CartDetails');
     	$data->listTableMvc->FNC('code', 'varchar', 'smartCenter');
     	$data->listTableMvc->setFieldType('quantity', core_Type::getByName('varchar'));
+    	$data->listTableMvc->setField('quantity', 'tdClass=quantity-input-column');
     	$table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => 'optionsTable', 'tableId' => 'cart-view-table'));
     	plg_RowTools2::on_BeforeRenderListTable($data->listTableMvc, $tpl, $data);
     	$tpl->replace($table->get($data->rows, $data->listFields));
