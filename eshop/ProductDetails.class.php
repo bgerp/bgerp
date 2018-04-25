@@ -226,7 +226,12 @@ class eshop_ProductDetails extends eshop_Details
 		$count = count($data->rows);
 		
 		$fieldset = cls::get(get_called_class());
+		$fieldset->FNC('code', 'varchar', 'smartCenter');
+		$fieldset->setFieldType('quantity', core_Type::getByName('varchar'));
+		$fieldset->setField('quantity', 'tdClass=quantity-input-column');
+		
 		$table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
+		
 		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
 		
 		//if($count <= 10){
