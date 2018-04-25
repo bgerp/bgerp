@@ -134,9 +134,13 @@ class trans_Setup extends core_ProtoSetup
     	
     	while($rec = $query->fetch()){
     		if(is_numeric($rec->vehicle)){
-    			if($name = trans_Vehicles::fetchField($rec->vehicle, 'name')){
-    				$rec->vehicle = $name;
-    				$Lines->save($rec, 'vehicle');
+    			try{
+    				if($name = trans_Vehicles::fetchField($rec->vehicle, 'name')){
+    					$rec->vehicle = $name;
+    					$Lines->save($rec, 'vehicle');
+    				}
+    			} catch(core_exception_Expect $e){
+    				reportException($e);
     			}
     		}
     	}
