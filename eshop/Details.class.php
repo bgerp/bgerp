@@ -67,7 +67,7 @@ abstract class eshop_Details extends core_Detail
 				$value = $quantity;
 				$placeholder = NULL;
 			}
-			$row->quantity = ht::createTextInput("product{$row->code}", $value, "size=4,class=option-quantity-input,placeholder={$placeholder}");
+			$row->quantity = ht::createTextInput("product{$rec->productId}", $value, "size=4,class=option-quantity-input,placeholder={$placeholder},data-quantity={$quantity}");
 		}
 		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);

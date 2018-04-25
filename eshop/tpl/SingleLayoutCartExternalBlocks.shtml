@@ -1,0 +1,13 @@
+<!--ET_BEGIN CART_TOTAL-->
+[#CART_TOTAL#]
+<div style='margin:10px' id = 'cart-view-total'>|Обща стойност|*: [#total#] [#currencyId#]</div>
+<!--ET_END CART_TOTAL-->
+
+<!--ET_BEGIN CART_COUNT-->
+[#CART_COUNT#]
+<div style='margin:10px' id = 'cart-view-count'>|Избрани артикули|*: [#productCount#]</div>
+<!--ET_END CART_COUNT-->
+
+<!--ET_BEGIN CART_TOOLBAR-->
+<div style='margin:10px' class = 'cart-view-buttons'>[#CART_TOOLBAR#]</div>
+<!--ET_END CART_TOOLBAR-->
