@@ -230,8 +230,7 @@ class eshop_ProductDetails extends eshop_Details
 		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
 		
 		//if($count <= 10){
-			$priceHead = 'Цена|* ' . $settings->currencyId;
-    		$tpl->append($table->get($data->rows, "code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,catalogPrice={$priceHead},btn=|*&nbsp;"));
+    		$tpl->append($table->get($data->rows, "code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;"));
 		/*} else {
 			$newProducts = array();
 			foreach ($data->rows as $pRow){
