@@ -16,7 +16,7 @@
             </div>
             <!--ET_BEGIN USERLINK-->
             <div class="logoutBlock">
-                [#USERLINK#] [#USERCART#] [#LOGOUT#]
+                [#USERLINK#] <span id='cart-external-status'>[#USERCART#]</span> [#LOGOUT#]
             </div>
             <!--ET_END USERLINK-->
             [#CMS_LAYOUT#]

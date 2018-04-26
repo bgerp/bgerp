@@ -301,7 +301,7 @@ class eshop_Carts extends core_Master
 		$tpl->removeBlocks();
     	$tpl->removePlaces();
 
-    	return "<span id='cart-external-status'>" . $tpl . "</span>";
+    	return $tpl;
     }
     
     
