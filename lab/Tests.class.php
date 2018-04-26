@@ -30,17 +30,23 @@ class lab_Tests extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools2,doc_ActivatePlg,plg_Clone,doc_DocumentPlg,plg_Printing,
-                     lab_Wrapper, plg_Sorting, bgerp_plg_Blank, doc_plg_SelectFolder,planning_plg_StateManager';
+                     lab_Wrapper, plg_Sorting,plg_Search, bgerp_plg_Blank, doc_plg_SelectFolder,planning_plg_StateManager';
 
     /**
      * Дали може да бъде само в началото на нишка
      */
     var $onlyFirstInThread = TRUE;
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'title, vendorNote,providerNote,batch,type,provider,sharedUsers';
+    
 
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title,type,batch,origin,
+    var $listFields = 'id, title,type,batch,origin,searchKeywords,
                        assignor,activatedOn=Активиран,lastChangedOn=Последно';
 
     /**
@@ -154,21 +160,22 @@ class lab_Tests extends core_Master
     function description()
     {
         $this->FLD('referention', 'set()', 'caption=Референтен');
-        $this->FLD('type', 'varchar(64)', 'caption=Образец,after=referention,notSorting');
+        $this->FLD('type', 'varchar(64)', 'caption=Заглавие,after=referention,notSorting');
         $this->FLD('provider', 'varchar(64)', 'caption=Доставчик,notSorting');
         $this->FLD('batch', 'varchar(64)', 'caption=Партида,notSorting');
         
-        $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Описание,notSorting');
+        $this->FLD('vendorNote', 'richtext(bucket=Notes)', 'caption=Допълнителна информация->От Възложителя,notSorting');
+        $this->FLD('providerNote', 'richtext(bucket=Notes)', 'caption=Допълнителна информация->От Лаборанта,notSorting');
         $this->FLD('parameters', 'keylist(mvc=lab_Parameters,select=name)', 
             'caption=Параметри,notSorting,after=bringing');
-        $this->FLD('bringing', 'enum(vendor=Възложителя,performer=Изпълнителя)', 
-            "caption=Мострата се доставя от,maxRadio=2,columns=2,after=batch");
-        $this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Нотифициране->Потребители,mandatory');
+        $this->FLD('bringing', 'enum(vendor=Възложителя ще я изпрати,performer=Лаборанта да я намери)', 
+            "caption=Образец,maxRadio=2,columns=2,after=batch");
+        $this->FLD('sharedUsers', 'userList(roles=powerUser,allowEmpty)', 'caption=Нотифициране->Потребители');
         $this->FLD('activatedOn', 'datetime', 'caption=Активиран на,input=none,notSorting');
         $this->FLD('lastChangedOn', 'datetime', 'caption=Последна промяна,input=none,notSorting');
         $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит,pending=Зявка)', 
             'caption=Статус,input=none,notSorting');
-        $this->FLD('searchd', 'text', 'caption=searchd, input=none, notSorting');
+      
         
         $this->FNC('title', 'varchar(128)', 'caption=Наименование,input=none,oldFieldName=handler');
     }
@@ -533,10 +540,39 @@ class lab_Tests extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
+
+        
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->FNC('dateStart', 'date', 'caption=От,placeholder=От');
+        
+        $data->listFilter->showFields = 'dateStart';
+        
+        $data->listFilter->FNC('dateEnd', 'date', 'caption=До,placeholder=От');
+        
+        $data->listFilter->showFields .= ',dateEnd';
+        
+        $data->listFilter->showFields .= ',search';
+        
+        $data->listFilter->input();
+        
+        if ($data->listFilter->rec->dateStart) {
+            $data->query->where(array("#activatedOn > '[#1#]'", $data->listFilter->rec->dateStart));
+        }
+        
+        if ($data->listFilter->rec->dateEnd) {
+            $data->query->where(array("#activatedOn < '[#1#]'", $data->listFilter->rec->dateEnd));
+        }
+        
+        return ;
+        
+        
+        
         
         // Check wether the table has records
         $hasRecords = $mvc->fetchField("#id != 0", 'id');
-        
+//        bp($data);
         if ($hasRecords) {
             $data->listFilter->title = 'Филтър';
             $data->listFilter->view = 'horizontal';
@@ -598,7 +634,7 @@ class lab_Tests extends core_Master
                         
                         // Add SQL to $condMethods (add $methodId for every method which has the selected #paramId)
                         foreach ($selectedParamsArr as $v) {
-                            $queryMethods = $mvc->Methods->getQuery();
+                            $queryMethods = lab_Methods::getQuery();
                             $where = "#paramId = {$v}";
                             
                             while ($recMethods = $queryMethods->fetch($where)) {
@@ -618,7 +654,7 @@ class lab_Tests extends core_Master
                             $condMethods = substr($condMethods, 0, strlen($condMethods) - 4);
                             
                             // Prepare $testsFilteredByParamsList
-                            $queryTestDetails = $mvc->TestDetails->getQuery();
+                            $queryTestDetails = lab_TestDetails::getQuery();
                             
                             $testsFilteredByParamsList = "";
                             
@@ -657,7 +693,7 @@ class lab_Tests extends core_Master
                     $searchString = core_SearchMysql::normalizeText($searchString);
                     $searchString = trim($searchString);
                     $searchStringArr = explode(" ", $searchString);
-                    
+                   
                     // Ако има 'думи' в масива
                     if (count($searchStringArr)) {
                         $condSearchString = "#searchd LIKE '%";
@@ -785,5 +821,51 @@ class lab_Tests extends core_Master
             bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
         }
     }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+        $rec = $this->fetchRec($id);
+    
+        return $this->save($rec, 'modifiedOn,modifiedBy,searchKeywords');
+    }
+    
+    
+    
+    /**
+     * След извличане на ключовите думи
+     */
+    function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+         
+        if (!isset($searchKeywords)) {
+            $searchKeywords = plg_Search::getKeywords($mvc, $rec);
+        }
+    
+        if ($rec->id) {
+    
+
+            $dQuery = lab_TestDetails::getQuery();
+            $dQuery->where("#testId = {$rec->id}");
+            while($dRec = $dQuery->fetch()){
+                $str1 = lab_TestDetails::getVerbal($dRec, 'paramName');
+                $str2 = lab_TestDetails::getVerbal($dRec, 'methodId');
+                $str3 = lab_TestDetails::getVerbal($dRec, 'value');
+                $str4 = lab_TestDetails::getVerbal($dRec, 'comment');
+                $searchKeywords .= " " . plg_Search::normalizeText($str1 . ' ' . $str2 . ' ' . $str3 . ' ' . $str4) . ' ';
+            }
+        }
+     //bp($rec,$searchKeywordsd);
+      
+      //  return TRUE;
+    }
+    
 }
 

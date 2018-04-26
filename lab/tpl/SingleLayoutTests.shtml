@@ -60,17 +60,36 @@
         </div>
     </div>
    
-    <div class='block_right'>
+    <div class='fleft' style='width:50%''>
         <!--ET_BEGIN note-->
-        <div class='clear_both'><b>|Описание|*</b></div>
+        <div class='clear_both'><b>|Информация от ВЪЗЛОЖИТЕЛЯ|*</b></div>
         <div class='clear_l note'>
-            [#note#]
+            [#vendorNote#]
         </div>
         <!--ET_END note-->                         
     </div>
+    <div class='fright' style='width:50%''>
+        <!--ET_BEGIN note-->
+        <div class='clear_both'><b>|Информация от ЛАБОРАНТА|*</b></div>
+        <div class='clear_l note'>
+            [#providerNote#]
+        </div>
+        <!--ET_END note-->                         
+    </div>
+    <div style='clear: both;'></div>
+    <div style='clear: both;'></div>
     
-    <div style='clear: both;'></div>
-    <div style='clear: both;'></div>
+    <div class='clear_l f_left block_subtitle mt_50px'>
+        <div class='f_left w_100'>
+            <br>
+            <div class='w_100'>
+                <div class='f_right'>|Заявил|*:<span style='margin-left:5px;'>_____________</span></div>
+            </div>
+            <div class='clear_both f_right mt_10px'>
+                <div><span style='margin-left:57pt;'>/<span style='margin-left:2px; margin-right:2px;'>[#createdBy#]</span>/</span></div>
+            </div>
+        </div>
+    </div>
 
     <div class='clear_l f_left block_subtitle mt_50px'>
         <div class='f_left w_100'>
@@ -79,7 +98,7 @@
                 <div class='f_right'>|Изготвил|*:<span style='margin-left:5px;'>_____________</span></div>
             </div>
             <div class='clear_both f_right mt_10px'>
-                <div><span style='margin-left:57pt;'>/<span style='margin-left:2px; margin-right:2px;'>[#createdBy#]</span>/</span></div>
+                <div><span style='margin-left:57pt;'>/<span style='margin-left:2px; margin-right:2px;'>[#activatedBy#]</span>/</span></div>
             </div>
         </div>
     </div>
