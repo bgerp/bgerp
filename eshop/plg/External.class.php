@@ -22,13 +22,7 @@ class eshop_plg_External extends core_Plugin
 	 */
 	public static function on_AfterPrepareExternalPage($mvc, &$res)
 	{
-		//if(haveRole('debug')){
-			$action = Request::get('Act');
-			$ctr = Request::get('Ctr');
-			if(!($action == 'view' && $ctr == 'eshop_Carts')){
-				$res->replace(eshop_Carts::getStatus(), 'USERCART');
-			}
-		//}
+		$res->replace(eshop_Carts::getStatus(), 'USERCART');
 		
 		$res->push(('eshop/js/Scripts.js'), 'JS');
 		jquery_Jquery::run($res, "eshopActions();");
