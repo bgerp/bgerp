@@ -24,7 +24,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $listItemsPerPage;
+    protected $listItemsPerPage = 30;
 
     /**
      * По-кое поле да се групират листовите данни
@@ -140,7 +140,6 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             foreach ($threadsId as $thread) {
                 
                 // масив от фактури в тази нишка //
-                // $invoicesInThread = (deals_Helper::getInvoicesInThread ( $thread, $rec->checkDate, TRUE, TRUE, TRUE ));
                 
                 $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
                 
@@ -372,10 +371,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         $row->dueDate = self::getDueDate($dRec, TRUE, $rec);
         
-        $row->contragentId = crm_Companies::getTitleById($dRec->contragentId) . "<span class= 'quiet'>" .
-             '  »  Общо ПРОСРОЧЕНИ фактури : ' . "</span>" .
+        $row->contragentId = crm_Companies::getTitleById($dRec->contragentId) .
+             "<span class= 'fright'><span class= 'quiet'>" . 'Общо ПРОСРОЧЕНИ фактури : ' . "</span>" .
              core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSummArr[$dRec->contragentId]) .
-             ' ' . "$dRec->currencyId";
+             ' ' . "$dRec->currencyId" . "</span>";
         
         $row->currencyId = $dRec->currencyId;
         
@@ -384,7 +383,15 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $row->invoiceValue = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
         
         if ($dRec->invoiceCurrentSumm > 0) {
-            $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm);
+            
+            if ($dRec->invoiceCurrentSumm > $dRec->invoiceValue) {
+                
+                $row->invoiceCurrentSumm = "<span class= 'red'>" . core_Type::getByName('double(decimals=2)')->toVerbal(
+                    $dRec->invoiceCurrentSumm) . "</span>";
+            } else {
+                $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal(
+                    $dRec->invoiceCurrentSumm);
+            }
         }
         
         $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
@@ -422,11 +429,6 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         if (isset($data->rec->checkDate)) {
             $fieldTpl->append(dt::mysql2verbal($data->rec->checkDate, $mask = "d.m.Y"), 'checkDate');
         }
-        
-        // if (isset($data->rec->salesTotalOverDue)) {
-        // $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesTotalOverDue),
-        // 'salesTotalOverDue');
-        // }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
