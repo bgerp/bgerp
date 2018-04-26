@@ -281,24 +281,22 @@ class eshop_Carts extends core_Master
      */
     public static function getStatus($cartId = NULL)
     {
-    	$tpl = new core_ET("");
+    	$tpl = new core_ET("[#text#]");
     	$cartId = ($cartId) ? $cartId : self::force(NULL, NULL, FALSE);
-    	if(empty($cartId)) return $tpl;
-    	
+
     	$cartRec = self::fetch($cartId);
-    	$img = ht::createImg(array('height' => '16px', 'width' => '16px', 'src' => sbf("img/16/shopping_carts_blue.png", '')));
-    	
     	$amount = core_Type::getByName('double(smartRound)')->toVerbal($cartRec->total);
     	$count = core_Type::getByName('int')->toVerbal($cartRec->productCount);
-    	if(empty($count)) return NULL;
+
     	
     	$hint = tr("В кошницата има|* {$count} |продукта за|* 300 лв.");
     	$text = tr('Кошница');
-    	$tpl = new core_ET("<div>[#img#]&nbsp;([#count#])&nbsp;[#text#]</div>");
-    	$tpl->replace($img, 'img');
+		if($count){
+			$tpl->append(new core_ET("<sup>[#count#]</sup>"));
+		}
     	$tpl->replace($text, 'text');
     	$tpl->replace($count, 'count');
-    	$tpl = ht::createLink($tpl, array('eshop_Carts', 'view', $cartId, 'ret_url' => TRUE), FALSE, "title={$hint}");
+    	$tpl = ht::createLink($tpl, array('eshop_Carts', 'view', $cartId, 'ret_url' => TRUE), FALSE, "id=cart-external-status,title={$hint}, ef_icon=img/16/cart-black.png");
     	
     	return $tpl;
     }
