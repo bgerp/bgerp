@@ -95,6 +95,9 @@ class doc_DocumentPlg extends core_Plugin
         	$mvc->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активиране||Activated->От||By,input=none');
         }
         
+        // Вербализирането на ид-то да е без интервали за улеснение
+        $mvc->setFieldTypeParams('id', array('noWhitespace' => TRUE));
+        
         // Ако има cid и Tab, показваме детайлите
         if (Request::get('Cid') && Request::get('Tab')) {
             
