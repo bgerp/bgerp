@@ -295,6 +295,9 @@ class cal_Progresses extends core_Mvc
                             $tRec->state = 'closed';
                             
                             $saveArr['state'] = 'state';
+                            
+                            $tRec->timeClosed = dt::now();
+                            $saveArr['timeClosed'] = 'timeClosed';
                         }
                         
                         // Ако връщаме прогреса - връщаме и предишното състояние
