@@ -24,7 +24,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $listItemsPerPage = 30;
+    protected $listItemsPerPage;
 
     /**
      * По-кое поле да се групират листовите данни
@@ -161,9 +161,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                             'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate,contragentId');
                         
                         if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > 0 &&
-                             $iRec->dueDate < $rec->checkDate) {
+                             
+                            $iRec->dueDate < $rec->checkDate) {
                             
-                            $salesTotalOverDue += ($paydocs->amount - $paydocs->payout);
+                            $invoiceCurrentSummArr[$iRec->contragentId] += ($paydocs->amount - $paydocs->payout);
                         } else
                             continue;
                             // масива с фактурите за показване
@@ -184,6 +185,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                                 'invoiceVAT' => $iRec->vatAmount,
                                 'invoicePayout' => $paydocs->payout,
                                 'invoiceCurrentSumm' => $paydocs->amount - $paydocs->payout,
+                                'invoiceCurrentSummArr' => $invoiceCurrentSummArr,
                                 'payDocuments' => $paydocs->used
                             );
                         }
@@ -199,7 +201,20 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             arr::natOrder($sRecs, 'invoiceDate');
         }
         
+        arsort($invoiceCurrentSummArr);
         $recs = $sRecs;
+        
+        foreach ($invoiceCurrentSummArr as $k => $v) {
+            foreach ($recs as $key => $val) {
+                
+                if ($val->contragentId == $k) {
+                    
+                    $rTemp[] = $val;
+                }
+            }
+        }
+        
+        $recs = $rTemp;
         
         return $recs;
     }
@@ -342,7 +357,6 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
-        
         $row = new stdClass();
         
         $invoiceNo = str_pad($dRec->invoiceNo, 10, "0", STR_PAD_LEFT);
@@ -358,7 +372,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         $row->dueDate = self::getDueDate($dRec, TRUE, $rec);
         
-        $row->contragentId = crm_Companies::getTitleById($dRec->contragentId);
+        $row->contragentId = crm_Companies::getTitleById($dRec->contragentId) . "<span class= 'quiet'>" .
+             '  »  Общо ПРОСРОЧЕНИ фактури : ' . "</span>" .
+             core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSummArr[$dRec->contragentId]) .
+             ' ' . "$dRec->currencyId";
         
         $row->currencyId = $dRec->currencyId;
         
@@ -370,19 +387,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm);
         }
         
-        if ($dRec->invoiceCurrentSumm < 0) {
-            $invoiceOverSumm = - 1 * $dRec->invoiceCurrentSumm;
-            $row->invoiceOverSumm = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceOverSumm);
-        }
         $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
         
         $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, TRUE) . "</span>";
-        
-        if ($dRec->className == 'sales_Invoices') {
-            $row->className = 'Фактури ПРОДАЖБИ';
-        } else {
-            $row->className = 'Фактури ПОКУПКИ';
-        }
         
         return $row;
     }
@@ -404,7 +411,6 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                 <small><div><!--ET_BEGIN contragent-->|Контрагент|*: <b>[#contragent#]</b><!--ET_END to--></div></small>
         		                <small><div><!--ET_BEGIN contragent-->|Към дата|*: <b>[#checkDate#]</b><!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN salesTotalOverDue-->|фактури ПРОДАЖБИ »   ПРОСРОЧЕНИ|*: <b>[#salesTotalOverDue#]</b><!--ET_END to--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->contragent)) {
@@ -417,10 +423,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $fieldTpl->append(dt::mysql2verbal($data->rec->checkDate, $mask = "d.m.Y"), 'checkDate');
         }
         
-        if (isset($data->rec->salesTotalOverDue)) {
-            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesTotalOverDue), 
-                'salesTotalOverDue');
-        }
+        // if (isset($data->rec->salesTotalOverDue)) {
+        // $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesTotalOverDue),
+        // 'salesTotalOverDue');
+        // }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
@@ -460,6 +466,16 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         $res->contragentId = $contragentName;
     }
+
+    /**
+     *
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc            
+     * @param stdClass $data            
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {}
 
     /**
      * Връща следващите три дати, когато да се актуализира справката
