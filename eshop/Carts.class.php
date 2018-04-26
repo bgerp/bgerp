@@ -282,21 +282,28 @@ class eshop_Carts extends core_Master
     public static function getStatus($cartId = NULL)
     {
     	$tpl = new core_ET("[#text#]");
-    	$cartId = self::force(NULL, NULL);
-    	//$cartId = ($cartId) ? $cartId : self::force(NULL, NULL, FALSE);
-
-    	$cartRec = self::fetch($cartId);
-    	$amount = core_Type::getByName('double(smartRound)')->toVerbal($cartRec->total);
-    	$count = core_Type::getByName('int')->toVerbal($cartRec->productCount);
-
-    	$hint = tr("В кошницата има|* {$count} |продукта за|* 300 лв.");
-    	$text = tr('Кошница');
-		if($count){
-			$tpl->append(new core_ET("<sup>[#count#]</sup>"));
-		}
-    	$tpl->replace($text, 'text');
+    	$cartId = ($cartId) ? $cartId : self::force(NULL, NULL, FALSE);
+		$url = array();
+    	
+    	if(isset($cartId)){
+    		$cartRec = self::fetch($cartId);
+    		$amount = core_Type::getByName('double(smartRound)')->toVerbal($cartRec->total);
+    		$amount = str_replace('&nbsp;', ' ', $amount);
+    		$count = core_Type::getByName('int')->toVerbal($cartRec->productCount);
+    		$url = array('eshop_Carts', 'view', $cartId, 'ret_url' => TRUE);
+    		$str = ($count == 1) ? 'артикул' : 'артикула';
+    		$hint = "В кошницата има|* {$count} |{$str} за|* {$amount} " . $cartRec->currencyId;
+    	
+    		if($count){
+    			$tpl->append(new core_ET("<sup>[#count#]</sup>"));
+    		}
+    	} else {
+    		$hint = "Кошницата|* е празна";
+    	}
+    	
+    	$tpl->replace(tr('Кошница'), 'text');
     	$tpl->replace($count, 'count');
-    	$tpl = ht::createLink($tpl, array('eshop_Carts', 'view', $cartId, 'ret_url' => TRUE), FALSE, "title={$hint}, ef_icon=img/16/cart-black.png");
+    	$tpl = ht::createLink($tpl, $url, FALSE, "title={$hint}, ef_icon=img/16/cart-black.png");
 
 		$tpl->removeBlocks();
     	$tpl->removePlaces();
