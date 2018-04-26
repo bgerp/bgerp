@@ -348,6 +348,10 @@ class eshop_ProductDetails extends core_Detail
 		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
 		$tpl->append($table->get($data->rows, "code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;"));
 		
+		$cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с включено ДДС') : tr('без ДДС'));
+		$cartInfo = "<tr><td colspan='6' class='option-table-info'>{$cartInfo}</td></tr>";
+		$tpl->replace($cartInfo, 'ROW_AFTER');
+		
 		return $tpl;
 	}
 	
