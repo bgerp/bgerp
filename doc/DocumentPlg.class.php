@@ -460,6 +460,13 @@ class doc_DocumentPlg extends core_Plugin
                 $data->toolbar->addBtn('Изглед', array('doc_View', 'add', 'clsId' => $classId, 'dataId' => $data->rec->id, 'originId' => $data->rec->containerId), 'ef_icon=img/16/ui_saccordion.png, title=Друг изглед на документа, order=18, row=3');
             }
         }
+        
+        // Бутона за редакция да е на втори ред за другите потребители
+        if ($data->toolbar->buttons['btnEdit']) {
+            if ($data->rec->createdBy > 0 && $data->rec->createdBy != core_Users::getCurrent()) {
+                $data->toolbar->buttons['btnEdit']->attr['row'] = 2;
+            }
+        }
     }
     
     
