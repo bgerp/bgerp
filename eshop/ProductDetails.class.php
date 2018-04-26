@@ -209,11 +209,14 @@ class eshop_ProductDetails extends core_Detail
 	 */
 	private static function getPublicDisplayPrice($productId, $packagingId = NULL, $quantityInPack = 1, $domainId = NULL)
 	{
+		$res = (object)array('price' => NULL, 'discount' => NULL);
 		$domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
 		$settings = eshop_Settings::getSettings('cms_Domains', $domainId);
 		
 		if(isset($settings->listId)){
 			if($price = price_ListRules::getPrice($settings->listId, $productId, $packagingId)){
+				$priceObject = cls::get(price_ListToCustomers)->getPriceByList($settings->listId, $productId, $packagingId, $quantityInPack);
+				
 				$price *= $quantityInPack;
 				
 				if($settings->chargeVat == 'yes'){
@@ -221,7 +224,12 @@ class eshop_ProductDetails extends core_Detail
 				}
 				$price = currency_CurrencyRates::convertAmount($price, NULL, NULL, $settings->currencyId);
 			
-				return $price;
+				$res->price = $price;
+				if(!empty($priceObject->discount)){
+					$res->discount = $priceObject->discount;
+				}
+				
+				return $res;
 			}
 		}
 		
@@ -293,8 +301,8 @@ class eshop_ProductDetails extends core_Detail
 		$row->packagingId = cat_UoM::getShortName($rec->packagingId);
 		$row->quantity = ht::createTextInput("product{$rec->productId}", NULL, "size=4,class=eshop-product-option,placeholder=1");
 		
-		$catalogPrice = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
-		$row->catalogPrice = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPrice);
+		$catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
+		$row->catalogPrice = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPriceInfo->price);
 		
 		$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
 		$row->btn = ht::createFnBtn('Добави', NULL, FALSE, array('title'=> 'Добавяне в кошницата', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'cart-add-product-btn'));
@@ -306,6 +314,13 @@ class eshop_ProductDetails extends core_Detail
 			if($quantity < $rec->quantityInPack){
 				$row->btn = "<span class='option-not-in-stock'>" . tr('Няма в наличност'). " </span>";
 			}
+		}
+		
+		if(!empty($catalogPriceInfo->discount)){
+			$amountWithoutDiscount = $catalogPriceInfo->price / (1 - $catalogPriceInfo->discount) ;
+			$discount = ($settings->discountType == 'amount') ? core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount) : core_Type::getByName('percent(decimals=2)')->toVerbal($catalogPriceInfo->discount);
+			$class = ($settings->discountType == 'amount') ? 'external-discount-amount' : 'external-discount-percent';
+			$row->catalogPrice .= "<div class='{$class}'> {$discount}</dib>";
 		}
 		
 		return $row;

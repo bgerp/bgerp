@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class eshop_CartDetails extends eshop_Details
+class eshop_CartDetails extends core_Detail
 {
 	
 	
@@ -83,13 +83,33 @@ class eshop_CartDetails extends eshop_Details
 	function description()
 	{
 		$this->FLD('cartId', 'key(mvc=eshop_Carts)', 'caption=Кошница,mandatory,input=hidden,silent');
-		parent::addFields($this);
+		$this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,silent');
+		$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack,mandatory');
+		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack');
+		$this->FLD('quantity', 'double', 'caption=Количество,input=none');
+		$this->FLD('quantityInPack', 'double', 'input=none');
+		$this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none');
+		
 		$this->FLD('finalPrice', 'double(decimals=2)', 'caption=Цена,input=none');
 		$this->FLD('vat', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=ДДС %,input=none');
 		$this->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,input=none');
 		$this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
 		
     	$this->setDbUnique('cartId,eshopProductId,productId,packagingId');
+    }
+    
+    
+    /**
+     * Изчисляване на количеството на реда в брой опаковки
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+    {
+    	if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
+    
+    	$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
     
     
@@ -106,6 +126,18 @@ class eshop_CartDetails extends eshop_Details
     	
     	$form->setOptions('productId', array('' => '') + $productOptions);
     	$form->setField('eshopProductId', 'input=none');
+    	
+    	if(isset($form->rec->productId)){
+    		$form->setField('packagingId', 'input');
+    		$form->setField('packQuantity', 'input');
+    		$packs = cat_Products::getPacks($form->rec->productId);
+    		$form->setOptions('packagingId', $packs);
+    		$form->setDefault('packagingId', key($packs));
+    	}
+    	
+    	if(Request::get('external')){
+    		Mode::set('wrapper', 'cms_page_External');
+    	}
     }
     
     
@@ -115,7 +147,7 @@ class eshop_CartDetails extends eshop_Details
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
     	//if(Mode::is('wrapper', 'cms_page_External')){
-    		$data->form->title = 'Добавяне на артикул в кошницата';
+    	$data->form->title = 'Добавяне на артикул в кошницата';
     	//}
     }
     
@@ -137,6 +169,18 @@ class eshop_CartDetails extends eshop_Details
     			$exRec = self::fetch($id);
     			$rec->packQuantity += ($exRec->quantity / $exRec->quantityInPack);
     			$rec->id = $id;
+    		}
+    		
+    		// Проверка на к-то
+    		if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
+    			$form->setError('packQuantity', $warning);
+    		}
+    		
+    		// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
+    		if(!$form->gotErrors()){
+    			$productInfo = cat_Products::getProductInfo($rec->productId);
+    			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+    			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     		}
     	}
     }
@@ -216,6 +260,12 @@ class eshop_CartDetails extends eshop_Details
 		if(!isset($rec->finalPrice)){
 			if(isset($settings->listId)){
 				expect($price = price_ListRules::getPrice($settings->listId, $rec->productId, $rec->packagingId), 'Няма цена');
+				
+				$priceObject = cls::get(price_ListToCustomers)->getPriceByList($settings->listId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+				if(!empty($priceObject->discount)){
+					$rec->discount = $priceObject->discount;
+				}
+					
 				$rec->finalPrice = $price * $rec->quantityInPack;
 				if($cartRec->chargeVat == 'yes'){
 					$rec->finalPrice *= 1 + $vat;
@@ -236,13 +286,27 @@ class eshop_CartDetails extends eshop_Details
 	 */
 	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
-		if(isset($fields['-external'])){
+		if(isset($fields['-list'])){
+			$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+			$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
+		} elseif(isset($fields['-external'])){
 			core_RowToolbar::createIfNotExists($row->_rowTools);
 			if($mvc->haveRightFor('removeexternal', $rec)){
 				$removeUrl = toUrl(array('eshop_CartDetails', 'removeexternal', $rec->id), 'local');
 				$row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => "img/16/delete.png", 'title' => "Премахване от кошницата", 'data-cart' => $rec->cartId, "data-url" => $removeUrl, "class" => 'remove-from-cart'));
 			}
+			
+			$row->productId = cat_Products::getVerbal($rec->productId, 'name');
+			$row->code = cat_products::getVerbal($rec->productId, 'code');
+			$row->packagingId = cat_UoM::getShortName($rec->packagingId);
+			
+			$quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
+			$dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
+			
+			$row->quantity = ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}'");
 		}
+		
+		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 	}
 	
 	

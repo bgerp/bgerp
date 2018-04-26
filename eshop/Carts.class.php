@@ -282,13 +282,13 @@ class eshop_Carts extends core_Master
     public static function getStatus($cartId = NULL)
     {
     	$tpl = new core_ET("[#text#]");
-    	$cartId = ($cartId) ? $cartId : self::force(NULL, NULL, FALSE);
+    	$cartId = self::force(NULL, NULL);
+    	//$cartId = ($cartId) ? $cartId : self::force(NULL, NULL, FALSE);
 
     	$cartRec = self::fetch($cartId);
     	$amount = core_Type::getByName('double(smartRound)')->toVerbal($cartRec->total);
     	$count = core_Type::getByName('int')->toVerbal($cartRec->productCount);
 
-    	
     	$hint = tr("В кошницата има|* {$count} |продукта за|* 300 лв.");
     	$text = tr('Кошница');
 		if($count){
@@ -297,6 +297,8 @@ class eshop_Carts extends core_Master
     	$tpl->replace($text, 'text');
     	$tpl->replace($count, 'count');
     	$tpl = ht::createLink($tpl, array('eshop_Carts', 'view', $cartId, 'ret_url' => TRUE), FALSE, "id=cart-external-status,title={$hint}, ef_icon=img/16/cart-black.png");
+    	$tpl->removeBlocks();
+    	$tpl->removePlaces();
     	
     	return $tpl;
     }
@@ -438,8 +440,10 @@ class eshop_Carts extends core_Master
     		$data->recs[$dRec->id] = $dRec;
     		$row = eshop_CartDetails::recToVerbal($dRec, $fields);
     		if(!empty($dRec->discount)){
-    			$discount = core_Type::getByName('percent')->toVerbal($dRec->discount);
-    			$row->finalPrice .= "<span classs='cart-view-discount'> (-{$discount})</span>"; 
+    			$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
+    			$discount = ($settings->discountType == 'amount') ? core_Type::getByName('double(decimals=2)')->toVerbal($dRec->finalPrice/ (1 - $dRec->discount)) : "-" . core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->discount);
+    			
+    			$row->finalPrice .= "<span classs='cart-view-discount'> ({$discount})</span>"; 
     		}
     		
     		$data->rows[$dRec->id] = $row;
