@@ -133,7 +133,7 @@ class eshop_Carts extends core_Master
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Данни на лице->Имейл,hint=Вашият имейл||Your email,mandatory');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Данни на лице->Телефони,hint=Вашият телефон,mandatory');
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащания->Валута');
-    	$this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, no=Без начисляване на ДДС)', 'caption=Плащания->ДДС режим');
+    	$this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно)', 'caption=Плащания->ДДС режим');
     	$this->setDbIndex('brid');
     	$this->setDbIndex('userId');
     }
@@ -149,15 +149,29 @@ class eshop_Carts extends core_Master
     	$this->requireRightFor('addtocart');
     	$eshopProductId = Request::get('eshopProductId', 'int');
     	$productId = Request::get('productId', 'int');
+    	$packagingId = Request::get('packagingId', 'int');
     	$packQuantity = Request::get('packQuantity', 'double');
     	
+    	$packRec = cat_products_Packagings::getPack($productId, $packagingId);
+    	$quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
+    	
     	$msg = 'Проблем при добавянето на артикулът в кошницата|*!';
+    	$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
+    	if(isset($settings->storeId)){
+    		$quantity = store_Products::getQuantity($productId, $settings->storeId, TRUE);
+    		if($quantity < $quantityInPack * $packQuantity){
+    			$msg = 'Избраното количество не е налично';
+    			$success = FALSE;
+    			$skip = TRUE;
+    		}
+    	}
+    	
     	$success = FALSE;
-    	if(!empty($eshopProductId) && !empty($productId) && !empty($packQuantity)){
+    	if(!empty($eshopProductId) && !empty($productId) && !empty($packQuantity) && $skip !== TRUE){
     		try{
     			// Форсиране на кошница и добавяне на артикула в нея
     			$cartId = self::force();
-    			eshop_CartDetails::addToCart($cartId, $eshopProductId, $productId, $packQuantity);
+    			eshop_CartDetails::addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack);
     			$this->updateMaster($cartId);
     			$msg = 'Артикулът е успешно добавен в кошницата|*!';
     			$success = TRUE;
@@ -237,8 +251,6 @@ class eshop_Carts extends core_Master
     	$dQuery->where("#cartId = {$rec->id}");
     	
     	while($dRec = $dQuery->fetch()){
-    		
-    		
     		$rec->productCount++;
     		$finalPrice = $dRec->finalPrice;
     		if(!$dRec->discount){
@@ -248,11 +260,11 @@ class eshop_Carts extends core_Master
     		
     		if($rec->chargeVat == 'yes'){
     			$rec->totalNoVat += $sum / (1 + $dRec->vat);
+    			$rec->total += $sum;
     		} else {
     			$rec->totalNoVat += $sum;
+    			$rec->total += $sum * (1 + $dRec->vat);
     		}
-    		
-    		$rec->total += $sum;
     	}
     	
     	$rec->totalNoVat = round($rec->totalNoVat, 2);
@@ -286,7 +298,7 @@ class eshop_Carts extends core_Master
     	$tpl->replace($img, 'img');
     	$tpl->replace($text, 'text');
     	$tpl->replace($count, 'count');
-    	$tpl = ht::createLink($tpl, array('eshop_Carts', 'view', $cartId), FALSE, "title={$hint}");
+    	$tpl = ht::createLink($tpl, array('eshop_Carts', 'view', $cartId, 'ret_url' => TRUE), FALSE, "title={$hint}");
     	
     	return $tpl;
     }
@@ -339,13 +351,8 @@ class eshop_Carts extends core_Master
     {
     	$rec = self::fetchRec($id, '*', FALSE);
     	$row = self::recToVerbal($rec);
-    	$row->cartInfo = tr('Всички цени са в') . " {$rec->currencyId}, " . (($rec->chargeVat == 'yes') ? tr('с включено ДДС') : tr('без ДДС'));
-    	
-    	if($rec->chargeVat != 'yes'){
-    		unset($row->totalNoVat);
-    	} else {
-    		$row->totalNoVatCurrencyId = $row->currencyId;
-    	}
+    	$row->cartInfo = tr('Всички цени са в') . " {$rec->currencyId}, " . (($rec->chargeVat == 'yes') ? tr('с включено ДДС в цените') : tr('са без ДДС в цените'));
+    	$row->totalNoVatCurrencyId = $row->currencyId;
     	
     	$block = ($onlyCount === TRUE) ? 'CART_COUNT' : 'CART_SUMMARY';
     	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock($block);
@@ -370,7 +377,7 @@ class eshop_Carts extends core_Master
     	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock('CART_TOOLBAR');
     	
     	if(eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
-    		$emptyUrl = ($rec->productCount) ? array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => TRUE) : array();
+    		$emptyUrl = ($rec->productCount) ? array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => getRetUrl()) : array();
     		$btn = ht::createBtn('Изчистване', $emptyUrl, NULL, NULL, 'title=Изпразване на кошницата,ef_icon=img/16/bin_closed.png');
     		$tpl->append($btn, 'CART_TOOLBAR');
     	}

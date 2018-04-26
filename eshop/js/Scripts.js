@@ -23,13 +23,14 @@ function eshopActions() {
 	    
 	    var eshopProductId = $(this).attr("data-eshopproductpd");
 	    var productId = $(this).attr("data-productid");
+	    var packagingId = $(this).attr("data-packagingid");
 	    var packQuantity = $("input[name=product" + productId + "]").val();
 	    
 	    if(!packQuantity){
-	    	packQuantity = $("input[name=product" + productId + "]").attr("data-quantity");
+	    	packQuantity = 1;
 	    }
 	    
-	    var data = {eshopProductId:eshopProductId,productId:productId,packQuantity:packQuantity};
+	    var data = {eshopProductId:eshopProductId,productId:productId,packQuantity:packQuantity,packagingId:packagingId};
 	    
 	    resObj = new Object();
 		resObj['url'] = url;

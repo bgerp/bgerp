@@ -163,9 +163,10 @@ class eshop_CartDetails extends eshop_Details
 	 * @param int $eshopProductId  - артикул от е-мага
 	 * @param int $productId       - артикул от каталога
 	 * @param double $packQuantity - к-во
+	 * @param int $quantityInPack  - к-во в опаковка
 	 * @param double $packPrice    - ед. цена с ДДС, във валутата от настройките или NULL
 	 */
-	public static function addToCart($cartId, $eshopProductId, $productId, $packQuantity, $packPrice = NULL)
+	public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = NULL, $packPrice = NULL)
 	{
 		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'draft'"));
 		expect($eshopRec = eshop_Products::fetch($eshopProductId));
@@ -173,20 +174,25 @@ class eshop_CartDetails extends eshop_Details
 		
 		expect($productRec = eshop_ProductDetails::fetch("#eshopProductId = '{$eshopProductId}' AND #productId = '{$productId}'"));
 		
+		if(empty($quantityInPack)){
+			$packRec = cat_products_Packagings::getPack($productId, $packagingId);
+			$quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
+		}
+		
 		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
-		$vat = ($settings->chargeVat == 'yes') ? cat_Products::getVat($productId) : NULL;
-		$quantity = $packQuantity * $productRec->quantityInPack;
+		$vat = cat_Products::getVat($productId);
+		$quantity = $packQuantity * $quantityInPack;
 		
 		$dRec = (object)array('cartId'         => $cartId, 
 				              'eshopProductId' => $eshopProductId, 
 				              'productId'      => $productId,
-				              'packagingId'    => $productRec->packagingId,
-				              'quantityInPack' => $productRec->quantityInPack,
+				              'packagingId'    => $packagingId,
+				              'quantityInPack' => $quantityInPack,
 							  'vat'            => $vat,
 				              'quantity'       => $quantity,
 		);
 		
-		if($exRec = self::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$productRec->packagingId}")){
+		if($exRec = self::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}")){
 			$exRec->quantity += $dRec->quantity;
 			self::save($exRec, 'quantity');
 		} else {
@@ -204,17 +210,18 @@ class eshop_CartDetails extends eshop_Details
 	protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
 		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
-		$vat = ($settings->chargeVat == 'yes') ? cat_Products::getVat($rec->productId) : NULL;
+		$cartRec = eshop_Carts::fetch($rec->cartId);
+		$vat = (isset($rec->vat)) ? $rec->vat : cat_Products::getVat($rec->productId);
 		
 		if(!isset($rec->finalPrice)){
 			if(isset($settings->listId)){
 				expect($price = price_ListRules::getPrice($settings->listId, $rec->productId, $rec->packagingId), 'Няма цена');
 				$rec->finalPrice = $price * $rec->quantityInPack;
-				if(isset($vat)){
+				if($cartRec->chargeVat == 'yes'){
 					$rec->finalPrice *= 1 + $vat;
 				}
 		
-				$rec->finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, NULL, $settings->currencyId);
+				$rec->finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, NULL, $cartRec->currencyId);
 			}
 		}
 	}
@@ -269,14 +276,16 @@ class eshop_CartDetails extends eshop_Details
 		} else {
 			$this->delete("#cartId = {$cartId}");
 			cls::get('eshop_Carts')->updateMaster($cartId);
+			eshop_Carts::delete($cartId);
 			$msg = 'Кошницата е изпразнена успешно|*!';
 		}
+		
 		core_Statuses::newStatus($msg);
 		
 		// Ако заявката е по ajax
 		if (Request::get('ajax_mode')) return self::getUpdateCartResponse($cartId);
 		
-		return followRetUrl($retUrl, NULL, $msg);
+		return followRetUrl(NULL, NULL, $msg);
 	}
 	
 	
