@@ -1059,11 +1059,11 @@ abstract class deals_DealMaster extends deals_DealBase
     		$term = $rec->term;
     		if(!isset($term)){
     			$term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity);
-    		}
     		
-    		$cRec = sales_TransportValues::get($this, $rec->{$Detail->masterKey}, $rec->id);
-    		if(isset($cRec->deliveryTime)){
-    			$term = $cRec->deliveryTime + $term;
+    			$cRec = sales_TransportValues::get($this, $rec->{$Detail->masterKey}, $rec->id);
+    			if(isset($cRec->deliveryTime)){
+    				$term = $cRec->deliveryTime + $term;
+    			}
     		}
     		
     		if(isset($term)){
