@@ -173,7 +173,7 @@ class lab_Tests extends core_Master
         $this->FLD('sharedUsers', 'userList(roles=powerUser,allowEmpty)', 'caption=Нотифициране->Потребители');
         $this->FLD('activatedOn', 'datetime', 'caption=Активиран на,input=none,notSorting');
         $this->FLD('lastChangedOn', 'datetime', 'caption=Последна промяна,input=none,notSorting');
-        $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит,pending=Зявка)', 
+        $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит,pending=Зaявка)',
             'caption=Статус,input=none,notSorting');
       
         

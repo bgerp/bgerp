@@ -1,23 +1,31 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
 
-    <div class='fleft' style='width:50%'>
+    <div class='fleft' >
         <table class='top-table'>
+            <!--ET_BEGIN title-->
             <tr>
                 <td class='aright'>|Относно|*:</td>
                 <td><b>[#title#]</b></td>
             </tr>
+            <!--ET_END title-->
+            <!--ET_BEGIN type-->
             <tr>
                 <td class='aright'>|Вид|*:</td>
                 <td>[#type#]</td>
             </tr>
+            <!--ET_END type-->
+            <!--ET_BEGIN provider-->
             <tr>
                 <td class='aright'>|Доставчик|*:</td>
                 <td>[#provider#]</td>
             </tr>
+            <!--ET_END provider-->
+            <!--ET_BEGIN batch-->
             <tr>
                 <td class='aright'>|Партида|*:</td>
                 <td>[#batch#]</td>
             </tr>
+            <!--ET_END batch-->
             
         </table>
     </div>
@@ -25,33 +33,42 @@
     [#XXX#]
     <div class='fright' style='width:50%'>
         <table class='top-table'>
+            <!--ET_BEGIN RefHandle-->
             <tr>
                 <td class='aright'>|Референтен тест|*:</td>
                 <td><b>[#RefHandle#]</b></td>
             </tr>
+            <!--ET_END RefHandle-->
+            <!--ET_BEGIN RefTitle-->
             <tr>
                 <td class='aright'>|Относно|*:</td>
                 <td><b>[#RefTitle#]</b></td>
             </tr>
+            <!--ET_END RefTitle-->
+            <!--ET_BEGIN RefType-->
             <tr>
                 <td class='aright'>|Вид|*:</td>
                 <td>[#RefType#]</td>
             </tr>
+            <!--ET_END RefType-->
+            <!--ET_BEGIN RefProvider-->
             <tr>
                 <td class='aright'>|Доставчик|*:</td>
                 <td>[#RefProvider#]</td>
             </tr>
+            <!--ET_END RefProvider-->
+            <!--ET_BEGIN RefBatch-->
             <tr>
                 <td class='aright'>|Партида|*:</td>
                 <td>[#RefBatch#]</td>
             </tr>
-           
+            <!--ET_END RefBatch-->
         </table>
     </div>
     <!--ET_END XXX-->
     <div class='scrolling-holder'>
         <div style='display:inline-block;margin-top:10px;margin-bottom:10px;'>
-            <div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'>|Резултати от измерванията|*</div>
+            <div style='background-color:#ddd;border:solid 1px #999; border-bottom:none; padding:5px; font-size:1.2em;'>|Резултати от измерванията|*</div>
             <!--ET_BEGIN DETAILS-->
             <div class='details'>
                 [#DETAILS#]
@@ -60,48 +77,46 @@
         </div>
     </div>
    
-    <div class='fleft' style='width:50%''>
-        <!--ET_BEGIN note-->
+    <div class='fleft' style='width:50%'>
+        <!--ET_BEGIN vendorNote-->
         <div class='clear_both'><b>|Информация от ВЪЗЛОЖИТЕЛЯ|*</b></div>
         <div class='clear_l note'>
             [#vendorNote#]
         </div>
-        <!--ET_END note-->                         
+        <!--ET_END vendorNote-->
     </div>
-    <div class='fright' style='width:50%''>
-        <!--ET_BEGIN note-->
+    <div class='fright' style='width:50%'>
+        <!--ET_BEGIN providerNote-->
         <div class='clear_both'><b>|Информация от ЛАБОРАНТА|*</b></div>
         <div class='clear_l note'>
             [#providerNote#]
         </div>
-        <!--ET_END note-->                         
+        <!--ET_END providerNote-->
     </div>
     <div style='clear: both;'></div>
     <div style='clear: both;'></div>
-    
-    <div class='clear_l f_left block_subtitle mt_50px'>
-        <div class='f_left w_100'>
-            <br>
-            <div class='w_100'>
-                <div class='f_right'>|Заявил|*:<span style='margin-left:5px;'>_____________</span></div>
-            </div>
-            <div class='clear_both f_right mt_10px'>
-                <div><span style='margin-left:57pt;'>/<span style='margin-left:2px; margin-right:2px;'>[#createdBy#]</span>/</span></div>
-            </div>
-        </div>
-    </div>
 
-    <div class='clear_l f_left block_subtitle mt_50px'>
-        <div class='f_left w_100'>
-            <br>
-            <div class='w_100'>
-                <div class='f_right'>|Изготвил|*:<span style='margin-left:5px;'>_____________</span></div>
-            </div>
-            <div class='clear_both f_right mt_10px'>
-                <div><span style='margin-left:57pt;'>/<span style='margin-left:2px; margin-right:2px;'>[#activatedBy#]</span>/</span></div>
-            </div>
-        </div>
-    </div>
+
+<table class='signature-table fleft' style='width:50%;'>
+    <tr>
+        <td class="nowrap" style='width:1%;'>|За получателя|*:  </td>
+        <td></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td><span class="sign_names nowrap">/[#createdBy#]/</span></td>
+    </tr>
+</table>
+    <table style='width:50%' class='fright signature-table'>
+        <tr>
+            <td class="nowrap" style='width:1%;'>|За доставчика|*:  </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><span class="sign_names nowrap"><!--ET_BEGIN username-->/ [#activatedBy#] /<!--ET_END username--></span></td>
+        </tr>
+    </table>
 </div>
 
 
