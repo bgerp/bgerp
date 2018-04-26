@@ -335,7 +335,7 @@ class planning_Jobs extends core_Master
     	if(!empty($saleRec->deliveryTime)){
     		$deliveryDate = $saleRec->deliveryTime;
     	} elseif(!empty($saleRec->deliveryTermTime)){
-    	    $deliveryDate = dt::addSecs($saleRec->deliveryTermTime, $rec->activatedOn);
+    	    $deliveryDate = dt::addSecs($saleRec->deliveryTermTime, $saleRec->activatedOn);
     	}
     	
     	if(empty($deliveryDate)) return NULL;
