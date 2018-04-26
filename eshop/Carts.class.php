@@ -296,11 +296,12 @@ class eshop_Carts extends core_Master
 		}
     	$tpl->replace($text, 'text');
     	$tpl->replace($count, 'count');
-    	$tpl = ht::createLink($tpl, array('eshop_Carts', 'view', $cartId, 'ret_url' => TRUE), FALSE, "id=cart-external-status,title={$hint}, ef_icon=img/16/cart-black.png");
-    	$tpl->removeBlocks();
+    	$tpl = ht::createLink($tpl, array('eshop_Carts', 'view', $cartId, 'ret_url' => TRUE), FALSE, "title={$hint}, ef_icon=img/16/cart-black.png");
+
+		$tpl->removeBlocks();
     	$tpl->removePlaces();
-    	
-    	return $tpl;
+
+    	return "<span id='cart-external-status'>" . $tpl . "</span>";
     }
     
     
