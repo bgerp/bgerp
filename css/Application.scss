@@ -3137,18 +3137,18 @@ fieldset.sharing-history {
 	}
 }
 
-.cart-view-discount {
+.external-discount-amount {
 	display: block;
-	color: red;
+	color: #999;
 	text-decoration: line-through;
 	font-size: 0.9em;
 }
 
 .summary-holder {
+	float: right;
 	table {
-		min-width: 250px;
 		td {
-			padding: 5px;
+			padding: 5px 10px;
 		}
 	}
 }

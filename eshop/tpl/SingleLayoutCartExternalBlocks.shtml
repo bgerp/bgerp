@@ -1,20 +1,21 @@
 
 <!--ET_BEGIN CART_SUMMARY-->
-[#CART_SUMMARY#]
-<div id = 'cart-view-total' class="summary-holder">
-    <table>
-<!--ET_BEGIN totalNoVat-->
-        <tr>
-            <td>|Без ДДС|*: </td>
-            <td><b>[#totalNoVat#] [#totalNoVatCurrencyId#]</b></td>
-        </tr>
-<!--ET_END totalNoVat-->
-        <tr>
-            <td>|Общо|*: </td>
-            <td><b>[#total#] [#currencyId#]</b></td>
-        </tr>
-    </table>
-</div>
+
+    [#CART_SUMMARY#]
+    <div id = 'cart-view-total' class="summary-holder">
+        <table>
+    <!--ET_BEGIN totalNoVat-->
+            <tr>
+                <td>|Без ДДС|* [#totalNoVatCurrencyId#]: </td>
+                <td><b>[#totalNoVat#] </b></td>
+            </tr>
+    <!--ET_END totalNoVat-->
+            <tr>
+                <td>|Общо|* [#currencyId#]: </td>
+                <td><b>[#total#] </b></td>
+            </tr>
+        </table>
+    </div>
 <!--ET_END CART_SUMMARY-->
 
 <!--ET_BEGIN CART_COUNT-->

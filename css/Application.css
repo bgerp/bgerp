@@ -2704,16 +2704,16 @@ span.sharing-history-title {
   .optionsTable tbody tr:last-child td {
     border-bottom: 1px solid #cccccc; }
 
-.cart-view-discount {
+.external-discount-amount {
   display: block;
-  color: red;
+  color: #999999;
   text-decoration: line-through;
   font-size: 0.9em; }
 
-  .summary-holder table {
-    min-width: 250px; }
+.summary-holder {
+  float: right; }
     .summary-holder table td {
-      padding: 5px; }
+      padding: 5px 10px; }
 
 .cart-holder-external {
   padding: 20px 20px 20px; }
