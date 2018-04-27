@@ -357,6 +357,15 @@ class eshop_Carts extends core_Master
     	$tpl->replace(self::renderCartSummary($rec), 'CART_TOTAL');
     	$tpl->replace(self::renderCartSummary($rec, TRUE), 'CART_COUNT');
     	$tpl->replace(self::renderCartToolbar($rec, TRUE), 'CART_TOOLBAR');
+    	$tpl->replace(self::getCartDisplayName(), 'CART_NAME');
+    	
+    	$cartInfo = tr('Всички цени са в') . " {$rec->currencyId}, " . (($rec->chargeVat == 'yes') ? tr('с включено ДДС') : tr('без ДДС'));
+    	$tpl->replace($cartInfo, 'VAT_STATUS');
+    	
+    	$settings = cms_Domains::getSettings();
+    	if(!empty($settings->info)){
+    		$tpl->replace(core_Type::getByName('richtext')->toVerbal($settings->info), 'COMMON_TEXT');
+    	}
     	
     	Mode::set('wrapper', 'cms_page_External');
     	
@@ -375,7 +384,6 @@ class eshop_Carts extends core_Master
     {
     	$rec = self::fetchRec($id, '*', FALSE);
     	$row = self::recToVerbal($rec);
-    	$row->cartInfo = tr('Всички цени са в') . " {$rec->currencyId}, " . (($rec->chargeVat == 'yes') ? tr('с включено ДДС') : tr('без ДДС'));
     	$row->totalNoVatCurrencyId = $row->currencyId;
     	
     	$block = ($onlyCount === TRUE) ? 'CART_COUNT' : 'CART_SUMMARY';
