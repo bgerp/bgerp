@@ -154,13 +154,14 @@ class eshop_Carts extends core_Master
     	
     	$packRec = cat_products_Packagings::getPack($productId, $packagingId);
     	$quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
+    	$canStore = cat_Products::fetchField($productId, 'canStore');
     	
-    	$msg = 'Проблем при добавянето на артикулът в кошницата|*!';
+    	$msg = 'Проблем при добавянето на артикулът|*!';
     	$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
-    	if(isset($settings->storeId)){
+    	if(isset($settings->storeId) &&  $canStore == 'yes'){
     		$quantity = store_Products::getQuantity($productId, $settings->storeId, TRUE);
     		if($quantity < $quantityInPack * $packQuantity){
-    			$msg = 'Избраното количество не е налично';
+    			$msg = 'Избраното количество не е налично ' . $quantity . " > $quantityInPack > $packQuantity" ;
     			$success = FALSE;
     			$skip = TRUE;
     		}
@@ -171,13 +172,14 @@ class eshop_Carts extends core_Master
     		try{
     			// Форсиране на кошница и добавяне на артикула в нея
     			$cartId = self::force();
+    			$this->requireRightFor('addtocart', $cartId);
     			eshop_CartDetails::addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack);
     			$this->updateMaster($cartId);
-    			$msg = 'Артикулът е успешно добавен в кошницата|*!';
+    			$msg = 'Артикулът е успешно добавен|*!';
     			$success = TRUE;
     		} catch(core_exception_Expect $e){
     			reportException($e);
-    			$msg = 'Проблем при добавянето на артикулът в кошницата|*!';
+    			$msg = 'Проблем при добавянето на артикула|*!';
     		}
     	}
     	
@@ -199,7 +201,7 @@ class eshop_Carts extends core_Master
     		return $res;
     	}
     	
-    	return followRetUrl(NULL, 'Артикулът е успешно добавен в кошницата');
+    	return followRetUrl();
     }
     
     
@@ -516,7 +518,9 @@ class eshop_Carts extends core_Master
     	}
     	
     	if($action == 'addtocart' && isset($rec)){
-    		
+    		if(!$mvc->haveRightFor('view', $rec)){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
 }
