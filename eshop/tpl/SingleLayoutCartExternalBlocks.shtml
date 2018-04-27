@@ -5,12 +5,12 @@
     <table>
 <!--ET_BEGIN totalNoVat-->
         <tr>
-            <td>|Общo без ДДС|*: </td>
+            <td>|Без ДДС|*: </td>
             <td><b>[#totalNoVat#] [#totalNoVatCurrencyId#]</b></td>
         </tr>
 <!--ET_END totalNoVat-->
         <tr>
-            <td>|Обща стойност|*: </td>
+            <td>|Общо|*: </td>
             <td><b>[#total#] [#currencyId#]</b></td>
         </tr>
     </table>

@@ -2670,8 +2670,9 @@ span.sharing-history-title {
   padding: 5px;
   background: #cccccc;
   background: rgba(0, 0, 0, 0.2);
+  border: 1px solid #bbbbbb;
   border-radius: 0 0 0 5px;
-  box-shadow: -1px 1px 2px rgba(0, 0, 0, 0.5); }
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3); }
   .logoutBlock a {
     color: #333333 !important;
     margin: 0 5px;
@@ -2690,21 +2691,29 @@ span.sharing-history-title {
 
 .optionsTable {
   color: #222222;
-  width: 100%;
+  min-width: 600px;
   margin-bottom: 20px; }
   .optionsTable th {
     text-align: center;
     padding: 5px;
     border-bottom: 1px solid #cccccc; }
   .optionsTable td {
-    padding: 5px; }
+    padding: 5px 10px; }
   .optionsTable tbody tr:nth-child(even) {
     background-color: #f1f1f1; }
   .optionsTable tbody tr:last-child td {
     border-bottom: 1px solid #cccccc; }
 
-.summary-holder {
-  float: right; }
+.cart-view-discount {
+  display: block;
+  color: red;
+  text-decoration: line-through;
+  font-size: 0.9em; }
+
+  .summary-holder table {
+    min-width: 250px; }
+    .summary-holder table td {
+      padding: 5px; }
 
 .cart-holder-external {
   padding: 20px 20px 20px; }
@@ -2715,8 +2724,10 @@ span.sharing-history-title {
     text-align: right;
     width: 60px;
     padding: 2px 5px;
-    border: 1px solid #cccccc !important;
+    border: 1px solid #cccccc;
     border-radius: 3px; }
+    .quantity-input-column input.inputError {
+      border-color: red; }
 
   .foldertabs > .tab-row {
     overflow: hidden;
