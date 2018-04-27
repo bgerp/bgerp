@@ -40,10 +40,8 @@ class doc_AssignPlg extends core_Plugin
     {
         // Ако няма такова поле
         if(!$mvc->fields['assign']) {
-            
             // Добавяме в модела
-            $mvc->FLD('assign', 'keylist(mvc=core_Users, select=nick, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'caption=Възлагане на, changable, before=sharedUsers');
-            // TODO - да не се показват колабораторите
+            $mvc->FLD('assign', 'keylist(mvc=core_Users, select=nick)', 'caption=Възлагане на, changable, before=sharedUsers, optionsFunc=doc_AssignPlg::getUsersForAssign');
         }
         
         // Ако няма такова поле
@@ -327,61 +325,140 @@ class doc_AssignPlg extends core_Plugin
     
     
     /**
+     * Връща всички потребители, на които може да се възлага документа
+     * 
+     * @param type_Keylist $type
+     * @param NULL|array $options
+     */
+    public static function getUsersForAssign($type, $options)
+    {
+        $type = 'users';
+        $handle = 'assignUsers';
+        $keepMinute = 1000;
+        $depends = array('core_Users');
+        
+        $resArr = core_Cache::get($type, $handle, $keepMinute, $depends);
+        
+        if ($resArr === FALSE) {
+            $uQuery = core_Users::getQuery();
+            
+            $uQuery->where("#state != 'rejected'");
+            
+            $powId = core_Roles::fetchByName('powerUser');
+            
+            if ($powId) {
+                $uQuery->like('roles', "|{$powId}|");
+            }
+            
+            $uQuery->orderBy('nick');
+            
+            // Текущия потребител да е най-отгоре
+            
+            $resArr = array();
+            while ($uRec = $uQuery->fetch()) {
+                $resArr[$uRec->id] = type_Nick::normalize($uRec->nick) . ' (' . core_Users::prepareUserNames($uRec->names) . ')';
+            }
+            
+            core_Cache::set($type, $handle, $resArr, $keepMinute, $depends);
+        }
+        
+        // Текущият потребител да е най-отгоре
+        if (!empty($resArr)) {
+            $cu = core_Users::getCurrent();
+            $cuNames = $resArr[$cu];
+            if (isset($cuNames)) {
+                unset($resArr[$cu]);
+                $resArr = array($cu => $cuNames) + $resArr;
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Подготовка на формата за добавяне/редактиране
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        $rec = $data->form->rec;
+        $defUsersArr = $mvc->getDefaultAssignUsers($data->form->rec);
         
-        $folderId = $data->form->rec->folderId;
-        $threadId = $data->form->rec->threadId;
-        
-        $interestedUsersArr = array();
-        if (!$folderId && $threadId) {
-            $folderId = doc_Threads::fetchField($threadId, 'folderId');
+        if ($defUsersArr) {
+            $data->form->setDefault('assign', $defUsersArr);
         }
+    }
+    
+    
+    /**
+     * Връща потребителите по подразбиране за споделяне
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|string $res
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetDefaultAssignUsers($mvc, &$res, $rec)
+    {
+        $folderId = $rec->folderId;
+        
+        if (!$folderId && $rec->threadId) {
+            $folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+        }
+        
+        $assignUsers = NULL;
         
         if ($folderId) {
-            $fRec = doc_Folders::fetch($folderId);
-            $interestedUsersArr[$fRec->inCharge] = $fRec->inCharge;
             
-            if ($fRec->shared) {
-                $interestedUsersArr += type_Keylist::toArray($fRec->shared);
-            }
-        }
-        
-        if ($rec->id && isset($rec->sharedUsers)) {
-            $interestedUsersArr += type_Keylist::toArray($rec->sharedUsers);
-        }
-        
-        // Ако се създава нов и в папката няма споделени потребители - да се показват всички
-        if ((!$rec->id && !$fRec->shared) || empty($interestedUsersArr)) {
-            $interestedUsersArr = core_Users::getByRole('powerUser');
-        }
-        
-        // Ако има възложени от предишния път - при редакция/промяна
-        if ($rec->assign) {
-            $interestedUsersArr += type_Keylist::toArray($rec->assign);
-        }
-        
-        // Текущия потребител да е в началото
-        if (!empty($interestedUsersArr)) {
+            // Използваме последните 3 създадени документа в тази папка
+            
             $cu = core_Users::getCurrent();
-            if ($interestedUsersArr[$cu]) {
-                unset($interestedUsersArr[$cu]);
-                $interestedUsersArr = array($cu => $cu) + $interestedUsersArr;
+            
+            $minLimit = 3;
+            
+            $mQuery = $mvc->getQuery();
+            $mQuery->where(array("#folderId = '[#1#]'", $folderId));
+            $mQuery->where(array("#createdBy = '[#1#]'", $cu));
+            
+            $mQuery->where("#state != 'rejected'");
+            $mQuery->where("#state != 'draft'");
+            
+            $mQuery->orderBy("#createdOn", 'DESC');
+            $mQuery->limit($minLimit);
+            
+            $mQuery->show('assign');
+            
+            if ($mQuery->count() >= $minLimit) {
+                while ($mRec = $mQuery->fetch()) {
+                    
+                    if (!$mRec->assign) break;
+                    
+                    // Уеднакяваме полето за възложени
+                    $assignArr = type_Keylist::toArray($mRec->assign);
+                    asort($assignArr);
+                    $aStr = type_Keylist::fromArray($assignArr);
+                    
+                    $aArr[$aStr]++;
+                }
+                
+                if (count($aArr) == 1) {
+                    $assignUsers = key($aArr);
+                }
+            }
+            
+            // Ако няма други споделени и ако е в папка на текущия потребител
+            if (!$assignUsers) {
+                $fIncharge = doc_Folders::fetchField($folderId, 'inCharge');
+                if ($fIncharge == $cu) {
+                    $assignUsers = '|' . $fIncharge . '|';
+                }
             }
         }
         
-        $suggArr = $data->form->fields['assign']->type->prepareSuggestions();
-        foreach ($interestedUsersArr as &$nick) {
-            if ($suggArr[$nick]) {
-                $nick = $suggArr[$nick];
-            } else {
-                unset($interestedUsersArr[$nick]);
-            }
+        if ($assignUsers) {
+            $res = type_Keylist::merge($res, $assignUsers);
         }
-        
-        $data->form->setSuggestions('assign', $interestedUsersArr);
     }
 }
