@@ -190,7 +190,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                 $tplRec = doc_TplManager::fetch($masterRec->template);
             }
 
-            $form->setSuggestions('transUnit', $tplRec->lang == 'bg' ? ',Палети,Кашона' : ',Pallets,Carton boxes');
+            $form->setSuggestions('transUnit', $tplRec->lang == 'bg' ? ',Палети,Кашони' : ',Pallets,Carton boxes');
             $form->setField('transUnit', array('placeholder' => $tplRec->lang == 'bg' ? 'Палети' : 'Pallets'));
     	}
 
