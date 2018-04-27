@@ -813,6 +813,11 @@ abstract class deals_DealMaster extends deals_DealBase
     		
     		if(!isset($dRec->term)){
     			if($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)){
+    				$cRec = sales_TransportValues::get($mvc, $rec->id, $dRec->id);
+    				if(isset($cRec->deliveryTime)){
+    					$term = $cRec->deliveryTime + $term;
+    				}
+    				
     				$dRec->term = $term;
     				$save = TRUE;
     			}
