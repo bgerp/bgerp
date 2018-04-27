@@ -90,12 +90,6 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'eshop,ceo';
-    
-    
-    /**
      * Кой има право да го изтрие?
      */
     public $canDelete = 'no_one';
@@ -123,6 +117,12 @@ class eshop_Products extends core_Master
      * Кой може да връзка артикул към ешоп-а
      */
     public $canLinktoeshop = 'eshop,ceo';
+    
+    
+    /**
+     * Кой може да достъпва е-артикула от артикул
+     */
+    public $canVieweproduct = 'eshop,ceo';
     
     
     /**
@@ -471,6 +471,34 @@ class eshop_Products extends core_Master
 
 
     /**
+     * Показва единичен изглед за продукт във външната част
+     */
+    function act_Vieweproduct()
+    {
+    	$this->requireRightFor('vieweproduct');
+    	expect($productId = Request::get('productId', 'int'));
+    	expect(cat_Products::fetch($productId));
+    	$this->requireRightFor('vieweproduct', (object)array('productId' => $productId));
+    	
+    	$query = eshop_ProductDetails::getQuery();
+    	$query->where("#productId = {$productId}");
+    	$details = $query->fetchAll();
+    	
+    	$domainId = (count($details) == 1) ? NULL : cms_Domains::getCurrent();
+    	foreach ($details as $dRec){
+    		$eshopDomainId = self::getDomainId($dRec->eshopProductId);
+    		if(empty($domainId) || (!empty($domainId) && $domainId == $eshopDomainId)){
+    			if($this->haveRightFor('single', $dRec->eshopProductId)){
+    				return redirect(array($this, 'single', $dRec->eshopProductId));
+    			}
+    		}
+    	}
+    	
+    	return followRetUrl(NULL, 'Проблем при отварянето', 'warning');
+    }
+    
+    	
+    /**
      * Подготовка на данните за рендиране на единичния изглед на продукт 
      */
     public function prepareProduct($data)
@@ -764,6 +792,7 @@ class eshop_Products extends core_Master
     	// Изпращане на формата
     	if($form->isSubmitted()){
     		$thisDomainId = eshop_Products::getDomainId($form->rec->eshopProductId);
+    		
     		if(eshop_ProductDetails::isTheProductAlreadyInTheSameDomain($form->rec->productId, $thisDomainId)){
     			$form->setError('eshopProductId', 'Артикулът вече е свързан с е-магазина на текущия домейн');
     		} else {
@@ -795,17 +824,33 @@ class eshop_Products extends core_Master
     	if(($action == 'add' || $action == 'linktoeshop') && isset($rec->productId)){
     		if(!self::canLinkProduct($rec->productId)){
     			$requiredRoles = 'no_one';
-    		} elseif(eshop_ProductDetails::isTheProductAlreadyInTheSameDomain($rec->productId, cms_Domains::getPublicDomain()->id)){
+    		}elseif(eshop_ProductDetails::isTheProductAlreadyInTheSameDomain($rec->productId, cms_Domains::getPublicDomain()->id)){
     			$requiredRoles = 'no_one';
     		}
     	}
     	
-    	if($action == 'linktoeshop' && isset($rec) && empty($rec->productId)){
-    		$requiredRoles = 'no_one';
+    	if(($action == 'linktoeshop' || $action == 'vieweproduct') && isset($rec)){
+    		if(empty($rec->productId)){
+    			$requiredRoles = 'no_one';
+    		} elseif(!cms_Domains::haveRightFor('select')){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'vieweproduct' && isset($rec->productId)){
+    		if(!eshop_ProductDetails::fetchField("#productId = {$rec->productId}")){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
     
     
+    /**
+     * Може ли артикула да се връзва към е-артикул
+     * 
+     * @param int $productId - артикул
+     * @return boolean $res  - може ли артикула да се връзва към е-артикул
+     */
     public static function canLinkProduct($productId)
     {
     	$productRec = cat_Products::fetch($productId, 'canSell,isPublic,state');

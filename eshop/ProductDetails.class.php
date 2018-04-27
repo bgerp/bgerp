@@ -141,10 +141,10 @@ class eshop_ProductDetails extends core_Detail
 		$query = self::getQuery();
 		$query->where("#productId = {$productId} AND #id != '{$id}'");
 		while($eRec = $query->fetch()){
-			$domainId = eshop_Products::getDomainId($eRec->eshopProductId);
-			$domainIds[$domainId] = $domainId;
+			$eproductDomainId = eshop_Products::getDomainId($eRec->eshopProductId);
+			$domainIds[$eproductDomainId] = $eproductDomainId;
 		}
-			
+		
 		return array_key_exists($domainId, $domainIds);
 	}
 	
