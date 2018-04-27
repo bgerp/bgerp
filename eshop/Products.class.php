@@ -747,14 +747,14 @@ class eshop_Products extends core_Master
     	$form->title = 'Листване в е-магазина|* ' . cls::get('cat_Products')->getFormTitleLink($productId);
     	$form->info = tr('Домейн') . ": " . cms_Domains::getHyperlink($domainId, TRUE);
     	$form->FLD('eshopProductId', 'varchar', 'caption=Е-артикул,mandatory');
-    	$form->FLD('packagingId', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковка,mandatory');
+    	$form->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковка,mandatory');
     	$form->FLD('productId', 'int', 'caption=Артикул,mandatory,silent,input=hidden');
     	$form->input(NULL, 'silent');
     	
     	// Добавяне на наличните опаковки
     	$packs = cat_Products::getPacks($productId);
-    	$form->setSuggestions('packagingId', $packs);
-    	$form->setDefault('packagingId', keylist::addKey('', key($packs)));
+    	$form->setSuggestions('packagings', $packs);
+    	$form->setDefault('packagings', keylist::addKey('', key($packs)));
     	
     	// Наличните е-артикули в домейна
     	$productOptions = eshop_Products::getInDomain($domainId);
