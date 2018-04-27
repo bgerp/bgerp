@@ -456,7 +456,7 @@ class eshop_Carts extends core_Master
     {
     	$fields = cls::get('eshop_CartDetails')->selectFields();
     	$fields['-external'] = TRUE;
-    	$data->listFields = arr::make("code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,finalPrice=Цена,amount=Сума,btn=|*&nbsp;");
+    	$data->listFields = arr::make("code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,finalPrice=Цена,amount=Сума");
     	
     	$data->productRecs = $data->productRows = array();
     	$dQuery = eshop_CartDetails::getQuery();
