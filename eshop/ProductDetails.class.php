@@ -309,11 +309,12 @@ class eshop_ProductDetails extends core_Detail
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 		
 		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
-		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
+		$settings = cms_Domains::getSettings();
 		if(isset($settings->storeId) && $canStore == 'yes'){
 			$quantity = store_Products::getQuantity($rec->productId, $settings->storeId, TRUE);
 			if($quantity < $rec->quantityInPack){
-				$row->btn = "<span class='option-not-in-stock'>" . tr('Няма в наличност'). " </span>";
+				$notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
+				$row->btn = "<span class='option-not-in-stock'>" . $notInStock . " </span>";
 			}
 		}
 		

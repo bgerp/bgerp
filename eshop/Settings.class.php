@@ -90,6 +90,7 @@ class eshop_Settings extends core_Master
     	$this->FLD('info', 'richtext(rows=3)', 'caption=Показване във външната част->Текст');
     	$this->FLD('discountType', 'enum(percent=Процент,amount=Намалена сума)', 'caption=Показване във външната част->Отстъпка,notNull,value=amount');
     	$this->FLD('cartName', 'varchar(16)', 'caption=Показване във външната част->Кошница');
+    	$this->FLD('notInStockText', 'varchar(24)', 'caption=Показване във външната част->Липса в наличност');
     	
     	$this->setDbUnique('classId, objectId');
     }
