@@ -277,6 +277,20 @@ class eshop_Carts extends core_Master
     
     
     /**
+     * Име на кошницата във външната част
+     * 
+     * @return varchar
+     */
+    private static function getCartDisplayName()
+    {
+    	$settings = cms_Domains::getSettings();
+    	$cartName = !empty($settings->cartName) ? $settings->cartName : tr(eshop_Setup::get('CART_EXTERNAL_NAME'));
+    	
+    	return $cartName;
+    }
+    
+    
+    /**
      * Какъв е статуса на кошницата
      */
     public static function getStatus($cartId = NULL)
@@ -285,6 +299,7 @@ class eshop_Carts extends core_Master
     	$cartId = ($cartId) ? $cartId : self::force(NULL, NULL, FALSE);
 		$url = array();
     	
+		$cartName = self::getCartDisplayName();
     	if(isset($cartId)){
     		$cartRec = self::fetch($cartId);
     		$amount = core_Type::getByName('double(smartRound)')->toVerbal($cartRec->total);
@@ -292,16 +307,16 @@ class eshop_Carts extends core_Master
     		$count = core_Type::getByName('int')->toVerbal($cartRec->productCount);
     		$url = array('eshop_Carts', 'view', $cartId, 'ret_url' => TRUE);
     		$str = ($count == 1) ? 'артикул' : 'артикула';
-    		$hint = "В кошницата има|* {$count} |{$str} за|* {$amount} " . $cartRec->currencyId;
+    		$hint = "|*{$count} |{$str} за|* {$amount} " . $cartRec->currencyId;
     	
     		if($count){
     			$tpl->append(new core_ET("<sup>[#count#]</sup>"));
     		}
     	} else {
-    		$hint = "Кошницата|* е празна";
+    		$hint = "Няма артикули";
     	}
     	
-    	$tpl->replace(tr('Кошница'), 'text');
+    	$tpl->replace($cartName, 'text');
     	$tpl->replace($count, 'count');
     	$tpl = ht::createLink($tpl, $url, FALSE, "title={$hint}, ef_icon=img/16/cart-black.png");
 
