@@ -467,6 +467,7 @@ class core_Manager extends core_Mvc
                 'toolbar' => ht::createSbBtn('Филтър')
             );
             $data->listFilter = $this->getForm($formParams);
+            core_Form::preventDoubleSubmission($tpl, $data->listFilter);
             $mf = $data->listFilter->selectFields('#mandatory');
             foreach($mf as $name => $field) {
                 $data->listFilter->setField($name, array('mandatory' => NULL));
