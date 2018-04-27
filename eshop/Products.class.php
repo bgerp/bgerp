@@ -120,12 +120,6 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Кой може да достъпва е-артикула от артикул
-     */
-    public $canVieweproduct = 'eshop,ceo';
-    
-    
-    /**
      * Описание на модела
      */
     function description()
@@ -468,34 +462,6 @@ class eshop_Products extends core_Master
 
         return $tpl;
     }
-
-
-    /**
-     * Показва единичен изглед за продукт във външната част
-     */
-    function act_Vieweproduct()
-    {
-    	$this->requireRightFor('vieweproduct');
-    	expect($productId = Request::get('productId', 'int'));
-    	expect(cat_Products::fetch($productId));
-    	$this->requireRightFor('vieweproduct', (object)array('productId' => $productId));
-    	
-    	$query = eshop_ProductDetails::getQuery();
-    	$query->where("#productId = {$productId}");
-    	$details = $query->fetchAll();
-    	
-    	$domainId = (count($details) == 1) ? NULL : cms_Domains::getCurrent();
-    	foreach ($details as $dRec){
-    		$eshopDomainId = self::getDomainId($dRec->eshopProductId);
-    		if(empty($domainId) || (!empty($domainId) && $domainId == $eshopDomainId)){
-    			if($this->haveRightFor('single', $dRec->eshopProductId)){
-    				return redirect(array($this, 'single', $dRec->eshopProductId));
-    			}
-    		}
-    	}
-    	
-    	return followRetUrl(NULL, 'Проблем при отварянето', 'warning');
-    }
     
     	
     /**
@@ -836,12 +802,30 @@ class eshop_Products extends core_Master
     			$requiredRoles = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Кой е-артикул отговаря на артикула от домейна
+     * 
+     * @param int $productId     - артикул
+     * @param int|NULL $domainId - ид на домейн или NULL за текущия
+     * @return id|NULL           - намерения е-артикул
+     */
+    public static function getByProductId($productId, $domainId = NULL)
+    {
+    	$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain();
+    	$groups = array_keys(eshop_Groups::getByDomain($domainId));
     	
-    	if($action == 'vieweproduct' && isset($rec->productId)){
-    		if(!eshop_ProductDetails::fetchField("#productId = {$rec->productId}")){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
+    	$dQuery = eshop_ProductDetails::getQuery();
+    	$dQuery->where("#productId = {$productId}");
+    	$dQuery->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
+    	$dQuery->in('groupId', $groups);
+		$dQuery->show('eshopProductId');
+		
+		$id = $dQuery->fetch()->eshopProductId;
+		
+		return $id;
     }
     
     

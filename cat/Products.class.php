@@ -2048,8 +2048,13 @@ class cat_Products extends embed_Manager {
     			$data->toolbar->addBtn("E-маг", array('eshop_Products', 'linktoeshop', 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/cart_go.png,title=Свързване в Е-маг');
     		}
     		
-    		if(eshop_Products::haveRightFor('vieweproduct', (object)array('productId' => $data->rec->id))){
-    			$data->toolbar->addBtn("E-артикул", array('eshop_Products', 'vieweproduct', 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/cart_go.png,title=Към е-артикула');
+    		if($domainId = cms_Domains::getCurrent('id', FALSE)){
+    			if($eshopProductId = eshop_Products::getByProductId($data->rec->id, $domainId)){
+    				
+    				if(eshop_Products::haveRightFor('single', $eshopProductId)){
+    					$data->toolbar->addBtn("E-артикул", array('eshop_Products', 'single', $eshopProductId, 'ret_url' => TRUE), 'ef_icon = img/16/cart_go.png,title=Към е-артикула');
+    				}
+    			}
     		}
     	}
     }
