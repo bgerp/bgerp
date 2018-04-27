@@ -74,7 +74,6 @@ class eshop_Setup extends core_ProtoSetup
             'eshop_Groups',
             'eshop_Products',
     		'eshop_Settings',
-    		'eshop_DeliveryTimes',
     		'eshop_ProductDetails',
     		'eshop_Carts',
     		'eshop_CartDetails',
