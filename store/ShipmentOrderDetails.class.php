@@ -330,7 +330,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     $unit = 'палет';
                 } elseif(mb_strtolower($unitTr) == 'кашон' || mb_strtolower($unitTr) == 'кашони' ||  mb_strtolower($unitTr) == 'кашона') {
                     $bigPackName = array('кашон', 'кашона');
-                    $unit = 'палет';
+                    $unit = 'кашон';
                 } elseif(mb_strtolower($unitTr) == 'carton' || mb_strtolower($unitTr) == 'cartons') {
                     $bigPackName = array('carton', 'cartons');
                     $unit = 'carton';
