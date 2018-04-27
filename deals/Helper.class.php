@@ -1276,7 +1276,7 @@ abstract class deals_Helper
 	{
 		expect($threadId);
 		$firstDoc = doc_Threads::getFirstDocument($threadId);
-		if($firstDoc->isInstanceOf('deals_DealBase')) return array();
+		if(!$firstDoc->isInstanceOf('deals_DealBase')) return array();
 		
 		// Ако сделката е приключена, проверява се дали не е приключена с друга сделка
 		if($firstDoc->fetchField('state') == 'closed'){
