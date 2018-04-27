@@ -308,8 +308,9 @@ class eshop_ProductDetails extends core_Detail
 		$row->btn = ht::createFnBtn('Добави', NULL, FALSE, array('title'=> 'Добавяне в кошницата', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'cart-add-product-btn'));
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 		
+		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
 		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
-		if(isset($settings->storeId)){
+		if(isset($settings->storeId) && $canStore == 'yes'){
 			$quantity = store_Products::getQuantity($rec->productId, $settings->storeId, TRUE);
 			if($quantity < $rec->quantityInPack){
 				$row->btn = "<span class='option-not-in-stock'>" . tr('Няма в наличност'). " </span>";
