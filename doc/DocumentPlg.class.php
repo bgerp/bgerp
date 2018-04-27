@@ -3758,11 +3758,11 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
-    	$rec = $mvc->fetchRec($id);
     	if(!$res){
+            $rec = $mvc->fetchRec($id); 
     		if(is_object($rec)){
     			$rec->modifiedOn = dt::now();
-    			$mvc->save_($rec, 'modifiedOn');
+    			$mvc->save_($rec, 'modifiedOn', 'LOW_PRIORITY');
     		}
     	}
     }
