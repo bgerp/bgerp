@@ -72,6 +72,7 @@ class cal_Setup extends core_ProtoSetup
             'migrate::windUpRem',
             'migrate::removePOKey',
             'migrate::updateTaskProgresses',
+            'migrate::updateClosedTimed',
         );
     
     
@@ -359,5 +360,29 @@ class cal_Setup extends core_ProtoSetup
         if (!$Progresses->db->tableExists($Progresses->dbTableName)) return ;
         
         $Progresses->setupMVC();
+    }
+    
+    
+    /**
+     * Поправка на времето на затваряне на задачите
+     */
+    public function updateClosedTimed()
+    {
+        $Tasks = cls::get('cal_Tasks');
+        
+        $tQuery = $Tasks->getQuery();
+        $tQuery->where("#state = 'closed'");
+        $tQuery->orWhere("#state = 'stopped'");
+        $tQuery->where("#timeClosed IS NULL");
+        
+        while ($tRec = $tQuery->fetch()) {
+            $tRec->timeClosed = $tRec->modifiedOn;
+            
+            try {
+                $Tasks->save($tRec, 'timeClosed');
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+            }
+        }
     }
 }

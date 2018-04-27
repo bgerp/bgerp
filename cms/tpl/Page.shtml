@@ -14,12 +14,9 @@
             <div class='statuses' id='statuses' style='margin: 0 auto;'>
                 [#STATUSES#]
             </div>
-            <!--ET_BEGIN USERCART-->
-            [#USERCART#]
-            <!--ET_END USERCART-->
             <!--ET_BEGIN USERLINK-->
             <div class="logoutBlock">
-                [#USERLINK#] [#LOGOUT#]
+                [#USERLINK#] <span id='cart-external-status'>[#USERCART#]</span> [#LOGOUT#]
             </div>
             <!--ET_END USERLINK-->
             [#CMS_LAYOUT#]

@@ -1,0 +1,10 @@
+<div class='cart-holder-external'>
+    <h3 style="margin: 0 0 20px">Кошница</h3>
+    <div>
+        [#CART_TABLE#]
+    </div>
+    [#VAT_STATUS#]
+    [#CART_TOTAL#]
+    [#CART_COUNT#]
+    [#CART_TOOLBAR#]
+</div>

@@ -26,7 +26,7 @@ class eshop_CartDetails extends core_Detail
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools2,plg_AlignDecimals2';//eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_Select, plg_AlignDecimals2';
+	public $loadList = 'plg_RowTools2,plg_AlignDecimals2,plg_Modified';
 	
 	
 	/**
@@ -44,7 +44,7 @@ class eshop_CartDetails extends core_Detail
 	/**
 	 * Кои полета да се показват в листовия изглед
 	 */
-	public $listFields = 'eshopProductId=Артикул в е-мага,productId,packagingId,packQuantity,packPrice=Ед.цена,amount=Сума';
+	public $listFields = 'eshopProductId=Артикул в е-мага,productId,packagingId,packQuantity,finalPrice=Цена,amount=Сума';
 	
 	
 	/**
@@ -54,9 +54,21 @@ class eshop_CartDetails extends core_Detail
 	
 	
 	/**
+	 * Кой може да изтрива от кошницата
+	 */
+	public $canRemoveexternal = 'every_one';
+	
+	
+	/**
+	 * Кой може да ъпдейтва кошницата
+	 */
+	public $canUpdatecart = 'every_one';
+	
+	
+	/**
 	 * Кой има право да добавя?
 	 */
-	public $canAdd = 'eshop,ceo';
+	public $canAdd = 'every_one';
 	
 	
 	/**
@@ -72,19 +84,107 @@ class eshop_CartDetails extends core_Detail
 	{
 		$this->FLD('cartId', 'key(mvc=eshop_Carts)', 'caption=Кошница,mandatory,input=hidden,silent');
 		$this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,silent');
-		$this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=eshop_ProductDetails::getSellableProducts)', 'caption=Артикул,silent,removeAndRefreshForm=packagingId,mandatory');
+		$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack,mandatory');
 		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack');
-		
 		$this->FLD('quantity', 'double', 'caption=Количество,input=none');
-    	$this->FLD('quantityInPack', 'double', 'input=none');
-    	$this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
-    	$this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-    	$this->FLD('price', 'double', 'caption=Цена,input=none');
-    	$this->FNC('amount', 'double(minDecimals=2)', 'caption=Сума,input,smartCenter');
-    	
+		$this->FLD('quantityInPack', 'double', 'input=none');
+		$this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none');
+		
+		$this->FLD('finalPrice', 'double(decimals=2)', 'caption=Цена,input=none');
+		$this->FLD('vat', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=ДДС %,input=none');
+		$this->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,input=none');
+		$this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
+		
     	$this->setDbUnique('cartId,eshopProductId,productId,packagingId');
     }
-	
+    
+    
+    /**
+     * Изчисляване на количеството на реда в брой опаковки
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+    {
+    	if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
+    
+    	$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	$productOptions = eshop_ProductDetails::getAvailableProducts();
+    	
+    	$form->setOptions('productId', array('' => '') + $productOptions);
+    	$form->setField('eshopProductId', 'input=none');
+    	
+    	if(isset($form->rec->productId)){
+    		$form->setField('packagingId', 'input');
+    		$form->setField('packQuantity', 'input');
+    		$packs = cat_Products::getPacks($form->rec->productId);
+    		$form->setOptions('packagingId', $packs);
+    		$form->setDefault('packagingId', key($packs));
+    	}
+    	
+    	if(Request::get('external')){
+    		Mode::set('wrapper', 'cms_page_External');
+    	}
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	//if(Mode::is('wrapper', 'cms_page_External')){
+    	$data->form->title = 'Добавяне на артикул в кошницата';
+    	//}
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = $form->rec;
+    
+    	if($form->isSubmitted()){
+    		$rec->eshopProductId = eshop_ProductDetails::fetchField("#productId = {$rec->productId}", 'eshopProductId');
+
+    		if($id = eshop_CartDetails::fetchField("#cartId = {$rec->cartId} AND #eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId} AND #packagingId = {$rec->packagingId}")){
+    			$exRec = self::fetch($id);
+    			$rec->packQuantity += ($exRec->quantity / $exRec->quantityInPack);
+    			$rec->id = $id;
+    		}
+    		
+    		// Проверка на к-то
+    		if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
+    			$form->setError('packQuantity', $warning);
+    		}
+    		
+    		// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
+    		if(!$form->gotErrors()){
+    			$productInfo = cat_Products::getProductInfo($rec->productId);
+    			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+    			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+    		}
+    	}
+    }
+    
     
     /**
      * Изчисляване на цена за опаковка на реда
@@ -94,40 +194,12 @@ class eshop_CartDetails extends core_Detail
      */
     public static function on_CalcAmount(core_Mvc $mvc, $rec)
     {
-    	if (!isset($rec->price) || empty($rec->quantity)) return;
+    	if (!isset($rec->finalPrice) || empty($rec->quantity) || empty($rec->quantityInPack)) return;
     
-    	$rec->amount = $rec->price * $rec->quantity;
+    	$rec->amount = $rec->finalPrice * ($rec->quantity / $rec->quantityInPack);
     }
     
     
-	/**
-	 * Изчисляване на цена за опаковка на реда
-	 *
-	 * @param core_Mvc $mvc
-	 * @param stdClass $rec
-	 */
-	public static function on_CalcPackPrice(core_Mvc $mvc, $rec)
-	{
-		if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) return;
-	
-		$rec->packPrice = $rec->price * $rec->quantityInPack;
-	}
-	
-	
-	/**
-	 * Изчисляване на количеството на реда в брой опаковки
-	 *
-	 * @param core_Mvc $mvc
-	 * @param stdClass $rec
-	 */
-	public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
-	{
-		if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
-	
-		$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
-	}
-	
-	
 	/**
 	 * Добавя артикул в кошницата
 	 * 
@@ -135,31 +207,210 @@ class eshop_CartDetails extends core_Detail
 	 * @param int $eshopProductId  - артикул от е-мага
 	 * @param int $productId       - артикул от каталога
 	 * @param double $packQuantity - к-во
-	 * @param double $packPrice    - ед. цена с ДДС, във валутата от настройките
+	 * @param int $quantityInPack  - к-во в опаковка
+	 * @param double $packPrice    - ед. цена с ДДС, във валутата от настройките или NULL
 	 */
-	public static function addToCart($cartId, $eshopProductId, $productId, $packQuantity, $packPrice)
+	public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = NULL, $packPrice = NULL)
 	{
 		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'draft'"));
 		expect($eshopRec = eshop_Products::fetch($eshopProductId));
 		expect(cat_Products::fetch($productId));
-		expect(cat_UoM::fetch($productId));
 		
 		expect($productRec = eshop_ProductDetails::fetch("#eshopProductId = '{$eshopProductId}' AND #productId = '{$productId}'"));
+		
+		if(empty($quantityInPack)){
+			$packRec = cat_products_Packagings::getPack($productId, $packagingId);
+			$quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
+		}
+		
+		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
+		$vat = cat_Products::getVat($productId);
+		$quantity = $packQuantity * $quantityInPack;
 		
 		$dRec = (object)array('cartId'         => $cartId, 
 				              'eshopProductId' => $eshopProductId, 
 				              'productId'      => $productId,
-				              'packagingId'    => $productRec->packagingId,
-				              'quantityInPack' => $productRec->quantityInPack,
-				              'price'          => $packPrice / $productRec->quantityInPack,
-				              'quantity'       => $packQuantity * $productRec->quantityInPack,
+				              'packagingId'    => $packagingId,
+				              'quantityInPack' => $quantityInPack,
+							  'vat'            => $vat,
+				              'quantity'       => $quantity,
 		);
 		
-		if($exRec = self::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$productRec->packagingId}")){
+		if($exRec = self::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}")){
 			$exRec->quantity += $dRec->quantity;
 			self::save($exRec, 'quantity');
 		} else {
 			self::save($dRec);
 		}
+	}
+	
+	
+	/**
+	 * Преди запис на документ, изчислява стойността на полето `isContable`
+	 *
+	 * @param core_Manager $mvc
+	 * @param stdClass $rec
+	 */
+	protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+	{
+		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
+		$cartRec = eshop_Carts::fetch($rec->cartId);
+		$vat = (isset($rec->vat)) ? $rec->vat : cat_Products::getVat($rec->productId);
+		
+		if(!isset($rec->finalPrice)){
+			if(isset($settings->listId)){
+				expect($price = price_ListRules::getPrice($settings->listId, $rec->productId, $rec->packagingId), 'Няма цена');
+				
+				$priceObject = cls::get(price_ListToCustomers)->getPriceByList($settings->listId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+				if(!empty($priceObject->discount)){
+					$rec->discount = $priceObject->discount;
+				}
+					
+				$rec->finalPrice = $price * $rec->quantityInPack;
+				if($cartRec->chargeVat == 'yes'){
+					$rec->finalPrice *= 1 + $vat;
+				}
+		
+				$rec->finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, NULL, $cartRec->currencyId);
+			}
+		}
+	}
+	
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
+	 */
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	{
+		if(isset($fields['-list'])){
+			$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+			$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
+		} elseif(isset($fields['-external'])){
+			core_RowToolbar::createIfNotExists($row->_rowTools);
+			if($mvc->haveRightFor('removeexternal', $rec)){
+				$removeUrl = toUrl(array('eshop_CartDetails', 'removeexternal', $rec->id), 'local');
+				$row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => "img/16/delete.png", 'title' => "Премахване от кошницата", 'data-cart' => $rec->cartId, "data-url" => $removeUrl, "class" => 'remove-from-cart'));
+			}
+			
+			$row->productId = cat_Products::getVerbal($rec->productId, 'name');
+			$row->code = cat_products::getVerbal($rec->productId, 'code');
+			$row->packagingId = cat_UoM::getShortName($rec->packagingId);
+			
+			$quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
+			$dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
+			
+			$row->quantity = ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}'");
+		}
+		
+		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'removeexternal' || $action == 'updatecart' || $action == 'add'){
+			if(empty($rec->cartId)){
+				$requiredRoles = 'no_one';
+			} elseif(!eshop_Carts::haveRightFor('view', $rec->cartId)){
+				$requiredRoles = 'no_one';
+			}
+		}
+	}
+	
+	
+	/**
+	 * Екшън за изтриване/изпразване на кошницата
+	 */
+	function act_removeexternal()
+	{
+		$id = Request::get('id', 'int');
+		$cartId = Request::get('cartId', 'int');
+		$this->requireRightFor('removeexternal', (object)array('cartId' => $cartId));
+		
+		if(isset($id)){
+			$this->delete($id);
+			$msg = 'Артикулът е премахнат от кошницата|*!';
+		} else {
+			$this->delete("#cartId = {$cartId}");
+			cls::get('eshop_Carts')->updateMaster($cartId);
+			eshop_Carts::delete($cartId);
+			$msg = 'Кошницата е изпразнена успешно|*!';
+		}
+		
+		core_Statuses::newStatus($msg);
+		
+		// Ако заявката е по ajax
+		if (Request::get('ajax_mode')) return self::getUpdateCartResponse($cartId);
+		
+		return followRetUrl(NULL, NULL, $msg);
+	}
+	
+	
+	/**
+	 * Какво да се върне по AJAX
+	 * 
+	 * @param stdClass $cartId
+	 * @return stdClass $res
+	 */
+	private static function getUpdateCartResponse($cartId)
+	{
+		cls::get('eshop_Carts')->updateMaster($cartId);
+			
+		// Ще реплейснем само бележката
+		$resObj = new stdClass();
+		$resObj->func = "html";
+		$resObj->arg = array('id' => 'cart-view-table', 'html' => eshop_Carts::renderViewCart($cartId)->getContent(), 'replace' => TRUE);
+			
+		// Ще реплейснем само бележката
+		$resObj1 = new stdClass();
+		$resObj1->func = "html";
+		$resObj1->arg = array('id' => 'cart-view-count', 'html' => eshop_Carts::renderCartSummary($cartId, TRUE)->getContent(), 'replace' => TRUE);
+			
+		// Ще реплейснем само бележката
+		$resObj2 = new stdClass();
+		$resObj2->func = "html";
+		$resObj2->arg = array('id' => 'cart-view-total', 'html' => eshop_Carts::renderCartSummary($cartId)->getContent(), 'replace' => TRUE);
+			
+		// Ще реплейснем само бележката
+		$resObj3 = new stdClass();
+		$resObj3->func = "html";
+		$resObj3->arg = array('id' => 'cart-view-buttons', 'html' => eshop_Carts::renderCartToolbar($cartId)->getContent(), 'replace' => TRUE);
+			
+		// Показваме веднага и чакащите статуси
+		$hitTime = Request::get('hitTime', 'int');
+		$idleTime = Request::get('idleTime', 'int');
+		$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+			
+		$res = array_merge(array($resObj, $resObj1, $resObj2, $resObj3), (array)$statusData);
+		
+		return $res;
+	}
+	
+	
+	/**
+	 * Екшън за изтриване/изпразване на кошницата
+	 */
+	function act_updateCart()
+	{
+		$id = Request::get('id', 'int');
+		$cartId = Request::get('cartId', 'int');
+		$quantity = Request::get('packQuantity', 'double');
+		$this->requireRightFor('updatecart', (object)array('cartId' => $cartId));
+		
+		$rec = self::fetch($id);
+		$rec->quantity = $quantity * $rec->quantityInPack;
+		self::save($rec, 'quantity');
+		
+		// Ако заявката е по ajax
+		if (Request::get('ajax_mode')) return self::getUpdateCartResponse($cartId);
+		
+		return followRremoveexternaletUrl($retUrl);
 	}
 }

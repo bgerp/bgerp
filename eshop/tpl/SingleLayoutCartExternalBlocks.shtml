@@ -1,0 +1,28 @@
+
+<!--ET_BEGIN CART_SUMMARY-->
+[#CART_SUMMARY#]
+<div id = 'cart-view-total' class="summary-holder">
+    <table>
+<!--ET_BEGIN totalNoVat-->
+        <tr>
+            <td>|Общo без ДДС|*: </td>
+            <td><b>[#totalNoVat#] [#totalNoVatCurrencyId#]</b></td>
+        </tr>
+<!--ET_END totalNoVat-->
+        <tr>
+            <td>|Обща стойност|*: </td>
+            <td><b>[#total#] [#currencyId#]</b></td>
+        </tr>
+    </table>
+</div>
+<!--ET_END CART_SUMMARY-->
+
+<!--ET_BEGIN CART_COUNT-->
+[#CART_COUNT#]
+<div id = 'cart-view-count'>|Избрани артикули|*: [#productCount#]</div>
+<div id='cart-view-info'>[#cartInfo#]</div>
+<!--ET_END CART_COUNT-->
+
+<!--ET_BEGIN CART_TOOLBAR-->
+<div id = 'cart-view-buttons'>[#CART_TOOLBAR#]</div>
+<!--ET_END CART_TOOLBAR-->

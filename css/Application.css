@@ -2685,6 +2685,39 @@ span.sharing-history-title {
 .cmsTopContractor {
   position: relative; }
 
+#cart-view-buttons {
+  margin: 20px 0; }
+
+.optionsTable {
+  color: #222222;
+  width: 100%;
+  margin-bottom: 20px; }
+  .optionsTable th {
+    text-align: center;
+    padding: 5px;
+    border-bottom: 1px solid #cccccc; }
+  .optionsTable td {
+    padding: 5px; }
+  .optionsTable tbody tr:nth-child(even) {
+    background-color: #f1f1f1; }
+  .optionsTable tbody tr:last-child td {
+    border-bottom: 1px solid #cccccc; }
+
+.summary-holder {
+  float: right; }
+
+.cart-holder-external {
+  padding: 20px 20px 20px; }
+
+.quantity-input-column {
+  text-align: center; }
+  .quantity-input-column input {
+    text-align: right;
+    width: 60px;
+    padding: 2px 5px;
+    border: 1px solid #cccccc !important;
+    border-radius: 3px; }
+
   .foldertabs > .tab-row {
     overflow: hidden;
     width: 100%;

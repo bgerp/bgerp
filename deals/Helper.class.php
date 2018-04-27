@@ -1318,7 +1318,6 @@ abstract class deals_Helper
 		}
 		
 		self::allocationOfPayments($newInvoiceArr, $payArr);
-		self::allocationOfPayments($newInvoiceArr, $payArr, TRUE);
 		
 		return $newInvoiceArr;
 	}
@@ -1385,96 +1384,109 @@ abstract class deals_Helper
 	
 	
 	/**
-	 * Разпределяне на плащанията според приоритетите
-	 */
-	public static function allocationOfPayments(&$invArr, &$payArr, $force = FALSE)
+     * Разпределяне на плащанията според приоритетите
+     */
+    public static function allocationOfPayments(&$invArr, &$payArr)
+    {
+        // Разпределяне на свързаните приходни документи
+        foreach($payArr as $i => $pay) {
+            if($pay->to) {
+                $invArr[$pay->to]->payout += $pay->available;
+                $pay->available = 0;
+                $invArr[$pay->to]->used[$pay->containerId] = $pay;
+                self::pushPaymentType($invArr[$pay->to]->payments, $pay);
+            }
+        }
+        
+        $revInvArr = array_reverse($invArr, TRUE);
+
+        // Разпределяме всички остатъци от плащания
+        foreach($payArr as $i => $pay) {
+            if($pay->available > 0) {
+                // Обикаляме по фактурите от начало към край и попълваме само дупките
+                foreach($invArr as $inv) {
+                    if($inv->amount > $inv->payout) {
+                        $sum = min($inv->amount - $inv->payout, $pay->available);
+                        $inv->payout += $sum;
+                        $pay->available -= $sum;
+                        $inv->used[$pay->containerId] = $pay;
+                        self::pushPaymentType($inv->payments, $pay);
+                    }
+                }
+            } elseif($pay->available < 0) {
+                // Обикаляме по фактурите от края към началото и връщаме пари само на надплатените
+                foreach($revInvArr as $inv) {
+                    // Пропускаме фактурите, които са след плащането
+                    // Предполагаме, че пари можем да връщаме само по минали фактури
+                    if($inv->number > $pay->number) continue;
+                    if($inv->payout  > $inv->amount) {
+                        $sum = min($inv->payout - $inv->amount, -$pay->available);
+                        $inv->payout -= $sum;
+                        $pay->available += $sum;
+                        $inv->used[$pay->containerId] = $pay;
+                        self::pushPaymentType($inv->payments, $pay);
+                    }
+                }
+            }
+        }
+
+        // Събираме остатъците от всички платежни документи и ги нанасяме от зад напред
+        $rest = 0;
+        $used = $payments = array();
+        foreach($payArr as $i => $pay) {
+            if($pay->available != 0) {
+                $rest += $pay->available;
+                $pay->available = 0;
+                $used[$pay->containerId] = $pay;
+                self::pushPaymentType($payments, $pay);
+            }
+        }
+        
+        foreach($invArr as $inv) {
+            $first = $inv;
+            break;
+        }
+          
+        foreach($revInvArr as $inv) {
+            if(!is_array($inv->used)) {
+                $inv->used = array();
+            }
+
+            if($rest > 0) {
+                $inv->payout += $rest;
+                $rest = 0;
+                $inv->used += $used;
+                $inv->payments += $payments;
+            }
+
+            if($rest < 0) {
+                if($inv->number == $first->number) {
+                    $sum = -$rest;
+                } else {
+                    $sum = min(-$rest, $inv->payout);
+                }
+                $inv->payout -= $sum;
+                $rest += $sum;
+                $inv->used += $used;
+                $inv->payments += $payments;
+            }
+
+            if($rest == 0) break;
+        }
+    }
+	
+    
+    /**
+     * Помощна ф-я за добавяне на платежния метод
+     */
+	private static function pushPaymentType(&$payments, $pay)
 	{
-		// Разпределяне на свързаните приходни документи
-		foreach($payArr as $i => $pay) {
-			if($pay->to && $pay->available >0) {
-				self::repayment($invArr[$pay->to], $pay, $force);
-			}
-		}
-	
-		// Разпределяне на приходните документи
-		foreach($payArr as $i => $pay) {
-			if($pay->available > 0) {
-				if($force) {
-					foreach($invArr as $inv) {
-						if($inv->payout < $inv->amount) {
-							self::repayment($inv, $pay, $force);
-						}
-					}
-				}
-				foreach($invArr as $inv) {
-					self::repayment($inv, $pay, $force);
-				}
-			}
-		}
-	
-		// Разпределяне на свързаните разходни документи
-		foreach($payArr as $i => $pay) {
-			if($pay->to && $pay->available < 0) {
-				self::repayment($invArr[$pay->to], $pay, $force);
-			}
-		}
-	
-		// Вземаме масива обратно подреден
-		$revInvArr = array_reverse($invArr, TRUE);
-	
-		// Разпределяне на разходните документи
-		foreach($payArr as $i => $pay) {
-			if($pay->available < 0) {
-				if($force) {
-					foreach($revInvArr as $inv) {
-						if($inv->payout > $inv->amount) {
-							self::repayment($inv, $pay, $force);
-						}
-					}
-				}
-				foreach($revInvArr as $inv) {
-					self::repayment($inv, $pay, $force);
-				}
-			}
+		if($pay->paymentType == 'cash' && $pay->isReverse !== TRUE) {
+			$payments['cash'] = 'cash';
+		} elseif($pay->paymentType == 'intercept' && $pay->isReverse !== TRUE){
+			$payments['intercept'] = 'intercept';
+		} elseif($pay->paymentType == 'bank' && $pay->isReverse !== TRUE){
+			$payments['bank'] = 'bank';
 		}
 	}
-	
-	
-	/**
-     * Опитва се да удовлетвори фактурата с плащането
-     * Ако $force == TURE, тогава плащането ще се разнесе във фактурата,
-     * дори и да избива като напрлатено или под-нулата
-     */
-    private static function repayment($inv, $pay, $force = FALSE)
-    {
-        $begin = $pay->available;
-        $inv->payout += $pay->available;
-        $pay->available = 0;
-
-        if(!$force) {
-            if($inv->payout > $inv->amount) {
-                $pay->available = $inv->payout - $inv->amount;
-                $inv->payout = $inv->amount;
-            } elseif($inv->payout < 0) {
-                $pay->available = $inv->payout;
-                $inv->payout = 0;
-            }
-        }
-
-        if($begin != $pay->available) {
-            $inv->used[$pay->containerId] = $pay;
-            
-            if($pay->paymentType == 'cash' && $pay->isReverse !== TRUE) {
-            	$inv->payments['cash'] = 'cash';
-            } elseif($pay->paymentType == 'intercept' && $pay->isReverse !== TRUE){
-            	$inv->payments['intercept'] = 'intercept';
-            } elseif($pay->paymentType == 'bank' && $pay->isReverse !== TRUE){
-            	$inv->payments['bank'] = 'bank';
-            }
-            
-            return TRUE;
-        }
-
-        return FALSE;
-    }
 }

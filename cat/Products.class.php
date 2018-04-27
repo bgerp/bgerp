@@ -2042,6 +2042,12 @@ class cat_Products extends embed_Manager {
     	if(sales_Sales::haveRightFor('createsaleforproduct', (object)array('folderId' => $data->rec->folderId, 'productId' => $data->rec->id))){
     		$data->toolbar->addBtn("Продажба", array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба');
     	}
+    	
+    	if(core_Packs::isInstalled('eshop')){
+    		if(eshop_Products::haveRightFor('linktoeshop', (object)array('productId' => $data->rec->id))){
+    			$data->toolbar->addBtn("E-маг", array('eshop_Products', 'linktoeshop', 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/cart_go.png,title=Свързване в Е-маг');
+    		}
+    	}
     }
     
     

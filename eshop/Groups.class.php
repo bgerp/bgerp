@@ -754,4 +754,32 @@ class eshop_Groups extends core_Master
     }
 
 
+    /**
+     * Връща групите в избрания домейн
+     * 
+     * @param int|NULL $domainId
+     * @return array $groups
+     */
+    public static function getByDomain($domainId = NULL)
+    {
+    	$domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
+    	 
+    	// Намиране на опциите, които са вързани към артикули от подадения домейн
+    	$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
+    	$contentQuery = cms_Content::getQuery();
+    	$contentQuery->show('id');
+    	$contentQuery->where("#domainId = {$domainId}");
+    	$contents = arr::extractValuesFromArray($contentQuery->fetchAll(), 'id');
+    	if(!count($contents)) return $options;
+    	
+    	$groups = array();
+    	$groupQuery = eshop_Groups::getQuery();
+    	$groupQuery->show('id');
+    	$groupQuery->in("menuId", $contents);
+    	while($rec = $groupQuery->fetch()){
+    		$groups[$rec->id] = eshop_Groups::getTitleById($rec->id, FALSE);
+    	}
+    	
+    	return $groups;
+    }
 }
