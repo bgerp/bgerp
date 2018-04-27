@@ -60,17 +60,11 @@ class cms_Domains extends core_Embedder
     
     
     /**
-     * Права за запис
-     */
-    public $canRead = 'ceo, cms, admin';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo, cms, admin';
     
-    public $canSelect = 'ceo, admin, cms';
+    public $canSelect = 'powerUser';
     
     // Админа може да редактира и изтрива създадените от системата записи
     public $canEditsysdata = 'admin';
