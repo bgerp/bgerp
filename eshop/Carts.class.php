@@ -451,7 +451,7 @@ class eshop_Carts extends core_Master
     			$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
     			$discount = ($settings->discountType == 'amount') ? core_Type::getByName('double(decimals=2)')->toVerbal($dRec->finalPrice/ (1 - $dRec->discount)) : "-" . core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->discount);
     			
-    			$row->finalPrice .= "<span classs='cart-view-discount'> ({$discount})</span>"; 
+    			$row->finalPrice .= "<span class='cart-view-discount'> {$discount}</span>";
     		}
     		
     		$data->rows[$dRec->id] = $row;

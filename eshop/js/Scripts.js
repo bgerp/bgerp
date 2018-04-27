@@ -44,10 +44,10 @@ function eshopActions() {
 	$(document.body).on('keyup', ".option-quantity-input", function(e){
 		
 		//this.value = this.value.replace(/[^0-9\.]/g,'');
-		$(this).removeClass('cart-input-error');
+		$(this).removeClass('inputError');
 		var packQuantity = $(this).val();
 		if(!$.isNumeric(packQuantity)){
-			$(this).addClass('cart-input-error');
+			$(this).addClass('inputError');
 		} else {
 			var url = $(this).attr("data-url");
 		    if(!url) return;
@@ -68,11 +68,11 @@ function eshopActions() {
 	
 	// Оцветяване на инпута, ако има грешка
 	$(document.body).on('keyup', ".eshop-product-option", function(e){
-		$(this).removeClass('cart-input-error');
+		$(this).removeClass('inputError');
 		
 		var packQuantity = $(this).val();
 		if(!$.isNumeric(packQuantity)){
-			$(this).addClass('cart-input-error');
+			$(this).addClass('inputError');
 		}
 	});
 };
