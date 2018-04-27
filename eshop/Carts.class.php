@@ -479,6 +479,13 @@ class eshop_Carts extends core_Master
     			$row->finalPrice .= "<span class='{$class}'> {$discount}</span>";
     		}
     		
+    		$hint = $row->code;
+    		$limit = str::limitLen($row->code, 15);
+    		if($limit != $hint){
+    			$row->code = $limit;
+    			$row->code = ht::createHint($row->code, $hint);
+    		}
+    		
     		$data->rows[$dRec->id] = $row;
     	}
     }
