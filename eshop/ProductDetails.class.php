@@ -207,7 +207,7 @@ class eshop_ProductDetails extends core_Detail
 	 * @param int|NULL $domainId
 	 * @return NULL|double
 	 */
-	private static function getPublicDisplayPrice($productId, $packagingId = NULL, $quantityInPack = 1, $domainId = NULL)
+	public static function getPublicDisplayPrice($productId, $packagingId = NULL, $quantityInPack = 1, $domainId = NULL)
 	{
 		$res = (object)array('price' => NULL, 'discount' => NULL);
 		$domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
