@@ -147,9 +147,9 @@ class eshop_CartDetails extends core_Detail
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	//if(Mode::is('wrapper', 'cms_page_External')){
-    	$data->form->title = 'Добавяне на артикул в кошницата';
-    	//}
+    	if(isset($data->form->rec->external)){
+    		$data->form->title = 'Добавяне на артикул в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName());
+    	}
     }
     
     

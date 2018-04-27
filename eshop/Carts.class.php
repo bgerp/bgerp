@@ -282,7 +282,7 @@ class eshop_Carts extends core_Master
      * 
      * @return varchar
      */
-    private static function getCartDisplayName()
+    public static function getCartDisplayName()
     {
     	$settings = cms_Domains::getSettings();
     	$cartName = !empty($settings->cartName) ? $settings->cartName : tr(eshop_Setup::get('CART_EXTERNAL_NAME'));
