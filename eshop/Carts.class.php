@@ -450,8 +450,9 @@ class eshop_Carts extends core_Master
     		if(!empty($dRec->discount)){
     			$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
     			$discount = ($settings->discountType == 'amount') ? core_Type::getByName('double(decimals=2)')->toVerbal($dRec->finalPrice/ (1 - $dRec->discount)) : "-" . core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->discount);
+    			$class = ($settings->discountType == 'amount') ? 'external-discount-amount' : 'external-discount-percent';
     			
-    			$row->finalPrice .= "<span class='cart-view-discount'> {$discount}</span>";
+    			$row->finalPrice .= "<span class='{$class}'> {$discount}</span>";
     		}
     		
     		$data->rows[$dRec->id] = $row;
