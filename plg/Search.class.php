@@ -164,7 +164,7 @@ class plg_Search extends core_Plugin
     {
         return strlen($b)-strlen($a);
     }
-   
+    
     
     /**
      * Прилага търсене по ключови думи
@@ -179,26 +179,7 @@ class plg_Search extends core_Plugin
             $field = 'searchKeywords';
         }
         
-        // Ако е зададен в конфига
-        if (defined('PLG_SEARCH_MIN_LEN_FTS')) {
-            $minLenFTS = PLG_SEARCH_MIN_LEN_FTS;
-        }
-        
-        // Ако не е определен, но е зададен в конфига на mySQL
-        if (!$minLenFTS) {
-            try {
-                if ($query->mvc->db) {
-                    $minLenFTS = $query->mvc->db->getVariable('ft_min_word_len');
-                }
-            } catch (Exception $e) {
-                reportException($e);
-            }
-        }
-        
-        // Ако все още не може да се определи - дефолтната стойност от документацията
-        if(!$minLenFTS) {
-            $minLenFTS = 4;
-        }
+        $minLenFTS = self::getFTSMinWordLen($query);
         
         $wCacheArr = array();
         
@@ -286,7 +267,7 @@ class plg_Search extends core_Plugin
                     $w = trim($w, '%');
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if (self::isStopWord($w) || $minWordLen < $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0) {  
+                    if (self::isStopWord($w, FALSE, $minLenFTS) || $minWordLen < $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0) {  
                         if($limit > 0 && $like == 'LIKE') {
                             $field1 =  "LEFT(#{$field}, {$limit})";
                         } else {
@@ -315,14 +296,19 @@ class plg_Search extends core_Plugin
      * 
      * @param string $word
      * @param boolean $strict
+     * @param NULL|integer $strict
      * 
      * @return boolean
      */
-    public static function isStopWord($word, $strict = FALSE)
+    public static function isStopWord($word, $strict = FALSE, $minLenFTS = NULL)
     {
         $word = trim($word);
         
-        if (strlen($word) < 4) return FALSE;
+        if (!isset($minLenFTS)) {
+            $minLenFTS = self::getFTSMinWordLen();
+        }
+        
+        if (strlen($word) < $minLenFTS) return FALSE;
         
         $type = 'sqlStopWord';
         $handler = 'stopWords';
@@ -599,5 +585,43 @@ class plg_Search extends core_Plugin
         $clsInst->logDebug('Регенерирани ключови думи до id=' . $maxId);
         
         core_Permanent::set($pKey, $maxId, 100000);
+    }
+    
+    
+    /**
+     * Връща дефолтната стойност на ft_min_word_len
+     * 
+     * @param NULL|core_Query $query
+     * @param integer $def
+     * @return integer
+     */
+    protected static function getFTSMinWordLen($query = NULL, $def = 4)
+    {
+        static $minLenFTS;
+        
+        if (isset($minLenFTS)) return $minLenFTS;
+        
+        // Ако е зададен в конфига
+        if (defined('PLG_SEARCH_MIN_LEN_FTS')) {
+            $minLenFTS = PLG_SEARCH_MIN_LEN_FTS;
+        }
+        
+        // Ако не е определен, но е зададен в конфига на mySQL
+        if (isset($query) && !$minLenFTS) {
+            try {
+                if ($query->mvc->db) {
+                    $minLenFTS = $query->mvc->db->getVariable('ft_min_word_len');
+                }
+            } catch (Exception $e) {
+                reportException($e);
+            }
+        }
+        
+        // Ако все още не може да се определи - дефолтната стойност от документацията
+        if(!$minLenFTS) {
+            $minLenFTS = $def;
+        }
+        
+        return $minLenFTS;
     }
 }
