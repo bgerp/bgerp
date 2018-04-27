@@ -35,6 +35,8 @@ class cms_DefaultTheme extends core_ProtoInner {
         $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 3");
         $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 4");
         $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 5");
+        $form->FLD('colabImg', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Картинка при колаборатор (1000x150px)->Изображение");
+
         $form->FLD('interframeImage', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Ротиращи се картинки за десктоп (1000x288px)->Междинна");
         $form->FLD('fadeDelay', 'int', "caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000");
         $form->FLD('fadeTransition', 'int', "caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500");
@@ -222,45 +224,48 @@ class cms_DefaultTheme extends core_ProtoInner {
     function getHeaderImg()
     {
         if(!Mode::is('screenMode', 'narrow')) {
-            for($i = 1; $i <=5; $i++) {
-                $imgName = 'wImg' . $i;
-                if($this->innerForm->{$imgName}) {
-                    $imgs[$i] = $this->innerForm->{$imgName};
+            if(core_Users::isContractor() && $this->innerForm->colabImg) {
+                $img = new thumb_Img(array($this->innerForm->colabImg, 1000, 150, 'fileman', 'isAbsolute' => TRUE,'mode' => 'large-no-change'));
+                $imageURL = $img->getUrl('forced');
+            } else {
+                for($i = 1; $i <=5; $i++) {
+                    $imgName = 'wImg' . $i;
+                    if($this->innerForm->{$imgName}) {
+                        $imgs[$i] = $this->innerForm->{$imgName};
+                    }
+                }
+
+                if(count($imgs) > 1) {
+                    $conf = core_Packs::getConfig('core');
+
+                    $banner = '';
+
+                    if($this->innerForm->interframeImage) {
+                        $img = new thumb_Img(array($this->innerForm->interframeImage, 1000, 288, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
+                        $imageURL = $img->getUrl('forced');
+                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => 'position:absolute'));
+                        $banner .= $hImage;
+                    }
+
+                    $banner .= "<div class=\"fadein\">";
+                    foreach($imgs as $iHash) {
+                        $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
+                        $imageURL = $img->getUrl('forced');
+                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
+                        $banner .= "\n{$hImage}";
+                        $style = 'display:none;';
+                    }
+                    $banner .= "</div>";
+                    $banner = new ET($banner);
+                    $fadeTransition = $this->innerForm->fadeTransition ? $this->innerForm->fadeTransition : 1500;
+                    $fadeDelay = $this->innerForm->fadeDelay ? $this->innerForm->fadeDelay : 5000;
+                    $banner->append(".fadein { position:relative; display:block; max-height:100%; max-width:100%} .fadein img {position:relative; left:0; top:0;}", "STYLES");
+                    jquery_Jquery::run($banner, "fadeImages({$fadeTransition}, {$fadeDelay});", TRUE);
+
+                    $this->haveOwnHeaderImages = TRUE;
+                    return $banner;
                 }
             }
-
-            if(count($imgs) > 1) {
-                $conf = core_Packs::getConfig('core');
-                
-                $banner = ''; 
-              
-                if($this->innerForm->interframeImage) {
-                    $img = new thumb_Img(array($this->innerForm->interframeImage, 1000, 288, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
-                    $imageURL = $img->getUrl('forced');
-                    $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => 'position:absolute'));
-                    $banner .= $hImage;
-                }
-
-                $banner .= "<div class=\"fadein\">"; 
-                foreach($imgs as $iHash) {
-                    $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
-                    $imageURL = $img->getUrl('forced');
-                    $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
-                    $banner .= "\n{$hImage}";
-                    $style = 'display:none;';
-                }
-                $banner .= "</div>";
-                $banner = new ET($banner);
-                $fadeTransition = $this->innerForm->fadeTransition ? $this->innerForm->fadeTransition : 1500;
-                $fadeDelay = $this->innerForm->fadeDelay ? $this->innerForm->fadeDelay : 5000;
-                $banner->append(".fadein { position:relative; display:block; max-height:100%; max-width:100%} .fadein img {position:relative; left:0; top:0;}", "STYLES");
-                jquery_Jquery::run($banner, "fadeImages({$fadeTransition}, {$fadeDelay});", TRUE);
-             	
-                $this->haveOwnHeaderImages = TRUE;
-
-                return $banner;
-            }
-
         } else {
             if ($this->innerForm->nImg) {
                 $imgs[1] = $this->innerForm->nImg;

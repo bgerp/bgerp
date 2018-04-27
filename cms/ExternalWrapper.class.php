@@ -36,10 +36,6 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
     		}
     	}
     	
-    	if(core_Packs::isInstalled('eshop')){
-    		//@TODO кошница за уеб магазина
-    	}
-    	
     	$this->TAB(array('cms_Profiles', 'Single'), 'Профил', 'partner,powerUser');
     }
     

@@ -190,7 +190,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                 $tplRec = doc_TplManager::fetch($masterRec->template);
             }
 
-            $form->setSuggestions('transUnit', $tplRec->lang == 'bg' ? ',Палети,Кашона' : ',Pallets,Carton boxes');
+            $form->setSuggestions('transUnit', $tplRec->lang == 'bg' ? ',Палети,Кашони' : ',Pallets,Carton boxes');
             $form->setField('transUnit', array('placeholder' => $tplRec->lang == 'bg' ? 'Палети' : 'Pallets'));
     	}
 
@@ -330,7 +330,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     $unit = 'палет';
                 } elseif(mb_strtolower($unitTr) == 'кашон' || mb_strtolower($unitTr) == 'кашони' ||  mb_strtolower($unitTr) == 'кашона') {
                     $bigPackName = array('кашон', 'кашона');
-                    $unit = 'палет';
+                    $unit = 'кашон';
                 } elseif(mb_strtolower($unitTr) == 'carton' || mb_strtolower($unitTr) == 'cartons') {
                     $bigPackName = array('carton', 'cartons');
                     $unit = 'carton';

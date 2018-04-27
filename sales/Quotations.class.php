@@ -1102,9 +1102,9 @@ class sales_Quotations extends core_Master
     				$addedRecId = sales_Sales::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
     				 
     				// Копира се и транспорта, ако има
-    				$fee = sales_TransportValues::get($this, $id, $dRec->id)->fee;
-    				if(isset($fee)){
-    					sales_TransportValues::sync('sales_Sales', $sId, $addedRecId, $fee);
+    				$tRec = sales_TransportValues::get($this, $id, $dRec->id);
+    				if(isset($tRec->fee)){
+    					sales_TransportValues::sync('sales_Sales', $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime);
     				}
     			}
     			 

@@ -382,6 +382,8 @@ class core_Users extends core_Manager
         
         $newName = $firstName . ' ' . $lastName;
         
+        $newName = trim($newName);
+        
         return $newName;
     }
     

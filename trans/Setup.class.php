@@ -106,8 +106,12 @@ class trans_Setup extends core_ProtoSetup
     	$query = trans_Vehicles::getQuery();
     	$query->where("#state != 'rejected' OR #state IS NULL");
     	while($rec = $query->fetch()){
-    		$rec->state = 'active';
-    		trans_Vehicles::save($rec, 'state');
+    		try{
+    			$rec->state = 'active';
+    			trans_Vehicles::save($rec, 'state');
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
     	}
     }
     
@@ -130,9 +134,13 @@ class trans_Setup extends core_ProtoSetup
     	
     	while($rec = $query->fetch()){
     		if(is_numeric($rec->vehicle)){
-    			if($name = trans_Vehicles::fetchField($rec->vehicle, 'name')){
-    				$rec->vehicle = $name;
-    				$Lines->save($rec, 'vehicle');
+    			try{
+    				if($name = trans_Vehicles::fetchField($rec->vehicle, 'name')){
+    					$rec->vehicle = $name;
+    					$Lines->save($rec, 'vehicle');
+    				}
+    			} catch(core_exception_Expect $e){
+    				reportException($e);
     			}
     		}
     	}
