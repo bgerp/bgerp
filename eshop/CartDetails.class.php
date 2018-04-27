@@ -94,6 +94,7 @@ class eshop_CartDetails extends core_Detail
 		$this->FLD('vat', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=ДДС %,input=none');
 		$this->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,input=none');
 		$this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
+		$this->FNC('external', 'int', 'input=hidden,silent');
 		
     	$this->setDbUnique('cartId,eshopProductId,productId,packagingId');
     }
@@ -135,7 +136,7 @@ class eshop_CartDetails extends core_Detail
     		$form->setDefault('packagingId', key($packs));
     	}
     	
-    	if(Request::get('external')){
+    	if(isset($form->rec->external)){
     		Mode::set('wrapper', 'cms_page_External');
     	}
     }
