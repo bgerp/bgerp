@@ -1867,7 +1867,7 @@ class doc_Threads extends core_Manager
                 $lastDcRec = $dcRec;
                 $rec->allDocCnt++;
         
-                if($dcRec->visibleForPartners == 'yes') {
+                if($dcRec->visibleForPartners == 'yes' && $dcRec->state != 'draft' && $dcRec->state != 'rejected') {
                     // Преброяваме партньорските документи и задържаме последния
                     $lastDcPartnerRec = $dcRec;
                     $rec->partnerDocCnt++;
