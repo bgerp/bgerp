@@ -479,12 +479,9 @@ class eshop_Carts extends core_Master
     			$row->finalPrice .= "<span class='{$class}'> {$discount}</span>";
     		}
     		
-    		$hint = $row->code;
-    		$limit = str::limitLen($row->code, 15);
-    		if($limit != $hint){
-    			$row->code = $limit;
-    			$row->code = ht::createHint($row->code, $hint);
-    		}
+    		$fullCode = cat_products::getVerbal($dRec->productId, 'code');
+    		$row->code = substr($fullCode, 0, 10);
+    		$row->code = "<span title={$fullCode}>{$row->code}</span>";
     		
     		$data->rows[$dRec->id] = $row;
     	}

@@ -297,7 +297,10 @@ class eshop_ProductDetails extends core_Detail
 	{
 		$row = new stdClass();
 		$row->productId = cat_Products::getVerbal($rec->productId, 'name');
-		$row->code = cat_products::getVerbal($rec->productId, 'code');
+		$fullCode = cat_products::getVerbal($rec->productId, 'code');
+		$row->code = substr($fullCode, 0, 10);
+		$row->code = "<span title={$fullCode}>{$row->code}</span>";
+		
 		$row->packagingId = cat_UoM::getShortName($rec->packagingId);
 		$row->quantity = ht::createTextInput("product{$rec->productId}", NULL, "size=4,class=eshop-product-option,placeholder=1");
 		
@@ -342,6 +345,9 @@ class eshop_ProductDetails extends core_Detail
 		
 		$fieldset = cls::get(get_called_class());
 		$fieldset->FNC('code', 'varchar', 'smartCenter');
+		$fieldset->FNC('catalogPrice', 'varchar', 'smartCenter');
+		$fieldset->FNC('btn', 'varchar', 'tdClass=small-field');
+		$fieldset->FNC('packagingId', 'varchar', 'smartCenter');
 		$fieldset->FLD('quantity', 'varchar');
 		$fieldset->setField('quantity', 'tdClass=quantity-input-column');
 		

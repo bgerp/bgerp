@@ -316,7 +316,6 @@ class eshop_CartDetails extends core_Detail
 			}
 			
 			$row->productId = cat_Products::getVerbal($rec->productId, 'name');
-			$row->code = cat_products::getVerbal($rec->productId, 'code');
 			$row->packagingId = cat_UoM::getShortName($rec->packagingId);
 			
 			$quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
