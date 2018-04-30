@@ -297,6 +297,10 @@ class eshop_Carts extends core_Master
     public static function getStatus($cartId = NULL)
     {
     	$tpl = new core_ET("[#text#]");
+    	
+    	$settings = cms_Domains::getSettings();
+    	if($settings->enableCart == 'no') return $tpl;
+    	
     	$cartId = ($cartId) ? $cartId : self::force(NULL, NULL, FALSE);
 		$url = array();
     	
@@ -526,6 +530,13 @@ class eshop_Carts extends core_Master
     		} elseif(!isset($userId)) {
     			$brid = log_Browsers::getBrid();
     			if(!(empty($rec->userId) && $rec->brid == $brid)){
+    				
+    			}
+    		}
+    		
+    		if($requiredRoles != 'no_one'){
+    			$settings = cms_Domains::getSettings();
+    			if($settings->enableCart == 'no'){
     				$requiredRoles = 'no_one';
     			}
     		}

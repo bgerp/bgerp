@@ -346,9 +346,14 @@ class eshop_ProductDetails extends core_Detail
 		$fieldset->setField('quantity', 'tdClass=quantity-input-column');
 		
 		$table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
+		$listFields = arr::make("code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;");
 		
-		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
-		$tpl->append($table->get($data->rows, "code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;"));
+		$settings = cms_Domains::getSettings();
+		if($settings->enableCart == 'no'){
+			unset($listFields['btn']);
+		}
+		
+		$tpl->append($table->get($data->rows, $listFields));
 		
 		$cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с включено ДДС') : tr('без ДДС'));
 		$cartInfo = "<tr><td colspan='6' class='option-table-info'>{$cartInfo}</td></tr>";
