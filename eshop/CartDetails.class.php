@@ -175,6 +175,8 @@ class eshop_CartDetails extends core_Detail
     		if($price = eshop_ProductDetails::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack)){
     			$price->price = round($price->price, 2);
     			$form->setReadOnly('displayPrice', $price->price);
+    			$unit = $settings->currencyId . " " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
+    			$form->setField('displayPrice', "unit={$unit}");
     		}
     	}
     	
