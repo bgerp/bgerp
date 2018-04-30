@@ -211,7 +211,7 @@ class eshop_ProductDetails extends core_Detail
 	{
 		$res = (object)array('price' => NULL, 'discount' => NULL);
 		$domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
-		$settings = eshop_Settings::getSettings('cms_Domains', $domainId);
+		$settings = cms_Domains::getSettings($domainId);
 		
 		if(isset($settings->listId)){
 			if($price = price_ListRules::getPrice($settings->listId, $productId, $packagingId)){

@@ -131,8 +131,6 @@ class eshop_Carts extends core_Master
     	$this->FLD('salutation', 'varchar(255)', 'caption=Данни на лице->Обръщение,class=contactData,hint=Обръщение||Salutation');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Данни на лице->Имейл,hint=Вашият имейл||Your email,mandatory');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Данни на лице->Телефони,hint=Вашият телефон,mandatory');
-    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащания->Валута');
-    	$this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно)', 'caption=Плащания->ДДС режим');
     	$this->setDbIndex('brid');
     	$this->setDbIndex('userId');
     }
@@ -224,11 +222,8 @@ class eshop_Carts extends core_Master
     	$rec = self::fetch("{$where} AND #state = 'draft' AND #domainId = {$domainId}");
     	
     	if(empty($rec) && $bForce === TRUE){
-    		$settings = eshop_Settings::getSettings('cms_Domains', $domainId);
-    		$chargeVat = isset($settings->chargeVat) ? $settings->chargeVat : 'yes';
-    		$currencyId = isset($settings->chargeVat) ? $settings->currencyId : acc_Periods::getBaseCurrencyCode();
     		$ip = core_Users::getRealIpAddr();
-    		$rec = (object)array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'currencyId' => $currencyId, 'chargeVat' => $chargeVat, 'state' => 'draft');
+    		$rec = (object)array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'state' => 'draft');
     		self::save($rec);
     	}
     	
@@ -363,10 +358,11 @@ class eshop_Carts extends core_Master
     	$tpl->replace(self::renderCartToolbar($rec, TRUE), 'CART_TOOLBAR');
     	$tpl->replace(self::getCartDisplayName(), 'CART_NAME');
     	
-    	$cartInfo = tr('Всички цени са в') . " {$rec->currencyId}, " . (($rec->chargeVat == 'yes') ? tr('с включено ДДС') : tr('без ДДС'));
+    	$settings = cms_Domains::getSettings();
+    	
+    	$cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с включено ДДС') : tr('без ДДС'));
     	$tpl->replace($cartInfo, 'VAT_STATUS');
     	
-    	$settings = cms_Domains::getSettings();
     	if(!empty($settings->info)){
     		$tpl->replace(core_Type::getByName('richtext')->toVerbal($settings->info), 'COMMON_TEXT');
     	}

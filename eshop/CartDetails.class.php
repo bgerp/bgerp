@@ -92,6 +92,9 @@ class eshop_CartDetails extends core_Detail
 		
 		$this->FLD('finalPrice', 'double(decimals=2)', 'caption=Цена,input=none');
 		$this->FLD('vat', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=ДДС %,input=none');
+		$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'input=none');
+		$this->FLD('haveVat', 'enum(yes=Да, separate=Не)', 'input=none');
+		
 		$this->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,input=none');
 		$this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
 		$this->FNC('external', 'int', 'input=hidden,silent');
@@ -220,8 +223,9 @@ class eshop_CartDetails extends core_Detail
 	 * @param double $packQuantity - к-во
 	 * @param int $quantityInPack  - к-во в опаковка
 	 * @param double $packPrice    - ед. цена с ДДС, във валутата от настройките или NULL
+	 * @param int|NULL $domainId   - домейн
 	 */
-	public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = NULL, $packPrice = NULL)
+	public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = NULL, $packPrice = NULL, $domainId = NULL)
 	{
 		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'draft'"));
 		expect($eshopRec = eshop_Products::fetch($eshopProductId));
@@ -234,9 +238,11 @@ class eshop_CartDetails extends core_Detail
 			$quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
 		}
 		
-		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
+		$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
+		$settings = eshop_Settings::getSettings('cms_Domains', $domainId);
 		$vat = cat_Products::getVat($productId);
 		$quantity = $packQuantity * $quantityInPack;
+		$currencyId = isset($settings->currencyId) ? $settings->currencyId : acc_Periods::getBaseCurrencyCode();
 		
 		$dRec = (object)array('cartId'         => $cartId, 
 				              'eshopProductId' => $eshopProductId, 
@@ -245,6 +251,8 @@ class eshop_CartDetails extends core_Detail
 				              'quantityInPack' => $quantityInPack,
 							  'vat'            => $vat,
 				              'quantity'       => $quantity,
+							  'currencyId'     => $currencyId, 
+							  'haveVat'        => ($settings->chargeVat) ? $settings->chargeVat : 'yes',      
 		);
 		
 		if($exRec = self::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}")){
@@ -266,7 +274,7 @@ class eshop_CartDetails extends core_Detail
 	{
 		$settings = cms_Domains::getSettings();
 		$cartRec = eshop_Carts::fetch($rec->cartId);
-		$vat = (isset($rec->vat)) ? $rec->vat : cat_Products::getVat($rec->productId);
+		$vat = cat_Products::getVat($rec->productId);
 		
 		if(!isset($rec->finalPrice)){
 			if(isset($settings->listId)){
@@ -278,11 +286,11 @@ class eshop_CartDetails extends core_Detail
 				}
 					
 				$rec->finalPrice = $price * $rec->quantityInPack;
-				if($cartRec->chargeVat == 'yes'){
+				if($rec->haveVat == 'yes'){
 					$rec->finalPrice *= 1 + $vat;
 				}
 		
-				$rec->finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, NULL, $cartRec->currencyId);
+				$rec->finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, NULL, $rec->currencyId);
 			}
 		}
 	}
@@ -315,6 +323,10 @@ class eshop_CartDetails extends core_Detail
 			$dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
 			
 			$row->quantity = ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}'");
+		
+			$settings = cms_Domains::getSettings();
+			$finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, $rec->currencyId, $settings->currencyId);
+			$row->finalPrice = $mvc->getFieldType('finalPrice')->toVerbal($finalPrice);
 		}
 		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
