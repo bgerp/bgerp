@@ -469,6 +469,9 @@ class html2text_Converter
         // H1 - H6
         $text = preg_replace_callback('/<h([123456])[^>]*>(.*?)<\/h([123456])>/i', array($this, 'h'), $text);
         
+        // Title
+        $text = preg_replace_callback('/<title>(.*?)<\/title>/i', array($this, 'title'), $text);
+
         // <P>
         $text = preg_replace("/<p[^>]*>/i", "\n\n", $text);
         
@@ -723,4 +726,13 @@ class html2text_Converter
     {
         return "[h{$matches[1]}]{$matches[2]}[/h{$matches[1]}]";
     }
+
+    /**
+     * Конвертира таговете <title>
+     */
+    function title($matches)
+    {
+        return "[h2]{$matches[1]}[/h2]";
+    }
+
 }

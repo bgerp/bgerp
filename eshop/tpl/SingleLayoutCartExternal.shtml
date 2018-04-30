@@ -1,9 +1,12 @@
 <div class='cart-holder-external'>
-<div>
-[#CART_TABLE#]
-</div>
-[#VAT_STATUS#]
-[#CART_TOTAL#]
-[#CART_COUNT#]
-[#CART_TOOLBAR#]
+    <h3 style="margin: 0 0 20px">[#CART_NAME#] [#CART_COUNT#]</h3>
+    <div class="cart-holder" style="display: inline-block">
+        [#CART_TABLE#]
+        [#CART_TOTAL#]
+    </div>
+    <div id='cart-view-info'>[#VAT_STATUS#]</div>
+    <!--ET_BEGIN COMMON_TEXT-->
+    <div id='cart-view-domain-text'>[#COMMON_TEXT#]</div>
+    <!--ET_END COMMON_TEXT-->
+    [#CART_TOOLBAR#]
 </div>

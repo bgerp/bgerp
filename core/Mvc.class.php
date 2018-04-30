@@ -370,27 +370,50 @@ class core_Mvc extends core_FieldSet
             $query .= ($query ? ",\n " : "\n") . "`{$mysqlField}` = {$value}";
         }
 		
-        switch(strtolower($mode)) {
-            case 'replace' :
-                $query = "REPLACE `{$table}` SET {$query}";
-                break;
+        $mode = str_replace(' ', '_', strtolower($mode));
 
-            case 'ignore' :
-                $query = "INSERT IGNORE `{$table}` SET {$query}";
-                break;
+        if ($rec->id > 0 && $mode != 'replace') {
+            switch($mode) {
+                case 'low_priority':
+                    $query = "UPDATE LOW_PRIORITY `{$table}` SET {$query} WHERE id = {$rec->id}";
+                    break;
 
-            case 'delayed' :
-                $query = "INSERT DELAYED `{$table}` SET {$query}";
-                break;
+                case 'ignore':
+                    $query = "UPDATE IGNORE `{$table}` SET {$query} WHERE id = {$rec->id}";
+                    break;
 
-            default :
-            if ($rec->id > 0) { 
-                $query = "UPDATE `{$table}` SET {$query} WHERE id = {$rec->id}";
-            } else {
-                $query = "INSERT  INTO `{$table}` SET {$query}";
+                case '':
+                case 'update':
+                    $query = "UPDATE `{$table}` SET {$query} WHERE id = {$rec->id}";
+                    break;
+
+                default:
+                    error('Неподдържан режим на запис', $mode, $rec);
+            }
+        } else {
+            switch($mode) {
+                case 'replace' :
+                    $query = "REPLACE `{$table}` SET {$query}";
+                    break;
+
+                case 'ignore':
+                    $query = "INSERT IGNORE `{$table}` SET {$query}";
+                    break;
+
+                case 'delayed':
+                    $query = "INSERT DELAYED `{$table}` SET {$query}";
+                    break;
+
+                case '':
+                case 'update':
+                    $query = "INSERT  INTO `{$table}` SET {$query}";
+                    break;
+
+                default:
+                    error('Неподдържан режим на запис', $mode, $rec);
             }
         }
-       
+
         if (!$this->db->query($query)) return FALSE;
          
         $this->dbTableUpdated();

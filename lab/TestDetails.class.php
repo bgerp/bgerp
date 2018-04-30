@@ -34,26 +34,26 @@ class lab_TestDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'methodId,paramName,value';
+    var $listFields = 'methodId,paramName,value,comment=@Коментар';
 
     /**
      * Кой има право да добавя?
      *
      * @var string|array
      */
-    public $canAdd = 'ceo,lab,masterLab';
+    public $canAdd = 'ceo,masterLab';
 
     /**
      * Кой има право да променя?
      *
      * @var string|array
      */
-    public $canEdit = 'ceo,lab,masterLab';
+    public $canEdit = 'ceo,masterLab';
 
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo,lab,masterLab';
+    public $canPending = 'ceo,masterLab';
 
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
@@ -63,7 +63,7 @@ class lab_TestDetails extends core_Detail
     /**
      * Роли, които могат да записват
      */
-    var $canWrite = 'lab,ceo,masterLab';
+    var $canWrite = 'ceo,masterLab';
 
     /**
      * Преди подготовката на полетата за листовия изглед
@@ -82,9 +82,9 @@ class lab_TestDetails extends core_Detail
     {
         $this->FLD('testId', 'key(mvc=lab_Tests, select=title)', 
             'caption=Тест, input=hidden, silent,mandatory,smartCenter');
-        $this->FLD('paramName', 'key(mvc=lab_Parameters, select=name)', 
-            'caption=Параметър, notSorting,smartCenter,silent');
-        $this->FLD('methodId', 'key(mvc=lab_Methods, select=name)', 'caption=Метод, notSorting,mandatory,smartCenter');
+        $this->FLD('paramName', 'key(mvc=lab_Parameters, select=name, allowEmpty)', 
+            'caption=Параметър, notSorting,smartCenter,silent,refreshForm');
+        $this->FLD('methodId', 'key(mvc=lab_Methods, select=name)', 'caption=Метод, notSorting,mandatory,smartCenter,silent');
         $this->FLD('value', 'varchar(64)', 'caption=Стойност, notSorting, input=none,smartCenter');
         $this->FLD('refValue', 'varchar(64)', 'caption=Реф.Стойност, notSorting, input=none,smartCenter');
         $this->FLD('error', 'percent(decimals=2)', 'caption=Отклонение, notSorting,input=none,smartCenter');
@@ -118,12 +118,12 @@ class lab_TestDetails extends core_Detail
         
         $allMethodsArr = array();
         
-        while ($mRec = $queryAllMethods->fetch("1=1")) {
-            
-            if ($mRec->paramId == $data->form->rec->paramName) {
+        if ($data->form->rec->paramName){
+            while ($mRec = $queryAllMethods->fetch("#paramId = {$data->form->rec->paramName}")) {
                 $allMethodsArr[$mRec->id] = $mRec->name;
             }
         }
+        
         $data->allMethodsArr = $allMethodsArr;
         
         // $methodIdSelectArr
@@ -224,7 +224,8 @@ class lab_TestDetails extends core_Detail
                             $recs[$key]->refValue = $testsDet->value;
                             if ($recs[$key]->refValue) {
                                 $deviation = core_Type::getByName('percent')->toVerbal(
-                                    ($recs[$key]->refValue - $recs[$key]->value) / $recs[$key]->refValue);
+                                    
+                                    ($recs[$key]->value - $recs[$key]->refValue) / $recs[$key]->refValue);
                             } else {
                                 $deviation = '---';
                             }
@@ -234,26 +235,26 @@ class lab_TestDetails extends core_Detail
                                 if ($recs[$key]->better == 'up' && $recs[$key]->value >= $recs[$key]->refValue) {
                                     // $row->error = ht::styleIfNegative($deviation, $deviation);
                                     $row->error = "<div style='float: right;color: green'>" .
-                                         number_format($deviation, 2, ',', ' ') . "</div>";
+                                         number_format($deviation, 2, ',', ' ') . "%" . "</div>";
                                 }
                                 if ($recs[$key]->better == 'up' && $recs[$key]->value < $recs[$key]->refValue) {
                                     
                                     $row->error = "<div style='float: right;color: red'>" .
-                                         number_format($deviation, 2, ',', ' ') . "</div>";
+                                         number_format($deviation, 2, ',', ' ') . "%" . "</div>";
                                 }
                                 if ($recs[$key]->better == 'down' && $recs[$key]->value <= $recs[$key]->refValue) {
                                     
                                     $row->error = "<div style='float: right;color: green'>" .
-                                         number_format($deviation, 2, ',', ' ') . "</div>";
+                                         number_format($deviation, 2, ',', ' ') . "%" . "</div>";
                                 }
                                 if ($recs[$key]->better == 'doun' && $recs[$key]->value > $recs[$key]->refValue) {
                                     
                                     $row->error = "<div style='float: right;color: red'>" .
-                                         number_format($deviation, 2, ',', ' ') . "</div>";
+                                         number_format($deviation, 2, ',', ' ') . "%" . "</div>";
                                 }
                             } else {
                                 $row->error = "<div style='float: right;color: black'>" .
-                                     number_format($deviation, 2, ',', ' ') . "</div>";
+                                     number_format($deviation, 2, ',', ' ') . "%" . "</div>";
                             }
                         }
                     }
@@ -330,13 +331,7 @@ class lab_TestDetails extends core_Detail
         
         // END Обработки в зависимост от типа на параметъра
         
-        // Запис в 'lab_Tests'
-        if ($rec->testId) {
-            $ltRec = new stdClass();
-            $ltRec->lastChangedOn = DT::verbal2mysql();
-            $ltRec->id = $rec->testId;
-            $mvc->Tests->save($ltRec, 'lastChangedOn');
-        }
+      
     }
 
     /**
@@ -349,6 +344,7 @@ class lab_TestDetails extends core_Detail
         );
         
         $data->toolbar->removeBtn('btnPrint');
+        
         
         $parameters = array();
         
@@ -369,9 +365,12 @@ class lab_TestDetails extends core_Detail
             $options[$url] = $paramName;
         }
         
-        if ($data->masterData->rec->state == 'pending') {
+        if (core_Users::haveRole('masterLab,ceo')) {
             
-            $data->toolbar->addSelectBtn($options);
+            if ($data->masterData->rec->state == 'pending') {
+                
+                $data->toolbar->addSelectBtn($options);
+            }
         }
         // Count all methods
         $allMethodsQuery = $mvc->Methods->getQuery();

@@ -95,6 +95,9 @@ class doc_DocumentPlg extends core_Plugin
         	$mvc->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активиране||Activated->От||By,input=none');
         }
         
+        // Вербализирането на ид-то да е без интервали за улеснение
+        $mvc->setFieldTypeParams('id', array('noWhitespace' => TRUE));
+        
         // Ако има cid и Tab, показваме детайлите
         if (Request::get('Cid') && Request::get('Tab')) {
             
@@ -458,6 +461,13 @@ class doc_DocumentPlg extends core_Plugin
             if (doc_View::haveRightFor('add') && $mvc->haveRightFor('single', $data->rec->id)) {
                 Request::setProtected(array('clsId', 'dataId'));
                 $data->toolbar->addBtn('Изглед', array('doc_View', 'add', 'clsId' => $classId, 'dataId' => $data->rec->id, 'originId' => $data->rec->containerId), 'ef_icon=img/16/ui_saccordion.png, title=Друг изглед на документа, order=18, row=3');
+            }
+        }
+        
+        // Бутона за редакция да е на втори ред за другите потребители
+        if ($data->toolbar->buttons['btnEdit']) {
+            if ($data->rec->createdBy > 0 && $data->rec->createdBy != core_Users::getCurrent()) {
+                $data->toolbar->buttons['btnEdit']->attr['row'] = 2;
             }
         }
     }
@@ -3758,11 +3768,11 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
-    	$rec = $mvc->fetchRec($id);
     	if(!$res){
+            $rec = $mvc->fetchRec($id); 
     		if(is_object($rec)){
     			$rec->modifiedOn = dt::now();
-    			$mvc->save_($rec, 'modifiedOn');
+    			$mvc->save_($rec, 'modifiedOn', 'LOW_PRIORITY');
     		}
     	}
     }

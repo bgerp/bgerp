@@ -431,7 +431,7 @@ class price_ListToCustomers extends core_Manager
     /**
      * Опит за намиране на цената според политиката за клиента (ако има такава)
      */
-    private function getPriceByList($listId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+    public function getPriceByList($listId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
     {
     	$rec = new stdClass();
     	$rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime);

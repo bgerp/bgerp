@@ -96,6 +96,9 @@ class csv_Lib
                 }
                 
                 foreach($fields as $i => $f) {
+                    
+                    $data[$i] = str_replace($format['escape'], '', $data[$i]);
+                    
                     $rec->{$f} = $data[$i];
                 }
 
