@@ -1760,6 +1760,39 @@ class callcenter_Talks extends core_Master
                         }
                     }
                 }
+                
+                if ($requiredRoles != 'no_one' && $rec) {
+                    
+                    // Да може да се архивират разговорите на своите номера + подчинените си
+                    if ($rec->internalNum) {
+                        $uArr = callcenter_Numbers::getUserForNum($rec->internalNum);
+                        
+                        if (!$userId) {
+                            $requiredRoles = 'no_one';
+                        } else {
+                            if (!$uArr[$userId]) {
+                                
+                                $userIsCeo = haveRole('ceo', $userId);
+                                
+                                foreach ($uArr as $uId) {
+                                    if (haveRole('ceo', $uId)) {
+                                        $requiredRoles = 'no_one';
+                                        
+                                        break;
+                                    }
+                                    
+                                    if (haveRole('manager', $uId)) {
+                                        if (!$userIsCeo) {
+                                            $requiredRoles = 'no_one';
+                                            
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

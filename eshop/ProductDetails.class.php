@@ -305,7 +305,7 @@ class eshop_ProductDetails extends core_Detail
 		$row->catalogPrice = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPriceInfo->price);
 		
 		$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-		$row->btn = ht::createFnBtn('Добави', NULL, FALSE, array('title'=> 'Добавяне в кошницата', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'cart-add-product-btn'));
+		$row->btn = ht::createFnBtn('Добави', NULL, FALSE, array('title'=> 'Добавяне в кошницата', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn'));
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 		
 		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
