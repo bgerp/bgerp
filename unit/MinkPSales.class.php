@@ -2265,7 +2265,6 @@ class unit_MinkPSales extends core_Manager {
         }
         if(strpos($browser->gettext(), 'Датата е в бъдещ счетоводен период')) {
                 $browser->setValue('Игнорирай предупреждениeто', True);
-                //$browser->setValue('Ignore', 1);
                 $browser->press('Чернова');
         }
         
@@ -2293,13 +2292,12 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('discount', 9);
         // Записваме артикула
         $browser->press('Запис');
+        
         // активираме продажбата
         $browser->press('Активиране');
-        $browser->press('Активиране/Контиране');
-        
-        if(strpos($browser->gettext(), 'Датата е в бъдещ счетоводен период')) {
-        } else {
-         
+        // Контиране, ако не е в бъдещ период
+        if(strpos($browser->gettext(), 'Активиране/Контиране')) {
+            $browser->press('Активиране/Контиране');
             if(strpos($browser->gettext(), 'ДДС 20%: BGN 12,96')) {
             } else {
                 return unit_MinkPbgERP::reportErr('Грешно ДДС 20%', 'warning');
@@ -2313,7 +2311,7 @@ class unit_MinkPSales extends core_Manager {
                 return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
             }
         }
-        
+       
     }
      
     /**
