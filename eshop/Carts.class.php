@@ -30,12 +30,6 @@ class eshop_Carts extends core_Master
     
     
     /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    public $lastUsedKeys = 'payments';
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'ip,brid,domainId,userId,state';
@@ -74,7 +68,7 @@ class eshop_Carts extends core_Master
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canView = 'every_one';
+	public $canViewexternal = 'every_one';
 	
 	
     /**
@@ -347,9 +341,10 @@ class eshop_Carts extends core_Master
      */
     public function act_View()
     {
+    	$this->requireRightFor('viewexternal');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = self::fetch($id));
-    	$this->requireRightFor('view', $rec);
+    	$this->requireRightFor('viewexternal', $rec);
     	
     	$tpl = getTplFromFile("eshop/tpl/SingleLayoutCartExternal.shtml");
     	$tpl->replace(self::renderViewCart($rec), 'CART_TABLE');
@@ -516,7 +511,7 @@ class eshop_Carts extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'view' && isset($rec)){
+    	if($action == 'viewexternal' && isset($rec)){
     		if($rec->state != 'draft'){
     			$requiredRoles = 'no_one';
     		} elseif(isset($userId) && $rec->userId != $userId){
@@ -524,7 +519,7 @@ class eshop_Carts extends core_Master
     		} elseif(!isset($userId)) {
     			$brid = log_Browsers::getBrid();
     			if(!(empty($rec->userId) && $rec->brid == $brid)){
-    				
+    				$requiredRoles = 'no_one';
     			}
     		}
     		
