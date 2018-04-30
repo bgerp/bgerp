@@ -141,7 +141,6 @@ class doc_Threads extends core_Manager
         $this->FNC('title', 'varchar', 'caption=Заглавие,tdClass=threadListTitle');
         $this->FLD('state', 'enum(opened,pending,closed,rejected)', 'caption=Състояние,notNull');
         $this->FLD('allDocCnt', 'int', 'caption=Брой документи->Всички,smartCenter');
-        $this->FLD('partnerDocCnt', 'int', 'caption=Брой документи->Публични, oldFieldName=pubDocCnt');
         $this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно');
         
         // Ключ към първия контейнер за документ от нишката
@@ -172,8 +171,14 @@ class doc_Threads extends core_Manager
         $this->FLD('firstDocId' , 'int', 'caption=Документ->Обект, input=none');
         
         // Дали нишката е видима за партньори
-        $this->FLD('visibleForPartners', 'enum(no=Не, yes=Да)', 'caption=Видим за партньори, input=none');
+        $this->FLD('visibleForPartners', 'enum(no=Не, yes=Да)', 'caption=За партньори->видимист, input=none');
         
+        // Брой документи
+        $this->FLD('partnerDocCnt', 'int', 'caption=За партньори->Брой документи, oldFieldName=pubDocCnt');
+   
+        // Дали нишката е видима за партньори
+        $this->FLD('partnerDocLast', 'datetime(format=smartTime)', 'caption=За партньори->Последен, input=none');
+   
         // Индекс за по-бързо избиране по папка
         $this->setDbIndex('folderId');
         $this->setDbIndex('last');
@@ -354,6 +359,7 @@ class doc_Threads extends core_Manager
         $query->orWhere("#lastState IS NULL");
         $query->orWhere("#firstDocClass IS NULL");
         $query->orWhere("#firstDocId IS NULL");
+        $query->orWhere("#partnerDocCnt > 0 AND #partnerDocLast IS NULL");
         
         $query->limit(500);
         
@@ -361,7 +367,7 @@ class doc_Threads extends core_Manager
             try {
                 // Ако има нишка без firstContainerId
                 if (!isset($rec->firstContainerId)) {
-                
+               		
                     // Първия документ от нишката
                     $firstCid = doc_Containers::fetchField("#threadId = '{$rec->id}'", 'id', FALSE);
                     
@@ -416,26 +422,23 @@ class doc_Threads extends core_Manager
                         self::logNotice("Добавен липсващ firstDocId", $rec->id);
                     }
                 }
-                
-                // Ако ще се поправя само partnerDocCnt и allDocCnt
-                if (!self::$updateQueue[$rec->id] && (!isset($rec->partnerDocCnt) || !isset($rec->allDocCnt))) {
-                    $preparedDocCnt = FALSE;
-                    $allDocCnt = $rec->allDocCnt;
-                    if (!isset($rec->partnerDocCnt)) {
-                        self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
-                        self::save($rec, 'partnerDocCnt');
-                        $resArr['partnerDocCnt']++;
-                        self::logNotice("Поправен partnerDocCnt", $rec->id);
-                        $preparedDocCnt = TRUE;
-                    }
-                    
-                    if (!isset($allDocCnt)) {
-                        if (!$preparedDocCnt) {
-                            self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
-                        }
-                        self::save($rec, 'allDocCnt');
-                        $resArr['allDocCnt']++;
-                        self::logNotice("Поправен allDocCnt", $rec->id);
+
+                // Ако ще се поправя само partnerDocCnt и allDocCnt или partnerDocLast
+                $fields = array('allDocCnt', 'partnerDocCnt', 'visibleForPartners');
+                foreach($fields as $i => $f) {
+                    if(isset($rec->{$f})) unset($fields[$i]);
+                }
+                if(!isset($rec->partnerDocCnt) || ($rec->partnerDocCnt > 0 && !isset($rec->partnerDocLast))) {
+                    $fields[] = 'partnerDocLast';
+                }
+                $exRec = clone($rec);
+                if (!self::$updateQueue[$rec->id] && count($fields)) {
+                    self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
+                    $fieldsList = implode(',', $fields);
+                    self::save($rec, $fieldsList);
+                    self::logNotice("Поправен/и " . $fieldsList, $rec->id);
+                    foreach($fields as $f) {
+                        $resArr[$f]++;
                     }
                     
                     continue;
@@ -884,14 +887,15 @@ class doc_Threads extends core_Manager
         	$query->where("#firstDocClass = {$filter->documentClassId}");
         }
         
-
+        $lastFieldName = $filter->LastFieldName ? $filter->LastFieldName : 'last';
+        
         // Подредба - @TODO
         switch ($filter->order) {
         	default:
             case 'open':
             case 'mine':
                 $query->XPR('isOpened', 'int', "IF(#state = 'opened', 0, 1)");
-                $query->orderBy('#isOpened,#state=ASC,#last=DESC,#id=DESC');
+                $query->orderBy("#isOpened,#state=ASC,#{$lastFieldName}=DESC,#id=DESC");
                 if($filter->order == 'mine') {
                     if($cu = core_Users::getCurrent()) {
                         
@@ -969,16 +973,15 @@ class doc_Threads extends core_Manager
                 }
                 break;
             case 'recent':
-                $query->orderBy('#last=DESC,#id=DESC');
+                $query->orderBy("#{$lastFieldName}=DESC,#id=DESC");
                 break;
             case 'create':
-                $query->orderBy('#createdOn=DESC,#state=ASC,#last=DESC,#id=DESC');
+                $query->orderBy("#createdOn=DESC,#state=ASC,#{$lastFieldName}=DESC,#id=DESC");
                 break;
             case 'numdocs':
-                $query->orderBy('#allDocCnt=DESC,#state=ASC,#last=DESC,#id=DESC');
+                $query->orderBy("#allDocCnt=DESC,#state=ASC,#{$lastFieldName}=DESC,#id=DESC");
                 break;
         }
-       
     }
     
     
@@ -1823,7 +1826,7 @@ class doc_Threads extends core_Manager
                 $rec->state = 'closed';
             }
             
-            doc_Threads::save($rec, 'last, allDocCnt, partnerDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy, lastState, lastAuthor, firstDocClass, firstDocId, visibleForPartners');
+            doc_Threads::save($rec, 'last, allDocCnt, partnerDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy, lastState, lastAuthor, firstDocClass, firstDocId, visibleForPartners, partnerDocLast');
          } else {
             // Ако липсват каквито и да е документи в нишката - изтриваме я
             self::delete($id);
@@ -1840,7 +1843,7 @@ class doc_Threads extends core_Manager
      * @param NULL|stdClass $firstDcRec
      * @param NULL|stdClass $lastDcRec
      */
-    protected static function prepareDocCnt(&$rec, &$firstDcRec, &$lastDcRec)
+    public static function prepareDocCnt(&$rec, &$firstDcRec, &$lastDcRec)
     {
         // Публични документи в треда
         $rec->partnerDocCnt = $rec->allDocCnt = 0;
@@ -1872,9 +1875,16 @@ class doc_Threads extends core_Manager
             }
         }
         
-        // Ако първия документ не е видим за партньори, то нищо в тази нишка не е видимо за тях
+        // Нишката е видима за партньори, само ако първият документ не е оттеглен, чернова и е от типа, който дава видимост
         if($firstDcRec->visibleForPartners != 'yes') {
+            $rec->visibleForPartners = 'no';
             $rec->partnerDocCnt = 0;
+        } else {
+            $rec->visibleForPartners = 'yes';
+            
+            if ($lastDcPartnerRec) {
+                $rec->partnerDocLast = max($lastDcPartnerRec->activatedOn, $lastDcPartnerRec->modifiedOn, $lastDcPartnerRec->createdOn);
+            }
         }
     }
 

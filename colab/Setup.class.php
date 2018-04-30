@@ -41,6 +41,7 @@ class colab_Setup extends core_ProtoSetup
     var $managers = array(
         'colab_FolderToPartners',
         'colab_DocumentLog',
+        'migrate::addColabLastTime',
     );
     
     
@@ -156,5 +157,59 @@ class colab_Setup extends core_ProtoSetup
     	
     	return $res;
     }
+    
+    
+    /**
+     * Миграция, за добавяне на partnerDocLast
+     */
+    public function addColabLastTime()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('colab_Setup', 'addColabLastTime', NULL, $callOn);
+    }
+    
+    
+    /**
+     * Миграция, за добавяне на partnerDocLast
+     */
+    public static function callback_addColabLastTime()
+    {
+        $maxTime = dt::addSecs(40);
+        
+        $Threads = cls::get('doc_Threads');
+        
+        $tQuery = $Threads->getQuery();
+        $tQuery->where("#visibleForPartners = 'yes' AND #partnerDocLast IS NULL AND #partnerDocCnt > 0");
+        
+        $qCnt = $tQuery->count();
+        
+        if (!$qCnt) {
+            
+            $Threads->logDebug('Приключи поправката на partnerDocLast');
+            
+            return ;
+        }
+        
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('colab_Setup', 'addColabLastTime', NULL, $callOn);
+        
+        $tQuery->orderBy('last', 'DESC');
+        
+        $rCnt = 0;
+        
+        while ($tRec = $tQuery->fetch()) {
+            if (dt::now() >= $maxTime) break;
+            
+            $rCnt++;
+            
+            try {
+                $Threads->prepareDocCnt($tRec, $firstDcRec, $lastDcRec);
+                $Threads->save_($tRec, 'partnerDocLast');
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+            }
+        }
+        
+        $Threads->logDebug("Поправка на partnerDocLast - {$rCnt} от {$qCnt}");
+    }
 }
-
