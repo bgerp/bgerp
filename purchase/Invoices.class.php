@@ -582,7 +582,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     		}
     		
     		if(purchase_Vops::haveRightFor('add', (object)array('invoiceId' => $rec->id))){
-    			$rowNumber = !(drdata_Countries::isEu($rec->contragentCountryId)) ? 1 : 2;
+    			$rowNumber = (drdata_Countries::isEu($rec->contragentCountryId)) ? 1 : 2;
     			$data->toolbar->addBtn("ВОП", array('purchase_Vops', 'add', 'invoiceId' => $rec->id), "ef_icon=img/16/bank_rem.png,title=Създаване на нов протокол за вътреобщностно придобиване, row={$rowNumber}");
     		}
     		
