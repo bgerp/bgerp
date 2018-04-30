@@ -54,9 +54,15 @@ class purchase_Vops extends core_Manager
 	
 	
 	/**
+	 * Кой може да го принтира?
+	 */
+	public $canPrint = 'purchase,ceo';
+	
+	
+	/**
 	 * Полета, които се виждат
 	 */
-	public $listFields  = "invoiceId,vodNumber,vodDate,createdOn,createdBy,printBtn=|*&nbsp;";
+	public $listFields  = "vodNumber,vodDate,invoiceId,createdOn,createdBy";
 	
 	
 	/**
@@ -76,7 +82,7 @@ class purchase_Vops extends core_Manager
 	 */
 	public function description()
 	{
-		$this->FLD('vodNumber', 'int', 'caption=Номер,mandatory');
+		$this->FLD('vodNumber', 'int', 'caption=Номер,mandatory,smartCenter');
 		$this->FLD('vodDate', 'date', 'caption=Дата,mandatory');
 		$this->FLD('invoiceId', 'key(mvc=purchase_Invoices,select=id)', 'caption=Вх. фактура,silent,input=hidden,tdClass=rightCol');
 		
@@ -125,8 +131,13 @@ class purchase_Vops extends core_Manager
 	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$row->invoiceId = purchase_Invoices::getLink($rec->invoiceId, 0);
-		$row->printBtn = ht::createBtn('Разпечатване', array($mvc, 'print', $rec->id, 'Printing' => 'yes'), FALSE, TRUE, 'ef_icon=img/16/printer.png,Разпечатване на протокол за ВОП');
 		$row->vodNumber = str_pad($row->vodNumber, 10, 0, STR_PAD_LEFT);
+		
+		if(isset($fields['-list'])){
+			if($mvc->haveRightFor('print', $rec)){
+				$row->vodNumber = ht::createLink($row->vodNumber, array($mvc, 'print', $rec->id, 'Printing' => 'yes'), FALSE, 'ef_icon=img/16/print_go.png,title=Разпечатване на протокола');
+			}
+		}
 	}
 	
 	
@@ -147,15 +158,12 @@ class purchase_Vops extends core_Manager
 				}
 			}
 		}
-	}
-	
-	
-	/**
-	 * Преди рендиране на таблицата
-	 */
-	protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
-	{
-		$data->listTableMvc->FNC('printBtn', 'int', 'tdClass=rightCol');
+		
+		if($action == 'print' && isset($rec)){
+			if(!purchase_Invoices::haveRightFor('single', $rec->invoiceId)){
+				$requiredRoles = 'no_one';
+			}
+		}
 	}
 	
 	
