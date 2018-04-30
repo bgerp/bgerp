@@ -307,7 +307,7 @@ class eshop_Carts extends core_Master
     		$count = core_Type::getByName('int')->toVerbal($cartRec->productCount);
     		$url = array('eshop_Carts', 'view', $cartId, 'ret_url' => TRUE);
     		$str = ($count == 1) ? 'артикул' : 'артикула';
-    		$hint = "|*{$count} |{$str} за|* {$amount} " . $cartRec->currencyId;
+    		$hint = "|*{$count} |{$str} за|* {$amount} " . $settings->currencyId;
     	
     		if($count){
     			$tpl->append(new core_ET("<sup>[#count#]</sup>"));
@@ -410,7 +410,7 @@ class eshop_Carts extends core_Master
     	
     	if(eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
     		$emptyUrl = ($rec->productCount) ? array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => getRetUrl()) : array();
-    		$btn = ht::createBtn('Изчистване', $emptyUrl, NULL, NULL, 'title=Изпразване на кошницата,class=eshop-btn,ef_icon=img/16/bin_closed.png');
+    		$btn = ht::createBtn('Изчистване', $emptyUrl, NULL, NULL, 'title=Изчистване на кошницата,class=eshop-btn,ef_icon=img/16/bin_closed.png');
     		$tpl->append($btn, 'CART_TOOLBAR');
     	}
     	
@@ -422,7 +422,8 @@ class eshop_Carts extends core_Master
     	
     	if(eshop_CartDetails::haveRightFor('checkout', (object)array('cartId' => $rec->id))){
     		$checkoutUrl = array();
-    		$btn = ht::createBtn('Поръчване', $checkoutUrl, NULL, NULL, 'title=Поръчване на артикулите,class=eshop-btn,ef_icon=img/16/cart_go.png');
+    		$disabledClass = !count($checkoutUrl) ? 'disabled': '';
+    		$btn = ht::createBtn('Поръчване', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=eshop-btn {$disabledClass},ef_icon=img/16/cart_go.png");
     		$tpl->append($btn, 'CART_TOOLBAR');
     	}
     	
