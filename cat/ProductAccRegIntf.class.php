@@ -247,12 +247,23 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * @param int|NULL $id - ид на артикул
      * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public function getMoq($id)
+    public function getMoq($id = NULL)
     {
-    	return $this->class->getMoq($id);
+    	return $this->class->getMoq($id = NULL);
     }
     
-    
+
+    /**
+     * Връща броя на количествата, които ще се показват в запитването
+     *
+     * @return int|NULL - броя на количествата в запитването
+     */
+    public function getInquiryQuantities()
+    {
+    	return $this->class->getInquiryQuantities();
+    }
+
+
     /**
      * Допълнителните условия за дадения продукт,
      * които автоматично се добавят към условията на договора

@@ -512,7 +512,18 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return NULL;
 	}
-	
+    
+    
+    /**
+     * Връща броя на количествата, които ще се показват в запитването
+     *
+     * @return int|NULL - броя на количествата в запитването
+     */
+    public function getInquiryQuantities()
+    {
+    	return NULL;
+    }
+
 	
 	/**
 	 * Връща дефолтните опаковки за артикула
