@@ -115,10 +115,43 @@ class colab_FolderToPartners extends core_Manager
     	$query->where("#contractorId = {$cu}");
     	$query->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
     	$query->where("#coverClass =" . crm_Companies::getClassId());
-    	
-    	$query->orderBy("#createdOn", 'ASC');
+
+        $fIds = array();
     	$query->show('folderId');
-    	$folderId = $query->fetch()->folderId;
+    	while($rec = $query->fetch()) {
+            $fIds[] = $rec->folderId;
+        }
+
+        if(count($fIds)) {
+            
+            if(count($fIds) == 1) {
+                $folderId = $fIds[0];
+            }
+
+            if(!$folderId) {
+                // Първа е папката в която този потребител последно е писал
+                $cQuery = doc_Containers::getQuery();
+                $cQuery->limit(1);
+                $cQuery->orderBy('#modifiedOn', 'DESC');
+                $cQuery->where("#createdBy = {$cu}");
+                $cRec = $cQuery->fetch();
+                if($cRec) {
+                    $folderId = $cRec->folderId;
+                }
+            }
+            
+            if(!$folderId && count($fIds) > 1) {
+                // След това е папката, в която има последно движение
+                $fQuery = doc_Folders::getQuery();
+                $fQuery->limit(1);
+                $fQuery->orderBy('#last', 'DESC');
+                $fQuery->where('#id IN (' . implode(',', $fIds) . ')');
+                $fRec = $fQuery->fetch();
+                if($fRec) {
+                    $folderId = $rec->id;
+                }
+            }
+        }
     	
     	return (!empty($folderId)) ? $folderId : NULL;
     }
