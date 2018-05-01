@@ -1668,7 +1668,7 @@ class cat_Products extends embed_Manager {
     		}
  		
     		$groupLinks = cat_Groups::getLinks($rec->groupsInput);
-    		$row->groupsInput = (count($groupLinks)) ? implode(' ', $groupLinks) : "<i>" . tr("Няма") . "</i>";
+    		$row->groupsInput = (count($groupLinks)) ? implode(' ', $groupLinks) : (haveRole('partner') ? NULL : "<i>" . tr("Няма") . "</i>");
     	}
         
         if($fields['-list']){
@@ -2444,6 +2444,10 @@ class cat_Products extends embed_Manager {
     {
     	$data->components = array();
     	cat_Products::prepareComponents($data->rec->id, $data->components, 'internal', 1);
+        
+        if(haveRole('partner')) {
+            unset($data->row->originId);
+        }
     }
     
     
