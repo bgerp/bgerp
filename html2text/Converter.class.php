@@ -732,7 +732,7 @@ class html2text_Converter
      */
     function title($matches)
     {
-        return "[h1]{$matches[1]}[/h1]";
+        return "[h2]{$matches[1]}[/h2]";
     }
 
 }

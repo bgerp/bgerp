@@ -1211,9 +1211,9 @@ abstract class deals_Helper
 	
 	
 	/**
-	 * Връща масив с фактурите в треда
+	 * Връща масив с фактурите в треда (тредовете)
 	 * 
-	 * @param int $threadId            - ид на нишка
+	 * @param mixed $threadId          - ид на нишка или масив от ид-та на нишки
 	 * @param date|NULL $valior        - ф-рите до дата, или NULL за всички
 	 * @param boolean $showInvoices    - да се показват само обикновените ф-ри
 	 * @param boolean $showDebitNotes  - да се показват и ДИ
@@ -1223,11 +1223,13 @@ abstract class deals_Helper
 	public static function getInvoicesInThread($threadId, $valior = NULL, $showInvoices = TRUE, $showDebitNotes = TRUE, $showCreditNotes = TRUE)
 	{
 		$invoices = array();
+		$threads = is_array($threadId) ? $threadId : array($threadId => $threadId);
 		
 		foreach (array('sales_Invoices', 'purchase_Invoices') as $class){
 			$Cls = cls::get($class);
 			$iQuery = $Cls->getQuery();
-			$iQuery->where("#threadId = {$threadId} AND #state = 'active'");
+			$iQuery->in("threadId", $threads);
+			$iQuery->where("#state = 'active'");
 			$iQuery->orderBy('date,number,type,dealValue', 'ASC');
 			$iQuery->show('number,containerId');
 			
@@ -1273,8 +1275,35 @@ abstract class deals_Helper
 	public static function getInvoicePayments($threadId, $valior = NULL)
 	{
 		expect($threadId);
-		$invoicesArr = self::getInvoicesInThread($threadId, $valior, TRUE, TRUE, TRUE);
+		$firstDoc = doc_Threads::getFirstDocument($threadId);
+		if(!$firstDoc->isInstanceOf('deals_DealBase')) return array();
 		
+		// Ако сделката е приключена, проверява се дали не е приключена с друга сделка
+		if($firstDoc->fetchField('state') == 'closed'){
+			$dQuery = $firstDoc->getInstance()->getQuery();
+			$dQuery->where("LOCATE('|{$firstDoc->that}|', #closedDocuments)");
+			
+			// Ако е подменя се треда с този на обединяващата сделка, защото тя ще се използва за основа
+			if($combinedThread = $dQuery->fetch()->threadId){
+				$firstDoc = doc_Threads::getFirstDocument($combinedThread);
+				$threadId = $combinedThread;
+			}
+		}
+		
+		// Ако сделката е обединяваща взимат се всички нишки, които обединява
+		$threads = array($threadId => $threadId);
+		$closedDocs = $firstDoc->fetchField('closedDocuments');
+		$closedDocs = keylist::toArray($closedDocs);
+		if(is_array($closedDocs) && count($closedDocs)){
+			foreach ($closedDocs as $docId){
+				if($dThreadId = $firstDoc->getInstance()->fetchField($docId, 'threadId')){
+					$threads[$dThreadId] = $dThreadId;
+				}
+			}
+		}
+		
+		// Всички ф-ри в посочената нишка/нишки
+		$invoicesArr = self::getInvoicesInThread($threads, $valior, TRUE, TRUE, TRUE);
 		if(!count($invoicesArr)) return array();
 		
 		$newInvoiceArr = $invMap = $payArr = array();
@@ -1296,7 +1325,8 @@ abstract class deals_Helper
 		foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_CreditDocuments', 'findeals_DebitDocuments') as $Pay){
 			$Pdoc = cls::get($Pay);
 			$pQuery = $Pdoc->getQuery();
-			$pQuery->where("#threadId = {$threadId} AND #state = 'active'");
+			$pQuery->in('threadId', $threads);
+			$pQuery->where("#state = 'active'");
 			$pQuery->show('containerId,amountDeal,amount,fromContainerId,isReverse,activatedOn,valior');
 			if(isset($valior)){
 				$pQuery->where("#valior <= '{$valior}'");

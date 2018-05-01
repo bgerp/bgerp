@@ -44,7 +44,7 @@ class colab_Threads extends core_Manager
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'RowNumb=№,title=Заглавие,author=Автор,last=Последно,hnd=Номер,partnerDocCnt=Документи,createdOn=Създаване';
+    public $listFields = 'RowNumb=№,title=Заглавие,author=Автор,partnerDocLast=Последно,hnd=Номер,partnerDocCnt=Документи,createdOn=Създаване';
 	
 	
 	/**
@@ -336,6 +336,9 @@ class colab_Threads extends core_Manager
 		} else {
 			$data->listFilter->setReadOnly('documentClassId');
 		}
+		
+		// По кое поле за последно да се подреждат
+		$data->listFilter->rec->LastFieldName = 'partnerDocLast';
 		
 		doc_Threads::applyFilter($data->listFilter->rec, $data->query);
 		$data->rejQuery = clone($data->query);

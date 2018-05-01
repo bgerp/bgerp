@@ -475,6 +475,13 @@ class core_Master extends core_Manager
      */
     function renderSingleLayout_(&$data)
     {
+    	// Ако има кустом зададен изглед за в сесията да се взима той
+    	if($singleLayout = Mode::get("singleLayout-{$this->className}{$data->rec->id}")){
+    		if($singleLayout instanceof core_ET){
+    			$data->singleLayout = $singleLayout;
+    		}
+    	}
+    	
         if (isset($data->singleLayout)) {
             if (!($data->singleLayout instanceof core_ET)) {
                 $data->singleLayout = new ET($data->singleLayout);

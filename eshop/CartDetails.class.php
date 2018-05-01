@@ -85,15 +85,19 @@ class eshop_CartDetails extends core_Detail
 		$this->FLD('cartId', 'key(mvc=eshop_Carts)', 'caption=Кошница,mandatory,input=hidden,silent');
 		$this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,silent');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack,mandatory');
-		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack');
+		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack|displayPrice');
 		$this->FLD('quantity', 'double', 'caption=Количество,input=none');
 		$this->FLD('quantityInPack', 'double', 'input=none');
 		$this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none');
 		
 		$this->FLD('finalPrice', 'double(decimals=2)', 'caption=Цена,input=none');
 		$this->FLD('vat', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=ДДС %,input=none');
+		$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'input=none');
+		$this->FLD('haveVat', 'enum(yes=Да, separate=Не)', 'input=none');
+		
 		$this->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,input=none');
 		$this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
+		$this->FNC('external', 'int', 'input=hidden,silent');
 		
     	$this->setDbUnique('cartId,eshopProductId,productId,packagingId');
     }
@@ -122,20 +126,23 @@ class eshop_CartDetails extends core_Detail
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
+    	$rec = $form->rec;
+    	$form->FNC('displayPrice', 'double', 'caption=Цена, input=none');
     	$productOptions = eshop_ProductDetails::getAvailableProducts();
     	
     	$form->setOptions('productId', array('' => '') + $productOptions);
     	$form->setField('eshopProductId', 'input=none');
     	
-    	if(isset($form->rec->productId)){
+    	if(isset($rec->productId)){
     		$form->setField('packagingId', 'input');
     		$form->setField('packQuantity', 'input');
-    		$packs = cat_Products::getPacks($form->rec->productId);
+    		$packs = cat_Products::getPacks($rec->productId);
     		$form->setOptions('packagingId', $packs);
     		$form->setDefault('packagingId', key($packs));
+    		$form->setField('displayPrice', 'input');
     	}
     	
-    	if(Request::get('external')){
+    	if(isset($rec->external)){
     		Mode::set('wrapper', 'cms_page_External');
     	}
     }
@@ -146,9 +153,9 @@ class eshop_CartDetails extends core_Detail
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	//if(Mode::is('wrapper', 'cms_page_External')){
-    	$data->form->title = 'Добавяне на артикул в кошницата';
-    	//}
+    	if(isset($data->form->rec->external)){
+    		$data->form->title = 'Добавяне на артикул в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName());
+    	}
     }
     
     
@@ -162,6 +169,20 @@ class eshop_CartDetails extends core_Detail
     {
     	$rec = $form->rec;
     
+    	if(isset($rec->packagingId)){
+    		$productInfo = cat_Products::getProductInfo($rec->productId);
+    		$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+    		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+    	
+    		$settings = cms_Domains::getSettings();
+    		if($price = eshop_ProductDetails::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack)){
+    			$price->price = round($price->price, 2);
+    			$form->setReadOnly('displayPrice', $price->price);
+    			$unit = $settings->currencyId . " " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
+    			$form->setField('displayPrice', "unit={$unit}");
+    		}
+    	}
+    	
     	if($form->isSubmitted()){
     		$rec->eshopProductId = eshop_ProductDetails::fetchField("#productId = {$rec->productId}", 'eshopProductId');
 
@@ -174,13 +195,6 @@ class eshop_CartDetails extends core_Detail
     		// Проверка на к-то
     		if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
     			$form->setError('packQuantity', $warning);
-    		}
-    		
-    		// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
-    		if(!$form->gotErrors()){
-    			$productInfo = cat_Products::getProductInfo($rec->productId);
-    			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-    			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     		}
     	}
     }
@@ -209,8 +223,9 @@ class eshop_CartDetails extends core_Detail
 	 * @param double $packQuantity - к-во
 	 * @param int $quantityInPack  - к-во в опаковка
 	 * @param double $packPrice    - ед. цена с ДДС, във валутата от настройките или NULL
+	 * @param int|NULL $domainId   - домейн
 	 */
-	public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = NULL, $packPrice = NULL)
+	public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = NULL, $packPrice = NULL, $domainId = NULL)
 	{
 		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'draft'"));
 		expect($eshopRec = eshop_Products::fetch($eshopProductId));
@@ -223,9 +238,11 @@ class eshop_CartDetails extends core_Detail
 			$quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
 		}
 		
-		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
+		$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
+		$settings = eshop_Settings::getSettings('cms_Domains', $domainId);
 		$vat = cat_Products::getVat($productId);
 		$quantity = $packQuantity * $quantityInPack;
+		$currencyId = isset($settings->currencyId) ? $settings->currencyId : acc_Periods::getBaseCurrencyCode();
 		
 		$dRec = (object)array('cartId'         => $cartId, 
 				              'eshopProductId' => $eshopProductId, 
@@ -234,6 +251,8 @@ class eshop_CartDetails extends core_Detail
 				              'quantityInPack' => $quantityInPack,
 							  'vat'            => $vat,
 				              'quantity'       => $quantity,
+							  'currencyId'     => $currencyId, 
+							  'haveVat'        => ($settings->chargeVat) ? $settings->chargeVat : 'yes',      
 		);
 		
 		if($exRec = self::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}")){
@@ -253,9 +272,9 @@ class eshop_CartDetails extends core_Detail
 	 */
 	protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
-		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
+		$settings = cms_Domains::getSettings();
 		$cartRec = eshop_Carts::fetch($rec->cartId);
-		$vat = (isset($rec->vat)) ? $rec->vat : cat_Products::getVat($rec->productId);
+		$vat = cat_Products::getVat($rec->productId);
 		
 		if(!isset($rec->finalPrice)){
 			if(isset($settings->listId)){
@@ -267,11 +286,11 @@ class eshop_CartDetails extends core_Detail
 				}
 					
 				$rec->finalPrice = $price * $rec->quantityInPack;
-				if($cartRec->chargeVat == 'yes'){
+				if($rec->haveVat == 'yes'){
 					$rec->finalPrice *= 1 + $vat;
 				}
 		
-				$rec->finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, NULL, $cartRec->currencyId);
+				$rec->finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, NULL, $rec->currencyId);
 			}
 		}
 	}
@@ -297,13 +316,16 @@ class eshop_CartDetails extends core_Detail
 			}
 			
 			$row->productId = cat_Products::getVerbal($rec->productId, 'name');
-			$row->code = cat_products::getVerbal($rec->productId, 'code');
 			$row->packagingId = cat_UoM::getShortName($rec->packagingId);
 			
 			$quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
 			$dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
 			
 			$row->quantity = ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}'");
+		
+			$settings = cms_Domains::getSettings();
+			$finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, $rec->currencyId, $settings->currencyId);
+			$row->finalPrice = $mvc->getFieldType('finalPrice')->toVerbal($finalPrice);
 		}
 		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);

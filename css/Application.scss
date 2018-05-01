@@ -3094,8 +3094,9 @@ fieldset.sharing-history {
     padding: 5px;
     background: #ccc;
     background: rgba(0,0,0,0.2);
+	border: 1px solid #bbb;
     border-radius: 0 0 0 5px;
-    box-shadow: -1px 1px 2px rgba(0,0,0,0.5);
+    box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
     a {
         color: #333 !important;
         margin: 0 5px;
@@ -3118,15 +3119,15 @@ fieldset.sharing-history {
 }
 .optionsTable {
 	color: #222;
-	width: 100%;
-	margin-bottom: 20px;
+	min-width: 600px;
+	margin-bottom: 10px;
 	th {
 		text-align: center;
 		padding: 5px;
 		border-bottom: 1px solid #ccc;
 	}
 	td {
-		padding: 5px;
+		padding: 5px 10px;
 	}
 	tbody tr:nth-child(even){
 		background-color: #F1F1F1;
@@ -3134,10 +3135,32 @@ fieldset.sharing-history {
 	tbody tr:last-child td {
 		border-bottom: 1px solid #ccc;
 	}
+	.option-table-info {
+		font-size: 0.9em;
+		color: #444;
+	}
 }
+
+.external-discount-amount {
+	display: block;
+	color: #999;
+	text-decoration: line-through;
+	font-size: 0.9em;
+}
+
 .summary-holder {
 	float: right;
+	table {
+		td {
+			padding: 5px 10px;
+		}
+	}
 }
+
+.remove-from-cart:hover {
+	cursor: pointer;
+}
+
 .cart-holder-external {
 	padding: 20px 20px 20px;
 }
@@ -3147,8 +3170,29 @@ fieldset.sharing-history {
 		text-align: right;
 		width: 60px;
 		padding: 2px 5px;
-		border: 1px solid #ccc!important;
+		border: 1px solid #ccc;
 		border-radius:3px;
+		&.inputError {
+			border-color: red;
+		}
+	}
+}
+table .eshop-btn {
+	margin-right: 0 !important;
+}
+.eshop-btn {
+	background-position-x: 5px;
+	padding: 6px 10px 6px 26px!important;
+	color: #333 !important;
+	border-radius: 3px;
+	box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
+	background-color: #f6f6f6 !important;
+	&:hover{
+		background-color: #eee !important;
+	}
+	&:disabled {
+		background-color: #bbb !important;
+		color: #666 !important;
 	}
 }
 .foldertabs {

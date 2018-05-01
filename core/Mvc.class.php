@@ -383,6 +383,7 @@ class core_Mvc extends core_FieldSet
                     break;
 
                 case '':
+                case 'update':
                     $query = "UPDATE `{$table}` SET {$query} WHERE id = {$rec->id}";
                     break;
 
@@ -404,6 +405,7 @@ class core_Mvc extends core_FieldSet
                     break;
 
                 case '':
+                case 'update':
                     $query = "INSERT  INTO `{$table}` SET {$query}";
                     break;
 

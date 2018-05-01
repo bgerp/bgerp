@@ -2670,8 +2670,9 @@ span.sharing-history-title {
   padding: 5px;
   background: #cccccc;
   background: rgba(0, 0, 0, 0.2);
+  border: 1px solid #bbbbbb;
   border-radius: 0 0 0 5px;
-  box-shadow: -1px 1px 2px rgba(0, 0, 0, 0.5); }
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3); }
   .logoutBlock a {
     color: #333333 !important;
     margin: 0 5px;
@@ -2690,21 +2691,35 @@ span.sharing-history-title {
 
 .optionsTable {
   color: #222222;
-  width: 100%;
-  margin-bottom: 20px; }
+  min-width: 600px;
+  margin-bottom: 10px; }
   .optionsTable th {
     text-align: center;
     padding: 5px;
     border-bottom: 1px solid #cccccc; }
   .optionsTable td {
-    padding: 5px; }
+    padding: 5px 10px; }
   .optionsTable tbody tr:nth-child(even) {
     background-color: #f1f1f1; }
   .optionsTable tbody tr:last-child td {
     border-bottom: 1px solid #cccccc; }
+  .optionsTable .option-table-info {
+    font-size: 0.9em;
+    color: #444444; }
+
+.external-discount-amount {
+  display: block;
+  color: #999999;
+  text-decoration: line-through;
+  font-size: 0.9em; }
 
 .summary-holder {
   float: right; }
+    .summary-holder table td {
+      padding: 5px 10px; }
+
+.remove-from-cart:hover {
+  cursor: pointer; }
 
 .cart-holder-external {
   padding: 20px 20px 20px; }
@@ -2715,8 +2730,26 @@ span.sharing-history-title {
     text-align: right;
     width: 60px;
     padding: 2px 5px;
-    border: 1px solid #cccccc !important;
+    border: 1px solid #cccccc;
     border-radius: 3px; }
+    .quantity-input-column input.inputError {
+      border-color: red; }
+
+table .eshop-btn {
+  margin-right: 0 !important; }
+
+.eshop-btn {
+  background-position-x: 5px;
+  padding: 6px 10px 6px 26px !important;
+  color: #333333 !important;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
+  background-color: #f6f6f6 !important; }
+  .eshop-btn:hover {
+    background-color: #eeeeee !important; }
+  .eshop-btn:disabled {
+    background-color: #bbbbbb !important;
+    color: #666666 !important; }
 
   .foldertabs > .tab-row {
     overflow: hidden;

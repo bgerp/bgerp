@@ -258,6 +258,31 @@ class accda_Da extends core_Master
     
     
     /**
+     * Подготовка на филтър формата
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $ownCompany = crm_Companies::fetchOurCompany();
+        $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id);
+        if (count($ourLocations)) {
+            $data->listFilter->addAttr('location', array('formOrder' => 11));
+            
+            $data->listFilter->fields['location']->formOrder = 11;
+            
+            $data->listFilter->setOptions('location', array('' => '') + $ourLocations);
+            
+            $data->listFilter->showFields .= ',location';
+            
+            $data->listFilter->input('location');
+            
+            if ($data->listFilter->rec->location) {
+                $data->query->where(array("#location = '[#1#]'", $data->listFilter->rec->location));
+            }
+        }
+    }
+    
+    
+    /**
      * Връща заглавието и мярката на перото за продукта
      *
      * Част от интерфейса: intf_Register

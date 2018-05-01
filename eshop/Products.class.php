@@ -90,12 +90,6 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'eshop,ceo';
-    
-    
-    /**
      * Кой има право да го изтрие?
      */
     public $canDelete = 'no_one';
@@ -468,8 +462,8 @@ class eshop_Products extends core_Master
 
         return $tpl;
     }
-
-
+    
+    	
     /**
      * Подготовка на данните за рендиране на единичния изглед на продукт 
      */
@@ -747,14 +741,14 @@ class eshop_Products extends core_Master
     	$form->title = 'Листване в е-магазина|* ' . cls::get('cat_Products')->getFormTitleLink($productId);
     	$form->info = tr('Домейн') . ": " . cms_Domains::getHyperlink($domainId, TRUE);
     	$form->FLD('eshopProductId', 'varchar', 'caption=Е-артикул,mandatory');
-    	$form->FLD('packagingId', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковка,mandatory');
+    	$form->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковка,mandatory');
     	$form->FLD('productId', 'int', 'caption=Артикул,mandatory,silent,input=hidden');
     	$form->input(NULL, 'silent');
     	
     	// Добавяне на наличните опаковки
     	$packs = cat_Products::getPacks($productId);
-    	$form->setSuggestions('packagingId', $packs);
-    	$form->setDefault('packagingId', keylist::addKey('', key($packs)));
+    	$form->setSuggestions('packagings', $packs);
+    	$form->setDefault('packagings', keylist::addKey('', key($packs)));
     	
     	// Наличните е-артикули в домейна
     	$productOptions = eshop_Products::getInDomain($domainId);
@@ -764,6 +758,7 @@ class eshop_Products extends core_Master
     	// Изпращане на формата
     	if($form->isSubmitted()){
     		$thisDomainId = eshop_Products::getDomainId($form->rec->eshopProductId);
+    		
     		if(eshop_ProductDetails::isTheProductAlreadyInTheSameDomain($form->rec->productId, $thisDomainId)){
     			$form->setError('eshopProductId', 'Артикулът вече е свързан с е-магазина на текущия домейн');
     		} else {
@@ -795,17 +790,51 @@ class eshop_Products extends core_Master
     	if(($action == 'add' || $action == 'linktoeshop') && isset($rec->productId)){
     		if(!self::canLinkProduct($rec->productId)){
     			$requiredRoles = 'no_one';
-    		} elseif(eshop_ProductDetails::isTheProductAlreadyInTheSameDomain($rec->productId, cms_Domains::getPublicDomain()->id)){
+    		}elseif(eshop_ProductDetails::isTheProductAlreadyInTheSameDomain($rec->productId, cms_Domains::getPublicDomain()->id)){
     			$requiredRoles = 'no_one';
     		}
     	}
     	
-    	if($action == 'linktoeshop' && isset($rec) && empty($rec->productId)){
-    		$requiredRoles = 'no_one';
+    	if(($action == 'linktoeshop' || $action == 'vieweproduct') && isset($rec)){
+    		if(empty($rec->productId)){
+    			$requiredRoles = 'no_one';
+    		} elseif(!cms_Domains::haveRightFor('select')){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
     
     
+    /**
+     * Кой е-артикул отговаря на артикула от домейна
+     * 
+     * @param int $productId     - артикул
+     * @param int|NULL $domainId - ид на домейн или NULL за текущия
+     * @return id|NULL           - намерения е-артикул
+     */
+    public static function getByProductId($productId, $domainId = NULL)
+    {
+    	$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain();
+    	$groups = array_keys(eshop_Groups::getByDomain($domainId));
+    	
+    	$dQuery = eshop_ProductDetails::getQuery();
+    	$dQuery->where("#productId = {$productId}");
+    	$dQuery->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
+    	$dQuery->in('groupId', $groups);
+		$dQuery->show('eshopProductId');
+		
+		$id = $dQuery->fetch()->eshopProductId;
+		
+		return $id;
+    }
+    
+    
+    /**
+     * Може ли артикула да се връзва към е-артикул
+     * 
+     * @param int $productId - артикул
+     * @return boolean $res  - може ли артикула да се връзва към е-артикул
+     */
     public static function canLinkProduct($productId)
     {
     	$productRec = cat_Products::fetch($productId, 'canSell,isPublic,state');

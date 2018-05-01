@@ -141,10 +141,10 @@ class eshop_ProductDetails extends core_Detail
 		$query = self::getQuery();
 		$query->where("#productId = {$productId} AND #id != '{$id}'");
 		while($eRec = $query->fetch()){
-			$domainId = eshop_Products::getDomainId($eRec->eshopProductId);
-			$domainIds[$domainId] = $domainId;
+			$eproductDomainId = eshop_Products::getDomainId($eRec->eshopProductId);
+			$domainIds[$eproductDomainId] = $eproductDomainId;
 		}
-			
+		
 		return array_key_exists($domainId, $domainIds);
 	}
 	
@@ -207,11 +207,11 @@ class eshop_ProductDetails extends core_Detail
 	 * @param int|NULL $domainId
 	 * @return NULL|double
 	 */
-	private static function getPublicDisplayPrice($productId, $packagingId = NULL, $quantityInPack = 1, $domainId = NULL)
+	public static function getPublicDisplayPrice($productId, $packagingId = NULL, $quantityInPack = 1, $domainId = NULL)
 	{
 		$res = (object)array('price' => NULL, 'discount' => NULL);
 		$domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
-		$settings = eshop_Settings::getSettings('cms_Domains', $domainId);
+		$settings = cms_Domains::getSettings($domainId);
 		
 		if(isset($settings->listId)){
 			if($price = price_ListRules::getPrice($settings->listId, $productId, $packagingId)){
@@ -297,7 +297,10 @@ class eshop_ProductDetails extends core_Detail
 	{
 		$row = new stdClass();
 		$row->productId = cat_Products::getVerbal($rec->productId, 'name');
-		$row->code = cat_products::getVerbal($rec->productId, 'code');
+		$fullCode = cat_products::getVerbal($rec->productId, 'code');
+		$row->code = substr($fullCode, 0, 10);
+		$row->code = "<span title={$fullCode}>{$row->code}</span>";
+		
 		$row->packagingId = cat_UoM::getShortName($rec->packagingId);
 		$row->quantity = ht::createTextInput("product{$rec->productId}", NULL, "size=4,class=eshop-product-option,placeholder=1");
 		
@@ -305,14 +308,16 @@ class eshop_ProductDetails extends core_Detail
 		$row->catalogPrice = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPriceInfo->price);
 		
 		$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-		$row->btn = ht::createFnBtn('Добави', NULL, FALSE, array('title'=> 'Добавяне в кошницата', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'cart-add-product-btn'));
+		$row->btn = ht::createFnBtn('Добави', NULL, FALSE, array('title'=> 'Добавяне в кошницата', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn'));
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 		
-		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
-		if(isset($settings->storeId)){
+		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
+		$settings = cms_Domains::getSettings();
+		if(isset($settings->storeId) && $canStore == 'yes'){
 			$quantity = store_Products::getQuantity($rec->productId, $settings->storeId, TRUE);
 			if($quantity < $rec->quantityInPack){
-				$row->btn = "<span class='option-not-in-stock'>" . tr('Няма в наличност'). " </span>";
+				$notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
+				$row->btn = "<span class='option-not-in-stock'>" . $notInStock . " </span>";
 			}
 		}
 		
@@ -340,13 +345,21 @@ class eshop_ProductDetails extends core_Detail
 		
 		$fieldset = cls::get(get_called_class());
 		$fieldset->FNC('code', 'varchar', 'smartCenter');
+		$fieldset->FNC('catalogPrice', 'varchar', 'smartCenter');
+		$fieldset->FNC('btn', 'varchar', 'tdClass=small-field');
+		$fieldset->FNC('packagingId', 'varchar', 'smartCenter');
 		$fieldset->FLD('quantity', 'varchar');
 		$fieldset->setField('quantity', 'tdClass=quantity-input-column');
 		
 		$table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
+		$listFields = arr::make("code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;");
 		
-		$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
-		$tpl->append($table->get($data->rows, "code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;"));
+		$settings = cms_Domains::getSettings();
+		if($settings->enableCart == 'no'){
+			unset($listFields['btn']);
+		}
+		
+		$tpl->append($table->get($data->rows, $listFields));
 		
 		$cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с включено ДДС') : tr('без ДДС'));
 		$cartInfo = "<tr><td colspan='6' class='option-table-info'>{$cartInfo}</td></tr>";

@@ -810,7 +810,10 @@ class core_Manager extends core_Mvc
     {
         if (count($data->listFilter->showFields)) {
             
-            return new ET("<div class='listFilter'>[#1#]</div>", $data->listFilter->renderHtml(NULL, $data->listFilter->rec));
+            $tpl = new ET("<div class='listFilter'>[#1#]</div>", $data->listFilter->renderHtml(NULL, $data->listFilter->rec));
+            core_Form::preventDoubleSubmission($tpl, $data->listFilter);
+            
+            return $tpl;
         }
     }
     
