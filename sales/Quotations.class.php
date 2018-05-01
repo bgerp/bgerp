@@ -839,6 +839,10 @@ class sales_Quotations extends core_Master
     protected static function on_AfterActivation($mvc, &$rec)
     {
     	$updateFields = array();
+
+        if(!isset($rec->contragentId)) {
+            $rec = self::fetch($rec->id);
+        }
 		
 		// Ако няма дата попълваме текущата след активиране
 		if(empty($rec->date)){
