@@ -84,16 +84,18 @@ class lab_TestDetails extends core_Detail
             'caption=Тест, input=hidden, silent,mandatory,smartCenter');
         $this->FLD('paramName', 'key(mvc=lab_Parameters, select=name, allowEmpty)', 
             'caption=Параметър, notSorting,smartCenter,silent,refreshForm');
-        $this->FLD('methodId', 'key(mvc=lab_Methods, select=name)', 'caption=Метод, notSorting,mandatory,smartCenter,silent');
+        $this->FLD('methodId', 'key(mvc=lab_Methods, select=name)', 
+            'caption=Метод, notSorting,mandatory,smartCenter,silent,refreshForm');
         $this->FLD('value', 'varchar(64)', 'caption=Стойност, notSorting, input=none,smartCenter');
         $this->FLD('refValue', 'varchar(64)', 'caption=Реф.Стойност, notSorting, input=none,smartCenter');
         $this->FLD('error', 'percent(decimals=2)', 'caption=Отклонение, notSorting,input=none,smartCenter');
+        $this->FLD('formula', 'text', 'caption=Формула,input=hidden');
         $this->FLD('comment', 'varchar', 
             'caption=Коментари, notSorting,after=results, column=none,class=" w50, rows= 1"');
         
         $this->FLD('better', 'enum(up=по-големия,down=по-малкия)', 'caption=По-добрия е,unit= резултат,after=title');
         
-        $this->FLD('results', 'table(columns=value,captions=Стойност,widths=8em)', 
+        $this->FLD('results', 'table(columns= value ,captions=Стойност,widths=8em)', 
             "caption=Измервания||Additional,autohide,advanced,after=title,single=none");
         
         $this->setDbUnique('testId, methodId');
@@ -108,6 +110,37 @@ class lab_TestDetails extends core_Detail
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
+        $form = $data->form;
+        $rec = $form->rec;
+        $type = $form->getFieldType('results');
+        
+        if ($rec->methodId && lab_Methods::fetchField($rec->methodId, 'formula')) {
+            
+            if (! $rec->formula) {
+                
+                $rec->formula = lab_Methods::fetchField($rec->methodId, 'formula');
+            }
+            
+            $formula = $rec->formula;
+            
+            if ($formula !== lab_Methods::fetchField($rec->methodId, 'formula')) {
+                
+                $form->setWarning('methodId', 'Има промяна във формулата, която няма бъде отчетена.');
+            }
+            
+            $matches = array();
+            
+            preg_match_all("/\\$[_a-z][a-z0-9_]*/i", $formula, $matches);
+            
+            foreach ($matches[0] as $var) {
+                
+                $params .= $var . '|';
+                $widths .= '8em' . '|';
+                $type->params['columns'] = trim($params, '|');
+                $type->params['captions'] = trim($params, '|');
+                $type->params['widths'] = trim($widths, '|');
+            }
+        }
         $paramsIdSelectArr = array(
             $data->form->rec->paramName => lab_Parameters::getTitleById($data->form->rec->paramName)
         );
@@ -118,7 +151,7 @@ class lab_TestDetails extends core_Detail
         
         $allMethodsArr = array();
         
-        if ($data->form->rec->paramName){
+        if ($data->form->rec->paramName) {
             while ($mRec = $queryAllMethods->fetch("#paramId = {$data->form->rec->paramName}")) {
                 $allMethodsArr[$mRec->id] = $mRec->name;
             }
@@ -140,6 +173,10 @@ class lab_TestDetails extends core_Detail
             // Prepare array for methodId
             $data->form->setField('methodId', 'input=none');
         } else {
+            if (! $data->form->rec->paramName) {
+                $data->form->setField('methodId', 'input=none');
+                ;
+            }
             $data->form->setOptions('methodId', $methodIdSelectArr);
         }
     }
@@ -274,7 +311,40 @@ class lab_TestDetails extends core_Detail
     {
         
         // Подготовка на масива за резултатите ($rec->results)
-        $resultsArr = json_decode($rec->results)->value;
+        $resArr = json_decode($rec->results);
+        
+        $formula = $rec->formula;
+        
+        preg_match_all("/\\$[_a-z][a-z0-9_]*/i", $formula, $matches);
+        
+        $check = $matches[0][0];
+        $i = 0;
+        
+        do {
+            $contex = array();
+            
+            foreach ($matches[0] as $v) {
+                
+                $contex += array(
+                    $v => $resArr->$v[$i]
+                );
+            }
+            
+            if (($expr = str::prepareMathExpr($formula, $contex)) !== FALSE) {
+                
+                $value = str::calcMathExpr(str::prepareMathExpr($expr, $contex), $success);
+                
+                if ($success === FALSE) {
+                    $value = tr("Невъзможно изчисление");
+                }
+            } else {
+                $value = tr("Некоректна формула");
+            }
+            
+            $resultsArr[] = $value;
+            
+            $i ++;
+        } while ($resArr->$check[$i]);
         
         // trim array elements
         if (is_array($resultsArr)) {
@@ -330,8 +400,6 @@ class lab_TestDetails extends core_Detail
         }
         
         // END Обработки в зависимост от типа на параметъра
-        
-      
     }
 
     /**
@@ -344,7 +412,6 @@ class lab_TestDetails extends core_Detail
         );
         
         $data->toolbar->removeBtn('btnPrint');
-        
         
         $parameters = array();
         
@@ -417,6 +484,39 @@ class lab_TestDetails extends core_Detail
                 }
             }
         }
+    }
+
+    /**
+     * Изчислява израза
+     *
+     * @param text $expr
+     *            - формулата
+     * @param array $params
+     *            - параметрите
+     * @return string $res - изчисленото количество
+     */
+    public static function calcExpr($expr, $params)
+    {
+        $expr = lab_Methods::fetchField($rec->methodId, 'formula');
+        
+        $contex = array(
+            $width => 1,
+            $height => 1,
+            $weight => 1
+        );
+        
+        // bp($expr,str::prepareMathExpr($expr,$contex));
+        
+        if (str::prepareMathExpr($expr) === FALSE) {
+            $res = self::CALC_ERROR;
+        } else {
+            $res = str::calcMathExpr($expr, $success);
+            if ($success === FALSE) {
+                $res = self::CALC_ERROR;
+            }
+        }
+        
+        return $res;
     }
 }
 

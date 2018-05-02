@@ -288,7 +288,7 @@ class eshop_Carts extends core_Master
     	$tpl = new core_ET("[#text#]");
     	
     	$settings = cms_Domains::getSettings();
-    	if($settings->enableCart == 'no') return $tpl;
+    	if(empty($settings)) return $tpl;
     	
     	$cartId = ($cartId) ? $cartId : self::force(NULL, NULL, FALSE);
 		$url = array();
@@ -296,6 +296,10 @@ class eshop_Carts extends core_Master
 		$cartName = self::getCartDisplayName();
     	if(isset($cartId)){
     		$cartRec = self::fetch($cartId);
+    		if($settings->enableCart == 'no'){
+    			if(!$cartRec->productCount) return $tpl;
+    		}
+    		
     		$amount = core_Type::getByName('double(smartRound)')->toVerbal($cartRec->total);
     		$amount = str_replace('&nbsp;', ' ', $amount);
     		$count = core_Type::getByName('int')->toVerbal($cartRec->productCount);
@@ -307,7 +311,7 @@ class eshop_Carts extends core_Master
     			$tpl->append(new core_ET("<sup>[#count#]</sup>"));
     		}
     	} else {
-    		$hint = "Няма артикули";
+    		if($settings->enableCart == 'no') return $tpl;
     	}
     	
     	$tpl->replace($cartName, 'text');
@@ -525,14 +529,14 @@ class eshop_Carts extends core_Master
     		
     		if($requiredRoles != 'no_one'){
     			$settings = cms_Domains::getSettings();
-    			if($settings->enableCart == 'no'){
+    			if(empty($settings)){
     				$requiredRoles = 'no_one';
     			}
     		}
     	}
     	
-    	if($action == 'addtocart' && isset($rec)){
-    		if(!$mvc->haveRightFor('view', $rec)){
+    	if($action == 'addtocart'){
+    		if(!$mvc->haveRightFor('viewexternal', $rec)){
     			$requiredRoles = 'no_one';
     		}
     	}
