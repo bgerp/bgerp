@@ -406,13 +406,17 @@ class eshop_CartDetails extends core_Detail
 		$resObj3 = new stdClass();
 		$resObj3->func = "html";
 		$resObj3->arg = array('id' => 'cart-view-buttons', 'html' => eshop_Carts::renderCartToolbar($cartId)->getContent(), 'replace' => TRUE);
-			
+
+		// Ще реплейснем само бележката
+		$resObj4 = new stdClass();
+		$resObj4->func = "smartCenter";
+
 		// Показваме веднага и чакащите статуси
 		$hitTime = Request::get('hitTime', 'int');
 		$idleTime = Request::get('idleTime', 'int');
 		$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
 			
-		$res = array_merge(array($resObj, $resObj1, $resObj2, $resObj3), (array)$statusData);
+		$res = array_merge(array($resObj, $resObj1, $resObj2, $resObj3, $resObj4), (array)$statusData);
 		
 		return $res;
 	}
