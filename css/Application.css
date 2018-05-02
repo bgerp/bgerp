@@ -2711,7 +2711,12 @@ span.sharing-history-title {
   display: block;
   color: #999999;
   text-decoration: line-through;
-  font-size: 0.9em; }
+  font-size: 0.8em; }
+
+.external-discount-percent {
+  display: block;
+  color: #999999;
+  font-size: 0.8em; }
 
 .summary-holder {
   float: right; }
