@@ -248,7 +248,7 @@ class eshop_Carts extends core_Master
     		}
     		$sum = $finalPrice * ($dRec->quantity / $dRec->quantityInPack);
     		
-    		if($rec->chargeVat == 'yes'){
+    		if($dRec->haveVat == 'yes'){
     			$rec->totalNoVat += $sum / (1 + $dRec->vat);
     			$rec->total += $sum;
     		} else {
