@@ -187,6 +187,8 @@ class eshop_CartDetails extends core_Detail
     			$form->setReadOnly('displayPrice', $price->price);
     			$unit = $settings->currencyId . " " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
     			$form->setField('displayPrice', "unit={$unit}");
+    			$form->rec->haveVat = $settings->chargeVat;
+    			$form->rec->vat = cat_Products::getVat($rec->productId);
     		}
     	}
     	
