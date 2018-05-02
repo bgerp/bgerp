@@ -154,6 +154,8 @@ class colab_Folders extends core_Manager
 		
 		$res->in('id', $sharedFolders);
 		
+        $res->orderBy('#last', 'DESC');
+
 		return $res;
 	}
 	

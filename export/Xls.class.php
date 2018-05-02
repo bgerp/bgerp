@@ -124,19 +124,17 @@ class export_Xls extends core_Mvc
         }
         
         if ($nFileHnd) {
-            if ($nFileHnd) {
-                $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $nFileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/xls.png, title=" . tr('Сваляне на документа'));
-                
-                $form->info .= "<b>" . tr('Файл|*: ') . "</b>" . fileman::getLink($nFileHnd);
-            } else {
-                $form->info .= "<div class='formNotice'>" . tr("Няма данни за експорт|*.") . "</div>";
-            }
+            $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $nFileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/xls.png, title=" . tr('Сваляне на документа'));
             
+            $form->info .= "<b>" . tr('Файл|*: ') . "</b>" . fileman::getLink($nFileHnd);
             $clsInst = cls::get($clsId);
             $clsInst->logWrite('Генериране на XLS', $objId);
             
             return $nFileHnd;
+        } else {
+            $form->info .= "<div class='formNotice'>" . tr("Грешка при експорт|*.") . "</div>";
         }
+      
     }
     
     

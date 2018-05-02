@@ -40,7 +40,9 @@ class unit_MinkPbgERP extends core_Manager {
     
     public function act_All()
     {
-        set_time_limit(600);
+//         set_time_limit(600);
+       // core_App::setTimeLimit(600);
+        
         $res = '';
         $res .= $this->act_Run();
         $inst = cls::get('unit_MinkPSales');
@@ -166,7 +168,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
-        //return $browser->getHtml();
+        //return $browser->getHtml(); 
+        sleep(2);
+        set_time_limit(600);
         return $browser;
     }
      
@@ -1260,7 +1264,7 @@ class unit_MinkPbgERP extends core_Manager {
      
     //http://localhost/unit_MinkPbgERP/CreatePurchaseC/
     function act_CreatePurchaseC()
-    {set_time_limit(55);
+    {
         // Логваме се
         $browser = $this->SetUp();
     

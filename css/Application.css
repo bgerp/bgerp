@@ -2692,7 +2692,7 @@ span.sharing-history-title {
 .optionsTable {
   color: #222222;
   min-width: 600px;
-  margin-bottom: 20px; }
+  margin-bottom: 10px; }
   .optionsTable th {
     text-align: center;
     padding: 5px;
@@ -2703,6 +2703,9 @@ span.sharing-history-title {
     background-color: #f1f1f1; }
   .optionsTable tbody tr:last-child td {
     border-bottom: 1px solid #cccccc; }
+  .optionsTable .option-table-info {
+    font-size: 0.9em;
+    color: #444444; }
 
 .external-discount-amount {
   display: block;
@@ -2714,6 +2717,9 @@ span.sharing-history-title {
   float: right; }
     .summary-holder table td {
       padding: 5px 10px; }
+
+.remove-from-cart:hover {
+  cursor: pointer; }
 
 .cart-holder-external {
   padding: 20px 20px 20px; }
@@ -2728,6 +2734,22 @@ span.sharing-history-title {
     border-radius: 3px; }
     .quantity-input-column input.inputError {
       border-color: red; }
+
+table .eshop-btn {
+  margin-right: 0 !important; }
+
+.eshop-btn {
+  background-position-x: 5px;
+  padding: 6px 10px 6px 26px !important;
+  color: #333333 !important;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
+  background-color: #f6f6f6 !important; }
+  .eshop-btn:hover {
+    background-color: #eeeeee !important; }
+  .eshop-btn:disabled {
+    background-color: #bbbbbb !important;
+    color: #666666 !important; }
 
   .foldertabs > .tab-row {
     overflow: hidden;

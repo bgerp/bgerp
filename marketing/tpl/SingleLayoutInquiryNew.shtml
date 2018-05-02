@@ -55,9 +55,9 @@
     <!--ET_END QUANTITY-->
     
     <div class='scrolling-holder'>
-        <table class='styled-table'>
+        <table class='styled-table'  style='margin-top:10px;'>
             <tr>
-                <th colspan='2' style='padding:7px 0px'>|Контактни данни|*</th>
+                <th colspan='2' style='padding:7px 0px;'>|Контактни данни|*</th>
             </tr>
             <!--ET_BEGIN company-->
             <tr>
@@ -105,6 +105,7 @@
             <!--ET_END address-->
         </table>
     </div>
+    <!--ET_BEGIN brid-->
     <div class='scrolling-holder'>
         <table class='styled-table'>
             <tr>
@@ -124,4 +125,6 @@
             </tr>
         </table>
     </div>
+    <!--ET_END brid-->
+
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

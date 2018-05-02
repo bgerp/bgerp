@@ -225,28 +225,27 @@ class core_Request
      */
     static function get($name, $type = NULL)
     {
-        if ($type) {
-            $inputType = core_Type::getByName($type);
-            $value = self::get($name);
-            $value = $inputType->fromVerbal($value);
-            
-            if ($inputType->error) {
-                error("@Некоректна стойност за входен параметър", $name, $inputType->error);
-            } else {
-                return $value;
-            }
-        }
-        
+        $value = NULL;
+
         foreach (self::$vars as $key => $arr) {
 
             if(self::$protected[$name] && ($key == '_POST' || $key == '_GET')) continue;
 
             if (isset($arr[$name])) {
-                return $arr[$name];
+                $value = $arr[$name];
+                break;
             }
         }
         
-        return NULL;
+        if ($type) {
+            $inputType = core_Type::getByName($type);
+            $value = $inputType->fromVerbal($value);
+            if ($inputType->error) {
+                error("@Некоректна стойност за входен параметър", $name, $inputType->error);
+            }
+        }
+       
+        return $value;
     }
     
     
@@ -287,7 +286,7 @@ class core_Request
                 continue;
             }
  
-            foreach ((array)$arr as $name=>$val) {
+            foreach ((array)$arr as $name => $val) {
                 
                 // Ако преди не е сетната стойността и не е игнорирана, тогава я добавяме в масива
                 if (!isset($paramsArr[$name]) && !isset(self::$ignoreArr[$name])) {
