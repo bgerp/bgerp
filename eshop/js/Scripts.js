@@ -16,7 +16,7 @@ function eshopActions() {
 	});
 	
 	// Добавяне на артикул в кошницата
-	$(document.body).on("click", '.cart-add-product-btn', function(event){
+	$(document.body).on("click", '.eshop-btn', function(event){
 		
 		var url = $(this).attr("data-url");
 	    if(!url) return;
