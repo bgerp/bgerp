@@ -145,11 +145,14 @@ class eshop_Settings extends core_Manager
     	$form->setField('notInStockText', "placeholder={$notInStockPlaceholder}");
     	
     	// Ако има ред от количка в домейна да не може да се сменя валутата и ддс-то
-    	$cartQuery = eshop_CartDetails::getQuery();
-    	$cartQuery->EXT("domainId", 'eshop_Carts', 'externalName=domainId,externalKey=cartId');
-    	if($cartQuery->count()){
-    		$form->setReadOnly('currencyId');
-    		$form->setReadOnly('chargeVat');
+    	if($rec->classId == cms_Domains::getClassId()){
+    		$cartQuery = eshop_CartDetails::getQuery();
+    		$cartQuery->EXT("domainId", 'eshop_Carts', 'externalName=domainId,externalKey=cartId');
+    		$cartQuery->where("#domainId = {$rec->objectId}");
+    		if($cartQuery->count()){
+    			$form->setReadOnly('currencyId');
+    			$form->setReadOnly('chargeVat');
+    		}
     	}
     }
     
