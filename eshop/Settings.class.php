@@ -149,13 +149,16 @@ class eshop_Settings extends core_Master
     
     
     /**
-     * Връща настройките на пакета
+     * Връща настройките на класа
      * 
-     * @param int $domainId
+     * @param int $classId        - клас
+     * @param int $objectId       - ид на обект
+     * @param datetime|NULL $date - към коя дата
      * @return FALSE|stdClass
      */
-    public static function getSettings($classId, $objectId)
+    public static function getSettings($classId, $objectId, $date = NULL)
     {
+		$date = (isset($date)) ? $date : dt::now();
     	$classId = cls::get($classId)->getClassId();
     	
     	return self::fetch(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $classId, $objectId));
