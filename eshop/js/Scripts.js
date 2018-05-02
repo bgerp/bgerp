@@ -46,9 +46,10 @@ function eshopActions() {
 		//this.value = this.value.replace(/[^0-9\.]/g,'');
 		$(this).removeClass('inputError');
 		var packQuantity = $(this).val();
-		if(!$.isNumeric(packQuantity)){
+		if(!$.isNumeric(packQuantity) || packQuantity < 1){
 			$(this).addClass('inputError');
 		} else {
+			
 			var url = $(this).attr("data-url");
 		    if(!url) return;
 		    var data = {packQuantity:packQuantity};
@@ -84,17 +85,7 @@ function eshopActions() {
 			$(input).val(val + step);
 		}
 
-		var url = $(input).attr("data-url");
-		if(!url) return;
-		var data = {packQuantity:val + step};
-
-		// След всяко натискане на бутон изчистваме времето на изчакване
-		clearTimeout(timeout2);
-		// Правим Ajax заявката като изтече време за изчакване
-		timeout2 = setTimeout(function(){
-			resObj = new Object();
-			resObj['url'] = url;
-			getEfae().process(resObj, data);
-		}, 1000);
+		// Ръчно инвоукване на ивент на инпут полето
+		input.keyup();
 	});
 };
