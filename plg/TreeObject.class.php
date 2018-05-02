@@ -497,7 +497,10 @@ class plg_TreeObject extends core_Plugin
 				$title = $pName . ' » ' . $title;
 				$parent = $pRec->{$mvc->parentFieldName};
                 $i++;
-                if($i > 20) break;
+                if($i > 20) {
+                    wp($parent, $pRec);
+                    break;
+                }
 			}
 			
 			$num = $title;
