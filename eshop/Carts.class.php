@@ -288,7 +288,7 @@ class eshop_Carts extends core_Master
     	$tpl = new core_ET("[#text#]");
     	
     	$settings = cms_Domains::getSettings();
-    	if(empty($settings)) return $tpl;
+    	if(empty($settings)) return new core_ET(' ');
     	
     	$cartId = ($cartId) ? $cartId : self::force(NULL, NULL, FALSE);
 		$url = array();
@@ -297,7 +297,7 @@ class eshop_Carts extends core_Master
     	if(isset($cartId)){
     		$cartRec = self::fetch($cartId);
     		if($settings->enableCart == 'no'){
-    			if(!$cartRec->productCount) return $tpl;
+    			if(!$cartRec->productCount) return new core_ET(' ');
     		}
     		
     		$amount = core_Type::getByName('double(smartRound)')->toVerbal($cartRec->total);
@@ -311,7 +311,7 @@ class eshop_Carts extends core_Master
     			$tpl->append(new core_ET("<sup>[#count#]</sup>"));
     		}
     	} else {
-    		if($settings->enableCart == 'no') return $tpl;
+    		if($settings->enableCart == 'no') return new core_ET(' ');
     	}
     	
     	$tpl->replace($cartName, 'text');
