@@ -2106,6 +2106,24 @@ class cat_Products extends embed_Manager {
      */
     public function cron_closePrivateProducts()
     {
+    	$stProductsToClose = array();
+    	$before = dt::addMonths(-3);
+    	$iStQuery = acc_Items::getQuery();
+    	$iStQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=objectId');
+    	$iStQuery->EXT('pState', 'cat_Products', 'externalName=state,externalKey=objectId');
+    	$iStQuery->where("#state = 'active' AND #lastUseOn IS NULL AND #isPublic = 'yes' AND #classId = " . cat_Products::getClassId());
+    	$iStQuery->where("#createdOn <= '{$before}' AND #pState = 'active'");
+    	$iStQuery->show('objectId');
+    	while($iStRec = $iStQuery->fetch()){
+    		$pRec1 = cat_Products::fetch($iStRec->objectId, 'id,state');
+    		$pRec1->state = 'closed';
+    		$stProductsToClose[$iStRec->objectId] = $pRec1;
+    	}
+    	$this->closeItems = $stProductsToClose;
+    	
+    	$this->saveArray($stProductsToClose, 'id,state');
+    	log_System::add('cat_Products', "ST close items:" . count($stProductsToClose));
+    	
     	// Последните изчислени периода
     	$periods = acc_Periods::getCalcedPeriods(TRUE, 3);
     	if(!count($periods)) return;
