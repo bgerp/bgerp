@@ -89,10 +89,14 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
      * Извиква се след рендирането на 'опаковката' на мениджъра
      */
     function on_AfterRenderWrapping($invoker, &$tpl, $blankTpl, $data = NULL)
-    {
+    {   
+        static $i;
+        $i++;
+        if($i > 1) return;
+
     	// Редниране на обвивката от бащата
     	parent::on_AfterRenderWrapping($invoker, $tpl, $blankTpl, $data);
-    	
+        
     	// Обграждаме обвивката със div
     	if($tpl instanceof core_ET){
     		$tpl->prepend("<div class = 'contractorExtHolder'>");

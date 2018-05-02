@@ -14,6 +14,12 @@ defIfNot('TRANSSRV_BID_DOMAIN', '//trans.bid');
 
 
 /**
+ * Дали за транспортни услуги могат да се правят запитвания от партньори
+ */
+defIfNot('TRANSSRV_AVIABLE_FOR_PARTNERS', 'no');
+
+
+/**
  * Клас 'transsrv_Setup' 
  *
  *
@@ -79,6 +85,8 @@ class transsrv_Setup extends core_ProtoSetup
     public $configDescription = array(
     		'TRANSSRV_SALE_DEFAULT_CONDITION' => array("text", 'caption=Общо условие за продажба по подразбиране->Условие'),
     		'TRANSSRV_BID_DOMAIN' => array("varchar", 'caption=Отдалечена системно за създаване на търг->URL'),
+            'TRANSSRV_AVIABLE_FOR_PARTNERS' => array("enum(no=Не,yes=Да)", 'caption=Допускат ли се запитвания от партньори за тези услуги->Избор'),
+
     );
 
     

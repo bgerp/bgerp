@@ -814,6 +814,12 @@ class core_Form extends core_FieldSet
                     if($div = $field->groupByDiv) {
                         $options = ht::groupOptions($options, $div);
                     }
+  
+                    if(is_a($type, 'type_Enum') && $type->params['isReadOnly']) {
+                        foreach($options as &$title) {
+                            $title = tr($title);
+                        }
+                    }
 
                     $input = ht::createSmartSelect($options, $name, $value, $attr,
                         $type->params['maxRadio'],
