@@ -384,7 +384,7 @@ class eshop_Carts extends core_Master
     	$rec = self::fetchRec($id, '*', FALSE);
     	$row = self::recToVerbal($rec);
     	$row->totalNoVatCurrencyId = $row->currencyId;
-    	
+    	$row->productCount .= "&nbsp;" . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
     	$block = ($onlyCount === TRUE) ? 'CART_COUNT' : 'CART_SUMMARY';
     	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock($block);
     	$tpl->placeObject($row);
