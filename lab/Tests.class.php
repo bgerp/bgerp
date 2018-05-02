@@ -249,7 +249,7 @@ class lab_Tests extends core_Master
             
             $handle = $mvc->getHandle($data->rec->id);
             
-            $msg = 'Лаборанорен тест ' . $handle . ' е активиран';
+            $msg = 'Лабораторен тест ' . $handle . ' е активиран';
             
             $url = array(
                 'lab_Tests',
