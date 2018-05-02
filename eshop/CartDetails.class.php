@@ -130,6 +130,13 @@ class eshop_CartDetails extends core_Detail
     	$form->FNC('displayPrice', 'double', 'caption=Цена, input=none');
     	$productOptions = eshop_ProductDetails::getAvailableProducts();
     	
+    	// От наличните опции се махат тези вече в количката
+    	$query = self::getQuery();
+    	$query->where("#cartId = {$rec->cartId}");
+    	$query->show('productId');
+    	$alreadyIn = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+    	$productOptions = array_diff_key($productOptions, $alreadyIn);
+    	
     	$form->setOptions('productId', array('' => '') + $productOptions);
     	$form->setField('eshopProductId', 'input=none');
     	
