@@ -24,7 +24,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $listItemsPerPage = 30;
+    protected $listItemsPerPage = 25;
 
     /**
      * По-кое поле да се групират листовите данни
@@ -119,18 +119,6 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             if ($cQuery->fetch()->overdueSales != 'yes')
                 continue;
             
-            if (sales_Sales::fetch(doc_Threads::getFirstDocument($salesInvoices->threadId)->that)->state == 'closed') {
-                
-                if (sales_Sales::fetch(doc_Threads::getFirstDocument($salesInvoices->threadId)->that)->closedOn >=
-                     $rec->checkDate) {
-                    
-                    $threadsId[$salesInvoices->threadId] = $salesInvoices->threadId;
-                    continue;
-                }
-                
-                continue;
-            }
-            
             $threadsId[$salesInvoices->threadId] = $salesInvoices->threadId;
         }
         
@@ -202,6 +190,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         arsort($invoiceCurrentSummArr);
         $recs = $sRecs;
+        // $invoicesInThread = (deals_Helper::getInvoicesInThread ( $thread, $rec->checkDate, TRUE, TRUE, TRUE ));
         
         foreach ($invoiceCurrentSummArr as $k => $v) {
             foreach ($recs as $key => $val) {
@@ -394,8 +383,12 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             }
         }
         
-        $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
-        
+        if (self::getPaidAmount($dRec) == 0) {
+             $row->paidAmount = "<span class= 'small quiet'>" .core_Type::getByName('double(decimals=2)')->toVerbal(
+                self::getPaidAmount($dRec)) . "</span>";
+        } else {
+            $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
+        }
         $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, TRUE) . "</span>";
         
         return $row;
