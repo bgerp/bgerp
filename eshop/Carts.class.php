@@ -30,12 +30,6 @@ class eshop_Carts extends core_Master
     
     
     /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    public $lastUsedKeys = 'payments';
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'ip,brid,domainId,userId,state';
@@ -74,7 +68,7 @@ class eshop_Carts extends core_Master
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canView = 'every_one';
+	public $canViewexternal = 'every_one';
 	
 	
     /**
@@ -131,8 +125,6 @@ class eshop_Carts extends core_Master
     	$this->FLD('salutation', 'varchar(255)', 'caption=Данни на лице->Обръщение,class=contactData,hint=Обръщение||Salutation');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Данни на лице->Имейл,hint=Вашият имейл||Your email,mandatory');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Данни на лице->Телефони,hint=Вашият телефон,mandatory');
-    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащания->Валута');
-    	$this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно)', 'caption=Плащания->ДДС режим');
     	$this->setDbIndex('brid');
     	$this->setDbIndex('userId');
     }
@@ -224,11 +216,8 @@ class eshop_Carts extends core_Master
     	$rec = self::fetch("{$where} AND #state = 'draft' AND #domainId = {$domainId}");
     	
     	if(empty($rec) && $bForce === TRUE){
-    		$settings = eshop_Settings::getSettings('cms_Domains', $domainId);
-    		$chargeVat = isset($settings->chargeVat) ? $settings->chargeVat : 'yes';
-    		$currencyId = isset($settings->chargeVat) ? $settings->currencyId : acc_Periods::getBaseCurrencyCode();
     		$ip = core_Users::getRealIpAddr();
-    		$rec = (object)array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'currencyId' => $currencyId, 'chargeVat' => $chargeVat, 'state' => 'draft');
+    		$rec = (object)array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'state' => 'draft');
     		self::save($rec);
     	}
     	
@@ -297,6 +286,10 @@ class eshop_Carts extends core_Master
     public static function getStatus($cartId = NULL)
     {
     	$tpl = new core_ET("[#text#]");
+    	
+    	$settings = cms_Domains::getSettings();
+    	if($settings->enableCart == 'no') return $tpl;
+    	
     	$cartId = ($cartId) ? $cartId : self::force(NULL, NULL, FALSE);
 		$url = array();
     	
@@ -308,7 +301,7 @@ class eshop_Carts extends core_Master
     		$count = core_Type::getByName('int')->toVerbal($cartRec->productCount);
     		$url = array('eshop_Carts', 'view', $cartId, 'ret_url' => TRUE);
     		$str = ($count == 1) ? 'артикул' : 'артикула';
-    		$hint = "|*{$count} |{$str} за|* {$amount} " . $cartRec->currencyId;
+    		$hint = "|*{$count} |{$str} за|* {$amount} " . $settings->currencyId;
     	
     		if($count){
     			$tpl->append(new core_ET("<sup>[#count#]</sup>"));
@@ -348,9 +341,10 @@ class eshop_Carts extends core_Master
      */
     public function act_View()
     {
+    	$this->requireRightFor('viewexternal');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = self::fetch($id));
-    	$this->requireRightFor('view', $rec);
+    	$this->requireRightFor('viewexternal', $rec);
     	
     	$tpl = getTplFromFile("eshop/tpl/SingleLayoutCartExternal.shtml");
     	$tpl->replace(self::renderViewCart($rec), 'CART_TABLE');
@@ -359,10 +353,11 @@ class eshop_Carts extends core_Master
     	$tpl->replace(self::renderCartToolbar($rec, TRUE), 'CART_TOOLBAR');
     	$tpl->replace(self::getCartDisplayName(), 'CART_NAME');
     	
-    	$cartInfo = tr('Всички цени са в') . " {$rec->currencyId}, " . (($rec->chargeVat == 'yes') ? tr('с включено ДДС') : tr('без ДДС'));
+    	$settings = cms_Domains::getSettings();
+    	
+    	$cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с включено ДДС') : tr('без ДДС'));
     	$tpl->replace($cartInfo, 'VAT_STATUS');
     	
-    	$settings = cms_Domains::getSettings();
     	if(!empty($settings->info)){
     		$tpl->replace(core_Type::getByName('richtext')->toVerbal($settings->info), 'COMMON_TEXT');
     	}
@@ -410,19 +405,20 @@ class eshop_Carts extends core_Master
     	
     	if(eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
     		$emptyUrl = ($rec->productCount) ? array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => getRetUrl()) : array();
-    		$btn = ht::createBtn('Изчистване', $emptyUrl, NULL, NULL, 'title=Изпразване на кошницата,ef_icon=img/16/bin_closed.png');
+    		$btn = ht::createBtn('Изчистване', $emptyUrl, NULL, NULL, 'title=Изчистване на кошницата,class=eshop-btn,ef_icon=img/16/bin_closed.png');
     		$tpl->append($btn, 'CART_TOOLBAR');
     	}
     	
     	if(eshop_CartDetails::haveRightFor('add', (object)array('cartId' => $rec->id))){
     		$addUrl = array('eshop_CartDetails', 'add', 'cartId' => $rec->id, 'external' => TRUE, 'ret_url' => TRUE);
-    		$btn = ht::createBtn('Добавяне', $addUrl, NULL, NULL, 'title=Добавяне на артикули,ef_icon=img/16/add.png');
+    		$btn = ht::createBtn('Добавяне', $addUrl, NULL, NULL, 'title=Добавяне на артикули,class=eshop-btn,ef_icon=img/16/add.png');
     		$tpl->append($btn, 'CART_TOOLBAR');
     	}
     	
     	if(eshop_CartDetails::haveRightFor('checkout', (object)array('cartId' => $rec->id))){
     		$checkoutUrl = array();
-    		$btn = ht::createBtn('Поръчване', $checkoutUrl, NULL, NULL, 'title=Поръчване на артикулите,ef_icon=img/16/cart_go.png');
+    		$disabledClass = !count($checkoutUrl) ? 'disabled': '';
+    		$btn = ht::createBtn('Поръчване', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=eshop-btn {$disabledClass},ef_icon=img/16/cart_go.png");
     		$tpl->append($btn, 'CART_TOOLBAR');
     	}
     	
@@ -479,12 +475,9 @@ class eshop_Carts extends core_Master
     			$row->finalPrice .= "<span class='{$class}'> {$discount}</span>";
     		}
     		
-    		$hint = $row->code;
-    		$limit = str::limitLen($row->code, 15);
-    		if($limit != $hint){
-    			$row->code = $limit;
-    			$row->code = ht::createHint($row->code, $hint);
-    		}
+    		$fullCode = cat_products::getVerbal($dRec->productId, 'code');
+    		$row->code = substr($fullCode, 0, 10);
+    		$row->code = "<span title={$fullCode}>{$row->code}</span>";
     		
     		$data->rows[$dRec->id] = $row;
     	}
@@ -518,7 +511,7 @@ class eshop_Carts extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'view' && isset($rec)){
+    	if($action == 'viewexternal' && isset($rec)){
     		if($rec->state != 'draft'){
     			$requiredRoles = 'no_one';
     		} elseif(isset($userId) && $rec->userId != $userId){
@@ -526,6 +519,13 @@ class eshop_Carts extends core_Master
     		} elseif(!isset($userId)) {
     			$brid = log_Browsers::getBrid();
     			if(!(empty($rec->userId) && $rec->brid == $brid)){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    		
+    		if($requiredRoles != 'no_one'){
+    			$settings = cms_Domains::getSettings();
+    			if($settings->enableCart == 'no'){
     				$requiredRoles = 'no_one';
     			}
     		}

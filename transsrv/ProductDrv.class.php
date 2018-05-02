@@ -260,7 +260,27 @@ class transsrv_ProductDrv extends cat_ProductDriver
 	{
 		return cat_UoM::fetchBySinonim($this->uom)->id;
 	}
-	
+    
+    
+    /**
+     * Връща броя на количествата, които ще се показват в запитването
+     *
+     * @return int|NULL - броя на количествата в запитването
+     */
+    public function getInquiryQuantities()
+    {
+    	return 0;
+    }
+
+
+    /**
+	 * Може ли вградения обект да се избере
+	 */
+	public function canSelectDriver($userId = NULL)
+	{
+		 return haveRole('powerUser', $userId) || (transsrv_Setup::get('AVIABLE_FOR_PARTNERS') == 'yes' && haveRole('partner', $userId));
+	}
+
 	
 	/**
 	 * Рендиране на описанието на драйвера

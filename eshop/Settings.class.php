@@ -87,10 +87,11 @@ class eshop_Settings extends core_Master
     	$this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime)', 'caption=В сила->От,remember');
     	$this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime,defaultTime=23:59:59)', 'caption=В сила->До,remember');
     	
-    	$this->FLD('info', 'richtext(rows=3)', 'caption=Показване във външната част->Текст');
-    	$this->FLD('discountType', 'enum(percent=Процент,amount=Намалена сума)', 'caption=Показване във външната част->Отстъпка,notNull,value=amount');
-    	$this->FLD('cartName', 'varchar(16)', 'caption=Показване във външната част->Кошница');
     	$this->FLD('notInStockText', 'varchar(24)', 'caption=Показване във външната част->Липса в наличност');
+    	$this->FLD('enableCart', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на количката във външната част->Избор,notNull,value=no');
+    	$this->FLD('discountType', 'enum(percent=Процент,amount=Намалена сума)', 'caption=Показване на количката във външната част->Отстъпка,notNull,value=amount');
+    	$this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Наименование');
+    	$this->FLD('info', 'richtext(rows=3)', 'caption=Показване на количката във външната част->Текст');
     	
     	$this->setDbUnique('classId, objectId');
     }

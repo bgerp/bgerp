@@ -241,7 +241,7 @@ class marketing_Inquiries2 extends embed_Manager
     			$caption .= "|* <small><i>( |Минимална поръчка|* " . $moq . " {$uom} )</i></small>";
     		}
     	}
-    	 
+    
     	// Добавяме полета за количество според параметрите на продукта
     	$quantityCount = &$form->rec->quantityCount;
     	if(!isset($quantityCount) || $quantityCount > 3 || $quantityCount < 0){
@@ -290,14 +290,19 @@ class marketing_Inquiries2 extends embed_Manager
             }
     	}
  
-    	$mvc->expandEditForm($data);
     	if(cls::load($form->rec->innerClass, TRUE)){
     		if($Driver = cls::get($form->rec->innerClass)){
     			if($moq = $Driver->getMoq()){
     				$form->rec->moq = $moq;
     			}
+
+                if($form->rec->quantityCount === NULL && ($inqQuantity = $Driver->getInquiryQuantities()) !== NULL) {
+                    $form->rec->quantityCount = $inqQuantity;
+                }
     		}
     	}
+    	
+        $mvc->expandEditForm($data);
 
         if(haveRole('powerUser')) {
             $form->setField('personNames', 'mandatory=unsetValue');
@@ -605,6 +610,17 @@ class marketing_Inquiries2 extends embed_Manager
     	return $Varchar->toVerbal($subject);
     }
     
+    
+    /**
+     * След подготовка на тулбара на единичен изглед
+     */
+    protected static function on_AfterPrepareSingle($mvc, &$data)
+    {
+        if(haveRole('partner')) {
+            unset($data->row->ip, $data->row->time, $data->row->brid);
+        }
+    }
+
     
     /**
      * След подготовка на тулбара на единичен изглед

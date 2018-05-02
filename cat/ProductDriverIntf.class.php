@@ -290,7 +290,18 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 		return $this->class->getMoq($id);
 	}
 	
-	
+    
+    /**
+     * Връща броя на количествата, които ще се показват в запитването
+     *
+     * @return int|NULL - броя на количествата в запитването
+     */
+    public function getInquiryQuantities()
+    {
+    	return $this->class->getInquiryQuantities();
+    }
+
+
 	/**
 	 * Връща дефолтните опаковки за артикула
 	 *
