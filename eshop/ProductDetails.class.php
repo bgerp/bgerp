@@ -284,6 +284,10 @@ class eshop_ProductDetails extends core_Detail
 				$data->rows[] = self::getExternalRow($clone);
 			}
 		}
+		
+		if(count($data->rows)){
+			uasort($data->rows, function($obj1, $obj2) {return $obj1->catalogPrice > $obj2->catalogPrice;});
+		}
 	}
 	
 	
