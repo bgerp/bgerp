@@ -24,7 +24,7 @@ function eshopActions() {
 	    var eshopProductId = $(this).attr("data-eshopproductpd");
 	    var productId = $(this).attr("data-productid");
 	    var packagingId = $(this).attr("data-packagingid");
-	    var packQuantity = $("input[name=product" + productId + "]").val();
+	    var packQuantity = $("input[name=product" + productId + "-" + packagingId +"]").val();
 	    
 	    if(!packQuantity){
 	    	packQuantity = 1;

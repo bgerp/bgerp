@@ -302,7 +302,7 @@ class eshop_ProductDetails extends core_Detail
 		$row->code = "<span title={$fullCode}>{$row->code}</span>";
 		
 		$row->packagingId = cat_UoM::getShortName($rec->packagingId);
-		$row->quantity = ht::createTextInput("product{$rec->productId}", NULL, "size=4,class=eshop-product-option,placeholder=1");
+		$row->quantity = ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", NULL, "size=4,class=eshop-product-option,placeholder=1");
 		
 		$catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
 		$row->catalogPrice = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPriceInfo->price);
