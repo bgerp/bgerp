@@ -339,7 +339,7 @@ class eshop_CartDetails extends core_Detail
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
-		if($action == 'removeexternal' || $action == 'updatecart' || $action == 'add'){
+		if($action == 'removeexternal' || $action == 'updatecart' || ($action == 'add' && isset($rec))){
 			if(empty($rec->cartId)){
 				$requiredRoles = 'no_one';
 			} elseif(!eshop_Carts::haveRightFor('viewexternal', $rec->cartId)){
