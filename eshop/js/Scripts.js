@@ -83,9 +83,6 @@ function eshopActions() {
 		if (val + step > 0) {
 			$(input).val(val + step);
 		}
-		else {
-			$(input).val(0);
-		}
 
 		var url = $(input).attr("data-url");
 		if(!url) return;
