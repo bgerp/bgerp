@@ -78,22 +78,22 @@ class eshop_Settings extends core_Master
     {
     	$this->FLD('classId', 'class', 'caption=Клас,removeAndrefreshForm=objectId,silent,mandatory');
     	$this->FLD('objectId', 'int', 'caption=Обект,mandatory');
-    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащания->Валута');
-    	$this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно ДДС)', 'caption=Плащания->ДДС режим');
-    	$this->FLD('payments', 'keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Общи данни->Плащане');
-    	$this->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Общи данни->Доставка');
-    	$this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Общи данни->Политика');
-    	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Общи данни->Склад');
     	$this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime)', 'caption=В сила->От,remember');
     	$this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime,defaultTime=23:59:59)', 'caption=В сила->До,remember');
+    	$this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценова политика->Политика,mandatory');
+    	$this->FLD('discountType', 'set(percent=Процент,amount=Намалена сума)', 'caption=Показване на отстъпки спрямо "Каталог"->Като');
+    	$this->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Възможни условия на доставка->Избор,mandatory');
+    	$this->FLD('payments', 'keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Условия на плащане->Методи,mandatory');
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Условия на плащане->Валута,mandatory');
+    	$this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно ДДС)', 'caption=Условия на плащане->ДДС режим');
+    	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Свързване със склад->Избор');
+    	$this->FLD('notInStockText', 'varchar(24)', 'caption=Информация при недостатъчно количество->Текст');
     	
-    	$this->FLD('notInStockText', 'varchar(24)', 'caption=Показване във външната част->Липса в наличност');
-    	$this->FLD('enableCart', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на количката във външната част->Избор,notNull,value=no');
-    	$this->FLD('discountType', 'enum(percent=Процент,amount=Намалена сума)', 'caption=Показване на количката във външната част->Отстъпка,notNull,value=amount');
-    	$this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Наименование');
-    	$this->FLD('info', 'richtext(rows=3)', 'caption=Показване на количката във външната част->Текст');
+    	$this->FLD('enableCart', 'enum(yes=Винаги,no=Aко съдържа продукти)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
+    	$this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
+    	$this->FLD('info', 'richtext(rows=3)', 'caption=Условия на продажбата под количката->Текст');
     	
-    	$this->setDbUnique('classId, objectId');
+    	$this->setDbIndex('classId, objectId');
     }
     
     
@@ -111,6 +111,7 @@ class eshop_Settings extends core_Master
     	$classes = array($domainClassId => core_Classes::getTitleById($domainClassId));
     	$form->setOptions('classId', $classes);
     	$form->setDefault('classId', key($classes));
+    	$form->setField('classId', 'input=hidden');
     	
     	if(isset($form->rec->classId)){
     		$form->setOptions('objectId', cms_Domains::getDomainOptions());
@@ -124,13 +125,18 @@ class eshop_Settings extends core_Master
     	$shouldChargeVat = crm_Companies::shouldChargeVat($ownCompany->id);
     	$defaultChargeVat = ($shouldChargeVat === TRUE) ? 'yes' : 'no';
     	$form->setDefault('chargeVat', $defaultChargeVat);
+    	
+    	$namePlaceholder = eshop_Setup::get('CART_EXTERNAL_NAME');
+    	$form->setField('cartName', "placeholder={$namePlaceholder}");
+    	$notInStockPlaceholder = eshop_Setup::get('NOT_IN_STOCK_TEXT');
+    	$form->setField('notInStockText', "placeholder={$notInStockPlaceholder}");
     }
     
     
     /**
      *  Обработки по вербалното представяне на данните
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($rec->classId) && isset($rec->objectId)){
     		$row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, TRUE);
@@ -143,13 +149,16 @@ class eshop_Settings extends core_Master
     
     
     /**
-     * Връща настройките на пакета
+     * Връща настройките на класа
      * 
-     * @param int $domainId
+     * @param int $classId        - клас
+     * @param int $objectId       - ид на обект
+     * @param datetime|NULL $date - към коя дата
      * @return FALSE|stdClass
      */
-    public static function getSettings($classId, $objectId)
+    public static function getSettings($classId, $objectId, $date = NULL)
     {
+		$date = (isset($date)) ? $date : dt::now();
     	$classId = cls::get($classId)->getClassId();
     	
     	return self::fetch(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $classId, $objectId));

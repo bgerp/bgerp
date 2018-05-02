@@ -591,13 +591,14 @@ class cms_Domains extends core_Embedder
      * Какви са настройките на домейна
      * 
      * @param int $domainId
+     * @param datetime|NULL $date - към коя дата
      * @return array
      */
-    public static function getSettings($domainId = NULL)
+    public static function getSettings($domainId = NULL, $date = NULL)
     {
     	if(!core_Packs::isInstalled('eshop')) return array();
     	$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
     	
-    	return eshop_Settings::getSettings('cms_Domains', $domainId);
+    	return eshop_Settings::getSettings('cms_Domains', $domainId, $date = NULL);
     }
 }

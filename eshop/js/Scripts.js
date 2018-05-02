@@ -16,7 +16,7 @@ function eshopActions() {
 	});
 	
 	// Добавяне на артикул в кошницата
-	$(document.body).on("click", '.cart-add-product-btn', function(event){
+	$(document.body).on("click", '.eshop-btn', function(event){
 		
 		var url = $(this).attr("data-url");
 	    if(!url) return;
@@ -24,7 +24,7 @@ function eshopActions() {
 	    var eshopProductId = $(this).attr("data-eshopproductpd");
 	    var productId = $(this).attr("data-productid");
 	    var packagingId = $(this).attr("data-packagingid");
-	    var packQuantity = $("input[name=product" + productId + "]").val();
+	    var packQuantity = $("input[name=product" + productId + "-" + packagingId +"]").val();
 	    
 	    if(!packQuantity){
 	    	packQuantity = 1;
