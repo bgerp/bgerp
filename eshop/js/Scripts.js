@@ -38,7 +38,7 @@ function eshopActions() {
 	});
 	
 	// Време за изчакване
-	var timeout1, timeout2;
+	var timeout1;
 	
 	// Ъпдейт на кошницата след промяна на к-то
 	$(document.body).on('keyup', ".option-quantity-input", function(e){
@@ -66,7 +66,6 @@ function eshopActions() {
 		}
 	});
 	
-	
 	// Оцветяване на инпута, ако има грешка
 	$(document.body).on('keyup', ".eshop-product-option", function(e){
 		$(this).removeClass('inputError');
@@ -77,6 +76,7 @@ function eshopActions() {
 		}
 	});
 
+	// Бутоните за +/- да променят количеството
 	$(document.body).on('click', ".btnUp, .btnDown",  function(){
 		var input = $(this).siblings('.option-quantity-input');
 		var val = parseFloat($(input).val());
