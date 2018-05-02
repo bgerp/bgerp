@@ -1,6 +1,4 @@
 function eshopActions() {
-	// скриваме менюто на количката
-	$('.logoutBlock').css('display', 'none');
 
 	// Изтриване на ред от кошницата
 	$(document.body).on("click", '.remove-from-cart', function(event){
