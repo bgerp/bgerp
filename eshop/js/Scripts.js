@@ -38,7 +38,7 @@ function eshopActions() {
 	});
 	
 	// Време за изчакване
-	var timeout1;
+	var timeout1, timeout2;
 	
 	// Ъпдейт на кошницата след промяна на к-то
 	$(document.body).on('keyup', ".option-quantity-input", function(e){
@@ -74,5 +74,30 @@ function eshopActions() {
 		if(!$.isNumeric(packQuantity)){
 			$(this).addClass('inputError');
 		}
+	});
+
+	$(document.body).on('click', ".btnUp, .btnDown",  function(){
+		var input = $(this).siblings('.option-quantity-input');
+		var val = parseFloat($(input).val());
+		var step = $(this).hasClass('btnUp') ? 1 : -1;
+		if (val + step > 0) {
+			$(input).val(val + step);
+		}
+		else {
+			$(input).val(0);
+		}
+
+		var url = $(input).attr("data-url");
+		if(!url) return;
+		var data = {packQuantity:val + step};
+
+		// След всяко натискане на бутон изчистваме времето на изчакване
+		clearTimeout(timeout2);
+		// Правим Ajax заявката като изтече време за изчакване
+		timeout2 = setTimeout(function(){
+			resObj = new Object();
+			resObj['url'] = url;
+			getEfae().process(resObj, data);
+		}, 1000);
 	});
 };

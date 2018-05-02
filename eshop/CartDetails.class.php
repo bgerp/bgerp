@@ -320,8 +320,10 @@ class eshop_CartDetails extends core_Detail
 			
 			$quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
 			$dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
-			
-			$row->quantity = ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}'");
+
+			$minus = ht::createElement('img', array('src' => sbf('img/16/minus-black.png', ''), 'class' => 'btnDown'));
+			$plus = ht::createElement('img', array('src' => sbf('img/16/plus-black.png', ''), 'class' => 'btnUp'));
+			$row->quantity = $minus . ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}'") . $plus;
 		
 			$settings = cms_Domains::getSettings();
 			$finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, $rec->currencyId, $settings->currencyId);

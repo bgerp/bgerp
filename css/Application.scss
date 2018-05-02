@@ -3153,7 +3153,11 @@ fieldset.sharing-history {
 	color: #999;
 	font-size: 0.8em;
 }
-
+.btnUp, .btnDown {
+	cursor: pointer;
+	width: 14px;
+	height: 14px;
+}
 .summary-holder {
 	float: right;
 	table {
