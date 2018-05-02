@@ -340,7 +340,7 @@ class eshop_CartDetails extends core_Detail
 		if($action == 'removeexternal' || $action == 'updatecart' || $action == 'add'){
 			if(empty($rec->cartId)){
 				$requiredRoles = 'no_one';
-			} elseif(!eshop_Carts::haveRightFor('view', $rec->cartId)){
+			} elseif(!eshop_Carts::haveRightFor('viewexternal', $rec->cartId)){
 				$requiredRoles = 'no_one';
 			}
 		}

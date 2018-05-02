@@ -355,7 +355,7 @@ class eshop_ProductDetails extends core_Detail
 		$listFields = arr::make("code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;");
 		
 		$settings = cms_Domains::getSettings();
-		if($settings->enableCart == 'no'){
+		if(empty($settings)){
 			unset($listFields['btn']);
 		}
 		
