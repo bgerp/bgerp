@@ -279,6 +279,11 @@ class core_Master extends core_Manager
     {
         $title = $this->getTitleById($data->rec->id);
         
+        // Ако в името има '||' се предполага че трябва да се преведе
+        if(strpos($title, '||') !== FALSE){
+        	$title = tr($title);
+        }
+        
         $data->title = $this->singleTitle . "|* <b style='color:green;'>{$title}</b>";
         
         return $data;
