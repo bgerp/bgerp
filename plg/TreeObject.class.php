@@ -490,11 +490,14 @@ class plg_TreeObject extends core_Plugin
 		    
 			$parent = $mvc->fetchField($id, $mvc->parentFieldName);
 			$title = $num;
+            $i = 0;
 			
 			while($parent && ($pRec = $mvc->fetch($parent, "{$mvc->parentFieldName},{$mvc->nameField}"))) {
 				$pName = type_Varchar::escape($pRec->{$mvc->nameField});
 				$title = $pName . ' » ' . $title;
 				$parent = $pRec->{$mvc->parentFieldName};
+                $i++;
+                if($i > 20) break;
 			}
 			
 			$num = $title;
