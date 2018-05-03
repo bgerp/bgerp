@@ -321,7 +321,7 @@ class eshop_ProductDetails extends core_Detail
 		$row->code = substr($fullCode, 0, 10);
 		$row->code = "<span title={$fullCode}>{$row->code}</span>";
 		
-		$row->packagingId = cat_UoM::getShortName($rec->packagingId);
+		$row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
 		$row->quantity = ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", NULL, "size=4,class=eshop-product-option,placeholder=1");
 		
 		$catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
@@ -330,7 +330,7 @@ class eshop_ProductDetails extends core_Detail
 		$row->orderPrice = $catalogPriceInfo->price;
 		$row->orderCode = $fullCode;
 		$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-		$row->btn = ht::createFnBtn('Добави', NULL, FALSE, array('title'=> 'Добавяне в кошницата', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn'));
+		$row->btn = ht::createFnBtn('Добавяне', NULL, FALSE, array('title'=> 'Добавяне в кошницата', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn'));
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 		
 		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
