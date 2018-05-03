@@ -2454,6 +2454,7 @@ en,Интернет линк,Internet link
 en,CSV файл,CSV file
 en,HTML файл,HTML file
 en,XLS таблица,XLS table
+en,PDF файл,PDF file
 en,Спешен,Urgent
 en,Универсален артикул,General item
 en,Добавяне или промяна на файлове,Add or change files
@@ -2462,3 +2463,9 @@ en,Кошница,Backet
 en,Печат на документа,Document printing
 en,Експорт на документа,Document exporting
 en,Клониране на,Cloning of
+en,Потребителят,The user
+en,е блокиран,is blocked
+en,За да го отблокирате, моля последвайте този линк,To unblock it, please follow this link
+en,Линка ще изтече на,
+en,Линкът ще изтече на,Link will expire on
+en,Поздрави,Regards

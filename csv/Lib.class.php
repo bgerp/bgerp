@@ -477,8 +477,12 @@ class csv_Lib
             
             return array();
         }
-        
-        $resArr = (array) $rowsArr['firstRow'];
+
+        if($rowsArr['firstRow']) {
+            $resArr = (array) $rowsArr['firstRow'];
+        } else {
+            $resArr = $rowsArr['data'][0];
+        }
         
         if ($firstEmpty) {
             $resArr = arr::combine(array(NULL => ''), $resArr);
@@ -499,7 +503,7 @@ class csv_Lib
     public static function getCsvRowsFromFile($csvData, $params = array())
     {  
         list($handle, $params['delimiter'], $params['enclosure'], $params['firstRow']) = self::analyze($csvData, $params['delimiter'], $params['enclosure']);
- 
+  
         if($params['delimiter'] === NULL) {
             $params['delimiter'] = chr(0);
         }
@@ -546,17 +550,14 @@ class csv_Lib
             
             if (($params['firstRow'] == 'columnNames') && $isFirst) {
                 $isFirst = FALSE;
-                $resArr['firstRow'] = $data;
+                $resArr['firstRow'] = $data;  
             } else {
                 $resArr['data'][] = $data;
-                
-                if ($isFirst) {
-                    $resArr['firstRow'] = $data;
-                    $isFirst = FALSE;
-                }
             }
         }
-        
+
+        $resArr['params'] = $params;
+       
         return $resArr;
     }
 
@@ -801,7 +802,7 @@ class csv_Lib
                 }
             }
         }
- 
+  
         return array($fp, $delimiter, $enclosure, $fr > 0 ? 'columnNames' : 'data');
     }
 
