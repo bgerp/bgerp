@@ -16,6 +16,7 @@ en,"Имейли, които не могат да се парсират",Emails 
 en,"Класове, имащи _436a",Classes with interfaces
 en,"Логнете се, за да видите нишката",Login to see the thread
 en,"Свали като PDF",Download as PDF
+en,"Свали като",Download as
 en,"Можете да нaтиснете","You can click"
 en,"Моля, въведете _c6b3",Please enter the contact details of the company
 en,"Моля, въведете _dfd8",Please enter the contact details of the person
@@ -2454,6 +2455,7 @@ en,Интернет линк,Internet link
 en,CSV файл,CSV file
 en,HTML файл,HTML file
 en,XLS таблица,XLS table
+en,PDF файл,PDF file
 en,Спешен,Urgent
 en,Универсален артикул,General item
 en,Добавяне или промяна на файлове,Add or change files
@@ -2462,3 +2464,22 @@ en,Кошница,Backet
 en,Печат на документа,Document printing
 en,Експорт на документа,Document exporting
 en,Клониране на,Cloning of
+en,Потребителят,The user
+en,е блокиран,is blocked
+en,"За да го отблокирате, моля последвайте този линк","To unblock it, please follow this link"
+en,Линкът ще изтече на,Link will expire on
+en,Поздрави,Regards
+en,Отблокиран потребител,Unblocked user
+en,"Успешно отблокирахте потребителя. Моля, логнете се и сменете паролата си.","Successful unblock user. Please sign-in and change your password"
+en,Отблокиран локален потребител,Unblocked local user
+en,Активиране на вашия достъп до системата,Your system access activation
+en,Паролата трябва да е минимум,The password must be at least
+en,Вашата парола,Your password
+en,"Въведете отново паролата за потвърждение, че сте я написали правилно","Please input your password again, to prove correct spelling"
+en,"За да си активирате достъпа до системата, моля въведете избраната от вас парола в полетата по-долу. Паролата трябва да е поне","In order to activate your account, please input your chosen password on the following fields. The password must be at least"
+en,"символа и да съдържа букви, цифри и други символи.","symbols and must contain letters, digits and other characters"
+en,Задаване на нова парола,Setting new password
+
+
+
+

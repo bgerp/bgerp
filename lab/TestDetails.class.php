@@ -311,40 +311,49 @@ class lab_TestDetails extends core_Detail
     {
         
         // Подготовка на масива за резултатите ($rec->results)
-        $resArr = json_decode($rec->results);
+        $resultsArr = json_decode($rec->results);
         
-        $formula = $rec->formula;
-        
-        preg_match_all("/\\$[_a-z][a-z0-9_]*/i", $formula, $matches);
-        
-        $check = $matches[0][0];
-        $i = 0;
-        
-        do {
-            $contex = array();
+        if ($rec->methodId && lab_Methods::fetchField($rec->methodId, 'formula')) {
             
-            foreach ($matches[0] as $v) {
-                
-                $contex += array(
-                    $v => $resArr->$v[$i]
-                );
-            }
+            $resArr = $resultsArr;
+            $resultsArr = array();
             
-            if (($expr = str::prepareMathExpr($formula, $contex)) !== FALSE) {
+            $formula = $rec->formula;
+            
+            preg_match_all("/\\$[_a-z][a-z0-9_]*/i", $formula, $matches);
+            
+            $check = $matches[0][0];
+            $i = 0;
+            
+            do {
+                $contex = array();
                 
-                $value = str::calcMathExpr(str::prepareMathExpr($expr, $contex), $success);
-                
-                if ($success === FALSE) {
-                    $value = tr("Невъзможно изчисление");
+                foreach ($matches[0] as $v) {
+                    
+                    $contex += array(
+                        $v => $resArr->$v[$i]
+                    );
                 }
-            } else {
-                $value = tr("Некоректна формула");
-            }
+                
+                if (($expr = str::prepareMathExpr($formula, $contex)) !== FALSE) {
+                    
+                    $value = str::calcMathExpr(str::prepareMathExpr($expr, $contex), $success);
+                    
+                    if ($success === FALSE) {
+                        $value = tr("Невъзможно изчисление");
+                    }
+                } else {
+                    $value = tr("Некоректна формула");
+                }
+                
+                $resultsArr[] = $value;
+                
+                $i ++;
+            } while ($resArr->$check[$i]);
+        } else {
             
-            $resultsArr[] = $value;
-            
-            $i ++;
-        } while ($resArr->$check[$i]);
+            $resultsArr = $resultsArr->value;
+        }
         
         // trim array elements
         if (is_array($resultsArr)) {
@@ -504,8 +513,6 @@ class lab_TestDetails extends core_Detail
             $height => 1,
             $weight => 1
         );
-        
-        // bp($expr,str::prepareMathExpr($expr,$contex));
         
         if (str::prepareMathExpr($expr) === FALSE) {
             $res = self::CALC_ERROR;
