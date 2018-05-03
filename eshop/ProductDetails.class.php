@@ -402,7 +402,7 @@ class eshop_ProductDetails extends core_Detail
 		
 		$tpl->append($table->get($data->rows, $listFields));
 		
-		$cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с включено ДДС') : tr('без ДДС'));
+		$cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
 		$cartInfo = "<tr><td colspan='6' class='option-table-info'>{$cartInfo}</td></tr>";
 		$tpl->replace($cartInfo, 'ROW_AFTER');
 		
