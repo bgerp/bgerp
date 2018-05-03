@@ -472,11 +472,18 @@ class eshop_Carts extends core_Master
     		$data->recs[$dRec->id] = $dRec;
     		$row = eshop_CartDetails::recToVerbal($dRec, $fields);
     		if(!empty($dRec->discount)){
-    			$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
-    			$discount = ($settings->discountType == 'amount') ? core_Type::getByName('double(decimals=2)')->toVerbal($dRec->finalPrice/ (1 - $dRec->discount)) : "-" . core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->discount);
-    			$class = ($settings->discountType == 'amount') ? 'external-discount-amount' : 'external-discount-percent';
+    			$settings = cms_Domains::getSettings();
+    			$discountType = type_Set::toArray($settings->discountType);
+    			if(isset($discountType['amount'])){
+    				$amountWithoutDiscount = $dRec->finalPrice / (1 - $dRec->discount);
+    				$discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
+    				$row->finalPrice .= "<div class='external-discount-amount'> {$discountAmount}</div>";
+    			}
     			
-    			$row->finalPrice .= "<span class='{$class}'> {$discount}</span>";
+    			if(isset($discountType['percent'])){
+    				$discountPercent = core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->discount);
+    				$row->finalPrice .= "<div class='external-discount-percent'> (-{$discountPercent})</div>";
+    			}
     		}
     		
     		$fullCode = cat_products::getVerbal($dRec->productId, 'code');

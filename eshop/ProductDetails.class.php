@@ -326,10 +326,17 @@ class eshop_ProductDetails extends core_Detail
 		}
 		
 		if(!empty($catalogPriceInfo->discount)){
-			$amountWithoutDiscount = $catalogPriceInfo->price / (1 - $catalogPriceInfo->discount) ;
-			$discount = ($settings->discountType == 'amount') ? core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount) : core_Type::getByName('percent(decimals=2)')->toVerbal($catalogPriceInfo->discount);
-			$class = ($settings->discountType == 'amount') ? 'external-discount-amount' : 'external-discount-percent';
-			$row->catalogPrice .= "<div class='{$class}'> {$discount}</dib>";
+			$discountType = type_Set::toArray($settings->discountType);
+			if(isset($discountType['amount'])){
+				$amountWithoutDiscount = $catalogPriceInfo->price / (1 - $catalogPriceInfo->discount);
+				$discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
+				$row->catalogPrice .= "<div class='external-discount-amount'> {$discountAmount}</div>";
+			}
+				
+			if(isset($discountType['percent'])){
+				$discountPercent = core_Type::getByName('percent(decimals=2)')->toVerbal($catalogPriceInfo->discount);
+				$row->catalogPrice .= "<div class='external-discount-percent'> (-{$discountPercent})</div>";
+			}
 		}
 		
 		return $row;
