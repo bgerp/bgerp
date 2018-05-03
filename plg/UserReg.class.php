@@ -546,8 +546,9 @@ class plg_UserReg extends core_Plugin
         
         setIfNot($rec1->regLifetime, $expireDate);
         
-        setIfNot($rec1->EF_APP_TITLE, EF_APP_TITLE);
-        
+        setIfNot($rec1->EF_APP_TITLE, core_Setup::get('EF_APP_TITLE', TRUE));
+        setIfNot($rec1->USER, core_Setup::get('EF_APP_TITLE', TRUE));
+
         $tpl = new ET($tpl);
         
         $tpl->translate();
