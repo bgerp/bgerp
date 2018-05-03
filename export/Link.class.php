@@ -76,6 +76,7 @@ class export_Link extends core_Mvc
                                 'action'      => doclog_Documents::ACTION_LINK,
                                 'containerId' => $cRec->containerId,
                                 'threadId'    => $cRec->threadId,
+                                'data' => (object)array('lg' => core_Lg::getCurrent())
                         )
                 );
         
