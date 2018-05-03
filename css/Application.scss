@@ -3096,7 +3096,7 @@ fieldset.sharing-history {
 	border: 1px solid #bbb;
     border-radius: 0 0 0 5px;
     box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
-    a {
+    a, span.linkWithIcon  {
         color: #333 !important;
         margin: 5px 7px;
         display:inline-block;
