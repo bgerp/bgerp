@@ -263,7 +263,7 @@ class eshop_ProductDetails extends core_Detail
 	 */
 	public static function prepareExternal(&$data)
 	{
-		$data->rows = $data->recs = array();
+		$data->rows = array();
 		$fields = cls::get(get_called_class())->selectFields();
 		$fields['-external'] = $fields;
 		
