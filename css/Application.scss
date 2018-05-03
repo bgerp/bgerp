@@ -3116,6 +3116,16 @@ fieldset.sharing-history {
 #cart-view-buttons {
 	margin: 20px 0;
 }
+
+#cart-external-status sup {
+	border: 1px solid #c00;
+	background-color: #ef2809;
+	color: #fff;
+	padding: 0px 3px 1px 2px;
+	font-size: 0.7em;
+	border-radius: 50%;
+}
+
 .optionsTable {
 	color: #222;
 	min-width: 600px;

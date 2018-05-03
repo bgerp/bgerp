@@ -2688,6 +2688,14 @@ span.sharing-history-title {
 #cart-view-buttons {
   margin: 20px 0; }
 
+#cart-external-status sup {
+  border: 1px solid #cc0000;
+  background-color: #ef2809;
+  color: white;
+  padding: 0px 3px 1px 2px;
+  font-size: 0.7em;
+  border-radius: 50%; }
+
 .optionsTable {
   color: #222222;
   min-width: 600px;
