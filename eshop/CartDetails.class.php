@@ -217,7 +217,7 @@ class eshop_CartDetails extends core_Detail
      * @param core_Mvc $mvc
      * @param stdClass $rec
      */
-    public static function on_CalcAmount(core_Mvc $mvc, $rec)
+    protected static function on_CalcAmount(core_Mvc $mvc, $rec)
     {
     	if (!isset($rec->finalPrice) || empty($rec->quantity) || empty($rec->quantityInPack)) return;
     
@@ -238,7 +238,7 @@ class eshop_CartDetails extends core_Detail
 	 */
 	public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = NULL, $packPrice = NULL, $domainId = NULL)
 	{
-		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'draft'"));
+		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'active'"));
 		expect($eshopRec = eshop_Products::fetch($eshopProductId));
 		expect(cat_Products::fetch($productId));
 		
