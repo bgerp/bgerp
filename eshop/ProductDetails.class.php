@@ -300,6 +300,14 @@ class eshop_ProductDetails extends core_Detail
 				
 				return strnatcmp($obj1->orderCode, $obj2->orderCode);
 			});
+			
+			$prev = NULL;
+			foreach ($data->rows as &$row1){
+				if(isset($prev) && $prev == $row1->productId){
+					$row1->productId = "<span class='quiet'>{$row1->productId}</span>";
+				}
+				$prev = strip_tags($row1->productId);
+			}
 		}
 	}
 	
@@ -314,9 +322,6 @@ class eshop_ProductDetails extends core_Detail
 	{
 		$row = new stdClass();
 		$row->productId = cat_Products::getVerbal($rec->productId, 'name');
-		if($rec->first !== TRUE){
-			$row->productId = "<span class='quiet'>{$row->productId}</span>";
-		}
 		$fullCode = cat_products::getVerbal($rec->productId, 'code');
 		$row->code = substr($fullCode, 0, 10);
 		$row->code = "<span title={$fullCode}>{$row->code}</span>";
