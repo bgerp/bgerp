@@ -3156,17 +3156,18 @@ fieldset.sharing-history {
 	}
 }
 
-.external-discount-amount {
-	display: block;
+.external-discount {
 	color: #999;
+	font-size: 0.7em;
+}
+
+.external-discount-amount {
 	text-decoration: line-through;
-	font-size: 0.8em;
+	display: inline-block;
 }
 
 .external-discount-percent {
-	display: block;
-	color: #999;
-	font-size: 0.8em;
+	display: inline-block;
 }
 .btnUp, .btnDown {
 	cursor: pointer;

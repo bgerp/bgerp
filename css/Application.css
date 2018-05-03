@@ -2722,16 +2722,16 @@ span.sharing-history-title {
     font-size: 0.9em;
     color: #444444; }
 
-.external-discount-amount {
-  display: block;
+.external-discount {
   color: #999999;
+  font-size: 0.7em; }
+
+.external-discount-amount {
   text-decoration: line-through;
-  font-size: 0.8em; }
+  display: inline-block; }
 
 .external-discount-percent {
-  display: block;
-  color: #999999;
-  font-size: 0.8em; }
+  display: inline-block; }
 
 .btnUp,
 .btnDown {

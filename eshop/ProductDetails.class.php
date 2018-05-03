@@ -345,17 +345,23 @@ class eshop_ProductDetails extends core_Detail
 		
 		if(!empty($catalogPriceInfo->discount)){
 			$discountType = type_Set::toArray($settings->discountType);
+			$row->catalogPrice .= "<div class='external-discount'>";
 			if(isset($discountType['amount'])){
 				$amountWithoutDiscount = $catalogPriceInfo->price / (1 - $catalogPriceInfo->discount);
 				$discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
 				$row->catalogPrice .= "<div class='external-discount-amount'> {$discountAmount}</div>";
 			}
-				
+
+			if(isset($discountType['amount']) && isset($discountType['percent'])) {
+				$row->catalogPrice .= " / ";
+			}
+
 			if(isset($discountType['percent'])){
 				$discountPercent = core_Type::getByName('percent(smartRound)')->toVerbal($catalogPriceInfo->discount);
 				$discountPercent = str_replace('&nbsp;', '', $discountPercent);
 				$row->catalogPrice .= "<div class='external-discount-percent'> (-{$discountPercent})</div>";
 			}
+			$row->catalogPrice .= "</div>";
 		}
 		
 		return $row;
@@ -375,7 +381,7 @@ class eshop_ProductDetails extends core_Detail
 		
 		$fieldset = cls::get(get_called_class());
 		$fieldset->FNC('code', 'varchar', 'smartCenter');
-		$fieldset->FNC('catalogPrice', 'varchar', 'smartCenter');
+		$fieldset->FNC('catalogPrice', 'double');
 		$fieldset->FNC('btn', 'varchar', 'tdClass=small-field');
 		$fieldset->FNC('packagingId', 'varchar', 'smartCenter');
 		$fieldset->FLD('quantity', 'varchar');
