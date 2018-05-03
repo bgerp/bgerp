@@ -26,7 +26,7 @@ class eshop_Carts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_Rejected, doc_ActivatePlg, plg_Modified';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_Rejected, plg_Modified';
     
     
     /**
@@ -56,7 +56,7 @@ class eshop_Carts extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'eshop,ceo,admin';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -125,8 +125,11 @@ class eshop_Carts extends core_Master
     	$this->FLD('salutation', 'varchar(255)', 'caption=Данни на лице->Обръщение,class=contactData,hint=Обръщение||Salutation');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Данни на лице->Имейл,hint=Вашият имейл||Your email,mandatory');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Данни на лице->Телефони,hint=Вашият телефон,mandatory');
+    	$this->FLD('state', 'enum(active=Активно,closed=Приключено,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
+    	
     	$this->setDbIndex('brid');
     	$this->setDbIndex('userId');
+    	$this->setDbIndex('domainId');
     }
     
     
@@ -213,11 +216,11 @@ class eshop_Carts extends core_Master
     	
     	// Ако има потребител се търси имали чернова кошница за този потребител, ако не е логнат се търси по Брид-а
     	$where = (isset($userId)) ? "#userId = '{$userId}'" : "#userId IS NULL AND #brid = '{$brid}'";
-    	$rec = self::fetch("{$where} AND #state = 'draft' AND #domainId = {$domainId}");
+    	$rec = self::fetch("{$where} AND #state = 'active' AND #domainId = {$domainId}");
     	
     	if(empty($rec) && $bForce === TRUE){
     		$ip = core_Users::getRealIpAddr();
-    		$rec = (object)array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'state' => 'draft');
+    		$rec = (object)array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'state' => 'active');
     		self::save($rec);
     	}
     	
@@ -248,7 +251,7 @@ class eshop_Carts extends core_Master
     		}
     		$sum = $finalPrice * ($dRec->quantity / $dRec->quantityInPack);
     		
-    		if($rec->chargeVat == 'yes'){
+    		if($dRec->haveVat == 'yes'){
     			$rec->totalNoVat += $sum / (1 + $dRec->vat);
     			$rec->total += $sum;
     		} else {
@@ -308,7 +311,7 @@ class eshop_Carts extends core_Master
     		$hint = "|*{$count} |{$str} за|* {$amount} " . $settings->currencyId;
     	
     		if($count){
-    			$tpl->append(new core_ET("<sup>[#count#]</sup>"));
+    			$tpl->append(new core_ET("<span class='count'>[#count#]</span>"));
     		}
     	} else {
     		if($settings->enableCart == 'no') return new core_ET(' ');
@@ -326,7 +329,7 @@ class eshop_Carts extends core_Master
     
     
     /**
-     * Прекъсва връзките на изтритите визитки с всички техни имейл адреси.
+     * След изтриване
      *
      * @param core_Mvc $mvc
      * @param stdClass $res
@@ -334,7 +337,8 @@ class eshop_Carts extends core_Master
      */
     protected static function on_AfterDelete($mvc, &$res, $query)
     {
-        foreach ($query->getDeletedRecs() as $rec) {
+        // Ако се изтрие кошницата изтруват се и детайлите
+    	foreach ($query->getDeletedRecs() as $rec) {
         	eshop_CartDetails::delete("#cartId = {$rec->id}");
         }
     }
@@ -384,8 +388,9 @@ class eshop_Carts extends core_Master
     	$rec = self::fetchRec($id, '*', FALSE);
     	$row = self::recToVerbal($rec);
     	$row->totalNoVatCurrencyId = $row->currencyId;
-    	
+    	$row->productCount .= "&nbsp;" . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
     	$block = ($onlyCount === TRUE) ? 'CART_COUNT' : 'CART_SUMMARY';
+    	
     	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock($block);
     	$tpl->placeObject($row);
     	$tpl->removeBlocks();
@@ -472,11 +477,19 @@ class eshop_Carts extends core_Master
     		$data->recs[$dRec->id] = $dRec;
     		$row = eshop_CartDetails::recToVerbal($dRec, $fields);
     		if(!empty($dRec->discount)){
-    			$settings = eshop_Settings::getSettings('cms_Domains', cms_Domains::getPublicDomain()->id);
-    			$discount = ($settings->discountType == 'amount') ? core_Type::getByName('double(decimals=2)')->toVerbal($dRec->finalPrice/ (1 - $dRec->discount)) : "-" . core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->discount);
-    			$class = ($settings->discountType == 'amount') ? 'external-discount-amount' : 'external-discount-percent';
+    			$settings = cms_Domains::getSettings();
+    			$discountType = type_Set::toArray($settings->discountType);
+    			if(isset($discountType['amount'])){
+    				$amountWithoutDiscount = $dRec->finalPrice / (1 - $dRec->discount);
+    				$discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
+    				$row->finalPrice .= "<div class='external-discount-amount'> {$discountAmount}</div>";
+    			}
     			
-    			$row->finalPrice .= "<span class='{$class}'> {$discount}</span>";
+    			if(isset($discountType['percent'])){
+    				$discountPercent = core_Type::getByName('percent(smartRound)')->toVerbal($dRec->discount);
+    				$discountPercent = str_replace('&nbsp;', '', $discountPercent);
+    				$row->finalPrice .= "<div class='external-discount-percent'> (-{$discountPercent})</div>";
+    			}
     		}
     		
     		$fullCode = cat_products::getVerbal($dRec->productId, 'code');
@@ -516,7 +529,7 @@ class eshop_Carts extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'viewexternal' && isset($rec)){
-    		if($rec->state != 'draft'){
+    		if($rec->state != 'active'){
     			$requiredRoles = 'no_one';
     		} elseif(isset($userId) && $rec->userId != $userId){
     			$requiredRoles = 'no_one';
@@ -540,5 +553,14 @@ class eshop_Carts extends core_Master
     			$requiredRoles = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
     }
 }

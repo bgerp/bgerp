@@ -308,8 +308,8 @@ protected function getTableFieldSet($rec, $export = FALSE)
         $fld->FLD('dueDate', 'varchar', 'caption=Краен срок');
         $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
         $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
-        $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума');
-        $fld->FLD('paidDates', 'varchar', 'caption=Платено->плащания,smartCenter');
+        $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->Сума,smartCenter');
+        $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания,smartCenter');
         $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Неплатено');
         $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Надплатено');
     } else {
@@ -397,7 +397,7 @@ private static function getDueDate($dRec, $verbal = TRUE, $rec)
     if ($verbal === TRUE) {
         
         if ($dRec->dueDate) {
-            $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = "d.m.y");
+            $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = "d.m.Y");
             
             if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
                 

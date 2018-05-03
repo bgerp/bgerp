@@ -24,7 +24,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $listItemsPerPage = 28;
+    protected $listItemsPerPage = 30;
 
     /**
      * По-кое поле да се групират листовите данни
@@ -314,10 +314,11 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     private static function getDueDate($dRec, $verbal = TRUE, $rec)
     {
+        
         if ($verbal === TRUE) {
             
             if ($dRec->dueDate) {
-                $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = "d.m.y");
+                $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = "d.m.Y");
             } else {
                 $dueDate = '';
             }
@@ -363,7 +364,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $row->dueDate = self::getDueDate($dRec, TRUE, $rec);
         
         $row->contragentId = crm_Companies::getTitleById($dRec->contragentId) .
-             "<span class= 'fright'><span class= 'quiet'>" . 'Общо ПРОСРОЧЕНИ фактури : ' . "</span>" .
+             "<span class= 'fright'><span class= 'quiet'>" . 'Общо ПРОСРОЧЕНИ фактури: ' . "</span>" .
              core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSummArr[$dRec->contragentId]) .
              ' ' . "$dRec->currencyId" . "</span>";
         

@@ -32,7 +32,7 @@ class eshop_Settings extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'objectId=Обект,currencyId,chargeVat,payments,terms=Доставка,listId=Политика,storeId=Склад,discountType=Отстъпка,validFrom=Продължителност->От,validTo=Продължителност->До,modifiedOn,modifiedBy,@info';
+    public $listFields = 'objectId=Обект,currencyId,chargeVat,payments,terms=Доставка,listId=Политика,storeId=Склад,discountType=Отстъпка,validFrom=Продължителност->От,validUntil=Продължителност->До,modifiedOn,modifiedBy,@info';
     
     
     /**

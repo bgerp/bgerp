@@ -270,23 +270,36 @@ class eshop_ProductDetails extends core_Detail
 		$splitProducts = array();
 		$query = self::getQuery();
 		$query->where("#eshopProductId = {$data->rec->id}");
+		$query->orderBy('productId');
+		
 		while($rec = $query->fetch()){
 			$newRec = (object)array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId);
 			if(!self::getPublicDisplayPrice($rec->productId)) continue;
 			$packagins = keylist::toArray($rec->packagings);
 			
+			
 			// Всяка от посочените опаковки се разбива във отделни редове
+			$i = 1;
 			foreach($packagins as $packagingId){
 				$clone = clone $newRec;
+				$clone->first = ($i == 1) ? TRUE : FALSE;
 				$clone->packagingId = $packagingId;
 				$packRec = cat_products_Packagings::getPack($rec->productId, $packagingId);
 				$clone->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
+				
 				$data->rows[] = self::getExternalRow($clone);
+				$i++;
 			}
 		}
 		
 		if(count($data->rows)){
-			uasort($data->rows, function($obj1, $obj2) {return $obj1->catalogPrice > $obj2->catalogPrice;});
+			uasort($data->rows, function($obj1, $obj2) {
+				if($obj1->orderCode == $obj2->orderCode){
+					return $obj1->orderPrice > $obj2->orderPrice;
+				}
+				
+				return strnatcmp($obj1->orderCode, $obj2->orderCode);
+			});
 		}
 	}
 	
@@ -301,6 +314,9 @@ class eshop_ProductDetails extends core_Detail
 	{
 		$row = new stdClass();
 		$row->productId = cat_Products::getVerbal($rec->productId, 'name');
+		if($rec->first !== TRUE){
+			$row->productId = "<span class='quiet'>{$row->productId}</span>";
+		}
 		$fullCode = cat_products::getVerbal($rec->productId, 'code');
 		$row->code = substr($fullCode, 0, 10);
 		$row->code = "<span title={$fullCode}>{$row->code}</span>";
@@ -310,7 +326,9 @@ class eshop_ProductDetails extends core_Detail
 		
 		$catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
 		$row->catalogPrice = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPriceInfo->price);
-		
+		$row->catalogPrice = "<b>{$row->catalogPrice}</b>";
+		$row->orderPrice = $catalogPriceInfo->price;
+		$row->orderCode = $fullCode;
 		$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
 		$row->btn = ht::createFnBtn('Добави', NULL, FALSE, array('title'=> 'Добавяне в кошницата', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn'));
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
@@ -326,10 +344,18 @@ class eshop_ProductDetails extends core_Detail
 		}
 		
 		if(!empty($catalogPriceInfo->discount)){
-			$amountWithoutDiscount = $catalogPriceInfo->price / (1 - $catalogPriceInfo->discount) ;
-			$discount = ($settings->discountType == 'amount') ? core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount) : core_Type::getByName('percent(decimals=2)')->toVerbal($catalogPriceInfo->discount);
-			$class = ($settings->discountType == 'amount') ? 'external-discount-amount' : 'external-discount-percent';
-			$row->catalogPrice .= "<div class='{$class}'> {$discount}</dib>";
+			$discountType = type_Set::toArray($settings->discountType);
+			if(isset($discountType['amount'])){
+				$amountWithoutDiscount = $catalogPriceInfo->price / (1 - $catalogPriceInfo->discount);
+				$discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
+				$row->catalogPrice .= "<div class='external-discount-amount'> {$discountAmount}</div>";
+			}
+				
+			if(isset($discountType['percent'])){
+				$discountPercent = core_Type::getByName('percent(smartRound)')->toVerbal($catalogPriceInfo->discount);
+				$discountPercent = str_replace('&nbsp;', '', $discountPercent);
+				$row->catalogPrice .= "<div class='external-discount-percent'> (-{$discountPercent})</div>";
+			}
 		}
 		
 		return $row;

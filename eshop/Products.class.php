@@ -92,7 +92,7 @@ class eshop_Products extends core_Master
     /**
      * Кой има право да го изтрие?
      */
-    public $canDelete = 'ceo';
+    public $canDelete = 'no_one';
     
     
     /**
@@ -638,13 +638,21 @@ class eshop_Products extends core_Master
      */
     private function setDefaultsFromProductId(core_Form &$form)
     {
-    	$productRec = cat_Products::fetch($form->rec->productId);
+    	$rec = $form->rec;
+    	
+    	$productRec = cat_Products::fetch($rec->productId);
     	$form->setDefault('name', $productRec->name);
-    	$form->setDefault('info', $productRec->info);
     	$form->setDefault('image', $productRec->photo);
     	$form->setDefault('code', ($productRec->code) ? $productRec->code : "Art{$productRec->id}");
     	$form->setField('packagings', 'input');
     	$form->setSuggestions('packagings', cat_Products::getPacks($productRec->id));
+    	
+    	$form->setDefault('info', $description);
+    	$description = cat_Products::getDescription($productRec->id, 'public')->getContent();
+    	$description = html2text_Converter::toRichText($description);
+    	$description = cls::get('type_Richtext')->fromVerbal($description);
+    	$description = str_replace("\n\n", "\n", $description);
+    	$form->setDefault('longInfo', $description);
     }
     
     

@@ -130,6 +130,13 @@ class eshop_CartDetails extends core_Detail
     	$form->FNC('displayPrice', 'double', 'caption=Цена, input=none');
     	$productOptions = eshop_ProductDetails::getAvailableProducts();
     	
+    	// От наличните опции се махат тези вече в количката
+    	$query = self::getQuery();
+    	$query->where("#cartId = {$rec->cartId}");
+    	$query->show('productId');
+    	$alreadyIn = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+    	$productOptions = array_diff_key($productOptions, $alreadyIn);
+    	
     	$form->setOptions('productId', array('' => '') + $productOptions);
     	$form->setField('eshopProductId', 'input=none');
     	
@@ -180,21 +187,25 @@ class eshop_CartDetails extends core_Detail
     			$form->setReadOnly('displayPrice', $price->price);
     			$unit = $settings->currencyId . " " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
     			$form->setField('displayPrice', "unit={$unit}");
+    			$form->rec->haveVat = $settings->chargeVat;
+    			$form->rec->vat = cat_Products::getVat($rec->productId);
     		}
     	}
     	
     	if($form->isSubmitted()){
     		$rec->eshopProductId = eshop_ProductDetails::fetchField("#productId = {$rec->productId}", 'eshopProductId');
 
-    		if($id = eshop_CartDetails::fetchField("#cartId = {$rec->cartId} AND #eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId} AND #packagingId = {$rec->packagingId}")){
-    			$exRec = self::fetch($id);
-    			$rec->packQuantity += ($exRec->quantity / $exRec->quantityInPack);
-    			$rec->id = $id;
-    		}
-    		
     		// Проверка на к-то
     		if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
     			$form->setError('packQuantity', $warning);
+    		}
+    		
+    		if(!$form->gotErrors()){
+    			if($id = eshop_CartDetails::fetchField("#cartId = {$rec->cartId} AND #eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId} AND #packagingId = {$rec->packagingId}")){
+    				$exRec = self::fetch($id);
+    				$rec->packQuantity += ($exRec->quantity / $exRec->quantityInPack);
+    				$rec->id = $id;
+    			}
     		}
     	}
     }
@@ -206,7 +217,7 @@ class eshop_CartDetails extends core_Detail
      * @param core_Mvc $mvc
      * @param stdClass $rec
      */
-    public static function on_CalcAmount(core_Mvc $mvc, $rec)
+    protected static function on_CalcAmount(core_Mvc $mvc, $rec)
     {
     	if (!isset($rec->finalPrice) || empty($rec->quantity) || empty($rec->quantityInPack)) return;
     
@@ -227,7 +238,7 @@ class eshop_CartDetails extends core_Detail
 	 */
 	public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = NULL, $packPrice = NULL, $domainId = NULL)
 	{
-		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'draft'"));
+		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'active'"));
 		expect($eshopRec = eshop_Products::fetch($eshopProductId));
 		expect(cat_Products::fetch($productId));
 		
