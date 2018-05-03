@@ -195,15 +195,17 @@ class eshop_CartDetails extends core_Detail
     	if($form->isSubmitted()){
     		$rec->eshopProductId = eshop_ProductDetails::fetchField("#productId = {$rec->productId}", 'eshopProductId');
 
-    		if($id = eshop_CartDetails::fetchField("#cartId = {$rec->cartId} AND #eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId} AND #packagingId = {$rec->packagingId}")){
-    			$exRec = self::fetch($id);
-    			$rec->packQuantity += ($exRec->quantity / $exRec->quantityInPack);
-    			$rec->id = $id;
-    		}
-    		
     		// Проверка на к-то
     		if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
     			$form->setError('packQuantity', $warning);
+    		}
+    		
+    		if(!$form->gotErrors()){
+    			if($id = eshop_CartDetails::fetchField("#cartId = {$rec->cartId} AND #eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId} AND #packagingId = {$rec->packagingId}")){
+    				$exRec = self::fetch($id);
+    				$rec->packQuantity += ($exRec->quantity / $exRec->quantityInPack);
+    				$rec->id = $id;
+    			}
     		}
     	}
     }
