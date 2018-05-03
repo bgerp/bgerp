@@ -311,7 +311,7 @@ class eshop_Carts extends core_Master
     		$hint = "|*{$count} |{$str} за|* {$amount} " . $settings->currencyId;
     	
     		if($count){
-    			$tpl->append(new core_ET("<sup>[#count#]</sup>"));
+    			$tpl->append(new core_ET("<span class='count'>[#count#]</span>"));
     		}
     	} else {
     		if($settings->enableCart == 'no') return new core_ET(' ');
