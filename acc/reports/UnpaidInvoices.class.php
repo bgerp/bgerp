@@ -103,22 +103,12 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         // Фактури ПРОДАЖБИ
         while ($salesInvoices = $sQuery->fetch()) {
-            
-            if (sales_Sales::fetch(doc_Threads::getFirstDocument($salesInvoices->threadId)->that)->state == 'closed') {
-                
-                if (sales_Sales::fetch(doc_Threads::getFirstDocument($salesInvoices->threadId)->that)->closedOn >=
-                     $rec->checkDate) {
-                    
-                    $threadsId[$salesInvoices->threadId] = $salesInvoices->threadId;
-                    continue;
-                }
-                
-                continue;
-            }
-            
-            $threadsId[$salesInvoices->threadId] = $salesInvoices->threadId;
+   
+    
+                $threadsId[$salesInvoices->threadId] = $salesInvoices->threadId;
         }
-        
+    
+   
         $salesTotalNotPaid = 0;
         $salesTotalOverDue = 0;
         $salesTotalOverPaid = 0;
@@ -127,7 +117,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             foreach ($threadsId as $thread) {
                 
                 // масив от фактури в тази нишка //
-                $invoicesInThread = (deals_Helper::getInvoicesInThread($thread, $rec->checkDate, TRUE, TRUE, TRUE));
+              //  $invoicesInThread = (deals_Helper::getInvoicesInThread($thread, $rec->checkDate, TRUE, TRUE, TRUE));
                 
                 $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
                 
@@ -146,6 +136,8 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                         
                         $iRec = $Invoice->fetch(
                             'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate');
+                        
+                       
                         
                         if (($paydocs->amount - $paydocs->payout) > 0) {
                             
@@ -208,19 +200,6 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         // Фактури ПОКУПКИ
         while ($purchaseInvoices = $pQuery->fetch()) {
             
-            if (purchase_Purchases::fetch(doc_Threads::getFirstDocument($purchaseInvoices->threadId)->that)->state ==
-                 'closed') {
-                
-                if (purchase_Purchases::fetch(doc_Threads::getFirstDocument($purchaseInvoices->threadId)->that)->closedOn >=
-                 $rec->checkDate) {
-                
-                $threadsId[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
-                continue;
-            }
-            
-            continue;
-        }
-        
         $threadsId[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
     }
     
@@ -231,10 +210,10 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         foreach ($threadsId as $thread) {
             
             // масив от фактури в тази нишка //
-            $invoicesInThread = (deals_Helper::getInvoicesInThread($thread, $rec->checkDate, TRUE, TRUE, TRUE));
+          //  $invoicesInThread = (deals_Helper::getInvoicesInThread($thread, $rec->checkDate, TRUE, TRUE, TRUE));
             
             $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
-            
+
             if (is_array($invoicePayments)) {
                 
                 // фактура от нишката и масив от платежни документи по тази фактура//

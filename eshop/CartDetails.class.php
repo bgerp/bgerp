@@ -320,8 +320,10 @@ class eshop_CartDetails extends core_Detail
 			
 			$quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
 			$dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
-			
-			$row->quantity = ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}'");
+
+			$minus = ht::createElement('img', array('src' => sbf('img/16/minus-black.png', ''), 'class' => 'btnDown'));
+			$plus = ht::createElement('img', array('src' => sbf('img/16/plus-black.png', ''), 'class' => 'btnUp'));
+			$row->quantity = $minus . ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}'") . $plus;
 		
 			$settings = cms_Domains::getSettings();
 			$finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, $rec->currencyId, $settings->currencyId);
@@ -337,7 +339,7 @@ class eshop_CartDetails extends core_Detail
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
-		if($action == 'removeexternal' || $action == 'updatecart' || $action == 'add'){
+		if($action == 'removeexternal' || $action == 'updatecart' || ($action == 'add' && isset($rec))){
 			if(empty($rec->cartId)){
 				$requiredRoles = 'no_one';
 			} elseif(!eshop_Carts::haveRightFor('viewexternal', $rec->cartId)){
@@ -404,13 +406,17 @@ class eshop_CartDetails extends core_Detail
 		$resObj3 = new stdClass();
 		$resObj3->func = "html";
 		$resObj3->arg = array('id' => 'cart-view-buttons', 'html' => eshop_Carts::renderCartToolbar($cartId)->getContent(), 'replace' => TRUE);
-			
+
+		// Ще реплейснем само бележката
+		$resObj4 = new stdClass();
+		$resObj4->func = "smartCenter";
+
 		// Показваме веднага и чакащите статуси
 		$hitTime = Request::get('hitTime', 'int');
 		$idleTime = Request::get('idleTime', 'int');
 		$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
 			
-		$res = array_merge(array($resObj, $resObj1, $resObj2, $resObj3), (array)$statusData);
+		$res = array_merge(array($resObj, $resObj1, $resObj2, $resObj3, $resObj4), (array)$statusData);
 		
 		return $res;
 	}
