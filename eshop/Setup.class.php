@@ -22,7 +22,7 @@ defIfNot('ESHOP_CART_EXTERNAL_NAME', 'Кошница');
 /**
  * Текст в магазина ако артикулът не е наличен
  */
-defIfNot('ESHOP_NOT_IN_STOCK_TEXT', 'Няма в наличност');
+defIfNot('ESHOP_NOT_IN_STOCK_TEXT', 'Няма наличност');
 
 
 /**
