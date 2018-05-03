@@ -3117,13 +3117,19 @@ fieldset.sharing-history {
 	margin: 20px 0;
 }
 
-#cart-external-status sup {
+#cart-external-status .count {
 	border: 1px solid #c00;
 	background-color: #ef2809;
 	color: #fff;
-	padding: 0px 3px 1px 2px;
+	width: 14px;
+	height: 14px;
 	font-size: 0.7em;
+	line-height: 13px;
 	border-radius: 50%;
+	text-align: center;
+	display: inline-block;
+	position: relative;
+	top: -6px;
 }
 
 .optionsTable {
