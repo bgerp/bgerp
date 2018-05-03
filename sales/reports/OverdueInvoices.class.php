@@ -24,7 +24,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $listItemsPerPage = 25;
+    protected $listItemsPerPage = 28;
 
     /**
      * По-кое поле да се групират листовите данни
@@ -189,13 +189,15 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
         
         arsort($invoiceCurrentSummArr);
+        
         $recs = $sRecs;
-        // $invoicesInThread = (deals_Helper::getInvoicesInThread ( $thread, $rec->checkDate, TRUE, TRUE, TRUE ));
         
         foreach ($invoiceCurrentSummArr as $k => $v) {
             foreach ($recs as $key => $val) {
                 
                 if ($val->contragentId == $k) {
+                    
+                    $val->invoiceCurrentSummArr = $invoiceCurrentSummArr;
                     
                     $rTemp[] = $val;
                 }
@@ -384,7 +386,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
         
         if (self::getPaidAmount($dRec) == 0) {
-             $row->paidAmount = "<span class= 'small quiet'>" .core_Type::getByName('double(decimals=2)')->toVerbal(
+            $row->paidAmount = "<span class= 'small quiet'>" . core_Type::getByName('double(decimals=2)')->toVerbal(
                 self::getPaidAmount($dRec)) . "</span>";
         } else {
             $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
@@ -496,8 +498,6 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $d2,
             $d3
         );
-        
-        bp($d1);
     }
 }
 
