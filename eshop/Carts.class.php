@@ -486,7 +486,8 @@ class eshop_Carts extends core_Master
     			}
     			
     			if(isset($discountType['percent'])){
-    				$discountPercent = core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->discount);
+    				$discountPercent = core_Type::getByName('percent(smartRound)')->toVerbal($dRec->discount);
+    				$discountPercent = str_replace('&nbsp;', '', $discountPercent);
     				$row->finalPrice .= "<div class='external-discount-percent'> (-{$discountPercent})</div>";
     			}
     		}
