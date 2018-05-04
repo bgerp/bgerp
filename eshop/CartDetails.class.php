@@ -140,6 +140,10 @@ class eshop_CartDetails extends core_Detail
     	$form->setOptions('productId', array('' => '') + $productOptions);
     	$form->setField('eshopProductId', 'input=none');
     	
+    	if(count($productOptions) == 1){
+    		$form->setDefault('productId', key($productOptions));
+    	}
+    	
     	if(isset($rec->productId)){
     		$form->setField('packagingId', 'input');
     		$form->setField('packQuantity', 'input');

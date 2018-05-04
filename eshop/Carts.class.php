@@ -288,6 +288,7 @@ class eshop_Carts extends core_Master
      */
     public static function getStatus($cartId = NULL)
     {
+    	// Пушване на езика от публичната част
     	$lang = cms_Domains::getPublicDomain('lang');
     	core_Lg::push($lang);
     	
@@ -485,24 +486,29 @@ class eshop_Carts extends core_Master
     	while($dRec = $dQuery->fetch()){
     		$data->recs[$dRec->id] = $dRec;
     		$row = eshop_CartDetails::recToVerbal($dRec, $fields);
+    		
     		if(!empty($dRec->discount)){
     			$settings = cms_Domains::getSettings();
     			$discountType = type_Set::toArray($settings->discountType);
 				$row->finalPrice .= "<div class='external-discount'>";
+    			
     			if(isset($discountType['amount'])){
     				$amountWithoutDiscount = $dRec->finalPrice / (1 - $dRec->discount);
     				$discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
     				$row->finalPrice .= "<div class='external-discount-amount'> {$discountAmount}</div>";
     			}
+				
 				if(isset($discountType['amount']) && isset($discountType['percent'])) {
 					$row->finalPrice .= " / ";
 				}
+    			
     			if(isset($discountType['percent'])){
     				$discountPercent = core_Type::getByName('percent(smartRound)')->toVerbal($dRec->discount);
     				$discountPercent = str_replace('&nbsp;', '', $discountPercent);
     				$row->finalPrice .= "<div class='external-discount-percent'> -{$discountPercent}</div>";
     			}
-				$row->finalPrice .= "</div>";
+				
+    			$row->finalPrice .= "</div>";
     		}
     		
     		$fullCode = cat_products::getVerbal($dRec->productId, 'code');
