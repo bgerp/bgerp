@@ -14,7 +14,7 @@
 class email_SpamRules extends core_Manager
 {
     
-    var $oldClassName = 'email_SpamRoute';
+    
     /**
      * Плъгини за зареждане
      */
