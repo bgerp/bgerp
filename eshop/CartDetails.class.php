@@ -378,6 +378,9 @@ class eshop_CartDetails extends core_Detail
 	 */
 	function act_removeexternal()
 	{
+		$lang = cms_Domains::getPublicDomain('lang');
+		core_Lg::push($lang);
+		
 		$id = Request::get('id', 'int');
 		$cartId = Request::get('cartId', 'int');
 		$this->requireRightFor('removeexternal', (object)array('cartId' => $cartId));
@@ -393,6 +396,7 @@ class eshop_CartDetails extends core_Detail
 		}
 		
 		core_Statuses::newStatus($msg);
+		core_Lg::pop();
 		
 		// Ако заявката е по ajax
 		if (Request::get('ajax_mode')) return self::getUpdateCartResponse($cartId);
