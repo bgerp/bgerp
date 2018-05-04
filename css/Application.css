@@ -2702,6 +2702,7 @@ span.sharing-history-title {
   text-align: center;
   display: inline-block;
   position: relative;
+  margin-left: 2px;
   top: -6px; }
 
 .optionsTable {
@@ -3275,7 +3276,6 @@ table .eshop-btn {
  * стилове за fileman
  */
 .webdrvTabBody {
-  max-width: 900px;
   min-width: 800px;
   min-height: 612px;
   top: 10px;
@@ -3291,11 +3291,15 @@ table .eshop-btn {
   border: solid 0 rgba(0, 0, 0, 0);
   min-height: 612px; }
 
+.wide .webdrvIframe {
+  min-width: 800px; }
+
 .narrow .webdrvIframe {
   min-height: 300px; }
 
 .wide .webdrvFieldset {
   min-height: 615px;
+  display: inline-block;
   border: 1px solid #cccccc;
   padding: 15px 10px 10px;
   -moz-border-radius: 5px;
