@@ -399,6 +399,14 @@ abstract class deals_DealMaster extends deals_DealBase
     			}
     		}
     	}
+    	
+    	if($mvc instanceof sales_Sales){
+    		if(isset($rec->deliveryTermId)){
+    			if($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $rec->deliveryLocationId)){
+    				$form->setError('deliveryTermId,deliveryAdress,deliveryLocationId', $error);
+    			}
+    		}
+    	}
     }
 
     
