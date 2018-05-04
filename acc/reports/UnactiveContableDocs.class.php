@@ -51,7 +51,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         $fieldset->FLD('states', 'keylist(mvc=doc_Containers,allowEmpty)', 
             'caption=Състояние,placeholder=Всички,after=documentType,single=none');
         $fieldset->FLD('dealerId', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 
-            'caption=Търговец,after=states');
+            'caption=Търговец,after=states,single=none');
     }
 
     /**
@@ -230,6 +230,8 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         
         $row->documentFolder = doc_Folders::getHyperlink($dRec->documentFolder);
         
+       
+        
         $row->dealerId = crm_Profiles::createLink($dRec->dealerId);
         
         return $row;
@@ -253,14 +255,8 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN states-->|Състояние|*: [#states#]<!--ET_END states--></div></small>
-                                <small><div><!--ET_BEGIN dealerId-->|Търговец|*: <b>[#dealerId#]</b><!--ET_END dealerId--></div></small>
+                                <small><div><!--ET_BEGIN dealerId-->|Търговец|*: [#dealerId#]<!--ET_END dealerId--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
-        
-        if (isset($data->rec->dealerId)) {
-            $fieldTpl->append(crm_Profiles::getTitleById($data->rec->dealerId), 'dealerId');
-        } else {
-            $fieldTpl->append('Всички', 'dealerId');
-        }
         
         if (isset($data->rec->from)) {
             $fieldTpl->append((dt::mysql2verbal($data->rec->from, $mask = "d.m.Y")), 'from');
@@ -274,10 +270,25 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
             
             foreach (type_Keylist::toArray($data->rec->states) as $state) {
                 
-                $statesVerb .= (cls::get(sales_Sales)->getFieldType('state')->toVerbal($state)) . ',';
+                $statesVerb .= (cls::get(sales_Sales)->getFieldType('state')->toVerbal($state)) . ', ';
             }
-            $fieldTpl->append($statesVerb, 'states');
+            $fieldTpl->append(trim($statesVerb,', '), 'states');
         }
+        
+        if (isset($data->rec->dealerId)) {
+            
+            foreach (type_Keylist::toArray($data->rec->dealerId) as $dealer) {
+                
+             
+            
+                $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
+            }
+            
+            $fieldTpl->append(trim($dealersVerb,', '), 'dealerId');
+        } else {
+            $fieldTpl->append('Всички', 'dealerId');
+        }
+        
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
 
