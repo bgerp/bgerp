@@ -399,7 +399,9 @@ class eshop_CartDetails extends core_Detail
 	private static function getUpdateCartResponse($cartId)
 	{
 		cls::get('eshop_Carts')->updateMaster($cartId);
-			
+		$lang = cms_Domains::getPublicDomain('lang');
+		core_Lg::push($lang);
+		
 		// Ще реплейснем само бележката
 		$resObj = new stdClass();
 		$resObj->func = "html";
@@ -430,6 +432,7 @@ class eshop_CartDetails extends core_Detail
 		$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
 			
 		$res = array_merge(array($resObj, $resObj1, $resObj2, $resObj3, $resObj4), (array)$statusData);
+		core_Lg::pop();
 		
 		return $res;
 	}

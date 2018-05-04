@@ -371,7 +371,7 @@ class eshop_Carts extends core_Master
     	
     	$settings = cms_Domains::getSettings();
     	
-    	$cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с включено ДДС') : tr('без ДДС'));
+    	$cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
     	$tpl->replace($cartInfo, 'VAT_STATUS');
     	
     	if(!empty($settings->info)){
