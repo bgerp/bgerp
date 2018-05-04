@@ -72,6 +72,12 @@ class eshop_CartDetails extends core_Detail
 	
 	
 	/**
+	 * Кой има право да чекаутва?
+	 */
+	public $canCheckout = 'every_one';
+	
+	
+	/**
 	 * Кой може да изтрива?
 	 */
 	public $canDelete = 'eshop,ceo';
@@ -357,7 +363,7 @@ class eshop_CartDetails extends core_Detail
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
-		if($action == 'removeexternal' || $action == 'updatecart' || ($action == 'add' && isset($rec))){
+		if($action == 'removeexternal' || $action == 'updatecart' || $action == 'checkout' || ($action == 'add' && isset($rec))){
 			if(empty($rec->cartId)){
 				$requiredRoles = 'no_one';
 			} elseif(!eshop_Carts::haveRightFor('viewexternal', $rec->cartId)){
