@@ -162,6 +162,8 @@ en,Артикули,Items
 en,артикул за,item for
 en,артикула за,items for
 en,Артикулът е премахнат,The item was removed
+en,Артикулът е добавен,The item was added
+en,Артикулът не е добавен,The item was not added
 en,Архивиран ли е?,Is it archived?
 en,Аутентикация,Authentication
 en,БД,DB
@@ -836,6 +838,7 @@ en,Кой/Какво,Who/What
 en,Кой?,Who?
 en,Количества,Quantities
 en,Количество,Quantity
+en,Количеството трябва да е цяло число,The quantity must be an integer
 en,Колони,Columns
 en,Колцентър,Callcenter
 en,Командировка,Travel Order
@@ -1051,6 +1054,8 @@ en,На български,In Bulgarian
 en,На вниманието на,On attention of
 en,На момента,Cash on Delivery
 en,На,On
+en,Над допустимото,Over the allowed
+en,Под допустимото,Below the allowed
 en,Наблюдение,Surveillance
 en,Назад,Back
 en,Назначени,Hired
@@ -1103,6 +1108,8 @@ en,Наш,Our
 en,Наши сметки,Our accounts
 en,Не е валидно ЕГ_50e3,Not valid EGN./Not valid Foreign Personal ID.
 en,Не е включен в _a3d49,It is not in lists
+en,Не е над,Must be over
+en,Не е под,Must be below
 en,Не може да се н_2c222,Could not make a reminder in the past 
 en,Не може да се намери имейл адресът Ви,Your email address can not be found
 en,Не се изисква,Not required
@@ -2225,6 +2232,7 @@ en,дни,days
 en,дн.,d.
 en,до,to
 en,Добавяне на артикул в,Add item in
+en,Добавяне на артикул,Add item
 en,добави,added
 en,добавяне на файл,adding new file
 en,домейн,domain
