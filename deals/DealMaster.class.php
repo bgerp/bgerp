@@ -996,7 +996,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			
 			if(!empty($deliveryAdress)){
-				$deliveryAdress1 = (isset($rec->deliveryTermId)) ? (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName') . ", ") : "";
+				$deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ", ") : "";
 				$deliveryAdress = $deliveryAdress1 . $deliveryAdress;
 				$row->deliveryTermId = $deliveryAdress;
 			}
