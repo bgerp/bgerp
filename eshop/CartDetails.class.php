@@ -127,6 +127,13 @@ class eshop_CartDetails extends core_Detail
     {
     	$form = &$data->form;
     	$rec = $form->rec;
+    	
+    	if(isset($rec->external)){
+    		Mode::set('wrapper', 'cms_page_External');
+    		$lang = cms_Domains::getPublicDomain('lang');
+    		core_Lg::push($lang);
+    	}
+    	
     	$form->FNC('displayPrice', 'double', 'caption=Цена, input=none');
     	$productOptions = eshop_ProductDetails::getAvailableProducts();
     	
@@ -151,12 +158,6 @@ class eshop_CartDetails extends core_Detail
     		$form->setOptions('packagingId', $packs);
     		$form->setDefault('packagingId', key($packs));
     		$form->setField('displayPrice', 'input');
-    	}
-    	
-    	if(isset($rec->external)){
-    		Mode::set('wrapper', 'cms_page_External');
-    		$lang = cms_Domains::getPublicDomain('lang');
-    		core_Lg::push($lang);
     	}
     }
     
