@@ -151,6 +151,8 @@ class eshop_CartDetails extends core_Detail
     	
     	if(isset($rec->external)){
     		Mode::set('wrapper', 'cms_page_External');
+    		$lang = cms_Domains::getPublicDomain('lang');
+    		core_Lg::push($lang);
     	}
     }
     
@@ -323,11 +325,11 @@ class eshop_CartDetails extends core_Detail
 			core_RowToolbar::createIfNotExists($row->_rowTools);
 			if($mvc->haveRightFor('removeexternal', $rec)){
 				$removeUrl = toUrl(array('eshop_CartDetails', 'removeexternal', $rec->id), 'local');
-				$row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => "img/16/delete.png", 'title' => "Премахване от кошницата", 'data-cart' => $rec->cartId, "data-url" => $removeUrl, "class" => 'remove-from-cart'));
+				$row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => "img/16/delete.png", 'title' => "Изтриване на реда", 'data-cart' => $rec->cartId, "data-url" => $removeUrl, "class" => 'remove-from-cart'));
 			}
 			
 			$row->productId = cat_Products::getVerbal($rec->productId, 'name');
-			$row->packagingId = cat_UoM::getShortName($rec->packagingId);
+			$row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
 			
 			$quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
 			$dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
@@ -371,12 +373,12 @@ class eshop_CartDetails extends core_Detail
 		
 		if(isset($id)){
 			$this->delete($id);
-			$msg = 'Артикулът е премахнат от кошницата|*!';
+			$msg = 'Артикулът е премахнат|*!';
 		} else {
 			$this->delete("#cartId = {$cartId}");
 			cls::get('eshop_Carts')->updateMaster($cartId);
 			eshop_Carts::delete($cartId);
-			$msg = 'Кошницата е изпразнена успешно|*!';
+			$msg = 'Кошницата е изпразнена|*!';
 		}
 		
 		core_Statuses::newStatus($msg);

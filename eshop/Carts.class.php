@@ -288,6 +288,9 @@ class eshop_Carts extends core_Master
      */
     public static function getStatus($cartId = NULL)
     {
+    	$lang = cms_Domains::getPublicDomain('lang');
+    	core_Lg::push($lang);
+    	
     	$tpl = new core_ET("[#text#]");
     	
     	$settings = cms_Domains::getSettings();
@@ -324,6 +327,8 @@ class eshop_Carts extends core_Master
 		$tpl->removeBlocks();
     	$tpl->removePlaces();
 
+    	core_Lg::pop();
+    	
     	return $tpl;
     }
     
@@ -349,6 +354,9 @@ class eshop_Carts extends core_Master
      */
     public function act_View()
     {
+    	$lang = cms_Domains::getPublicDomain('lang');
+    	core_Lg::push($lang);
+    	
     	$this->requireRightFor('viewexternal');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = self::fetch($id));
@@ -371,6 +379,7 @@ class eshop_Carts extends core_Master
     	}
     	
     	Mode::set('wrapper', 'cms_page_External');
+    	core_Lg::pop();
     	
     	return $tpl;
     }

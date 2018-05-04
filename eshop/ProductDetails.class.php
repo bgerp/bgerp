@@ -388,7 +388,7 @@ class eshop_ProductDetails extends core_Detail
 		$fieldset->FNC('code', 'varchar', 'smartCenter');
 		$fieldset->FNC('catalogPrice', 'double');
 		$fieldset->FNC('btn', 'varchar', 'tdClass=small-field');
-		$fieldset->FNC('packagingId', 'varchar', 'smartCenter');
+		$fieldset->FNC('packagingId', 'varchar', 'tdClass=nowrap');
 		$fieldset->FLD('quantity', 'varchar');
 		$fieldset->setField('quantity', 'tdClass=quantity-input-column');
 		
