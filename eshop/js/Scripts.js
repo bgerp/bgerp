@@ -26,6 +26,11 @@ function eshopActions() {
 	    var packagingId = $(this).attr("data-packagingid");
 	    var packQuantity = $("input[name=product" + productId + "-" + packagingId +"]").val();
 	    
+	    if(!$.isNumeric(packQuantity) || packQuantity < 1){
+	    	$(this).addClass('inputError');
+	    	return;
+	    }
+	    
 	    if(!packQuantity){
 	    	packQuantity = 1;
 	    }
@@ -71,7 +76,7 @@ function eshopActions() {
 		$(this).removeClass('inputError');
 		
 		var packQuantity = $(this).val();
-		if(!$.isNumeric(packQuantity)){
+		if(!$.isNumeric(packQuantity) || packQuantity < 1){
 			$(this).addClass('inputError');
 		}
 	});
