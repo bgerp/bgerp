@@ -387,12 +387,12 @@ class eshop_CartDetails extends core_Detail
 		
 		if(isset($id)){
 			$this->delete($id);
-			$msg = 'Артикулът е премахнат|*!';
+			$msg = '|Артикулът е премахнат|*!';
 		} else {
 			$this->delete("#cartId = {$cartId}");
 			cls::get('eshop_Carts')->updateMaster($cartId);
 			eshop_Carts::delete($cartId);
-			$msg = 'Кошницата е изпразнена|*!';
+			$msg = '|Кошницата е изпразнена|*!';
 		}
 		
 		core_Statuses::newStatus($msg);

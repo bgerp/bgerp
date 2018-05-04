@@ -147,27 +147,29 @@ class eshop_Carts extends core_Master
     	$packQuantity = Request::get('packQuantity', 'double');
     	
     	// Данните от опаковката
-    	$packRec = cat_products_Packagings::getPack($productId, $packagingId);
-    	$quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
-    	$canStore = cat_Products::fetchField($productId, 'canStore');
-    	
-    	// Ако има избран склад, проверка дали к-то е допустимо
-    	$msg = 'Проблем при добавянето на артикулът|*!';
-    	$settings = cms_Domains::getSettings();
-    	if(isset($settings->storeId) &&  $canStore == 'yes'){
-    		$quantity = store_Products::getQuantity($productId, $settings->storeId, TRUE);
-    		if($quantity < $quantityInPack * $packQuantity){
-    			$msg = 'Избраното количество не е налично ' . $quantity . " > $quantityInPack > $packQuantity" ;
+    	if(isset($productId)){
+    		$packRec = cat_products_Packagings::getPack($productId, $packagingId);
+    		$quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
+    		$canStore = cat_Products::fetchField($productId, 'canStore');
+    		
+    		// Проверка на к-то
+    		if(!deals_Helper::checkQuantity($packagingId, $packQuantity, $warning)){
+    			$msg = $warning;
     			$success = FALSE;
     			$skip = TRUE;
     		}
     	}
     	
-    	// Проверка на к-то
-    	if(!deals_Helper::checkQuantity($packagingId, $packQuantity, $warning)){
-    		$msg = $warning;
-    		$success = FALSE;
-    		$skip = TRUE;
+    	// Ако има избран склад, проверка дали к-то е допустимо
+    	$msg = '|Проблем при добавянето на артикулът|*!';
+    	$settings = cms_Domains::getSettings();
+    	if(isset($settings->storeId) &&  $canStore == 'yes'){
+    		$quantity = store_Products::getQuantity($productId, $settings->storeId, TRUE);
+    		if($quantity < $quantityInPack * $packQuantity){
+    			$msg = '|Избраното количество не е налично|* ' . $quantity . " > $quantityInPack > $packQuantity" ;
+    			$success = FALSE;
+    			$skip = TRUE;
+    		}
     	}
     	
     	$success = FALSE;
@@ -178,16 +180,21 @@ class eshop_Carts extends core_Master
     			$this->requireRightFor('addtocart', $cartId);
     			eshop_CartDetails::addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack);
     			$this->updateMaster($cartId);
-    			$msg = 'Артикулът е добавен|*!';
+    			$msg = '|Артикулът е добавен|*!';
     			$success = TRUE;
     		} catch(core_exception_Expect $e){
     			reportException($e);
-    			$msg = 'Артикулът не е добавен|*!';
+    			$msg = '|Артикулът не е добавен|*!';
     		}
     	}
     	
     	// Ако режимът е за AJAX
     	if (Request::get('ajax_mode')) {
+    		
+    		// Пушване на езика от публичната част
+    		$lang = cms_Domains::getPublicDomain('lang');
+    		core_Lg::push($lang);
+    		
     		core_Statuses::newStatus($msg, ($success === TRUE) ? 'notice' : 'error');
     		
     		// Ще се реплейсне статуса на кошницата
@@ -200,6 +207,7 @@ class eshop_Carts extends core_Master
     		$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
     		 
     		$res = array_merge(array($resObj), (array)$statusData);
+    		core_Lg::pop();
     		
     		return $res;
     	}
