@@ -178,11 +178,11 @@ class eshop_Carts extends core_Master
     			$this->requireRightFor('addtocart', $cartId);
     			eshop_CartDetails::addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack);
     			$this->updateMaster($cartId);
-    			$msg = 'Артикулът е добавен|*|';
+    			$msg = 'Артикулът е добавен|*!';
     			$success = TRUE;
     		} catch(core_exception_Expect $e){
     			reportException($e);
-    			$msg = 'Проблем при добавянето|*!';
+    			$msg = 'Артикулът не е добавен|*!';
     		}
     	}
     	
