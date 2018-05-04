@@ -26,13 +26,13 @@ function eshopActions() {
 	    var packagingId = $(this).attr("data-packagingid");
 	    var packQuantity = $("input[name=product" + productId + "-" + packagingId +"]").val();
 	    
+	    if(!packQuantity){
+	    	packQuantity = 1;
+	    }
+	    
 	    if(!$.isNumeric(packQuantity) || packQuantity < 1){
 	    	$(this).addClass('inputError');
 	    	return;
-	    }
-	    
-	    if(!packQuantity){
-	    	packQuantity = 1;
 	    }
 	    
 	    var data = {eshopProductId:eshopProductId,productId:productId,packQuantity:packQuantity,packagingId:packagingId};
