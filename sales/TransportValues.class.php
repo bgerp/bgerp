@@ -541,6 +541,49 @@ class sales_TransportValues extends core_Manager
     }
     
     
+    
+    /**
+     * Помощен метод дали има грешка при избраното условие на доставка
+     * 
+     * @param int $deliveryTermId          - условие на доставка
+     * @param string $deliveryAddress      - точно място на доставка
+     * @param int $contragentClassId       - клас на контрагента
+     * @param int $contragentId            - ид на контрагент
+     * @param int|NULL $deliveryLocationId - адрес на локация
+     * @return FALSE|string                - съобщението за грешка, което ще се показва
+     */
+    public static function getDeliveryTermError($deliveryTermId, $deliveryAddress, $contragentClassId, $contragentId, $deliveryLocationId)
+    {
+    	// Ако няма изчисляване на транспорт не се връща нищо
+    	$Driver = cond_DeliveryTerms::getTransportCalculator($deliveryTermId);
+    	if(empty($Driver)) return FALSE;
+    	
+    	$toPcodeId = $toCountryId = NULL;
+    	if(!empty($deliveryAddress)){
+    		if($parsePlace = drdata_Address::parsePlace($deliveryAddress)){
+    			$toCountryId = $parsePlace->countryId;
+    			$toPcodeId = $parsePlace->pCode;
+    		}
+    	}
+    	
+    	// Извличане на държавата и кода
+    	$codeAndCountryArr = self::getCodeAndCountryId($contragentClassId, $contragentId, $toPcodeId, $toCountryId, $deliveryLocationId);
+    	$ourCompany = crm_Companies::fetchOurCompany();
+    	
+    	// Опит за изчисляване на дъмми транспорт
+    	$totalFee = $Driver->getTransportFee($deliveryTermId, 1, 1, 1000, 1000, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode'], $ourCompany->country, $ourCompany->pCode);
+    	
+    	if($totalFee['fee'] <= 0) {
+    		$toCountryId = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($codeAndCountryArr['countryId'] );
+    		$errAddress = $toCountryId . " " . $codeAndCountryArr['pCode'];
+    		
+    		return "|За избрания адрес|* '{$errAddress}' |не може да се изчисли доставка|*!";
+    	}
+    	
+    	return FALSE;
+    }
+    
+    
     /**
      * Помощна функция за подотовка на цената на транспорта
      * 

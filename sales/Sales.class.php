@@ -1152,6 +1152,13 @@ class sales_Sales extends deals_DealMaster
     				$row->btnTransport = $link->getContent();
     			}
     		}
+    		
+    		if(isset($rec->deliveryTermId)){
+    			if($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $rec->deliveryLocationId)){
+    				$row->deliveryTermId = ht::createHint($row->deliveryTermId, $error, 'error');
+    			}
+    		}
+    		
     	}
     }
     
