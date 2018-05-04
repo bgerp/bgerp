@@ -687,7 +687,6 @@ en,Изпитателен срок,Probation
 en,Използван доку_e8f2,Used document
 en,Използван на,Used on
 en,Използване,Using
-en,Изпразване,Empty
 en,Изпратен,Sent
 en,Изпратени факс_d0b0,Sent faxes
 en,Изпратено на,Sent on
@@ -721,7 +720,7 @@ en,Изходящи,Outgoing
 en,Изчакайте и оп_cee8a,Please try again later
 en,Изчислена,Calculated
 en,Изчисляване,Calculation
-en,Изчистване,Empting
+en,Изчистване,Empty
 en,Икона,Icon
 en,Илюстрация на продукта,Product illustration
 en,Имате ли някакви въпроси за,Do you have any questions for
@@ -1454,6 +1453,7 @@ en,Порт,Port
 en,Портове,Ports
 en,Поръчано,Ordered
 en,Поръчване,Order
+en,Поръчване на артикулите,Order items
 en,Поръчка,Order
 en,Поръчки за храна,Orders for food
 en,Поръчки,Orders
@@ -1519,6 +1519,8 @@ en,Прекалено дълг_7fa8,Too long time for relogin
 en,Прекалено крат_9f06,Too short time for relogin
 en,Прекъснато,Interrupted
 en,Премахване,Remove
+en,Премахване на артикулите,Remove all items
+en,Добавяне на нов артикул,Add new item
 en,Преместване в _56087,Move selected threads to a new Company folder
 en,Преместване в _8ff89,Moving in new Persons folder
 en,Преместване към,Move to
@@ -2308,6 +2310,8 @@ en,на ден,per day
 en,на момента,in time
 en,на сървъра,on the server
 en,на,on
+en,Намяляване на количеството,Reduce quantity
+en,Увеличаване на количеството,Increase quantity
 en,намиращи се в,located in
 en,напомняне,reminder
 en,начално,start
