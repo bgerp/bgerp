@@ -575,9 +575,9 @@ class sales_TransportValues extends core_Manager
     	
     	if($totalFee['fee'] <= 0) {
     		$toCountryId = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($codeAndCountryArr['countryId'] );
-    		$errAddress = $toCountryId . " " . $codeAndCountryArr['pCode'];
+    		$errAddress = cond_DeliveryTerms::getVerbal($deliveryTermId, 'codeName') . ", " . $toCountryId . " " . $codeAndCountryArr['pCode'];
     		
-    		return "|Не може да се изчисли доставка до|*: <b>{$errAddress}</b>";
+    		return "|Не може да се изчисли транспорт за|*: <b>{$errAddress}</b>";
     	}
     	
     	return FALSE;
