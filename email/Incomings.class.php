@@ -584,7 +584,7 @@ class email_Incomings extends core_Master
         // Преобразуваме в масив с хедъри и сериализираме
         $rec->headers = $mime->parseHeaders($headersStr);
         
-        $rec->spamScore = email_Spam::getSpamScore($rec->headers);
+        $rec->spamScore = email_Spam::getSpamScore($rec->headers, TRUE, $mime, $rec);
         
         // Записваме (и автоматично рутираме) писмото
         $saved = email_Incomings::save($rec);
@@ -1803,7 +1803,7 @@ class email_Incomings extends core_Master
         
         $score = $rec->spamScore;
         if (!isset($score)) {
-            $score = email_Spam::getSpamScore($rec->headers, FALSE);
+            $score = email_Spam::getSpamScore($rec->headers, FALSE, NULL, $rec);
         }
         
         $spamScore = email_Setup::get('REJECT_SPAM_SCORE');
