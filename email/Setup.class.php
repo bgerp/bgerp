@@ -884,7 +884,7 @@ class email_Setup extends core_ProtoSetup
             $nRec->state = $fRec->state;
             $nRec->createdOn = $fRec->createdOn;
             $nRec->createdBy = $fRec->createdBy;
-            $nRec->points = email_Setup::get('HARD_SPAM_SCORE');
+            $nRec->points = email_Setup::get('HARD_SPAM_SCORE') + 1;
             
             email_SpamRules::save($nRec, NULL, 'IGNORE');
             
