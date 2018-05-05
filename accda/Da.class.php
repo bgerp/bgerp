@@ -112,7 +112,7 @@ class accda_Da extends core_Master
     /**
      * Полета за показване в списъчния изглед
      */
-    public $listFields = 'valior,handler=Документ,title,num,serial,createdOn,createdBy';
+    public $listFields = 'valior,handler=Документ,title,num,serial,location,createdOn,createdBy';
 
     
     /**

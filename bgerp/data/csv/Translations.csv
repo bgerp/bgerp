@@ -16,6 +16,7 @@ en,"Имейли, които не могат да се парсират",Emails 
 en,"Класове, имащи _436a",Classes with interfaces
 en,"Логнете се, за да видите нишката",Login to see the thread
 en,"Свали като PDF",Download as PDF
+en,"Свали като",Download as
 en,"Можете да нaтиснете","You can click"
 en,"Моля, въведете _c6b3",Please enter the contact details of the company
 en,"Моля, въведете _dfd8",Please enter the contact details of the person
@@ -158,6 +159,11 @@ en,Април,April
 en,Артикул,Item
 en,Артикули в кат_f7279,Products in Catalog
 en,Артикули,Items
+en,артикул за,item for
+en,артикула за,items for
+en,Артикулът е премахнат,The item was removed
+en,Артикулът е добавен,The item was added
+en,Артикулът не е добавен,The item was not added
 en,Архивиран ли е?,Is it archived?
 en,Аутентикация,Authentication
 en,БД,DB
@@ -326,6 +332,7 @@ en,Всички сметки,All accounts
 en,Всички стари->н_a927,All oldest->newest
 en,Всички фактури_fe82,All sales invoices
 en,Всички цени са,All prices are
+en,Всички цени са в,All prices are in
 en,Всички ценораз_2c36,All price lists
 en,Всички,All
 en,Всяка сряда,Every Wednesday
@@ -494,6 +501,7 @@ en,Добави към пот_57ea5,Add to user
 en,Добави,Add
 en,Добавки към публичната страница,Supplements public page
 en,Добавки,Additions
+en,Добавяне,Add
 en,Добавяне на вр_ef44b,Add link
 en,Добавяне на документ/и от системата,Add document/s from the system
 en,Добавяне на за_4524f,"Add an entry in ""Catering Companies"""
@@ -681,7 +689,6 @@ en,Изпитателен срок,Probation
 en,Използван доку_e8f2,Used document
 en,Използван на,Used on
 en,Използване,Using
-en,Изпразване,Emptying
 en,Изпратен,Sent
 en,Изпратени факс_d0b0,Sent faxes
 en,Изпратено на,Sent on
@@ -702,6 +709,7 @@ en,Източник,Source
 en,Изтриване на в_84902,Delete all records
 en,Изтриване на и_33938,Delete expired records
 en,Изтриване на,Delete
+en,Изтриване на реда,Delete row
 en,Изтриване,Delete
 en,Изтриване?,Delete?
 en,Изход,Exit
@@ -714,7 +722,7 @@ en,Изходящи,Outgoing
 en,Изчакайте и оп_cee8a,Please try again later
 en,Изчислена,Calculated
 en,Изчисляване,Calculation
-en,Изчистване,Empting
+en,Изчистване,Empty
 en,Икона,Icon
 en,Илюстрация на продукта,Product illustration
 en,Имате ли някакви въпроси за,Do you have any questions for
@@ -830,6 +838,7 @@ en,Кой/Какво,Who/What
 en,Кой?,Who?
 en,Количества,Quantities
 en,Количество,Quantity
+en,Количеството трябва да е цяло число,The quantity must be an integer
 en,Колони,Columns
 en,Колцентър,Callcenter
 en,Командировка,Travel Order
@@ -1045,6 +1054,8 @@ en,На български,In Bulgarian
 en,На вниманието на,On attention of
 en,На момента,Cash on Delivery
 en,На,On
+en,Над допустимото,Over the allowed
+en,Под допустимото,Below the allowed
 en,Наблюдение,Surveillance
 en,Назад,Back
 en,Назначени,Hired
@@ -1097,6 +1108,8 @@ en,Наш,Our
 en,Наши сметки,Our accounts
 en,Не е валидно ЕГ_50e3,Not valid EGN./Not valid Foreign Personal ID.
 en,Не е включен в _a3d49,It is not in lists
+en,Не е над,Must be over
+en,Не е под,Must be below
 en,Не може да се н_2c222,Could not make a reminder in the past 
 en,Не може да се намери имейл адресът Ви,Your email address can not be found
 en,Не се изисква,Not required
@@ -1172,6 +1185,7 @@ en,Няма данни,No data availible
 en,Няма достъпна _a3fb2,No accessible system
 en,Няма записи,No records
 en,Няма информация,No Information
+en,Няма наличност,Not in stock
 en,Няма права за п_b9e7,No write rights in
 en,Няма продаваеми Спецификации,No marketable Specifications
 en,Няма резултати,No results found
@@ -1445,6 +1459,8 @@ en,Популярни продукти,Popular products
 en,Порт,Port
 en,Портове,Ports
 en,Поръчано,Ordered
+en,Поръчване,Order
+en,Поръчване на артикулите,Order items
 en,Поръчка,Order
 en,Поръчки за храна,Orders for food
 en,Поръчки,Orders
@@ -1510,6 +1526,8 @@ en,Прекалено дълг_7fa8,Too long time for relogin
 en,Прекалено крат_9f06,Too short time for relogin
 en,Прекъснато,Interrupted
 en,Премахване,Remove
+en,Премахване на артикулите,Remove all items
+en,Добавяне на нов артикул,Add new item
 en,Преместване в _56087,Move selected threads to a new Company folder
 en,Преместване в _8ff89,Moving in new Persons folder
 en,Преместване към,Move to
@@ -1752,6 +1770,7 @@ en,С рутиране,Routing
 en,СМС,SMS
 en,Посещения по IP,Visitors by IP
 en,Посещения по ресурс,Visitors by resource
+en,с,with
 en,Сайт,Site
 en,Сайт/Блог,Site/Blog
 en,Салдо,Balance
@@ -2175,6 +2194,7 @@ en,ако не желаете да получавате повече инфор�
 en,аларма,alarm
 en,април,April
 en,артикул,item
+en,артикула,items
 en,бака,pail
 en,без ДДС,without VAT
 en,без извадени отстъпки,without discounts
@@ -2211,6 +2231,8 @@ en,джаул,joule
 en,дни,days
 en,дн.,d.
 en,до,to
+en,Добавяне на артикул в,Add item in
+en,Добавяне на артикул,Add item
 en,добави,added
 en,добавяне на файл,adding new file
 en,домейн,domain
@@ -2296,6 +2318,8 @@ en,на ден,per day
 en,на момента,in time
 en,на сървъра,on the server
 en,на,on
+en,Намяляване на количеството,Reduce quantity
+en,Увеличаване на количеството,Increase quantity
 en,намиращи се в,located in
 en,напомняне,reminder
 en,начално,start
@@ -2454,11 +2478,32 @@ en,Интернет линк,Internet link
 en,CSV файл,CSV file
 en,HTML файл,HTML file
 en,XLS таблица,XLS table
+en,PDF файл,PDF file
 en,Спешен,Urgent
 en,Универсален артикул,General item
 en,Добавяне или промяна на файлове,Add or change files
 en,Грешка при експорт,Export error
-en,Кошница,Backet
+en,Кошница,Basket
+en,Количка,Cart
 en,Печат на документа,Document printing
 en,Експорт на документа,Document exporting
 en,Клониране на,Cloning of
+en,Потребителят,The user
+en,е блокиран,is blocked
+en,"За да го отблокирате, моля последвайте този линк","To unblock it, please follow this link"
+en,Линкът ще изтече на,Link will expire on
+en,Поздрави,Regards
+en,Отблокиран потребител,Unblocked user
+en,"Успешно отблокирахте потребителя. Моля, логнете се и сменете паролата си.","Successful unblock user. Please sign-in and change your password"
+en,Отблокиран локален потребител,Unblocked local user
+en,Активиране на вашия достъп до системата,Your system access activation
+en,Паролата трябва да е минимум,The password must be at least
+en,Вашата парола,Your password
+en,"Въведете отново паролата за потвърждение, че сте я написали правилно","Please input your password again, to prove correct spelling"
+en,"За да си активирате достъпа до системата, моля въведете избраната от вас парола в полетата по-долу. Паролата трябва да е поне","In order to activate your account, please input your chosen password on the following fields. The password must be at least"
+en,"символа и да съдържа букви, цифри и други символи.","symbols and must contain letters, digits and other characters"
+en,Задаване на нова парола,Setting new password
+
+
+
+

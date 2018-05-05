@@ -26,7 +26,7 @@
     <!--ET_END groupsInput-->
     <!--ET_BEGIN meta-->
     <fieldset class="detail-info">
-         <legend class="groupTitle">|Свойства|* [#editMetaBtn#]</legend>
+         <legend class="groupTitle nowrap">|Свойства|* [#editMetaBtn#]</legend>
          <div class="groupList">[#meta#]</div>
     </fieldset>
     <!--ET_END meta-->

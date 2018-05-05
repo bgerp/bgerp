@@ -200,6 +200,7 @@ class bgerp_Setup extends core_ProtoSetup {
     var $managers = array(
             'migrate::addThreadIdToRecently',
             'migrate::migrateBookmarks2',
+            'migrate::fixTreeObjectName',
         );
     
     
@@ -559,5 +560,37 @@ class bgerp_Setup extends core_ProtoSetup {
  
   
         return "<li>Мигрирани букмарки: " . $cnt;    
+    }
+    
+    
+    /**
+     * 
+     */
+    public static function fixTreeObjectName()
+    {
+        foreach (array('cat_Groups', 'crm_Groups', 'hr_Departments') as $clsName) {
+            if (!cls::load($clsName, TRUE)) continue ;
+            
+            $clsInst = cls::get($clsName);
+            
+            if (!$clsInst->hasPlugin('plg_TreeObject')) continue ;
+            
+            $clsQuery = $clsInst->getQuery();
+            $clsQuery->where("#{$clsInst->nameField} = '' OR #{$clsInst->nameField} IS NULL");
+            
+            while ($cRec = $clsQuery->fetch()) {
+                $pQuery = $clsInst->getQuery();
+                $pQuery->where(array("#parentId = '[#1#]'", $cRec->id));
+                
+                while ($pRec = $pQuery->fetch()) {
+                    $pRec->parentId = NULL;
+                    $clsInst->logDebug('Нулиран parentId', $pRec);
+                    $clsInst->save_($pRec, 'parentId');
+                }
+                
+                $clsInst->logDebug('Изтрит запис с празна стойност', $cRec);
+                $clsInst->delete($cRec->id);
+            }
+        }
     }
 }

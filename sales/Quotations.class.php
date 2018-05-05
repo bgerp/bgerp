@@ -429,6 +429,12 @@ class sales_Quotations extends core_Master
 	    			$form->setError('deliveryAdress', 'Адресът трябва да съдържа държава и пощенски код');
 	    		}
 	    	}
+	    	
+	    	if(isset($rec->deliveryTermId)){
+	    		if($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $rec->deliveryPlaceId)){
+	    			$form->setError('deliveryTermId,deliveryAdress,deliveryPlaceId', $error);
+	    		}
+	    	}
 		}
     }
     

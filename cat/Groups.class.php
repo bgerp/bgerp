@@ -48,12 +48,6 @@ class cat_Groups extends core_Manager
     
     
     /**
-     * Кои полета да се сумират за наследниците
-     */
-    public $fieldsToSumOnChildren = 'productCnt';
-    
-    
-    /**
      * Наименование на единичния обект
      */
     public $singleTitle = "Група";

@@ -72,6 +72,12 @@ class eshop_CartDetails extends core_Detail
 	
 	
 	/**
+	 * Кой има право да чекаутва?
+	 */
+	public $canCheckout = 'every_one';
+	
+	
+	/**
 	 * Кой може да изтрива?
 	 */
 	public $canDelete = 'eshop,ceo';
@@ -127,11 +133,29 @@ class eshop_CartDetails extends core_Detail
     {
     	$form = &$data->form;
     	$rec = $form->rec;
+    	
+    	if(isset($rec->external)){
+    		Mode::set('wrapper', 'cms_page_External');
+    		$lang = cms_Domains::getPublicDomain('lang');
+    		core_Lg::push($lang);
+    	}
+    	
     	$form->FNC('displayPrice', 'double', 'caption=Цена, input=none');
     	$productOptions = eshop_ProductDetails::getAvailableProducts();
     	
+    	// От наличните опции се махат тези вече в количката
+    	$query = self::getQuery();
+    	$query->where("#cartId = {$rec->cartId}");
+    	$query->show('productId');
+    	$alreadyIn = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+    	$productOptions = array_diff_key($productOptions, $alreadyIn);
+    	
     	$form->setOptions('productId', array('' => '') + $productOptions);
     	$form->setField('eshopProductId', 'input=none');
+    	
+    	if(count($productOptions) == 1){
+    		$form->setDefault('productId', key($productOptions));
+    	}
     	
     	if(isset($rec->productId)){
     		$form->setField('packagingId', 'input');
@@ -140,10 +164,6 @@ class eshop_CartDetails extends core_Detail
     		$form->setOptions('packagingId', $packs);
     		$form->setDefault('packagingId', key($packs));
     		$form->setField('displayPrice', 'input');
-    	}
-    	
-    	if(isset($rec->external)){
-    		Mode::set('wrapper', 'cms_page_External');
     	}
     }
     
@@ -180,21 +200,25 @@ class eshop_CartDetails extends core_Detail
     			$form->setReadOnly('displayPrice', $price->price);
     			$unit = $settings->currencyId . " " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
     			$form->setField('displayPrice', "unit={$unit}");
+    			$form->rec->haveVat = $settings->chargeVat;
+    			$form->rec->vat = cat_Products::getVat($rec->productId);
     		}
     	}
     	
     	if($form->isSubmitted()){
     		$rec->eshopProductId = eshop_ProductDetails::fetchField("#productId = {$rec->productId}", 'eshopProductId');
 
-    		if($id = eshop_CartDetails::fetchField("#cartId = {$rec->cartId} AND #eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId} AND #packagingId = {$rec->packagingId}")){
-    			$exRec = self::fetch($id);
-    			$rec->packQuantity += ($exRec->quantity / $exRec->quantityInPack);
-    			$rec->id = $id;
-    		}
-    		
     		// Проверка на к-то
     		if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
     			$form->setError('packQuantity', $warning);
+    		}
+    		
+    		if(!$form->gotErrors()){
+    			if($id = eshop_CartDetails::fetchField("#cartId = {$rec->cartId} AND #eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId} AND #packagingId = {$rec->packagingId}")){
+    				$exRec = self::fetch($id);
+    				$rec->packQuantity += ($exRec->quantity / $exRec->quantityInPack);
+    				$rec->id = $id;
+    			}
     		}
     	}
     }
@@ -206,7 +230,7 @@ class eshop_CartDetails extends core_Detail
      * @param core_Mvc $mvc
      * @param stdClass $rec
      */
-    public static function on_CalcAmount(core_Mvc $mvc, $rec)
+    protected static function on_CalcAmount(core_Mvc $mvc, $rec)
     {
     	if (!isset($rec->finalPrice) || empty($rec->quantity) || empty($rec->quantityInPack)) return;
     
@@ -227,7 +251,7 @@ class eshop_CartDetails extends core_Detail
 	 */
 	public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = NULL, $packPrice = NULL, $domainId = NULL)
 	{
-		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'draft'"));
+		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'active'"));
 		expect($eshopRec = eshop_Products::fetch($eshopProductId));
 		expect(cat_Products::fetch($productId));
 		
@@ -312,16 +336,18 @@ class eshop_CartDetails extends core_Detail
 			core_RowToolbar::createIfNotExists($row->_rowTools);
 			if($mvc->haveRightFor('removeexternal', $rec)){
 				$removeUrl = toUrl(array('eshop_CartDetails', 'removeexternal', $rec->id), 'local');
-				$row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => "img/16/delete.png", 'title' => "Премахване от кошницата", 'data-cart' => $rec->cartId, "data-url" => $removeUrl, "class" => 'remove-from-cart'));
+				$row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => "img/16/delete.png", 'title' => "Изтриване на реда", 'data-cart' => $rec->cartId, "data-url" => $removeUrl, "class" => 'remove-from-cart'));
 			}
 			
 			$row->productId = cat_Products::getVerbal($rec->productId, 'name');
-			$row->packagingId = cat_UoM::getShortName($rec->packagingId);
+			$row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
 			
 			$quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
 			$dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
-			
-			$row->quantity = ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}'");
+
+			$minus = ht::createElement('img', array('src' => sbf('img/16/minus-black.png', ''), 'class' => 'btnDown', 'title' => 'Намяляване на количеството'));
+			$plus = ht::createElement('img', array('src' => sbf('img/16/plus-black.png', ''), 'class' => 'btnUp', 'title' => 'Увеличаване на количеството'));
+			$row->quantity = $minus . ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}'") . $plus;
 		
 			$settings = cms_Domains::getSettings();
 			$finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, $rec->currencyId, $settings->currencyId);
@@ -337,7 +363,7 @@ class eshop_CartDetails extends core_Detail
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
-		if($action == 'removeexternal' || $action == 'updatecart' || $action == 'add'){
+		if($action == 'removeexternal' || $action == 'updatecart' || $action == 'checkout' || ($action == 'add' && isset($rec))){
 			if(empty($rec->cartId)){
 				$requiredRoles = 'no_one';
 			} elseif(!eshop_Carts::haveRightFor('viewexternal', $rec->cartId)){
@@ -352,21 +378,25 @@ class eshop_CartDetails extends core_Detail
 	 */
 	function act_removeexternal()
 	{
+		$lang = cms_Domains::getPublicDomain('lang');
+		core_Lg::push($lang);
+		
 		$id = Request::get('id', 'int');
 		$cartId = Request::get('cartId', 'int');
 		$this->requireRightFor('removeexternal', (object)array('cartId' => $cartId));
 		
 		if(isset($id)){
 			$this->delete($id);
-			$msg = 'Артикулът е премахнат от кошницата|*!';
+			$msg = '|Артикулът е премахнат|*!';
 		} else {
 			$this->delete("#cartId = {$cartId}");
 			cls::get('eshop_Carts')->updateMaster($cartId);
 			eshop_Carts::delete($cartId);
-			$msg = 'Кошницата е изпразнена успешно|*!';
+			$msg = '|Кошницата е изпразнена|*!';
 		}
 		
 		core_Statuses::newStatus($msg);
+		core_Lg::pop();
 		
 		// Ако заявката е по ajax
 		if (Request::get('ajax_mode')) return self::getUpdateCartResponse($cartId);
@@ -384,7 +414,9 @@ class eshop_CartDetails extends core_Detail
 	private static function getUpdateCartResponse($cartId)
 	{
 		cls::get('eshop_Carts')->updateMaster($cartId);
-			
+		$lang = cms_Domains::getPublicDomain('lang');
+		core_Lg::push($lang);
+		
 		// Ще реплейснем само бележката
 		$resObj = new stdClass();
 		$resObj->func = "html";
@@ -404,13 +436,18 @@ class eshop_CartDetails extends core_Detail
 		$resObj3 = new stdClass();
 		$resObj3->func = "html";
 		$resObj3->arg = array('id' => 'cart-view-buttons', 'html' => eshop_Carts::renderCartToolbar($cartId)->getContent(), 'replace' => TRUE);
-			
+
+		// Ще реплейснем само бележката
+		$resObj4 = new stdClass();
+		$resObj4->func = "smartCenter";
+
 		// Показваме веднага и чакащите статуси
 		$hitTime = Request::get('hitTime', 'int');
 		$idleTime = Request::get('idleTime', 'int');
 		$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
 			
-		$res = array_merge(array($resObj, $resObj1, $resObj2, $resObj3), (array)$statusData);
+		$res = array_merge(array($resObj, $resObj1, $resObj2, $resObj3, $resObj4), (array)$statusData);
+		core_Lg::pop();
 		
 		return $res;
 	}

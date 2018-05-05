@@ -3091,15 +3091,14 @@ fieldset.sharing-history {
     position: absolute;
     right: 0px;
     top: 0px;
-    padding: 5px;
     background: #ccc;
     background: rgba(0,0,0,0.2);
 	border: 1px solid #bbb;
     border-radius: 0 0 0 5px;
     box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
-    a {
+    a, span.linkWithIcon  {
         color: #333 !important;
-        margin: 0 5px;
+        margin: 5px 7px;
         display:inline-block;
         &:hover {
             opacity: 0.7;
@@ -3117,6 +3116,23 @@ fieldset.sharing-history {
 #cart-view-buttons {
 	margin: 20px 0;
 }
+
+#cart-external-status .count {
+	border: 1px solid #526b00;
+	background-color: #698900;
+	color: #fff;
+	width: 14px;
+	height: 14px;
+	font-size: 0.7em;
+	line-height: 13px;
+	border-radius: 50%;
+	text-align: center;
+	display: inline-block;
+	position: relative;
+	margin-left: 2px;
+	top: -6px;
+}
+
 .optionsTable {
 	color: #222;
 	min-width: 600px;
@@ -3141,13 +3157,25 @@ fieldset.sharing-history {
 	}
 }
 
-.external-discount-amount {
-	display: block;
+.external-discount {
 	color: #999;
-	text-decoration: line-through;
-	font-size: 0.9em;
+	font-size: 0.7em;
 }
 
+.external-discount-amount {
+	text-decoration: line-through;
+	display: inline-block;
+}
+
+.external-discount-percent {
+	display: inline-block;
+}
+.btnUp, .btnDown {
+	cursor: pointer;
+	width: 14px;
+	height: 14px;
+	margin: 0 2px;
+}
 .summary-holder {
 	float: right;
 	table {
@@ -3671,7 +3699,6 @@ table .eshop-btn {
 
 /*стилове за fileman*/
 .webdrvTabBody {
-	max-width: 900px;
 	min-width: 800px;
 	min-height: 612px;
 	top: 10px;
@@ -3686,16 +3713,20 @@ table .eshop-btn {
 
 .webdrvIframe {
 	width: 100%;
+
 	border: solid 0 transparent;
 	min-height: 612px;
 }
-
+.wide .webdrvIframe {
+	min-width: 800px;
+}
 .narrow .webdrvIframe {
 	min-height: 300px;
 }
 
 .wide .webdrvFieldset {
 	min-height: 615px;
+	display: inline-block;
 	border: 1px solid #ccc;
 	padding: 15px 10px 10px;
 	@include border-radius(5px);

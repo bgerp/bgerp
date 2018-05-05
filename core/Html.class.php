@@ -24,6 +24,10 @@ class core_Html
     {   
         $attrStr = '';
 
+        if($attributes['title']) {
+        	$attributes['title'] = tr($attributes['title']);
+        }
+        
         if($name == 'img') {
             if(!is_array($attributes)) {
                 $attributes = array();

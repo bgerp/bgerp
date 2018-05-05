@@ -104,7 +104,7 @@ class bgerp_L extends core_Manager
         while ($action = doclog_Documents::getAction($i--)) {
         
             $options = (array)$action->data;
-        
+            
             // Ако има изпратено от
             if (($action->data->sendedBy > 0) && (!$options['__userId'] || $options['__userId'] <= 0)) {
                 $options['__userId'] = $action->data->sendedBy;
@@ -186,6 +186,13 @@ class bgerp_L extends core_Manager
             expect(doclog_Documents::opened($cid, $mid));
             
             $options = $this->getDocOptions($cid, $mid);
+            
+			// Пушваме езика, на който се е рендирал документа
+            if (!haveRole('user')) {
+                if ($options['lg']) {
+                    core_Lg::set($options['lg']);
+                }
+            }
             
             // Ако потребителя има права до треда на документа, то той му се показва
             if($rec && $rec->threadId) {

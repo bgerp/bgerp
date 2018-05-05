@@ -1,5 +1,5 @@
 function eshopActions() {
-	
+
 	// Изтриване на ред от кошницата
 	$(document.body).on("click", '.remove-from-cart', function(event){
 		
@@ -30,6 +30,11 @@ function eshopActions() {
 	    	packQuantity = 1;
 	    }
 	    
+	    if(!$.isNumeric(packQuantity) || packQuantity < 1){
+	    	$(this).addClass('inputError');
+	    	return;
+	    }
+	    
 	    var data = {eshopProductId:eshopProductId,productId:productId,packQuantity:packQuantity,packagingId:packagingId};
 	    
 	    resObj = new Object();
@@ -46,9 +51,10 @@ function eshopActions() {
 		//this.value = this.value.replace(/[^0-9\.]/g,'');
 		$(this).removeClass('inputError');
 		var packQuantity = $(this).val();
-		if(!$.isNumeric(packQuantity)){
+		if(!$.isNumeric(packQuantity) || packQuantity < 1){
 			$(this).addClass('inputError');
 		} else {
+			
 			var url = $(this).attr("data-url");
 		    if(!url) return;
 		    var data = {packQuantity:packQuantity};
@@ -65,14 +71,26 @@ function eshopActions() {
 		}
 	});
 	
-	
 	// Оцветяване на инпута, ако има грешка
 	$(document.body).on('keyup', ".eshop-product-option", function(e){
 		$(this).removeClass('inputError');
 		
 		var packQuantity = $(this).val();
-		if(!$.isNumeric(packQuantity)){
+		if(!$.isNumeric(packQuantity) || packQuantity < 1){
 			$(this).addClass('inputError');
 		}
+	});
+
+	// Бутоните за +/- да променят количеството
+	$(document.body).on('click', ".btnUp, .btnDown",  function(){
+		var input = $(this).siblings('.option-quantity-input');
+		var val = parseFloat($(input).val());
+		var step = $(this).hasClass('btnUp') ? 1 : -1;
+		if (val + step > 0) {
+			$(input).val(val + step);
+		}
+
+		// Ръчно инвоукване на ивент на инпут полето
+		input.keyup();
 	});
 };

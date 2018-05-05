@@ -606,7 +606,7 @@ class doc_FolderPlg extends core_Plugin
                 }
             }
             
-            $shareVrb = $rec->__mustNotify == 'created' ? 'създаде и сподели' : 'сподели';
+            $shareVrb = $rec->__mustNotify === 'created' ? 'създаде и сподели' : 'сподели';
 
             // Нотифицираме новите споделени потребители
             if ($notifyArr) {

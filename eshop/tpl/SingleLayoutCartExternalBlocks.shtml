@@ -20,7 +20,7 @@
 
 <!--ET_BEGIN CART_COUNT-->
 [#CART_COUNT#]
-<span id = 'cart-view-count'>|избрани артикули|*: [#productCount#]</span>
+<span id = 'cart-view-count'>|с|* [#productCount#]</span>
 <!--ET_END CART_COUNT-->
 
 <!--ET_BEGIN CART_TOOLBAR-->
