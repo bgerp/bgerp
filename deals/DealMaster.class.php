@@ -399,6 +399,14 @@ abstract class deals_DealMaster extends deals_DealBase
     			}
     		}
     	}
+    	
+    	if($mvc instanceof sales_Sales){
+    		if(isset($rec->deliveryTermId)){
+    			if($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $rec->deliveryLocationId)){
+    				$form->setError('deliveryTermId,deliveryAdress,deliveryLocationId', $error);
+    			}
+    		}
+    	}
     }
 
     
@@ -996,7 +1004,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			
 			if(!empty($deliveryAdress)){
-				$deliveryAdress1 = (isset($rec->deliveryTermId)) ? (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName') . ", ") : "";
+				$deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ", ") : "";
 				$deliveryAdress = $deliveryAdress1 . $deliveryAdress;
 				$row->deliveryTermId = $deliveryAdress;
 			}

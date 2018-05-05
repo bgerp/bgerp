@@ -9,7 +9,7 @@
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Счетоводство » Неплатени фактури по клиент
+ * @title     Счетоводство » Неплатени фактури по контрагент
  */
 class acc_reports_UnpaidInvoices extends frame2_driver_TableData
 {

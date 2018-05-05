@@ -30,6 +30,11 @@ function eshopActions() {
 	    	packQuantity = 1;
 	    }
 	    
+	    if(!$.isNumeric(packQuantity) || packQuantity < 1){
+	    	$(this).addClass('inputError');
+	    	return;
+	    }
+	    
 	    var data = {eshopProductId:eshopProductId,productId:productId,packQuantity:packQuantity,packagingId:packagingId};
 	    
 	    resObj = new Object();
@@ -71,7 +76,7 @@ function eshopActions() {
 		$(this).removeClass('inputError');
 		
 		var packQuantity = $(this).val();
-		if(!$.isNumeric(packQuantity)){
+		if(!$.isNumeric(packQuantity) || packQuantity < 1){
 			$(this).addClass('inputError');
 		}
 	});

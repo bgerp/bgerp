@@ -360,6 +360,7 @@ class email_Setup extends core_ProtoSetup
             'email_Salutations',
             'email_ThreadHandles',
             'email_SendOnTime',
+            'email_SpamRules',
             'migrate::transferThreadHandles',
             'migrate::fixEmailSalutations',
             'migrate::repairRecsInFilters',
@@ -370,6 +371,7 @@ class email_Setup extends core_ProtoSetup
             'migrate::fieldDeleteAfterRetrieval',
             'migrate::checkMailBox',
             'migrate::removeDearSirs',
+            'migrate::spamFilter',
         );
     
 
@@ -860,5 +862,33 @@ class email_Setup extends core_ProtoSetup
     public static function removeDearSirs()
     {
         email_Salutations::delete("LOWER(#salutation) LIKE 'dear sirs%'");
+    }
+    
+    
+    /**
+     * Преместване на филтриранията по СПАМ от email_Filter
+     */
+    public static function spamFilter()
+    {
+        $fQuery = email_Filters::getQuery();
+        $fQuery->where("#action = 'spam'");
+        
+        while ($fRec = $fQuery->fetch()) {
+            $nRec = new stdClass();
+            $nRec->systemId = $fRec->systemId;
+            $nRec->email = $fRec->email;
+            $nRec->subject = $fRec->subject;
+            $nRec->body = $fRec->body;
+            $nRec->systemId = $fRec->systemId;
+            $nRec->note = $fRec->note;
+            $nRec->state = $fRec->state;
+            $nRec->createdOn = $fRec->createdOn;
+            $nRec->createdBy = $fRec->createdBy;
+            $nRec->points = email_Setup::get('HARD_SPAM_SCORE') + 1;
+            
+            email_SpamRules::save($nRec, NULL, 'IGNORE');
+            
+            email_Filters::delete($fRec->id);
+        }
     }
 }

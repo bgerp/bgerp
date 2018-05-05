@@ -20,7 +20,6 @@
  *  o по имейл - това действие подменя реалния изпращач на писмото с имейл адрес намерен някъде 
  *               вътре в събджекта или текста (@see email_Filters::prerouteByEmail())
  *  о в папка  - писмата, отговарящи на шаблона попадат директно в папката зададена в правилото
- *  o спам     - писмата, отговарящи на шаблона се маркират като спам 
  * 
  *
  * @category  bgerp
@@ -102,7 +101,7 @@ class email_Filters extends core_Manager
         $this->FLD('email' , 'varchar', 'caption=Условие->Изпращач', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('subject' , 'varchar', 'caption=Условие->Относно', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('body' , 'varchar', 'caption=Условие->Текст', array('attr'=>array('style'=>'width: 350px;')));
-        $this->FLD('action' , 'enum(email=Рутиране по първи външен имейл,folder=Преместване в папка,spam=Маркиране като спам)', 'value=email,caption=Действие->Действие,maxRadio=4,columns=1,notNull');
+        $this->FLD('action' , 'enum(email=Рутиране по първи външен имейл,folder=Преместване в папка)', 'value=email,caption=Действие->Действие,maxRadio=4,columns=1,notNull');
         $this->FLD('folderId' , 'key(mvc=doc_Folders, select=title, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Действие->Папка');
         $this->FLD('note' , 'text', 'caption=@Забележка', array('attr'=>array('style'=>'width: 100%;', 'rows'=>4)));
         
@@ -119,7 +118,6 @@ class email_Filters extends core_Manager
      *     o По имейл : имейла на изпращача се подменя с други мейл, намерен в писмото
      *                  (@see email_Filterss::prerouteByEmail()) 
      *     o В папка  : писмото се рутира директно в зададената папка.
-     *     o Спам     : писмото се маркира като спам
      *     
      *     
      * Забележка: Този метод е част от процедурата за рутиране на входяща поща. Той се изпълнява
@@ -144,9 +142,6 @@ class email_Filters extends core_Manager
                 break;
             case 'folder':
                 $rec->folderId = $serviceRec->folderId;
-                break;
-            case 'spam':
-                $rec->isSpam = TRUE;
                 break;
         }
 
@@ -262,7 +257,7 @@ class email_Filters extends core_Manager
      * @param stdClass $filterRec запис на модела email_Filters
      * @return boolean
      */
-    protected static function match($subjectData, $filterRec)
+    public static function match($subjectData, $filterRec)
     {
         foreach ($subjectData as $filterField=>$haystack) {
             if (empty($filterRec->{$filterField})) {

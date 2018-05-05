@@ -585,7 +585,7 @@ class bgerp_Setup extends core_ProtoSetup {
                 while ($pRec = $pQuery->fetch()) {
                     $pRec->parentId = NULL;
                     $clsInst->logDebug('Нулиран parentId', $pRec);
-                    $clsInst->save($pRec, 'parentId');
+                    $clsInst->save_($pRec, 'parentId');
                 }
                 
                 $clsInst->logDebug('Изтрит запис с празна стойност', $cRec);

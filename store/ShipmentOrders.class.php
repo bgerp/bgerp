@@ -565,7 +565,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     			// Само ако условието на доставка позволява ЧМР да се добавя към документа
     			$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     			$deliveryTermId = $firstDoc->fetchField('deliveryTermId');
-    			if(empty($deliveryTermId) || (isset($deliveryTermId) && cond_DeliveryTerms::fetchField($deliveryTermId, 'allowCmr') == 'yes')){
+    			if(isset($deliveryTermId) && cond_DeliveryTerms::fetchField($deliveryTermId, 'allowCmr') == 'yes'){
     				$data->toolbar->addBtn("ЧМР", array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/lorry_add.png');
     			}	
     		}
