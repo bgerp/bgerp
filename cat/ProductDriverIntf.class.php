@@ -398,7 +398,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      */
 	public function getTransportWeight($rec, $quantity)
 	{
-		return $this->class->canCalcTransportFee($rec, $quantity);
+		return $this->class->getTransportWeight($rec, $quantity);
 	}
 	
 	
