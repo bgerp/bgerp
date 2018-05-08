@@ -176,7 +176,7 @@ class marketing_Router
 		$conf = core_Packs::getConfig('crm');
 		$query = crm_Persons::getQuery();
 		$query->where(array("#name = '[#1#]'", $name));
-		$query->where("#country = {$countryId}");
+		$query->where("#country = {$countryId} AND #state != 'closed' AND #state != 'rejected'");
 		
 		$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'");
 		if($ownCountryId == $countryId){
@@ -275,7 +275,7 @@ class marketing_Router
 		$conf = core_Packs::getConfig('crm');
 		$query = crm_Companies::getQuery();
 		$query->where(array("#name = '[#1#]'", $name));
-		$query->where("#country = {$countryId}");
+		$query->where("#country = {$countryId} AND #state != 'closed' AND #state != 'rejected'");
 		
 		$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'");
 		if($ownCountryId == $countryId){
