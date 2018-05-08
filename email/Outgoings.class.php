@@ -1127,7 +1127,11 @@ class email_Outgoings extends core_Master
                         $str = "файлове";
                     }
                     
-                    $form->setError('attachmentsSet, documentsSet', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
+                    $FileSize = cls::get('fileman_FileSize');
+                    $allowedSize = $mvc->getMaxAttachFileSizeLimit();
+                    $allowedSize = $FileSize->toVerbal($allowedSize);
+                    
+                    $form->setError('attachmentsSet, documentsSet', "Максималният разрешен общ размер на прикачените|* {$str} |е|* {$allowedSize}, |а в това писмо те са|* {$docAndFilesSizeVerbal}.");
                 }
             }
             

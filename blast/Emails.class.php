@@ -1694,10 +1694,7 @@ class blast_Emails extends core_Master
                     $allowedSize = $mvc->getMaxAttachFileSizeLimit();
                     $allowedSize = $FileSize->toVerbal($allowedSize);
                     
-                    $errStr = "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal;
-                    $errStr .= "<br>|Допустимият размер е|*: {$allowedSize}";
-                    
-                    $form->setError('attachments', $errStr);
+                    $form->setError('attachments', "Максималният разрешен общ размер на прикачените|* {$str} |е|* {$allowedSize}, |а в това писмо те са|* {$docAndFilesSizeVerbal}.");
                 }
             }
         }
