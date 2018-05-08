@@ -305,10 +305,6 @@ class eshop_Carts extends core_Master
      */
     public static function getStatus($cartId = NULL)
     {
-    	// Пушване на езика от публичната част
-    	$lang = cms_Domains::getPublicDomain('lang');
-    	core_Lg::push($lang);
-    	
     	$tpl = new core_ET("[#text#]");
     	
     	$settings = cms_Domains::getSettings();
@@ -317,7 +313,6 @@ class eshop_Carts extends core_Master
     	$cartId = ($cartId) ? $cartId : self::force(NULL, NULL, FALSE);
 		$url = array();
     	
-		$cartName = self::getCartDisplayName();
     	if(isset($cartId)){
     		$cartRec = self::fetch($cartId);
     		if($settings->enableCart == 'no'){
@@ -338,6 +333,11 @@ class eshop_Carts extends core_Master
     		if($settings->enableCart == 'no') return new core_ET(' ');
     	}
     	
+    	// Пушване на езика от публичната част
+    	$lang = cms_Domains::getPublicDomain('lang');
+    	core_Lg::push($lang);
+    	
+    	$cartName = self::getCartDisplayName();
     	$tpl->replace($cartName, 'text');
     	$tpl->replace($count, 'count');
     	$tpl = ht::createLink($tpl, $url, FALSE, "title={$hint}, ef_icon=img/16/cart-black.png");
