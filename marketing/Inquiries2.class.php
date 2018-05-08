@@ -809,7 +809,7 @@ class marketing_Inquiries2 extends embed_Manager
 
     	if($lg = Request::get('Lg')){
     		cms_Content::setLang($lg);
-    		core_Lg::push($lg);
+    		core_Lg::push($lg);#Tsk1150
     	}
     	
     	$form = $this->prepareForm($drvId);
@@ -874,7 +874,7 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	// След събмит на формата
     	if($form->isSubmitted()){
-    		bp();
+    		
     		$rec = &$form->rec;
     		$rec->state = 'active';
     		$rec->ip = core_Users::getRealIpAddr();
