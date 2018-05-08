@@ -308,7 +308,7 @@ class marketing_Router
 		$mQuery = marketing_Inquiries2::getQuery();
 		$mQuery->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
 		$mQuery->EXT('fState', 'doc_Folders', 'externalName=state,externalKey=folderId');
-		$mQuery->where("#brid IS NOT NULL AND #fState != 'rejected' AND #fState != 'closed'");
+		$mQuery->where("#brid IS NOT NULL AND #fState != 'rejected' AND #fState != 'closed' AND #state != 'rejected'");
 		$mQuery->where(array("#brid = '[#1#]'", $brid));
 		$mQuery->in("coverClass", array_keys($contragentClasses));
 		$mQuery->show('folderId');
