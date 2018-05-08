@@ -89,6 +89,10 @@ class marketing_InquiryRouter extends core_Manager
 		$folderId = marketing_Router::routeByPerson($rec->personNames, $rec->country, $inCharge);
 		if($folderId) return $folderId;
 		
+		// Опит за рутиране по БРИД
+		$folderId = marketing_Router::routeByBrid($rec->brid);
+		if($folderId) return $folderId;
+		
 		// Форсиране на папка и запис във визитника на лице с посочените данни
 		return marketing_Router::forcePersonFolder($rec->personNames, $rec->email, $rec->country, $rec->tel, $rec->pCode, $rec->place, $rec->address, $inCharge);
 	}
@@ -118,6 +122,10 @@ class marketing_InquiryRouter extends core_Manager
 		
 		// Рутираме в папка на фирма със същото име от същата държава
 		$folderId = marketing_Router::routeByCompanyName($rec->company, $rec->country, $inCharge);
+		if($folderId) return $folderId;
+		
+		// Опит за рутиране по БРИД
+		$folderId = marketing_Router::routeByBrid($rec->brid);
 		if($folderId) return $folderId;
 		
 		// Форсиране на папка и визитка на фирма с въведените данни

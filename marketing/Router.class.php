@@ -292,4 +292,28 @@ class marketing_Router
 			return crm_Companies::forceCoverAndFolder((object)array('id' => $company->id, 'inCharge' => $inCharge));
 		}
 	}
+	
+	
+	/**
+	 * Рутиране по БРИД на запиътване
+	 * 
+	 * @param string $brid
+	 * @param int|NULL $folderId
+	 */
+	public static function routeByBrid($brid)
+	{
+		$contragentClasses = core_Classes::getOptionsByInterface('crm_ContragentAccRegIntf');
+		
+		// Опит за намиране на последното запитване със същия брид в папка на фирма/лице
+		$mQuery = marketing_Inquiries2::getQuery();
+		$mQuery->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
+		$mQuery->EXT('fState', 'doc_Folders', 'externalName=state,externalKey=folderId');
+		$mQuery->where("#brid IS NOT NULL AND #fState != 'rejected' AND #fState != 'closed'");
+		$mQuery->where(array("#brid = '[#1#]'", $brid));
+		$mQuery->in("coverClass", array_keys($contragentClasses));
+		$mQuery->show('folderId');
+		$mQuery->orderBy('createdOn', 'DESC');
+		
+		return $mQuery->fetch()->folderId;
+	}
 }
