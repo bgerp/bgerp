@@ -344,6 +344,7 @@ class cat_Products extends embed_Manager {
         $this->FLD('canManifacture', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
         
+        $this->setDbIndex('isPublic');
         $this->setDbIndex('canSell');
         $this->setDbIndex('canBuy');
         $this->setDbIndex('canStore');

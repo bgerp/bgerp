@@ -277,7 +277,6 @@ class eshop_ProductDetails extends core_Detail
 			if(!self::getPublicDisplayPrice($rec->productId)) continue;
 			$packagins = keylist::toArray($rec->packagings);
 			
-			
 			// Всяка от посочените опаковки се разбива във отделни редове
 			$i = 1;
 			foreach($packagins as $packagingId){
