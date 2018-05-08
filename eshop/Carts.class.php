@@ -90,12 +90,6 @@ class eshop_Carts extends core_Master
     
     
     /**
-     * Кой може да я прави на заявка
-     */
-    public $canPending = 'no_one';
-    
-    
-    /**
      * Описание на модела
      */
     function description()
