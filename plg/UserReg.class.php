@@ -287,8 +287,8 @@ class plg_UserReg extends core_Plugin
                 $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола (пак),input,hint={$passReHint},width=15em");
 
                 $form->title = "Активиране на вашия достъп до системата";
-                $form->info = tr("За да си активирате достъпа до системата, моля въведете избраната " .
-                "от вас парола в полетата по-долу. " . "Паролата трябва да е поне|* " .
+                $form->info = tr("За да си активирате достъпа до системата, моля въведете избраната от вас парола в полетата по-долу. Паролата трябва да е поне|* " .
+                
                 EF_USERS_PASS_MIN_LEN . " |символа и да съдържа букви, цифри и други символи.");
 
             } else {
@@ -547,7 +547,6 @@ class plg_UserReg extends core_Plugin
         setIfNot($rec1->regLifetime, $expireDate);
         
         setIfNot($rec1->EF_APP_TITLE, core_Setup::get('EF_APP_TITLE', TRUE));
-        setIfNot($rec1->USER, core_Setup::get('EF_APP_TITLE', TRUE));
 
         $tpl = new ET($tpl);
         

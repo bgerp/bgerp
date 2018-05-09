@@ -114,12 +114,13 @@ class blast_EmailSend extends core_Detail
      * @param integer $emailId - id на мастер (blast_Emails)
      * @param array $dataArr - Масив с данните - ключ id на източника и стойност самите данни
      * @param array $emailFieldsArr - Масив с полета, които се използва за имейл
+     * @param array $negativeEmailArr - Масив с имейли, които да се изключат
      *
-     * @return integer - Броя на добавените записи
+     * @return array - Броят на добавените и премахнатите записи
      */
-    public static function updateList($emailId, $dataArr, $emailFieldsArr)
+    public static function updateList($emailId, $dataArr, $emailFieldsArr, $negativeEmailArr = array())
     {
-        $cnt = 0;
+        $addCnt = $rCnt = 0;
         
         // Обхождаме масива с данните
         foreach ((array)$dataArr as $data) {
@@ -150,6 +151,22 @@ class blast_EmailSend extends core_Detail
             // Добавяме първия имейл, който не е списъка с блокирани
             foreach ((array)$emailsArr as $email) {
                 if (blast_BlockedEmails::isBlocked($email)) continue;
+                
+                // Ако е в отрицателния списък - просто го игнорираме
+                if ($negativeEmailArr[$email]) {
+                    
+                    $nRec->email = $email;
+                    
+                    // Хеша на имейла
+                    $nRec->hash = self::getHash($email);
+                    
+                    if (self::delete(array("#emailId = '[#1#]' AND #hash = '[#2#]'", $nRec->emailId, $nRec->hash))) {
+                        $rCnt++;
+                    }
+                    
+                    continue;
+                }
+                
                 $toEmail = $email;
                 break;
             }
@@ -167,12 +184,12 @@ class blast_EmailSend extends core_Detail
             $id = self::save($nRec, NULL, 'IGNORE');
             
             if ($id) {
-                $cnt++;
+                $addCnt++;
                 blast_BlockedEmails::addEmail($toEmail, FALSE);
             }
         }
         
-        return $cnt;
+        return array('add' => $addCnt, 'remove' => $rCnt);
     }
     
     

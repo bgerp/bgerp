@@ -1059,25 +1059,19 @@ class crm_Profiles extends core_Master
             $url  = array();
 
             $profRec = self::fetch("#userId = {$userId}");
-            if ($profRec) {
-                $date = $profRec->stateDateFrom;
-                $dateTo = $profRec->stateDateTo;
-                $dayBeforeNow = dt::addDays(-1, $date);
-            }
-
-
-            if($profRec && $profRec->stateInfo) {
-                if(strstr(dt::now(), " ", TRUE) >= strstr($dayBeforeNow, " ", TRUE) &&
-                    strstr(dt::now(), " ", TRUE) < strstr($date, " ", TRUE )) {
-                    $attr['class'] .= ' profile profile-state-tomorrow';
-                } else if( strstr(dt::now(), " ", TRUE) >= strstr($date, " ", TRUE) &&
-                    strstr(dt::now(), " ", TRUE) <= strstr($dateTo, " ", TRUE)) {
-                    $attr['class'] .= ' profile profile-state';
-                } else {
-                    $attr['class'] .= ' profile';
+            
+            $attr['class'] .= ' profile';
+            if ($profRec && $profRec->stateDateFrom) {
+                $dateFrom = strstr($profRec->stateDateFrom, ' ', TRUE);
+                $dateTo = strstr($profRec->stateDateTo, ' ', TRUE);
+                $nextWorkingDay = strstr(cal_Calendar::nextWorkingDay(), ' ', TRUE);
+                $today  = dt::now(FALSE);
+ 
+                if($dateFrom <= $today && $today <= $dateTo) {
+                    $attr['class'] .= ' profile-state';
+                } elseif($dateFrom <= $nextWorkingDay && $nextWorkingDay <= $dateTo) {
+                    $attr['class'] .= ' profile-state-tomorrow';
                 }
-            } else {
-                $attr['class'] .= ' profile';
             }
 
     		$profileId = self::getProfileId($userId);

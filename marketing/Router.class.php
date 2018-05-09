@@ -176,7 +176,7 @@ class marketing_Router
 		$conf = core_Packs::getConfig('crm');
 		$query = crm_Persons::getQuery();
 		$query->where(array("#name = '[#1#]'", $name));
-		$query->where("#country = {$countryId}");
+		$query->where("#country = {$countryId} AND #state != 'closed' AND #state != 'rejected'");
 		
 		$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'");
 		if($ownCountryId == $countryId){
@@ -275,7 +275,7 @@ class marketing_Router
 		$conf = core_Packs::getConfig('crm');
 		$query = crm_Companies::getQuery();
 		$query->where(array("#name = '[#1#]'", $name));
-		$query->where("#country = {$countryId}");
+		$query->where("#country = {$countryId} AND #state != 'closed' AND #state != 'rejected'");
 		
 		$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'");
 		if($ownCountryId == $countryId){
@@ -291,5 +291,29 @@ class marketing_Router
 			
 			return crm_Companies::forceCoverAndFolder((object)array('id' => $company->id, 'inCharge' => $inCharge));
 		}
+	}
+	
+	
+	/**
+	 * Рутиране по БРИД на запиътване
+	 * 
+	 * @param string $brid
+	 * @param int|NULL $folderId
+	 */
+	public static function routeByBrid($brid)
+	{
+		$contragentClasses = core_Classes::getOptionsByInterface('crm_ContragentAccRegIntf');
+		
+		// Опит за намиране на последното запитване със същия брид в папка на фирма/лице
+		$mQuery = marketing_Inquiries2::getQuery();
+		$mQuery->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
+		$mQuery->EXT('fState', 'doc_Folders', 'externalName=state,externalKey=folderId');
+		$mQuery->where("#brid IS NOT NULL AND #fState != 'rejected' AND #fState != 'closed' AND #state != 'rejected'");
+		$mQuery->where(array("#brid = '[#1#]'", $brid));
+		$mQuery->in("coverClass", array_keys($contragentClasses));
+		$mQuery->show('folderId');
+		$mQuery->orderBy('createdOn', 'DESC');
+		
+		return $mQuery->fetch()->folderId;
 	}
 }

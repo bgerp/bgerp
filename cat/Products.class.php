@@ -344,6 +344,7 @@ class cat_Products extends embed_Manager {
         $this->FLD('canManifacture', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
         
+        $this->setDbIndex('isPublic');
         $this->setDbIndex('canSell');
         $this->setDbIndex('canBuy');
         $this->setDbIndex('canStore');
@@ -2106,6 +2107,7 @@ class cat_Products extends embed_Manager {
      */
     public function cron_closePrivateProducts()
     {
+    	$now = dt::now();
     	$stProductsToClose = array();
     	$before = dt::addMonths(-3);
     	$iStQuery = acc_Items::getQuery();
@@ -2117,28 +2119,54 @@ class cat_Products extends embed_Manager {
     	while($iStRec = $iStQuery->fetch()){
     		$pRec1 = cat_Products::fetch($iStRec->objectId, 'id,state');
     		$pRec1->state = 'closed';
+    		$pRec1->modifiedOn = $now;
+    		$pRec1->modifiedBy = core_Users::SYSTEM_USER;
     		$stProductsToClose[$iStRec->objectId] = $pRec1;
     	}
     	$this->closeItems = $stProductsToClose;
     	
-    	$this->saveArray($stProductsToClose, 'id,state');
+    	$this->saveArray($stProductsToClose, 'id,state,modifiedBy,modifiedOn');
     	log_System::add('cat_Products', "ST close items:" . count($stProductsToClose));
+    	
+    	// Намираме всички нестандартни артикули
+    	$before1 = dt::addMonths(-5);
+    	$productQuery1 = cat_Products::getQuery();
+    	$productQuery1->where("#isPublic != 'yes'");
+    	$productQuery1->where("#createdOn <= '{$before1}'");
+    	$productQuery1->where("#state != 'closed' AND #state != 'rejected'");
+    	$productQuery1->show('id,state');
+    	$products1 = array_keys($productQuery1->fetchAll());
+    	
+    	$iQuery2 = acc_Items::getQuery();
+    	$iQuery2->where("#classId = {$this->getClassId()}");
+    	$iQuery2->show('objectId');
+    	$iTems = arr::extractValuesFromArray($iQuery2->fetchAll(), 'objectId');
+    	
+    	$diff = array_diff($products1, $iTems);
+    	$saveDiff = array();
+    	foreach ($diff as $p1){
+    		$pr1 = cat_Products::fetch($p1, 'id,state');
+    		$pr1->state = 'closed';
+    		$pr1->modifiedOn = $now;
+    		$pr1->modifiedBy = core_Users::SYSTEM_USER;
+    		$saveDiff[$p1] = $pr1;
+    	}
+    	
+    	$this->saveArray($saveDiff, 'id,state,modifiedOn,modifiedBy');
+    	log_System::add('cat_Products', "Products Without Items Closed:" . count($diff));
+    	
+    	$productQuery = cat_Products::getQuery();
+    	$productQuery->where("#isPublic != 'yes'");
+    	$productQuery->where("#state != 'closed' AND #state != 'rejected'");
+    	$productQuery->show('id');
+    	$products = array_keys($productQuery->fetchAll());
+    	if(!count($products))  return;
     	
     	// Последните изчислени периода
     	$periods = acc_Periods::getCalcedPeriods(TRUE, 3);
     	if(!count($periods)) return;
     	
     	$oldestPeriod = acc_Periods::fetch(min(array_keys($periods)));
-    	
-    	// Намираме всички нестандартни артикули
-    	$productQuery = cat_Products::getQuery();
-    	$productQuery->where("#isPublic != 'yes'");
-    	$productQuery->show('id');
-    	$products = array_keys($productQuery->fetchAll());
-    	
-    	// Ако няма, не правим нищо
-    	if(!count($products)) return;
-    	log_System::add('cat_Products', "Private products count:" . count($products));
     	
     	// Намират се отворените пера, създадени преди посочената дата, които са на нестандартни артикули
     	$iQuery = acc_Items::getQuery();
@@ -2204,7 +2232,8 @@ class cat_Products extends embed_Manager {
     	}
     	
     	$this->saveArray($toSave, 'id,state');
-    	$this->closeItems = $toSave;
+    	$this->closeItems = (is_array($this->closeItems)) ? $this->closeItems : array();
+    	$this->closeItems += $toSave;
     	
     	log_System::add('cat_Products', "END close items:" . count($toSave));
     }
