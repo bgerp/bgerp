@@ -224,7 +224,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         list($className) = explode('|',$dRec->documentType);
         
         // $typeOfDocument = $className::getTitleById($dRec->documentId);
-        $typeOfDocument = $Document->title.'  »  '.cls::get($className)->getFieldType('state')->toVerbal(explode('|',$dRec->documentType)[1]);
+        $typeOfDocument = $Document->title.'  »  '.cls::get($className)->getFieldType('state')->toVerbal($className);
         
         $handle = $className::getHandle($dRec->documentId);
         
