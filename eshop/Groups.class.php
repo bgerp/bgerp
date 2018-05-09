@@ -770,7 +770,7 @@ class eshop_Groups extends core_Master
     	$contentQuery->show('id');
     	$contentQuery->where("#domainId = {$domainId}");
     	$contents = arr::extractValuesFromArray($contentQuery->fetchAll(), 'id');
-    	if(!count($contents)) return $options;
+    	if(!count($contents)) return array();
     	
     	$groups = array();
     	$groupQuery = eshop_Groups::getQuery();
