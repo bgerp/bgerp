@@ -460,7 +460,7 @@ class core_Cron extends core_Manager
         
         // Отключваме процеса и му записваме текущото време за време на последното приключване
         $this->unlockProcess($rec);
-        $this->logThenStop("Няма такъв клас", $rec->id, 'err');
+        $this->logThenStop();
     }
     
     
