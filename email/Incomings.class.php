@@ -338,7 +338,7 @@ class email_Incomings extends core_Master
                     // Изтриване на писмото, ако сметката е настроена така
                     if($accRec->deleteAfterPeriod === '0') {
                         $imapConn->delete($i);
-                        email_Accounts::logInfo("Изтриване $i", $accRec->id);
+                        // email_Accounts::logInfo("Изтриване $i", $accRec->id);
                         $statusSum['delete']++;
                         $doExpunge = TRUE;
                     }
@@ -346,11 +346,11 @@ class email_Incomings extends core_Master
                     // Дали да отмаркираме съобщението, че е прочетено?
                     if($accRec->imapFlag == 'unseen') {
                         $imapConn->unmarkSeen($i);
-                        email_Accounts::logInfo("Отмаркиране $i", $accRec->id);
+                        // email_Accounts::logInfo("Отмаркиране $i", $accRec->id);
                         $doExpunge = TRUE;
                     } elseif($accRec->imapFlag == 'seen') {
                         $imapConn->markSeen($i);
-                        email_Accounts::logInfo("Маркиране $i", $accRec->id);
+                        // email_Accounts::logInfo("Маркиране $i", $accRec->id);
                         $doExpunge = TRUE;
                     }
                 }
