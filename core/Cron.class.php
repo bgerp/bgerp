@@ -346,7 +346,7 @@ class core_Cron extends core_Manager
         core_Users::forceSystemUser();
         
         // Затваряме връзката създадена от httpTimer, ако извикването не е форсирано
-        if(!$forced = Request::get('forced')) {
+        if(!($forced = Request::get('forced'))) {
             header("Connection: close");
             ob_start();
             session_write_close();
@@ -361,6 +361,8 @@ class core_Cron extends core_Manager
         } else {
             header ('Content-type: text/html; charset=utf-8');
         }
+
+        
         
         // Декриптираме входния параметър. Чрез предаването на id-to на процеса, който
         // трябва да се стартира в защитен вид, ние се предпазваме от евентуална външна намеса
@@ -372,7 +374,13 @@ class core_Cron extends core_Manager
         }
         
         log_Browsers::stopGenerating();
-        
+
+        // Да не правим лог в Debug за хита, ако се вика по крон
+        if(!Request::get('forced')) {
+            Debug::$isLogging = FALSE;
+        }
+
+
         // Вземаме информация за процеса
         $rec = $this->fetch($id);
         
@@ -433,7 +441,7 @@ class core_Cron extends core_Manager
                 // подходящо форматиран към лога
                 if ($content) {
                     $content = "<p><i>$content</i></p>";
-                    if (Request::get('forced')) {
+                    if(Request::get('forced')) {
                         echo $content;
                     }
                 }
@@ -444,37 +452,37 @@ class core_Cron extends core_Manager
             } else {
                 $this->unlockProcess($rec);
                 $this->logThenStop("Няма такъв екшън в класа", $rec->id, 'err');
-                echo(core_Debug::getLog());
-                shutdown();
             }
         } else {
             $this->unlockProcess($rec);
             $this->logThenStop("Няма такъв клас", $rec->id, 'err');
-            echo(core_Debug::getLog());
-            shutdown();
         }
         
         // Отключваме процеса и му записваме текущото време за време на последното приключване
         $this->unlockProcess($rec);
-        echo(core_Debug::getLog());
-        shutdown();
+        $this->logThenStop("Няма такъв клас", $rec->id, 'err');
     }
     
     
     /**
      * Записва в лога и спира
      */
-    function logThenStop($msg, $id = NULL, $type = 'info')
+    function logThenStop($msg = '', $id = NULL, $type = 'info')
     {
-        $lifeDays = 7;
-        if ($type == 'info') {
-            $lifeDays = 3;
+        // Ако имаме съобщение - записваме го в лога
+        if(strlen($msg)) {
+            $lifeDays = 7;
+            if ($type == 'info') {
+                $lifeDays = 3;
+            }
+            log_System::add(get_called_class(), $msg, $id, $type, $lifeDays);
         }
         
-        log_System::add(get_called_class(), $msg, $id, $type, $lifeDays);
-        if(haveRole('admin,debug')) {
+        // Ако извикването е от браузър - отпечатваме резултата
+        if(Request::get('forced')) {
             echo(core_Debug::getLog());
         }
+
         shutdown();
     }
     
