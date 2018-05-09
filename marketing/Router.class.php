@@ -320,6 +320,7 @@ class marketing_Router
 		$name = strtolower($name);
 		$name = preg_replace('/[^\w]/', ' ', $name);
 		$name = trim($name);
+		$name = "#{$name}#";
 		
 		$companyTypes = getFileContent('drdata/data/companyTypes.txt');
 		$companyTypesArr = explode("\n", $companyTypes);
@@ -327,9 +328,11 @@ class marketing_Router
 		if(is_array($companyTypesArr)){
 			foreach ($companyTypesArr as $type){
 				$type = trim($type, '|');
-				$name = str_replace($type, '', $name);
+				$name = str_replace(array("#{$type}", "{$type}#"), array('', ''), $name);
 			}
 		}
+		
+		$name = trim(str_replace('#', '', $name));
 		
 		return $name;
 	}
