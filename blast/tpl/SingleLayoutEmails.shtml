@@ -109,6 +109,9 @@
                 <!--ET_BEGIN srcLink-->
                 <div><b style="margin-bottom: 10px; display: block;">|Източник|*: [#srcLink#]</b></div>
                 <!--ET_END srcLink-->
+                <!--ET_BEGIN negativeList-->
+                <div><b style="margin-bottom: 10px; display: block;">|Списък за игнориране|*: [#negativeList#]</b></div>
+                <!--ET_END negativeList-->
                 <!--ET_BEGIN errMsg-->
                 <div class="red"><b style="margin-bottom: 10px;">|Грешка|*: </b>[#errMsg#]</div>
                 <!--ET_END errMsg-->

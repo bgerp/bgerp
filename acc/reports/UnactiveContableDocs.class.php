@@ -45,9 +45,12 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
     {
         $fieldset->FLD('from', 'date(smartTime)', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date(smartTime)', 'caption=До,after=from,single=none,mandatory');
+        $fieldset->FLD('selectedOff', 'set(FALSE=)',
+            'caption=Изключи избраните,after=to');
+        
         $fieldset->FLD('documentType', 'keylist(mvc=core_Classes,select=title,allowEmpty)', 
-            'caption=Документи,placeholder=Всички,after=to');
-        // $fieldset->FLD('states', 'set(draft=Чернова,pending=Заявка)', 'caption=Състояние,after=documentType');
+            'caption=Документи,placeholder=Всички,after=selectedOff');
+       
         $fieldset->FLD('states', 'keylist(mvc=doc_Containers,allowEmpty)', 
             'caption=Състояние,placeholder=Всички,after=documentType,single=none');
         $fieldset->FLD('dealerId', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 
@@ -85,6 +88,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         $states = cls::get(sales_Sales)->getFieldType('state')->options;
         
         $form->setSuggestions('states', $states);
+       
     }
 
     /**
@@ -115,9 +119,15 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         
         if ($rec->documentType) {
             
+            if (!$rec->selectedOff){
+                $selectedOff = FALSE;
+            }else{
+                $selectedOff = TRUE;
+            }
+            
             $checkedClasses = type_Keylist::toArray($rec->documentType);
             
-            $query->in('docClass', $checkedClasses);
+            $query->in('docClass', $checkedClasses, $selectedOff);
         }
         
         if ($rec->dealerId) {
@@ -139,6 +149,8 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
             $className = $Document->className;
             $contDoc = $className::fetch($Document->that);
             
+            $documentType = $className.'|'.$contDoc->state;
+            
             $handle = $className::getHandle($Document->that);
             
             if ($contDoc->valior < $rec->from || $contDoc->valior > $rec->to)
@@ -148,7 +160,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
                 
                 $recs[$Document->that] = (object) array(
                     
-                    'documentType' => $Document->className,
+                    'documentType' => $documentType,
                     'documentFolder' => $document->folderId,
                     'containerId' => $document->id,
                     'documentId' => $Document->that,
@@ -164,7 +176,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         
         if (count($recs)) {
             
-            arr::natOrder($recs, 'states');
+            arr::natOrder($recs, 'documentType');
         }
         
         return $recs;
@@ -179,7 +191,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
             $fld->FLD('documentType', 'varchar', 'caption=Вид документ');
             
             $fld->FLD('valior', 'date', 'caption=Дата,smartCenter');
-            $fld->FLD('states', 'varchar', 'caption=Състояние');
+         //   $fld->FLD('states', 'varchar', 'caption=Състояние');
             $fld->FLD('handle', 'varchar', 'caption=Документ,smartCenter');
             $fld->FLD('documentFolder', 'varchar', 'caption=Папка,smartCenter');
             
@@ -208,9 +220,11 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         
         $row = new stdClass();
         $Document = doc_Containers::getDocument($dRec->containerId);
-        $className = $dRec->documentType;
+
+        list($className, $other) = explode('|',$dRec->documentType);
+        
         // $typeOfDocument = $className::getTitleById($dRec->documentId);
-        $typeOfDocument = $Document->title;
+        $typeOfDocument = $Document->title.'  »  '.cls::get($className)->getFieldType('state')->toVerbal($other);
         
         $handle = $className::getHandle($dRec->documentId);
         
@@ -233,6 +247,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
        
         
         $row->dealerId = crm_Profiles::createLink($dRec->dealerId);
+        
         
         return $row;
     }
@@ -284,7 +299,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
                 $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
             }
             
-            $fieldTpl->append(trim($dealersVerb,', '), 'dealerId');
+            $fieldTpl->append(trim($dealersVerb,',  '), 'dealerId');
         } else {
             $fieldTpl->append('Всички', 'dealerId');
         }

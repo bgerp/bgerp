@@ -7,12 +7,12 @@
     <!--ET_BEGIN totalNoVat-->
             <tr>
                 <td>|Без ДДС|* [#totalNoVatCurrencyId#]: </td>
-                <td><b>[#totalNoVat#] </b></td>
+                <td class="aright"><b>[#totalNoVat#] </b></td>
             </tr>
     <!--ET_END totalNoVat-->
             <tr>
                 <td>|Общо|* [#currencyId#]: </td>
-                <td><b>[#total#] </b></td>
+                <td class="aright"><b>[#total#] </b></td>
             </tr>
         </table>
     </div>

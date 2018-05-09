@@ -45,7 +45,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'packagingId=Наименование, quantity=К-во, code=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити, eanCode=';
+    public $listFields = 'packagingId=Наименование, quantity=К-во, overcharge=Макс.,code=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити, eanCode=';
 
     
     /**
@@ -87,6 +87,14 @@ class cat_products_Packagings extends core_Detail
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'overcharge';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -101,6 +109,7 @@ class cat_products_Packagings extends core_Detail
         $this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Подробно->Широчина,autohide=any');
         $this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Подробно->Височина,autohide=any');
         $this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Подробно->Тара,autohide=any');
+        $this->FLD('overcharge', 'percent(Min=0,Max=1)', 'caption=Подробно->Свръхтовар,autohide=any');
         
         $this->setDbUnique('productId,packagingId');
         $this->setDbIndex('eanCode');
@@ -373,6 +382,7 @@ class cat_products_Packagings extends core_Detail
         				$form->setDefault('sizeHeight', $pRec->sizeHeight);
         				$form->setDefault('sizeDepth', $pRec->sizeDepth);
         				$form->setDefault('tareWeight', $pRec->tareWeight);
+        				$form->setDefault('overcharge', $pRec->overcharge);
         			}
         		}
         	} else {
@@ -424,6 +434,11 @@ class cat_products_Packagings extends core_Detail
         
         if($rec->isBase == 'yes'){
             $row->packagingId = "<b>" . $row->packagingId . "</b>";
+        }
+        
+        if(isset($rec->overcharge)){
+        	$overcharge = $rec->quantity * (1 + $rec->overcharge);
+        	$row->overcharge = $mvc->getFieldType('quantity')->toVerbal($overcharge);
         }
     }
     
@@ -493,6 +508,8 @@ class cat_products_Packagings extends core_Detail
         	unset($data->listFields['_rowTools']);
         }
         
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'overcharge');
+       
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
         return $tpl;
@@ -554,7 +571,7 @@ class cat_products_Packagings extends core_Detail
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-    	cat_PackParams::sync($rec->packagingId, $rec->sizeWidth, $rec->sizeHeight, $rec->sizeDepth, $rec->tareWeight);
+    	cat_PackParams::sync($rec->packagingId, $rec->sizeWidth, $rec->sizeHeight, $rec->sizeDepth, $rec->tareWeight, $rec->overcharge);
     }
     
     

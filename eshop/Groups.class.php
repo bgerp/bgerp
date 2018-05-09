@@ -762,6 +762,7 @@ class eshop_Groups extends core_Master
      */
     public static function getByDomain($domainId = NULL)
     {
+    	$groups = array();
     	$domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
     	 
     	// Намиране на опциите, които са вързани към артикули от подадения домейн
@@ -770,9 +771,8 @@ class eshop_Groups extends core_Master
     	$contentQuery->show('id');
     	$contentQuery->where("#domainId = {$domainId}");
     	$contents = arr::extractValuesFromArray($contentQuery->fetchAll(), 'id');
-    	if(!count($contents)) return $options;
+    	if(!count($contents)) return $groups;
     	
-    	$groups = array();
     	$groupQuery = eshop_Groups::getQuery();
     	$groupQuery->show('id');
     	$groupQuery->in("menuId", $contents);

@@ -213,7 +213,7 @@ class trans_Lines extends core_Master
     	$changeUrl = array($mvc, 'changeState', $data->rec->id);
     	if($data->rec->state == 'active'){
     		if(self::getDocumentsCnt($data->rec->id, 'draft', 1)){
-    			$error = ',error=Линията не може да бъде затворена докато има чернови документи към нея';
+    			$error = ',error=Линията не може да бъде затворена докато има чернови документи към нея|*!';
     		} else {
     			$warning= ',warning=Наистина ли искате да затворите линията?';
     		}

@@ -302,12 +302,7 @@ class cal_Progresses extends core_Mvc
                         
                         // Ако връщаме прогреса - връщаме и предишното състояние
                         if ($oldProgress == 1) {
-                            if ($tRec->brState && $tRec->brState != 'rejected') {
-                                $tRec->state = $tRec->brState;
-                            } else {
-                                $tRec->state = 'active';
-                            }
-                            
+                            $tRec->state = 'wakeup';
                             $saveArr['state'] = 'state';
                         }
                     }
