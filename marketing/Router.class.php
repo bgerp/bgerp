@@ -272,12 +272,9 @@ class marketing_Router
 	{
 		$companies = self::getCompaniesByCountry($countryId);
 		$normalizedName = self::normalizeCompanyName($name);
-		$flipped = array_flip($companies);
 		
-		if(array_key_exists($normalizedName, $flipped)){
-			if($companyId = $flipped[$normalizedName]){
-				return crm_Companies::forceCoverAndFolder((object)array('id' => $companyId, 'inCharge' => $inCharge));
-			}
+		if($companyId = array_search($normalizedName, $companies)){
+			return crm_Companies::forceCoverAndFolder((object)array('id' => $companyId, 'inCharge' => $inCharge));
 		}
 		
 		return NULL;
@@ -320,6 +317,7 @@ class marketing_Router
 		$name = strtolower($name);
 		$name = preg_replace('/[^\w]/', ' ', $name);
 		$name = trim($name);
+		$name = "#{$name}#";
 		
 		$companyTypes = getFileContent('drdata/data/companyTypes.txt');
 		$companyTypesArr = explode("\n", $companyTypes);
@@ -327,9 +325,11 @@ class marketing_Router
 		if(is_array($companyTypesArr)){
 			foreach ($companyTypesArr as $type){
 				$type = trim($type, '|');
-				$name = str_replace($type, '', $name);
+				$name = str_replace(array("#{$type}", "{$type}#"), array('', ''), $name);
 			}
 		}
+		
+		$name = trim(str_replace('#', '', $name));
 		
 		return $name;
 	}
