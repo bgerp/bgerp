@@ -270,27 +270,17 @@ class marketing_Router
 	 */
 	public static function routeByCompanyName($name, $countryId, $inCharge)
 	{
-		$name = preg_replace('/\s+/', ' ', $name);
+		$companies = self::getCompaniesByCountry($countryId);
+		$normalizedName = self::normalizeCompanyName($name);
+		$flipped = array_flip($companies);
 		
-		$conf = core_Packs::getConfig('crm');
-		$query = crm_Companies::getQuery();
-		$query->where(array("#name = '[#1#]'", $name));
-		$query->where("#country = {$countryId} AND #state != 'closed' AND #state != 'rejected'");
-		
-		$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'");
-		if($ownCountryId == $countryId){
-			$query->orWhere("#country IS NULL");
-		}
-		
-		if($company = $query->fetch()){
-			try{
-				expect($company, $company);
-			} catch(core_exception_Expect $e){
-				reportException($e);
+		if(array_key_exists($normalizedName, $flipped)){
+			if($companyId = $flipped[$normalizedName]){
+				return crm_Companies::forceCoverAndFolder((object)array('id' => $companyId, 'inCharge' => $inCharge));
 			}
-			
-			return crm_Companies::forceCoverAndFolder((object)array('id' => $company->id, 'inCharge' => $inCharge));
 		}
+		
+		return NULL;
 	}
 	
 	
@@ -315,5 +305,54 @@ class marketing_Router
 		$mQuery->orderBy('createdOn', 'DESC');
 		
 		return $mQuery->fetch()->folderId;
+	}
+	
+	
+	/**
+	 * Нормализира името на фирмата
+	 * 
+	 * @param string $name  - името на фирмата
+	 * @return string $name - нормализираното име на фирмата
+	 */
+	public static function normalizeCompanyName($name)
+	{
+		$name = str::utf2ascii($name);
+		$name = strtolower($name);
+		$name = preg_replace('/[^\w]/', ' ', $name);
+		$name = trim($name);
+		
+		$companyTypes = getFileContent('drdata/data/companyTypes.txt');
+		$companyTypesArr = explode("\n", $companyTypes);
+	
+		if(is_array($companyTypesArr)){
+			foreach ($companyTypesArr as $type){
+				$type = trim($type, '|');
+				$name = str_replace($type, '', $name);
+			}
+		}
+		
+		return $name;
+	}
+		
+	
+	/**
+	 * Връща всички нормализирани всички фирми от същата държава
+	 * 
+	 * @param int|NULL $countryId - ид на държава или NULL за всички
+	 * @return array $normalized  - нормализирани имена на фирмите
+	 */
+	public static function getCompaniesByCountry($countryId = NULL)
+	{
+		$normalized = array();
+		$query = crm_Companies::getQuery();
+		if(isset($countryId)){
+			$query->where("#country = {$countryId}");
+		}
+		
+		while($cRec = $query->fetch()){
+			$normalized[$cRec->id] = self::normalizeCompanyName($cRec->name);
+		}
+		
+		return $normalized;
 	}
 }
