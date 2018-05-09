@@ -272,12 +272,9 @@ class marketing_Router
 	{
 		$companies = self::getCompaniesByCountry($countryId);
 		$normalizedName = self::normalizeCompanyName($name);
-		$flipped = array_flip($companies);
 		
-		if(array_key_exists($normalizedName, $flipped)){
-			if($companyId = $flipped[$normalizedName]){
-				return crm_Companies::forceCoverAndFolder((object)array('id' => $companyId, 'inCharge' => $inCharge));
-			}
+		if($companyId = array_search($normalizedName, $companies)){
+			return crm_Companies::forceCoverAndFolder((object)array('id' => $companyId, 'inCharge' => $inCharge));
 		}
 		
 		return NULL;
