@@ -177,7 +177,14 @@ class lab_TestDetails extends core_Detail
                 $data->form->setField('methodId', 'input=none');
                 ;
             }
-            $data->form->setOptions('methodId', $methodIdSelectArr);
+            
+            if (empty($methodIdSelectArr) && !empty($data->form->rec->paramName)) {
+                $data->form->setError('paramName', 'За този параметър няма регистрирани методи.');
+                 $data->form->setField('methodId', 'input=none');
+                
+            } else {
+                $data->form->setOptions('methodId', $methodIdSelectArr);
+            }
         }
     }
 
