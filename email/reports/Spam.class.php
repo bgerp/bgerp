@@ -31,8 +31,8 @@ class email_reports_Spam extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки, after=title');
-        $fieldset->FLD('spamFrom', 'int(min=-1000, max=1000)', 'caption=СПАМ рейтинг->От, mandatory, after=folders');
-        $fieldset->FLD('spamTo', 'int(min=-1000, max=1000)', 'caption=СПАМ рейтинг->До, mandatory, after=spamFrom');
+        $fieldset->FLD('spamFrom', 'double(min=-1000, max=1000, decimals=1, smartRound)', 'caption=СПАМ рейтинг->От, mandatory, after=folders');
+        $fieldset->FLD('spamTo', 'double(min=-1000, max=1000, decimals=1, smartRound)', 'caption=СПАМ рейтинг->До, mandatory, after=spamFrom');
         $fieldset->FLD('period', 'time(suggestions=1 седмица|2 седмици|1 месец)', 'caption=Период, mandatory, after=spamTo');
     }
     
