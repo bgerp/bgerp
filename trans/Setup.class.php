@@ -209,6 +209,9 @@ class trans_Setup extends core_ProtoSetup
     		$Document = cls::get($doc);
     		$Document->setupMvc();
     	
+    		$Detail = cls::get($Document->mainDetail);
+    		$Detail->setupMvc();
+    		
     		$save = array();
     		$query = $Document->getQuery();
     		$query->FLD('palletCountInput', 'double');
@@ -231,6 +234,13 @@ class trans_Setup extends core_ProtoSetup
     
     public function updateStoreDocuments()
     {
+    	core_App::setTimeLimit(900);
+    	
+    	$Tm = cls::get('trans_TransportModes');
+    	$Tm->setupMvc();
+    	
+    	$Tu = cls::get('trans_TransportUnits');
+    	$Tu->setupMvc();
     	
     	$this->updateLu();
     	$this->updateStoreTransUnits();
