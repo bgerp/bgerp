@@ -162,10 +162,12 @@ class trans_Setup extends core_ProtoSetup
     	$dQuery = store_ShipmentOrderDetails::getQuery();
     	$dQuery->FLD('transUnit', 'varchar', 'caption=Логистична информация->Единици,autohide,after=volume');
     	$dQuery->FLD('info', "text(rows=2)", 'caption=Логистична информация->Номера,after=transUnit,autohide,after=volume');
-    	$dQuery->where("#transUnit IS NOT NULL AND #transUnit != '' AND #transUnitId IS NULL");
+    	$dQuery->where("#transUnit IS NOT NULL AND #transUnit != ''");
     	$dQuery->show('transUnit,info');
     	while($dRec = $dQuery->fetch()){
     		if(is_numeric($dRec->transUnit)) continue;
+    		if(!empty($dRec->transUnitId)) continue;
+    		
     		$unit = str::mbUcfirst($dRec->transUnit);
     		if($unit == 'Pallets'){
     			$unit = 'Палети';
