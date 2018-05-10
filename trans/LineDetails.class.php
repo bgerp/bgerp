@@ -86,9 +86,26 @@ class trans_LineDetails extends doc_Detail
     	$this->FLD('containerId', 'key(mvc=doc_Containers)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('readyInfo', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('classId', 'class', 'input=none');
-    	$this->FLD('status', 'enum(waiting=Чакащо,ready=Подготвено)', 'input=none');
+    	$this->FLD('status', 'enum(waiting=Чакащо,ready=Подготвено)', 'input=none,notNull,value=waiting');
     	
     	$this->setDbIndex('containerId');
+    }
+    
+    
+    public static function add($lineId, $containerId)
+    {
+    	$Document = doc_Containers::getDocument($containerId);
+    	$id = self::fetch("#lineId = {$lineId} AND #containerId = {$containerId}");
+    	if(!empty($id)) return $id;
+    	
+    	if($otherRec = self::fetch("#lineId != {$lineId} AND #containerId = {$containerId}")){
+    		
+    	}
+    	
+    	
+    	$rec = (object)array('lineId' => $lineId, 'containerId' => $containerId, 'classId' => $Document->getClassId());
+    
+    	return self::save($rec);
     }
     
     
