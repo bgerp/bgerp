@@ -69,7 +69,7 @@ class cat_PackParams extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title,packagingId,sizeWidth,sizeHeight,sizeDepth,tareWeight,overcharge,usage=Използване,state,modifiedOn,modifiedBy';
+    public $listFields = 'title,packagingId,sizeWidth,sizeHeight,sizeDepth,tareWeight,usage=Използване,state,modifiedOn,modifiedBy';
     
     
     /**
@@ -83,9 +83,7 @@ class cat_PackParams extends core_Manager
     	$this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Широчина');
     	$this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Височина');
     	$this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Параметри->Тара');
-    	$this->FLD('overcharge', 'percent(Min=0,Max=1)', 'caption=Параметри->Свръхтовар,autohide=any,input=none');
-    	
-    	$this->setDbIndex('packagingId');
+		$this->setDbIndex('packagingId');
     	$this->setDbIndex('title');
     }
     
@@ -108,7 +106,7 @@ class cat_PackParams extends core_Manager
     	if(empty($res)){
     		$where2 = "#id != '{$rec->id}' AND ";
     		$where2 .= $this->getCompareCondition($rec);
-    		$fields = array('packagingId', 'sizeWidth', 'sizeHeight', 'sizeDepth', 'tareWeight', 'overcharge');
+    		$fields = array('packagingId', 'sizeWidth', 'sizeHeight', 'sizeDepth', 'tareWeight');
     		$res = $this->fetch($where2);
     	}
     	
@@ -135,7 +133,6 @@ class cat_PackParams extends core_Manager
     	$where .= (!empty($rec->sizeHeight)) ? " AND #sizeHeight = {$rec->sizeHeight}" : " AND #sizeHeight IS NULL";
     	$where .= (!empty($rec->sizeDepth)) ? " AND #sizeDepth = {$rec->sizeDepth}" : " AND #sizeDepth IS NULL";
     	$where .= (!empty($rec->tareWeight)) ? " AND #tareWeight = {$rec->tareWeight}" : " AND #tareWeight IS NULL";
-    	$where .= (!empty($rec->overcharge)) ? " AND #overcharge = {$rec->overcharge}" : " AND #overcharge IS NULL";
     	
     	return $where;
     }
@@ -171,10 +168,8 @@ class cat_PackParams extends core_Manager
     		$title = $rec->title;
     		
     		if(empty($rec->title)){
-    			Mode::push('text', 'plain');
-    			$row = self::recToVerbal($rec, 'packagingId,sizeWidth,sizeHeight,sizeDepth,tareWeight,overcharge');
-    			Mode::pop('text', 'plain');
-    			$title = new core_ET("[#packagingId#] <!--ET_BEGIN sizeWidth-->[#sizeWidth#]|<!--ET_END sizeWidth--><!--ET_BEGIN sizeHeight-->[#sizeHeight#]|<!--ET_END sizeHeight--><!--ET_BEGIN sizeDepth-->[#sizeDepth#]|<!--ET_END sizeDepth-->[#tareWeight#]<!--ET_BEGIN overcharge--> [#overcharge#]<!--ET_END overcharge-->");
+    			$row = self::recToVerbal($rec, 'packagingId,sizeWidth,sizeHeight,sizeDepth,tareWeight');
+    			$title = new core_ET("[#packagingId#] <!--ET_BEGIN sizeWidth-->[#sizeWidth#]|<!--ET_END sizeWidth--><!--ET_BEGIN sizeHeight-->[#sizeHeight#]|<!--ET_END sizeHeight--><!--ET_BEGIN sizeDepth-->[#sizeDepth#]|<!--ET_END sizeDepth-->[#tareWeight#]");
     			$title = $title->placeObject($row)->getContent();
     			$title = trim($title, '|');
     		}
@@ -205,12 +200,11 @@ class cat_PackParams extends core_Manager
      * @param double $sizeHeight
      * @param double $sizeDepth
      * @param double $tareWeight
-     * @param double $overcharge
      * @return int
      */
-    public static function sync($packagingId, $sizeWidth, $sizeHeight, $sizeDepth, $tareWeight, $overcharge)
+    public static function sync($packagingId, $sizeWidth, $sizeHeight, $sizeDepth, $tareWeight)
     {
-    	$rec = (object)array('packagingId' => $packagingId, 'sizeWidth' => $sizeWidth, 'sizeHeight' => $sizeHeight, 'sizeDepth' => $sizeDepth, 'tareWeight' => $tareWeight, 'overcharge' => $overcharge);
+    	$rec = (object)array('packagingId' => $packagingId, 'sizeWidth' => $sizeWidth, 'sizeHeight' => $sizeHeight, 'sizeDepth' => $sizeDepth, 'tareWeight' => $tareWeight);
     	$self = cls::get(get_called_class());
     	if($self->isUnique($rec, $fields, $exRec)){
     		$rec->state = 'closed';
