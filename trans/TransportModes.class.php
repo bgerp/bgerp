@@ -40,7 +40,7 @@ class trans_TransportModes extends core_Manager
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'trans_Wrapper,plg_RowTools,plg_Created,plg_Modified';
+    public $loadList = 'trans_Wrapper,plg_RowTools2,plg_Created,plg_Modified';
     
     
     /**
