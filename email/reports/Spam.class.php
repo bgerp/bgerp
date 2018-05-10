@@ -242,7 +242,7 @@ class email_reports_Spam extends frame2_driver_TableData
             $attr['title'] = 'Оттегляне на имейла';
             
             if ($dRec->brState == 'rejected') {
-                $row->subject .= ' (' . tr('възстановено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')';
+                $row->subject .= '<div class="small"> (' . tr('възстановено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')</div>';
             }
             
             $act = 'Оттегляне';
