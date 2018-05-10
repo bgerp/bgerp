@@ -59,6 +59,8 @@ class trans_Setup extends core_ProtoSetup
             'trans_Vehicles',
     		'trans_Lines',
     		'trans_Cmrs',
+    		'trans_TransportModes',
+    		'trans_TransportUnits',
     		'migrate::updateVehicles',
     		'migrate::updateLineVehicles'
         );
@@ -143,6 +145,33 @@ class trans_Setup extends core_ProtoSetup
     				reportException($e);
     			}
     		}
+    	}
+    }
+    
+    
+    
+    public function updateStoreDocuments()
+    {
+    	$arr = array('store_ShipmentOrders', 'store_Receipts', 'store_ConsignmentProtocols', 'store_Transfers');
+    	
+    	foreach ($arr as $doc){
+    		$Document = cls::get($doc);
+    		$Document->setupMvc();
+    		
+    		$save = array();
+    		$query = $Document->getQuery();
+    		$query->FLD('palletCountInput', 'double');
+    		
+    		$query->show('palletCountInput');
+    		while($r = $query->fetch()){
+    			if($r->palletCountInput){
+    				$r->transUnits = array('load' => $r->palletCountInput);
+    				$save[$r->id] = $r;
+    			}
+    			
+    		}
+    		bp($save);
+    		$Document->saveArray($save, 'id,transUnits');
     	}
     }
 }
