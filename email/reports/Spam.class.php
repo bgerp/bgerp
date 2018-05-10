@@ -134,8 +134,8 @@ class email_reports_Spam extends frame2_driver_TableData
         }
 //         $eQuery->where(array("#createdOn > '[#1#]'", dt::subtractSecs($rec->period)));
         $eQuery->where(array("#modifiedOn > '[#1#]'", dt::subtractSecs($rec->period)));
-        $eQuery->where(array("#spamScore > '[#1#]'", $rec->spamFrom));
-        $eQuery->where(array("#spamScore < '[#1#]'", $rec->spamTo));
+        $eQuery->where(array("#spamScore >= '[#1#]'", $rec->spamFrom));
+        $eQuery->where(array("#spamScore <= '[#1#]'", $rec->spamTo));
         
         $eQuery->EXT('docCnt', 'doc_Threads', 'externalName=allDocCnt, remoteKey=firstContainerId, externalFieldName=containerId');
         $eQuery->where("#docCnt <= 1");
