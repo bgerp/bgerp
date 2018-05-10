@@ -182,9 +182,9 @@ class email_reports_Spam extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = FALSE)
     {
         $fld = cls::get('core_FieldSet');
-        $fld->FLD('folderId', 'key(mvc=doc_Folders, select=title)', 'caption=Папка');
         $fld->FLD('subject', 'varchar', 'caption=Документ');
         $fld->FLD('spamScore', 'double', 'caption = Точки, smartRound');
+        $fld->FLD('folderId', 'key(mvc=doc_Folders, select=title)', 'caption=Папка');
         $fld->FLD('action', 'varchar', 'caption = Действие');
 
         return $fld;
@@ -210,7 +210,7 @@ class email_reports_Spam extends frame2_driver_TableData
         $attr = array();
         
         if ($dRec->state == 'rejected') {
-            $attr['class'] = 'state-rejected';
+            $attr['class'] = 'soft-rejected';
         }
         
         setIfNot($attr['ef_icon'], cls::get('email_Incomings')->getIcon($dRec->id));
