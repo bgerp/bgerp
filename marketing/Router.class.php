@@ -15,6 +15,12 @@ class marketing_Router
 	
 	
 	/**
+	 * Работен кеш
+	 */
+	public static $companyTypes = array();
+	
+	
+	/**
 	 * Намира кой ще е отговорника на папката, в следния ред
 	 * 
 	 * 1. Ако има папка "Несортирани - <име на град>", взимаме нейния отговорник
@@ -319,11 +325,13 @@ class marketing_Router
 		$name = trim($name);
 		$name = "#{$name}#";
 		
-		$companyTypes = getFileContent('drdata/data/companyTypes.txt');
-		$companyTypesArr = explode("\n", $companyTypes);
-	
-		if(is_array($companyTypesArr)){
-			foreach ($companyTypesArr as $type){
+		if(!count(self::$companyTypes)){
+			$companyTypes = getFileContent('drdata/data/companyTypes.txt');
+			self::$companyTypes = explode("\n", $companyTypes);
+		}
+		
+		if(is_array(self::$companyTypes)){
+			foreach (self::$companyTypes as $type){
 				$type = trim($type, '|');
 				$name = str_replace(array("#{$type}", "{$type}#"), array('', ''), $name);
 			}
@@ -343,14 +351,29 @@ class marketing_Router
 	 */
 	public static function getCompaniesByCountry($countryId = NULL)
 	{
-		$normalized = array();
-		$query = crm_Companies::getQuery();
-		if(isset($countryId)){
-			$query->where("#country = {$countryId}");
-		}
+		// Проверяваме имали кеш
+		$normalized = core_Cache::get('crm_Companies',  'normalizedNames');
 		
-		while($cRec = $query->fetch()){
-			$normalized[$cRec->id] = self::normalizeCompanyName($cRec->name);
+		if(!is_array($normalized)){
+			$normalized = $companyArr = array();
+			$query = crm_Companies::getQuery();
+			$query->show('folderId,name,createdOn');
+			if(isset($countryId)){
+				$query->where("#country = {$countryId}");
+			}
+			
+			// Подредба по последно използване
+			while($cRec = $query->fetch()){
+				$last = (isset($cRec->folderId)) ? doc_Folders::fetchField($cRec->folderId, 'last') : $cRec->createdOn;
+				$companyArr[$cRec->id] = (object)array('name' => $cRec->name, 'last' => $last);
+			}
+			
+			// Нормализиране на името на фирмата
+			foreach ($companyArr as $id => $obj){
+				$normalized[$id] = self::normalizeCompanyName($obj->name);
+			}
+			
+			core_Cache::set('crm_Companies',  'normalizedNames', $normalized, 10080, array('crm_Companies'));
 		}
 		
 		return $normalized;
