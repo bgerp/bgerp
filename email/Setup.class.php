@@ -374,6 +374,11 @@ class email_Setup extends core_ProtoSetup
             'migrate::spamFilter',
         );
     
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "email_reports_Spam";
 
     /**
      * Роли за достъп до модула
