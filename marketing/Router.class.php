@@ -352,7 +352,8 @@ class marketing_Router
 	public static function getCompaniesByCountry($countryId = NULL)
 	{
 		// Проверяваме имали кеш
-		$normalized = core_Cache::get('crm_Companies',  'normalizedNames');
+		$key = "normalizedNames|{$countryId}|";
+		$normalized = core_Cache::get('crm_Companies',  $key);
 		
 		if(!is_array($normalized)){
 			$normalized = $companyArr = array();
@@ -373,7 +374,7 @@ class marketing_Router
 				$normalized[$id] = self::normalizeCompanyName($obj->name);
 			}
 			
-			core_Cache::set('crm_Companies',  'normalizedNames', $normalized, 10080, array('crm_Companies'));
+			core_Cache::set('crm_Companies',  $key, $normalized, 10080, array('crm_Companies'));
 		}
 		
 		return $normalized;
