@@ -257,24 +257,32 @@ class lab_TestDetails extends core_Detail
             
             while ($testsDet = $dQuery->fetch()) {
                 
+           
                 foreach ($rows as $key => $row) {
                     
                     if ($compTest) {
-                        
+                       
                         if ($recs[$key]->methodId == $testsDet->methodId) {
-                            
+                             
                             $row->refValue = "<div style='float: right'>" . number_format($testsDet->value, 2, ',', ' ') .
                                  "</div>";
+                            
+                            
                             $recs[$key]->refValue = $testsDet->value;
+                           
+                            
                             if ($recs[$key]->refValue) {
                                 $deviation = core_Type::getByName('percent')->toVerbal(
-                                    
                                     ($recs[$key]->value - $recs[$key]->refValue) / $recs[$key]->refValue);
+                                 
+                              
                             } else {
                                 $deviation = '---';
                             }
-                            
-                            if (($recs[$key]->better && $testsDet->better) && ($recs[$key]->better === $testsDet->better)) {
+                        
+                            if ($testsDet->better) {
+                                
+                                $recs[$key]->better = $testsDet->better;
                                 
                                 if ($recs[$key]->better == 'up' && $recs[$key]->value >= $recs[$key]->refValue) {
                                     // $row->error = ht::styleIfNegative($deviation, $deviation);
@@ -286,15 +294,21 @@ class lab_TestDetails extends core_Detail
                                     $row->error = "<div style='float: right;color: red'>" .
                                          number_format($deviation, 2, ',', ' ') . "%" . "</div>";
                                 }
+                                
+                                
                                 if ($recs[$key]->better == 'down' && $recs[$key]->value <= $recs[$key]->refValue) {
                                     
                                     $row->error = "<div style='float: right;color: green'>" .
                                          number_format($deviation, 2, ',', ' ') . "%" . "</div>";
                                 }
-                                if ($recs[$key]->better == 'doun' && $recs[$key]->value > $recs[$key]->refValue) {
+                               
+                                
+                                if ($recs[$key]->better == 'down' && $recs[$key]->value > $recs[$key]->refValue) {
                                     
                                     $row->error = "<div style='float: right;color: red'>" .
                                          number_format($deviation, 2, ',', ' ') . "%" . "</div>";
+                                   
+                                    
                                 }
                             } else {
                                 $row->error = "<div style='float: right;color: black'>" .
