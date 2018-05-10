@@ -190,7 +190,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$this->FLD('quantity2', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
     	$this->FLD('quantity3', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
     	$this->FLD('company', 'varchar(255)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=50');
-    	$this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Лице,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,mandatory,oldFieldName=name');
+    	$this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Лице,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,oldFieldName=name');
     	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,formOrder=52,contragentDataField=countryId,mandatory');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,hint=Вашият имейл||Your email,formOrder=53,mandatory');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
@@ -809,7 +809,7 @@ class marketing_Inquiries2 extends embed_Manager
 
     	if($lg = Request::get('Lg')){
     		cms_Content::setLang($lg);
-    		core_Lg::push($lg);
+    		core_Lg::push($lg);#Tsk1150
     	}
     	
     	$form = $this->prepareForm($drvId);
@@ -818,6 +818,15 @@ class marketing_Inquiries2 extends embed_Manager
     	$form->FLD('drvId', 'class', 'input=hidden,silent');
     	$form->FLD('quantityCount', 'double', 'input=hidden,silent');
     	$form->FLD('protos', 'varchar', 'input=hidden,silent');
+    	
+    	$mandatoryField = marketing_Setup::get('INQUIRE_MANDATORY_FIELDS');
+    	if(in_array($mandatoryField, array('company', 'both'))){
+    		$form->setField('company', 'mandatory');
+    	}
+
+    	if(in_array($mandatoryField, array('person', 'both'))){
+    		$form->setField('personNames', 'mandatory');
+    	}
     	
     	$form->input(NULL, 'silent');
     	

@@ -176,7 +176,7 @@ class marketing_Router
 		$conf = core_Packs::getConfig('crm');
 		$query = crm_Persons::getQuery();
 		$query->where(array("#name = '[#1#]'", $name));
-		$query->where("#country = {$countryId}");
+		$query->where("#country = {$countryId} AND #state != 'closed' AND #state != 'rejected'");
 		
 		$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'");
 		if($ownCountryId == $countryId){
@@ -270,26 +270,89 @@ class marketing_Router
 	 */
 	public static function routeByCompanyName($name, $countryId, $inCharge)
 	{
-		$name = preg_replace('/\s+/', ' ', $name);
+		$companies = self::getCompaniesByCountry($countryId);
+		$normalizedName = self::normalizeCompanyName($name);
 		
-		$conf = core_Packs::getConfig('crm');
-		$query = crm_Companies::getQuery();
-		$query->where(array("#name = '[#1#]'", $name));
-		$query->where("#country = {$countryId}");
-		
-		$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'");
-		if($ownCountryId == $countryId){
-			$query->orWhere("#country IS NULL");
+		if($companyId = array_search($normalizedName, $companies)){
+			return crm_Companies::forceCoverAndFolder((object)array('id' => $companyId, 'inCharge' => $inCharge));
 		}
 		
-		if($company = $query->fetch()){
-			try{
-				expect($company, $company);
-			} catch(core_exception_Expect $e){
-				reportException($e);
+		return NULL;
+	}
+	
+	
+	/**
+	 * Рутиране по БРИД на запиътване
+	 * 
+	 * @param string $brid
+	 * @param int|NULL $folderId
+	 */
+	public static function routeByBrid($brid)
+	{
+		$contragentClasses = core_Classes::getOptionsByInterface('crm_ContragentAccRegIntf');
+		
+		// Опит за намиране на последното запитване със същия брид в папка на фирма/лице
+		$mQuery = marketing_Inquiries2::getQuery();
+		$mQuery->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
+		$mQuery->EXT('fState', 'doc_Folders', 'externalName=state,externalKey=folderId');
+		$mQuery->where("#brid IS NOT NULL AND #fState != 'rejected' AND #fState != 'closed' AND #state != 'rejected'");
+		$mQuery->where(array("#brid = '[#1#]'", $brid));
+		$mQuery->in("coverClass", array_keys($contragentClasses));
+		$mQuery->show('folderId');
+		$mQuery->orderBy('createdOn', 'DESC');
+		
+		return $mQuery->fetch()->folderId;
+	}
+	
+	
+	/**
+	 * Нормализира името на фирмата
+	 * 
+	 * @param string $name  - името на фирмата
+	 * @return string $name - нормализираното име на фирмата
+	 */
+	public static function normalizeCompanyName($name)
+	{
+		$name = str::utf2ascii($name);
+		$name = strtolower($name);
+		$name = preg_replace('/[^\w]/', ' ', $name);
+		$name = trim($name);
+		$name = "#{$name}#";
+		
+		$companyTypes = getFileContent('drdata/data/companyTypes.txt');
+		$companyTypesArr = explode("\n", $companyTypes);
+	
+		if(is_array($companyTypesArr)){
+			foreach ($companyTypesArr as $type){
+				$type = trim($type, '|');
+				$name = str_replace(array("#{$type}", "{$type}#"), array('', ''), $name);
 			}
-			
-			return crm_Companies::forceCoverAndFolder((object)array('id' => $company->id, 'inCharge' => $inCharge));
 		}
+		
+		$name = trim(str_replace('#', '', $name));
+		
+		return $name;
+	}
+		
+	
+	/**
+	 * Връща всички нормализирани всички фирми от същата държава
+	 * 
+	 * @param int|NULL $countryId - ид на държава или NULL за всички
+	 * @return array $normalized  - нормализирани имена на фирмите
+	 */
+	public static function getCompaniesByCountry($countryId = NULL)
+	{
+		$normalized = array();
+		$query = crm_Companies::getQuery();
+		if(isset($countryId)){
+			$query->where("#country = {$countryId}");
+		}
+		
+		while($cRec = $query->fetch()){
+			$normalized[$cRec->id] = self::normalizeCompanyName($cRec->name);
+		}
+		
+		return $normalized;
 	}
 }

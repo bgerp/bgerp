@@ -384,6 +384,7 @@ class eshop_CartDetails extends core_Detail
 		$id = Request::get('id', 'int');
 		$cartId = Request::get('cartId', 'int');
 		$this->requireRightFor('removeexternal', (object)array('cartId' => $cartId));
+		$deletedCart = FALSE;
 		
 		if(isset($id)){
 			$this->delete($id);
@@ -393,6 +394,7 @@ class eshop_CartDetails extends core_Detail
 			cls::get('eshop_Carts')->updateMaster($cartId);
 			eshop_Carts::delete($cartId);
 			$msg = '|Кошницата е изпразнена|*!';
+			$deletedCart = TRUE;
 		}
 		
 		core_Statuses::newStatus($msg);
@@ -400,6 +402,8 @@ class eshop_CartDetails extends core_Detail
 		
 		// Ако заявката е по ajax
 		if (Request::get('ajax_mode')) return self::getUpdateCartResponse($cartId);
+		
+		if($deletedCart === TRUE) return new Redirect(array('index', 'default'));
 		
 		return followRetUrl(NULL, NULL, $msg);
 	}

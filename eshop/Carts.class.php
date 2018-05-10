@@ -90,12 +90,6 @@ class eshop_Carts extends core_Master
     
     
     /**
-     * Кой може да я прави на заявка
-     */
-    public $canPending = 'no_one';
-    
-    
-    /**
      * Описание на модела
      */
     function description()
@@ -414,6 +408,9 @@ class eshop_Carts extends core_Master
     {
     	$rec = self::fetchRec($id, '*', FALSE);
     	$row = self::recToVerbal($rec);
+    	$settings = cms_Domains::getSettings();
+    	$row->currencyId = $settings->currencyId;
+    	
     	$row->totalNoVatCurrencyId = $row->currencyId;
     	$row->productCount .= "&nbsp;" . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
     	$block = ($onlyCount === TRUE) ? 'CART_COUNT' : 'CART_SUMMARY';
