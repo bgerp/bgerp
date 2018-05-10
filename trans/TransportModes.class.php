@@ -1,46 +1,70 @@
 <?php
-class transsrv_TransportModes extends core_Manager
+
+
+
+/**
+ * Клас 'trans_TransportModes'
+ *
+ * Документ за Видове транспорт
+ *
+ *
+ * @category  bgerp
+ * @package   trans
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
+ * @copyright 2006 - 2018 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class trans_TransportModes extends core_Manager
 {
+    
+    
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'transsrv_TransportModes';
+	
+	
     /**
      * Заглавие
      */
-    var $title = 'Видове транспорт';
+    public $title = 'Видове транспорт';
 
 
     /**
      * Заглавие
      */
-    var $singleTitle = 'Транспортен вид';
+    public $singleTitle = 'Транспортен вид';
 
 
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'transsrv_Wrapper,plg_RowTools,plg_Created,plg_Modified';
+    public $loadList = 'trans_Wrapper,plg_RowTools2,plg_Created,plg_Modified';
     
     
     /**
      * Кой може да редактира
      */
-    var $canEdit = 'transsrv,ceo';
+    public $canEdit = 'trans,ceo';
 
 
     /**
      * Кой може да добавя транспортни единици
      */
-    var $canAdd = 'transsrv,ceo';
+    public $canAdd = 'trans,ceo';
     
     
     /**
      * Кой може да изтрива транспортни единици
      */
-    var $canDelete = 'transsrv,ceo';
+    public $canDelete = 'trans,ceo';
     
     
     /**
      * Кой може да разглежда
      */
-    var $canList = 'transsrv,ceo';
+    public $canList = 'trans,ceo';
 
     
     /**
@@ -70,8 +94,5 @@ class transsrv_TransportModes extends core_Manager
                 $roles = 'ceo'; 
             }
         }
-
     }
-    
-
 }

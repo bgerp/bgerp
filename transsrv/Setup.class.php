@@ -41,12 +41,6 @@ class transsrv_Setup extends core_ProtoSetup
     
     
     /**
-     * Мениджър - входна точка в пакета
-     */
-    public $startCtr = 'transsrv_TransportModes';
-    
-    
-    /**
      * Екшън - входна точка в пакета
      */
     public $startAct = 'default';
@@ -62,15 +56,6 @@ class transsrv_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = "Интеграция с trans.bid";
-    
-    
-    /**
-     * Списък с мениджърите, които съдържа пакета
-     */
-    public $managers = array(
-            'transsrv_TransportModes',
-            'transsrv_TransportUnits',
-        );
     
 
     /**
