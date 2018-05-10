@@ -109,7 +109,7 @@ class cat_products_Packagings extends core_Detail
         $this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Подробно->Широчина,autohide=any');
         $this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Подробно->Височина,autohide=any');
         $this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Подробно->Тара,autohide=any');
-        $this->FLD('overcharge', 'percent(Min=0,Max=1)', 'caption=Подробно->Свръхтовар,autohide=any');
+        $this->FLD('overcharge', 'percent(Min=0,Max=1)', 'caption=Подробно->Свръхтовар,autohide=any,input=none');
         
         $this->setDbUnique('productId,packagingId');
         $this->setDbIndex('eanCode');
