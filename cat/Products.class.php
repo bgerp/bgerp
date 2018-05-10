@@ -2153,6 +2153,10 @@ class cat_Products extends embed_Manager {
     	}
     	
     	$this->saveArray($saveDiff, 'id,state,modifiedOn,modifiedBy');
+    	foreach ($saveDiff as $sd){
+    		$this->logWrite('Приключване', $sd);
+    	}
+    	
     	log_System::add('cat_Products', "Products Without Items Closed:" . count($diff));
     	
     	$productQuery = cat_Products::getQuery();
