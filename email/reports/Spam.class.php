@@ -220,6 +220,12 @@ class email_reports_Spam extends frame2_driver_TableData
         $data = str::addHash($data);
         $urlArr = array($this, 'updateEmailState', 'data' => $data);
         
+        if ($pageVar = core_Pager::getPageVar('frame2_Reports', $rec->id)) {
+            $pageVal = core_Request::get($pageVar, 'int');
+            $urlArr['pageVar'] = $pageVar;
+            $urlArr['pageVal'] = $pageVal;
+        }
+        
         $attr = array('onclick' => 'return startUrlFromDataAttr(this, true);', 'class' => 'button');
         
         if ($dRec->state == 'rejected') {
@@ -302,6 +308,11 @@ class email_reports_Spam extends frame2_driver_TableData
             cls::get('email_Incomings')->logInAct('Оттегляне', $eRec);
             
             frame2_Reports::refresh($repRec);
+        }
+        
+        if ($pageVar = Request::get('pageVar')) {
+            $pageVal = Request::get('pageVal', 'int');
+            Request::push(array($pageVar => $pageVal));
         }
         
         $resArr = doc_Containers::getDocumentForAjaxShow($repRec->containerId);
