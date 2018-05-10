@@ -227,7 +227,7 @@ class email_reports_Spam extends frame2_driver_TableData
             $attr['ef_icon'] = 'img/16/restore.png';
             $attr['title'] = 'Възстановяване на имейла';
             
-            $row->subject .= ' (' . tr('оттеглено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')';
+            $row->subject .= '<div class="small"> (' . tr('оттеглено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')</div>';
             
             $act = 'Възстановяване';
         } else {
