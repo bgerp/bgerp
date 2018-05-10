@@ -28,7 +28,6 @@ class trans_plg_LinesPlugin extends core_Plugin
 		setIfNot($mvc->totalWeightFieldName, 'weight');
 		setIfNot($mvc->totalVolumeFieldName, 'volume');
 		setIfNot($mvc->lineFieldName, 'lineId');
-		setIfNot($mvc->palletCountFieldName, 'palletCount');
 		setIfNot($mvc->lineNoteFieldName, 'lineNotes');
 		
 		// Създаваме поле за избор на линия, ако няма такова
@@ -36,13 +35,6 @@ class trans_plg_LinesPlugin extends core_Plugin
 			$mvc->FLD($mvc->lineFieldName, 'key(mvc=trans_Lines,select=title,allowEmpty)', 'input=none');
 		} else {
 			$mvc->setField($mvc->lineFieldName, 'input=none');
-		}
-		
-		// Създаваме поле за брой пакети ако няма
-		if(!$mvc->getField($mvc->palletCountFieldName, FALSE)){
-			$mvc->FLD($mvc->palletCountFieldName, 'int', 'input=none');
-		} else {
-			$mvc->setField($mvc->palletCountFieldName, 'input=none');
 		}
 		
 		// Създаваме поле за общ обем
@@ -62,7 +54,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		$mvc->FLD('lineNotes', 'text(rows=2)', 'input=none,caption=Забележки');
 		$mvc->FLD('weightInput', 'cat_type_Weight', 'input=none');
 		$mvc->FLD('volumeInput', 'cat_type_Volume', 'input=none');
-		$mvc->FLD('palletCountInput', 'int', 'input=none');
+		$mvc->FLD('transUnits', 'table', 'input=none');
 	}
 	
 	
@@ -107,12 +99,14 @@ class trans_plg_LinesPlugin extends core_Plugin
 		$form->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty,where=#state \\= \\\'active\\\')', 'caption=Транспорт' . ($exLineId?'':''));
 		$form->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
 		$form->FLD('volume', 'cat_type_Volume', 'caption=Обем');
-		$form->FLD('palletsCount', 'int', 'caption=Kолети/палети,unit=бр.');
+		
+		$transUnits = $mvc->getTransUnits($rec);
+		trans_LineDetails::setTransUnitField($form, $rec, $transUnits);
+		
 		$form->FLD('lineNotes', 'text(rows=2)', 'caption=Забележки');
 		$form->setDefault('lineId', $rec->{$mvc->lineFieldName});
 		$form->setDefault('weight', $rec->weightInput);
 		$form->setDefault('volume', $rec->volumeInput);
-		$form->setDefault('palletsCount', $rec->palletCountInput);
 		$form->setDefault('lineNotes', $rec->lineNotes);
 		
 		$form->input(NULL, 'silent');
@@ -125,7 +119,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 			$rec->weightInput = $formRec->weight;
 			$rec->volumeInput = $formRec->volume;
 			$rec->lineNotes = $formRec->lineNotes;
-			$rec->palletCountInput = $formRec->palletsCount;
+			$rec->transUnits = $formRec->transUnitInput;
 			
 			$rec->{$mvc->lineFieldName} = $formRec->lineId;
 			$mvc->save($rec);
@@ -244,4 +238,14 @@ class trans_plg_LinesPlugin extends core_Plugin
 			$mvc->save_($rec, "{$mvc->totalWeightFieldName},{$mvc->totalVolumeFieldName}");
 		}
 	}
+	
+	
+	public static function on_AfterGetTransUnits($mvc, &$res, $rec) 
+	{
+		if(empty($res) && isset($mvc->mainDetail)){
+			$res = cls::get($mvc->mainDetail)->getTransUnits($rec);
+		}
+	}
+	
+	
 }

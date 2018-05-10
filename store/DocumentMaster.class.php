@@ -537,12 +537,6 @@ abstract class store_DocumentMaster extends core_Master
     		}
     	}
     	
-    	$rec->palletCount = ($rec->palletCountInput) ? $rec->palletCountInput : $rec->palletCount;
-    	
-    	if($rec->palletCount){
-    		$row->palletCount = $this->getFieldType('palletCount')->toVerbal($rec->palletCount);
-    	}
-    	
     	if(!empty($rec->weight)){
     		$row->weight = $oldRow->weight;
     	}

@@ -306,13 +306,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     	}
     	
     	core_Lg::pop();
-    	
-    	$rec->palletCountInput = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
-    	if(!empty($rec->palletCountInput)){
-    		$row->palletCountInput = $mvc->getVerbal($rec, 'palletCountInput');
-    	} else {
-    		unset($row->palletCountInput);
-    	}
     }
     
     

@@ -45,4 +45,23 @@ class trans_plg_DocumentUnits extends core_Plugin
     		}
     	}
     }
+    
+    
+    public static function on_AfterGetTransUnits($mvc, &$res, $masterRec)
+    {
+    	if(!empty($res)) return;
+    	
+    	$res = array();
+    	$dQuery = $mvc->getQuery();
+    	$dQuery->where("#{$mvc->masterKey} = {$masterRec->id} AND #transUnitId IS NOT NULL AND #transUnitId != ''");
+    	$dQuery->show('transUnitId,transUnitQuantity');
+    	
+    	while($dRec = $dQuery->fetch()){
+    		if(!empty($dRec->transUnitId)){
+    			$res[$dRec->transUnitId] = $dRec->transUnitQuantity;
+    		}
+    	}
+    	
+    	return $res;
+    }
 }
