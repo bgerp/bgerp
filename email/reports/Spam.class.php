@@ -299,16 +299,14 @@ class email_reports_Spam extends frame2_driver_TableData
             doc_Threads::restoreThread($eRec->threadId);
             
             cls::get('email_Incomings')->logInAct('Възстановяване', $eRec);
-            
-            frame2_Reports::refresh($repRec);
         } elseif ($action == 'reject' && cls::get('email_Incomings')->reject($emailId)) {
             
             doc_Threads::rejectThread($eRec->threadId);
             
             cls::get('email_Incomings')->logInAct('Оттегляне', $eRec);
-            
-            frame2_Reports::refresh($repRec);
         }
+        
+        frame2_Reports::refresh($repRec);
         
         if ($pageVar = Request::get('pageVar')) {
             $pageVal = Request::get('pageVal', 'int');
