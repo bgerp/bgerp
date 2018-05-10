@@ -433,6 +433,15 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$rec = static::fetchRec($id);
     	$dQuery = store_ShipmentOrderDetails::getQuery();
     	$dQuery->where("#shipmentId = {$rec->id}");
+    	
+    	
+    	return 1;
+    	
+    	
+    	
+    	
+    	
+    	
     	$dQuery->where("#info IS NOT NULL");
     	$count = 0;
     	

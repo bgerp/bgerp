@@ -152,6 +152,59 @@ class trans_Setup extends core_ProtoSetup
     
     public function updateStoreDocuments()
     {
+    	$so = cls::get('store_ShipmentOrders');
+    	$so->setupMvc();
+    	$sod = cls::get('store_ShipmentOrderDetails');
+    	$sod->setupMvc();
+    	
+    	$transUnits = cls::get(trans_TransportUnits)->makeArray4Select();
+    	
+    	$save = array();
+    	$dQuery = store_ShipmentOrderDetails::getQuery();
+    	$dQuery->FLD('transUnit', 'varchar', 'caption=Логистична информация->Единици,autohide,after=volume');
+    	$dQuery->FLD('info', "text(rows=2)", 'caption=Логистична информация->Номера,after=transUnit,autohide,after=volume');
+    	$dQuery->where("#transUnit IS NOT NULL AND #transUnit != ''");
+    	$dQuery->show('transUnit,info');
+    	while($dRec = $dQuery->fetch()){
+    		if(is_numeric($dRec->transUnit)) continue;
+    		$unit = str::mbUcfirst($dRec->transUnit);
+    		if($unit == 'Pallets'){
+    			$unit = 'Палети';
+    		}elseif($unit == 'Carton boxes'){
+    			$unit = 'Кашони';
+    		}
+    		
+    		if(!in_array($unit, $transUnits)){
+    			$transId = trans_TransportUnits::save((object)array('name' => $unit, 'pluralName' => $unit, 'abbr' => $unit));
+    			$transUnits[$transId] = $unit;
+    		} else {
+    			$transId = array_search($unit, $transUnits);
+    		}
+    		
+    		if(!empty($transId)){
+    			$dRec->transUnitId = $transId;
+    			$luArr = self::getLUs($dRec->info);
+    			$count = !is_array($luArr) ? 1 : count($luArr);
+    			$count = (empty($count)) ? 1 : $count;
+    			$dRec->transUnitQuantity = $count;
+    			$save[$dRec->id] = $dRec;
+    		}
+    	}
+    	
+    	$sod->saveArray($save, 'id,transUnitId,transUnitQuantity');
+    	bp($save);
+    	
+    	
+    	
+    	
+    	
+    	
+    	
+    	
+    	
+    	
+    	
+    	
     	$arr = array('store_ShipmentOrders', 'store_Receipts', 'store_ConsignmentProtocols', 'store_Transfers');
     	
     	foreach ($arr as $doc){
@@ -173,5 +226,57 @@ class trans_Setup extends core_ProtoSetup
     		bp($save);
     		$Document->saveArray($save, 'id,transUnits');
     	}
+    }
+    
+    
+    
+    /**
+     * Парсира текст, въведен от потребителя в масив с номера на логистични единици
+     * Връща FALSE, ако текста е некоректно форматиран
+     */
+    private static function getLUs($infoLU)
+    {
+    	$res = array();
+    
+    	$str = str_replace(array(",", '№'), array("\n", ''), $infoLU);
+    	$arr = explode("\n", $str);
+    
+    	foreach($arr as $item) {
+    		$item = trim($item);
+    
+    		if(empty($item)) continue;
+    
+    		if(strpos($item, '-')) {
+    			list($from, $to) = explode('-', $item);
+    			$from = trim($from);
+    			$to   = trim($to);
+    			if(!ctype_digit($from) || !ctype_digit($to) || !($from < $to)) {
+    				return "Непарсируем диапазон на колети|* \"". $item . '"';
+    			}
+    			for($i = (int) $from; $i <= $to; $i++) {
+    				if(isset($res[$i])) {
+    					return "Повторение на колет|* №". $i;
+    				}
+    				$res[$i] = $i;
+    			}
+    		} elseif(!ctype_digit($item)) {
+    
+    			return "Непарсируем номер на колет|* \"". $item . '"';
+    		} else {
+    			if(isset($res[$item])) {
+    				return "Повторение на колет|* №". $item;
+    			}
+    			$item = (int) $item;
+    			$res[$item] = $item;
+    		}
+    	}
+    
+    	if(trim($infoLU) && !count($res)) {
+    		return "Грешка при парсиране на номерата на колетите";
+    	}
+    
+    	asort($res);
+    
+    	return $res;
     }
 }
