@@ -385,10 +385,12 @@ class doc_AssignPlg extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        $defUsersArr = $mvc->getDefaultAssignUsers($data->form->rec);
-        
-        if ($defUsersArr) {
-            $data->form->setDefault('assign', $defUsersArr);
+        if (!$data->form->rec->id) {
+            $defUsersArr = $mvc->getDefaultAssignUsers($data->form->rec);
+            
+            if ($defUsersArr) {
+                $data->form->setDefault('assign', $defUsersArr);
+            }
         }
     }
     

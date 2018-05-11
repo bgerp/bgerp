@@ -30,9 +30,9 @@ class email_reports_Spam extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки, mandatory, after=title');
-        $fieldset->FLD('spamFrom', 'int(min=-1000, max=1000)', 'caption=СПАМ рейтинг->От, mandatory, after=folders');
-        $fieldset->FLD('spamTo', 'int(min=-1000, max=1000)', 'caption=СПАМ рейтинг->До, mandatory, after=spamFrom');
+        $fieldset->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки, after=title');
+        $fieldset->FLD('spamFrom', 'double(min=-1000, max=1000, decimals=1, smartRound)', 'caption=СПАМ рейтинг->От, mandatory, after=folders');
+        $fieldset->FLD('spamTo', 'double(min=-1000, max=1000, decimals=1, smartRound)', 'caption=СПАМ рейтинг->До, mandatory, after=spamFrom');
         $fieldset->FLD('period', 'time(suggestions=1 седмица|2 седмици|1 месец)', 'caption=Период, mandatory, after=spamTo');
     }
     
@@ -46,12 +46,7 @@ class email_reports_Spam extends frame2_driver_TableData
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
-        $fQuery = doc_Folders::getQuery();
-        $fQuery->where("#state != 'rejected'");
-        $fQuery->where(array("#coverClass = '[#1#]'", doc_UnsortedFolders::getClassId()));
-        $fQuery->orWhere(array("#coverClass = '[#1#]'", email_Inboxes::getClassId()));
-        
-        doc_Folders::restrictAccess($fQuery, NULL, FALSE);
+        $fQuery = self::getFolderQuery();
         
         $fArr = array();
         while ($fRec = $fQuery->fetch()) {
@@ -63,6 +58,34 @@ class email_reports_Spam extends frame2_driver_TableData
         $data->form->setDefault('spamFrom', 0);
         $data->form->setDefault('spamTo', 10);
         $data->form->setDefault('period', 604800); // 1 седмица
+    }
+    
+    
+    
+    /**
+     * Помощна фунция за връщане на всички папки
+     * 
+     * @return core_Query
+     */
+    protected static function getFolderQuery($show = 'title', $userId = NULL)
+    {
+        if ($userId) {
+            core_Users::sudo($userId);
+        }
+        $fQuery = doc_Folders::getQuery();
+        $fQuery->where("#state != 'rejected'");
+        $fQuery->where(array("#coverClass = '[#1#]'", doc_UnsortedFolders::getClassId()));
+        $fQuery->orWhere(array("#coverClass = '[#1#]'", email_Inboxes::getClassId()));
+        
+        $fQuery->show($show);
+        
+        doc_Folders::restrictAccess($fQuery, NULL, FALSE);
+        
+        if ($userId) {
+            core_Users::exitSudo($userId);
+        }
+        
+        return $fQuery;
     }
     
     
@@ -97,11 +120,22 @@ class email_reports_Spam extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = NULL)
     {
         $eQuery = email_Incomings::getQuery();
-        $eQuery->orWhereArr("folderId", type_Keylist::toArray($rec->folders));
+        
+        if ($rec->folders) {
+            $eQuery->orWhereArr("folderId", type_Keylist::toArray($rec->folders));
+        } else {
+            
+            // Ако не е избрана папка - да са всички достъпни на създателя
+            
+            $fQuery = $this->getFolderQuery('id', $rec->createdBy);
+            $fArr = $fQuery->fetchAll();
+            $fArr = array_keys($fArr);
+            $eQuery->in('folderId', $fArr);
+        }
 //         $eQuery->where(array("#createdOn > '[#1#]'", dt::subtractSecs($rec->period)));
-        $eQuery->where(array("#modifiedOn > '[#1#]'", dt::subtractSecs($rec->period)));
-        $eQuery->where(array("#spamScore > '[#1#]'", $rec->spamFrom));
-        $eQuery->where(array("#spamScore < '[#1#]'", $rec->spamTo));
+        $eQuery->where(array("#modifiedOn >= '[#1#]'", dt::subtractSecs($rec->period)));
+        $eQuery->where(array("#spamScore >= '[#1#]'", $rec->spamFrom));
+        $eQuery->where(array("#spamScore <= '[#1#]'", $rec->spamTo));
         
         $eQuery->EXT('docCnt', 'doc_Threads', 'externalName=allDocCnt, remoteKey=firstContainerId, externalFieldName=containerId');
         $eQuery->where("#docCnt <= 1");
@@ -148,9 +182,9 @@ class email_reports_Spam extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = FALSE)
     {
         $fld = cls::get('core_FieldSet');
-        $fld->FLD('folderId', 'key(mvc=doc_Folders, select=title)', 'caption=Папка');
         $fld->FLD('subject', 'varchar', 'caption=Документ');
         $fld->FLD('spamScore', 'double', 'caption = Точки, smartRound');
+        $fld->FLD('folderId', 'key(mvc=doc_Folders, select=title)', 'caption=Папка');
         $fld->FLD('action', 'varchar', 'caption = Действие');
 
         return $fld;
@@ -176,7 +210,7 @@ class email_reports_Spam extends frame2_driver_TableData
         $attr = array();
         
         if ($dRec->state == 'rejected') {
-            $attr['class'] = 'state-rejected';
+            $attr['class'] = 'soft-rejected';
         }
         
         setIfNot($attr['ef_icon'], cls::get('email_Incomings')->getIcon($dRec->id));
@@ -186,6 +220,12 @@ class email_reports_Spam extends frame2_driver_TableData
         $data = str::addHash($data);
         $urlArr = array($this, 'updateEmailState', 'data' => $data);
         
+        if ($pageVar = core_Pager::getPageVar('frame2_Reports', $rec->id)) {
+            $pageVal = core_Request::get($pageVar, 'int');
+            $urlArr['pageVar'] = $pageVar;
+            $urlArr['pageVal'] = $pageVal;
+        }
+        
         $attr = array('onclick' => 'return startUrlFromDataAttr(this, true);', 'class' => 'button');
         
         if ($dRec->state == 'rejected') {
@@ -193,7 +233,7 @@ class email_reports_Spam extends frame2_driver_TableData
             $attr['ef_icon'] = 'img/16/restore.png';
             $attr['title'] = 'Възстановяване на имейла';
             
-            $row->subject .= ' (' . tr('оттеглено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')';
+            $row->subject .= '<div class="small"> (' . tr('оттеглено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')</div>';
             
             $act = 'Възстановяване';
         } else {
@@ -202,7 +242,7 @@ class email_reports_Spam extends frame2_driver_TableData
             $attr['title'] = 'Оттегляне на имейла';
             
             if ($dRec->brState == 'rejected') {
-                $row->subject .= ' (' . tr('възстановено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')';
+                $row->subject .= '<div class="small"> (' . tr('възстановено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')</div>';
             }
             
             $act = 'Оттегляне';
@@ -259,15 +299,18 @@ class email_reports_Spam extends frame2_driver_TableData
             doc_Threads::restoreThread($eRec->threadId);
             
             cls::get('email_Incomings')->logInAct('Възстановяване', $eRec);
-            
-            frame2_Reports::refresh($repRec);
         } elseif ($action == 'reject' && cls::get('email_Incomings')->reject($emailId)) {
             
             doc_Threads::rejectThread($eRec->threadId);
             
             cls::get('email_Incomings')->logInAct('Оттегляне', $eRec);
-            
-            frame2_Reports::refresh($repRec);
+        }
+        
+        frame2_Reports::refresh($repRec);
+        
+        if ($pageVar = Request::get('pageVar')) {
+            $pageVal = Request::get('pageVal', 'int');
+            Request::push(array($pageVar => $pageVal));
         }
         
         $resArr = doc_Containers::getDocumentForAjaxShow($repRec->containerId);
