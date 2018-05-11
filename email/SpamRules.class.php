@@ -92,7 +92,7 @@ class email_SpamRules extends core_Manager
         $this->FLD('email' , 'varchar', 'caption=Условие->Изпращач', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('subject' , 'varchar', 'caption=Условие->Относно', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('body' , 'varchar', 'caption=Условие->Текст', array('attr'=>array('style'=>'width: 350px;')));
-        $this->FLD('points' , 'double(min=-100, max=100)', 'caption=Точки, mandatory');
+        $this->FLD('points' , 'double(min=-100, max=100, decimals=2, smartRound)', 'caption=Точки, mandatory');
         $this->FLD('note' , 'text', 'caption=@Забележка', array('attr'=>array('style'=>'width: 100%;', 'rows'=>4)));
         
         $this->setDbUnique('systemId');
