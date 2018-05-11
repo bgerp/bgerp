@@ -168,12 +168,12 @@ class marketing_Inquiries2 extends embed_Manager
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'tel'     => 'lastDocUser|clientData',
-    	'company' => 'lastDocUser|clientData',
-    	'country' => 'lastDocUser|clientData|defMethod',
-    	'pCode'   => 'lastDocUser|clientData',
-    	'place'   => 'lastDocUser|clientData',
-    	'address' => 'lastDocUser|clientData',
+    	'tel'     => 'clientData|lastDocUser',
+    	'company' => 'clientData|lastDocUser',
+    	'country' => 'clientData|lastDocUser|defMethod',
+    	'pCode'   => 'clientData|lastDocUser',
+    	'place'   => 'clientData|lastDocUser',
+    	'address' => 'clientData|lastDocUser',
     );
     
     
