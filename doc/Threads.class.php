@@ -905,7 +905,7 @@ class doc_Threads extends core_Manager
                         $cQuery = doc_Containers::getQuery();
                         $cQuery->show('threadId');
                         $cQuery->groupBy('threadId');
-                        $cQuery->where(array("#createdBy = '[#1#]'", $cu));
+                        $cQuery->where(array("#createdBy = '[#1#]' OR #createdBy <= 0", $cu));
                         if ($filter->folderId) {
                             $cQuery->where(array("#folderId = '[#1#]'", $filter->folderId));
                         }
