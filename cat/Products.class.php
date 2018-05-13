@@ -2730,7 +2730,11 @@ class cat_Products extends embed_Manager {
     	$form->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
     	
     	if(isset($id)){
-    		$Driver = self::getDriver($id);
+            if($driverId) {
+                $Driver = cls::get($driverId);
+            } else {
+    		    $Driver = self::getDriver($id);
+            }
     		
     		// Добавяне на стойностите от записа в $rec-a на формата
     		$rec = self::fetch($id);
