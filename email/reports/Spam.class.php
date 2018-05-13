@@ -46,7 +46,12 @@ class email_reports_Spam extends frame2_driver_TableData
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
-        $fQuery = self::getFolderQuery();
+        $emailsLimit = 10000;
+        if ($data->form->rec->id) {
+            $emailsLimit = 0;
+        }
+        
+        $fQuery = self::getFolderQuery('title', NULL, $emailsLimit);
         
         $fArr = array();
         while ($fRec = $fQuery->fetch()) {
@@ -65,13 +70,18 @@ class email_reports_Spam extends frame2_driver_TableData
     /**
      * Помощна фунция за връщане на всички папки
      * 
+     * @param string $show
+     * @param NULL|integer $userId
+     * @param integer $emailsLimit
+     * 
      * @return core_Query
      */
-    protected static function getFolderQuery($show = 'title', $userId = NULL)
+    protected static function getFolderQuery($show = 'title', $userId = NULL, $emailsLimit = 10000)
     {
         if ($userId) {
             core_Users::sudo($userId);
         }
+        
         $fQuery = doc_Folders::getQuery();
         $fQuery->where("#state != 'rejected'");
         $fQuery->where(array("#coverClass = '[#1#]'", doc_UnsortedFolders::getClassId()));
@@ -83,6 +93,27 @@ class email_reports_Spam extends frame2_driver_TableData
         
         if ($userId) {
             core_Users::exitSudo($userId);
+        }
+        
+		// Ако има ограничение за папки с имейли
+        if ($emailsLimit) {
+            
+            $eQuery = email_Incomings::getQuery();
+            
+            $eQuery->show('folderId');
+            
+            $eQuery->limit($emailsLimit);
+            
+            $eQuery->orderBy('createdOn', 'DESC');
+            
+            $eArr = array();
+            while ($eRec = $eQuery->fetch()) {
+                $eArr[$eRec->folderId] = $eRec->folderId;
+            }
+            
+            if (!empty($eArr)) {
+                $fQuery->in('id', $eArr);
+            }
         }
         
         return $fQuery;
@@ -127,12 +158,12 @@ class email_reports_Spam extends frame2_driver_TableData
             
             // Ако не е избрана папка - да са всички достъпни на създателя
             
-            $fQuery = $this->getFolderQuery('id', $rec->createdBy);
+            $fQuery = $this->getFolderQuery('id', $rec->createdBy, 0);
             $fArr = $fQuery->fetchAll();
             $fArr = array_keys($fArr);
             $eQuery->in('folderId', $fArr);
         }
-//         $eQuery->where(array("#createdOn > '[#1#]'", dt::subtractSecs($rec->period)));
+		
         $eQuery->where(array("#modifiedOn >= '[#1#]'", dt::subtractSecs($rec->period)));
         $eQuery->where(array("#spamScore >= '[#1#]'", $rec->spamFrom));
         $eQuery->where(array("#spamScore <= '[#1#]'", $rec->spamTo));
