@@ -92,12 +92,6 @@ class doc_Prototypes extends core_Manager
 
 
     /**
-     * Кой е текущия таб
-     */
-	public $currentTab = "Нишка";
-
-
-    /**
      * Описание на модела (таблицата)
      */
     function description()
