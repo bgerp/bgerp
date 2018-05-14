@@ -505,110 +505,6 @@ abstract class store_DocumentMaster extends core_Master
 
 
     /**
-     * Помощен метод за показване на документа в транспортните линии
-     * 
-     * @param stdClass $rec - запис на документа
-     * @return stdClass $row - вербалния запис
-     */
-    private function prepareLineRows(&$rec)
-    {
-    	$row = new stdClass();
-    	$fields = $this->selectFields();
-    	$fields['-single'] = TRUE;
-    	
-    	$oldRow = $this->recToVerbal($rec, $fields);
-    	
-    	$amount = NULL;
-    	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-    	if($firstDoc->getInstance()->getField("#paymentMethodId", FALSE)){
-    		$paymentMethodId = $firstDoc->fetchField('paymentMethodId');
-    		if(cond_PaymentMethods::isCOD($paymentMethodId)){
-    			$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
-    		}
-    	}
-    	
-    	if(!empty($rec->weight)){
-    		$row->weight = $oldRow->weight;
-    	}
-    	
-    	if(!empty($rec->volume)){
-    		$row->volume = $oldRow->volume;
-    	}
-    	
-    	if($amount){
-    		$row->collection = "<span style='float:right'><span class='cCode'>{$rec->currencyId}</span> " . $this->getFieldType('amountDelivered')->toVerbal($amount) . "</span>";
-    	} else {
-    		unset($rec->amountDelivered);
-    		unset($rec->amountDeliveredVat);
-    	}
-    	
-    	$row->rowNumb = $rec->rowNumb;
-        
-        $contragentClass = cls::get($rec->contragentClassId);
-        $contragentRec = $contragentClass->fetch($rec->contragentId);
-        $contragentTitle = $contragentClass->getVerbal($contragentRec, 'name');
-
-    	$row->address = ($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress;
-    	$row->address = str_replace('<br>', ',', $row->address);
-    	$row->address = "<span style='font-size:0.8em'>{$contragentTitle}, {$row->address}</span>";
-    	 
-    	$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
-    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
-    	$row->docId = (!Mode::is('printing')) ? $this->getLink($rec->id, 0) : "#" . $this->getHandle($rec->id);
-    	
-    	if(!empty($oldRow->lineNotes)){
-    		$row->lineNotes = $oldRow->lineNotes;
-    	}
-    	
-    	return $row;
-    }
-    
-    
-    /**
-     * Помощен метод за показване на документа в транспортните линии
-     */
-    protected function prepareLineDetail(&$masterData)
-    {
-    	$arr = array();
-    	
-    	$query = $this->getQuery();
-    	$query->where("#lineId = {$masterData->rec->id}");
-    	$query->where("#state != 'rejected'");
-    	$query->orderBy("#createdOn", 'DESC');
-    	
-    	$i = 1;
-    	while($dRec = $query->fetch()){
-    		$dRec->rowNumb = $i;
-    		$arr[$dRec->id] = $this->prepareLineRows($dRec);
-    		
-    		if(Mode::is('printing') && Request::get('Width') && isset($this->layoutFileInLine)){
-    			Mode::push('renderHtmlInLine', TRUE);
-    			$arr[$dRec->id]->documentHtml = $this->getInlineDocumentBody($dRec->id);
-    			Mode::pop('renderHtmlInLine');
-    		}
-    		$i++;
-    		
-    		if(!empty($dRec->weight) && $masterData->weight !== FALSE){
-    			$masterData->weight += $dRec->weight;
-    		} else {
-    			$masterData->weight = FALSE;
-    		}
-    		
-    		if(!empty($dRec->volume) && $masterData->volume !== FALSE){
-    			$masterData->volume += $dRec->volume;
-    		} else {
-    			$masterData->volume = FALSE;
-    		}
-    		
-    		$masterData->palletCount += $dRec->palletCount;
-    		$masterData->totalAmount += $dRec->amountDelivered;
-    	}
-    	
-    	return $arr;
-    }
-
-
-    /**
      * Променяме шаблона в зависимост от мода
      */
     protected static function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
@@ -852,7 +748,6 @@ abstract class store_DocumentMaster extends core_Master
     		$res['baseAmount'] = currency_Currencies::round($rec->amountDelivered, $rec->currencyId);
     		$res['amount'] = $amount;
     		$res['currencyId'] = $rec->currencyId;
-    		//$row->collection = "<span style='float:right'><span class='cCode'>{$rec->currencyId}</span> " . $this->getFieldType('amountDelivered')->toVerbal($amount) . "</span>";
     	}
     	
     	return $res;

@@ -135,7 +135,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 				$rec->volumeInput = $formRec->volume;
 				$rec->lineNotes = $formRec->lineNotes;
 				$rec->transUnitsInput = trans_Helper::convertTableToNormalArr($formRec->transUnitsInput);
-				//bp($rec->transUnitsInput);
+			
 				$rec->{$mvc->lineFieldName} = $formRec->lineId;
 				$mvc->save($rec);
 				$mvc->logWrite('Редакция на транспорта', $rec->id);

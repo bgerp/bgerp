@@ -338,36 +338,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     }
     
     
-    /**
-     * Подготовка на показване като детайл в транспортните линии
-     */
-    public function prepareShipments($data)
-    {
-    	$data->shipmentOrders = parent::prepareLineDetail($data->masterData);
-    }
-    
-    
-    /**
-     * Подготовка на показване като детайл в транспортните линии
-     */
-    public function renderShipments($data)
-    {
-    	if(count($data->shipmentOrders)){
-    		$tableMvc = clone $this;
-    		$tableMvc->FNC('documentHtml', 'varchar', 'tdClass=mergedDetailWideTD');
-    		$table = cls::get('core_TableView', array('mvc' => $tableMvc));
-    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCount=Палети,collection=Инкасиране,address=@Адрес,lineNotes=@";
-    		if(Mode::is('printing')){
-    			$fields .= ',documentHtml=@';
-    		}
-    		
-    		$fields = core_TableView::filterEmptyColumns($data->shipmentOrders, $fields, 'collection,palletCount,documentHtml,lineNotes');
-    		
-    		return $table->get($data->shipmentOrders, $fields);
-    	}
-    }
-    
-    
 	/**
      * Връща тялото на имейла генериран от документа
      * 
@@ -412,46 +382,6 @@ class store_ShipmentOrders extends store_DocumentMaster
      					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
 
     	$res .= doc_TplManager::addOnce($this, $tplArr);
-    }
-    
-    
-    /**
-     * Изчислява броя колети в ЕН-то ако има
-     * 
-     * @param int $id - ид на ЕН
-     * @return int $count- брой колети/палети
-     */
-    public static function countCollets($id)
-    {
-    	$rec = static::fetchRec($id);
-    	$dQuery = store_ShipmentOrderDetails::getQuery();
-    	$dQuery->where("#shipmentId = {$rec->id}");
-    	
-    	
-    	return 1;
-    	
-    	
-    	
-    	
-    	
-    	
-    	$dQuery->where("#info IS NOT NULL");
-    	$count = 0;
-    	
-    	$resArr = array();
-    	while($dRec = $dQuery->fetch()){
-            $rowNums =store_ShipmentOrderDetails::getLUs($dRec->info);
-            if(is_array($rowNums)) {
-                $resArr += $rowNums;
-            }
-    	}
-    	 
-    	// Връщане на броя на колетите
-        if(count($resArr)) {
-    	    $count = max($resArr);
-        }
-    	
-    	return $count;
     }
     
     
