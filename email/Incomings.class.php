@@ -514,12 +514,6 @@ class email_Incomings extends core_Master
                 } elseif(self::process($mime, $accId, $uid)) {
                     $status = 'incoming';
                 }
-                
-                if ($status == 'returned' || $status == 'receipt') {
-                    $fromEml = $mime->getFromEmail();
-                    $state = ($status == 'returned') ? 'error' : 'ok';
-                    blast_BlockedEmails::addEmail($fromEml, TRUE, $state);
-                }
             }
         } catch (core_exception_Expect $exp) {
             // Обща грешка

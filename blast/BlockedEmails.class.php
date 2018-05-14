@@ -227,6 +227,55 @@ class blast_BlockedEmails extends core_Manager
     
     
     /**
+     * Добавя имейла в списъка, като го извлича от текстовата част
+     * 
+     * @param string $mid
+     * @param email_Mime $mime
+     * @param string $state
+     */
+    public static function addSentEmailFromText($mid, $mime, $state = 'ok')
+    {
+        $text = $mime->textPart;
+        $fromEml = $mime->getFromEmail();
+        
+        if (!$mid || (!$text && !$fromEml)) return ;
+        
+        $tSoup = $text . ' ' . $fromEml;
+        
+        $eArr = type_Email::extractEmails($tSoup);
+        
+        if (!empty($eArr)) {
+            $hArr = array();
+            
+            $sRec = doclog_Documents::fetchByMid($mid);
+            
+            if ($sRec) {
+                $sentEArr = type_Emails::toArray(strtolower($sRec->data->to));
+                
+                $sentEArr = arr::make($sentEArr, TRUE);
+                
+                if (!empty($sentEArr)) {
+                    foreach ($eArr as $email) {
+                        $email = strtolower($email);
+                        
+                        if ($hArr[$email]) continue;
+                        
+                        $hArr[$email] = $email;
+                        
+                        if ($sentEArr[$email]) {
+                            
+                            self::addEmail($email, TRUE, $state);
+                            
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    /**
      * Връща състоянието на имейла
      * 
      * @param string $email
