@@ -25,6 +25,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 	 */
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
+		$mvc->declareInterface('store_iface_DocumentIntf');
 		setIfNot($mvc->totalWeightFieldName, 'weight');
 		setIfNot($mvc->totalVolumeFieldName, 'volume');
 		setIfNot($mvc->lineFieldName, 'lineId');
@@ -273,8 +274,15 @@ class trans_plg_LinesPlugin extends core_Plugin
 	public static function on_AfterUpdateMaster($mvc, &$res, $id)
 	{
 		$masterRec = $mvc->fetchRec($id);
-		$details = arr::make($mvc->details, TRUE);
+		if($mvc instanceof store_ConsignmentProtocols){
+			$details = arr::make($mvc->details, TRUE);
+		} else {
+			$details = array($mvc->mainDetail);
+		}
+		
+		//$details = arr::make($mvc->details, TRUE);
 		$unitsArr = array();
+		//bp($details);
 		foreach ($details as $det){
 			$units = cls::get($det)->getTransUnits($masterRec);
 			trans_Helper::sumTransUnits($unitsArr, $units);

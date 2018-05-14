@@ -210,7 +210,7 @@ abstract class store_DocumentMaster extends core_Master
     	 
     	$Detail = $this->mainDetail;
     	$query = $this->{$Detail}->getQuery();
-    	$query->where("#{$this->{$Detail}->masterKey} = '{$id}'");
+    	$query->where("#{$this->{$Detail}->masterKey} = '{$rec->id}'");
     
     	$recs = $query->fetchAll();
     
@@ -714,6 +714,21 @@ abstract class store_DocumentMaster extends core_Master
     }
     
     
+    /**
+     * Информацията на документа, за показване в транспортната линия
+     *
+     * @param mixed $id
+     * @return array
+     * 		['baseAmount'] double|NULL - сумата за инкасиране във базова валута
+     * 		['amount']     double|NULL - сумата за инкасиране във валутата на документа
+     * 		['currencyId'] string|NULL - валутата на документа
+     * 		['notes']      string|NULL - забележки за транспортната линия
+     *  	['stores']     array       - склад(ове) в документа
+     *   	['weight']     double|NULL - общо тегло на стоките в документа
+     *     	['volume']     double|NULL - oбщ обем на стоките в документа
+     *      ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+     *      	[transUnitId] => quantity
+     */
     public function getTransportLineInfo_($rec)
     {
     	$rec = static::fetchRec($rec);
