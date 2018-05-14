@@ -274,18 +274,14 @@ class trans_plg_LinesPlugin extends core_Plugin
 	public static function on_AfterUpdateMaster($mvc, &$res, $id)
 	{
 		$masterRec = $mvc->fetchRec($id);
-		if($mvc instanceof store_ConsignmentProtocols){
-			$details = arr::make($mvc->details, TRUE);
-		} else {
-			$details = array($mvc->mainDetail);
-		}
+		$details = arr::make($mvc->details, TRUE);
 		
-		//$details = arr::make($mvc->details, TRUE);
 		$unitsArr = array();
-		//bp($details);
 		foreach ($details as $det){
-			$units = cls::get($det)->getTransUnits($masterRec);
-			trans_Helper::sumTransUnits($unitsArr, $units);
+			if(cls::haveInterface('store_iface_DetailsTransportData', $det)){
+				$units = cls::get($det)->getTransUnits($masterRec);
+				trans_Helper::sumTransUnits($unitsArr, $units);
+			}
 		}
 		
 		$masterRec->transUnits = $unitsArr;
@@ -298,6 +294,22 @@ class trans_plg_LinesPlugin extends core_Plugin
 	}
 	
 	
+	/**
+	 * Информацията на документа, за показване в транспортната линия
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param $res
+	 * 		['baseAmount'] double|NULL - сумата за инкасиране във базова валута
+	 * 		['amount']     double|NULL - сумата за инкасиране във валутата на документа
+	 * 		['currencyId'] string|NULL - валутата на документа
+	 * 		['notes']      string|NULL - забележки за транспортната линия
+	 *  	['stores']     array       - склад(ове) в документа
+	 *   	['weight']     double|NULL - общо тегло на стоките в документа
+	 *     	['volume']     double|NULL - oбщ обем на стоките в документа
+	 *      ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+	 *      	[transUnitId] => quantity
+	 * @param mixed $id 
+	 */
 	public function on_AfterGetTransportLineInfo($mvc, &$res, $id)
 	{
 		$rec = $mvc->fetchRec($id);

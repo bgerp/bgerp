@@ -24,6 +24,7 @@ class store_plg_TransportDataDetail extends core_Plugin
 	 */
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
+		$mvc->declareInterface('store_iface_DetailsTransportData');
 		setIfNot($mvc->weightField, 'weight');
 		setIfNot($mvc->volumeField, 'volume');
 		setIfNot($mvc->productFld, 'productId');
@@ -233,6 +234,14 @@ class store_plg_TransportDataDetail extends core_Plugin
 	}
 	
 	
+	/**
+	 * Какви са използваните ЛЕ
+	 * 
+	 * @param core_Mvc $mvc       - документ
+	 * @param array $res          - масив с резултати
+	 * @param stdClass $masterRec - ид на мастъра
+	 * @return void               
+	 */
 	public static function on_AfterGetTransUnits($mvc, &$res, $masterRec)
 	{
 		if(!empty($res)) return;
