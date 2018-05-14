@@ -171,7 +171,7 @@ class trans_LineDetails extends doc_Detail
     	$transportInfo = $Document->getTransportLineInfo();
     	if(!core_Mode::isReadOnly()){
     		$row->containerId = $Document->getLink(0);
-    		$row->containerId = "<span class='state-{$transportInfo['state']}'>{$row->containerId}</span>";
+    		$row->containerId = "<span class='state-{$transportInfo['state']} document-handler'>{$row->containerId}</span>";
     	} else {
     		$row->containerId = "#" . $Document->getHandle();
     	}
@@ -219,7 +219,8 @@ class trans_LineDetails extends doc_Detail
     	
     	if($mvc->haveRightFor('togglestatus', $rec) && !Mode::isReadOnly()){
     		$btnImg = ($rec->status != 'waiting') ? 'img/16/checked.png' : 'img/16/checkbox_no.png';
-    		$row->btn = ht::createLink('', array($mvc, 'togglestatus', $rec->id, 'ret_url' => TRUE), FALSE, "ef_icon={$btnImg}");
+    		$linkTitle = ($rec->status == 'waiting') ? 'Документът е готов' : 'Документът не е готов';
+    		$row->btn = ht::createLink('', array($mvc, 'togglestatus', $rec->id, 'ret_url' => TRUE), FALSE, "ef_icon={$btnImg},title={$linkTitle}");
     	}
     	
     	core_RowToolbar::createIfNotExists($row->_rowTools);
