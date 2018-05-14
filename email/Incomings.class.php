@@ -395,6 +395,7 @@ class email_Incomings extends core_Master
                 
         // Обхождаме всички статуси
         foreach($statusSum as $status => $cnt) {
+            $status = ucfirst($status);
             $logMsg .= "; {$status}={$cnt}";
         }
                 
