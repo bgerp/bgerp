@@ -191,8 +191,8 @@ class blast_BlockedEmails extends core_Manager
      * Добавя подадения имейл в списъка
      * 
      * @param string $email
-     * @param boolean $update - ok, blocked, error
-     * @param string $state
+     * @param boolean|string $update 
+     * @param string $state- ok, blocked, error
      * 
      * @return integer|NULL
      */
@@ -215,7 +215,7 @@ class blast_BlockedEmails extends core_Manager
         $rec->email = $email;
         $rec->lastSent = dt::now();
         
-        if ($rec->state != 'blocked') {
+        if ($rec->state != 'blocked' || ($update === 'force')) {
             $rec->state = $state;
             if (is_array($saveFields)) {
                 $saveFields['state'] = 'state';
