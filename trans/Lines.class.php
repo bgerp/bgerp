@@ -180,9 +180,9 @@ class trans_Lines extends core_Master
     	$start = str_replace(' 00:00', '', $start);
     	
     	if(count($titleArr) == 2){
-    		return "{$start}/{$titleArr[1]}";
+    		return "{$start}/{$titleArr[1]} ($rec->countReady / $rec->countTotal)";
     	} else {
-    		return "{$start}/{$rec->title}";
+    		return "{$start}/{$rec->title} ($rec->countReady / $rec->countTotal)";
     	}
     }
     
@@ -212,7 +212,7 @@ class trans_Lines extends core_Master
     	if($data->rec->state == 'active'){
     		if(self::haveDraftDocuments($data->rec->id)){
     			if($data->toolbar->hasBtn('btnClose')){
-    				//$data->toolbar->setError('btnClose', "Линията не може да бъде затворена докато има чернови документи към нея|*!");
+    				$data->toolbar->setError('btnClose', "Линията не може да бъде затворена докато има чернови документи към нея|*!");
     			}
     		}
     	}
@@ -286,15 +286,14 @@ class trans_Lines extends core_Master
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
-        $dRow = $this->recToVerbal($rec);
-        $title = "{$dRow->title} ({$dRow->countReady}/{$dRow->countTotal})";
+        $title = $this->getRecTitle($rec);
         
         $row = (object)array(
             'title'    => $title,
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
             'state'    => $rec->state,
-            'recTitle' => $rec->title,
+            'recTitle' => $title,
         );
         
         return $row;
