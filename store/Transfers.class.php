@@ -287,12 +287,12 @@ class store_Transfers extends core_Master
     		        $row->fromAdress = crm_Locations::getAddress($fromStoreLocation);
     		    }
     		}
-	    	
-    		if ($rec->toStore) {
-    		    $toStoreLocation = store_Stores::fetchField($rec->toStore, 'locationId');
-    		    if($toStoreLocation){
-    		        $row->toAdress = crm_Locations::getAddress($toStoreLocation);
-    		    }
+    	}
+    	
+    	if ($rec->toStore) {
+    		$toStoreLocation = store_Stores::fetchField($rec->toStore, 'locationId');
+    		if($toStoreLocation){
+    			$row->toAdress = crm_Locations::getAddress($toStoreLocation);
     		}
     	}
     	
@@ -530,5 +530,24 @@ class store_Transfers extends core_Master
     	$rec = $this->fetchRec($id);
     
     	return $this->save($rec);
+    }
+    
+
+
+
+    /**
+     *
+     * @param unknown $rec
+     */
+    public function getTransportLineInfo_($rec)
+    {
+    	$rec = static::fetchRec($rec);
+    	$row = $this->recToVerbal($rec);
+    	$res = array('baseAmount' => NULL, 'amount' => NULL, 'currencyId' => NULL, 'notes' => $rec->lineNotes);
+    	
+    	$res['stores'] = array($rec->fromStore, $rec->toStore);
+    	$res['address'] = $row->toAdress;
+    	
+    	return $res;
     }
 }

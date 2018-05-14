@@ -92,6 +92,10 @@ abstract class trans_Helper
 		$transUnitsTable = self::convertTableToNormalArr($transUnitsTable);
 		$transUnitsTable = empty($transUnitsTable) ? array() : $transUnitsTable;
 		
+		if(!is_array($transUnitsTable) || !is_array($transUnits)){
+			bp($transUnitsTable);
+		}
+		
 		$combined = $transUnitsTable + $transUnits;
 		ksort($combined);
 		

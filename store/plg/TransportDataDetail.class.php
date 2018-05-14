@@ -77,7 +77,7 @@ class store_plg_TransportDataDetail extends core_Plugin
 	
 		// Показване на ЛЕ на реда, ако ако не е зададена същата такава от потребителя
 		$masterInputUnits = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'transUnitsInput');
-		$masterInputUnits = is_array($var) ? $masterInputUnits : array();
+		$masterInputUnits = is_array($masterInputUnits) ? $masterInputUnits : array();
 		$transUnitId = isset($rec->transUnitId) ? $rec->transUnitId : trans_TransportUnits::fetchIdByName('load');
 		if(!array_key_exists($transUnitId, $masterInputUnits)){
 			$row->transUnitId = trans_TransportUnits::display($rec->transUnitId, $rec->transUnitQuantity);
@@ -99,6 +99,7 @@ class store_plg_TransportDataDetail extends core_Plugin
 	 */
 	public static function on_AfterGetTransportInfo($mvc, &$res, $masterId, $force = FALSE)
 	{
+		$masterId = $mvc->Master->fetchRec($masterId)->id;
 		$cWeight = $cVolume = 0;
 		$query  = $mvc->getQuery();
 		$query->where("#{$mvc->masterKey} = {$masterId}");
@@ -141,15 +142,10 @@ class store_plg_TransportDataDetail extends core_Plugin
 				$cVolume = NULL;
 			}
 			
-			//bp($rec);
 			$unitId = (!empty($rec->transUnitId)) ? $rec->transUnitId : trans_TransportUnits::fetchIdByName('load');
 			$uQuantity = (!empty($rec->transUnitQuantity)) ? $rec->transUnitQuantity : 1;
 			
 			$units[$unitId] += $uQuantity;
-			
-			//('transUnitId', 'key(mvc=trans_TransportUnits,select=name,allowEmpty)', "caption=Логистична информация->Единици,forceField,autohide,after={$mvc->volumeField},input=none");
-			//$mvc->FLD('transUnitQuantity
-			
 		}
 			
 		// Връщане на обема и теглото

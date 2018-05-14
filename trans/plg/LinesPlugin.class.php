@@ -138,14 +138,13 @@ class trans_plg_LinesPlugin extends core_Plugin
 			
 				$rec->{$mvc->lineFieldName} = $formRec->lineId;
 				$mvc->save($rec);
+				$mvc->updateMaster($rec);
 				$mvc->logWrite('Редакция на транспорта', $rec->id);
 					
 				// Обновяване на modifiedOn на засегнатите транспортните линии
 				if($rec->lineId) {
 					$tRec = trans_Lines::fetch($rec->lineId);
 					$tRec->modifiedOn = dt::now();
-					trans_Lines::save($tRec, 'modifiedOn');
-					trans_LineDetails::sync($rec->lineId, $rec->containerId);
 				} else {
 					trans_LineDetails::delete("#containerId = {$rec->containerId}");
 				}
@@ -274,11 +273,15 @@ class trans_plg_LinesPlugin extends core_Plugin
 	public static function on_AfterUpdateMaster($mvc, &$res, $id)
 	{
 		$masterRec = $mvc->fetchRec($id);
-		if(isset($mvc->mainDetail)){
-			$units = cls::get($mvc->mainDetail)->getTransUnits($masterRec);
-			$masterRec->transUnits = $units;
-			$mvc->save_($masterRec, 'transUnits');
+		$details = arr::make($mvc->details, TRUE);
+		$unitsArr = array();
+		foreach ($details as $det){
+			$units = cls::get($det)->getTransUnits($masterRec);
+			trans_Helper::sumTransUnits($unitsArr, $units);
 		}
+		
+		$masterRec->transUnits = $unitsArr;
+		$mvc->save_($masterRec, 'transUnits');
 		
 		// Синхронизиране с транспортната линия ако е избрана
 		if(isset($masterRec->lineId)){

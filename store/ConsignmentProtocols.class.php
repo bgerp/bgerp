@@ -439,59 +439,6 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
-     * Подготовка на показване като детайл в транспортните линии
-     */
-    public function prepareProtocols($data)
-    {
-    	$data->protocols = array();
-    	
-    	$query = $this->getQuery();
-    	$query->where("#lineId = {$data->masterId}");
-    	
-    	$count = 1;
-    	while($rec = $query->fetch()){
-    		$row = $this->recToVerbal($rec);
-    		
-    		if(!empty($rec->weight) && $data->masterData->weight !== FALSE){
-    			$data->masterData->weight += $rec->weight;
-    		} else {
-    			$data->masterData->weight = FALSE;
-    		}
-    		
-    		if(!empty($rec->volume) && $data->masterData->volume !== FALSE){
-    			$data->masterData->volume += $rec->volume;
-    		} else {
-    			$data->masterData->volume = FALSE;
-    		}
-    		
-    		$data->masterData->palletCount += $rec->palletCountInput;
-    		$row->docId = $this->getLink($rec->id, 0);
-    		$row->contragentAddress = str_replace('<br>', ',', $row->contragentAddress);
-    		$row->contragentAddress = "<span style='font-size:0.8em'>{$row->contragentAddress}</span>";
-    		
-    		$row->rowNumb = cls::get('type_Int')->toVerbal($count);
-    		$row->ROW_ATTR['class'] = "state-{$rec->state}";
-    		$data->protocols[$rec->id] = $row;
-    		$count++;
-    	}
-    }
-    
-    
-    /**
-     * Подготовка на показване като детайл в транспортните линии
-     */
-    public function renderProtocols($data)
-    {
-    	if(count($data->protocols)){
-    		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCountInput=Палети,contragentAddress=@Адрес,lineNotes=@";
-    		 
-    		return $table->get($data->protocols, $fields);
-    	}
-    }
-    
-    
-    /**
      * Изчисляване на общото тегло и обем на документа
      *
      * @param stdClass $res
@@ -508,7 +455,9 @@ class store_ConsignmentProtocols extends core_Master
     	$weight = (!is_null($res1->weight) && !is_null($res2->weight)) ? $res1->weight + $res2->weight : NULL;
     	$volume = (!is_null($res1->volume) && !is_null($res2->volume)) ? $res1->volume + $res2->volume : NULL;
     	
-    	return (object)array('weight' => $weight, 'volume' => $volume);
+    	$units = trans_Helper::getCombinedTransUnits($res1->transUnits, $res2->transUnits);
+    	
+    	return (object)array('weight' => $weight, 'volume' => $volume, 'transUnits' => $units);
     }
     
     
@@ -521,7 +470,23 @@ class store_ConsignmentProtocols extends core_Master
     public function updateMaster_($id)
     {
     	$rec = $this->fetchRec($id);
-    
+   
     	return $this->save($rec);
+    }
+    
+    
+    /**
+     *
+     * @param unknown $rec
+     */
+    public function getTransportLineInfo_($rec)
+    {
+    	$rec = static::fetchRec($rec);
+    	$row = $this->recToVerbal($rec);
+    	$res = array('baseAmount' => NULL, 'amount' => NULL, 'currencyId' => NULL, 'notes' => $rec->lineNotes);
+    	$res['stores'] = array($rec->storeId);
+    	$res['address'] = $row->contragentAddress;
+    	 
+    	return $res;
     }
 }
