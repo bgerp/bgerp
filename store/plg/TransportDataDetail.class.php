@@ -77,6 +77,7 @@ class store_plg_TransportDataDetail extends core_Plugin
 	
 		// Показване на ЛЕ на реда, ако ако не е зададена същата такава от потребителя
 		$masterInputUnits = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'transUnitsInput');
+		$masterInputUnits = is_array($var) ? $masterInputUnits : array();
 		$transUnitId = isset($rec->transUnitId) ? $rec->transUnitId : trans_TransportUnits::fetchIdByName('load');
 		if(!array_key_exists($transUnitId, $masterInputUnits)){
 			$row->transUnitId = trans_TransportUnits::display($rec->transUnitId, $rec->transUnitQuantity);

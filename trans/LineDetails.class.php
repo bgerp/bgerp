@@ -107,6 +107,7 @@ class trans_LineDetails extends doc_Detail
     {
     	$this->FLD('lineId', 'key(mvc=trans_Lines)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('containerId', 'key(mvc=doc_Containers)', 'column=none,notNull,silent,hidden,mandatory');
+    	$this->FLD('documentLu', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('readyLu', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('classId', 'class', 'input=none');
     	$this->FLD('status', 'enum(waiting=Чакащо,ready=Подготвено)', 'input=none,notNull,value=waiting,caption=Статус,smartCenter');
@@ -116,7 +117,7 @@ class trans_LineDetails extends doc_Detail
     
     
     /**
-     * Синхронизиране на линията с документа
+     * Синхронизиране детайла на линията с документа
      * 
      * @param int $lineId      - линия
      * @param int $containerId - контейнер на документ
@@ -125,18 +126,40 @@ class trans_LineDetails extends doc_Detail
     public static function sync($lineId, $containerId)
     {
     	$Document = doc_Containers::getDocument($containerId);
-    	$id = self::fetch("#lineId = {$lineId} AND #containerId = {$containerId}");
-    	if(!empty($id)) return $id;
+    	$transportInfo = $Document->getTransportLineInfo();
     	
-    	if($rec = self::fetch("#lineId != {$lineId} AND #containerId = {$containerId}")){
-    		$rec->lineId = $lineId;
+    	// Има ли запис за тази линия
+    	$rec = self::fetch("#lineId = {$lineId} AND #containerId = {$containerId}");
+    	
+    	// Ако няма се проверява за запис на друга линия и се пренасочва към тази
+    	if(empty($rec)){
+    		if($rec = self::fetch("#lineId != {$lineId} AND #containerId = {$containerId}")){
+    			$rec->lineId = $lineId;
+    		}
     	}
     	
-    	if(!is_object($rec)){
+    	// Ако няма се създава нов запис
+    	if(empty($rec)){
     		$rec = (object)array('lineId' => $lineId, 'containerId' => $containerId, 'classId' => $Document->getClassId());
     	}
     	
-    	return self::save($rec);
+    	// Запис на ЛЕ от документа
+    	$rec->documentLu = $transportInfo['transportUnits'];
+    	self::save($rec);
+    	cls::get('trans_Lines')->updateMaster($rec->lineId);
+    	
+    	return $rec->id;
+    }
+    
+    
+    /**
+     * Преди запис на документ
+     */
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec, $fields = NULL)
+    {
+    	if($rec->_forceStatus !== TRUE){
+    		$rec->status = (trans_Helper::checkTransUnits($rec->documentLu, $rec->readyLu)) ? 'ready' : 'waiting';
+    	}
     }
     
     
@@ -185,10 +208,10 @@ class trans_LineDetails extends doc_Detail
     		}
     	}
     	
-    	$row->documentLu = trans_Helper::displayTransUnits($transportInfo['transportUnits']);
+    	$row->documentLu = trans_Helper::displayTransUnits($rec->documentLu, NULL, TRUE);
     	
     	if(!empty($rec->readyLu)){
-    		$row->readyLu = trans_Helper::displayTransUnits($rec->readyLu);
+    		$row->readyLu = trans_Helper::displayTransUnits($rec->readyLu, NULL, TRUE);
     	}
     	
     	if($mvc->haveRightFor('togglestatus', $rec)){
@@ -197,7 +220,9 @@ class trans_LineDetails extends doc_Detail
     	
     	core_RowToolbar::createIfNotExists($row->_rowTools);
     	$url = array($mvc, 'prepare', 'id' => $rec->id, 'ret_url' => TRUE);
-    	$row->_rowTools->addLink('Погтовяне', $url, array('ef_icon' => "img/16/checked.png", 'title' => "Подготовка на документа"));
+    	$row->_rowTools->addLink('Подготвяне', $url, array('ef_icon' => "img/16/checked.png", 'title' => "Подготовка на документа"));
+    	$commentUrl = array('doc_Comments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
+    	$row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => "img/16/comment_add.png", 'title' => "Известяване на отговорниците на документа"));
     }
     
     
@@ -228,6 +253,13 @@ class trans_LineDetails extends doc_Detail
     }
     
     
+    /**
+     * Валидиране на таблица с транспортни линии
+     * 
+     * @param array $tableData
+     * @param core_Type $Type
+     * @return array
+     */
     public static function validateTransTable($tableData, $Type)
     {
     	$res = array();
@@ -289,6 +321,7 @@ class trans_LineDetails extends doc_Detail
     	// Смяна на състоянието
     	$newStatus = ($rec->status == 'ready') ? 'waiting' : 'ready';
     	$rec->status = $newStatus;
+    	$rec->_forceStatus = TRUE;
     	$this->save($rec, 'status');
     	
     	trans_Lines::logWrite('Смяна на състояние на ред', $rec->lineId);
@@ -312,7 +345,7 @@ class trans_LineDetails extends doc_Detail
     	
     	// Подготовка на формата
     	$form = cls::get('core_Form');
-    	$form->title = 'Подготвка на ЛЕ на|* ' . cls::get('trans_Lines')->getFormTitleLink($rec->lineId);
+    	$form->title = 'Подготовка на ЛЕ на|* ' . cls::get('trans_Lines')->getFormTitleLink($rec->lineId);
     	$form->info = tr('Документ') . " " . $Document->getLink(0);
     	
     	// Задаване на полетата за ЛЕ
@@ -323,8 +356,8 @@ class trans_LineDetails extends doc_Detail
     	}
     	
     	self::setTransUnitField($form, $rec->readyLu);
-    	if(isset($transInfo['transportUnits'])){
-    		$defValue = trans_Helper::convertToUnitTableArr($transInfo['transportUnits']);
+    	if(isset($rec->documentLu)){
+    		$defValue = trans_Helper::convertToUnitTableArr($rec->documentLu);
     		$form->setDefault('transUnitsInput', $defValue);
     	}
     	$form->input();
@@ -332,8 +365,7 @@ class trans_LineDetails extends doc_Detail
     	if($form->isSubmitted()){
     		$formRec = $form->rec;
     		$rec->readyLu = trans_Helper::convertTableToNormalArr($formRec->transUnitsInput);
-    		$rec->status = (trans_Helper::checkTransUnits($transInfo['transportUnits'], $rec->readyLu)) ? 'ready' : 'waiting';
-    		
+    		$rec->status = (trans_Helper::checkTransUnits($rec->documentLu, $rec->readyLu)) ? 'ready' : 'waiting';
     		$this->save($rec, 'readyLu,status');
     		
     		return followRetUrl();
@@ -342,12 +374,21 @@ class trans_LineDetails extends doc_Detail
     	// Подготовка на тулбара
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
     	$form->toolbar->addBtn('Отказ', getRetUrl(),  'ef_icon = img/16/close-red.png');
-    	 
+    	$form->layout = $form->renderLayout();
+    	
+    	// Показване на оригиналния документ под формата
+    	$originTpl = new ET("<div class='preview-holder {$className}'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
+    	if ($Document->haveRightFor('single')) {
+    		$docHtml = $Document->getInlineDocumentBody();
+    		$originTpl->append($docHtml, 'DOCUMENT');
+    		$form->layout->append($originTpl);
+    	}
+    	
     	// Рендиране на формата
     	$tpl = $form->renderHtml();
     	$tpl = $this->renderWrapping($tpl);
     	core_Form::preventDoubleSubmission($tpl, $form);
-    	 
+    	
     	return $tpl;
     }
     
@@ -389,6 +430,6 @@ class trans_LineDetails extends doc_Detail
     	$consClassId =  store_ConsignmentProtocols::getClassId();
     	
     	$data->query->XPR('orderByClassId', 'int', "(CASE #classId WHEN {$shipClassId} THEN 1 WHEN {$receiptClassId} THEN 2 WHEN {$transferClassId} THEN 3 WHEN {$consClassId} THEN 4 ELSE 5 END)");
-    	$data->query->orderBy('#orderByClassId=ASC,#status=DESC,#containerId');
+    	$data->query->orderBy('#orderByClassId=ASC,#status=ASC,#containerId');
     }
 }

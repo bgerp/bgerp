@@ -39,8 +39,7 @@ class trans_Lines extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Sorting, plg_Printing, plg_Clone,
-                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder';
+    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone,doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder';
 
     
     
@@ -308,7 +307,6 @@ class trans_Lines extends core_Master
     		
 	    	$ownCompanyData = crm_Companies::fetchOwnCompany();
 	    	$row->myCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-	    	
 	    	$row->logistic = core_Users::getVerbal($rec->createdBy, 'names');
     	}
     	
@@ -322,9 +320,11 @@ class trans_Lines extends core_Master
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
-       
+        $dRow = $this->recToVerbal($rec);
+        $title = "{$dRow->title} ({$dRow->countReady}/{$dRow->countTotal})";
+        
         $row = (object)array(
-            'title'    => $rec->title,
+            'title'    => $title,
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
             'state'    => $rec->state,
@@ -344,7 +344,7 @@ class trans_Lines extends core_Master
     	
     	$amount = $weight = $volume = 0;
     	$sumWeight = $sumVolume = TRUE;
-    	$transUnits = array();
+    	$transUnits = $calcedUnits = array();
     	
     	$dQuery = trans_LineDetails::getQuery();
     	$dQuery->where("#lineId = {$data->rec->id}");
@@ -355,6 +355,7 @@ class trans_Lines extends core_Master
     		$amount += $transInfo['baseAmount'];
     		
     		trans_Helper::sumTransUnits($transUnits, $dRec->readyLu);
+    		trans_Helper::sumTransUnits($calcedUnits, $dRec->documentLu);
     		
     		if($sumWeight === TRUE){
     			if($transInfo['weight']){
@@ -375,7 +376,8 @@ class trans_Lines extends core_Master
     		}
     	}
     	
-    	$data->row->logisticUnits = (count($transUnits)) ? core_Type::getByName('varchar')->toVerbal(trans_Helper::displayTransUnits($transUnits)) : "<span class='quiet'>N/A</span>";
+    	$data->row->logisticUnitsDocument = (count($calcedUnits)) ? core_Type::getByName('html')->toVerbal(trans_Helper::displayTransUnits($calcedUnits, NULL, TRUE)) : "<span class='quiet'>N/A</span>";
+    	$data->row->logisticUnits = (count($transUnits)) ? core_Type::getByName('html')->toVerbal(trans_Helper::displayTransUnits($transUnits, NULL, TRUE)) : "<span class='quiet'>N/A</span>";
     	$data->row->weight = (!empty($weight)) ? cls::get('cat_type_Weight')->toVerbal($weight) : "<span class='quiet'>N/A</span>";
     	$data->row->volume = (!empty($volume)) ? cls::get('cat_type_Volume')->toVerbal($volume) : "<span class='quiet'>N/A</span>";
     	
@@ -419,11 +421,9 @@ class trans_Lines extends core_Master
         $query = trans_LineDetails::getQuery();
         $query->where("#lineId = {$lineId}");
         $query->EXT('docState', 'doc_Containers', 'externalName=state,externalKey=containerId');
-        
         if($state) {
         	$query->where("#docState = '{$state}'");
         }
-        
         if($maxDoc) {
         	$query->limit($maxDocs);
         }
@@ -444,6 +444,7 @@ class trans_Lines extends core_Master
     	$rec = $this->fetchRec($id);
     	$rec->countReady = $rec->countTotal = 0;
     	
+    	// Изчисляване на готовите и не-готовите редове
     	$dQuery = trans_LineDetails::getQuery();
     	$dQuery->where("#lineId = {$rec->id}");
     	while($dRec = $dQuery->fetch()){
@@ -453,6 +454,15 @@ class trans_Lines extends core_Master
     		}
     	}
     	
+    	// Запис на изчислените полета
     	$this->save_($rec, 'countTotal,countReady');
+    	
+    	// Ако има не-готови линии, нишката се отваря
+    	$Threads = cls::get('doc_Threads');
+    	$threadState = ($rec->countReady < $rec->countTotal) ? 'opened' : 'closed';
+    	$threadRec = doc_Threads::fetch($rec->threadId);
+    	$threadRec->state = $threadState;
+    	$Threads->save($threadRec, 'state');
+    	$Threads->updateThread($threadRec->id);
     }
 }

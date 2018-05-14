@@ -273,11 +273,16 @@ class trans_plg_LinesPlugin extends core_Plugin
 	 */
 	public static function on_AfterUpdateMaster($mvc, &$res, $id)
 	{
+		$masterRec = $mvc->fetchRec($id);
 		if(isset($mvc->mainDetail)){
-			$masterRec = $mvc->fetchRec($id);
 			$units = cls::get($mvc->mainDetail)->getTransUnits($masterRec);
 			$masterRec->transUnits = $units;
 			$mvc->save_($masterRec, 'transUnits');
+		}
+		
+		// Синхронизиране с транспортната линия ако е избрана
+		if(isset($masterRec->lineId)){
+			trans_LineDetails::sync($masterRec->lineId, $masterRec->containerId);
 		}
 	}
 	

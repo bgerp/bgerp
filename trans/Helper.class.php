@@ -16,6 +16,12 @@ abstract class trans_Helper
 {
 	
 	
+	/**
+	 * Конвертира масив към табличен такъв
+	 * 
+	 * @param mixed $array
+	 * @return array $res
+	 */
 	public static function convertToUnitTableArr($array)
 	{
 		$res = array('unitId' => array(), 'quantity' => array());
@@ -29,6 +35,14 @@ abstract class trans_Helper
 		return $res;
 	}
 	
+	
+	
+	/**
+	 * Конвертира масив с ЛЕ към такъв удобен за работа на core_Table
+	 * 
+	 * @param mixed $value
+	 * @return array $res
+	 */
 	public static function convertTableUnitToTableArr($value)
 	{
 		$res = array('unitId' => array(), 'quantity' => array());
@@ -41,6 +55,13 @@ abstract class trans_Helper
 		return $res;
 	}
 	
+	
+	/**
+	 * Конвертира таблични данни на ЛЕ към нормален масив
+	 * 
+	 * @param array $arr
+	 * @return array|NULL $res
+	 */
 	public static function convertTableToNormalArr($arr)
 	{
 		if(is_array($arr) && !array_key_exists('unitId', $arr)) return $arr;
@@ -57,6 +78,13 @@ abstract class trans_Helper
 	}
 	
 	
+	/**
+	 * Комбинира транспортните единици
+	 * 
+	 * @param mixed $transUnits
+	 * @param mixed $transUnitsTable
+	 * @return array $combined
+	 */
 	public static function getCombinedTransUnits(&$transUnits, &$transUnitsTable)
 	{
 		$transUnits = self::convertTableToNormalArr($transUnits);
@@ -64,21 +92,28 @@ abstract class trans_Helper
 		$transUnitsTable = self::convertTableToNormalArr($transUnitsTable);
 		$transUnitsTable = empty($transUnitsTable) ? array() : $transUnitsTable;
 		
-		
-		
-		//
 		$combined = $transUnitsTable + $transUnits;
 		ksort($combined);
 		
 		return $combined;
 	}
 	
-	public static function displayTransUnits($transUnits, $transUnitsTable = array())
+	
+	/**
+	 * Показва транспортните единици в документа
+	 * 
+	 * @param mixed $transUnits
+	 * @param mixed $transUnitsTable
+	 * @param boolean $newLines
+	 * @return string
+	 */
+	public static function displayTransUnits($transUnits, $transUnitsTable = array(), $newLines = FALSE)
 	{
 		$str = '';
+		$delimeter = ($newLines) ? "<br>" : ' + ';
 		$transUnits = empty($transUnits) ? array() : $transUnits;
-		$combined = self::getCombinedTransUnits($transUnits, $transUnitsTable);
 		$transUnitsTable = empty($transUnitsTable) ? array() : $transUnitsTable;
+		$combined = self::getCombinedTransUnits($transUnits, $transUnitsTable);
 		
 		foreach ($combined as $unitId => $quantity){
 			if(empty($quantity)) continue;
@@ -87,14 +122,20 @@ abstract class trans_Helper
 				$strPart = ht::createHint($strPart, 'Зададено е ръчно');
 			}
 			
-			$str .= "{$strPart} + ";
+			$str .= "{$strPart} {$delimeter} ";
 		}
-		$str = trim($str, ' + ');
+		$str = trim($str, " {$delimeter} ");
 		
 		return $str;
 	}
 	
 	
+	/**
+	 * Сумира транспортните единици
+	 * 
+	 * @param array $arr
+	 * @param mixed $unitTable
+	 */
 	public static function sumTransUnits(&$arr, $unitTable)
 	{
 		if(empty($unitTable)) return;
@@ -110,7 +151,13 @@ abstract class trans_Helper
 	}
 	
 	
-	
+	/**
+	 * Проверка на транспортните единици
+	 * 
+	 * @param array $arr1
+	 * @param array $arr2
+	 * @return boolean
+	 */
 	public static function checkTransUnits($arr1, $arr2)
 	{
 		$arr1 = arr::make($arr1);

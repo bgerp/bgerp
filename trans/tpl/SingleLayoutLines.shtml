@@ -88,15 +88,20 @@
 		<table class="listTable">
 			<thead>
 			<tr>
-				<th>|Общо тегло|*</th>
-				<th>|Общ обем|*</th>
-				<th>|Логистични единици|*</th>
-				<th>|Общa сума|*</th>
+				<th rowspan=2>|Общо тегло|*</th>
+				<th rowspan=2>|Общ обем|*</th>
+				<th colspan=2>|Логистични единици|*</th>
+				<th rowspan=2>|Общa сума|*</th>
+			</tr>
+			<tr>
+				<th>|От документа|*</th>
+				<th>|Подготвени|*</th>
 			</tr>
 			</thead>
 			<tr>
 				<td class="centered">[#weight#]</td>
 				<td class="centered">[#volume#]</td>
+				<td class="centered">[#logisticUnitsDocument#]</td>
 				<td class="centered">[#logisticUnits#]</td>
 				<td class="centered">[#totalAmount#]</td>
 			</tr>
