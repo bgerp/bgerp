@@ -86,12 +86,14 @@
                      <td class='quiet nowrap aright' style='width:1%;'>|Общ обем|*:</td>
                      <td>[#volume#]</td>
                   </tr>
-                  <!--ET_BEGIN palletCountInput-->
+                  <!--ET_BEGIN logisticInfo-->
                   <tr>
-                     <td class='quiet nowrap aright' style='width:1%;'>|Брой палети|*:</td>
-                     <td>[#palletCountInput#]</td>
+                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span></td>
                   </tr>
-                  <!--ET_END palletCountInput-->
+                  <tr>
+                  	<td colspan="2" >[#logisticInfo#]</td>
+                  </tr>
+                  <!--ET_END logisticInfo-->
                </table>
                <!--ET_BEGIN note-->
                <hr>
