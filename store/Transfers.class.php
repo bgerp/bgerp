@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -357,9 +357,7 @@ class store_Transfers extends core_Master
 
 
     /**
-     * СT не може да бъде начало на нишка; може да се създава само в съществуващи нишки
-     * @param $folderId int ид на папката
-     * @return boolean
+     * Може ли да бъде добавен документа в папката
      */
     public static function canAddToFolder($folderId)
     {
@@ -370,8 +368,7 @@ class store_Transfers extends core_Master
         
     
     /**
-     * @param int $id key(mvc=store_Receipts)
-     * @see doc_DocumentIntf::getDocumentRow()
+     * Връща информацията за документа в папката
      */
     public function getDocumentRow($id)
     {
@@ -422,73 +419,6 @@ class store_Transfers extends core_Master
     public static function getCoversAndInterfacesForNewDoc()
     {
     	return array('store_iface_TransferFolderCoverIntf');
-    }
-    
-    
-    /**
-     * Помощен метод за показване на документа в транспортните линии
-     * 
-     * @param stdClass $rec - запис на документа
-     * @return stdClass $row - вербалния запис
-     */
-    private function prepareLineRows($rec)
-    {
-    	$row = $this->recToVerbal($rec);
-    	
-    	$row->rowNumb = $rec->rowNumb;
-    	$row->address = $row->toAdress;
-    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
-    	$row->docId = $this->getLink($rec->id, 0);
-    	
-    	return $row;
-    }
-    
-    
-    /**
-     * Подготовка на показване като детайл в транспортните линии
-     */
-    public function prepareTransfers($data)
-    {
-    	$masterRec = $data->masterData->rec;
-    	$query = $this->getQuery();
-    	$query->where("#lineId = {$masterRec->id}");
-    	$query->where("#state != 'rejected'");
-    	$query->orderBy("#createdOn", 'DESC');
-    	
-    	$i = 1;
-    	while($dRec = $query->fetch()){
-    		$dRec->rowNumb = $i;
-    		$data->transfers[$dRec->id] = $this->prepareLineRows($dRec);
-    		$i++;
-    		
-    		if(!empty($dRec->weight) && $data->masterData->weight !== FALSE){
-    			$data->masterData->weight += $dRec->weight;
-    		} else {
-    			$data->masterData->weight = FALSE;
-    		}
-    		
-    		if(!empty($dRec->volume) && $data->masterData->volume !== FALSE){
-    			$data->masterData->volume += $dRec->volume;
-    		} else {
-    			$data->masterData->volume = FALSE;
-    		}
-    		
-    		$data->masterData->palletCount += $dRec->palletCountInput;
-    	}
-    }
-    
-    
-    /**
-     * Подготовка на показване като детайл в транспортните линии
-     */
-    public function renderTransfers($data)
-    {
-    	if(count($data->transfers)){
-    		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,fromStore=Склад->Изходящ,toStore=Склад->Входящ,weight=Тегло,volume=Обем,palletCountInput=Палети,address=@Адрес,lineNotes=@";
-    		 
-    		return $table->get($data->transfers, $fields);
-    	}
     }
     
     
