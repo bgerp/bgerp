@@ -245,7 +245,7 @@ class core_Form extends core_FieldSet
                 
                 // Вдигаме грешка, ако стойността от Request 
                 // не може да се конвертира към вътрешния тип
-                if ($type->error) {
+                if (strlen($type->error)) {
                     
                     $result = array('error' => $type->error);
                     
@@ -381,7 +381,7 @@ class core_Form extends core_FieldSet
         
                 // Вдигаме грешка, ако стойността от Request
                 // не може да се конвертира към вътрешния тип
-                if ($type->error) {
+                if (strlen($type->error)) {
         
                     $result = array('error' => $type->error);
         
@@ -763,8 +763,6 @@ class core_Form extends core_FieldSet
                     $type->error = TRUE;
                 }  
                     
-                
-                
                 
                 // Стойността на полето
                 $value = $vars[$name];

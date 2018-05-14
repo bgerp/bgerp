@@ -464,9 +464,9 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        // Бутона за редакция да е на втори ред за другите потребители
+        // Бутона за редакция да е на втори ред за другите потребители, при чернова документи
         if ($data->toolbar->buttons['btnEdit']) {
-            if ($data->rec->createdBy > 0 && $data->rec->createdBy != core_Users::getCurrent()) {
+            if ($data->rec->createdBy > 0 && $data->rec->createdBy != core_Users::getCurrent() && $data->rec->state == 'draft') {
                 $data->toolbar->buttons['btnEdit']->attr['row'] = 2;
             }
         }

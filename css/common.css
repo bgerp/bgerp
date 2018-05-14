@@ -1252,6 +1252,11 @@ a.profile {
   .state-rejected .tagColumn {
     opacity: 0.5; }
 
+.soft-rejected {
+  background-color: #e2aaaa;
+  padding: 2px;
+  border-radius: 3px; }
+
 .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab {
   opacity: 0.5; }
   .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab:hover,
@@ -1461,6 +1466,10 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
   border-radius: 5px; }
+
+.formFooter {
+  font-size: 0.9em;
+  padding-bottom: 15px; }
 
 .formNotice {
   background-color: #ffff66;

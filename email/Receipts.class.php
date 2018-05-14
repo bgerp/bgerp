@@ -99,6 +99,8 @@ class email_Receipts extends email_ServiceEmails
             self::save($rec);
             
             self::logNotice('Получена обратна разписка', $rec->id);
+            
+            blast_BlockedEmails::addSentEmailFromText($mid, $mime);
         }
 
         return $isReceipt;

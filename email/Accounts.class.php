@@ -84,7 +84,7 @@ class email_Accounts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, email, type, applyRouting=Рутиране, retreiving=Получаване, sending=Изпращане, lastFetchAll';
+    var $listFields = 'id, email, type, applyRouting=Рутиране, retreiving=Получаване, sending=Изпращане';
     
     
     /**
@@ -115,7 +115,6 @@ class email_Accounts extends core_Master
         // Изтегляне
         $this->FLD('state', 'enum(active=Активен, stopped=Спрян)', 'caption=Изтегляне->Статус');
         $this->FLD('fetchingPeriod', 'time(suggestions=30 секунди|1 минута|2 минути|5 минути|10 минути|30 минути|1 час,min=30)', 'caption=Изтегляне->Проверка през,placeholder=1 минута');
-        $this->FLD('lastFetchAll', 'datetime', 'caption=Изтегляне->Проверка,input=none');
         $this->FLD('deleteAfterPeriod', 'time(uom=minutes,suggestions=Веднага|2 часа|6 часа|1 ден|1 седмица|1 месец)',
             'caption=Изтегляне->Изтриване,hint=Кога писмото да бъде изтрито от IMAP/POP3 сметката след получаване в системата?,placeholder=Никога,unit=след получаване,oldFiledName=datetime');
         $this->FLD('imapFlag', 'enum(,seen=Като прочетени,unseen=Като непрочетени)', 'caption=Маркиране,placeholder=Без промяна');

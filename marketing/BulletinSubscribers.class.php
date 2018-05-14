@@ -136,6 +136,9 @@ class marketing_BulletinSubscribers extends core_Detail
         } else {
             vislog_History::add('Дублиран абонамент за бюлетин ' . $domain);
         }
+        
+        // Разблокираме имейла, ако е бил блокиран
+        blast_BlockedEmails::addEmail($email, 'force', 'ok');
     }
 
     

@@ -451,6 +451,8 @@ class email_Inboxes extends core_Master
                     $rec->inCharge  = $userRec->id;
                     $rec->access    = "private";
                     
+                    $rec->id = self::fetchField("#email = '{$rec->email}'", 'id');
+
                     self::save($rec);
 
                     return $rec->email;

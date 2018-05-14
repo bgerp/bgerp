@@ -550,9 +550,9 @@ class doc_Threads extends core_Manager
                 }
                 
                 // Само, ако първият контейнер е видим за партньори, тогава проверяваме за броят на видимите контейнери
-                if($cRec->visibleForPartners == 'yes' && !self::$updateQueue[$rec->id]) {
+                if($cRec->visibleForPartners == 'yes' && $cRec->state != 'draft' && $cRec->state != 'rejected' && !self::$updateQueue[$rec->id]) {
                     // Ако се различава броя на документите, видими за партньори
-                    $pCQuery->where("#visibleForPartners = 'yes'");
+                    $pCQuery->where("#visibleForPartners = 'yes' AND #state != 'draft' AND #state != 'rejected'");
                     $pCCnt = $pCQuery->count();
                     if ($pCCnt != $partnerCnt) {
                         $pCCnt = (int)$pCCnt;
@@ -905,7 +905,7 @@ class doc_Threads extends core_Manager
                         $cQuery = doc_Containers::getQuery();
                         $cQuery->show('threadId');
                         $cQuery->groupBy('threadId');
-                        $cQuery->where(array("#createdBy = '[#1#]'", $cu));
+                        $cQuery->where(array("#createdBy = '[#1#]' OR #createdBy <= 0", $cu));
                         if ($filter->folderId) {
                             $cQuery->where(array("#folderId = '[#1#]'", $filter->folderId));
                         }

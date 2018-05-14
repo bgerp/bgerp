@@ -17,7 +17,7 @@ class marketing_Router
 	/**
 	 * Работен кеш
 	 */
-	public static $companyTypes = array();
+	public static $companyTypes;
 	
 	
 	/**
@@ -322,22 +322,23 @@ class marketing_Router
 		$name = str::utf2ascii($name);
 		$name = strtolower($name);
 		$name = preg_replace('/[^\w]/', ' ', $name);
-		$name = trim($name);
-		$name = "#{$name}#";
 		
-		if(!count(self::$companyTypes)){
+		if(!self::$companyTypes){
 			$companyTypes = getFileContent('drdata/data/companyTypes.txt');
-			self::$companyTypes = explode("\n", $companyTypes);
+            $companyTypes = explode("\n", $companyTypes);
+            foreach($companyTypes as $type) {
+                $type = trim($type, "\n| ");
+                if($type) {
+                    self::$companyTypes .= (self::$companyTypes ? '|' : '') . preg_quote($type, '/');
+                }
+            }
+		}
+	 
+		if(self::$companyTypes){
+            $name = preg_replace("/(" . self::$companyTypes . ")/", ' ', $name);
 		}
 		
-		if(is_array(self::$companyTypes)){
-			foreach (self::$companyTypes as $type){
-				$type = trim($type, '|');
-				$name = str_replace(array("#{$type}", "{$type}#"), array('', ''), $name);
-			}
-		}
-		
-		$name = trim(str_replace('#', '', $name));
+		$name = trim($name);
 		
 		return $name;
 	}
@@ -352,28 +353,25 @@ class marketing_Router
 	public static function getCompaniesByCountry($countryId = NULL)
 	{
 		// Проверяваме имали кеш
-		$normalized = core_Cache::get('crm_Companies',  'normalizedNames');
+		$key = "normalizedNames|{$countryId}|";
+		$normalized = core_Cache::get('crm_Companies',  $key);
 		
 		if(!is_array($normalized)){
 			$normalized = $companyArr = array();
 			$query = crm_Companies::getQuery();
-			$query->show('folderId,name,createdOn');
+            $query->EXT('last', 'doc_Folders', 'externalKey=folderId');
+            $query->orderBy('#last', 'DESC');
+			$query->show('folderId,name,last');
 			if(isset($countryId)){
 				$query->where("#country = {$countryId}");
 			}
 			
 			// Подредба по последно използване
 			while($cRec = $query->fetch()){
-				$last = (isset($cRec->folderId)) ? doc_Folders::fetchField($cRec->folderId, 'last') : $cRec->createdOn;
-				$companyArr[$cRec->id] = (object)array('name' => $cRec->name, 'last' => $last);
+				$normalized[$cRec->id] = self::normalizeCompanyName($cRec->name); 
 			}
 			
-			// Нормализиране на името на фирмата
-			foreach ($companyArr as $id => $obj){
-				$normalized[$id] = self::normalizeCompanyName($obj->name);
-			}
-			
-			core_Cache::set('crm_Companies',  'normalizedNames', $normalized, 10080, array('crm_Companies'));
+			core_Cache::set('crm_Companies',  $key, $normalized, 10080, array('crm_Companies'));
 		}
 		
 		return $normalized;
