@@ -50,7 +50,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,weight=Тегло,volume=Обем,collection=Инкасиране,status,address=@Адрес,notes=@';
+    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,weight=Тегло,volume=Обем,collection=Инкасиране,status,btn=|*&nbsp;,address=@Адрес,notes=@,documentHtml=@';
 
     
     /**
@@ -58,7 +58,7 @@ class trans_LineDetails extends doc_Detail
      *
      *  @var string
      */
-    public $hideListFieldsIfEmpty = 'weight,collection,volume,notes,address';
+    public $hideListFieldsIfEmpty = 'weight,collection,volume,notes,address,documentHtml,btn';
     
     
     /**
@@ -80,12 +80,6 @@ class trans_LineDetails extends doc_Detail
     
     
     /**
-     * Кой може да го изтрие?
-     */
-    public $canDelete = 'debug';
-    
-    
-    /**
      * Кой има право да подготвя?
      */
     public $canPrepare = 'trans,ceo';
@@ -95,9 +89,9 @@ class trans_LineDetails extends doc_Detail
      * Вербалните имена на класовете
      */
     private static $classGroups = array('store_ShipmentOrders'      => 'Експедиции', 
-    		                           'store_Receipts'             => 'Доставки', 
-    		                           'store_ConsignmentProtocols' => 'Отговорно пазене', 
-    		                           'store_Transfers'            => 'Трансфери');
+    		                            'store_Receipts'             => 'Доставки', 
+    		                            'store_ConsignmentProtocols' => 'Отговорно пазене', 
+    		                            'store_Transfers'            => 'Трансфери');
     
     
     /**
@@ -110,7 +104,7 @@ class trans_LineDetails extends doc_Detail
     	$this->FLD('documentLu', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('readyLu', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('classId', 'class', 'input=none');
-    	$this->FLD('status', 'enum(waiting=Чакащо,ready=Подготвено)', 'input=none,notNull,value=waiting,caption=Статус,smartCenter');
+    	$this->FLD('status', 'enum(waiting=Чакащо,ready=Готово)', 'input=none,notNull,value=waiting,caption=Статус,smartCenter');
     	
     	$this->setDbIndex('containerId');
     }
@@ -173,10 +167,19 @@ class trans_LineDetails extends doc_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$Document = doc_Containers::getDocument($rec->containerId);
-    	$row->containerId = $Document->getLink(0);
     	
     	$transportInfo = $Document->getTransportLineInfo();
-    	$row->containerId = "<span class='state-{$transportInfo['state']}'>{$row->containerId}</span>";
+    	if(!core_Mode::isReadOnly()){
+    		$row->containerId = $Document->getLink(0);
+    		$row->containerId = "<span class='state-{$transportInfo['state']}'>{$row->containerId}</span>";
+    	} else {
+    		$row->containerId = "#" . $Document->getHandle();
+    	}
+    	
+    	if(Mode::is('renderHtmlInLine') && isset($Document->layoutFileInLine)){
+    		$row->documentHtml = $Document->getInlineDocumentBody();
+    	}
+    	
     	$row->ROW_ATTR['class'] = ($rec->status == 'waiting') ? 'state-waiting' : 'state-active';
     	
     	if(!empty($transportInfo['notes'])){
@@ -214,13 +217,18 @@ class trans_LineDetails extends doc_Detail
     		$row->readyLu = trans_Helper::displayTransUnits($rec->readyLu, NULL, TRUE);
     	}
     	
-    	if($mvc->haveRightFor('togglestatus', $rec)){
-    		$row->status = ht::createBtn($row->status, array($mvc, 'togglestatus', $rec->id, 'ret_url' => TRUE), FALSE, FALSE, 'title=Смяна на състоянието,ef_icon=img/16/arrow_refresh.png');
+    	if($mvc->haveRightFor('togglestatus', $rec) && !Mode::isReadOnly()){
+    		$btnImg = ($rec->status != 'waiting') ? 'img/16/checked.png' : 'img/16/checkbox_no.png';
+    		$row->btn = ht::createLink('', array($mvc, 'togglestatus', $rec->id, 'ret_url' => TRUE), FALSE, "ef_icon={$btnImg}");
     	}
     	
     	core_RowToolbar::createIfNotExists($row->_rowTools);
+    	
+    	// Бутон за подготовка
     	$url = array($mvc, 'prepare', 'id' => $rec->id, 'ret_url' => TRUE);
     	$row->_rowTools->addLink('Подготвяне', $url, array('ef_icon' => "img/16/checked.png", 'title' => "Подготовка на документа"));
+    	
+    	// Бутон за създаване на коментар
     	$commentUrl = array('doc_Comments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     	$row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => "img/16/comment_add.png", 'title' => "Известяване на отговорниците на документа"));
     }
@@ -367,6 +375,7 @@ class trans_LineDetails extends doc_Detail
     		$rec->readyLu = trans_Helper::convertTableToNormalArr($formRec->transUnitsInput);
     		$rec->status = (trans_Helper::checkTransUnits($rec->documentLu, $rec->readyLu)) ? 'ready' : 'waiting';
     		$this->save($rec, 'readyLu,status');
+    		trans_Lines::logWrite('Ръчно подготвяне на ред', $rec->lineId);
     		
     		return followRetUrl();
     	}
@@ -431,5 +440,35 @@ class trans_LineDetails extends doc_Detail
     	
     	$data->query->XPR('orderByClassId', 'int', "(CASE #classId WHEN {$shipClassId} THEN 1 WHEN {$receiptClassId} THEN 2 WHEN {$transferClassId} THEN 3 WHEN {$consClassId} THEN 4 ELSE 5 END)");
     	$data->query->orderBy('#orderByClassId=ASC,#status=ASC,#containerId');
+    }
+    
+    
+    /**
+     * Подготовка на детайла
+     */
+    function prepareDetail_($data)
+    {
+    	// Ако ще се печата разширено се пушва в определен мод
+    	if(Mode::is('printing') && Request::get('Width')){
+    		Mode::push('renderHtmlInLine', TRUE);
+    		$data->renderDocumentInLine = TRUE;
+    	}
+    	
+    	parent::prepareDetail_($data);
+    }
+    
+    
+    /**
+     * Рендиране на детайла
+     */
+    public function renderDetail_($data)
+    {
+    	$tpl = parent::renderDetail_($data);
+    	
+    	if($data->renderDocumentInLine === TRUE){
+    		Mode::pop('renderHtmlInLine');
+    	}
+    	
+    	return $tpl;
     }
 }
