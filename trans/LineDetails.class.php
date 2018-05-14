@@ -225,8 +225,10 @@ class trans_LineDetails extends doc_Detail
     	core_RowToolbar::createIfNotExists($row->_rowTools);
     	
     	// Бутон за подготовка
-    	$url = array($mvc, 'prepare', 'id' => $rec->id, 'ret_url' => TRUE);
-    	$row->_rowTools->addLink('Подготвяне', $url, array('ef_icon' => "img/16/checked.png", 'title' => "Подготовка на документа"));
+    	if($mvc->haveRightFor('prepare', $rec)){
+    		$url = array($mvc, 'prepare', 'id' => $rec->id, 'ret_url' => TRUE);
+    		$row->_rowTools->addLink('Подготвяне', $url, array('ef_icon' => "img/16/checked.png", 'title' => "Подготовка на документа"));
+    	}
     	
     	// Бутон за създаване на коментар
     	$commentUrl = array('doc_Comments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
@@ -407,8 +409,9 @@ class trans_LineDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if(in_array($action, array('togglestatus', 'prepare')) == 'prepare' && isset($rec)){
+    	if(in_array($action, array('togglestatus', 'prepare')) && isset($rec)){
     		$state = trans_Lines::fetchField($rec->lineId, 'state');
+    		
     		if(in_array($state, array('rejected', 'closed'))){
     			$requiredRoles = 'no_one';
     		}

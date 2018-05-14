@@ -37,7 +37,7 @@ class trans_Lines extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone,doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder';
+    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone,doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_Close';
 
     
     
@@ -209,50 +209,18 @@ class trans_Lines extends core_Master
     {
     	$rec = $data->rec;
     	
-    	$changeUrl = array($mvc, 'changeState', $data->rec->id);
     	if($data->rec->state == 'active'){
-    		if(self::getDocumentsCnt($data->rec->id, 'draft', 1)){
-    			$error = ',error=Линията не може да бъде затворена докато има чернови документи към нея|*!';
-    		} else {
-    			$warning= ',warning=Наистина ли искате да затворите линията?';
+    		if(self::haveDraftDocuments($data->rec->id)){
+    			if($data->toolbar->hasBtn('btnClose')){
+    				//$data->toolbar->setError('btnClose', "Линията не може да бъде затворена докато има чернови документи към нея|*!");
+    			}
     		}
-    		
-    		$data->toolbar->addBtn('Затваряне', $changeUrl, "ef_icon=img/16/lock.png{$error}{$warning},title=Затваряне на линията");
-    	}
-    	
-    	if($data->rec->state == 'closed' && $data->rec->start >= dt::today()){
-    		$data->toolbar->addBtn('Активиране', $changeUrl, 'ef_icon=img/16/lock_unlock.png,warning=Искате ли да активирате линията?,title=Отваряне на линията');
     	}
 
     	if($mvc->haveRightFor('single', $data->rec)){
     		$url = array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'Width' => 'yes');
     		$data->toolbar->addBtn('Печат (Детайли)', $url, "id=w{$attr['id']},target=_blank,row=2", 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
     	}
-    }
-    
-    
-    /**
-     * Екшън за отваряне/затваряне на линия
-     */
-    function act_ChangeState()
-    {
-    	$this->requireRightFor('write');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	expect($rec->state == 'active' || $rec->state == 'closed');
-    	expect($rec->start >= dt::today() || $rec->state == 'active');
-    	
-    	$rec->state = ($rec->state == 'active') ? 'closed' : 'active';
-    	
-    	// Освобождаваме всички чернови документи в които е избрана линията която затваряме
-    	if($rec->state == 'closed'){
-    	    expect(!self::getDocumentsCnt($id, 'draft', 1));
-    	}
-    	
-    	$this->save($rec);
-    	$msg = ($rec->state == 'active') ? '|Линията е отворена успешно' : '|Линията е затворена успешно';
-    	
-    	return new Redirect(array($this, 'single', $rec->id), $msg);
     }
     
     
@@ -414,21 +382,15 @@ class trans_Lines extends core_Master
      * Връща броя на документите в посочената линия
      * Може да се филтрират по #state и да се ограничат до maxDocs
      */
-    public static function getDocumentsCnt($lineId, $state = NULL, $maxDocs = 0)
+    private static function haveDraftDocuments($id)
     {
         $query = trans_LineDetails::getQuery();
-        $query->where("#lineId = {$lineId}");
+        $query->where("#lineId = {$id}");
         $query->EXT('docState', 'doc_Containers', 'externalName=state,externalKey=containerId');
-        if($state) {
-        	$query->where("#docState = '{$state}'");
-        }
-        if($maxDoc) {
-        	$query->limit($maxDocs);
-        }
-    	
+        $query->show('id');
+        
         return $query->count();
     }
-    
     
     
     /**
