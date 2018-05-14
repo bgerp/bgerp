@@ -168,6 +168,8 @@ class trans_Lines extends core_Master
     	$this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,group=suppliers,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
     	$this->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Превозвач->МОЛ');
     	$this->FLD('description', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
+    	$this->FLD('countReady', 'int', 'input=none,notNUll,value=0');
+    	$this->FLD('countTotal', 'int', 'input=none,notNUll,value=0');
     }
     
     
@@ -338,16 +340,51 @@ class trans_Lines extends core_Master
      */
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	$data->row->weight = (!empty($data->weight)) ? cls::get('cat_type_Weight')->toVerbal($data->weight) : "<span class='quiet'>N/A</span>";
-    	$data->row->volume = (!empty($data->volume)) ? cls::get('cat_type_Volume')->toVerbal($data->volume) : "<span class='quiet'>N/A</span>";
+    	$row = $data->row;
+    	
+    	$amount = $weight = $volume = 0;
+    	$sumWeight = $sumVolume = TRUE;
+    	$transUnits = array();
+    	
+    	$dQuery = trans_LineDetails::getQuery();
+    	$dQuery->where("#lineId = {$data->rec->id}");
+    	
+    	while($dRec = $dQuery->fetch()){
+    		$Document = doc_Containers::getDocument($dRec->containerId);
+    		$transInfo = $Document->getTransportLineInfo();
+    		$amount += $transInfo['baseAmount'];
+    		
+    		trans_Helper::sumTransUnits($transUnits, $dRec->readyLu);
+    		
+    		if($sumWeight === TRUE){
+    			if($transInfo['weight']){
+    				$weight += $transInfo['weight'];
+    			} else {
+    				unset($weight);
+    				$sumWeight = FALSE;
+    			}
+    		}
+    		
+    		if($sumVolume === TRUE){
+    			if($transInfo['volume']){
+    				$volume += $transInfo['volume'];
+    			} else {
+    				unset($volume);
+    				$sumVolume = FALSE;
+    			}
+    		}
+    	}
+    	
+    	$data->row->logisticUnits = (count($transUnits)) ? core_Type::getByName('varchar')->toVerbal(trans_Helper::displayTransUnits($transUnits)) : "<span class='quiet'>N/A</span>";
+    	$data->row->weight = (!empty($weight)) ? cls::get('cat_type_Weight')->toVerbal($weight) : "<span class='quiet'>N/A</span>";
+    	$data->row->volume = (!empty($volume)) ? cls::get('cat_type_Volume')->toVerbal($volume) : "<span class='quiet'>N/A</span>";
+    	
+    	$bCurrency = acc_Periods::getBaseCurrencyCode();
+    	$data->row->totalAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
+    	$data->row->totalAmount .= " <span class='cCode'>{$bCurrency}</span>";
     	
     	$count = ($data->palletCount) ? $data->palletCount : 0;
     	$data->row->palletCount = cls::get('type_Int')->toVerbal($count);
-    	
-    	$amount = ($data->totalAmount) ? $data->totalAmount : 0;
-    	$data->row->totalAmount = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amount);
-    	$bCurrency = acc_Periods::getBaseCurrencyCode();
-    	$data->row->totalAmount .= " <span class='cCode'>{$bCurrency}</span>";
     }
     
     
@@ -371,110 +408,6 @@ class trans_Lines extends core_Master
     	
     	return isset($rec->forwarderPersonId);
     }
-    
-    
-    /**
-     * Създава и затваря нови транспортни линии
-     */
-    function cron_CreateNewLines()
-    {
-    	$now = dt::now();
-    	$today = dt::today();
-    	
-    	$query = $this->getQuery();
-    	$query2 = clone $query;
-    	$query->where("#state = 'active'");
-    	
-    	// Затварят се всички отворени линии, с начало в миналото
-    	while($rec = $query->fetch()){
-    		$close = FALSE;
-    		if(strpos($rec->start, ' 00:00:00') !== FALSE){
-    			$rec->start = str_replace(' 00:00:00', '', $rec->start);
-    			if($rec->start < $today){
-    				$close = TRUE;
-    			}
-    		} elseif($rec->start < $now){
-    			$close = TRUE;
-    		}
-    		
-    		if($close === TRUE){
-    			$rec->state = 'closed';
-    			$this->save($rec, 'state,modifiedOn,modifiedBy');
-    		}
-    	}
-    	
-    	// Намират се затворените линии, които не са повторени и
-    	// имат повторение и не са повторени
-    	$query2->where("#state = 'closed'");
-    	$query2->where("#repeat IS NOT NULL");
-    	$query2->where("#isRepeated = 'no'");
-    	while($rec = $query2->fetch()){
-            
-            // Генерира се новата линия
-            $newRec = $this->getNewLine($rec);
-    		
-            if(self::getDocumentsCnt($rec->id, NULL, 1) || doc_Threads::fetchField($rec->threadId, 'allDocCnt') > 1) {
-                
-                // Ако в старата линия има документи, създава и записва новата линия
-                $sudoUser = core_Users::sudo($rec->createdBy);
-                $this->save($newRec);
-                core_Users::exitSudo($sudoUser);
-                
-                // Линията се отбелязва като повторена
-                $rec->isRepeated = 'yes';
-                $this->save($rec, 'isRepeated');
-            } else {
-                // Вместо да създава нова линия, отваря старата, ако в нея няма документи
-                $rec->start = $newRec->start;
-                $rec->state = $newRec->state;
-                $this->save($rec);
-            }
-    	}
-    }
-    
-    
-    /**
-     * Създава нова линия възоснова на стара
-     * @param stdClass $rec - старата линия
-     * @return stdClass $newRec - Новата линия
-     */
-    private function getNewLine($rec)
-    {
-    	$newRec = new stdClass();
-    	$newRec->repeat            = $rec->repeat;
-    	$newRec->createdBy         = $rec->createdBy;
-    	$newRec->folderId          = $rec->folderId;
-    	$newRec->vehicle 		   = $rec->vehicle;
-    	$newRec->forwarderId 	   = $rec->forwarderId;
-    	$newRec->forwarderPersonId = $rec->forwarderPersonId;
-    	$newRec->isRepeated 	   = 'no';
-    	$newRec->start 			   = dt::addSecs($newRec->repeat, $newRec->start);
-    	$newRec->title 			   = $rec->title;
-    	$newRec->state 			   = 'active';
-    	
-    	return $newRec;
-    }
-    
-    
-	/**
-     * Извиква се след setUp-а на таблицата за модела
-     */
-    protected static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	$conf = core_Packs::getConfig('trans');
-    	$period = $conf->TRANS_LINES_CRON_INTERVAL / 60;
-    	
-        $rec = new stdClass();
-        $rec->systemId    = "CreateNewLines";
-        $rec->description = "Затваряне и създаване на нови транспортни линии";
-        $rec->controller  = "trans_Lines";
-        $rec->action      = "CreateNewLines";
-        $rec->period      = $period;
-        $rec->offset 	  = mt_rand(0, $period - 1);
-        $rec->delay 	  = 0;
-        $rec->timeLimit   = 100;
-        $res .= core_Cron::addOnce($rec);
-    }
 
     
     /**
@@ -483,23 +416,43 @@ class trans_Lines extends core_Master
      */
     public static function getDocumentsCnt($lineId, $state = NULL, $maxDocs = 0)
     {
-        $res = 0;
-    	$me = cls::get(get_called_class());
-        $details = arr::make($me->details, TRUE);
-        foreach($details as $d) {
-            $query = $d::getQuery();
-    	    $query->where("#lineId = {$lineId}");
-            if($state) {
-    	        $query->where("#state = '{$state}'");
-            }
-            if($maxDoc) {
-                $query->limit($maxDocs);
-            }
-            $res += $query->count();
-
-            if($res >= $maxDocs) break;
+        $query = trans_LineDetails::getQuery();
+        $query->where("#lineId = {$lineId}");
+        $query->EXT('docState', 'doc_Containers', 'externalName=state,externalKey=containerId');
+        
+        if($state) {
+        	$query->where("#docState = '{$state}'");
         }
-
-        return $res;
+        
+        if($maxDoc) {
+        	$query->limit($maxDocs);
+        }
+    	
+        return $query->count();
+    }
+    
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$rec->countReady = $rec->countTotal = 0;
+    	
+    	$dQuery = trans_LineDetails::getQuery();
+    	$dQuery->where("#lineId = {$rec->id}");
+    	while($dRec = $dQuery->fetch()){
+    		$rec->countTotal++;
+    		if($dRec->status == 'ready') {
+    			$rec->countReady++;
+    		}
+    	}
+    	
+    	$this->save_($rec, 'countTotal,countReady');
     }
 }

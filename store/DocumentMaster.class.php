@@ -194,16 +194,6 @@ abstract class store_DocumentMaster extends core_Master
     			$agreedLocation = crm_Locations::getTitleById($form->dealInfo->get('deliveryLocation'));
     			$form->setWarning('locationId', "Избраната локация е различна от договорената \"{$agreedLocation}\"");
     		}
-    		
-			if($rec->lineId){
-				
-    			// Ако има избрана линия и метод на плащане, линията трябва да има подочетно лице
-    			if($pMethods = $form->dealInfo->get('paymentMethodId')){
-    				if(cond_PaymentMethods::isCOD($pMethods) && !trans_Lines::hasForwarderPersonId($rec->lineId)){
-    					$form->setError('lineId', 'При наложен платеж, избраната линия трябва да има материално отговорно лице!');
-    				}
-    			}
-    		}
     	}
     }
 
@@ -825,5 +815,46 @@ abstract class store_DocumentMaster extends core_Master
     	}
     	 
     	return $details;
+    }
+    
+    
+    public function getTransportLineInfo_($rec)
+    {
+    	$rec = static::fetchRec($rec);
+    	$res = array('baseAmount' => NULL, 'amount' => NULL, 'currencyId' => NULL, 'notes' => $rec->lineNotes);
+    	$res['stores'] = array($rec->storeId);
+    	
+    	$contragentClass = cls::get($rec->contragentClassId);
+    	$contragentRec = $contragentClass->fetch($rec->contragentId);
+    	$contragentTitle = $contragentClass->getVerbal($contragentRec, 'name');
+    	
+    	$oldRow = $this->recToVerbal($rec, 'contragentAddress');
+    	
+    	$contragentClass = cls::get($rec->contragentClassId);
+    	$contragentRec = $contragentClass->fetch($rec->contragentId);
+    	$contragentTitle = $contragentClass->getVerbal($contragentRec, 'name');
+    	
+    	$address = ($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress;
+    	$address = str_replace('<br>', ',', $address);
+    	$address = "{$contragentTitle}, {$address}";
+    	$res['address'] = $address;
+    	
+    	$amount = NULL;
+    	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    	if($firstDoc->getInstance()->getField("#paymentMethodId", FALSE)){
+    		$paymentMethodId = $firstDoc->fetchField('paymentMethodId');
+    		if(cond_PaymentMethods::isCOD($paymentMethodId)){
+    			$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
+    		}
+    	}
+    	
+    	if($amount){
+    		$res['baseAmount'] = currency_Currencies::round($rec->amountDelivered, $rec->currencyId);
+    		$res['amount'] = $amount;
+    		$res['currencyId'] = $rec->currencyId;
+    		//$row->collection = "<span style='float:right'><span class='cCode'>{$rec->currencyId}</span> " . $this->getFieldType('amountDelivered')->toVerbal($amount) . "</span>";
+    	}
+    	
+    	return $res;
     }
 }

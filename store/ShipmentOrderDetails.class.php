@@ -52,7 +52,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      * var string|array
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, doc_plg_HidePrices,store_plg_RequestDetail,
-                        plg_AlignDecimals2, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy, trans_plg_DocumentUnits,
+                        plg_AlignDecimals2, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy,
                         ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
     
     
@@ -97,7 +97,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'info=@Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight=Тегло, volume=Обем';
+    public $listFields = 'info=@Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight=Тегло, volume=Обем, transUnitId = ЛЕ';
     
         
     /**
@@ -121,7 +121,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'info,discount,reff';
+    public $hideListFieldsIfEmpty = 'info,discount,reff,transUnitId';
     
     
     /**
