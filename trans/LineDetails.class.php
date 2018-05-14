@@ -356,7 +356,6 @@ class trans_LineDetails extends doc_Detail
     	// Подготовка на формата
     	$form = cls::get('core_Form');
     	$form->title = 'Подготовка на ЛЕ на|* ' . cls::get('trans_Lines')->getFormTitleLink($rec->lineId);
-    	$form->info = tr('Документ') . " " . $Document->getLink(0);
     	
     	// Задаване на полетата за ЛЕ
     	if($rec->readyLu){

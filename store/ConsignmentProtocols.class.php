@@ -95,12 +95,6 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
-     * Кой може да сторнира
-     */
-    public $canRevert = 'storeMaster, ceo';
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'valior, title=Документ, contragentId=Контрагент, folderId, createdOn, createdBy';
@@ -133,7 +127,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior,folderId,note';
+    public $searchFields = 'valior,folderId,note';
     
     
     /**
@@ -214,7 +208,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-list'])){
     		$row->contragentId = cls::get($rec->contragentClassId)->getHyperlink($rec->contragentId, TRUE);
@@ -239,7 +233,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Функция, която се извиква след активирането на документа
      */
-    public static function on_AfterActivation($mvc, &$rec)
+    protected static function on_AfterActivation($mvc, &$rec)
     {
     	$rec = $mvc->fetchRec($rec);
     	
@@ -253,7 +247,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * След подготовка на сингъла
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	// Ако няма 'снимка' на моментното състояние, генерираме го в момента
     	if(empty($data->rec->snapshot)){
@@ -265,7 +259,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * След рендиране на единичния изглед
      */
-    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	// Ако потребителя няма достъп към визитката на лицето, или не може да види сч. справки то визитката, той не може да види справката
     	$Contragent = cls::get($data->rec->contragentClassId);
@@ -343,7 +337,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec  = &$form->rec;
@@ -496,7 +490,7 @@ class store_ConsignmentProtocols extends core_Master
     	$row = $this->recToVerbal($rec);
     	$res = array('baseAmount' => NULL, 'amount' => NULL, 'currencyId' => NULL, 'notes' => $rec->lineNotes);
     	$res['stores'] = array($rec->storeId);
-    	$res['address'] = $row->contragentAddress;
+    	$res['address'] = str_replace('<br>', '', $row->contragentAddress);
     	 
     	return $res;
     }

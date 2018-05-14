@@ -165,8 +165,8 @@ class trans_Lines extends core_Master
     	$this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,group=suppliers,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
     	$this->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Превозвач->МОЛ');
     	$this->FLD('description', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
-    	$this->FLD('countReady', 'int', 'input=none,notNUll,value=0');
-    	$this->FLD('countTotal', 'int', 'input=none,notNUll,value=0');
+    	$this->FLD('countReady', 'int', 'input=none,notNull,value=0');
+    	$this->FLD('countTotal', 'int', 'input=none,notNull,value=0');
     }
     
     
@@ -180,9 +180,9 @@ class trans_Lines extends core_Master
     	$start = str_replace(' 00:00', '', $start);
     	
     	if(count($titleArr) == 2){
-    		return "{$start}/{$titleArr[1]} ($rec->countReady / $rec->countTotal)";
+    		return "{$start}/{$titleArr[1]} ({$rec->countReady}/{$rec->countTotal})";
     	} else {
-    		return "{$start}/{$rec->title} ($rec->countReady / $rec->countTotal)";
+    		return "{$start}/{$rec->title} ({$rec->countReady}/{$rec->countTotal})";
     	}
     }
     
