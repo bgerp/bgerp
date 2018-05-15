@@ -224,24 +224,24 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         // Фактури ПОКУПКИ
         while ($purchaseInvoices = $pQuery->fetch()) {
             
-            $threadsId[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
+            $pThreadsId[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
         }
         
         $purchaseTotalNotPaid = 0;
         $purchaseTotalOverDue = 0;
         
-        if (is_array($threadsId)) {
-            foreach ($threadsId as $thread) {
+        if (is_array($pThreadsId)) {
+            foreach ($pThreadsId as $pThread) {
                 
                 // масив от фактури в тази нишка //
                 // $invoicesInThread = (deals_Helper::getInvoicesInThread($thread, $rec->checkDate, TRUE, TRUE, TRUE));
                 
-                $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
+                $pInvoicePayments = (deals_Helper::getInvoicePayments($pThread, $rec->checkDate));
                 
-                if (is_array($invoicePayments)) {
+                if (is_array($pInvoicePayments)) {
                     
                     // фактура от нишката и масив от платежни документи по тази фактура//
-                    foreach ($invoicePayments as $pInv => $paydocs)
+                    foreach ($pInvoicePayments as $pInv => $paydocs)
                         
                         if ($paydocs->payout >= $paydocs->amount)
                             continue;
@@ -266,7 +266,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                     if (! array_key_exists($iRec->id, $pRecs)) {
                         
                         $pRecs[$iRec->id] = (object) array(
-                            'threadId' => $thread,
+                            'threadId' => $pThread,
                             'className' => $Invoice->className,
                             'invoiceId' => $iRec->id,
                             'invoiceNo' => $iRec->number,
