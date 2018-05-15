@@ -58,7 +58,7 @@ class trans_LineDetails extends doc_Detail
      *
      *  @var string
      */
-    public $hideListFieldsIfEmpty = 'weight,collection,volume,notes,address,documentHtml,btn';
+    public $hideListFieldsIfEmpty = 'weight,collection,volume,notes,address,documentHtml';
     
     
     /**
@@ -86,6 +86,12 @@ class trans_LineDetails extends doc_Detail
     
     
     /**
+     * Може ръчно да подготвя реда
+     */
+    public $canTogglestatus = 'trans,ceo';
+    
+    
+    /**
      * Работен кеш
      */
     private static $cache = array();
@@ -94,7 +100,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Вербалните имена на класовете
      */
-    private static $classGroups = array('store_ShipmentOrders'      => 'Експедиции', 
+    private static $classGroups = array('store_ShipmentOrders'       => 'Експедиции', 
     		                            'store_Receipts'             => 'Доставки', 
     		                            'store_ConsignmentProtocols' => 'Отговорно пазене', 
     		                            'store_Transfers'            => 'Трансфери');
@@ -113,6 +119,8 @@ class trans_LineDetails extends doc_Detail
     	$this->FLD('status', 'enum(waiting=Чакащо,ready=Готово)', 'input=none,notNull,value=waiting,caption=Статус,smartCenter,tdClass=status-cell');
     	
     	$this->setDbIndex('containerId');
+    	$this->setDbIndex('classId');
+    	$this->setDbIndex('status');
     }
     
     
@@ -232,7 +240,7 @@ class trans_LineDetails extends doc_Detail
     	
     	if($mvc->haveRightFor('togglestatus', $rec) && !Mode::isReadOnly()){
     		$btnImg = ($rec->status != 'waiting') ? 'img/16/checked.png' : 'img/16/checkbox_no.png';
-    		$linkTitle = ($rec->status == 'waiting') ? 'Документът е готов' : 'Документът не е готов';
+    		$linkTitle = ($rec->status == 'waiting') ? 'Маркиране на документа като готов' : 'Отмаркиране на документа като готов';
     		$row->status .= ht::createLink('', array($mvc, 'togglestatus', $rec->id, 'ret_url' => TRUE), FALSE, "ef_icon={$btnImg},title={$linkTitle}");
     	}
     	
@@ -241,7 +249,7 @@ class trans_LineDetails extends doc_Detail
     	// Бутон за подготовка
     	if($mvc->haveRightFor('prepare', $rec)){
     		$url = array($mvc, 'prepare', 'id' => $rec->id, 'ret_url' => TRUE);
-    		$row->_rowTools->addLink('Подготвяне', $url, array('ef_icon' => "img/16/checked.png", 'title' => "Подготовка на документа"));
+    		$row->_rowTools->addLink('Подготвяне', $url, array('ef_icon' => "img/16/checked.png", 'title' => "Ръчна подготовка на документа"));
     	}
     	
     	// Бутон за създаване на коментар
