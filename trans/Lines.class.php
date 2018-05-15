@@ -351,8 +351,9 @@ class trans_Lines extends core_Master
     	$data->row->volume = (!empty($volume)) ? cls::get('cat_type_Volume')->toVerbal($volume) : "<span class='quiet'>N/A</span>";
     	
     	$bCurrency = acc_Periods::getBaseCurrencyCode();
-    	$data->row->totalAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
-    	$data->row->totalAmount .= " <span class='cCode'>{$bCurrency}</span>";
+    	$data->row->totalAmount = " <span class='cCode'>{$bCurrency}</span> ";
+    	$data->row->totalAmount .= core_Type::getByName('double(decimals=2)')->toVerbal($amount);
+    	
     	
     	$count = ($data->palletCount) ? $data->palletCount : 0;
     	$data->row->palletCount = cls::get('type_Int')->toVerbal($count);
