@@ -377,9 +377,8 @@ class trans_Lines extends core_Master
     private static function haveDraftDocuments($id)
     {
         $query = trans_LineDetails::getQuery();
-        $query->where("#lineId = {$id}");
         $query->EXT('docState', 'doc_Containers', 'externalName=state,externalKey=containerId');
-        $query->show('id');
+        $query->where("#lineId = {$id} AND #state = 'draft'");
         
         return $query->count();
     }
