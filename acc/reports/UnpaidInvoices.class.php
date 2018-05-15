@@ -87,6 +87,10 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         // Масив със записи от изходящи фактури
         $sRecs = array();
         
+        $salesQuery = sales_Sales::getQuery();
+        
+        $salesQuery->where("#closedDocuments != ''");
+        
         $sQuery = sales_Invoices::getQuery();
         
         $sQuery->where("#state != 'rejected'");
@@ -99,7 +103,20 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         if ($rec->contragent) {
             
             $sQuery->where("#folderId = {$rec->contragent}");
+            
+            $salesQuery->where("#folderId = {$rec->contragent}");
         }
+        
+        $salesUN = array();
+        
+        while ($sale = $salesQuery->fetch()) {
+            
+            foreach ((keylist::toArray($sale->closedDocuments)) as $v) {
+                $salesUN[$v] = ($v);
+            }
+        }
+        
+        $salesUN = keylist::fromArray($salesUN);
         
         // Фактури ПРОДАЖБИ
         while ($salesInvoices = $sQuery->fetch()) {
@@ -108,7 +125,9 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             
             $className = $firstDocument->className;
             
-            if (($className::fetchField($firstDocument->that, 'state') == 'closed'))
+            $unitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $salesUN);
+            
+            if (($className::fetchField($firstDocument->that, 'state') == 'closed') && ! $unitedCheck)
                 continue;
             
             $threadsId[$salesInvoices->threadId] = $salesInvoices->threadId;
@@ -124,8 +143,9 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                 // масив от фактури в тази нишка //
                 // $invoicesInThread = (deals_Helper::getInvoicesInThread($thread, $rec->checkDate, TRUE, TRUE, TRUE));
                 
-                $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
                 
+                $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
+               
                 if (is_array($invoicePayments)) {
                     
                     // фактура от нишката и масив от платежни документи по тази фактура//
@@ -204,65 +224,63 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         // Фактури ПОКУПКИ
         while ($purchaseInvoices = $pQuery->fetch()) {
             
-            $threadsId[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
+            $pThreadsId[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
         }
         
         $purchaseTotalNotPaid = 0;
         $purchaseTotalOverDue = 0;
         
-        if (is_array($threadsId)) {
-            foreach ($threadsId as $thread) {
+        if (is_array($pThreadsId)) {
+            foreach ($pThreadsId as $pThread) {
                 
                 // масив от фактури в тази нишка //
                 // $invoicesInThread = (deals_Helper::getInvoicesInThread($thread, $rec->checkDate, TRUE, TRUE, TRUE));
                 
-                $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
+                $pInvoicePayments = (deals_Helper::getInvoicePayments($pThread, $rec->checkDate));
                 
-                if (is_array($invoicePayments)) {
+                if (is_array($pInvoicePayments)) {
                     
                     // фактура от нишката и масив от платежни документи по тази фактура//
-                    foreach ($invoicePayments as $inv => $paydocs) {
+                    foreach ($pInvoicePayments as $pInv => $paydocs)
                         
                         if ($paydocs->payout >= $paydocs->amount)
                             continue;
+                    
+                    $Invoice = doc_Containers::getDocument($pInv);
+                    
+                    if ($Invoice->className != 'purchase_Invoices')
+                        continue;
+                    
+                    $iRec = $Invoice->fetch(
+                        'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate');
+                    
+                    if (($paydocs->amount - $paydocs->payout) > 0) {
+                        $purchaseTotalNotPaid += ($paydocs->amount - $paydocs->payout);
+                    }
+                    
+                    if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > 0 && $iRec->dueDate < $rec->checkDate) {
                         
-                        $Invoice = doc_Containers::getDocument($inv);
+                        $purchaseTotalOverDue += ($paydocs->amount - $paydocs->payout);
+                    }
+                    // масива с фактурите за показване
+                    if (! array_key_exists($iRec->id, $pRecs)) {
                         
-                        if ($Invoice->className != 'purchase_Invoices')
-                            continue;
-                        
-                        $iRec = $Invoice->fetch(
-                            'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate');
-                        
-                        if (($paydocs->amount - $paydocs->payout) > 0) {
-                            $purchaseTotalNotPaid += ($paydocs->amount - $paydocs->payout);
-                        }
-                        
-                        if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > 0 &&
-                             $iRec->dueDate < $rec->checkDate) {
-                            
-                            $purchaseTotalOverDue += ($paydocs->amount - $paydocs->payout);
-                        }
-                        // масива с фактурите за показване
-                        if (! array_key_exists($iRec->id, $pRecs)) {
-                            
-                            $pRecs[$iRec->id] = (object) array(
-                                'threadId' => $thread,
-                                'className' => $Invoice->className,
-                                'invoiceId' => $iRec->id,
-                                'invoiceNo' => $iRec->number,
-                                'invoiceDate' => $iRec->date,
-                                'dueDate' => $iRec->dueDate,
-                                'invoiceContainerId' => $iRec->containerId,
-                                'currencyId' => $iRec->currencyId,
-                                'rate' => $iRec->rate,
-                                'invoiceValue' => $paydocs->amount,
-                                'invoiceVAT' => $iRec->vatAmount,
-                                'invoicePayout' => $paydocs->payout,
-                                'invoiceCurrentSumm' => $paydocs->amount - $paydocs->payout,
-                                'payDocuments' => $paydocs->used
-                            );
-                        }
+                        $pRecs[$iRec->id] = (object) array(
+                            'threadId' => $pThread,
+                            'className' => $Invoice->className,
+                            'invoiceId' => $iRec->id,
+                            'invoiceNo' => $iRec->number,
+                            'invoiceDate' => $iRec->date,
+                            'dueDate' => $iRec->dueDate,
+                            'invoiceContainerId' => $iRec->containerId,
+                            'currencyId' => $iRec->currencyId,
+                            'rate' => $iRec->rate,
+                            'invoiceValue' => $paydocs->amount,
+                            'invoiceVAT' => $iRec->vatAmount,
+                            'invoicePayout' => $paydocs->payout,
+                            'invoiceCurrentSumm' => $paydocs->amount - $paydocs->payout,
+                            'payDocuments' => $paydocs->used
+                        );
                     }
                 }
             }
@@ -356,12 +374,14 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
      */
     private static function getPaidDates($dRec, $verbal = TRUE)
     {
-        if (is_array($dRec->payDocuments)) {
+        if (! empty(is_array($dRec->payDocuments))) {
             
             foreach ($dRec->payDocuments as $onePayDoc) {
-                $containerArr[] = $onePayDoc->containerId;
-                $Document = doc_Containers::getDocument($onePayDoc->containerId);
                 
+                if ( is_null($onePayDoc->containerId))bp($dRec);
+                    $Document = doc_Containers::getDocument($onePayDoc->containerId);
+//                 } else
+//                     continue;
                 $payDocClass = $Document->className;
                 
                 $paidDatesList .= "," . $payDocClass::fetch($Document->that)->valior;

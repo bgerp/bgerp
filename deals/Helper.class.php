@@ -1423,15 +1423,13 @@ abstract class deals_Helper
     		if($pay->to) {
     			$invArr[$pay->to]->payout += $pay->available;
     			$pay->available = 0;
-    			$invArr[$pay->to]->used[] = $pay->number;
-    			 
-    			$invArr[$pay->to]->used[] = $pay;
+    			$invArr[$pay->to]->used[$pay->containerId] = $pay;
     			self::pushPaymentType($invArr[$pay->to]->payments, $pay);
     		}
     	}
     	 
     	$revInvArr = array_reverse($invArr, TRUE);
-    	 
+    	
     	// Разпределяме всички остатъци от плащания
     	foreach($payArr as $i => $pay) {
     		if($pay->available > 0) {
@@ -1442,7 +1440,7 @@ abstract class deals_Helper
     					$inv->payout += $sum;
     					$pay->available -= $sum;
     						
-    					$inv->used[] = $pay;
+    					$inv->used[$pay->containerId] = $pay;
     					self::pushPaymentType($inv->payments, $pay);
     				}
     			}
@@ -1457,7 +1455,7 @@ abstract class deals_Helper
     					$inv->payout -= $sum;
     					$pay->available += $sum;
     						
-    					$inv->used[] = $pay;
+    					$inv->used[$pay->containerId] = $pay;
     					self::pushPaymentType($inv->payments, $pay);
     				}
     			}
@@ -1471,7 +1469,7 @@ abstract class deals_Helper
     		if($pay->available != 0) {
     			$rest += $pay->available;
     			$pay->available = 0;
-    			$used[] = $pay->number;
+    			$used[$pay->containerId] = $pay->number;
     			self::pushPaymentType($payments, $pay);
     		}
     	}
@@ -1521,7 +1519,7 @@ abstract class deals_Helper
     					$inv->payout -= $transfer;
     					$cInv->payout += $transfer;
     					if(is_array($cInv->used) && !in_array($payDoc, $cInv->used)) {
-    						$cInv->used[] = $payDoc;
+    						$cInv->used[$payDoc->containerId] = $payDoc;
     						self::pushPaymentType($cInv->payments, $payDoc);
     					}
     				}
@@ -1542,6 +1540,38 @@ abstract class deals_Helper
 			$payments['intercept'] = 'intercept';
 		} elseif($pay->paymentType == 'bank' && $pay->isReverse !== TRUE){
 			$payments['bank'] = 'bank';
+		}
+	}
+	
+	
+	/**
+	 * Дефолтния режим на ДДС за папката
+	 * 
+	 * @param int $folderId
+	 * @return string
+	 */
+	public static function getDefaultChargeVat($folderId)
+	{
+		$coverId = doc_Folders::fetchCoverId($folderId);
+		$Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
+		 
+		return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+	}
+	
+	
+	/**
+	 * Предупреждение ако избраната валута се различава от очакваната
+	 * 
+	 * @param string $defaultVat
+	 * @param string $selectedVatType
+	 * @return string
+	 */
+	public static function getVatWarning($defaultVat, $selectedVatType)
+	{
+		if($defaultVat == 'yes' && in_array($selectedVatType, array('exempt', 'no'))){
+			return 'Избран е режим за неначисляване на ДДС, при очакван с ДДС';
+		} elseif($defaultVat == 'no' && in_array($selectedVatType, array('yes', 'separate'))){
+			return 'Избран е режим за начисляване на ДДС, при очакван без ДДС';
 		}
 	}
 }

@@ -395,6 +395,7 @@ class email_Incomings extends core_Master
                 
         // Обхождаме всички статуси
         foreach($statusSum as $status => $cnt) {
+            $status = ucfirst($status);
             $logMsg .= "; {$status}={$cnt}";
         }
                 
@@ -1648,7 +1649,7 @@ class email_Incomings extends core_Master
     {
         // Репортване, ако имаме данни за нишката
         if ($rec->threadId || $rec->folderId) {
-            if(!Mode::is('isMigrate')) wp($rec);
+            if(!Mode::is('isMigrate') && !Mode::is('MassImporting')) wp($rec);
             return;
         }
         

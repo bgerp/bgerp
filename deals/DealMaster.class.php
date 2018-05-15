@@ -268,10 +268,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 */
 	public function getDefaultChargeVat($rec)
 	{
-		$coverId = doc_Folders::fetchCoverId($rec->folderId);
-		$Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
-		
-		return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+		return deals_Helper::getDefaultChargeVat($rec->folderId);
 	}
 	
 	
@@ -372,17 +369,16 @@ abstract class deals_DealMaster extends deals_DealBase
     		$form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
     	}
     	
-    	// Предупреждение, ако има разминаване в очаквания и избрания режим на ДДС
+    	// Избрания ДДС режим съответства ли на дефолтния
     	$defVat = $mvc->getDefaultChargeVat($rec);
-    	if($defVat == 'yes' && in_array($rec->chargeVat, array('exempt', 'no'))){
-    		$form->setWarning('chargeVat', 'Избран е режим за неначисляване на ДДС, при очакван с ДДС');
-    	} elseif($defVat == 'no' && in_array($rec->chargeVat, array('yes', 'separate'))){
-    		$form->setWarning('chargeVat', 'Избран е режим за начисляване на ДДС, при очакван без ДДС');
+    	if($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)){
+    		$form->setWarning('chargeVat', $vatWarning);
     	}
     	
+    	// Избраната валута съответства ли на дефолтната
     	$defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
     	if($defCurrency != $rec->currencyId){
-    		$form->setWarning('currencyId', "Избрана e различна валута от очакваната|* {$defCurrency}");
+    		$form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
     	}
     	
     	if($rec->reff === ''){

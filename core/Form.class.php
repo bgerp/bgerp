@@ -1331,7 +1331,7 @@ class core_Form extends core_FieldSet
             $errRec->msg = $msg;
             $errRec->ignorable = $ignorable;
             
-            if(!$this->errors[$f] || ($this->errors[$f]->ignorable && !$ignorable)) {
+            if(!($this->errors[$f] && $oncePerField) || ($this->errors[$f]->ignorable && !$ignorable)) {
                 $this->errors[$f] = $errRec;
                 $msg = FALSE;
             }
@@ -1342,9 +1342,9 @@ class core_Form extends core_FieldSet
     /**
      * Вдига флаг за предупреждение на посоченото поле
      */
-    function setWarning($field, $msg)
+    function setWarning($field, $msg, $oncePerField = TRUE)
     {
-        $this->setError($field, $msg, 'ignorable');
+        $this->setError($field, $msg, 'ignorable', $oncePerField);
     }
     
     
