@@ -97,7 +97,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		$form = cls::get('core_Form');
 		
 		$form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
-		$form->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty,where=#state \\= \\\'active\\\')', 'caption=Транспорт' . ($exLineId?'':''));
+		$form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Транспорт' . ($exLineId?'':''));
 		$form->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
 		$form->FLD('volume', 'cat_type_Volume', 'caption=Обем');
 		
@@ -105,7 +105,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		trans_LineDetails::setTransUnitField($form, $rec->transUnitsInput);
 		
 		$form->FLD('lineNotes', 'text(rows=2)', 'caption=Забележки');
-		$form->setOptions('lineId', trans_Lines::getActiveLines());
+		$form->setOptions('lineId', array('' => '') + trans_Lines::getActiveLines());
 		$form->setDefault('lineId', $rec->{$mvc->lineFieldName});
 		$form->setDefault('weight', $rec->weightInput);
 		$form->setDefault('volume', $rec->volumeInput);
@@ -123,7 +123,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 				$firstDocument = doc_Threads::getFirstDocument($rec->threadId);
 				if($firstDocument && $firstDocument->isInstanceOf('deals_DealMaster')){
 					if($methodId = $firstDocument->fetchField('paymentMethodId')){
-						if(cond_PaymentMethods::isCOD($methodId) && !trans_Lines::hasForwarderPersonId($formRec->lineId)){
+						if(cond_PaymentMethods::isCOD($methodId) && !trans_Lines::fetchField("#lineId = {$formRec->lineId} AND #forwarderPersonId IS NOT NULL")){
 							$form->setError('lineId', 'При наложен платеж, избраната линия трябва да има материално отговорно лице|*!');
 						}
 					}
