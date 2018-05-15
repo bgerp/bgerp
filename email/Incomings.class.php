@@ -260,7 +260,7 @@ class email_Incomings extends core_Master
             
         // До коя секунда в бъдещето максимално да се теглят писма?
         $deadline = time() + $maxFetchingTime;
-        
+
         // Вземаме последователно сметките, подредени по случаен начин
         $accQuery = email_Accounts::getQuery();
         $accQuery->XPR('order', 'double', 'RAND()');
@@ -293,9 +293,6 @@ class email_Incomings extends core_Master
             return;
         }
 
-        // Нулираме броячите за различните получени писма
-        $statusSum = array();
- 
         // Връзка по IMAP към сървъра на посочената сметка
         $imapConn = cls::get('email_Imap', array('accRec' => $accRec)); 
 
@@ -311,76 +308,72 @@ class email_Incomings extends core_Master
 
         // Получаваме броя на писмата в INBOX папката
         $numMsg = $imapConn->getStatistic('messages');
-   
+        
+        // Масив за броячите за различните получени писма
+        $statusSum = array('Total' => $numMsg);
+        
+        // Номер на първото не-свалено писмо
         $firstUnreadMsgNo = $this->getFirstUnreadMsgNo($imapConn, $numMsg);
- 
+        
         $startTime = time();
 
         $doExpunge = FALSE;
 
         if($firstUnreadMsgNo > 0) {
             
+            $statusSum['first'] = $firstUnreadMsgNo;
+
             // Правим цикъл по всички съобщения в пощенската кутия
             // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
-            for ($i = $firstUnreadMsgNo; $i <= $numMsg && ($deadline > time()); $i++) {
-                    
-                try {
-                    $status = $this->fetchEmail($imapConn, $i);
-                } catch (core_Exception_Expect $exp) {
-                    $status = 'fetching error';
-                }
-
-                if(($i % 100) == 1 || ( ($i - $firstUnreadMsgNo) < 100)) {
-                    email_Accounts::logInfo("Fetching message {$i}", $accRec->id);
-                }
-                
-                if ($status != 'error' && $status != 'fetching error') {
-                    // Изтриване на писмото, ако сметката е настроена така
-                    if($accRec->deleteAfterPeriod === '0') {
-                        $imapConn->delete($i);
-                        // email_Accounts::logInfo("Изтриване $i", $accRec->id);
-                        $statusSum['delete']++;
-                        $doExpunge = TRUE;
-                    }
-
-                    // Дали да отмаркираме съобщението, че е прочетено?
-                    if($accRec->imapFlag == 'unseen') {
-                        $imapConn->unmarkSeen($i);
-                        // email_Accounts::logInfo("Отмаркиране $i", $accRec->id);
-                        $doExpunge = TRUE;
-                    } elseif($accRec->imapFlag == 'seen') {
-                        $imapConn->markSeen($i);
-                        // email_Accounts::logInfo("Маркиране $i", $accRec->id);
-                        $doExpunge = TRUE;
-                    }
-                }
-
+            for ($i = $firstUnreadMsgNo; $i <= $numMsg && ($deadline - 5 > time()); $i++) {
+                $status = self::processMsg($i, $imapConn, $accRec, $doExpunge);
                 $statusSum[$status]++;
             }
         }
- 
+        
+        // Максимално големият номер за проверка
+        $maxMsgNo = max($firstUnreadMsgNo, $numMsg);
+        
+
         // Изтриване на старите имейли
-        if($numMsg > 0 && $accRec->deleteAfterPeriod > 0) {
-            $maxLimit = email_Setup::get('MAX_DELETED_CNT');
-            $now = dt::now();
-            for($msgNo = 1; $msgNo <= $maxLimit && $msgNo <= $numMsg; $msgNo++) { 
+        $cacheKey =  'ndt_' . $accRec->email;
+        $nextDeleteTime = core_Cache::get('email_Incomings', $cacheKey);
+        $now = dt::now();
+
+        if($numMsg > 0 && $accRec->deleteAfterPeriod > 0 && (!$nextDeleteTime || $nextDeleteTime <= $now)) {
+            $nextDeleteTime = dt::addSecs($accRec->deleteAfterPeriod);
+            for($msgNo = 1; $msgNo < $maxMsgNo && ($deadline - 1 > time()); $msgNo++) { 
                 $headers = $imapConn->getHeaders($msgNo);
             
                 $fRec = email_Fingerprints::fetchByHeaders($headers);
 
                 if(!$fRec) {
-                    $maxLimit++;
+                    // Ако писмото липсва в хеша на свалетите писма - правим нов опит за свалянето му
+                    $status = $this->processMsg($msgNo, $imapConn, $accRec, $doExpunge);
+                    $statusSum[$status]++;
+
                     continue;
                 }
+                
+                $deleteTime = dt::addSecs($accRec->deleteAfterPeriod, $fRec->downloadedOn);
 
-                if(dt::addSecs($accRec->deleteAfterPeriod, $fRec->downloadedOn) < $now) {
+                if($deleteTime < $now) {
                     $imapConn->delete($msgNo);
                     email_Accounts::logInfo("Изтриване {$msgNo}", $accRec->id);
                     $statusSum['delete']++;
                     $doExpunge = TRUE;
+                } else {
+                    $nextDeleteTime = min($deleteTime, $nextDeleteTime);
                 }
             }
             
+            // Колко минути да се съхранява в кеша информацията за следващото време за изтриване?
+            $keepMinutes = (dt::mysql2Timestamp($nextDeleteTime) - dt::mysql2Timestamp(dt::now())) / 60;
+            
+            if($keepMinutes > 1) {
+                log_System::add('email_Incomings', "Зададено слеващо изтриване на писма след " . $keepMinutes . ' min за ' . $accRec->email);
+                core_Cache::set('email_Incomings', $cacheKey, $nextDeleteTime, $keepMinutes, array('email_Accounts'));
+            }
         }
         
         // Изтриваме предварително маркираните писма
@@ -393,47 +386,66 @@ class email_Incomings extends core_Master
             
         // Махаме заключването от кутията
         core_Locks::release($lockKey);
-        
+    
         // Общото времето за процесиране на емейл-сметката
         $duration = time() - $startTime;
         
         // Генерираме и записваме лог съобщение
-        $logMsg = "($duration s); Total: {$numMsg}";
-        $msg = "{$accRec->email}: {$logMsg}";
-        
-        $newStatusArr = array();
-        
-        // Обхождаме всички статуси
-        foreach((array)$statusSum as $status => $cnt) {
-            
-            // В зависимост от типа на статуса
-            switch ($status) {
-                case 'incoming':
-                    $newStatusArr['new'] = $cnt;
-                break;
+        $logMsg = "{$accRec->email} ($duration s)";
                 
-                default:
-                    $newStatusArr[$status] = $cnt;
-                break;
-            }
+        // Обхождаме всички статуси
+        foreach($statusSum as $status => $cnt) {
+            $status = ucfirst($status);
+            $logMsg .= "; {$status}={$cnt}";
         }
-        
-        // Обхождаме новия масив
-        foreach ((array)$newStatusArr as $statusKey => $statusCnt) {
-            
-            // Първата буква да главна
-            $statusKey = ucfirst(strtolower($statusKey));
-            
-            // Добавяме към съотбщението
-            $msg .= ", {$statusKey}: {$statusCnt}";
-            $logMsg .= ", {$statusKey}: {$statusCnt}";
-        }
-        
+                
         // Показваме стринга
-        echo "<h3> $msg </h3>";
+        echo "<h3> $logMsg </h3>";
 
         email_Accounts::logInfo($logMsg, $accRec->id);
     }
+    
+
+    /**
+     * Извлича посоченото съобщение по POP3 или IMAP протокол
+     */
+    public function processMsg($i, $imapConn, $accRec, $doExpunge)
+    {
+
+        try {
+            $status = $this->fetchEmail($imapConn, $i);
+        } catch (core_Exception_Expect $exp) {
+            $status = 'fetching error';
+        }
+
+        //if(($i % 100) == 1 || ( ($i - $firstUnreadMsgNo) < 100)) {
+        //    email_Accounts::logInfo("Fetching message {$i}", $accRec->id);
+        //}
+        
+        if ($status != 'error' && $status != 'fetching error') {
+            // Изтриване на писмото, ако сметката е настроена така
+            if($accRec->deleteAfterPeriod === '0') {
+                $imapConn->delete($i);
+                // email_Accounts::logInfo("Изтриване $i", $accRec->id);
+                $statusSum['delete']++;
+                $doExpunge = TRUE;
+            }
+
+            // Дали да отмаркираме съобщението, че е прочетено?
+            if($accRec->imapFlag == 'unseen') {
+                $imapConn->unmarkSeen($i);
+                // email_Accounts::logInfo("Отмаркиране $i", $accRec->id);
+                $doExpunge = TRUE;
+            } elseif($accRec->imapFlag == 'seen') {
+                $imapConn->markSeen($i);
+                // email_Accounts::logInfo("Маркиране $i", $accRec->id);
+                $doExpunge = TRUE;
+            }
+        }
+
+        return $status;
+    }
+
 
 
     /**
@@ -467,11 +479,14 @@ class email_Incomings extends core_Master
                 $mime->parseAll($rawEmail);
                 
                 // Вземаме хедърите, този път от самото писмо
-                $headers = $mime->getHeadersStr();
+                $headersMime = $mime->getHeadersStr();
     
                 // Отново правим проверка дали писмото е сваляно
-                if(email_Fingerprints::fetchByHeaders($headers)) {
+                if($fRec = email_Fingerprints::fetchByHeaders($headersMime)) {
                     
+                    // Записваме статуса на сваленото писмо (service, misformatted, normal);
+                    email_Fingerprints::setStatus($headers, $fRec->status, $accId, $uid);
+
                     return 'duplicated';
                 }
                 
@@ -499,12 +514,6 @@ class email_Incomings extends core_Master
                     $status = 'spam';
                 } elseif(self::process($mime, $accId, $uid)) {
                     $status = 'incoming';
-                }
-                
-                if ($status == 'returned' || $status == 'receipt') {
-                    $fromEml = $mime->getFromEmail();
-                    $state = ($status == 'returned') ? 'error' : 'ok';
-                    blast_BlockedEmails::addEmail($fromEml, TRUE, $state);
                 }
             }
         } catch (core_exception_Expect $exp) {
@@ -1640,7 +1649,7 @@ class email_Incomings extends core_Master
     {
         // Репортване, ако имаме данни за нишката
         if ($rec->threadId || $rec->folderId) {
-            if(!Mode::is('isMigrate')) wp($rec);
+            if(!Mode::is('isMigrate') && !Mode::is('MassImporting')) wp($rec);
             return;
         }
         

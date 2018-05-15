@@ -86,6 +86,8 @@ class email_Returned extends email_ServiceEmails
             self::save($rec);
             
             self::logNotice('Върнат имейл', $rec->id);
+            
+            blast_BlockedEmails::addSentEmailFromText($mid, $mime, 'error');
         }
 
         return $isReturnedMail;

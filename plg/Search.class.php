@@ -326,6 +326,21 @@ class plg_Search extends core_Plugin
         
         if (isset($stopWordsArr[$word])) return TRUE;
         
+        // Ако има интервал в думите и всички поотделно са stopWords - тогава приемаме целият израз за такъв
+        if (strpos($word, ' ')) {
+            $wArr = explode(' ', $word);
+            $allIsStopWords = TRUE;
+            foreach ($wArr as $kWord) {
+                if (!self::isStopWord($kWord, $strict, $minLenFTS)) {
+                    $allIsStopWords = FALSE;
+                    
+                    break;
+                }
+            }
+            
+            if ($allIsStopWords) return TRUE;
+        }
+        
         // Ако няма да се търси точната дума, гледаме и думите, които започват с подадения стринг
         if (!$strict) {
             

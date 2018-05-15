@@ -359,6 +359,27 @@ class doc_AssignPlg extends core_Plugin
                 $resArr[$uRec->id] = type_Nick::normalize($uRec->nick) . ' (' . core_Users::prepareUserNames($uRec->names) . ')';
             }
             
+            // Собственика на папката и споделените да са най-отгоре
+            if ($folderId = Request::get('folderId')) {
+                $fRec = doc_Folders::fetch($folderId);
+                
+                $interestedUsersArr = array();
+                
+                if ($fRec->shared) {
+                    $interestedUsersArr += type_Keylist::toArray($fRec->shared);
+                }
+                
+                $interestedUsersArr[$fRec->inCharge] = $fRec->inCharge;
+                
+                foreach ($interestedUsersArr as $uId) {
+                    $uNames = $resArr[$uId];
+                    if (isset($uNames)) {
+                        unset($resArr[$uId]);
+                        $resArr = array($uId => $uNames) + $resArr;
+                    }
+                }
+            }
+            
             core_Cache::set($type, $handle, $resArr, $keepMinute, $depends);
         }
         

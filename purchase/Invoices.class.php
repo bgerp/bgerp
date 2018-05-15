@@ -354,9 +354,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     		foreach (array("contragentName", "contragentClassId", "contragentId", "contragentCountryId", "contragentVatNo", "uicNo", "contragentPCode", "contragentPlace", "contragentAddress")  as $fld){
     			unset($rec->{$fld});
     		}
-    		
-    		$ownCountryId = crm_Setup::get('BGERP_OWN_COMPANY_COUNTRY', TRUE);
-    		$rec->contragentCountryId = drdata_Countries::fetchField("#commonName = '{$ownCountryId}'", 'id');
+    		$rec->contragentCountryId = crm_Companies::fetchOurCompany()->country;
     	}
     	
     	if($rec->type != 'dc_note'){

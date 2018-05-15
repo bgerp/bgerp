@@ -184,7 +184,7 @@ class marketing_Router
 		$query->where(array("#name = '[#1#]'", $name));
 		$query->where("#country = {$countryId} AND #state != 'closed' AND #state != 'rejected'");
 		
-		$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'");
+		$ownCountryId = crm_Companies::fetchOurCompany()->country;
 		if($ownCountryId == $countryId){
 			$query->orWhere("#country IS NULL");
 		}

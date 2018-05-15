@@ -3717,7 +3717,7 @@ table .eshop-btn {
 	min-height: 612px;
 }
 
-.wide .webdrvIframe {
+.wide .webdrvIframe, .wide .webdrvFieldset {
 	min-width: 880px;
 }
 
@@ -5805,6 +5805,9 @@ row-fluid {
 
 	#quot-title-td{
 		width:60%;
+	}
+	.lu-light {
+		text-decoration: none !important;
 	}
 }
 

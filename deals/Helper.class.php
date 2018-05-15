@@ -1418,91 +1418,114 @@ abstract class deals_Helper
      */
     public static function allocationOfPayments(&$invArr, &$payArr)
     {
-        // Разпределяне на свързаните приходни документи
-        foreach($payArr as $i => $pay) {
-            if($pay->to) {
-                $invArr[$pay->to]->payout += $pay->available;
-                $pay->available = 0;
-                $invArr[$pay->to]->used[$pay->containerId] = $pay;
-                self::pushPaymentType($invArr[$pay->to]->payments, $pay);
-            }
-        }
-        
-        $revInvArr = array_reverse($invArr, TRUE);
-
-        // Разпределяме всички остатъци от плащания
-        foreach($payArr as $i => $pay) {
-            if($pay->available > 0) {
-                // Обикаляме по фактурите от начало към край и попълваме само дупките
-                foreach($invArr as $inv) {
-                    if($inv->amount > $inv->payout) {
-                        $sum = min($inv->amount - $inv->payout, $pay->available);
-                        $inv->payout += $sum;
-                        $pay->available -= $sum;
-                        $inv->used[$pay->containerId] = $pay;
-                        self::pushPaymentType($inv->payments, $pay);
-                    }
-                }
-            } elseif($pay->available < 0) {
-                // Обикаляме по фактурите от края към началото и връщаме пари само на надплатените
-                foreach($revInvArr as $inv) {
-                    // Пропускаме фактурите, които са след плащането
-                    // Предполагаме, че пари можем да връщаме само по минали фактури
-                    if($inv->number > $pay->number) continue;
-                    if($inv->payout  > $inv->amount) {
-                        $sum = min($inv->payout - $inv->amount, -$pay->available);
-                        $inv->payout -= $sum;
-                        $pay->available += $sum;
-                        $inv->used[$pay->containerId] = $pay;
-                        self::pushPaymentType($inv->payments, $pay);
-                    }
-                }
-            }
-        }
-
-        // Събираме остатъците от всички платежни документи и ги нанасяме от зад напред
-        $rest = 0;
-        $used = $payments = array();
-        foreach($payArr as $i => $pay) {
-            if($pay->available != 0) {
-                $rest += $pay->available;
-                $pay->available = 0;
-                $used[$pay->containerId] = $pay;
-                self::pushPaymentType($payments, $pay);
-            }
-        }
-        
-        foreach($invArr as $inv) {
-            $first = $inv;
-            break;
-        }
-          
-        foreach($revInvArr as $inv) {
-            if(!is_array($inv->used)) {
-                $inv->used = array();
-            }
-
-            if($rest > 0) {
-                $inv->payout += $rest;
-                $rest = 0;
-                $inv->used += $used;
-                $inv->payments += $payments;
-            }
-
-            if($rest < 0) {
-                if($inv->number == $first->number) {
-                    $sum = -$rest;
-                } else {
-                    $sum = min(-$rest, $inv->payout);
-                }
-                $inv->payout -= $sum;
-                $rest += $sum;
-                $inv->used += $used;
-                $inv->payments += $payments;
-            }
-
-            if($rest == 0) break;
-        }
+    	// Разпределяне на свързаните приходни документи
+    	foreach($payArr as $i => $pay) {
+    		if($pay->to) {
+    			$invArr[$pay->to]->payout += $pay->available;
+    			$pay->available = 0;
+    			$invArr[$pay->to]->used[$pay->containerId] = $pay;
+    			self::pushPaymentType($invArr[$pay->to]->payments, $pay);
+    		}
+    	}
+    	 
+    	$revInvArr = array_reverse($invArr, TRUE);
+    	
+    	// Разпределяме всички остатъци от плащания
+    	foreach($payArr as $i => $pay) {
+    		if($pay->available > 0) {
+    			// Обикаляме по фактурите от начало към край и попълваме само дупките
+    			foreach($invArr as $inv) {
+    				if($inv->amount > $inv->payout) {
+    					$sum = min($inv->amount - $inv->payout, $pay->available);
+    					$inv->payout += $sum;
+    					$pay->available -= $sum;
+    						
+    					$inv->used[$pay->containerId] = $pay;
+    					self::pushPaymentType($inv->payments, $pay);
+    				}
+    			}
+    		} elseif($pay->available < 0) {
+    			// Обикаляме по фактурите от края към началото и връщаме пари само на надплатените
+    			foreach($revInvArr as $inv) {
+    				// Пропускаме фактурите, които са след плащането
+    				// Предполагаме, че пари можем да връщаме само по минали фактури
+    				if($inv->number > $pay->number) continue;
+    				if($inv->payout  > $inv->amount) {
+    					$sum = min($inv->payout - $inv->amount, -$pay->available);
+    					$inv->payout -= $sum;
+    					$pay->available += $sum;
+    						
+    					$inv->used[$pay->containerId] = $pay;
+    					self::pushPaymentType($inv->payments, $pay);
+    				}
+    			}
+    		}
+    	}
+    	 
+    	// Събираме остатъците от всички платежни документи и ги нанасяме от зад напред
+    	$rest = 0;
+    	$used = $payments = array();
+    	foreach($payArr as $i => $pay) {
+    		if($pay->available != 0) {
+    			$rest += $pay->available;
+    			$pay->available = 0;
+    			$used[$pay->containerId] = $pay->number;
+    			self::pushPaymentType($payments, $pay);
+    		}
+    	}
+    	 
+    	foreach($invArr as $inv) {
+    		$first = $inv;
+    		break;
+    	}
+    	 
+    	foreach($revInvArr as $inv) {
+    		if(!is_array($inv->used)) {
+    			$inv->used = array();
+    		}
+    		 
+    		if($rest > 0) {
+    			$inv->payout += $rest;
+    			$rest = 0;
+    			$inv->used += $used;
+    			$inv->payments += $payments;
+    		}
+    		 
+    		if($rest < 0) {
+    			if($inv->number == $first->number) {
+    				$sum = -$rest;
+    			} else {
+    				$sum = min(-$rest, $inv->payout);
+    			}
+    			$inv->payout -= $sum;
+    			$rest += $sum;
+    			$inv->used += $used;
+    			$inv->payments += $payments;
+    		}
+    		 
+    		if($rest == 0) break;
+    	}
+    	 
+    	// Обикаляме по фактурите и надплатените ги разнасяме към следващите
+    	$cInvArr = $invArr;
+    	foreach($invArr as $inv) {
+    		$overPaid = $inv->payout - $inv->amount;
+    		if($overPaid > 0) {
+    			foreach($cInvArr as $cInv) {
+    				$underPaid = $cInv->amount - $cInv->payout;
+    				if($underPaid > 0 && is_array($inv->used) && count($inv->used)) {
+    					$payDoc = $inv->used[count($inv->used) - 1];
+    					$transfer = min($underPaid, $overPaid);
+    					$inv->payout -= $transfer;
+    					$cInv->payout += $transfer;
+    					if(is_array($cInv->used) && !in_array($payDoc, $cInv->used)) {
+    						$cInv->used[$payDoc->containerId] = $payDoc;
+    						self::pushPaymentType($cInv->payments, $payDoc);
+    					}
+    				}
+    			}
+    		}
+    	}
     }
 	
     
@@ -1517,6 +1540,38 @@ abstract class deals_Helper
 			$payments['intercept'] = 'intercept';
 		} elseif($pay->paymentType == 'bank' && $pay->isReverse !== TRUE){
 			$payments['bank'] = 'bank';
+		}
+	}
+	
+	
+	/**
+	 * Дефолтния режим на ДДС за папката
+	 * 
+	 * @param int $folderId
+	 * @return string
+	 */
+	public static function getDefaultChargeVat($folderId)
+	{
+		$coverId = doc_Folders::fetchCoverId($folderId);
+		$Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
+		 
+		return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+	}
+	
+	
+	/**
+	 * Предупреждение ако избраната валута се различава от очакваната
+	 * 
+	 * @param string $defaultVat
+	 * @param string $selectedVatType
+	 * @return string
+	 */
+	public static function getVatWarning($defaultVat, $selectedVatType)
+	{
+		if($defaultVat == 'yes' && in_array($selectedVatType, array('exempt', 'no'))){
+			return 'Избран е режим за неначисляване на ДДС, при очакван с ДДС';
+		} elseif($defaultVat == 'no' && in_array($selectedVatType, array('yes', 'separate'))){
+			return 'Избран е режим за начисляване на ДДС, при очакван без ДДС';
 		}
 	}
 }
