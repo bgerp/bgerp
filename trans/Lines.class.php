@@ -273,8 +273,8 @@ class trans_Lines extends core_Master
     		
 	    	$ownCompanyData = crm_Companies::fetchOwnCompany();
 	    	$row->myCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-	    	$row->logistic = core_Users::getVerbal($rec->createdBy, 'names');
-    	}
+	    	$row->logistic = (core_Mode::isReadOnly()) ? core_Users::getVerbal($rec->createdBy, 'names') : crm_Profiles::createLink($rec->createdBy);
+	    }
     	
     	$row->handler = $mvc->getLink($rec->id, 0);
     }
