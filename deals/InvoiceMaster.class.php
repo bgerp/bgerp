@@ -752,7 +752,15 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     		
     		if($rec->paymentType == 'cash' && isset($rec->accountId)){
-    			$form->setWarning('accountId', "Избрана е банкова сметка при начин на плащане в брой|*?");
+    			$form->setWarning('accountId', "Избрана е банкова сметка при начин на плащане в брой");
+    		}
+    		
+    		if(!empty($rec->vatReason)){
+    			if(mb_strlen($rec->vatReason) < 15){
+    				$form->setError('vatReason', "Основанието за ДДС трябва да е поне|* <b>15</b> |символа|*");
+    			} elseif(!preg_match("/[a-zA-Zа-яА-Я]/i", $rec->vatReason)){
+    				$form->setError('vatReason', "Основанието за ДДС трябва да съдържа букви");
+    			}
     		}
     	}
     	
