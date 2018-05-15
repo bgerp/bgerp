@@ -378,7 +378,7 @@ class trans_Lines extends core_Master
     {
         $query = trans_LineDetails::getQuery();
         $query->EXT('docState', 'doc_Containers', 'externalName=state,externalKey=containerId');
-        $query->where("#lineId = {$id} AND #state = 'draft'");
+        $query->where("#lineId = {$id} AND #docState = 'draft'");
         
         return $query->count();
     }
