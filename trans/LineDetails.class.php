@@ -50,7 +50,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,weight=Тегло,volume=Обем,collection=Инкасиране,status,notes=@,documentHtml=@';
+    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло/Обем,collection=Инкасиране,status,notes=@,documentHtml=@';
 
     
     /**
@@ -205,12 +205,18 @@ class trans_LineDetails extends doc_Detail
     	}
     	
     	if(!empty($transportInfo['weight'])){
-    		$row->weight = core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']);
+    		$weight = core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']);
+    	} else {
+    		$weight = "<span class='quiet'>N/A</span>";
     	}
     	
     	if(!empty($transportInfo['volume'])){
-    		$row->volume = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);
+    		$volume = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);
+    	} else {
+    		$volume = "<span class='quiet'>N/A</span>";
     	}
+    	
+    	$row->measures = "{$weight} <b>/</b> {$volume}";
     	
     	if(!empty($transportInfo['amount'])){
     		$row->collection = "<span class='cCode'>{$transportInfo['currencyId']}</span> " . core_type::getByName('double(decimals=2)')->toVerbal($transportInfo['amount']);

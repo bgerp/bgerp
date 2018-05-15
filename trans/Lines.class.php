@@ -424,4 +424,22 @@ class trans_Lines extends core_Master
     	$Threads->save($threadRec, 'state');
     	$Threads->updateThread($threadRec->id);
     }
+    
+    
+    /**
+     * Връща всички активни линии с подходящи заглавие
+     * 
+     * @return array $linesArr - масив с опции
+     */
+    public static function getActiveLines()
+    {
+    	$linesArr = array();
+    	$query = self::getQuery();
+    	$query->where("#state = 'active'");
+    	
+    	$recs = $query->fetchAll();
+    	array_walk($recs, function($rec) use (&$linesArr) {$linesArr[$rec->id] = self::getRecTitle($rec, FALSE);});
+    	
+    	return $linesArr;
+    }
 }

@@ -105,6 +105,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		trans_LineDetails::setTransUnitField($form, $rec->transUnitsInput);
 		
 		$form->FLD('lineNotes', 'text(rows=2)', 'caption=Забележки');
+		$form->setOptions('lineId', trans_Lines::getActiveLines());
 		$form->setDefault('lineId', $rec->{$mvc->lineFieldName});
 		$form->setDefault('weight', $rec->weightInput);
 		$form->setDefault('volume', $rec->volumeInput);
