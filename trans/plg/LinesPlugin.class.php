@@ -123,7 +123,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 				$firstDocument = doc_Threads::getFirstDocument($rec->threadId);
 				if($firstDocument && $firstDocument->isInstanceOf('deals_DealMaster')){
 					if($methodId = $firstDocument->fetchField('paymentMethodId')){
-						if(cond_PaymentMethods::isCOD($methodId) && !trans_Lines::fetchField("#lineId = {$formRec->lineId} AND #forwarderPersonId IS NOT NULL")){
+						if(cond_PaymentMethods::isCOD($methodId) && !trans_Lines::fetchField("#id = {$formRec->lineId} AND #forwarderPersonId IS NOT NULL")){
 							$form->setError('lineId', 'При наложен платеж, избраната линия трябва да има материално отговорно лице|*!');
 						}
 					}
