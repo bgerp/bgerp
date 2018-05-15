@@ -276,6 +276,7 @@ class trans_Setup extends core_ProtoSetup
     
     public function updateStoreDocuments()
     {
+    	core_Cron::delete("#systemId = 'CreateNewLines'");
     	core_App::setTimeLimit(1200);
     	
     	$Tld = cls::get('trans_LineDetails');
