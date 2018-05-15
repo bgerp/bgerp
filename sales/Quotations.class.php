@@ -432,6 +432,18 @@ class sales_Quotations extends core_Master
 	    			$form->setError('deliveryTermId,deliveryAdress,deliveryPlaceId', $error);
 	    		}
 	    	}
+	    	
+	    	// Избрания ДДС режим съответства ли на дефолтния
+	    	$defVat = $mvc->getDefaultChargeVat($rec);
+	    	if($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)){
+	    		$form->setWarning('chargeVat', $vatWarning);
+	    	}
+	    	
+	    	// Избраната валута съответства ли на дефолтната
+	    	$defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
+	    	if($defCurrency != $rec->currencyId){
+	    		$form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
+	    	}
 		}
     }
     

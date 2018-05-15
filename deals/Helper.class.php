@@ -1559,4 +1559,21 @@ abstract class deals_Helper
 		 
 		return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
 	}
+	
+	
+	/**
+	 * Предупреждение ако избраната валута се различава от очакваната
+	 * 
+	 * @param string $defaultVat
+	 * @param string $selectedVatType
+	 * @return string
+	 */
+	public static function getVatWarning($defaultVat, $selectedVatType)
+	{
+		if($defaultVat == 'yes' && in_array($selectedVatType, array('exempt', 'no'))){
+			return 'Избран е режим за неначисляване на ДДС, при очакван с ДДС';
+		} elseif($defaultVat == 'no' && in_array($selectedVatType, array('yes', 'separate'))){
+			return 'Избран е режим за начисляване на ДДС, при очакван без ДДС';
+		}
+	}
 }
