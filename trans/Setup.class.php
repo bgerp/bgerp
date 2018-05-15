@@ -171,7 +171,7 @@ class trans_Setup extends core_ProtoSetup
     		if(is_numeric($dRec->transUnit)) continue;
     		if(!empty($dRec->transUnitId)) continue;
     		
-    		$unit = str::mbUcfirst($dRec->transUnit);
+    		$unit = str::mbUcfirst(trim($dRec->transUnit));
     		if(in_array($unit, array('Pallets', 'Палети', 'Палета', 'Палет'))){
     			$unit = 'Палета';
     		} elseif(in_array($unit, array('Carton boxes', 'Кашони', 'Кашона', 'Кашон'))){
@@ -205,7 +205,8 @@ class trans_Setup extends core_ProtoSetup
     	$sod = cls::get('store_ShipmentOrderDetails');
     	$loadId = trans_TransportUnits::fetchIdByName('load');
     	
-    	foreach (array('store_ShipmentOrders' => 'store_ShipmentOrderDetails', 'store_Receipts' => 'store_ReceiptDetails', 'store_Transfers' => 'store_TransfersDetails') as $Doc => $det){
+    	//, 'store_Receipts' => 'store_ReceiptDetails', 'store_Transfers' => 'store_TransfersDetails'
+    	foreach (array('store_ShipmentOrders' => 'store_ShipmentOrderDetails') as $Doc => $det){
     		$Document = cls::get($Doc);
     		$Document->setupMvc();
 
@@ -241,25 +242,31 @@ class trans_Setup extends core_ProtoSetup
     		$query = $D->getQuery();
     		$query->where("#lineId IS NOT NULL");
     		while($rec = $query->fetch()){
-    			if(empty($lines[$rec->lineId])){
-    				$lines[$rec->lineId] = trans_Lines::fetch($rec->lineId, 'state');
+    			
+    			$lRec = (object)array('lineId' => $rec->lineId, 'status' => 'ready', 'containerId' => $rec->containerId, 'classId' => $D->getClassId());
+    			$lRec->documentLu = $lRec->readyLu = array();
+    			if($exRec = trans_LineDetails::fetch("#lineId = {$rec->lineId} AND #containerId = {$rec->containerId}", 'documentLu,readyLu')){
+    				$lRec->id = $exRec->id;
+    				$lRec->documentLu = $exRec->documentLu;
+    				$lRec->readyLu = $exRec->readyLu;
     			}
     			
-    			try{
-    				$isReady = ($lines[$rec->lineId]->state == 'closed') ? TRUE : FALSE;
-    				trans_LineDetails::sync($rec->lineId, $rec->containerId, $isReady);
-    			} catch(core_exception_Expect $e){
-    				reportException($e);
-    			}
-    			
-    			$save[$rec->lineId] = $rec->lineId;
+    			$save[] = $lRec;
     		}
+    		
+    		cls::get('trans_LineDetails')->saveArray($save);
     	}
     }
     
     public function updateStoreDocuments()
     {
     	core_App::setTimeLimit(1200);
+    	
+    	$Tld = cls::get('trans_LineDetails');
+    	$Tld->setupMvc();
+    	
+    	$Tl = cls::get('trans_Lines');
+    	$Tl->setupMvc();
     	
     	$Tm = cls::get('trans_TransportModes');
     	$Tm->setupMvc();
