@@ -222,11 +222,20 @@ class trans_LineDetails extends doc_Detail
     		$row->collection = "<span class='cCode'>{$transportInfo['currencyId']}</span> " . core_type::getByName('double(decimals=2)')->toVerbal($transportInfo['amount']);
     	}
     	
-    	$row->documentLu = trans_Helper::displayTransUnits($rec->documentLu, NULL, TRUE);
     	
-    	if(!empty($rec->readyLu)){
-    		$row->readyLu = trans_Helper::displayTransUnits($rec->readyLu, NULL, TRUE);
+    	$luObject = self::colorTransUnits($rec->documentLu, $rec->readyLu);
+    	if(count($luObject->documentLu)){
+    		$row->documentLu = implode("<br>", $luObject->documentLu);
     	}
+    	
+    	if(count($luObject->readyLu)){
+    		$row->readyLu = implode("<br>", $luObject->readyLu);
+    	}
+    	//$row->documentLu = trans_Helper::displayTransUnits($rec->documentLu, NULL, TRUE);
+    	
+    	//if(!empty($rec->readyLu)){
+    		//$row->readyLu = trans_Helper::displayTransUnits($rec->readyLu, NULL, TRUE);
+    	//}
     	
     	if($mvc->haveRightFor('togglestatus', $rec) && !Mode::isReadOnly()){
     		$btnImg = ($rec->status != 'waiting') ? 'img/16/checked.png' : 'img/16/checkbox_no.png';
@@ -485,5 +494,61 @@ class trans_LineDetails extends doc_Detail
     	}
     	
     	return $tpl;
+    }
+    
+    
+    /**
+     * Удобно показване на използваните логистични единици.
+     * Тези които се срещат и в двата масива с еднакво количество се показват маркирани
+     * 
+     * @param array $documentLu - ЛЕ в документа
+     * @param array $readyLu    - Подготвените ЛЕ
+     * @return array $res
+     * 			['documentLu'] - ЛЕ в документа
+     * 			['readyLu']    - Готовите ЛЕ
+     */
+    private static function colorTransUnits($documentLu, $readyLu)
+    {
+
+    	// Само ненулевите ЛЕ
+    	$documentLu = empty($documentLu) ? array() : $documentLu;
+    	$readyLu = empty($readyLu) ? array() : $readyLu;
+    	$documentLu = array_filter($documentLu, function (&$d1){return !empty($d1);});
+    	$readyLu = array_filter($readyLu, function (&$d2){return !empty($d2);});
+    	
+    	$res = (object)array('documentLu' => array(), 'readyLu' => array());
+    	
+    	// Всички ЛЕ от документа
+    	foreach ($documentLu as $unit1 => $quantity1){
+    		
+    		// Подготвят се за показване
+    		$strPart = trans_TransportUnits::display($unit1, $quantity1);
+    		
+    		// Ако са налични и подготвени със същото к-во маркират се
+    		if(array_key_exists($unit1, $readyLu)){
+    			if($readyLu[$unit1] == $quantity1){
+    				$strPart = "<span class='lu-light'>{$strPart}</span>";
+    			}
+    		}
+    		
+    		$res->documentLu[] = $strPart;
+    	}
+    	
+    	foreach ($readyLu as $unit2 => $quantity2){
+    		
+    		// Подготвят се за показване
+    		$strPart1 = trans_TransportUnits::display($unit2, $quantity2);
+    		
+    		// Ако са налични и подготвени със същото к-во маркират се
+    		if(array_key_exists($unit2, $documentLu) && in_array($quantity2, $documentLu)){
+    			if($documentLu[$unit2] == $quantity2){
+    				$strPart1 = "<span class='lu-light'>{$strPart1}</span>";
+    			}
+    		}
+    		
+    		$res->readyLu[] = $strPart1;
+    	}
+    	
+    	return $res;
     }
 }

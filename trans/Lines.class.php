@@ -362,19 +362,6 @@ class trans_Lines extends core_Master
     {
     	$tpl->push('trans/tpl/LineStyles.css', 'CSS');
     }
-        
-    
-    /**
-     * Дали има свързано подотчетно лице към линията
-     * @param int $id - ид на линията
-     * @return boolean
-     */
-    public static function hasForwarderPersonId($id)
-    {
-    	expect($rec = static::fetch($id));
-    	
-    	return isset($rec->forwarderPersonId);
-    }
 
     
     /**
