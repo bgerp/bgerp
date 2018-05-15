@@ -240,10 +240,7 @@ class sales_Quotations extends core_Master
      */
     public function getDefaultChargeVat($rec)
     {
-        $coverId = doc_Folders::fetchCoverId($rec->folderId);
-    	$Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
-    	
-    	return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+       return deals_Helper::getDefaultChargeVat($rec->folderId);
     }
     
     
@@ -434,6 +431,18 @@ class sales_Quotations extends core_Master
 	    		if($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $rec->deliveryPlaceId)){
 	    			$form->setError('deliveryTermId,deliveryAdress,deliveryPlaceId', $error);
 	    		}
+	    	}
+	    	
+	    	// Избрания ДДС режим съответства ли на дефолтния
+	    	$defVat = $mvc->getDefaultChargeVat($rec);
+	    	if($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)){
+	    		$form->setWarning('chargeVat', $vatWarning);
+	    	}
+	    	
+	    	// Избраната валута съответства ли на дефолтната
+	    	$defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
+	    	if($defCurrency != $rec->currencyId){
+	    		$form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
 	    	}
 		}
     }

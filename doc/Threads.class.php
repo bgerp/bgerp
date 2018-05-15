@@ -550,9 +550,9 @@ class doc_Threads extends core_Manager
                 }
                 
                 // Само, ако първият контейнер е видим за партньори, тогава проверяваме за броят на видимите контейнери
-                if($cRec->visibleForPartners == 'yes' && !self::$updateQueue[$rec->id]) {
+                if($cRec->visibleForPartners == 'yes' && $cRec->state != 'draft' && $cRec->state != 'rejected' && !self::$updateQueue[$rec->id]) {
                     // Ако се различава броя на документите, видими за партньори
-                    $pCQuery->where("#visibleForPartners = 'yes'");
+                    $pCQuery->where("#visibleForPartners = 'yes' AND #state != 'draft' AND #state != 'rejected'");
                     $pCCnt = $pCQuery->count();
                     if ($pCCnt != $partnerCnt) {
                         $pCCnt = (int)$pCCnt;
