@@ -382,7 +382,6 @@ class trans_LineDetails extends doc_Detail
     	if($form->isSubmitted()){
     		$formRec = $form->rec;
     		$rec->readyLu = trans_Helper::convertTableToNormalArr($formRec->transUnitsInput);
-    		$rec->status = (trans_Helper::checkTransUnits($rec->documentLu, $rec->readyLu)) ? 'ready' : 'waiting';
     		$this->save($rec, 'readyLu,status');
     		trans_Lines::logWrite('Ръчно подготвяне на ред', $rec->lineId);
     		
