@@ -1,8 +1,8 @@
-.document .line-header {
+.document .group-by-field-row {
   padding: 5px !important;
-  color: white;
-  background-color: #777777;
-  border: 1px solid #777777;
+  color: white !important;
+  background-color: #777777 !important;
+  border: 1px solid #777777 !important;
   font-weight: bold; }
 
 .document .details .shipment-th {
@@ -24,4 +24,11 @@
   color: #333333;
   background: none;
   padding: 5px 0; }
+
+.lu {
+  font-size: 0.9em; }
+
+.lu-light {
+  color: #777777;
+  text-decoration: line-through; }
 

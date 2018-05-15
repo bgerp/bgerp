@@ -185,7 +185,7 @@ class trans_LineDetails extends doc_Detail
     		$row->documentHtml = $Document->getInlineDocumentBody();
     	}
     	
-    	$row->ROW_ATTR['class'] = ($rec->status == 'waiting') ? 'state-waiting' : 'state-active';
+    	$row->ROW_ATTR['class'] = ($rec->status == 'waiting') ? 'soft-rejected' : 'state-active';
     	
     	if(!empty($transportInfo['notes'])){
     		$row->notes = core_Type::getByName('richtext')->toVerbal($transportInfo['notes']);
@@ -224,13 +224,8 @@ class trans_LineDetails extends doc_Detail
     	
     	
     	$luObject = self::colorTransUnits($rec->documentLu, $rec->readyLu);
-    	if(count($luObject->documentLu)){
-    		$row->documentLu = implode("<br>", $luObject->documentLu);
-    	}
-    	
-    	if(count($luObject->readyLu)){
-    		$row->readyLu = implode("<br>", $luObject->readyLu);
-    	}
+		$row->documentLu = $luObject->documentLu;
+		$row->readyLu = $luObject->readyLu;
     	//$row->documentLu = trans_Helper::displayTransUnits($rec->documentLu, NULL, TRUE);
     	
     	//if(!empty($rec->readyLu)){
@@ -516,7 +511,7 @@ class trans_LineDetails extends doc_Detail
     	$documentLu = array_filter($documentLu, function (&$d1){return !empty($d1);});
     	$readyLu = array_filter($readyLu, function (&$d2){return !empty($d2);});
     	
-    	$res = (object)array('documentLu' => array(), 'readyLu' => array());
+    	$res = (object)array('documentLu' => '', 'readyLu' => '');
     	
     	// Всички ЛЕ от документа
     	foreach ($documentLu as $unit1 => $quantity1){
@@ -525,13 +520,14 @@ class trans_LineDetails extends doc_Detail
     		$strPart = trans_TransportUnits::display($unit1, $quantity1);
     		
     		// Ако са налични и подготвени със същото к-во маркират се
+			$className= '';
     		if(array_key_exists($unit1, $readyLu)){
-    			if($readyLu[$unit1] == $quantity1){
-    				$strPart = "<span class='lu-light'>{$strPart}</span>";
-    			}
+				if($readyLu[$unit1] == $quantity1){
+					$className= 'lu-light';
+				}
     		}
-    		
-    		$res->documentLu[] = $strPart;
+			$strPart = "<div class='lu {$className}'>{$strPart}</div>";
+    		$res->documentLu .= $strPart;
     	}
     	
     	foreach ($readyLu as $unit2 => $quantity2){
@@ -540,13 +536,15 @@ class trans_LineDetails extends doc_Detail
     		$strPart1 = trans_TransportUnits::display($unit2, $quantity2);
     		
     		// Ако са налични и подготвени със същото к-во маркират се
-    		if(array_key_exists($unit2, $documentLu) && in_array($quantity2, $documentLu)){
+			$className= '';
+			if(array_key_exists($unit2, $documentLu) && in_array($quantity2, $documentLu)){
     			if($documentLu[$unit2] == $quantity2){
-    				$strPart1 = "<span class='lu-light'>{$strPart1}</span>";
+					$className= 'lu-light';
     			}
     		}
-    		
-    		$res->readyLu[] = $strPart1;
+
+			$strPart1 = "<div class='lu {$className}'>{$strPart1}</div>";
+    		$res->readyLu .= $strPart1;
     	}
     	
     	return $res;

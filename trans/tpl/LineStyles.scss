@@ -1,8 +1,8 @@
-.document .line-header{
+.document .group-by-field-row{
 	padding: 5px !important;
-	color: #fff;
-	background-color: #777;
-	border: 1px solid #777;
+	color: #fff !important;
+	background-color: #777 !important;
+	border: 1px solid #777 !important;
 	font-weight:bold;
 }
 
@@ -28,4 +28,12 @@
 	color: #333;
     background: none;
     padding: 5px 0;
+}
+
+.lu {
+	font-size: 0.9em;
+}
+.lu-light {
+	color: #777;
+	text-decoration: line-through;
 }
