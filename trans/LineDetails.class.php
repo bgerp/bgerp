@@ -50,7 +50,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,weight=Тегло,volume=Обем,collection=Инкасиране,status,btn=|*&nbsp;,address=@Адрес,notes=@,documentHtml=@';
+    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,weight=Тегло,volume=Обем,collection=Инкасиране,status,notes=@,documentHtml=@';
 
     
     /**
@@ -191,9 +191,17 @@ class trans_LineDetails extends doc_Detail
     		$row->notes = core_Type::getByName('richtext')->toVerbal($transportInfo['notes']);
     	}
     	
+    	if(!empty($transportInfo['stores'])){
+    		if(count($transportInfo['stores']) == 1){
+    			$row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], TRUE);
+    		} else {
+    			$row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], TRUE) . " » " . store_Stores::getHyperlink($transportInfo['stores'][1], TRUE);
+    		}
+    	}
+    	
     	if(!empty($transportInfo['address'])){
-    		$row->address = core_Type::getByName('varchar')->toVerbal($transportInfo['address']);
-    		$row->address = "<span style='font-size:0.8em'>{$row->address}</span>";
+    		$address = core_Type::getByName('varchar')->toVerbal($transportInfo['address']);
+    		$row->storeId .= "<br><span style='font-size:0.8em'>{$address}</span>";
     	}
     	
     	if(!empty($transportInfo['weight'])){
@@ -208,14 +216,6 @@ class trans_LineDetails extends doc_Detail
     		$row->collection = "<span class='cCode'>{$transportInfo['currencyId']}</span> " . core_type::getByName('double(decimals=2)')->toVerbal($transportInfo['amount']);
     	}
     	
-    	if(!empty($transportInfo['stores'])){
-    		if(count($transportInfo['stores']) == 1){
-    			$row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], TRUE);
-    		} else {
-    			$row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], TRUE) . " » " . store_Stores::getHyperlink($transportInfo['stores'][1], TRUE);
-    		}
-    	}
-    	
     	$row->documentLu = trans_Helper::displayTransUnits($rec->documentLu, NULL, TRUE);
     	
     	if(!empty($rec->readyLu)){
@@ -225,7 +225,7 @@ class trans_LineDetails extends doc_Detail
     	if($mvc->haveRightFor('togglestatus', $rec) && !Mode::isReadOnly()){
     		$btnImg = ($rec->status != 'waiting') ? 'img/16/checked.png' : 'img/16/checkbox_no.png';
     		$linkTitle = ($rec->status == 'waiting') ? 'Документът е готов' : 'Документът не е готов';
-    		$row->btn = ht::createLink('', array($mvc, 'togglestatus', $rec->id, 'ret_url' => TRUE), FALSE, "ef_icon={$btnImg},title={$linkTitle}");
+    		$row->status .= ht::createLink('', array($mvc, 'togglestatus', $rec->id, 'ret_url' => TRUE), FALSE, "ef_icon={$btnImg},title={$linkTitle}");
     	}
     	
     	core_RowToolbar::createIfNotExists($row->_rowTools);
@@ -448,7 +448,7 @@ class trans_LineDetails extends doc_Detail
     	$consClassId =  store_ConsignmentProtocols::getClassId();
     	
     	$data->query->XPR('orderByClassId', 'int', "(CASE #classId WHEN {$shipClassId} THEN 1 WHEN {$receiptClassId} THEN 2 WHEN {$transferClassId} THEN 3 WHEN {$consClassId} THEN 4 ELSE 5 END)");
-    	$data->query->orderBy('#orderByClassId=ASC,#status=ASC,#containerId');
+    	$data->query->orderBy('#orderByClassId=ASC,#containerId');
     }
     
     
