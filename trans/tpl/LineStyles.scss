@@ -16,12 +16,9 @@
 	padding:6px;
 }
 
-.document .line-detail .listTable td, .document .line-detail  .listTable th{
-	border:1px solid rgb(187,187,187) !important;
-}
 
-.document .line-detail .listTable td {
-	padding:6px;
+.document table.listTable tbody tr td.status-cell{
+	padding-left:10px !important;
 }
 
 .printing .document .line-header {

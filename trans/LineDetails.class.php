@@ -104,7 +104,7 @@ class trans_LineDetails extends doc_Detail
     	$this->FLD('documentLu', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('readyLu', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('classId', 'class', 'input=none');
-    	$this->FLD('status', 'enum(waiting=Чакащо,ready=Готово)', 'input=none,notNull,value=waiting,caption=Статус,smartCenter');
+    	$this->FLD('status', 'enum(waiting=Чакащо,ready=Готово)', 'input=none,notNull,value=waiting,caption=Статус,smartCenter,tdClass=status-cell');
     	
     	$this->setDbIndex('containerId');
     }
