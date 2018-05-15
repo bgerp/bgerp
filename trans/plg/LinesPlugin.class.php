@@ -346,8 +346,6 @@ class trans_plg_LinesPlugin extends core_Plugin
 	}
 	
 	
-
-
 	/**
 	 * Трябва ли ръчно да се подготвя документа в Транспортната линия
 	 *
