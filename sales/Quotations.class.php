@@ -240,10 +240,7 @@ class sales_Quotations extends core_Master
      */
     public function getDefaultChargeVat($rec)
     {
-        $coverId = doc_Folders::fetchCoverId($rec->folderId);
-    	$Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
-    	
-    	return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+       return deals_Helper::getDefaultChargeVat($rec->folderId);
     }
     
     

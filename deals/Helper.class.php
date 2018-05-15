@@ -1544,4 +1544,19 @@ abstract class deals_Helper
 			$payments['bank'] = 'bank';
 		}
 	}
+	
+	
+	/**
+	 * Дефолтния режим на ДДС за папката
+	 * 
+	 * @param int $folderId
+	 * @return string
+	 */
+	public static function getDefaultChargeVat($folderId)
+	{
+		$coverId = doc_Folders::fetchCoverId($folderId);
+		$Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
+		 
+		return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+	}
 }
