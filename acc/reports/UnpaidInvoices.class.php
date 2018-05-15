@@ -236,7 +236,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                 
                 $pInvoicePayments = (deals_Helper::getInvoicePayments($pThread, $rec->checkDate));
                 
-                if (! empty(is_array($pInvoicePayments))) {
+                if ((is_array($pInvoicePayments))) {
                     
                     // фактура от нишката и масив от платежни документи по тази фактура//
                     foreach ($pInvoicePayments as $pInv => $paydocs) {
@@ -374,7 +374,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
      */
     private static function getPaidDates($dRec, $verbal = TRUE)
     {
-        if (! empty(is_array($dRec->payDocuments))) {
+        if (is_array($dRec->payDocuments)) {
             
             foreach ($dRec->payDocuments as $onePayDoc) {
                 
