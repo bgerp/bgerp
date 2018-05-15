@@ -157,23 +157,24 @@ class trans_Setup extends core_ProtoSetup
     	$sod = cls::get('store_ShipmentOrderDetails');
     	$sod->setupMvc();
     	 
-    	$transUnits = cls::get(trans_TransportUnits)->makeArray4Select();
-    	 
+    	$transUnits = cls::get('trans_TransportUnits')->makeArray4Select();
+    	
     	$save = array();
     	$dQuery = store_ShipmentOrderDetails::getQuery();
     	$dQuery->FLD('transUnit', 'varchar', 'caption=Логистична информация->Единици,autohide,after=volume');
     	$dQuery->FLD('info', "text(rows=2)", 'caption=Логистична информация->Номера,after=transUnit,autohide,after=volume');
     	$dQuery->where("#transUnit IS NOT NULL AND #transUnit != ''");
-    	$dQuery->show('transUnit,info');
+    	$dQuery->show('transUnit,info,shipmentId');
+    	
     	while($dRec = $dQuery->fetch()){
     		if(is_numeric($dRec->transUnit)) continue;
     		if(!empty($dRec->transUnitId)) continue;
     		
     		$unit = str::mbUcfirst($dRec->transUnit);
-    		if($unit == 'Pallets'){
-    			$unit = 'Палети';
-    		}elseif($unit == 'Carton boxes'){
-    			$unit = 'Кашони';
+    		if(in_array($unit, array('Pallets', 'Палети', 'Палета', 'Палет'))){
+    			$unit = 'Палета';
+    		} elseif(in_array($unit, array('Carton boxes', 'Кашони', 'Кашона', 'Кашон'))){
+    			$unit = 'Кашона';
     		}
     	
     		if(!in_array($unit, $transUnits)){
@@ -192,61 +193,84 @@ class trans_Setup extends core_ProtoSetup
     			$save[$dRec->id] = $dRec;
     		}
     	}
-    	 
+    	
     	$sod->saveArray($save, 'id,transUnitId,transUnitQuantity');
     }
     
     
-    public function updateStoreTransUnits()
+    public function updateStoreMasters()
     {
-    	$arr = array('store_ShipmentOrders', 'store_Receipts', 'store_ConsignmentProtocols', 'store_Transfers');
-    	 
-    	$palletItd = trans_TransportUnits::fetchField("#name = 'Палети'");
-    	if(empty($palletItd)){
-    		$palletItd = trans_TransportUnits::save((object)array('name' => 'Палети', 'pluralName' => 'Палети', 'abbr' => 'Палети'));
-    	}
-    	 
-    	foreach ($arr as $doc){
-    		$Document = cls::get($doc);
-    		$Document->setupMvc();
+    	$arr = array('store_ShipmentOrders');
+    	$sod = cls::get('store_ShipmentOrderDetails');
+    	$loadId = trans_TransportUnits::fetchIdByName('load');
     	
-    		$Detail = cls::get($Document->mainDetail);
+    	foreach (array('store_ShipmentOrders' => 'store_ShipmentOrderDetails', 'store_Receipts' => 'store_ReceiptDetails', 'store_Transfers' => 'store_TransfersDetails') as $Doc => $det){
+    		$Document = cls::get($Doc);
+    		$Document->setupMvc();
+
+    		$Detail = cls::get($det);
     		$Detail->setupMvc();
     		
-    		$save = array();
     		$query = $Document->getQuery();
     		$query->FLD('palletCountInput', 'double');
-    		$query->where("#palletCountInput IS NOT NULL AND #palletCountInput != ''");
-    		$query->show('palletCountInput,transUnits');
-    		while($r = $query->fetch()){
-    			if($r->palletCountInput && empty($r->transUnits)){
-    				$newArr = array('unitId' => array('0' => $palletItd), 'quantity' => array('0' => $r->palletCountInput));
-    				$r->transUnits = core_Type::getByName('table(columns=unitId|quantity)')->fromVerbal($newArr);
-    	
-    				$save[$r->id] = $r;
+    		
+    		$save = array();
+    		while($dRec = $query->fetch()){
+    			$dRec->transUnits = $Detail->getTransUnits($dRec);
+    			if($dRec->palletCountInput && empty($dRec->transUnitsInput)){
+    				$dRec->transUnitsInput = array($loadId => $dRec->palletCountInput);
+    			} else {
+    				$dRec->transUnitsInput = array();
     			}
+    			$save[$dRec->id] = $dRec;
     		}
-    	
-    		$Document->saveArray($save, 'id,transUnits');
+    		
+    		$Document->saveArray($save, 'id,transUnits,transUnitsInput');
     	}
     }
     
-    
+    public function addDetailsToLines()
+    {
+    	$lines = array();
+    	foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_Transfers', 'store_ConsignmentProtocols') as $Doc){
+    		$D = cls::get($Doc);
+    		$D->setupMvc();
+    		
+    		$save = array();
+    		$query = $D->getQuery();
+    		$query->where("#lineId IS NOT NULL");
+    		while($rec = $query->fetch()){
+    			if(empty($lines[$rec->lineId])){
+    				$lines[$rec->lineId] = trans_Lines::fetch($rec->lineId, 'state');
+    			}
+    			
+    			try{
+    				$isReady = ($lines[$rec->lineId]->state == 'closed') ? TRUE : FALSE;
+    				trans_LineDetails::sync($rec->lineId, $rec->containerId, $isReady);
+    			} catch(core_exception_Expect $e){
+    				reportException($e);
+    			}
+    			
+    			$save[$rec->lineId] = $rec->lineId;
+    		}
+    	}
+    }
     
     public function updateStoreDocuments()
     {
-    	core_App::setTimeLimit(900);
+    	core_App::setTimeLimit(1200);
     	
     	$Tm = cls::get('trans_TransportModes');
     	$Tm->setupMvc();
     	
     	$Tu = cls::get('trans_TransportUnits');
     	$Tu->setupMvc();
+    	$Tu->loadSetupData();
     	
     	$this->updateLu();
-    	$this->updateStoreTransUnits();
+    	$this->updateStoreMasters();
+    	$this->addDetailsToLines();
     }
-    
     
     
     /**

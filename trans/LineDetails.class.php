@@ -117,7 +117,7 @@ class trans_LineDetails extends doc_Detail
      * @param int $containerId - контейнер на документ
      * @return int             - синхронизирания запис
      */
-    public static function sync($lineId, $containerId)
+    public static function sync($lineId, $containerId, $isReady = FALSE)
     {
     	$Document = doc_Containers::getDocument($containerId);
     	$transportInfo = $Document->getTransportLineInfo();
@@ -139,6 +139,11 @@ class trans_LineDetails extends doc_Detail
     	
     	// Запис на ЛЕ от документа
     	$rec->documentLu = $transportInfo['transportUnits'];
+    	
+    	if($isReady === TRUE){
+    		$rec->readyLu = $rec->documentLu;
+    	}
+    	
     	self::save($rec);
     	cls::get('trans_Lines')->updateMaster($rec->lineId);
     	

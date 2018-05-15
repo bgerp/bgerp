@@ -33,7 +33,7 @@ class store_plg_TransportDataDetail extends core_Plugin
 		
 		$mvc->FLD($mvc->weightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Тегло,forceField,autohide');
 		$mvc->FLD($mvc->volumeField, 'cat_type_Volume', 'input=none,caption=Логистична информация->Обем,forceField,autohide');
-		$mvc->FLD('transUnitId', 'key(mvc=trans_TransportUnits,select=name,allowEmpty)', "caption=Логистична информация->Единици,forceField,autohide,smartCenter,after={$mvc->volumeField},input=none");
+		$mvc->FLD('transUnitId', 'key(mvc=trans_TransportUnits,select=name,allowEmpty)', "caption=Логистична информация->Единици,forceField,autohide,tdClass=nowrap,after={$mvc->volumeField},input=none");
 		$mvc->FLD('transUnitQuantity', 'int', 'caption=-,autohide,inlineTo=transUnitId,forceField,unit=бр.,input=none');
 	}
 	

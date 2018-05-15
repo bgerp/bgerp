@@ -88,13 +88,10 @@ abstract class trans_Helper
 	public static function getCombinedTransUnits(&$transUnits, &$transUnitsTable)
 	{
 		$transUnits = self::convertTableToNormalArr($transUnits);
+		$transUnits = empty($transUnits) ? array() : $transUnits;
 		
 		$transUnitsTable = self::convertTableToNormalArr($transUnitsTable);
 		$transUnitsTable = empty($transUnitsTable) ? array() : $transUnitsTable;
-		
-		if(!is_array($transUnitsTable) || !is_array($transUnits)){
-			bp($transUnitsTable);
-		}
 		
 		$combined = $transUnitsTable + $transUnits;
 		ksort($combined);
@@ -120,7 +117,6 @@ abstract class trans_Helper
 		$combined = self::getCombinedTransUnits($transUnits, $transUnitsTable);
 		
 		foreach ($combined as $unitId => $quantity){
-			if(empty($quantity)) continue;
 			$strPart = trans_TransportUnits::display($unitId, $quantity);
 			if(array_key_exists($unitId, $transUnitsTable) && !Mode::isReadOnly()){
 				$strPart = ht::createHint($strPart, 'Зададено е ръчно');
