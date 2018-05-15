@@ -146,6 +146,12 @@ class trans_Lines extends core_Master
     
     
     /**
+     * Да се забрани ли кеширането на документа
+     */
+    public $preventCache = TRUE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
