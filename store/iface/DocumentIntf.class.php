@@ -43,4 +43,16 @@ class store_iface_DocumentIntf
 	{
 		return $this->class->getTransportLineInfo($id);
 	}
+	
+	
+	/**
+	 * Трябва ли ръчно да се подготвя документа в Транспортната линия
+	 *
+	 * @param mixed $id     - ид или запис на документа
+	 * @return boolean      - TRUE или FALSE
+	 */
+	public function requireManualCheckInTransportLine($id)
+	{
+		return $this->class->requireManualCheckInTransportLine($id);
+	}
 }

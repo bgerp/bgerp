@@ -344,4 +344,22 @@ class trans_plg_LinesPlugin extends core_Plugin
 			return FALSE;
 		}
 	}
+	
+	
+
+
+	/**
+	 * Трябва ли ръчно да се подготвя документа в Транспортната линия
+	 *
+	 * @param core_Mvc $mvc       - документ
+	 * @param boolean $res        - TRUE или FALSE
+	 * @param mixed $id           - ид или запис на документа
+	 * @return void
+	 */
+	public static function on_AfterRequireManualCheckInTransportLine($mvc, &$res, $id)
+	{
+		if(!isset($res)) {
+			$res = TRUE;
+		}
+	}
 }

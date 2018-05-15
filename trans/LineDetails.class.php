@@ -138,10 +138,12 @@ class trans_LineDetails extends doc_Detail
     	}
     	
     	// Запис на ЛЕ от документа
-    	$rec->documentLu = $transportInfo['transportUnits'];
-    	
-    	if($isReady === TRUE){
-    		$rec->readyLu = $rec->documentLu;
+    	if($r = $Document->requireManualCheckInTransportLine()){
+    		$rec->documentLu = $transportInfo['transportUnits'];
+    		 
+    		if($isReady === TRUE){
+    			$rec->readyLu = $rec->documentLu;
+    		}
     	}
     	
     	self::save($rec);
@@ -425,10 +427,19 @@ class trans_LineDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
+    	// Ако линията не е активна или чернова да не може да се променят редовете по нея
     	if(in_array($action, array('togglestatus', 'prepare')) && isset($rec)){
     		$state = trans_Lines::fetchField($rec->lineId, 'state');
     		
     		if(in_array($state, array('rejected', 'closed'))){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	// Ако документа не изисква ръчно потвърждаване не може да се подготвя
+    	if($action == 'prepare' && isset($rec->containerId)){
+    		$Document = doc_Containers::getDocument($rec->containerId);
+    		if(!$Document->requireManualCheckInTransportLine()){
     			$requiredRoles = 'no_one';
     		}
     	}
