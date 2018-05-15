@@ -53,6 +53,12 @@ class trans_Setup extends core_ProtoSetup
     
     
     /**
+     * Необходими пакети
+     */
+    var $depends = 'store=0.1';
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
@@ -196,6 +202,8 @@ class trans_Setup extends core_ProtoSetup
     	}
     	
     	$sod->saveArray($save, 'id,transUnitId,transUnitQuantity');
+    	
+    	wp("UPDATE LU COUNT" . count($save));
     }
     
     
@@ -229,6 +237,8 @@ class trans_Setup extends core_ProtoSetup
     		
     		$Document->saveArray($save, 'id,transUnits,transUnitsInput');
     	}
+    	
+    	wp("UPDATE SO COUNT" . count($save));
     }
     
     public function addDetailsToLines()
@@ -243,19 +253,25 @@ class trans_Setup extends core_ProtoSetup
     		$query->where("#lineId IS NOT NULL");
     		while($rec = $query->fetch()){
     			
-    			$lRec = (object)array('lineId' => $rec->lineId, 'status' => 'ready', 'containerId' => $rec->containerId, 'classId' => $D->getClassId());
-    			$lRec->documentLu = $lRec->readyLu = array();
-    			if($exRec = trans_LineDetails::fetch("#lineId = {$rec->lineId} AND #containerId = {$rec->containerId}", 'documentLu,readyLu')){
-    				$lRec->id = $exRec->id;
-    				$lRec->documentLu = $exRec->documentLu;
-    				$lRec->readyLu = $exRec->readyLu;
+    			try{
+    				$lRec = (object)array('lineId' => $rec->lineId, 'status' => 'ready', 'containerId' => $rec->containerId, 'classId' => $D->getClassId());
+    				$lRec->documentLu = $lRec->readyLu = array();
+    				if($exRec = trans_LineDetails::fetch("#lineId = {$rec->lineId} AND #containerId = {$rec->containerId}", 'documentLu,readyLu')){
+    					$lRec->id = $exRec->id;
+    					$lRec->documentLu = $exRec->documentLu;
+    					$lRec->readyLu = $exRec->readyLu;
+    				}
+    				 
+    				$save[] = $lRec;
+    			} catch(core_exception_Expect $e){
+    				reportException($e);
     			}
-    			
-    			$save[] = $lRec;
     		}
     		
     		cls::get('trans_LineDetails')->saveArray($save);
     	}
+    	
+    	wp("UPDATE ADDED LINE DETAILS" . count($save));
     }
     
     public function updateStoreDocuments()
