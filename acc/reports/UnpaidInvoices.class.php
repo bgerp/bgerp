@@ -143,8 +143,9 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                 // масив от фактури в тази нишка //
                 // $invoicesInThread = (deals_Helper::getInvoicesInThread($thread, $rec->checkDate, TRUE, TRUE, TRUE));
                 
-                $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
                 
+                $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
+               
                 if (is_array($invoicePayments)) {
                     
                     // фактура от нишката и масив от платежни документи по тази фактура//
@@ -240,12 +241,12 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                 if (is_array($invoicePayments)) {
                     
                     // фактура от нишката и масив от платежни документи по тази фактура//
-                    foreach ($invoicePayments as $inv => $paydocs)
+                    foreach ($invoicePayments as $pInv => $paydocs)
                         
                         if ($paydocs->payout >= $paydocs->amount)
                             continue;
                     
-                    $Invoice = doc_Containers::getDocument($inv);
+                    $Invoice = doc_Containers::getDocument($pInv);
                     
                     if ($Invoice->className != 'purchase_Invoices')
                         continue;
@@ -377,10 +378,10 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             
             foreach ($dRec->payDocuments as $onePayDoc) {
                 
-                if (! is_null($onePayDoc->containerId)) {
+                if ( is_null($onePayDoc->containerId))bp($dRec);
                     $Document = doc_Containers::getDocument($onePayDoc->containerId);
-                } else
-                    continue;
+//                 } else
+//                     continue;
                 $payDocClass = $Document->className;
                 
                 $paidDatesList .= "," . $payDocClass::fetch($Document->that)->valior;
