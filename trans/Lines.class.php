@@ -319,9 +319,11 @@ class trans_Lines extends core_Master
     		$transInfo = $Document->getTransportLineInfo();
     		$amount += $transInfo['baseAmount'];
     		
+    		// Сумиране на ЛЕ от документа и подготвените
     		trans_Helper::sumTransUnits($transUnits, $dRec->readyLu);
     		trans_Helper::sumTransUnits($calcedUnits, $dRec->documentLu);
     		
+    		// Сумиране на теглото от редовете
     		if($sumWeight === TRUE){
     			if($transInfo['weight']){
     				$weight += $transInfo['weight'];
@@ -331,6 +333,7 @@ class trans_Lines extends core_Master
     			}
     		}
     		
+    		// Сумиране на обема от редовете
     		if($sumVolume === TRUE){
     			if($transInfo['volume']){
     				$volume += $transInfo['volume'];
@@ -341,10 +344,12 @@ class trans_Lines extends core_Master
     		}
     	}
     	
+    	// Оцветяване на ЛЕ
     	$logisticUnitsSum = trans_LineDetails::colorTransUnits($calcedUnits, $transUnits);
     	$calcedUnits = empty($logisticUnitsSum->documentLu) ? 'N/A' : $logisticUnitsSum->documentLu;
     	$transUnits = empty($logisticUnitsSum->readyLu) ? 'N/A' : $logisticUnitsSum->readyLu;
     	
+    	// Показване на сумарната информация
     	$data->row->logisticUnitsDocument = core_Type::getByName('html')->toVerbal($calcedUnits);
     	$data->row->logisticUnits = core_Type::getByName('html')->toVerbal($transUnits);
     	$data->row->weight = (!empty($weight)) ? cls::get('cat_type_Weight')->toVerbal($weight) : "<span class='quiet'>N/A</span>";
@@ -353,10 +358,6 @@ class trans_Lines extends core_Master
     	$bCurrency = acc_Periods::getBaseCurrencyCode();
     	$data->row->totalAmount = " <span class='cCode'>{$bCurrency}</span> ";
     	$data->row->totalAmount .= core_Type::getByName('double(decimals=2)')->toVerbal($amount);
-    	
-    	
-    	$count = ($data->palletCount) ? $data->palletCount : 0;
-    	$data->row->palletCount = cls::get('type_Int')->toVerbal($count);
     }
     
     
@@ -398,6 +399,7 @@ class trans_Lines extends core_Master
     	// Изчисляване на готовите и не-готовите редове
     	$dQuery = trans_LineDetails::getQuery();
     	$dQuery->where("#lineId = {$rec->id}");
+    	$dQuery->show('status');
     	while($dRec = $dQuery->fetch()){
     		$rec->countTotal++;
     		if($dRec->status == 'ready') {
