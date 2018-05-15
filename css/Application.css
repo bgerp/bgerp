@@ -3291,7 +3291,8 @@ table .eshop-btn {
   border: solid 0 rgba(0, 0, 0, 0);
   min-height: 612px; }
 
-.wide .webdrvIframe {
+.wide .webdrvIframe,
+.wide .webdrvFieldset {
   min-width: 880px; }
 
 .narrow .webdrvIframe {
