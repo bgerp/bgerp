@@ -373,12 +373,14 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
      */
     private static function getPaidDates($dRec, $verbal = TRUE)
     {
-        if (is_array($dRec->payDocuments) && count($dRec->payDocuments)) {
+        if (! empty(is_array($dRec->payDocuments))) {
             
             foreach ($dRec->payDocuments as $onePayDoc) {
-                $containerArr[] = $onePayDoc->containerId;
-                $Document = doc_Containers::getDocument($onePayDoc->containerId);
                 
+                if (! is_null($onePayDoc->containerId)) {
+                    $Document = doc_Containers::getDocument($onePayDoc->containerId);
+                } else
+                    continue;
                 $payDocClass = $Document->className;
                 
                 $paidDatesList .= "," . $payDocClass::fetch($Document->that)->valior;
@@ -522,67 +524,73 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN salesTotalOverPaid-->|фактури ПРОДАЖБИ »   НАДПЛАТЕНИ|*: <b>[#salesTotalOverPaid#]</b><!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN purchaseTotalNotPaid-->|фактури ПОКУПКИ »  НЕПЛАТЕНИ|*: <b>[#purchaseTotalNotPaid#]</b><!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN purchaseTotalOverDue-->|фактури ПОКУПКИ » ПРОСРОЧЕНИ|*: <b>[#purchaseTotalOverDue#]</b><!--ET_END to--></div></small>
-                                </fieldset><!--ET_END BLOCK-->" ) );
-		
-		if (isset ( $data->rec->contragent )) {
-			$fieldTpl->append ( doc_Folders::fetch ( $data->rec->contragent )->title, 'contragent' );
-		} else {
-			$fieldTpl->append ( 'Всички', 'contragent' );
-		}
-		
-		if (isset ( $data->rec->salesTotalNotPaid )) {
-			$fieldTpl->append ( core_Type::getByName ( 'double(decimals=2)' )->toVerbal ( $data->rec->salesTotalNotPaid ), 'salesTotalNotPaid' );
-		}
-		
-		if (isset ( $data->rec->salesTotalOverDue )) {
-			$fieldTpl->append ( core_Type::getByName ( 'double(decimals=2)' )->toVerbal ( $data->rec->salesTotalOverDue ), 'salesTotalOverDue' );
-		}
-		
-		if (isset ( $data->rec->salesTotalOverPaid )) {
-			$fieldTpl->append ( core_Type::getByName ( 'double(decimals=2)' )->toVerbal ( $data->rec->salesTotalOverPaid ), 'salesTotalOverPaid' );
-		}
-		
-		if (isset ( $data->rec->purchaseTotalNotPaid )) {
-			$fieldTpl->append ( core_Type::getByName ( 'double(decimals=2)' )->toVerbal ( $data->rec->purchaseTotalNotPaid ), 'purchaseTotalNotPaid' );
-		}
-		
-		if (isset ( $data->rec->purchaseTotalOverDue )) {
-			$fieldTpl->append ( core_Type::getByName ( 'double(decimals=2)' )->toVerbal ( $data->rec->purchaseTotalOverDue ), 'purchaseTotalOverDue' );
-		}
-		
-		$tpl->append ( $fieldTpl, 'DRIVER_FIELDS' );
-	}
-	
-	/**
-	 * След подготовка на реда за експорт
-	 *
-	 * @param frame2_driver_Proto $Driver        	
-	 * @param stdClass $res        	
-	 * @param stdClass $rec        	
-	 * @param stdClass $dRec        	
-	 */
-	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass) {
-		$res->paidAmount = (self::getPaidAmount ( $dRec ));
-		
-		$res->paidDates = self::getPaidDates ( $dRec, FALSE );
-		
-		$res->dueDate = self::getDueDate ( $dRec, FALSE, $rec );
-		
-		if ($dRec->invoiceCurrentSumm < 0) {
-			$invoiceOverSumm = - 1 * $dRec->invoiceCurrentSumm;
-			$res->invoiceCurrentSumm = '';
-			$res->invoiceOverSumm = ($invoiceOverSumm);
-		}
-		
-		if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
-			
-			$res->dueDateStatus = 'Просрочен';
-		}
-		
-		$invoiceNo = str_pad ( $dRec->invoiceNo, 10, "0", STR_PAD_LEFT );
-		
-		$res->invoiceNo = $invoiceNo;
-	}
+                                </fieldset><!--ET_END BLOCK-->"));
+        
+        if (isset($data->rec->contragent)) {
+            $fieldTpl->append(doc_Folders::fetch($data->rec->contragent)->title, 'contragent');
+        } else {
+            $fieldTpl->append('Всички', 'contragent');
+        }
+        
+        if (isset($data->rec->salesTotalNotPaid)) {
+            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesTotalNotPaid), 
+                'salesTotalNotPaid');
+        }
+        
+        if (isset($data->rec->salesTotalOverDue)) {
+            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesTotalOverDue), 
+                'salesTotalOverDue');
+        }
+        
+        if (isset($data->rec->salesTotalOverPaid)) {
+            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesTotalOverPaid), 
+                'salesTotalOverPaid');
+        }
+        
+        if (isset($data->rec->purchaseTotalNotPaid)) {
+            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->purchaseTotalNotPaid), 
+                'purchaseTotalNotPaid');
+        }
+        
+        if (isset($data->rec->purchaseTotalOverDue)) {
+            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->purchaseTotalOverDue), 
+                'purchaseTotalOverDue');
+        }
+        
+        $tpl->append($fieldTpl, 'DRIVER_FIELDS');
+    }
+
+    /**
+     * След подготовка на реда за експорт
+     *
+     * @param frame2_driver_Proto $Driver            
+     * @param stdClass $res            
+     * @param stdClass $rec            
+     * @param stdClass $dRec            
+     */
+    protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
+    {
+        $res->paidAmount = (self::getPaidAmount($dRec));
+        
+        $res->paidDates = self::getPaidDates($dRec, FALSE);
+        
+        $res->dueDate = self::getDueDate($dRec, FALSE, $rec);
+        
+        if ($dRec->invoiceCurrentSumm < 0) {
+            $invoiceOverSumm = - 1 * $dRec->invoiceCurrentSumm;
+            $res->invoiceCurrentSumm = '';
+            $res->invoiceOverSumm = ($invoiceOverSumm);
+        }
+        
+        if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
+            
+            $res->dueDateStatus = 'Просрочен';
+        }
+        
+        $invoiceNo = str_pad($dRec->invoiceNo, 10, "0", STR_PAD_LEFT);
+        
+        $res->invoiceNo = $invoiceNo;
+    }
 }
 
 
