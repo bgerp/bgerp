@@ -502,7 +502,7 @@ class trans_LineDetails extends doc_Detail
      * 			['documentLu'] - ЛЕ в документа
      * 			['readyLu']    - Готовите ЛЕ
      */
-    private static function colorTransUnits($documentLu, $readyLu)
+    public static function colorTransUnits($documentLu, $readyLu)
     {
 
     	// Само ненулевите ЛЕ

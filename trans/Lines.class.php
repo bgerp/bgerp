@@ -341,8 +341,12 @@ class trans_Lines extends core_Master
     		}
     	}
     	
-    	$data->row->logisticUnitsDocument = (count($calcedUnits)) ? core_Type::getByName('html')->toVerbal(trans_Helper::displayTransUnits($calcedUnits, NULL, TRUE)) : "<span class='quiet'>N/A</span>";
-    	$data->row->logisticUnits = (count($transUnits)) ? core_Type::getByName('html')->toVerbal(trans_Helper::displayTransUnits($transUnits, NULL, TRUE)) : "<span class='quiet'>N/A</span>";
+    	$logisticUnitsSum = trans_LineDetails::colorTransUnits($calcedUnits, $transUnits);
+    	$calcedUnits = empty($logisticUnitsSum->documentLu) ? 'N/A' : $logisticUnitsSum->documentLu;
+    	$transUnits = empty($logisticUnitsSum->readyLu) ? 'N/A' : $logisticUnitsSum->readyLu;
+    	
+    	$data->row->logisticUnitsDocument = core_Type::getByName('html')->toVerbal($calcedUnits);
+    	$data->row->logisticUnits = core_Type::getByName('html')->toVerbal($transUnits);
     	$data->row->weight = (!empty($weight)) ? cls::get('cat_type_Weight')->toVerbal($weight) : "<span class='quiet'>N/A</span>";
     	$data->row->volume = (!empty($volume)) ? cls::get('cat_type_Volume')->toVerbal($volume) : "<span class='quiet'>N/A</span>";
     	
