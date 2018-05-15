@@ -370,6 +370,8 @@ class trans_LineDetails extends doc_Detail
     		$rec->readyLu = NULL;
     	}
     	
+    	$rec->readyLu = empty($rec->readyLu) ? NULL : $rec->readyLu;
+    	$rec->documentLu = empty($rec->documentLu) ? NULL : $rec->documentLu;
     	self::setTransUnitField($form, $rec->readyLu);
     	if(isset($rec->documentLu)){
     		$defValue = trans_Helper::convertToUnitTableArr($rec->documentLu);
