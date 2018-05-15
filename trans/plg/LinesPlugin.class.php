@@ -329,4 +329,18 @@ class trans_plg_LinesPlugin extends core_Plugin
 		
 		$res['transportUnits'] = trans_Helper::getCombinedTransUnits($rec->transUnits, $rec->transUnitsInput);
 	}
+	
+	
+	/**
+	 * Изпълнява се преди оттеглянето на документа
+	 */
+	public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+	{
+		$rec = $mvc->fetchRec($id);
+		if(isset($rec->lineId)){
+			core_Statuses::newStatus('Документа не може да се оттегли докато е включен в транспортна линия|*!', 'error');
+	
+			return FALSE;
+		}
+	}
 }
