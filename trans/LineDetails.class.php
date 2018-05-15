@@ -249,7 +249,7 @@ class trans_LineDetails extends doc_Detail
     	// Бутон за подготовка
     	if($mvc->haveRightFor('prepare', $rec)){
     		$url = array($mvc, 'prepare', 'id' => $rec->id, 'ret_url' => TRUE);
-    		$row->_rowTools->addLink('Подготвяне', $url, array('ef_icon' => "img/16/checked.png", 'title' => "Ръчна подготовка на документа"));
+    		$row->_rowTools->addLink('Подготвяне', $url, array('ef_icon' => "img/16/tick-circle-frame.png", 'title' => "Ръчна подготовка на документа"));
     	}
     	
     	// Бутон за създаване на коментар
