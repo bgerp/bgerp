@@ -86,6 +86,12 @@ class trans_LineDetails extends doc_Detail
     
     
     /**
+     * Работен кеш
+     */
+    private static $cache = array();
+    
+    
+    /**
      * Вербалните имена на класовете
      */
     private static $classGroups = array('store_ShipmentOrders'      => 'Експедиции', 
@@ -117,7 +123,7 @@ class trans_LineDetails extends doc_Detail
      * @param int $containerId - контейнер на документ
      * @return int             - синхронизирания запис
      */
-    public static function sync($lineId, $containerId, $isReady = FALSE)
+    public static function sync($lineId, $containerId)
     {
     	$Document = doc_Containers::getDocument($containerId);
     	$transportInfo = $Document->getTransportLineInfo();
@@ -137,13 +143,9 @@ class trans_LineDetails extends doc_Detail
     		$rec = (object)array('lineId' => $lineId, 'containerId' => $containerId, 'classId' => $Document->getClassId());
     	}
     	
-    	// Запис на ЛЕ от документа
+    	// Запис на ЛЕ от документа, ако позволява
     	if($r = $Document->requireManualCheckInTransportLine()){
     		$rec->documentLu = $transportInfo['transportUnits'];
-    		 
-    		if($isReady === TRUE){
-    			$rec->readyLu = $rec->documentLu;
-    		}
     	}
     	
     	self::save($rec);
@@ -224,15 +226,9 @@ class trans_LineDetails extends doc_Detail
     		$row->collection = "<span class='cCode'>{$transportInfo['currencyId']}</span> " . core_type::getByName('double(decimals=2)')->toVerbal($transportInfo['amount']);
     	}
     	
-    	
     	$luObject = self::colorTransUnits($rec->documentLu, $rec->readyLu);
 		$row->documentLu = $luObject->documentLu;
 		$row->readyLu = $luObject->readyLu;
-    	//$row->documentLu = trans_Helper::displayTransUnits($rec->documentLu, NULL, TRUE);
-    	
-    	//if(!empty($rec->readyLu)){
-    		//$row->readyLu = trans_Helper::displayTransUnits($rec->readyLu, NULL, TRUE);
-    	//}
     	
     	if($mvc->haveRightFor('togglestatus', $rec) && !Mode::isReadOnly()){
     		$btnImg = ($rec->status != 'waiting') ? 'img/16/checked.png' : 'img/16/checkbox_no.png';
@@ -451,10 +447,27 @@ class trans_LineDetails extends doc_Detail
      */
     public function renderGroupName($data, $groupId, $groupVerbal)
     {
-    	$className = cls::getClassName($groupId);
-    	$className = tr(self::$classGroups[$className]);
+    	if(!array_key_exists($groupId, self::$cache)){
+    		
+    		// Към коя група спада документа
+    		$className = cls::getClassName($groupId);
+    		$className = tr(self::$classGroups[$className]);
+    		 
+    		// Общо записи от същия вид документ
+    		$total = self::count("#lineId = {$data->masterId} AND #classId = {$groupId}");
+    		$totalVerbal = core_Type::getByName('int')->toVerbal($total);
+    		 
+    		// Общо готови записи от същия вид документ
+    		$ready = self::count("#lineId = {$data->masterId} AND #status = 'ready' AND #classId = {$groupId}");
+    		$readyVerbal = core_Type::getByName('int')->toVerbal($ready);
+    		
+    		// На всяка група се показва колко са готови от общата им бройка
+    		$className .= " ({$readyVerbal}/{$totalVerbal})";
+    		
+    		self::$cache[$groupId] = $className;
+    	}
     	
-    	return $className;
+    	return self::$cache[$groupId];
     }
     
     
@@ -515,8 +528,7 @@ class trans_LineDetails extends doc_Detail
      */
     public static function colorTransUnits($documentLu, $readyLu)
     {
-
-    	// Само ненулевите ЛЕ
+		// Само ненулевите ЛЕ
     	$documentLu = empty($documentLu) ? array() : $documentLu;
     	$readyLu = empty($readyLu) ? array() : $readyLu;
     	$documentLu = array_filter($documentLu, function (&$d1){return !empty($d1);});

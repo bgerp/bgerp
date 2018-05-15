@@ -406,12 +406,14 @@ class trans_Lines extends core_Master
     	}
     	
     	// Запис на изчислените полета
-    	$this->save_($rec, 'countTotal,countReady');
+    	$rec->modifiedOn = dt::now();
+    	$rec->modifiedBy = core_Users::getCurrent();
+    	$this->save_($rec, 'countTotal,countReady,modifiedOn,modifiedBy');
     	
     	// Ако има не-готови линии, нишката се отваря
     	$Threads = cls::get('doc_Threads');
     	$threadState = ($rec->countReady < $rec->countTotal) ? 'opened' : 'closed';
-    	$threadRec = doc_Threads::fetch($rec->threadId);
+    	$threadRec = doc_Threads::fetch($rec->threadId, 'state');
     	$threadRec->state = $threadState;
     	$Threads->save($threadRec, 'state');
     	$Threads->updateThread($threadRec->id);

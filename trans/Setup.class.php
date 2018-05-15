@@ -157,7 +157,10 @@ class trans_Setup extends core_ProtoSetup
     }
     
     
-    public function updateLu()
+    /**
+     * Ъпдейт на ЛЕ в ЕН
+     */
+    private function updateLu()
     {
     	$so = cls::get('store_ShipmentOrders');
     	$so->setupMvc();
@@ -207,7 +210,10 @@ class trans_Setup extends core_ProtoSetup
     }
     
     
-    public function updateStoreMasters()
+    /**
+     * Обновява ЛЕ в складовите документи
+     */
+    private function updateStoreMasters()
     {
     	$arr = array('store_ShipmentOrders');
     	$sod = cls::get('store_ShipmentOrderDetails');
@@ -241,7 +247,11 @@ class trans_Setup extends core_ProtoSetup
     	wp("UPDATE SO COUNT" . count($save));
     }
     
-    public function addDetailsToLines()
+    
+    /**
+     * Добавяне на детайли на транс. линиите
+     */
+    private function addDetailsToLines()
     {
     	$lines = array();
     	foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_Transfers', 'store_ConsignmentProtocols') as $Doc){
