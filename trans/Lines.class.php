@@ -98,7 +98,7 @@ class trans_Lines extends core_Master
     /**
      * Кои полета да могат да се променят след активацията на документа
      */
-    public $changableFields = 'title, repeat, vehicle, forwarderId, forwarderPersonId';
+    public $changableFields = 'title, start, repeat, vehicle, forwarderId, forwarderPersonId';
     
     
     /**
