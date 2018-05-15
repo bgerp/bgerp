@@ -295,4 +295,16 @@ class store_Receipts extends store_DocumentMaster
     		}
     	}
     }
+    
+    
+    /**
+     * Трябва ли ръчно да се подготвя документа в Транспортната линия
+     *
+     * @param mixed $id     - ид или запис на документа
+     * @return boolean      - TRUE или FALSE
+     */
+    public function requireManualCheckInTransportLine($id)
+    {
+    	return FALSE;
+    }
 }
