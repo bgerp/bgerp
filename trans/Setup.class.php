@@ -63,7 +63,8 @@ class trans_Setup extends core_ProtoSetup
     		'trans_TransportUnits',
     		'trans_LineDetails',
     		'migrate::updateVehicles',
-    		'migrate::updateLineVehicles'
+    		'migrate::updateLineVehicles',
+    		'migrate::updateStoreDocuments'
         );
 
         
