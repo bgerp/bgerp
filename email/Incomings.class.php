@@ -395,6 +395,7 @@ class email_Incomings extends core_Master
                 
         // Обхождаме всички статуси
         foreach($statusSum as $status => $cnt) {
+            $status = ucfirst($status);
             $logMsg .= "; {$status}={$cnt}";
         }
                 
@@ -513,12 +514,6 @@ class email_Incomings extends core_Master
                     $status = 'spam';
                 } elseif(self::process($mime, $accId, $uid)) {
                     $status = 'incoming';
-                }
-                
-                if ($status == 'returned' || $status == 'receipt') {
-                    $fromEml = $mime->getFromEmail();
-                    $state = ($status == 'returned') ? 'error' : 'ok';
-                    blast_BlockedEmails::addEmail($fromEml, TRUE, $state);
                 }
             }
         } catch (core_exception_Expect $exp) {
@@ -1654,7 +1649,7 @@ class email_Incomings extends core_Master
     {
         // Репортване, ако имаме данни за нишката
         if ($rec->threadId || $rec->folderId) {
-            if(!Mode::is('isMigrate')) wp($rec);
+            if(!Mode::is('isMigrate') && !Mode::is('MassImporting')) wp($rec);
             return;
         }
         
