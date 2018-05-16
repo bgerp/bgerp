@@ -231,7 +231,7 @@ class git_Lib
         self::cmdExec($commandMergeAbort, $lines, $repoPath);
             
         if (!$res) {
-            $log[] = "Бъдещ ПРОБЛЕМЕН merge. -> " . var_export($res, TRUE);
+            $log[] = "Бъдещ ПРОБЛЕМЕН merge. -> " . var_export($res, TRUE) . " ->" . var_export($lines, TRUE);
             return FALSE;
         }
         $log[] = "Бъдещ безпроблемен merge $branch1 -> $branch2";
