@@ -17,6 +17,7 @@
 				<!--ET_BEGIN state-->
 				<div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
 				<!--ET_END state-->
+				<div style='margin-top: 5px;font-weight:bold'>( [#countReady#] / [#countTotal#] )</div>
 			</td>
 			<td class='custom-header-bg' style='width:36%;'><b>|Изпълнител|*</b></td>
 		</tr>
@@ -75,38 +76,11 @@
 	</table>
 	<div class="lines"></div>
 	<div class='mergedDetailsholder'>
-	<!--ET_BEGIN Shipments-->
 	<div class='line-detail'>
-		<div class='line-header'>|Експедиции|*</div>
 		<div class="scrolling-holder">
-			[#Shipments#]
+			[#trans_LineDetails#]
 		</div>
 	</div>
-	<!--ET_END Shipments-->
-	<!--ET_BEGIN Receipts-->
-	<div class='line-detail'>
-		<div class='line-header'>|Доставки|*</div>
-		<div class="scrolling-holder">
-			[#Receipts#]
-		</div>
-	</div>
-	<!--ET_END Receipts-->
-	<!--ET_BEGIN Protocols-->
-	<div class='line-detail'>
-		<div class='line-header'>|Отговорно пазене|*</div>
-		<div class="scrolling-holder">
-			[#Protocols#]
-		</div>
-	</div>
-	<!--ET_END Protocols-->
-	<!--ET_BEGIN Transfers-->
-	<div class='line-detail'>
-		<div class='line-header'>|Вътрешни трансфери|*</div>
-		<div class="scrolling-holder">
-			[#Transfers#]
-		</div>
-	</div>
-	<!--ET_END Transfers-->
 	</div>
 	<!--ET_BEGIN TOTAL-->
 	<div class='line-detail'>
@@ -114,16 +88,21 @@
 		<table class="listTable">
 			<thead>
 			<tr>
-				<th>|Общо тегло|*</th>
-				<th>|Общ обем|*</th>
-				<th>|Общ брой палети|*</th>
-				<th>|Общa сума|*</th>
+				<th rowspan=2>|Общо тегло|*</th>
+				<th rowspan=2>|Общ обем|*</th>
+				<th colspan=2>|Общо логистични единици|*</th>
+				<th rowspan=2>|Общa сума|*</th>
+			</tr>
+			<tr>
+				<th>|Всички|*</th>
+				<th>|Подготвени|*</th>
 			</tr>
 			</thead>
 			<tr>
 				<td class="centered">[#weight#]</td>
 				<td class="centered">[#volume#]</td>
-				<td class="centered">[#palletCount#]</td>
+				<td class="centered">[#logisticUnitsDocument#]</td>
+				<td class="centered">[#logisticUnits#]</td>
 				<td class="centered">[#totalAmount#]</td>
 			</tr>
 		</table>

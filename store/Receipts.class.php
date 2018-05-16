@@ -62,12 +62,6 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
-     * Кой може да сторнира
-     */
-    public $canRevert = 'storeMaster, ceo';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canChangeline = 'ceo,store,trans';
@@ -112,7 +106,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'deliveryTime,valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
+    public $listFields = 'deliveryTime,valior, title=Документ, folderId, amountDelivered, weight, volume,lineId, createdOn, createdBy';
 
 
     /**
@@ -294,5 +288,17 @@ class store_Receipts extends store_DocumentMaster
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Трябва ли ръчно да се подготвя документа в Транспортната линия
+     *
+     * @param mixed $id     - ид или запис на документа
+     * @return boolean      - TRUE или FALSE
+     */
+    public function requireManualCheckInTransportLine($id)
+    {
+    	return FALSE;
     }
 }
