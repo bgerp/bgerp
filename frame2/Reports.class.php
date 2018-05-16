@@ -462,7 +462,7 @@ class frame2_Reports extends embed_Manager
     	
     	$vCount = frame2_ReportVersions::count("#reportId = {$rec->id}");
     	if($vCount > 1){
-    		$data->toolbar->addBtn("Версии ({$vCount})", $url, NULL, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
+    		$data->toolbar->addBtn("Версии|* ({$vCount})", $url, NULL, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
     	}
     }
     
@@ -550,8 +550,23 @@ class frame2_Reports extends embed_Manager
     			}
     		}
     		
-    		// Mаркиране че отчера реяжва да се обнови
-    		$me->setNewUpdateTimes[$rec->id] = $rec;
+    		// Кога последно е видяна от потребител справката
+    		$lastSeen = self::getLastSeenByUser(__CLASS__, $rec);
+    		$months = frame2_Setup::get('CLOSE_LAST_SEEN_BEFORE_MONTHS');
+    		$seenBefore = dt::addMonths(-1 * $months);
+    		
+    		if($lastSeen <= $seenBefore){
+    			
+    			// Ако е последно видяна преди зададеното време да се затваря и да не се обновява повече
+    			$rec->state = 'closed';
+    			$me->invoke('BeforeChangeState', array($rec, $rec->state));
+    			$me->save($rec, 'state');
+    			$me->logWrite('Затваряне на остаряла справка', $rec->id);
+    		} else {
+    			
+    			// Mаркиране че отчета че трябва да се обнови
+    			$me->setNewUpdateTimes[$rec->id] = $rec;
+    		}
     	}
     }
     
@@ -966,5 +981,33 @@ class frame2_Reports extends embed_Manager
     			doc_ThreadUsers::addShared($nRec->threadId, $nRec->containerId, $cu);
     		}
     	}
+    }
+    
+    
+    /**
+     * Помощна ф-я кога дадения обект е последно видян от потребител
+     * 
+     * @param mixed $classId  - клас
+     * @param mixed $objectId - ид на запис или обект
+     * @return datetime|NULL  - на коя дата
+     */
+    private static function getLastSeenByUser($classId, $objectId)
+    {
+    	$Class = cls::get($classId);
+    	$objectRec = $Class->fetchRec($objectId, 'id,threadId');
+    	
+    	// Нишката посещавана ли е
+    	$oRecs = log_Data::getObjectRecs('doc_Threads', $objectRec->threadId, 'read', NULL, 1, 'DESC');
+    	$lastDate1 = $oRecs[key($oRecs)]->time;
+    	
+    	// Сингъла посещаван ли е
+    	$oRecs1 = log_Data::getObjectRecs($Class->className, $objectRec->id, 'read', NULL, 1, 'DESC');
+    	$lastDate2 = $oRecs[key($oRecs1)]->time;
+    	
+    	// По-голямата дата от двете
+    	$maxDate = max($lastDate1, $lastDate2);
+    	$lastUsedDate = !empty($maxDate) ? dt::timestamp2Mysql($maxDate) : NULL;
+    	
+    	return $lastUsedDate;
     }
 }
