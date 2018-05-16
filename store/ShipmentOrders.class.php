@@ -114,7 +114,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'deliveryTime,valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume, createdOn, createdBy,lineId';
+    public $listFields = 'deliveryTime,valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId, createdOn, createdBy';
     
     
     /**

@@ -421,10 +421,6 @@ abstract class store_DocumentMaster extends core_Master
 	   		}
 	   		
 	   		$row->storeId = store_Stores::getHyperlink($rec->storeId);
-	   		if(isset($rec->lineId)){
-	   			$row->lineId = trans_Lines::getHyperlink($rec->lineId);
-	   		}
-	   		
 	   		core_Lg::pop();
 	   		
 	   		if($rec->isReverse == 'yes'){

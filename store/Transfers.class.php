@@ -112,7 +112,7 @@ class store_Transfers extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'deliveryTime,valior, title=Документ, fromStore, toStore, weight, volume, folderId, createdOn, createdBy';
+    public $listFields = 'deliveryTime,valior, title=Документ, fromStore, toStore, weight, volume,lineId, folderId, createdOn, createdBy';
 
 
     /**
@@ -277,11 +277,7 @@ class store_Transfers extends core_Master
 	    	
     		$row->fromStore = store_Stores::getHyperlink($rec->fromStore);
     		$row->toStore = store_Stores::getHyperlink($rec->toStore);
-    		if(isset($rec->lineId)){
-    			$row->lineId = trans_Lines::getHyperlink($rec->lineId);
-    		}
-    		
-    		if ($rec->fromStore) {
+    		if($rec->fromStore) {
     		    $fromStoreLocation = store_Stores::fetchField($rec->fromStore, 'locationId');
     		    if($fromStoreLocation){
     		        $row->fromAdress = crm_Locations::getAddress($fromStoreLocation);

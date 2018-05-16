@@ -225,6 +225,10 @@ class trans_plg_LinesPlugin extends core_Plugin
 			$row->logisticInfo = trans_Helper::displayTransUnits($rec->transUnits, $rec->transUnitsInput);
 		}
 		
+		if(isset($rec->lineId)){
+			$row->lineId = (isset($fields['-single'])) ? trans_Lines::getHyperlink($rec->lineId) : trans_Lines::getLink($rec->lineId, 0);
+		}
+		
 		core_Lg::pop();
 	}
 	

@@ -97,7 +97,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, contragentId=Контрагент, folderId, createdOn, createdBy';
+    public $listFields = 'valior, title=Документ, contragentId=Контрагент, lineId, folderId, createdOn, createdBy';
 
 
 	/**
@@ -109,7 +109,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'store_ConsignmentProtocolDetailsSend,store_ConsignmentProtocolDetailsReceived' ;
+    public $details = 'store_ConsignmentProtocolDetailsSend,store_ConsignmentProtocolDetailsReceived';
     
 
     /**
@@ -221,10 +221,6 @@ class store_ConsignmentProtocols extends core_Master
 		
     	if(isset($fields['-single'])){
     		$row->storeId = store_Stores::getHyperlink($rec->storeId);
-    		if($rec->lineId){
-    			$row->lineId = trans_Lines::getHyperLink($rec->lineId);
-    		}
-    		
     		$row->username = core_Users::getVerbal($rec->createdBy, 'names');
     	}
     }
