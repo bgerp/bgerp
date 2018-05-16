@@ -307,17 +307,23 @@ class trans_Lines extends core_Master
     {
     	$row = $data->row;
     	
-    	$amount = $weight = $volume = 0;
+    	$amount = $amountReturned = $weight = $volume = 0;
     	$sumWeight = $sumVolume = TRUE;
     	$transUnits = $calcedUnits = array();
     	
     	$dQuery = trans_LineDetails::getQuery();
     	$dQuery->where("#lineId = {$data->rec->id}");
     	
+    	$returnClassId = store_Receipts::getClassId();
     	while($dRec = $dQuery->fetch()){
     		$Document = doc_Containers::getDocument($dRec->containerId);
     		$transInfo = $Document->getTransportLineInfo();
-    		$amount += $transInfo['baseAmount'];
+    		
+    		if($dRec->classId == $returnClassId){
+    			$amountReturned += $transInfo['baseAmount'];
+    		} else {
+    			$amount += $transInfo['baseAmount'];
+    		}
     		
     		// Сумиране на ЛЕ от документа и подготвените
     		trans_Helper::sumTransUnits($transUnits, $dRec->readyLu);
@@ -358,6 +364,9 @@ class trans_Lines extends core_Master
     	$bCurrency = acc_Periods::getBaseCurrencyCode();
     	$data->row->totalAmount = " <span class='cCode'>{$bCurrency}</span> ";
     	$data->row->totalAmount .= core_Type::getByName('double(decimals=2)')->toVerbal($amount);
+    	
+    	$data->row->totalAmountReturn = " <span class='cCode'>{$bCurrency}</span> ";
+    	$data->row->totalAmountReturn .= core_Type::getByName('double(decimals=2)')->toVerbal($amountReturned);
     }
     
     

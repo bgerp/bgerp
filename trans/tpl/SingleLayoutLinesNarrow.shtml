@@ -60,11 +60,14 @@
 				<th rowspan=2>|Общо тегло|*</th>
 				<th rowspan=2>|Общ обем|*</th>
 				<th colspan=2>|Общо логистични единици|*</th>
-				<th rowspan=2>|Общa сума|*</th>
+				<th colspan=2>|Общо логистични единици|*</th>
+				<th colspan=2>|Общо|*</th>
 			</tr>
 			<tr>
 				<th>|Всички|*</th>
 				<th>|Подготвени|*</th>
+				<th>|За инкасиране|*</th>
+				<th>|За плащане|*</th>
 			</tr>
 			</thead>
 			<tr>
@@ -73,6 +76,7 @@
 				<td class="centered">[#logisticUnitsDocument#]</td>
 				<td class="centered">[#logisticUnits#]</td>
 				<td class="centered">[#totalAmount#]</td>
+				<td class="centered">[#totalAmountReturn#]</td>
 			</tr>
 		</table>
 			</div>

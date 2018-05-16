@@ -287,7 +287,7 @@ class store_Products extends core_Detail
     	$arrRes = arr::syncArrays($all, $oldRecs, "productId,storeId", "quantity");
     	
     	if(!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
-    		self::logWarning("Синхронизирането на складовите наличности е заключено от друг процес");
+    		$self->logWarning("Синхронизирането на складовите наличности е заключено от друг процес");
     		return;
     	}
     	
