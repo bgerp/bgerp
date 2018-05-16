@@ -2,12 +2,6 @@
 
 
 /**
- * Период, на който крона ще затваря миналите Линии и ще генерира нови
- */
-defIfNot('TRANS_LINES_CRON_INTERVAL', 60 * 60);
-
-
-/**
  * Дефолтен текст за инструкции на изпращача
  */
 defIfNot('TRANS_CMR_SENDER_INSTRUCTIONS', '');
@@ -20,7 +14,7 @@ defIfNot('TRANS_CMR_SENDER_INSTRUCTIONS', '');
  * @category  bgerp
  * @package   trans
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -31,37 +25,37 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'trans_Lines';
+    public $startCtr = 'trans_Lines';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Организация на вътрешния транспорт";
+    public $info = "Организация на вътрешния транспорт";
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'store=0.1';
+    public $depends = 'store=0.1';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'trans_Vehicles',
     		'trans_Lines',
     		'trans_Cmrs',
@@ -77,21 +71,20 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'trans';
+    public $roles = 'trans';
 
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
+    public $menuItems = array(
             array(3.3, 'Логистика', 'Транспорт', 'trans_Lines', 'default', "trans, ceo"),
         );
 
     /**
 	 * Описание на конфигурационните константи
 	 */
-	var $configDescription = array(
-		'TRANS_LINES_CRON_INTERVAL' => array("time", 'caption=Период за генериране и затваряне на линии->Време'),
+	public $configDescription = array(
 		'TRANS_CMR_SENDER_INSTRUCTIONS' => array('text(rows=2)' ,"caption=ЧМР->13. Инструкции на изпращача"),
 	);
 	
