@@ -87,8 +87,8 @@ class auto_handler_CreateQuotationFromInquiry {
     		core_Users::forceSystemUser();
     		$fields = array('originId' => cat_Products::fetchField($productId, 'containerId'));
     		$quoteId = sales_Quotations::createNewDraft($Cover->getInstance()->getClassId(), $Cover->that, NULL, $fields);
-
-
+    		sales_Quotations::logWrite("Създаване от запитване", $quoteId);
+    		
     		if(empty($quoteId)){
     			cat_Products::logDebug("Проблем при опит за създаване на автоматичен оферта към артикул", $productId);
     			return;
@@ -109,7 +109,7 @@ class auto_handler_CreateQuotationFromInquiry {
                     cls::get('sales_Quotations')->invoke('BeforeActivation', array($qRec));
                     $qRec->_isActivated = TRUE;
                     sales_Quotations::save($qRec, 'state,modifiedOn,modifiedBy,activatedOn,date');
-                    sales_Quotations::logInfo("Активиране на автоматично създадена оферта към запитване", $quoteId);
+                    sales_Quotations::logWrite("Активиране на автоматично създадена оферта към запитване", $quoteId);
                 }
     		}
     		
@@ -170,6 +170,7 @@ class auto_handler_CreateQuotationFromInquiry {
 
     	$rec = $form->rec; 
     	$productId = $Products->save($rec);
+    	$Products->logWrite("Създаване от запитване", $productId);
     	doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE, FALSE, $marketingRec->createdBy);
     	
     	return $productId;

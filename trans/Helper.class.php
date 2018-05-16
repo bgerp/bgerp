@@ -117,6 +117,7 @@ abstract class trans_Helper
 		$combined = self::getCombinedTransUnits($transUnits, $transUnitsTable);
 		
 		foreach ($combined as $unitId => $quantity){
+		    if(empty($quantity)) continue;
 			$strPart = trans_TransportUnits::display($unitId, $quantity);
 			if(array_key_exists($unitId, $transUnitsTable) && !Mode::isReadOnly()){
 				$strPart = ht::createHint($strPart, 'Зададено е ръчно');
