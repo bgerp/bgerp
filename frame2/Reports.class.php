@@ -32,7 +32,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone';
+    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close';
                       
     
     /**
@@ -197,6 +197,12 @@ class frame2_Reports extends embed_Manager
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'title,driverClass';
+    
+    
+    /**
+     * Бутона за затваряне на кой ред да е
+     */
+    public $closeBtnRow = 1;
     
     
     /**
@@ -597,7 +603,7 @@ class frame2_Reports extends embed_Manager
     		frame2_ReportVersions::keepInCheck($rec->id);
     	}
     	
-    	// Айи ще се махнат зададените времена за обновяване, махат се
+    	// Ако ще се махнат зададените времена за обновяване, махат се
     	if($rec->removeSetUpdateTimes === TRUE){
     		self::removeAllSetUpdateTimes($rec->id);
     	}
@@ -619,9 +625,9 @@ class frame2_Reports extends embed_Manager
     {
     	if($rec->state == 'draft'){
     		$rec->state = 'active';
-    	} elseif($rec->state == 'rejected'){
+    	} elseif($rec->state == 'rejected' || $rec->state == 'closed'){
     		$rec->removeSetUpdateTimes = TRUE;
-    	} elseif($rec->state == 'active' && $rec->brState == 'rejected'){
+    	} elseif($rec->state == 'active' && in_array($rec->brState, array('rejected', 'closed'))){
     		$rec->updateRefreshTimes = TRUE;
     	}
     }
@@ -640,7 +646,7 @@ class frame2_Reports extends embed_Manager
     			}
     		}
     		
-    		if($rec->state == 'rejected'){
+    		if(in_array($rec->state, array('rejected', 'closed'))){
     			$requiredRoles = 'no_one';
     		}
     	}
