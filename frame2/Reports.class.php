@@ -766,6 +766,7 @@ class frame2_Reports extends embed_Manager
     	if($versionId = self::getSelectedVersionId($data->rec->id)){
     		if($versionRec = frame2_ReportVersions::fetchField($versionId, 'oldRec')){
     			$data->originalRec = clone $data->rec;
+    			$versionRec->state = $data->originalRec->state;
     			$data->rec = $versionRec;
     		}
     	}
