@@ -29,7 +29,7 @@ class git_Lib
     {
         $path = escapeshellarg($path . '/.git');
 
-        $c = "git --git-dir=$path {$cmd}";
+        $c = "git --git-dir=$path {$cmd} 2>&1";
 
         exec($c, $lines, $returnVar);
  			
