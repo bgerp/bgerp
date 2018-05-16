@@ -704,9 +704,17 @@ class frame2_Reports extends embed_Manager
     {
     	$resArr = arr::make($resArr);
     	$resArr['title'] = array('name' => tr('Заглавие'), 'val' => $row->title);
+    	$updateHeaderName = tr('Актуализиране');
+    	
+    	if($rec->state == 'closed'){
+    		$nextUpdates = self::getNextRefreshDates($rec);
+    		if(count($nextUpdates)){
+    			$updateHeaderName = ht::createHint($updateHeaderName, 'Справката няма да се актуализира докато е затворена', 'warning', TRUE, 'height=12px;width=12px');
+    		}
+    	}
     	
     	if(!empty($rec->updateDays) || !empty($rec->updateTime) || !empty($row->nextUpdate)){
-    		$resArr['update'] = array('name' => tr('Актуализиране'), 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
+    		$resArr['update'] = array('name' => $updateHeaderName, 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
         																		 <!--ET_BEGIN updateTime--><span style='font-weight:normal'>|Часове|*</span>: [#updateTime#]<!--ET_END updateTime--><!--ET_BEGIN nextUpdate--><div><span style='font-weight:normal'>|Следващо|*</span> [#nextUpdate#]</div><!--ET_END nextUpdate-->"));										 
     	}
     	
