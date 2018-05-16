@@ -213,7 +213,7 @@ class trans_LineDetails extends doc_Detail
     	
     	if(!empty($transportInfo['address'])){
     		$address = core_Type::getByName('varchar')->toVerbal($transportInfo['address']);
-    		$row->storeId .= "<br><span style='font-size:0.8em'>{$address}</span>";
+    		$row->storeId .= "<br><span class='line-detail-address'>{$address}</span>";
     	}
     	
     	if(!empty($transportInfo['weight'])){
@@ -266,6 +266,7 @@ class trans_LineDetails extends doc_Detail
     	$data->listTableMvc->FNC('weight', 'cat_type_Weight');
     	$data->listTableMvc->FNC('volume', 'cat_type_Volume');
     	$data->listTableMvc->FNC('collection', 'double');
+    	$data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
     }
     
     

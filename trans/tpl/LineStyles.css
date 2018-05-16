@@ -16,6 +16,12 @@
 .document table.listTable tbody tr td.status-cell {
   padding-left: 10px !important; }
 
+.document table.listTable tbody tr td.row-notes {
+  font-size: 0.8em; }
+
+.line-detail-address {
+  font-size: 0.8em; }
+
 .printing .document .line-header {
   color: #333333;
   background: none;
