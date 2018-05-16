@@ -517,7 +517,7 @@ class core_Cron extends core_Manager
             }
             
             $duration = dt::secsBetween($rec->lastDone, $rec->lastStart);
-            
+            $duration -= $rec->delay;
             if (($duration >= $data['maxDuration']) || (dt::subtractSecs($mPeriod, $rec->lastDone) > $data['maxDurationTime'])) {
                 $data['maxDuration'] = $duration;
                 $data['maxDurationTime'] = $rec->lastDone;
@@ -563,6 +563,9 @@ class core_Cron extends core_Manager
             $duration = NULL;
             if ($rec->lastDone) {
                 $duration = dt::secsBetween($rec->lastDone, $rec->lastStart);
+                
+                $duration -= $rec->delay;
+                
                 $duration = " ({$duration}s)";
             }
             
