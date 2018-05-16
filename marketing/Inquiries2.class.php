@@ -809,7 +809,7 @@ class marketing_Inquiries2 extends embed_Manager
 
     	if($lg = Request::get('Lg')){
     		cms_Content::setLang($lg);
-    		core_Lg::push($lg);#Tsk1150
+    		core_Lg::push($lg);
     	}
     	
     	$form = $this->prepareForm($drvId);
@@ -910,6 +910,7 @@ class marketing_Inquiries2 extends embed_Manager
 
     			$id = $this->save($rec);
     			doc_Threads::doUpdateThread($rec->threadId);
+    			$this->logWrite("Създаване от е-артикул", $id);
     			
     			$singleUrl = self::getSingleUrlArray($id);
     			if(count($singleUrl)) return redirect($singleUrl, FALSE, '|Благодарим Ви за запитването', 'success');

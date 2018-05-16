@@ -1637,20 +1637,6 @@ class doc_DocumentPlg extends core_Plugin
                     if ($fType == 'doc') {
                         $document = doc_Containers::getDocument($fId);
                         $document->instance->requireRightFor('single', $document->that);
-                        
-                        $titleFld = '';
-                        if ($mvc->fields['title']) {
-                            $titleFld = 'title';
-                        } elseif ($mvc->fields['subject']) {
-                            $titleFld = 'subject';
-                        }
-                        
-                        if ($titleFld) {
-                            $oRow = $document->getDocumentRow();
-                            $for = tr('За|*: ');
-                            $title = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
-                            $data->form->setDefault($titleFld, $title);
-                        }
                     }
                 }
             }
@@ -1836,24 +1822,15 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if ($rec->originId) {
+        if (!$data->form->rec->id && !$data->form->rec->clonedFromId) {
             
-            $cid = $rec->originId;
-        } elseif ($rec->threadId) {
+            $detId = Request::get('detId', 'int');
             
-            // Ако добавяме коментар в нишката
-            $cid = doc_Threads::fetch($rec->threadId)->firstContainerId;
-        }
-        
-        if (!$data->form->rec->id) {
-            // Споделените потребители по подразбиране
-            $defaultShared = $mvc->getDefaultShared($rec, $cid);
+            $dData = $mvc->getDefaultData($rec, array('detId' => $detId, 'fType' => $fType));
             
-            if (core_Users::isPowerUser()) {
-                if ($defaultShared) {
-                    unset($defaultShared[-1]);
-                    unset($defaultShared[0]);
-                    $data->form->setDefault('sharedUsers', $defaultShared);
+            if (!empty($dData)) {
+                foreach ($dData as $key => $val) {
+                    $data->form->setDefault($key, $val);
                 }
             }
         }
@@ -1867,6 +1844,37 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             doc_Linked::showLinkedInForm($data->form, $cId);
+        }
+    }
+    
+    
+    /**
+     *
+     * @param core_Mvc $mvc
+     * @param NULL|array $res
+     * @param stdClass $rec
+     * @param array $otherParams
+     */
+    function on_AfterGetDefaultData($mvc, &$res, $rec, $otherParams = array())
+    {
+        $res = array();
+        
+        if ($rec->foreignId && $otherParams['fType'] == 'doc') {
+            $document = doc_Containers::getDocument($rec->foreignId);
+            
+            $titleFld = '';
+            if ($mvc->fields['title']) {
+                $titleFld = 'title';
+            } elseif ($mvc->fields['subject']) {
+                $titleFld = 'subject';
+            }
+            
+            if ($titleFld) {
+                $oRow = $document->getDocumentRow();
+                $for = tr('За|*: ');
+                $title = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+                $res[$titleFld] = $title;
+            }
         }
     }
     
@@ -4111,40 +4119,6 @@ class doc_DocumentPlg extends core_Plugin
         
         if (!$haveVal) {
             $res = NULL;
-        }
-    }
-    
-    
-    /**
-     * Връща споделените потребители по подразбиране.
-     * 
-     * @param core_Master $mvc
-     * @param NULL|array $res
-     * @param integer $cid
-     */
-    function on_AfterGetDefaultShared($mvc, &$res, $rec, $originId = NULL)
-    {
-        $res = arr::make($res, TRUE);
-        
-        if (!$originId) return ;
-        
-        if (!$mvc->autoShareOriginCreator) return ;
-        
-        $document = doc_Containers::getDocument($originId);
-        $dRec = $document->fetch();
-        
-        $createdBy = NULL;
-        
-        if ($dRec->createdBy > 0) {
-            $createdBy = $dRec->createdBy;
-        } elseif ($dRec->modifiedBy > 0) {
-            $createdBy = $dRec->modifiedBy;
-        }
-        
-        if (isset($createdBy)) {
-            if ($createdBy != core_Users::getCurrent()) {
-                $res[$createdBy] = $createdBy;
-            }
         }
     }
     

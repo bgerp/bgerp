@@ -346,6 +346,8 @@ class embed_Manager extends core_Master
                 case 'afterrectoverbal':
                 case 'afterrestore':
                 case 'afterreject':
+                case 'aftergetdefaultdata':
+                    
                 	$driverClass = $args[1]->{$this->driverClassField};
                 	break;
                 case 'aftergetthreadstate':
