@@ -269,7 +269,6 @@ class doc_DocumentIntf
     }
     
     
-    
     /**
      * Връща хеша на подадения документ
      * 
@@ -281,5 +280,20 @@ class doc_DocumentIntf
     {
         
         return $this->class->getExportFormats($id);
+    }
+    
+    
+    /**
+     * Връща дефолтни стойности за попълване на река
+     *
+     * @param stdClass $rec
+     * @param array $otherParams
+     *
+     * @return array
+     */
+    function getDefaultData($rec, $otherParams = array())
+    {
+        
+        return $this->class->getDefaultData($rec, $otherParams);
     }
 }

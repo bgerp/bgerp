@@ -49,6 +49,7 @@ class doc_SharablePlg extends core_Plugin
         
         // Дали да са споделени потребителите от оригиналния документ (ако създателят е един и същи)
         setIfNot($mvc->autoShareOriginShared, TRUE);
+        setIfNot($mvc->autoShareOriginCreator, FALSE);
     }
     
     
@@ -340,51 +341,72 @@ class doc_SharablePlg extends core_Plugin
     
     
     /**
-     * Връща споделените потребители по подразбиране.
      * 
-     * @param core_Master $mvc
+     * @param core_Mvc $mvc
      * @param NULL|array $res
-     * @param object $rec
-     * @param integer $originId
+     * @param stdClass $rec
+     * @param array $otherParams
      */
-    function on_AfterGetDefaultShared($mvc, &$res, $rec, $originId = NULL)
+    function on_AfterGetDefaultData($mvc, &$res, $rec, $otherParams = array())
     {
-        $res = arr::make($res, TRUE);
+        $res = arr::make($res);
         
-        if (!isset($originId)) return ;
+        if (!core_Users::isPowerUser()) return ;
         
-        if (!$mvc->autoShareOriginShared) return ;
+        if (!$mvc->autoShareOriginShared && !$mvc->autoShareOriginCreator) return ;
         
-        $document = doc_Containers::getDocument($originId);
-        $dRec = $document->fetch();
+        setIfNot($res['sharedUsers'], array());
         
-        $createdBy = NULL;
-        
-        if ($dRec->createdBy > 0) {
-            $createdBy = $dRec->createdBy;
-        } elseif ($dRec->modifiedBy > 0) {
-            $createdBy = $dRec->modifiedBy;
+        $orig = $rec->originId;
+        if (!$orig && $rec->threadId) {
+            $orig = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
         }
         
-        // Ако създадетеля на оригиналния документ е текущия
-        if (isset($createdBy)) {
-            $currUserId = core_Users::getCurrent();
-            if ($createdBy == $currUserId) {
-                if ($dRec->sharedUsers) {
-                    $sharedArr = type_Keylist::toArray($dRec->sharedUsers);
-                    unset($sharedArr[$currUserId]);
-                    $res += $sharedArr;
-                }
-        
-                // Предотвратяване на евентуално зацикляне
-                static $originArr = array();
-                
-                if ($dRec->originId && !$originArr[$dRec->originId]) {
-                    $originArr[$dRec->originId] = TRUE;
-                    $sharedArr = $mvc->getDefaultShared($dRec, $dRec->originId);
-                    $res += $sharedArr;
+        if ($rec->originId) {
+            $document = doc_Containers::getDocument($rec->originId);
+            
+            $dRec = $document->fetch();
+            
+            $createdBy = NULL;
+            
+            if ($dRec->createdBy > 0) {
+                $createdBy = $dRec->createdBy;
+            } elseif ($dRec->modifiedBy > 0) {
+                $createdBy = $dRec->modifiedBy;
+            }
+            
+            // Ако създадетеля на оригиналния документ е текущия
+            if (isset($createdBy)) {
+                $currUserId = core_Users::getCurrent();
+                if ($createdBy == $currUserId) {
+                    
+                    if ($mvc->autoShareOriginShared) {
+                        if ($dRec->sharedUsers) {
+                            $sharedArr = type_Keylist::toArray($dRec->sharedUsers);
+                            unset($sharedArr[$currUserId]);
+                            $res['sharedUsers'] += (array)$sharedArr;
+                        }
+                        
+                        // Предотвратяване на евентуално зацикляне
+                        static $originArr = array();
+                        
+                        if ($dRec->originId && !$originArr[$dRec->originId]) {
+                            $originArr[$dRec->originId] = TRUE;
+                            $sharedArr = $mvc->getDefaultData($dRec);
+                            $res['sharedUsers'] += (array)$sharedArr['sharedUsers'];
+                        }
+                    }
+                } else {
+                    if ($mvc->autoShareOriginCreator) {
+                        $res['sharedUsers'][$createdBy] = $createdBy;
+                    }
                 }
             }
+        }
+        
+        if (!empty($res['sharedUsers'])) {
+            unset($res['sharedUsers'][-1]);
+            unset($res['sharedUsers'][0]);
         }
     }
     

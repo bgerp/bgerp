@@ -80,36 +80,32 @@ class doc_ExpandComments extends core_Mvc
     
     
     /**
-     * 
-     * 
+     *
      * @param doc_ExpandComments $Driver
-     * @param doc_Comments $mvc
-     * @param stdClass $data
+     * @param core_Mvc $mvc
+     * @param NULL|array $res
+     * @param stdClass $rec
+     * @param array $otherParams
      */
-    static function on_AfterPrepareEditForm($Driver, $mvc, &$data)
+    function on_AfterGetDefaultData($Driver, $mvc, &$res, $rec, $otherParams = array())
     {
-        $rec = $data->form->rec;
+        $res = arr::make($res);
         
-        //Ако добавяме нови данни
-        if (!$rec->id) {
-            $haveOrigin = FALSE;
-            //Ако имаме originId
-            if ($rec->originId) {
-                $cid = $rec->originId;
-                $haveOrigin = TRUE;
-            } elseif ($rec->threadId) {
-                // Ако добавяме коментар в нишката
-                $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
-            }
-            
-            if ($cid && $data->action != 'clone') {
-                
-                //Добавяме в полето Относно отговор на съобщението
-                $oDoc = doc_Containers::getDocument($cid);
-                $for = tr('|За|*: ');
-                if ($haveOrigin) {
-                    $rec->body = $for . '#' .$oDoc->getHandle() . "\n" . $rec->body;
-                }
+        $haveOrigin = FALSE;
+        //Ако имаме originId
+        if ($rec->originId) {
+            $cid = $rec->originId;
+            $haveOrigin = TRUE;
+        } elseif ($rec->threadId) {
+            // Ако добавяме коментар в нишката
+            $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+        }
+        if ($cid) {
+            //Добавяме в полето Относно отговор на съобщението
+            $oDoc = doc_Containers::getDocument($cid);
+            $for = tr('|За|*: ');
+            if ($haveOrigin) {
+                $res['body'] = $for . '#' .$oDoc->getHandle() . "\n" . $rec->body;
             }
         }
     }

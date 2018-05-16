@@ -219,27 +219,34 @@ class doc_Comments extends embed_Manager
         if (!$data->form->rec->id) { 
             $data->form->fields['body']->type->params['appendQuote'] = 'appendQuote';
         }
+    }
+    
+    
+    /**
+     *
+     * @param core_Mvc $mvc
+     * @param NULL|array $res
+     * @param stdClass $rec
+     * @param array $otherParams
+     */
+    function on_AfterGetDefaultData($mvc, &$res, $rec, $otherParams = array())
+    {
+        $res = arr::make($res);
         
-        $rec = $data->form->rec;
+        //Ако имаме originId
+        if ($rec->originId) {
+            $cid = $rec->originId;
+        } elseif ($rec->threadId) {
+            // Ако добавяме коментар в нишката
+            $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+        }
         
-        //Ако добавяме нови данни
-        if (!$rec->id) {
-            
-            //Ако имаме originId
-            if ($rec->originId) {
-                $cid = $rec->originId;
-            } elseif ($rec->threadId) {
-                // Ако добавяме коментар в нишката
-                $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
-            }
-            
-            if ($cid && $data->action != 'clone') {
-                //Добавяме в полето Относно отговор на съобщението
-                $oDoc = doc_Containers::getDocument($cid);
-                $oRow = $oDoc->getDocumentRow();
-                $for = tr('|За|*: ');
-                $rec->subject = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
-            }
+        if ($cid) {
+            //Добавяме в полето Относно отговор на съобщението
+            $oDoc = doc_Containers::getDocument($cid);
+            $oRow = $oDoc->getDocumentRow();
+            $for = tr('|За|*: ');
+            $res['subject'] = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
         }
     }
     
