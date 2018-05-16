@@ -50,7 +50,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло / Обем,collection=Инкасиране,status,notes=@,documentHtml=@';
+    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,collection=Инкасиране,status,notes=@,documentHtml=@';
 
     
     /**
@@ -231,7 +231,9 @@ class trans_LineDetails extends doc_Detail
     	$row->measures = "{$weight} <b>/</b> {$volume}";
     	
     	if(!empty($transportInfo['amount'])){
-    		$row->collection = "<span class='cCode'>{$transportInfo['currencyId']}</span> " . core_type::getByName('double(decimals=2)')->toVerbal($transportInfo['amount']);
+    		$sign = ($rec->classId != store_Receipts::getClassId()) ? 1 : -1;
+    		$amount = $sign * $transportInfo['amount'];
+    		$row->collection = "<span class='cCode'>{$transportInfo['currencyId']}</span> " . core_type::getByName('double(decimals=2)')->toVerbal($amount);
     	}
     	
     	$luObject = self::colorTransUnits($rec->documentLu, $rec->readyLu);
