@@ -81,12 +81,15 @@
                                 </tr>
                                 <!--ET_END volume-->
                                 
-                                <!--ET_BEGIN palletCountInput-->
-                                <tr>
-                                    <td class='quiet nowrap aright'>|Брой палети|*:</td>
-                                    <td>[#palletCountInput#]</td>
-                                </tr>
-                                <!--ET_END palletCountInput-->
+                                <!--ET_BEGIN logisticInfo-->
+                  				<tr>
+                     				<td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span></td>
+                  				</tr>
+                  				<tr>
+                  					<td colspan="2" >[#logisticInfo#]</td>
+                  				</tr>
+                  				<!--ET_END logisticInfo-->
+                  				
                             </table>
                             <!--ET_BEGIN note-->
                             <hr>

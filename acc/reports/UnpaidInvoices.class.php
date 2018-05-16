@@ -141,8 +141,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             foreach ($threadsId as $thread) {
                 
                 // масив от фактури в тази нишка //
-                // $invoicesInThread = (deals_Helper::getInvoicesInThread($thread, $rec->checkDate, TRUE, TRUE, TRUE));
-                
+              
                 $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
                 
                 if (is_array($invoicePayments)) {
@@ -206,7 +205,11 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         $pRecs = array();
         $iRec = array();
         
-        $pQuery = purchase_Purchases::getQuery();
+        $purchasesQuery = purchase_Purchases::getQuery();
+        
+        $purchasesQuery->where("#closedDocuments != ''");
+        
+        $pQuery = purchase_Invoices::getQuery();
         
         $pQuery->where("#state != 'rejected'");
         
@@ -220,9 +223,30 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             $pQuery->where("#folderId = {$rec->contragent}");
         }
         
+        $purchasesUN = array();
+        
+        while ($purchase = $purchasesQuery->fetch()) {
+        
+        	foreach ((keylist::toArray($purchase->closedDocuments)) as $v) {
+        		$purchasesUN[$v] = ($v);
+        	}
+        }
+        
+        $purchasesUN = keylist::fromArray($purchasesUN);
+        
+        
         // Фактури ПОКУПКИ
         while ($purchaseInvoices = $pQuery->fetch()) {
-            
+        	
+        	$firstDocument = doc_Threads::getFirstDocument($purchaseInvoices->threadId);
+        	
+        	$className = $firstDocument->className;
+        	
+        	$purUnitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $purchasesUN);
+        	
+        	if (($className::fetchField($firstDocument->that, 'state') == 'closed') && ! $purUnitedCheck)
+        		continue;
+        	
             $pThreadsId[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
         }
         

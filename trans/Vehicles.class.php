@@ -109,4 +109,10 @@ class trans_Vehicles extends core_Master
     		$res = 'no_one';
     	}
     }
+    
+    
+    public function act_test()
+    {
+    	cls::get('trans_Setup')->updateStoreDocuments();
+    }
 }

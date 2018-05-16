@@ -91,6 +91,7 @@
                         <hr>
                         [#note#]
                         <!--ET_END note-->
+                        <!--ET_BEGIN logisticInfo--><div style='margin-bottom:3px;margin-top:3px;'>|Логистични единици|*:&nbsp;[#logisticInfo#]</div><!--ET_END logisticInfo--> 
                     </td>
                     <td class="topCell vtop">
                         <table class='no-border' style='margin-bottom: 20px;width:100%;' id='business-doc-summary-table'>

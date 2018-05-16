@@ -114,7 +114,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'deliveryTime,valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume, createdOn, createdBy';
+    public $listFields = 'deliveryTime,valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId, createdOn, createdBy';
     
     
     /**
@@ -306,13 +306,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     	}
     	
     	core_Lg::pop();
-    	
-    	$rec->palletCountInput = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
-    	if(!empty($rec->palletCountInput)){
-    		$row->palletCountInput = $mvc->getVerbal($rec, 'palletCountInput');
-    	} else {
-    		unset($row->palletCountInput);
-    	}
     }
     
     
@@ -342,36 +335,6 @@ class store_ShipmentOrders extends store_DocumentMaster
         		$form->setError('tel,country,pCode,place,address', 'Трябва или да са попълнени всички полета за адрес или нито едно');
         	}
         }
-    }
-    
-    
-    /**
-     * Подготовка на показване като детайл в транспортните линии
-     */
-    public function prepareShipments($data)
-    {
-    	$data->shipmentOrders = parent::prepareLineDetail($data->masterData);
-    }
-    
-    
-    /**
-     * Подготовка на показване като детайл в транспортните линии
-     */
-    public function renderShipments($data)
-    {
-    	if(count($data->shipmentOrders)){
-    		$tableMvc = clone $this;
-    		$tableMvc->FNC('documentHtml', 'varchar', 'tdClass=mergedDetailWideTD');
-    		$table = cls::get('core_TableView', array('mvc' => $tableMvc));
-    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCount=Палети,collection=Инкасиране,address=@Адрес,lineNotes=@";
-    		if(Mode::is('printing')){
-    			$fields .= ',documentHtml=@';
-    		}
-    		
-    		$fields = core_TableView::filterEmptyColumns($data->shipmentOrders, $fields, 'collection,palletCount,documentHtml,lineNotes');
-    		
-    		return $table->get($data->shipmentOrders, $fields);
-    	}
     }
     
     
@@ -419,37 +382,6 @@ class store_ShipmentOrders extends store_DocumentMaster
      					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
 
     	$res .= doc_TplManager::addOnce($this, $tplArr);
-    }
-    
-    
-    /**
-     * Изчислява броя колети в ЕН-то ако има
-     * 
-     * @param int $id - ид на ЕН
-     * @return int $count- брой колети/палети
-     */
-    public static function countCollets($id)
-    {
-    	$rec = static::fetchRec($id);
-    	$dQuery = store_ShipmentOrderDetails::getQuery();
-    	$dQuery->where("#shipmentId = {$rec->id}");
-    	$dQuery->where("#info IS NOT NULL");
-    	$count = 0;
-    	
-    	$resArr = array();
-    	while($dRec = $dQuery->fetch()){
-            $rowNums =store_ShipmentOrderDetails::getLUs($dRec->info);
-            if(is_array($rowNums)) {
-                $resArr += $rowNums;
-            }
-    	}
-    	 
-    	// Връщане на броя на колетите
-        if(count($resArr)) {
-    	    $count = max($resArr);
-        }
-    	
-    	return $count;
     }
     
     
