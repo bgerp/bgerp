@@ -505,7 +505,7 @@ class core_Cron extends core_Manager
             
             $saveArr = array('state' => 'state', 'lastDone' => 'lastDone', 'lastMaxUsedMemory' => 'lastMaxUsedMemory');
             
-            $mPeriod = max(7 * $rec->period, 1440);
+            $mPeriod = max(7 * $rec->period, 3 * 1440);
             $mPeriod *= 60;
             
             $data = &$rec->data;
