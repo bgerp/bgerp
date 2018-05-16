@@ -48,7 +48,12 @@ class trans_TransportUnits extends core_Manager
      */
     public $canEdit = 'trans,ceo';
 
-
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'trans,ceo';
+    
+    
     /**
      * Никой не може да добавя директно през модела нови фирми
      */
@@ -89,10 +94,16 @@ class trans_TransportUnits extends core_Manager
             $rec = $mvc->fetch($rec);
         }
 
-        if(($action == 'delete' || $action == 'edit') && $rec->createdBy) {
-            if($rec->createdBy != core_Users::getCurrent()) {
-                $roles = 'ceo';
-            }
+        if(($action == 'delete' || $action == 'edit')) {
+			if(isset($rec->createdBy)){
+				if($rec->createdBy != core_Users::getCurrent()) {
+					$roles = 'ceo';
+				}
+			}
+			
+			if($rec->systemId){
+				$roles = 'no_one';
+			}
         }
     }
     
@@ -156,6 +167,5 @@ class trans_TransportUnits extends core_Manager
     	$str = "{$quantity} {$unitName}";
     	
     	return $str;
-    	
     }
 }
