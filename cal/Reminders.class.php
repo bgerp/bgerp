@@ -243,7 +243,7 @@ class cal_Reminders extends core_Master
         						   notify=Нотификация,
                                    notifyNoAns = Нотификация-ако няма отговор,
         						   replicateDraft=Чернова-копие на темата,
-        						   replicate=Копие на темата)', 'caption=Действие при сработване->Избор, maxRadio=5,autohide,value=notify,notNull,changable');
+        						   replicate=Копие на темата)', 'caption=Действие при сработване->Избор, maxRadio=5,autohide,value=notify,notNull,changable,silent');
         
         // Начало на напомнянето
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)', 'caption=Време->Начало, silent,changable');
