@@ -59,7 +59,7 @@ class sales_Quotations extends core_Master
     /**
      * Поле за търсене по дата
      */
-    public $filterDateField = 'date';
+    public $filterDateField = 'createdOn, date, modifiedOn';
     
     
     /**
@@ -115,7 +115,7 @@ class sales_Quotations extends core_Master
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Оферта';
+    public $singleTitle = 'Изходяща оферта';
    
    
     /**
