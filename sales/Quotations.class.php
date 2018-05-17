@@ -509,6 +509,10 @@ class sales_Quotations extends core_Master
     	$row = parent::recToVerbal_($rec, $fields);
     	$mvc = cls::get(get_called_class());
     	
+    	if(empty($rec->date)){
+    		$row->date = ht::createHint('', 'Датата ще бъде записана при активиране');
+    	}
+    	
     	if($fields['-single']){
     		if(isset($rec->validFor)){
     	
@@ -621,10 +625,6 @@ class sales_Quotations extends core_Master
     	
     		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')){
     			$row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
-    		}
-    		 
-    		if(empty($rec->date)){
-    			$row->date = $mvc->getFieldType('date')->toVerbal(dt::today());
     		}
     		
     		$items = $mvc->getItems($rec->id, TRUE, TRUE);
