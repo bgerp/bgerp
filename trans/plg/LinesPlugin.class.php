@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   trans
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -289,6 +289,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 			}
 		}
 		
+		// Записват се сумарните ЛЕ от детайлите на документа
 		$masterRec->transUnits = $unitsArr;
 		$mvc->save_($masterRec, 'transUnits');
 		

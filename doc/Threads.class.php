@@ -823,6 +823,11 @@ class doc_Threads extends core_Manager
         $Cover->invoke('AfterPrepareThreadFilter', array(&$data->listFilter, &$data->query));
 
         $data->query->useCacheForPager = TRUE;
+        
+        // Ако има търсене, рефрешването да е след по-дълго време
+        if (isset($data->listFilter->rec->search)) {
+            $mvc->refreshRowsTime = 600000; // 10 мин.
+        }
     }
     
     

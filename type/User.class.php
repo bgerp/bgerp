@@ -104,7 +104,7 @@ class type_User extends type_Key
                 } else {
                     $uQuery->where("#state = 'active' OR #state = 'blocked' OR #state = 'closed'");
                 }
-                $uQuery->orderBy("#names", 'ASC');
+                $uQuery->orderBy('nick', 'ASC');
                 
                 // Потребителите, които ще покажем, трябва да имат посочените роли
                 $roles = core_Roles::getRolesAsKeylist($this->params['roles']);

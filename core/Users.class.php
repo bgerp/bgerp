@@ -281,7 +281,7 @@ class core_Users extends core_Manager
         }
  
         $uQuery = core_Users::getQuery();
-        $uQuery->orderBy('#nick');
+        $uQuery->orderBy('nick', 'ASC');
         
         $usersRolesArr = array();
         

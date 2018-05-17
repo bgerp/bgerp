@@ -1879,6 +1879,20 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|array $res
+     * @param stdClass $rec
+     * @param NULL|integer $detId
+     */
+    function on_AfterGetDefaultDataForComment($mvc, &$res, $rec, $detId = NULL)
+    {
+        $res = arr::make($res);
+    }
+    
+    
 	/**
      * Подготовка на бутоните на формата за добавяне/редактиране.
      *

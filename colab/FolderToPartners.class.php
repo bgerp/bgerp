@@ -613,6 +613,10 @@ class colab_FolderToPartners extends core_Manager
     {
     	Request::setProtected(array('companyId', 'rand', 'fromEmail', 'email'));
     	
+    	if (!$email = Request::get('email', 'email')) {
+    	    Request::removeProtected(array('email'));
+    	}
+    	
     	expect($companyId = Request::get('companyId', 'key(mvc=crm_Companies)'));
     	$Users = cls::get('core_Users');
     	$companyRec = crm_Companies::fetch($companyId);
@@ -654,9 +658,12 @@ class colab_FolderToPartners extends core_Manager
     	$form->setDefault('roleRank', core_Roles::fetchByName('partner'));
     	$Users->invoke('AfterPrepareEditForm', array((object)array('form' => $form), (object)array('form' => $form)));
     	$form->setDefault('state', 'active');
-
-        $form->setDefault('email', $email = Request::get('email', 'email'));
-
+        
+    	if ($email) {
+    	    $form->setDefault('email', $email);
+    	    $form->setReadonly('email');
+    	}
+        
     	$form->setField('roleRank', 'input=none');
     	$form->setField('roleOthers', "caption=Достъп за външен потребител->Роли");
     	
@@ -713,8 +720,8 @@ class colab_FolderToPartners extends core_Manager
     		
     		// Изтриваме линка, да не може друг да се регистрира с него
     		core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => $companyId, 'email' => $email, 'rand' => $rand), 604800);
-    
-    		return followRetUrl(array('colab_Threads', 'list', 'folderId' => $companyId), '|Успешно са създадени потребител и визитка на нов партньор');
+    		
+    		return followRetUrl(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
     	}
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис');

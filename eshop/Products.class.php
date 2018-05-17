@@ -526,7 +526,12 @@ class eshop_Products extends core_Master
      */
     public function renderProduct($data)
     {
-        $tpl = getTplFromFile("eshop/tpl/ProductShow.shtml");
+        if(Mode::is('wide')) {
+            $tpl = getTplFromFile("eshop/tpl/ProductShow.shtml");
+        } else {
+
+            $tpl = getTplFromFile("eshop/tpl/ProductShowNarrow.shtml");
+        }
         $tpl->placeObject($data->row);
     
         if(is_array($data->detailData->rows) && count($data->detailData->rows)){

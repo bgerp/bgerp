@@ -219,6 +219,32 @@ class doc_Comments extends embed_Manager
         if (!$data->form->rec->id) { 
             $data->form->fields['body']->type->params['appendQuote'] = 'appendQuote';
         }
+        
+        if (!$data->form->rec->id && !$data->form->rec->clonedFromId) {
+            
+            $detId = Request::get('detId', 'int');
+            
+            $originId = $data->form->rec->originId;
+            
+            if ($originId) {
+                $doc = doc_Containers::getDocument($originId);
+                
+                $dRec = $doc->fetch();
+                
+                $doc->instance->requireRightFor('single', $dRec);
+                
+                $dData = $doc->instance->getDefaultDataForComment($dRec, $detId);
+                
+                if (!empty($dData)) {
+                    foreach ($dData as $key => $val) {
+                        
+                        if (!isset($val)) continue;
+                        
+                        $data->form->rec->{$key} = $val;
+                    }
+                }
+            }
+        }
     }
     
     

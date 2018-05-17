@@ -162,6 +162,7 @@ class core_Detail extends core_Manager
         
         // Попълваме таблицата с редовете
         setIfNot($data->listTableMvc, clone $this);
+        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, TRUE);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме таблицата с редовете

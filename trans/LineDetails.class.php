@@ -255,8 +255,11 @@ class trans_LineDetails extends doc_Detail
     	}
     	
     	// Бутон за създаване на коментар
-    	$commentUrl = array('doc_Comments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-    	$row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => "img/16/comment_add.png", 'title' => "Известяване на отговорниците на документа"));
+    	$originId = trans_Lines::fetchField($rec->lineId, 'containerId');
+    	if($mvc->haveRightFor('doc_Comments', (object)array('originId' => $originId))){
+    		$commentUrl = array('doc_Comments', 'add', 'originId' => $originId, 'detId' => $rec->id,'ret_url' => TRUE);
+    		$row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => "img/16/comment_add.png", 'title' => "Известяване на отговорниците на документа"));
+    	}
     }
     
     
