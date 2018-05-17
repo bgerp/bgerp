@@ -92,7 +92,7 @@ class trans_Lines extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, handler=Документ, title, start, folderId, createdOn, createdBy';
+    public $listFields = 'start, handler=Документ, folderId, state,createdOn, createdBy';
     
 
     /**
@@ -274,17 +274,21 @@ class trans_Lines extends core_Master
     				$row->regNumber = trans_Vehicles::getVerbal($vehicleRec, 'number');
     			}
     		}
-	    	
-    		if(isset($rec->forwarderPersonId) && !Mode::isReadOnly()){
-    			$row->forwarderPersonId = ht::createLink($row->forwarderPersonId, crm_Persons::getSingleUrlArray($rec->forwarderPersonId));
-    		}
     		
 	    	$ownCompanyData = crm_Companies::fetchOwnCompany();
-	    	$row->myCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
+	    	$row->myCompany = ht::createLink($ownCompanyData->company, crm_Companies::getSingleUrlArray($ownCompanyData->companyId));
 	    	$row->logistic = (core_Mode::isReadOnly()) ? core_Users::getVerbal($rec->createdBy, 'names') : crm_Profiles::createLink($rec->createdBy);
-	    }
-    	
-    	$row->handler = $mvc->getLink($rec->id, 0);
+	    
+	    	if(isset($rec->forwarderPersonId) && !Mode::isReadOnly()){
+	    		$row->forwarderPersonId = ht::createLink($row->forwarderPersonId, crm_Persons::getSingleUrlArray($rec->forwarderPersonId));
+	    	}
+	    	 
+	    	if(isset($rec->forwarderId)){
+	    		$row->forwarderId = ht::createLink(crm_Companies::getVerbal($rec->forwarderId, 'name'), crm_Companies::getSingleUrlArray($rec->forwarderId));
+	    	}
+    	}
+	    
+    	$row->handler = $mvc->getHyperlink($rec->id, TRUE);
     }
     
     
