@@ -81,6 +81,12 @@ class core_Cron extends core_Manager
      * Време за опресняване информацията при лист на събитията
      */
     var $refreshRowsTime = 5000;
+    
+
+    /**
+     * Спиране на подреждането по състоянието
+     */
+    public $state2PreventOrderingByState = TRUE;
 
 
     /**

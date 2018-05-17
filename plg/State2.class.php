@@ -88,7 +88,9 @@ class plg_State2 extends core_Plugin
      */
     public static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
-        $data->query->orderBy('#state');
+        if(!$mvc->state2PreventOrderingByState) {
+            $data->query->orderBy('#state');
+        }
     }
     
     
