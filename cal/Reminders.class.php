@@ -932,7 +932,9 @@ class cal_Reminders extends core_Master
                 $newRec->{$tf} = preg_replace($from, $to, ' '. $newRec->{$tf} . ' ');
             }
         }
-
+        
+        $newRec->__isReplicate = TRUE;
+        
         $fcMvc->save($newRec);
     }
     
