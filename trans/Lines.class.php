@@ -78,6 +78,12 @@ class trans_Lines extends core_Master
 
 
     /**
+     * Кой може да пише?
+     */
+    public $canClose = 'ceo,trans,store';
+    
+    
+    /**
      * Детайла, на модела
      */
     public $details = 'trans_LineDetails';
@@ -352,8 +358,8 @@ class trans_Lines extends core_Master
     	
     	// Оцветяване на ЛЕ
     	$logisticUnitsSum = trans_LineDetails::colorTransUnits($calcedUnits, $transUnits);
-    	$calcedUnits = empty($logisticUnitsSum->documentLu) ? 'N/A' : $logisticUnitsSum->documentLu;
-    	$transUnits = empty($logisticUnitsSum->readyLu) ? 'N/A' : $logisticUnitsSum->readyLu;
+    	$calcedUnits = empty($logisticUnitsSum->documentLu) ? "<span class='quiet'>N/A</span>" : $logisticUnitsSum->documentLu;
+    	$transUnits = empty($logisticUnitsSum->readyLu) ? "<span class='quiet'>N/A</span>" : $logisticUnitsSum->readyLu;
     	
     	// Показване на сумарната информация
     	$data->row->logisticUnitsDocument = core_Type::getByName('html')->toVerbal($calcedUnits);
