@@ -305,7 +305,8 @@ class crm_Profiles extends core_Master
         		$params = array('Ctr' => 'doc_Folders', 'Act' => 'list');
         		foreach ($sharedFolders as $folderId) {
         			$params['folderId'] = $folderId;
-        			$data->ColabFolders->rowsArr[] = (object) (array('folderName' => doc_Folders::getLink($folderId)));
+                    $fRow = doc_Folders::recToVerbal(doc_Folders::fetch($folderId));
+        			$data->ColabFolders->rowsArr[] = (object) (array('folderName' =>  $fRow->title . ' (' . $fRow->type . ')'));
         		}
         	}
         }
