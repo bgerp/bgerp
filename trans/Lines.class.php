@@ -3,9 +3,7 @@
 
 
 /**
- * Клас 'trans_Lines'
- *
- * Документ за Транспортни линии
+ * Клас 'trans_Lines' - Документ за Транспортни линии
  *
  *
  * @category  bgerp
@@ -31,16 +29,9 @@ class trans_Lines extends core_Master
     
     
     /**
-     * Поддържани интерфейси
-     */
-    public $interfaces = 'doc_DocumentIntf';
-    
-    
-    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Sorting, plg_Printing, plg_Clone,
-                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder';
+    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone, doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_Close';
 
     
     
@@ -87,9 +78,15 @@ class trans_Lines extends core_Master
 
 
     /**
+     * Кой може да пише?
+     */
+    public $canClose = 'ceo,trans,store';
+    
+    
+    /**
      * Детайла, на модела
      */
-    public $details = 'Shipments=store_ShipmentOrders,Receipts=store_Receipts,Transfers=store_Transfers,Protocols=store_ConsignmentProtocols';
+    public $details = 'trans_LineDetails';
     
     
     /**
@@ -101,7 +98,7 @@ class trans_Lines extends core_Master
     /**
      * Кои полета да могат да се променят след активацията на документа
      */
-    public $changableFields = 'title, repeat, vehicle, forwarderId, forwarderPersonId';
+    public $changableFields = 'title, start, repeat, vehicle, forwarderId, forwarderPersonId';
     
     
     /**
@@ -155,6 +152,12 @@ class trans_Lines extends core_Master
     
     
     /**
+     * Да се забрани ли кеширането на документа
+     */
+    public $preventCache = TRUE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -168,6 +171,8 @@ class trans_Lines extends core_Master
     	$this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,group=suppliers,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
     	$this->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Превозвач->МОЛ');
     	$this->FLD('description', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
+    	$this->FLD('countReady', 'int', 'input=none,notNull,value=0');
+    	$this->FLD('countTotal', 'int', 'input=none,notNull,value=0');
     }
     
     
@@ -181,9 +186,9 @@ class trans_Lines extends core_Master
     	$start = str_replace(' 00:00', '', $start);
     	
     	if(count($titleArr) == 2){
-    		return "{$start}/{$titleArr[1]}";
+    		return "{$start}/{$titleArr[1]} ({$rec->countReady}/{$rec->countTotal})";
     	} else {
-    		return "{$start}/{$rec->title}";
+    		return "{$start}/{$rec->title} ({$rec->countReady}/{$rec->countTotal})";
     	}
     }
     
@@ -210,50 +215,18 @@ class trans_Lines extends core_Master
     {
     	$rec = $data->rec;
     	
-    	$changeUrl = array($mvc, 'changeState', $data->rec->id);
     	if($data->rec->state == 'active'){
-    		if(self::getDocumentsCnt($data->rec->id, 'draft', 1)){
-    			$error = ',error=Линията не може да бъде затворена докато има чернови документи към нея|*!';
-    		} else {
-    			$warning= ',warning=Наистина ли искате да затворите линията?';
+    		if(self::haveDraftDocuments($data->rec->id)){
+    			if($data->toolbar->hasBtn('btnClose')){
+    				$data->toolbar->setError('btnClose', "Линията не може да бъде затворена докато има чернови документи към нея|*!");
+    			}
     		}
-    		
-    		$data->toolbar->addBtn('Затваряне', $changeUrl, "ef_icon=img/16/lock.png{$error}{$warning},title=Затваряне на линията");
-    	}
-    	
-    	if($data->rec->state == 'closed' && $data->rec->start >= dt::today()){
-    		$data->toolbar->addBtn('Активиране', $changeUrl, 'ef_icon=img/16/lock_unlock.png,warning=Искате ли да активирате линията?,title=Отваряне на линията');
     	}
 
     	if($mvc->haveRightFor('single', $data->rec)){
     		$url = array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'Width' => 'yes');
     		$data->toolbar->addBtn('Печат (Детайли)', $url, "id=w{$attr['id']},target=_blank,row=2", 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
     	}
-    }
-    
-    
-    /**
-     * Екшън за отваряне/затваряне на линия
-     */
-    function act_ChangeState()
-    {
-    	$this->requireRightFor('write');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	expect($rec->state == 'active' || $rec->state == 'closed');
-    	expect($rec->start >= dt::today() || $rec->state == 'active');
-    	
-    	$rec->state = ($rec->state == 'active') ? 'closed' : 'active';
-    	
-    	// Освобождаваме всички чернови документи в които е избрана линията която затваряме
-    	if($rec->state == 'closed'){
-    	    expect(!self::getDocumentsCnt($id, 'draft', 1));
-    	}
-    	
-    	$this->save($rec);
-    	$msg = ($rec->state == 'active') ? '|Линията е отворена успешно' : '|Линията е затворена успешно';
-    	
-    	return new Redirect(array($this, 'single', $rec->id), $msg);
     }
     
     
@@ -306,9 +279,8 @@ class trans_Lines extends core_Master
     		
 	    	$ownCompanyData = crm_Companies::fetchOwnCompany();
 	    	$row->myCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-	    	
-	    	$row->logistic = core_Users::getVerbal($rec->createdBy, 'names');
-    	}
+	    	$row->logistic = (core_Mode::isReadOnly()) ? core_Users::getVerbal($rec->createdBy, 'names') : crm_Profiles::createLink($rec->createdBy);
+	    }
     	
     	$row->handler = $mvc->getLink($rec->id, 0);
     }
@@ -320,13 +292,14 @@ class trans_Lines extends core_Master
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
-       
+        $title = $this->getRecTitle($rec);
+        
         $row = (object)array(
-            'title'    => $rec->title,
+            'title'    => $title,
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
             'state'    => $rec->state,
-            'recTitle' => $rec->title,
+            'recTitle' => $title,
         );
         
         return $row;
@@ -338,16 +311,68 @@ class trans_Lines extends core_Master
      */
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	$data->row->weight = (!empty($data->weight)) ? cls::get('cat_type_Weight')->toVerbal($data->weight) : "<span class='quiet'>N/A</span>";
-    	$data->row->volume = (!empty($data->volume)) ? cls::get('cat_type_Volume')->toVerbal($data->volume) : "<span class='quiet'>N/A</span>";
+    	$row = $data->row;
     	
-    	$count = ($data->palletCount) ? $data->palletCount : 0;
-    	$data->row->palletCount = cls::get('type_Int')->toVerbal($count);
+    	$amount = $amountReturned = $weight = $volume = 0;
+    	$sumWeight = $sumVolume = TRUE;
+    	$transUnits = $calcedUnits = array();
     	
-    	$amount = ($data->totalAmount) ? $data->totalAmount : 0;
-    	$data->row->totalAmount = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amount);
+    	$dQuery = trans_LineDetails::getQuery();
+    	$dQuery->where("#lineId = {$data->rec->id}");
+    	
+    	$returnClassId = store_Receipts::getClassId();
+    	while($dRec = $dQuery->fetch()){
+    		$Document = doc_Containers::getDocument($dRec->containerId);
+    		$transInfo = $Document->getTransportLineInfo();
+    		
+    		if($dRec->classId == $returnClassId){
+    			$amountReturned += $transInfo['baseAmount'];
+    		} else {
+    			$amount += $transInfo['baseAmount'];
+    		}
+    		
+    		// Сумиране на ЛЕ от документа и подготвените
+    		trans_Helper::sumTransUnits($transUnits, $dRec->readyLu);
+    		trans_Helper::sumTransUnits($calcedUnits, $dRec->documentLu);
+    		
+    		// Сумиране на теглото от редовете
+    		if($sumWeight === TRUE){
+    			if($transInfo['weight']){
+    				$weight += $transInfo['weight'];
+    			} else {
+    				unset($weight);
+    				$sumWeight = FALSE;
+    			}
+    		}
+    		
+    		// Сумиране на обема от редовете
+    		if($sumVolume === TRUE){
+    			if($transInfo['volume']){
+    				$volume += $transInfo['volume'];
+    			} else {
+    				unset($volume);
+    				$sumVolume = FALSE;
+    			}
+    		}
+    	}
+    	
+    	// Оцветяване на ЛЕ
+    	$logisticUnitsSum = trans_LineDetails::colorTransUnits($calcedUnits, $transUnits);
+    	$calcedUnits = empty($logisticUnitsSum->documentLu) ? "<span class='quiet'>N/A</span>" : $logisticUnitsSum->documentLu;
+    	$transUnits = empty($logisticUnitsSum->readyLu) ? "<span class='quiet'>N/A</span>" : $logisticUnitsSum->readyLu;
+    	
+    	// Показване на сумарната информация
+    	$data->row->logisticUnitsDocument = core_Type::getByName('html')->toVerbal($calcedUnits);
+    	$data->row->logisticUnits = core_Type::getByName('html')->toVerbal($transUnits);
+    	$data->row->weight = (!empty($weight)) ? cls::get('cat_type_Weight')->toVerbal($weight) : "<span class='quiet'>N/A</span>";
+    	$data->row->volume = (!empty($volume)) ? cls::get('cat_type_Volume')->toVerbal($volume) : "<span class='quiet'>N/A</span>";
+    	
     	$bCurrency = acc_Periods::getBaseCurrencyCode();
-    	$data->row->totalAmount .= " <span class='cCode'>{$bCurrency}</span>";
+    	$data->row->totalAmount = " <span class='cCode'>{$bCurrency}</span> ";
+    	$data->row->totalAmount .= core_Type::getByName('double(decimals=2)')->toVerbal($amount);
+    	
+    	$data->row->totalAmountReturn = " <span class='cCode'>{$bCurrency}</span> ";
+    	$data->row->totalAmountReturn .= core_Type::getByName('double(decimals=2)')->toVerbal($amountReturned);
     }
     
     
@@ -358,148 +383,73 @@ class trans_Lines extends core_Master
     {
     	$tpl->push('trans/tpl/LineStyles.css', 'CSS');
     }
-        
-    
-    /**
-     * Дали има свързано подотчетно лице към линията
-     * @param int $id - ид на линията
-     * @return boolean
-     */
-    public static function hasForwarderPersonId($id)
-    {
-    	expect($rec = static::fetch($id));
-    	
-    	return isset($rec->forwarderPersonId);
-    }
-    
-    
-    /**
-     * Създава и затваря нови транспортни линии
-     */
-    function cron_CreateNewLines()
-    {
-    	$now = dt::now();
-    	$today = dt::today();
-    	
-    	$query = $this->getQuery();
-    	$query2 = clone $query;
-    	$query->where("#state = 'active'");
-    	
-    	// Затварят се всички отворени линии, с начало в миналото
-    	while($rec = $query->fetch()){
-    		$close = FALSE;
-    		if(strpos($rec->start, ' 00:00:00') !== FALSE){
-    			$rec->start = str_replace(' 00:00:00', '', $rec->start);
-    			if($rec->start < $today){
-    				$close = TRUE;
-    			}
-    		} elseif($rec->start < $now){
-    			$close = TRUE;
-    		}
-    		
-    		if($close === TRUE){
-    			$rec->state = 'closed';
-    			$this->save($rec, 'state,modifiedOn,modifiedBy');
-    		}
-    	}
-    	
-    	// Намират се затворените линии, които не са повторени и
-    	// имат повторение и не са повторени
-    	$query2->where("#state = 'closed'");
-    	$query2->where("#repeat IS NOT NULL");
-    	$query2->where("#isRepeated = 'no'");
-    	while($rec = $query2->fetch()){
-            
-            // Генерира се новата линия
-            $newRec = $this->getNewLine($rec);
-    		
-            if(self::getDocumentsCnt($rec->id, NULL, 1) || doc_Threads::fetchField($rec->threadId, 'allDocCnt') > 1) {
-                
-                // Ако в старата линия има документи, създава и записва новата линия
-                $sudoUser = core_Users::sudo($rec->createdBy);
-                $this->save($newRec);
-                core_Users::exitSudo($sudoUser);
-                
-                // Линията се отбелязва като повторена
-                $rec->isRepeated = 'yes';
-                $this->save($rec, 'isRepeated');
-            } else {
-                // Вместо да създава нова линия, отваря старата, ако в нея няма документи
-                $rec->start = $newRec->start;
-                $rec->state = $newRec->state;
-                $this->save($rec);
-            }
-    	}
-    }
-    
-    
-    /**
-     * Създава нова линия възоснова на стара
-     * @param stdClass $rec - старата линия
-     * @return stdClass $newRec - Новата линия
-     */
-    private function getNewLine($rec)
-    {
-    	$newRec = new stdClass();
-    	$newRec->repeat            = $rec->repeat;
-    	$newRec->createdBy         = $rec->createdBy;
-    	$newRec->folderId          = $rec->folderId;
-    	$newRec->vehicle 		   = $rec->vehicle;
-    	$newRec->forwarderId 	   = $rec->forwarderId;
-    	$newRec->forwarderPersonId = $rec->forwarderPersonId;
-    	$newRec->isRepeated 	   = 'no';
-    	$newRec->start 			   = dt::addSecs($newRec->repeat, $newRec->start);
-    	$newRec->title 			   = $rec->title;
-    	$newRec->state 			   = 'active';
-    	
-    	return $newRec;
-    }
-    
-    
-	/**
-     * Извиква се след setUp-а на таблицата за модела
-     */
-    protected static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	$conf = core_Packs::getConfig('trans');
-    	$period = $conf->TRANS_LINES_CRON_INTERVAL / 60;
-    	
-        $rec = new stdClass();
-        $rec->systemId    = "CreateNewLines";
-        $rec->description = "Затваряне и създаване на нови транспортни линии";
-        $rec->controller  = "trans_Lines";
-        $rec->action      = "CreateNewLines";
-        $rec->period      = $period;
-        $rec->offset 	  = mt_rand(0, $period - 1);
-        $rec->delay 	  = 0;
-        $rec->timeLimit   = 100;
-        $res .= core_Cron::addOnce($rec);
-    }
 
     
     /**
      * Връща броя на документите в посочената линия
      * Може да се филтрират по #state и да се ограничат до maxDocs
      */
-    public static function getDocumentsCnt($lineId, $state = NULL, $maxDocs = 0)
+    private static function haveDraftDocuments($id)
     {
-        $res = 0;
-    	$me = cls::get(get_called_class());
-        $details = arr::make($me->details, TRUE);
-        foreach($details as $d) {
-            $query = $d::getQuery();
-    	    $query->where("#lineId = {$lineId}");
-            if($state) {
-    	        $query->where("#state = '{$state}'");
-            }
-            if($maxDoc) {
-                $query->limit($maxDocs);
-            }
-            $res += $query->count();
-
-            if($res >= $maxDocs) break;
-        }
-
-        return $res;
+        $query = trans_LineDetails::getQuery();
+        $query->EXT('docState', 'doc_Containers', 'externalName=state,externalKey=containerId');
+        $query->where("#lineId = {$id} AND #docState = 'draft'");
+        
+        return $query->count();
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$rec->countReady = $rec->countTotal = 0;
+    	
+    	// Изчисляване на готовите и не-готовите редове
+    	$dQuery = trans_LineDetails::getQuery();
+    	$dQuery->where("#lineId = {$rec->id}");
+    	$dQuery->show('status');
+    	while($dRec = $dQuery->fetch()){
+    		$rec->countTotal++;
+    		if($dRec->status == 'ready') {
+    			$rec->countReady++;
+    		}
+    	}
+    	
+    	// Запис на изчислените полета
+    	$rec->modifiedOn = dt::now();
+    	$rec->modifiedBy = core_Users::getCurrent();
+    	$this->save_($rec, 'countTotal,countReady,modifiedOn,modifiedBy');
+    	
+    	// Ако има не-готови линии, нишката се отваря
+    	$Threads = cls::get('doc_Threads');
+    	$threadState = ($rec->countReady < $rec->countTotal) ? 'opened' : 'closed';
+    	$threadRec = doc_Threads::fetch($rec->threadId, 'state');
+    	$threadRec->state = $threadState;
+    	$Threads->save($threadRec, 'state');
+    	$Threads->updateThread($threadRec->id);
+    }
+    
+    
+    /**
+     * Връща всички активни линии с подходящи заглавие
+     * 
+     * @return array $linesArr - масив с опции
+     */
+    public static function getActiveLines()
+    {
+    	$linesArr = array();
+    	$query = self::getQuery();
+    	$query->where("#state = 'active'");
+    	
+    	$recs = $query->fetchAll();
+    	array_walk($recs, function($rec) use (&$linesArr) {$linesArr[$rec->id] = self::getRecTitle($rec, FALSE);});
+    	
+    	return $linesArr;
     }
 }

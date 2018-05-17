@@ -35,22 +35,23 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData {
 	 */
 	protected $changeableFields = 'contragent,checkDate';
 	
+	
 	/**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
 	 * @param core_Fieldset $fieldset        	
 	 */
-	public function addFields(core_Fieldset &$fieldset) {
+	public function addFields(core_Fieldset &$fieldset)
+	 {
 		$fieldset->FLD ( 'from', 'date(smartTime)', 'caption=От,after=title,single=none,mandatory' );
 		$fieldset->FLD ( 'to', 'date(smartTime)', 'caption=До,after=from,single=none,mandatory' );
 		$fieldset->FLD ( 'selectedOff', 'set(FALSE=)', 'caption=Изключи избраните,after=documentType' );
-		
-		$fieldset->FLD ( 'documentType', 'keylist(mvc=core_Classes,select=title,allowEmpty)', 'caption=Документи,placeholder=Всички,after=to' );
-		
+		$fieldset->FLD ( 'documentType', 'keylist(mvc=core_Classes,select=title,allowEmpty)', 'caption=Документи,placeholder=Всички,single=none,after=to' );		
 		$fieldset->FLD ( 'states', 'keylist(mvc=doc_Containers,allowEmpty)', 'caption=Състояние,placeholder=Всички,after=selectedOff,single=none' );
 		$fieldset->FLD ( 'dealerId', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Търговец,after=states,single=none' );
-	}
+	 }
 	
+	 
 	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
@@ -59,7 +60,8 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData {
 	 * @param embed_Manager $Embedder        	
 	 * @param stdClass $data        	
 	 */
-	protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data) {
+	protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
+	{
 		$form = $data->form;
 		$rec = $form->rec;
 		
@@ -83,6 +85,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData {
 		$form->setSuggestions ( 'states', $states );
 	}
 	
+	
 	/**
 	 * Кои записи ще се показват в таблицата
 	 *
@@ -90,8 +93,10 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData {
 	 * @param stdClass $data        	
 	 * @return array
 	 */
-	protected function prepareRecs($rec, &$data = NULL) {
+	protected function prepareRecs($rec, &$data = NULL)
+	 {
 		$recs = array ();
+		$counter = array ();
 		
 		$contoClasses = core_Classes::getOptionsByInterface ( 'acc_TransactionSourceIntf' );
 		
@@ -147,11 +152,16 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData {
 			if ($contDoc->valior < $rec->from || $contDoc->valior > $rec->to)
 				continue;
 			
+			$counterKey = $className . $contDoc->state;
+			
+			$counter [$counterKey] ++;
+			
 			if (! array_key_exists ( $Document->that, $recs )) {
 				
 				$recs [$Document->that] = ( object ) array (
 						
 						'documentType' => $documentType,
+						'counter' => '',
 						'documentFolder' => $document->folderId,
 						'containerId' => $document->id,
 						'documentId' => $Document->that,
@@ -170,27 +180,39 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData {
 			arr::natOrder ( $recs, 'documentType' );
 		}
 		
+		foreach ( $recs as $v ) {
+			$v->counter = $counter;
+			$temp [] = $v;
+		}
+		$recs = $temp;
+		
 		return $recs;
 	}
-	protected function getTableFieldSet($rec, $export = FALSE) {
+	
+	
+	/**
+	 * Добавя полетата на драйвера към Fieldset
+	 *
+	 * @param core_Fieldset $fieldset
+	 */
+	protected function getTableFieldSet($rec, $export = FALSE) 
+	{
 		$fld = cls::get ( 'core_FieldSet' );
 		
 		if ($export === FALSE) {
 			
 			$fld->FLD ( 'documentType', 'varchar', 'caption=Вид документ' );
-			
 			$fld->FLD ( 'valior', 'date', 'caption=Дата,smartCenter' );
-			// $fld->FLD('states', 'varchar', 'caption=Състояние');
 			$fld->FLD ( 'handle', 'varchar', 'caption=Документ,smartCenter' );
 			$fld->FLD ( 'documentFolder', 'varchar', 'caption=Папка,smartCenter' );
-			
-			if (count ( type_Keylist::toArray ( $rec->dealerId ) ) > 1) {
+			if (count ( type_Keylist::toArray ( $rec->dealerId ) ) > 1 || ! $rec->dealerId) {
 				
 				$fld->FLD ( 'dealerId', 'varchar', 'caption=Търговец,smartCenter' );
 			}
 		}
 		return $fld;
 	}
+	
 	
 	/**
 	 * Вербализиране на редовете, които ще се показват на текущата страница в отчета
@@ -201,18 +223,29 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData {
 	 *        	- чистия запис
 	 * @return stdClass $row - вербалния запис
 	 */
-	protected function detailRecToVerbal($rec, &$dRec) {
+	protected function detailRecToVerbal($rec, &$dRec) 
+	{
 		$isPlain = Mode::is ( 'text', 'plain' );
 		$Int = cls::get ( 'type_Int' );
 		$Date = cls::get ( 'type_Date' );
 		
 		$row = new stdClass ();
+		
 		$Document = doc_Containers::getDocument ( $dRec->containerId );
 		
 		list ( $className, $other ) = explode ( '|', $dRec->documentType );
 		
-		// $typeOfDocument = $className::getTitleById($dRec->documentId);
-		$typeOfDocument = $Document->title . '  »  ' . cls::get ( $className )->getFieldType ( 'state' )->toVerbal ( $other );
+		if (is_array ( $dRec->counter )) {
+			foreach ( $dRec->counter as $k => $v ) {
+				
+				if ($k == $className . $other) {
+					
+					$thisCounter = $v;
+				}
+			}
+		}
+		
+		$typeOfDocument = $Document->title . '  »  ' . cls::get ( $className )->getFieldType ( 'state' )->toVerbal ( $other ) . " $thisCounter " . 'бр.';
 		
 		$handle = $className::getHandle ( $dRec->documentId );
 		
@@ -220,13 +253,13 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData {
 		
 		$singleUrl = $Document->getUrlWithAccess ( $Document->getInstance (), $Document->that );
 		
-		$row->documentType .= "<span class= 'large' >" . "$typeOfDocument" . $Date->toVerbal ( $typeOfDate ) . "</span>";
+		$row->documentType .= "<span class= 'large' >" . "$typeOfDocument" ."</span>";
 		
 		$row->valior = $Date->toVerbal ( $dRec->valior );
 		
 		$row->states = "<span class= normal >" . cls::get ( $className )->getFieldType ( 'state' )->toVerbal ( $dRec->states ) . "</span>";
 		
-		$row->handle = "<span class= 'state-{$state} document-handler' >" . ht::createLink ( "#{$handle}.</span>", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}" ) . "</span>";
+		$row->handle = "<span class= 'state-{$state} document-handler' >" . ht::createLink ( "#{$handle} </span>", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}" ) . "</span>";
 		
 		$row->documentFolder = doc_Folders::getHyperlink ( $dRec->documentFolder );
 		
@@ -234,6 +267,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData {
 		
 		return $row;
 	}
+	
 	
 	/**
 	 * След рендиране на единичния изглед
@@ -243,12 +277,14 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData {
 	 * @param core_ET $tpl        	
 	 * @param stdClass $data        	
 	 */
-	protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data) {
+	protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data) 
+	{
 		$Date = cls::get ( 'type_Date' );
 		$fieldTpl = new core_ET ( tr ( "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                 <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
+						   		<small><div><!--ET_BEGIN documentType-->|Вид документи|*: [#documentType#]<!--ET_END documentType--></div></small>
                                 <small><div><!--ET_BEGIN states-->|Състояние|*: [#states#]<!--ET_END states--></div></small>
                                 <small><div><!--ET_BEGIN dealerId-->|Търговец|*: [#dealerId#]<!--ET_END dealerId--></div></small>
                                 </fieldset><!--ET_END BLOCK-->" ) );
@@ -282,17 +318,26 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData {
 			$fieldTpl->append ( 'Всички', 'dealerId' );
 		}
 		
+		if (isset ( $data->rec->documentType )) {
+				
+			foreach ( type_Keylist::toArray ( $data->rec->documentType ) as $documentsChecked ) {
+		
+				$dokumentsVerb .= (core_Classes::getTitleById ( $documentsChecked ) . ', ');
+			}
+				if (! $data->rec->selectedOff){
+			
+					$fieldTpl->append ( trim ( $dokumentsVerb, ',  ' ), 'documentType' );
+				}else{
+				
+					$fieldTpl->append ( "<b>".'Всички без: '."</b>".trim ( $dokumentsVerb, ',  ' ), 'documentType' );
+				} 
+			
+		}else {
+			
+			$fieldTpl->append ( 'Всички', 'documentType' );
+		}
+		
 		$tpl->append ( $fieldTpl, 'DRIVER_FIELDS' );
 	}
-	
-	/**
-	 * След подготовка на реда за експорт
-	 *
-	 * @param frame2_driver_Proto $Driver        	
-	 * @param stdClass $res        	
-	 * @param stdClass $rec        	
-	 * @param stdClass $dRec        	
-	 */
-	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass) {
-	}
+
 }

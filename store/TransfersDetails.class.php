@@ -69,7 +69,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'newProductId, packagingId, packQuantity, weight=Тегло, volume=Обем';
+    public $listFields = 'newProductId, packagingId, packQuantity, weight=Тегло, volume=Обем, transUnitId = ЛЕ';
     
         
     /**

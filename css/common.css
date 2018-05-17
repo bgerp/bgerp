@@ -1467,10 +1467,6 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   -ms-border-radius: 5px;
   border-radius: 5px; }
 
-.formFooter {
-  font-size: 0.9em;
-  padding-bottom: 15px; }
-
 .formNotice {
   background-color: #ffff66;
   border: solid 1px green;

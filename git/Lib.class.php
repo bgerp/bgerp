@@ -29,7 +29,7 @@ class git_Lib
     {
         $path = escapeshellarg($path . '/.git');
 
-        $c = "git --git-dir=$path {$cmd}";
+        $c = "git --git-dir=$path {$cmd} 2>&1";
 
         exec($c, $lines, $returnVar);
  			
@@ -231,7 +231,7 @@ class git_Lib
         self::cmdExec($commandMergeAbort, $lines, $repoPath);
             
         if (!$res) {
-            $log[] = "Бъдещ ПРОБЛЕМЕН merge.";
+            $log[] = "Бъдещ ПРОБЛЕМЕН merge. -> " . var_export($res, TRUE) . " ->" . var_export($lines, TRUE);
             return FALSE;
         }
         $log[] = "Бъдещ безпроблемен merge $branch1 -> $branch2";

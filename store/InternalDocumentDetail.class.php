@@ -22,6 +22,12 @@ abstract class store_InternalDocumentDetail extends doc_Detail
 	public $productFieldName = 'productId';
 	
 	
+	/**
+	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
+	 */
+	public $hideListFieldsIfEmpty = 'transUnitId';
+	
+	
     /**
      * Описание на модела (таблицата)
      */

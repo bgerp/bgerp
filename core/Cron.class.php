@@ -37,7 +37,7 @@ class core_Cron extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id,title=Описание,parameters=Параметри,last=Последно,state";
+    var $listFields = "id,title=Описание,parameters=Параметри,last=Последно, max=Максимални стойности, state";
     
     
     /**
@@ -117,6 +117,8 @@ class core_Cron extends core_Manager
         $this->FLD('state', 'enum(free=Свободно,locked=Заключено,stopped=Спряно)', 'caption=Състояние,1input=none');
         $this->FLD('lastStart', 'datetime', 'caption=Последно->Стартиране,input=none');
         $this->FLD('lastDone', 'datetime', 'caption=Последно->Приключване,input=none');
+        $this->FLD('lastMaxUsedMemory', 'fileman_FileSize', 'caption=Последно->Използвана памет,input=none');
+        $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни,input=none');
 
         $this->setDbUnique('systemId,offset,delay');
 		
@@ -409,7 +411,8 @@ class core_Cron extends core_Manager
         $rec->state = 'locked';
         $rec->lastStart = dt::verbal2mysql();
         $rec->lastDone = NULL;
-        $this->save($rec, 'state,lastStart,lastDone');
+        $rec->lastMaxUsedMemory = NULL;
+        $this->save($rec, 'state,lastStart,lastDone,lastMaxUsedMemory');
         $this->currentRec = clone($rec);
 
         // Изчакваме преди началото на процеса, ако е зададено 
@@ -504,7 +507,30 @@ class core_Cron extends core_Manager
         if ($rec->state == 'locked') {
             $rec->state = 'free';
             $rec->lastDone = dt::verbal2mysql();
-            $this->save($rec, 'state,lastDone');
+            $rec->lastMaxUsedMemory = memory_get_peak_usage(TRUE);
+            
+            $saveArr = array('state' => 'state', 'lastDone' => 'lastDone', 'lastMaxUsedMemory' => 'lastMaxUsedMemory');
+            
+            $mPeriod = max(7 * $rec->period, 3 * 1440);
+            $mPeriod *= 60;
+            
+            $data = &$rec->data;
+            
+            if (($rec->lastMaxUsedMemory >= $data['maxUsedMemory']) || (dt::subtractSecs($mPeriod, $rec->lastDone) > $data['maxUsedMemoryTime'])) {
+                $data['maxUsedMemory'] = $rec->lastMaxUsedMemory;
+                $data['maxUsedMemoryTime'] = $rec->lastDone;
+                $saveArr['data'] = 'data';
+            }
+            
+            $duration = dt::secsBetween($rec->lastDone, $rec->lastStart);
+            $duration -= $rec->delay;
+            if (($duration >= $data['maxDuration']) || (dt::subtractSecs($mPeriod, $rec->lastDone) > $data['maxDurationTime'])) {
+                $data['maxDuration'] = $duration;
+                $data['maxDurationTime'] = $rec->lastDone;
+                $saveArr['data'] = 'data';
+            }
+            
+            $this->save($rec, $saveArr);
         }
     }
     
@@ -537,13 +563,35 @@ class core_Cron extends core_Manager
         $row->delay = $mvc->getVerbal($rec, 'delay');
         $row->timeLimit = $mvc->getVerbal($rec, 'timeLimit');
         $row->systemId = $mvc->getVerbal($rec, 'systemId');
+        $row->lastMaxUsedMemory = $mvc->getVerbal($rec, 'lastMaxUsedMemory');
         
         if($rec->lastStart) {
-            $row->last = "<p>От: <b>{$row->lastStart}</b>";
+            $duration = NULL;
+            if ($rec->lastDone) {
+                $duration = dt::secsBetween($rec->lastDone, $rec->lastStart);
+                
+                $duration -= $rec->delay;
+                
+                $duration = " ({$duration}s)";
+            }
+            
+            $row->last = "<p>" . tr('Начало') . ": <b>{$row->lastStart}</b>" . $duration . "</p>";
         }
         
-        if($rec->lastDone) {
-            $row->last .= "<p>До: <b>{$row->lastDone}</b>";
+        if($rec->lastMaxUsedMemory) {
+            $row->last .= "<p>" . tr('Памет') . ": <b>{$row->lastMaxUsedMemory}</b></p>";
+        }
+        
+        if ($rec->data['maxUsedMemory']) {
+            $fType = cls::get('fileman_FileSize');
+            
+            $row->max .= "<p>" . tr('Памет') . ": <b>" . $fType->toVerbal($rec->data['maxUsedMemory']) . "</b> - " . dt::mysql2verbal($rec->data['maxUsedMemoryTime'], "smartTime") . "</p>";
+        }
+        
+        if ($rec->data['maxDuration']) {
+            $tTime = cls::get('type_Time');
+            
+            $row->max .= "<p>" . tr('Прод.') . ": <b>" . $tTime->toVerbal($rec->data['maxDuration']) . "</b> - " . dt::mysql2verbal($rec->data['maxDurationTime'], "smartTime") . "</p>";
         }
         
         $url = toUrl(array(
@@ -557,14 +605,14 @@ class core_Cron extends core_Manager
         $row->title = "<p>" . $row->systemId . "</p><p><i>{$row->description}</i></p>";
         
         $row->parameters = "<p style='color:green'><b>\${$row->controller}->{$row->action}</b><p>" .
-        "Всеки <b>{$row->period}</b> + <b>{$row->offset}</b>";
+        tr('Всеки') . " <b>{$row->period}</b> + <b>{$row->offset}</b>";
         
         if($rec->delay) {
-            $row->parameters .= ", Зак.: <b>{$row->delay}</b> s";
+            $row->parameters .= ", " . tr('Зак.') . ": <b>{$row->delay}</b> s";
         }
         
         if($rec->timeLimit) {
-            $row->parameters .= ", Лимит: <b>{$row->timeLimit}</b> s";
+            $row->parameters .= ", " . tr('Лимит') . ": <b>{$row->timeLimit}</b> s";
         }
         
         $now = dt::mysql2timestamp(dt::verbal2mysql());
