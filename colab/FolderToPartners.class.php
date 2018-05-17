@@ -437,9 +437,9 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function callback_Createnewcontractor($data)
     {
-    	Request::setProtected(array('companyId', 'rand', 'fromEmail'));
-    	
-    	redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'rand' => $data['rand'], 'fromEmail' => TRUE));
+    	Request::setProtected(array('companyId', 'rand', 'email', 'fromEmail'));
+ 
+    	redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'email' => $data['email'], 'rand' => $data['rand'], 'fromEmail' => TRUE));
     }
     
     
@@ -547,23 +547,26 @@ class colab_FolderToPartners extends core_Manager
     		$toArr = type_Emails::toArray($rec->to);
     		foreach ($toArr as $to) {
     			$PML->AddAddress($to);
+                if(!core_Users::fetch(array("#email = '[#1#]'", $to))) {
+                    $userEmail = $to;
+                }
     		}
     	}
         
     	$PML->Encoding = "quoted-printable";
-        
-        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => $rec->companyId, 'email' => $rec->to, 'rand' => str::getRand()), 604800);
+       
+        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand()), 604800);
     	
         $rec->body = str_replace($rec->placeHolder, "[link=$url]link[/link]", $rec->body);
 
     	Mode::push('text', 'plain');
     	$bodyAlt = cls::get('type_Richtext')->toVerbal($rec->body);
     	Mode::pop('text');
-
+ 
     	Mode::push('text', 'xhtml');
     	$bodyTpl = cls::get('type_Richtext')->toVerbal($rec->body);
     	email_Sent::embedSbfImg($PML);
-    	
+   
     	Mode::pop('text');
     	
     	$PML->AltBody = $bodyAlt;
@@ -608,7 +611,7 @@ class colab_FolderToPartners extends core_Manager
      */
     function act_Createnewcontractor()
     {
-    	Request::setProtected(array('companyId', 'rand', 'fromEmail'));
+    	Request::setProtected(array('companyId', 'rand', 'fromEmail', 'email'));
     	
     	expect($companyId = Request::get('companyId', 'key(mvc=crm_Companies)'));
     	$Users = cls::get('core_Users');
@@ -651,6 +654,9 @@ class colab_FolderToPartners extends core_Manager
     	$form->setDefault('roleRank', core_Roles::fetchByName('partner'));
     	$Users->invoke('AfterPrepareEditForm', array((object)array('form' => $form), (object)array('form' => $form)));
     	$form->setDefault('state', 'active');
+
+        $form->setDefault('email', $email = Request::get('email', 'email'));
+
     	$form->setField('roleRank', 'input=none');
     	$form->setField('roleOthers', "caption=Достъп за външен потребител->Роли");
     	
@@ -706,7 +712,7 @@ class colab_FolderToPartners extends core_Manager
     		static::save((object)array('contractorId' => $uId, 'folderId' => $folderId));
     		
     		// Изтриваме линка, да не може друг да се регистрира с него
-    		core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => $companyId, 'rand' => $rand), 604800);
+    		core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => $companyId, 'email' => $email, 'rand' => $rand), 604800);
     
     		return followRetUrl(array('colab_Threads', 'list', 'folderId' => $companyId), '|Успешно са създадени потребител и визитка на нов партньор');
     	}
