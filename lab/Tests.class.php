@@ -46,7 +46,7 @@ class lab_Tests extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title,type,batch,activatedOn=Активиран,lastChangedOn=Последно';
+    var $listFields = 'id, title,type,batch,activatedOn=Активиран';
 
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
@@ -314,7 +314,7 @@ class lab_Tests extends core_Master
     }
 
     /**
-     * pendingSavedСравнение на два теста
+     *Сравнение на два теста
      *
      * @return core_Et $tpl
      */
@@ -414,17 +414,9 @@ class lab_Tests extends core_Master
         
         
         $data->listFilter->input();
-        
-        $data->query->EXT('paramId', 'lab_TestDetails', 'externalName=paramName,externalKey=id');
-        
-        $data->query->EXT('paramValue', 'lab_TestDetails', 'externalName=value,externalKey=id');
-        $data->query->mvc->EXT('paramValue', 'lab_TestDetails', 'externalName=value,externalKey=id');
-        
+
         $data->query->where("#state != 'rejected'");
-        
-        
-        
-        
+
         if ($data->listFilter->isSubmitted()) {
         
             if ($data->listFilter->rec->dateStart) {
@@ -441,207 +433,37 @@ class lab_Tests extends core_Master
             $data->query->orderBy('#createdOn', 'DESC');
             
             if ($data->listFilter->rec->paramIdFilter) {
+                
+                $data->query->EXT('paramValue', 'lab_TestDetails', 'externalName=value,remoteKey=testId');
 
-                $data->query->where(array("#paramId = '[#1#]'", $data->listFilter->rec->paramIdFilter));
+                $data->query->EXT('paramName', 'lab_TestDetails', 'externalName=paramName,remoteKey=testId');
 
+                $data->query->where(array("#paramName = '[#1#]'", $data->listFilter->rec->paramIdFilter));
+                
                 $data->query->orderBy('paramValue', 'DESC');
                 
                 $data->listFields = arr::make($data->listFields,TRUE);
                 
-                $data->listFields['paramValue'] = type_Varchar::escape(lab_Parameters::fetchField($data->listFilter->rec->paramIdFilter,'name'));
+                $mvc->FNC('paramValue', 'double(2)');
                 
+                $data->listFields['paramValue'] ='Стойност'/* type_Varchar::escape(lab_Parameters::fetchField($data->listFilter->rec->paramIdFilter,'name'))*/;
+                 
             }
-            
-            //bp($data);
-            
-            
+           
         }
-        
-        $myQuery = clone($data->query);
-        
-        while ($tester =  $myQuery->fetch()){
-            
-            $testsArr[]=$tester;
-            
-        }
-       
-      // bp($data->query->mvc->listFields,$data->listFilter->rec->paramIdFilter,$testsArr);
         
         return ;
         
-        
-
-   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
-        
-        
-        
-        
-        
-        
-        
-        
-        // Check wether the table has records
-        $hasRecords = $mvc->fetchField("#id != 0", 'id');
-//        bp($data);
-        if ($hasRecords) {
-            $data->listFilter->title = 'Филтър';
-            $data->listFilter->view = 'horizontal';
-            $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-            $data->listFilter->FNC('dateStartFilter', 'date', 'caption=От,placeholder=От');
-            $data->listFilter->FNC('dateEndFilter', 'date', 'caption=До,placeholder=До');
-            $data->listFilter->FNC('paramIdFilter', 'key(mvc=lab_Parameters,select=name, allowEmpty)', 
-                'caption=Параметри,refreshForm');
-            $data->listFilter->FNC('searchString', 'varchar(255)', 'caption=Търсене,placeholder=Търсене');
-            $data->listFilter->showFields = 'dateStartFilter, dateEndFilter, paramIdFilter, searchString';
-            
-            // Активиране на филтъра
-            $data->listFilter->rec = $data->listFilter->input();
-            
-            // Ако филтъра е активиран
-            if ($data->listFilter->isSubmitted()) {
-                // Prepare $condDateStartFilter
-                $condDateStartFilter = NULL;
-                
-                if ($data->listFilter->rec->dateStartFilter) {
-                    $condDateStartFilter = "#activatedOn >= '{$data->listFilter->rec->dateStartFilter}'";
-                }
-                
-                // Prepare $condDateEndFilter
-                $condDateEndFilter = NULL;
-                
-                if ($data->listFilter->rec->dateEndFilter) {
-                    $dateEndFilter = $data->listFilter->rec->dateEndFilter;
-                    
-                    // variant 1
-                    // $dateEndFilter = dt::addDays(1, $dateEndFilter);
-                    // $condDateEndFilter = "#activatedOn < '{$dateEndFilter}'";
-                    
-                    // variant 2
-                    // $data->listFilter->rec->dateEndFilter = substr($dateEndFilter, 0, 10) . " 23:59:59";
-                    // $condDateEndFilter = "#activatedOn <= '{$dateEndFilter}'";
-                    
-                    // variant 3
-                    $condDateEndFilter = "#activatedOn < DATE_ADD(DATE('{$dateEndFilter}'), INTERVAL 1 DAY)";
-                }
-                
-                // Prepare $condTestsFilteredByParams
-                $condTestsFilteredByParams = NULL;
-                
-                // Ако имаме избрани параметри от филтъра:
-                // 1. Правим масив с техните id-та
-                // 2. Търсим за всяко id на параметър от горния масив, кои методи използват тези параметри
-                // 3. Търсим записи от TestDetails къде има поле #menuId, което е сред елементите на масива с избраните методи
-                // 4. От избраните записи от TestDetails правим масив с id-тата на тестовете
-                // 5. Правим заявка, която вади тестовете, чийто id-та са IN (масива с id-та на избраните тестове)
-                if ($data->listFilter->rec->paramIdFilter) {
-                    $selectedParamsArr = keylist::toArray($data->listFilter->rec->paramIdFilter);
-                    
-                    // If some params are selected in the filter
-                    if (count($selectedParamsArr)) {
-                        // Prepare array with method Id-s (which methods have the selected params)
-                        $methodsArr = array();
-                        $condMethods = NULL;
-                        
-                        // Add SQL to $condMethods (add $methodId for every method which has the selected #paramId)
-                        foreach ($selectedParamsArr as $v) {
-                            $queryMethods = lab_Methods::getQuery();
-                            $where = "#paramId = {$v}";
-                            
-                            while ($recMethods = $queryMethods->fetch($where)) {
-                                if (! array_key_exists($recMethods->id, $methodsArr)) {
-                                    $methodsArr[$recMethods->id] = $recMethods->name;
-                                    $condMethods .= "#methodId = {$recMethods->id} OR ";
-                                }
-                            }
-                        }
-                        
-                        // END Add SQL to $condMethods (add $methodId for every method which has the selected #paramId)
-                        
-                        // END Prepare array with method Id-s (which methods have the selected params)
-                        
-                        if (count($methodsArr)) {
-                            // Cut ' OR ' from the end of $condMethods string
-                            $condMethods = substr($condMethods, 0, strlen($condMethods) - 4);
-                            
-                            // Prepare $testsFilteredByParamsList
-                            $queryTestDetails = lab_TestDetails::getQuery();
-                            
-                            $testsFilteredByParamsList = "";
-                            
-                            while ($recTestDetails = $queryTestDetails->fetch($condMethods)) {
-                                $testsFilteredByParamsList .= $recTestDetails->testId . ",";
-                            }
-                            
-                            if (strlen($testsFilteredByParamsList)) {
-                                // Cut ',' from the end of $testsFilteredByParamsList string
-                                $testsFilteredByParamsList = substr($testsFilteredByParamsList, 0, 
-                                    strlen($testsFilteredByParamsList) - 1);
-                                
-                                $condTestsFilteredByParams = "#id IN ({$testsFilteredByParamsList})";
-                            } else {
-                                // Няма тестове, в които да са използвани избраните параметри
-                                $condTestsFilteredByParams = "1=2";
-                            }
-                            
-                            // END Prepare $testsFilteredByParamsList
-                        } else {
-                            // Няма методи, в които да са използвани избраните параметри
-                            $condTestsFilteredByParams = "1=3";
-                        }
-                    }
-                    
-                    // END If params are selected in the filter
-                }
-                
-                // END Prepare $condTestsFilteredByParams
-                
-                // Prepare $condSearchString
-                $condSearchString = NULL;
-                
-                if ($data->listFilter->rec->searchString) {
-                    $searchString = $data->listFilter->rec->searchString;
-                    $searchString = core_SearchMysql::normalizeText($searchString);
-                    $searchString = trim($searchString);
-                    $searchStringArr = explode(" ", $searchString);
-                   
-                    // Ако има 'думи' в масива
-                    if (count($searchStringArr)) {
-                        $condSearchString = "#searchd LIKE '%";
-                        
-                        // Цикъл за всяка 'дума' от масива
-                        foreach ($searchStringArr as $word) {
-                            $condSearchString .= " {$word}%";
-                        }
-                        
-                        $condSearchString .= "'";
-                    }
-                }
-                
-                // ENDOF Prepare $condSearchString
-                
-                // Prepare query
-                $data->query->where($condDateStartFilter);
-                $data->query->where($condDateEndFilter);
-                $data->query->where($condTestsFilteredByParams);
-                $data->query->where($condSearchString);
-            }
-            
-            // END Ако филтъра е активиран
-            
-            // Сортиране на записите по дата на активиране
-            $data->query->orderBy('#activatedOn', 'DESC');
-            $data->query->orderBy('#createdOn', 'DESC');
-        }
-        
-        $data->query->orderBy('#activatedOn', 'DESC');
-        $data->query->orderBy('#createdOn', 'DESC');
     }
 
     
     public static function on_AfterRecToVerbal($mvc,$row,$rec,$listFields)
     {
-        //$row->paramValue$row,$rec,$listFields);
+        
+        $Double = cls::get('type_Double', array('params' => array('decimals' => 2, 'smartRound' => 'smartRound', 'smartCenter' => 'smartCenter')));
+        
+        $row->paramValue = $Double->toVerbal($rec->paramValue);
+     
     }
     
     
@@ -681,6 +503,7 @@ class lab_Tests extends core_Master
         }
     }
 
+    
     /**
      * Интерфейсен метод на doc_DocumentIntf
      */
@@ -701,7 +524,8 @@ class lab_Tests extends core_Master
         
         return $row;
     }
-
+    
+    
     /**
      * Изпращане на нотификации на споделените потребители
      *
@@ -780,9 +604,7 @@ class lab_Tests extends core_Master
                 $searchKeywords .= " " . plg_Search::normalizeText($str1 . ' ' . $str2 . ' ' . $str3 . ' ' . $str4) . ' ';
             }
         }
-     //bp($rec,$searchKeywordsd);
-      
-      //  return TRUE;
+ 
     }
     
 }
