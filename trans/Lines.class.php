@@ -16,6 +16,7 @@
 class trans_Lines extends core_Master
 {
 	
+	
     /**
      * Заглавие
      */
@@ -457,5 +458,30 @@ class trans_Lines extends core_Master
     	array_walk($recs, function($rec) use (&$linesArr) {$linesArr[$rec->id] = self::getRecTitle($rec, FALSE);});
     	
     	return $linesArr;
+    }
+    
+    
+    /**
+     * Дефолтни данни, които да се попълват към коментар от документа
+     * 
+     * @param mixed $rec      - ид или запис
+     * @param int|NULL $detId - допълнително ид, ако е нужно
+     * @return array $res     - дефолтните данни за коментара
+     * 		  ['subject']     - събджект на коментара
+     * 		  ['body']        - тяло на коментара
+     * 		  ['sharedUsers'] - споделени потребители
+     */
+    public function getDefaultDataForComment($rec, $detId = NULL)
+    {
+    	$res = array();
+    	if(empty($detId)) return $res;
+    	
+    	$docContainerId = trans_LineDetails::fetchField($detId, 'containerId');
+    	$Document = doc_Containers::getDocument($docContainerId);
+    	
+    	$res['body'] = "#" . $Document->getHandle();
+    	$res['sharedUsers'] = $Document->fetchField('sharedUsers');
+    	
+    	return $res;
     }
 }
