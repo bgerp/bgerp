@@ -215,17 +215,19 @@ class trans_Lines extends core_Master
     {
     	$rec = $data->rec;
     	
-    	if($data->rec->state == 'active'){
-    		if(self::haveDraftDocuments($data->rec->id)){
-    			if($data->toolbar->hasBtn('btnClose')){
-    				$data->toolbar->setError('btnClose', "Линията не може да бъде затворена докато има чернови документи към нея|*!");
-    			}
+    	if($data->toolbar->hasBtn('btnClose')){
+    		if(self::haveDraftDocuments($rec->id)){
+    			$data->toolbar->setError('btnClose', "Линията не може да бъде затворена докато има чернови документи към нея|*!");
     		}
     	}
 
     	if($mvc->haveRightFor('single', $data->rec)){
-    		$url = array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'Width' => 'yes');
-    		$data->toolbar->addBtn('Печат (Детайли)', $url, "id=w{$attr['id']},target=_blank,row=2", 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
+    		$url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes');
+    		$data->toolbar->addBtn('Печат (Детайли)', $url, "target=_blank,row=2", 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
+    	}
+    	
+    	if(cal_Reminders::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+    		$data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'threadId' => $rec->threadId, 'timeStart' => $r, 'action' => 'replicate'), FALSE, 'ef_icon = img/16/alarm_clock_add.png,title=Създаване на напомняне за повторение на транспортната линия');
     	}
     }
     
