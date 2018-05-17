@@ -461,6 +461,23 @@ class trans_Lines extends core_Master
     }
     
     
+   /** Изпълнява се преди записа
+    *
+    * @param trans_Lines $mvc
+    * @param NULL|integer $id
+    * @param stdClass $rec
+    * @param NULL|array $fields
+    * @param NULL|string $mode
+    */
+    static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    {
+    	if ($rec->__isReplicate) {
+    		$rec->countReady = 0;
+    		$rec->countTotal = 0;
+    	}
+    }
+    
+    
     /**
      * Дефолтни данни, които да се попълват към коментар от документа
      * 

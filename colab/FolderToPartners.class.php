@@ -720,8 +720,8 @@ class colab_FolderToPartners extends core_Manager
     		
     		// Изтриваме линка, да не може друг да се регистрира с него
     		core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => $companyId, 'email' => $email, 'rand' => $rand), 604800);
-    
-    		return followRetUrl(array('colab_Threads', 'list', 'folderId' => $companyId), '|Успешно са създадени потребител и визитка на нов партньор');
+    		
+    		return followRetUrl(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
     	}
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис');
