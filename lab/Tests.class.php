@@ -412,19 +412,36 @@ class lab_Tests extends core_Master
         
         $data->listFilter->showFields .= ',search';
         
-        
         $data->listFilter->input();
-
+        
         $data->query->where("#state != 'rejected'");
-
+        
+        if ($data->listFilter->rec->paramIdFilter){
+            
+          
+            $metQuery = lab_Methods::getQuery();
+            
+            $metQuery->where(array("#paramId = '[#1#]'", $data->listFilter->rec->paramIdFilter));
+            
+            while ($methods = $metQuery->fetch()){
+                
+                $methosArr[$methods->id]=$methods->paramId;
+            }
+            
+        }
+        
         if ($data->listFilter->isSubmitted()) {
         
             if ($data->listFilter->rec->dateStart) {
+                
                 $data->query->where(array("#activatedOn > '[#1#]'", $data->listFilter->rec->dateStart));
+                
             }
             
             if ($data->listFilter->rec->dateEnd) {
+                
                 $data->query->where(array("#activatedOn < '[#1#]'", $data->listFilter->rec->dateEnd));
+                
             }
             
             // Сортиране на записите по дата на активиране
