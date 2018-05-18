@@ -270,7 +270,10 @@ class core_CallOnTime extends core_Manager
             }
             
             if($rec->className != 'core_CallOnTime') {
-                    unset($class);
+                
+                $class->invoke('shutdown');
+                
+                unset($class);
             }
             
             cls::$singletons = $singletons;
