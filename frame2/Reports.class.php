@@ -550,6 +550,8 @@ class frame2_Reports extends embed_Manager
     			}
     		}
     		
+    		$me->setNewUpdateTimes[$rec->id] = $rec;
+    		
     		// Ако справката сега е създадена да не се обновява
     		if($rec->__isCreated === TRUE) return;
     		
@@ -566,10 +568,7 @@ class frame2_Reports extends embed_Manager
     			$me->invoke('BeforeChangeState', array($rec, $rec->state));
     			$me->save($rec, 'state');
     			$me->logWrite('Затваряне на остаряла справка', $rec->id);
-    		} else {
-    			
-    			// Mаркиране че отчета че трябва да се обнови
-    			$me->setNewUpdateTimes[$rec->id] = $rec;
+    			unset($me->setNewUpdateTimes[$rec->id]);
     		}
     	}
     }

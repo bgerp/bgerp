@@ -457,15 +457,10 @@ class trans_Lines extends core_Master
     }
     
     
-   /** Изпълнява се преди записа
-    *
-    * @param trans_Lines $mvc
-    * @param NULL|integer $id
-    * @param stdClass $rec
-    * @param NULL|array $fields
-    * @param NULL|string $mode
+   /** 
+    * Изпълнява се преди записа
     */
-    static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
     	if ($rec->__isReplicate) {
     		$rec->countReady = 0;
@@ -496,5 +491,89 @@ class trans_Lines extends core_Master
     	$res['sharedUsers'] = $Document->fetchField('sharedUsers');
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Метод опресняващ затварящ транспортната линия
+     *
+     * @param stdClass $data - дата
+     * @return void
+     */
+    public static function callback_closeAfterDate($data)
+    {
+    	try{
+    		expect($rec = self::fetch($data->id));
+    		if(in_array($rec->state, array('closed', 'rejected'))) return;
+    		$me = cls::get(get_called_class());
+    		
+    		$rec->state = 'closed';
+    		$me->save_($rec, 'state');
+    		self::removeAllSetCloseTimes($rec->id);
+    		
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
+    }
+    
+    
+    /**
+     * Премахване на зададените времена за обновяване
+     *
+     * @param int $id
+     * @return void
+     */
+    private static function removeAllSetCloseTimes($id)
+    {
+    	foreach (range(0, 2) as $i){
+    		$data = (object)array('id' => (string)$id, 'index' => (string)$i);
+    		core_CallOnTime::remove(get_called_class(), 'closeAfterDate', $data);
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	// Ако линията е активна ще се опреснят времената за затваряне
+    	if($rec->state == 'active'){
+    		$mvc->setCloseTimes[$rec->id] = $rec;
+    	}
+    }
+    
+    
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    public static function on_Shutdown($mvc)
+    {
+    	// Задаване на времена за затваряне
+    	if(is_array($mvc->setCloseTimes)){
+    		foreach ($mvc->setCloseTimes as $rec){
+    			$mvc->setAutoClose($rec);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Задаване на следващи времена, когато линията да бъде затворена
+     * 
+     * @param stdClass $rec
+     * @return void
+     */
+    private function setAutoClose($rec)
+    {
+    	self::removeAllSetCloseTimes($rec->id);
+    	
+    	$closeTime = $rec->start;
+    	foreach (range(0, 2) as $i){
+    		$closeTime = dt::addSecs(7200, $closeTime);
+    		$data = (object)array('id' => (string)$rec->id, 'index' => (string)$i);
+    	
+    		core_CallOnTime::setOnce($this->className, 'closeAfterDate', $data, $closeTime);
+    	}
     }
 }
