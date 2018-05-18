@@ -234,6 +234,7 @@ class core_CallOnTime extends core_Manager
         $query = self::getQuery();
         $query->where("#callOn <= '{$now}'");
         $query->where("#state != 'pending'");
+
         while ($rec = $query->fetch()) {
             
 			// Ако сме се доближили до края - да приключваме процеса
@@ -249,6 +250,8 @@ class core_CallOnTime extends core_Manager
             $nRec->state = 'pending';
             self::save($nRec, 'state');
             
+            $singletons = cls::$singletons;
+
             try {
                 $class = cls::get($rec->className);
                 // Изпълняваме подадената функция с префикс callback_
@@ -265,6 +268,13 @@ class core_CallOnTime extends core_Manager
                 
                 reportException($e);
             }
+            
+            if($rec->className != 'core_CallOnTime') {
+                    unset($class);
+            }
+            
+            cls::$singletons = $singletons;
+            gc_collect_cycles();
         }
         
         // Ако някой процес е гръмнал и е останал в чакащо състояние го оправяме

@@ -852,7 +852,7 @@ class acc_BalanceDetails extends core_Detail
                             // Ако има сума закръгляме я до втория знак преди запис
                             foreach (array('blAmount', 'baseAmount') as $fld){
                             	if(!is_null($rec[$fld])){
-                            		$rec[$fld] = round($rec[$fld], 2);
+                            		$rec[$fld] = round($rec[$fld], 8);
                             	}
                             }
                             

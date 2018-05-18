@@ -222,13 +222,9 @@ class trans_Lines extends core_Master
     		}
     	}
 
-    	if($mvc->haveRightFor('single', $data->rec)){
+    	if($mvc->haveRightFor('single', $data->rec) && $rec->state != 'rejected'){
     		$url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes');
     		$data->toolbar->addBtn('Печат (Детайли)', $url, "target=_blank,row=2", 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
-    	}
-    	
-    	if(cal_Reminders::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-    		$data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'threadId' => $rec->threadId, 'timeStart' => $r, 'action' => 'replicate'), FALSE, 'ef_icon = img/16/alarm_clock_add.png,title=Създаване на напомняне за повторение на транспортната линия');
     	}
     }
     
@@ -444,15 +440,15 @@ class trans_Lines extends core_Master
     
     
     /**
-     * Връща всички активни линии с подходящи заглавие
+     * Връща всички избираеми линии
      * 
      * @return array $linesArr - масив с опции
      */
-    public static function getActiveLines()
+    public static function getSelectableLines()
     {
     	$linesArr = array();
     	$query = self::getQuery();
-    	$query->where("#state = 'active'");
+    	$query->where("#state = 'draft'");
     	
     	$recs = $query->fetchAll();
     	array_walk($recs, function($rec) use (&$linesArr) {$linesArr[$rec->id] = self::getRecTitle($rec, FALSE);});
