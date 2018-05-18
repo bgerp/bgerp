@@ -400,6 +400,7 @@ class acc_Features extends core_Manager
     	$query = $this->getQuery();
     	$query->show("itemId");
     	$query->groupBy('itemId');
+    	$query->where("#state != 'closed'");
     	while($rec = $query->fetch()){
     		$items[$rec->itemId] = $rec->itemId;
     	}
