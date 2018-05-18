@@ -1606,6 +1606,25 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
     border: solid 1px red;
 }
 
+.formFooter {
+	font-size: 0.9em;
+	padding-bottom: 10px;
+	label {
+		max-width: none !important;
+	}
+	.checkbox, input[type=checkbox] {
+		margin-right: 4px;
+		position: relative;
+		top: 1px;
+	}
+	input[type=radio] + label a, input[type=checkbox] + label a {
+		opacity: 0.8;
+	}
+	input[type=checkbox]:checked + label a {
+		opacity: 1;
+	}
+}
+
 form .inputAdvanced {
     background-color:#dfd !important;
 }
