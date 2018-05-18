@@ -126,7 +126,7 @@ class eshop_Products extends core_Master
     {
         $this->FLD('code', 'varchar(10)', 'caption=Код');
         $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name,allowEmpty)', 'caption=Група,mandatory,silent,refreshForm');
-        $this->FLD('name', 'varchar(64)', 'caption=Продукт, mandatory,width=100%');
+        $this->FLD('name', 'varchar(128)', 'caption=Продукт, mandatory,width=100%');
         
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1');
         $this->FLD('image2', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация2,column=none');
@@ -752,6 +752,12 @@ class eshop_Products extends core_Master
     	$this->requireRightFor('linktoeshop');
     	expect($productId = Request::get('productId', 'int'));
     	expect($productRec = cat_Products::fetch($productId, 'canStore,measureId'));
+    	
+    	// Редирект ако потребителя се върна с бутона 'НАЗАД'
+    	if(eshop_ProductDetails::isTheProductAlreadyInTheSameDomain($productId, cms_Domains::getPublicDomain()->id)){
+        	redirect(array('cat_Products', 'single', $productId));
+    	}
+    	
     	$this->requireRightFor('linktoeshop', (object)array('productId' => $productId));
     	
     	// Форсиране на домейн
