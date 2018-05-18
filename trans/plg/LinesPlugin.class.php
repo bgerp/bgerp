@@ -190,7 +190,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		
 		if($action == 'changeline' && isset($rec->lineId)){
 			$lineState = trans_Lines::fetchField($rec->lineId, 'state');
-			if($lineState != 'draft'){
+			if($lineState != 'draft' && $lineState != 'rejected'){
 				$requiredRoles = 'no_one';
 			}
 		}
@@ -234,6 +234,11 @@ class trans_plg_LinesPlugin extends core_Plugin
 		
 		if(isset($rec->lineId)){
 			$row->lineId = (isset($fields['-single'])) ? trans_Lines::getHyperlink($rec->lineId) : trans_Lines::getLink($rec->lineId, 0);
+		
+			if(!Mode::isReadOnly()){
+				$lineState = trans_Lines::fetchField($rec->lineId, 'state');
+				$row->lineId = "<span class='state-{$lineState} document-handler' style='line-height:110%'>{$row->lineId}</span>";
+			}
 		}
 		
 		core_Lg::pop();
