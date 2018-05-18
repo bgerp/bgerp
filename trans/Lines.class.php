@@ -222,7 +222,7 @@ class trans_Lines extends core_Master
     		}
     	}
 
-    	if($mvc->haveRightFor('single', $data->rec) && $data->rec->state != 'rejected'){
+    	if($mvc->haveRightFor('single', $data->rec) && $rec->state != 'rejected'){
     		$url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes');
     		$data->toolbar->addBtn('Печат (Детайли)', $url, "target=_blank,row=2", 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
     	}
