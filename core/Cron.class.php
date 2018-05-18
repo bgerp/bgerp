@@ -228,6 +228,9 @@ class core_Cron extends core_Manager
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	
+    	$data->query->XPR('oState', 'int', "IF(#state != 'stopped', 1, 0)");
+    	$data->query->orderBy("oState", "DESC");
+    	
     	$data->query->orderBy('period'); 
         $data->query->orderBy('offset');
         $data->query->orderBy('systemId');

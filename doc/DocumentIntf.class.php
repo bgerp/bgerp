@@ -296,4 +296,19 @@ class doc_DocumentIntf
         
         return $this->class->getDefaultData($rec, $otherParams);
     }
+    
+    
+    /**
+     * Връща дефолтни стойности за попълване на река за коментара
+     *
+     * @param stdClass $rec
+     * @param array $otherParams
+     *
+     * @return array
+     */
+    function getDefaultDataForComment($rec, $otherParams = array())
+    {
+        
+        return $this->class->getDefaultDataForComment($rec, $otherParams);
+    }
 }

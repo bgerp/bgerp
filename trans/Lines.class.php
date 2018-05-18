@@ -16,6 +16,7 @@
 class trans_Lines extends core_Master
 {
 	
+	
     /**
      * Заглавие
      */
@@ -92,7 +93,7 @@ class trans_Lines extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, handler=Документ, title, start, folderId, createdOn, createdBy';
+    public $listFields = 'start, handler=Документ, folderId, state,createdOn, createdBy';
     
 
     /**
@@ -215,17 +216,19 @@ class trans_Lines extends core_Master
     {
     	$rec = $data->rec;
     	
-    	if($data->rec->state == 'active'){
-    		if(self::haveDraftDocuments($data->rec->id)){
-    			if($data->toolbar->hasBtn('btnClose')){
-    				$data->toolbar->setError('btnClose', "Линията не може да бъде затворена докато има чернови документи към нея|*!");
-    			}
+    	if($data->toolbar->hasBtn('btnClose')){
+    		if(self::haveDraftDocuments($rec->id)){
+    			$data->toolbar->setError('btnClose', "Линията не може да бъде затворена докато има чернови документи към нея|*!");
     		}
     	}
 
     	if($mvc->haveRightFor('single', $data->rec)){
-    		$url = array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'Width' => 'yes');
-    		$data->toolbar->addBtn('Печат (Детайли)', $url, "id=w{$attr['id']},target=_blank,row=2", 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
+    		$url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes');
+    		$data->toolbar->addBtn('Печат (Детайли)', $url, "target=_blank,row=2", 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
+    	}
+    	
+    	if(cal_Reminders::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+    		$data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'threadId' => $rec->threadId, 'timeStart' => $r, 'action' => 'replicate'), FALSE, 'ef_icon = img/16/alarm_clock_add.png,title=Създаване на напомняне за повторение на транспортната линия');
     	}
     }
     
@@ -272,17 +275,21 @@ class trans_Lines extends core_Master
     				$row->regNumber = trans_Vehicles::getVerbal($vehicleRec, 'number');
     			}
     		}
-	    	
-    		if(isset($rec->forwarderPersonId) && !Mode::isReadOnly()){
-    			$row->forwarderPersonId = ht::createLink($row->forwarderPersonId, crm_Persons::getSingleUrlArray($rec->forwarderPersonId));
-    		}
     		
 	    	$ownCompanyData = crm_Companies::fetchOwnCompany();
-	    	$row->myCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
+	    	$row->myCompany = ht::createLink($ownCompanyData->company, crm_Companies::getSingleUrlArray($ownCompanyData->companyId));
 	    	$row->logistic = (core_Mode::isReadOnly()) ? core_Users::getVerbal($rec->createdBy, 'names') : crm_Profiles::createLink($rec->createdBy);
-	    }
-    	
-    	$row->handler = $mvc->getLink($rec->id, 0);
+	    
+	    	if(isset($rec->forwarderPersonId) && !Mode::isReadOnly()){
+	    		$row->forwarderPersonId = ht::createLink($row->forwarderPersonId, crm_Persons::getSingleUrlArray($rec->forwarderPersonId));
+	    	}
+	    	 
+	    	if(isset($rec->forwarderId)){
+	    		$row->forwarderId = ht::createLink(crm_Companies::getVerbal($rec->forwarderId, 'name'), crm_Companies::getSingleUrlArray($rec->forwarderId));
+	    	}
+    	}
+	    
+    	$row->handler = $mvc->getHyperlink($rec->id, TRUE);
     }
     
     
@@ -451,5 +458,47 @@ class trans_Lines extends core_Master
     	array_walk($recs, function($rec) use (&$linesArr) {$linesArr[$rec->id] = self::getRecTitle($rec, FALSE);});
     	
     	return $linesArr;
+    }
+    
+    
+   /** Изпълнява се преди записа
+    *
+    * @param trans_Lines $mvc
+    * @param NULL|integer $id
+    * @param stdClass $rec
+    * @param NULL|array $fields
+    * @param NULL|string $mode
+    */
+    static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    {
+    	if ($rec->__isReplicate) {
+    		$rec->countReady = 0;
+    		$rec->countTotal = 0;
+    	}
+    }
+    
+    
+    /**
+     * Дефолтни данни, които да се попълват към коментар от документа
+     * 
+     * @param mixed $rec      - ид или запис
+     * @param int|NULL $detId - допълнително ид, ако е нужно
+     * @return array $res     - дефолтните данни за коментара
+     * 		  ['subject']     - събджект на коментара
+     * 		  ['body']        - тяло на коментара
+     * 		  ['sharedUsers'] - споделени потребители
+     */
+    public function getDefaultDataForComment($rec, $detId = NULL)
+    {
+    	$res = array();
+    	if(empty($detId)) return $res;
+    	
+    	$docContainerId = trans_LineDetails::fetchField($detId, 'containerId');
+    	$Document = doc_Containers::getDocument($docContainerId);
+    	
+    	$res['body'] = "#" . $Document->getHandle();
+    	$res['sharedUsers'] = $Document->fetchField('sharedUsers');
+    	
+    	return $res;
     }
 }

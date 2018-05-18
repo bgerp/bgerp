@@ -264,9 +264,10 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                     
                     // фактура от нишката и масив от платежни документи по тази фактура//
                     foreach ($pInvoicePayments as $pInv => $paydocs) {
-                        
-                        if ($paydocs->payout >= $paydocs->amount)
-                            continue;
+
+                        if (($paydocs->payout >= $paydocs->amount - 0.01) &&
+                            ($paydocs->payout <= $paydocs->amount + 0.01))
+                                continue;
                         
                         $Invoice = doc_Containers::getDocument($pInv);
                         
@@ -552,7 +553,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->contragent)) {
-            $fieldTpl->append(doc_Folders::fetch($data->rec->contragent)->title, 'contragent');
+            $fieldTpl->append(type_Varchar::escape(doc_Folders::fetch($data->rec->contragent)->title), 'contragent');
         } else {
             $fieldTpl->append('Всички', 'contragent');
         }
