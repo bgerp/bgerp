@@ -444,15 +444,15 @@ class trans_Lines extends core_Master
     
     
     /**
-     * Връща всички активни линии с подходящи заглавие
+     * Връща всички избираеми линии
      * 
      * @return array $linesArr - масив с опции
      */
-    public static function getActiveLines()
+    public static function getSelectableLines()
     {
     	$linesArr = array();
     	$query = self::getQuery();
-    	$query->where("#state = 'active'");
+    	$query->where("#state = 'draft'");
     	
     	$recs = $query->fetchAll();
     	array_walk($recs, function($rec) use (&$linesArr) {$linesArr[$rec->id] = self::getRecTitle($rec, FALSE);});

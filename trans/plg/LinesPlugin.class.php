@@ -105,7 +105,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		trans_LineDetails::setTransUnitField($form, $rec->transUnitsInput);
 		
 		$form->FLD('lineNotes', 'text(rows=2)', 'caption=Забележки');
-		$form->setOptions('lineId', array('' => '') + trans_Lines::getActiveLines());
+		$form->setOptions('lineId', array('' => '') + trans_Lines::getSelectableLines());
 		$form->setDefault('lineId', $rec->{$mvc->lineFieldName});
 		$form->setDefault('weight', $rec->weightInput);
 		$form->setDefault('volume', $rec->volumeInput);
@@ -184,6 +184,13 @@ class trans_plg_LinesPlugin extends core_Plugin
 			
 			// На оттеглените не могат да се променят линиите
 			if($rec->state == 'rejected'){
+				$requiredRoles = 'no_one';
+			}
+		}
+		
+		if($action == 'changeline' && isset($rec->lineId)){
+			$lineState = trans_Lines::fetchField($rec->lineId, 'state');
+			if($lineState != 'draft'){
 				$requiredRoles = 'no_one';
 			}
 		}
