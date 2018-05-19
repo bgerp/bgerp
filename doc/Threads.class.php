@@ -871,6 +871,7 @@ class doc_Threads extends core_Manager
             if (empty($filter->search)) {
                 $query->where("#folderId = {$filter->folderId}");
             } else {
+                $query->dontUseFts = TRUE;
                 $query->EXT('containerFolderId', 'doc_Containers', 'externalName=folderId');
                 $query->where("#containerFolderId = {$filter->folderId}");
             }

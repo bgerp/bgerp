@@ -183,7 +183,9 @@ class lab_TestDetails extends core_Detail
                  $data->form->setField('methodId', 'input=none');
                 
             } else {
-                $data->form->setOptions('methodId', $methodIdSelectArr);
+            	
+                $data->form->setOptions('methodId',array(' '=>'избери метод ')+$methodIdSelectArr);
+                
             }
         }
     }
@@ -336,6 +338,8 @@ class lab_TestDetails extends core_Detail
         // Подготовка на масива за резултатите ($rec->results)
         $resultsArr = json_decode($rec->results);
         
+       
+        
         if ($rec->methodId && lab_Methods::fetchField($rec->methodId, 'formula')) {
             
             $resArr = $resultsArr;
@@ -352,10 +356,11 @@ class lab_TestDetails extends core_Detail
                 $contex = array();
                 
                 foreach ($matches[0] as $v) {
-                    
-                    $contex += array(
-                        $v => $resArr->$v[$i]
+                	
+                	$contex += array(
+                        $v => $resArr->{$v}[$i]
                     );
+                   
                 }
                 
                 if (($expr = str::prepareMathExpr($formula, $contex)) !== FALSE) {
@@ -372,21 +377,66 @@ class lab_TestDetails extends core_Detail
                 $resultsArr[] = $value;
                 
                 $i ++;
-            } while ($resArr->$check[$i]);
+            } while ($resArr->{$check}[$i]);
         } else {
             
             $resultsArr = $resultsArr->value;
         }
-        
+       
         // trim array elements
-//         if (is_array($resultsArr)) {
-//             foreach ($resultsArr as $k => $v) {
-//                 $resultsArr[$k] = cls::get('type_Double')->fromVerbal($v);
-//             }
-//         }
+        if (is_array($resultsArr)) {
+            foreach ($resultsArr as $k => $v) {
+                $resultsArr[$k] = cls::get('type_Double')->fromVerbal($v);
+            }
+        }
         
         $methodsRec = $mvc->Methods->fetch($rec->methodId);
         $parametersRec = $mvc->Params->fetch($methodsRec->paramId);
+        
+        // BEGIN Обработки в зависимост от типа на параметъра
+        if ($parametersRec->type == 'number') {
+        	// намираме средното аритметично
+        	$sum = 0;
+        	$totalResults = 0;
+        
+        	$resCnt = count($resultsArr);
+         
+        	for ($i = 0; $i < $resCnt; $i ++) {
+        		if (trim($resultsArr[$i])) {
+        			$sum += trim($resultsArr[$i]);
+        			$totalResults ++;
+        		}
+        	}
+       
+        	$rec->value = 0;
+        	if (! empty($totalResults)) {
+        		$rec->value = $sum / $totalResults;
+        	} else {
+        		$rec->value = '---';
+        	}
+        
+        	//             if ($resCnt > 1) {
+        	//                 // Намираме грешката
+        	//                 $dlt = 0;
+        
+        	//                 for ($i = 0; $i < $resCnt; $i ++) {
+        	//                     $dlt += ($resultsArr[$i] - $rec->value) * ($resultsArr[$i] - $rec->value);
+        	//                 }
+        
+        	//                 // $rec->error = sqrt($dlt) / sqrt((count($resultsArr) * (count($resultsArr)-1))) / $rec->value;
+        	//                 $rec->error = 'ok';
+        	//             } else {
+        	//                 $rec->error = NULL;
+        	//             }
+        } elseif ($parametersRec->type == 'bool') {
+        	$rec->value = $resultsArr[0];
+        	$rec->error = NULL;
+        } elseif ($parametersRec->type == 'text') {
+        	$rec->value = $resultsArr[0];
+        	$rec->error = NULL;
+        }
+        
+        // END Обработки в зависимост от типа на параметъра
         
     }
 
@@ -485,7 +535,7 @@ class lab_TestDetails extends core_Detail
      */
     public static function calcExpr($expr, $params)
     {
-        $expr = lab_Methods::fetchField($rec->methodId, 'formula');
+        $expr = lab_Methods::fetchField($rec->methodId, 'formula'); 
         
         $contex = array(
             $width => 1,

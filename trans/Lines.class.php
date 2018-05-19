@@ -567,8 +567,11 @@ class trans_Lines extends core_Master
     private function setAutoClose($rec)
     {
     	self::removeAllSetCloseTimes($rec->id);
+    	$closeTime = ($rec->start) ? $rec->start : $this->fetchField($rec->id, 'start');
+    	if(!strpos($closeTime, ' ')) {
+    		$closeTime .= ' 23:59:59';
+    	}
     	
-    	$closeTime = $rec->start;
     	foreach (range(0, 2) as $i){
     		$closeTime = dt::addSecs(7200, $closeTime);
     		$data = (object)array('id' => (string)$rec->id, 'index' => (string)$i);
