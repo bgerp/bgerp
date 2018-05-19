@@ -496,7 +496,9 @@ class core_Form extends core_FieldSet
                     "<!--ET_BEGIN FORM_INFO-->\n<div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
                     "<!--ET_BEGIN FORM_FIELDS-->\n<div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->" .
                     "<!--ET_BEGIN FORM_HIDDEN-->\n[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
-                    "\n</td></tr><!--ET_BEGIN FORM_TOOLBAR-->\n<tr><td style='padding:0px;'><div class=\"formToolbar\">[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
+                    "\n</td></tr><!--ET_BEGIN FORM_TOOLBAR-->\n<tr><td style='padding:0px;'><div class=\"formToolbar\">" .
+                    "\n<!--ET_BEGIN FORM_FOOTER--><div class=\"formFooter\">[#FORM_FOOTER#]</div><!--ET_END FORM_FOOTER-->".
+                    "[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
                     "[#AFTER_MAIN_TABLE#]" .
                     "\n</div>" .
                     "\n</form>\n");

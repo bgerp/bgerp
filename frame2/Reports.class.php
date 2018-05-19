@@ -550,6 +550,11 @@ class frame2_Reports extends embed_Manager
     			}
     		}
     		
+    		$me->setNewUpdateTimes[$rec->id] = $rec;
+    		
+    		// Ако справката сега е създадена да не се обновява
+    		if($rec->__isCreated === TRUE) return;
+    		
     		// Кога последно е видяна от потребител справката
     		$lastSeen = self::getLastSeenByUser(__CLASS__, $rec);
     		$months = frame2_Setup::get('CLOSE_LAST_SEEN_BEFORE_MONTHS');
@@ -559,13 +564,11 @@ class frame2_Reports extends embed_Manager
     			
     			// Ако е последно видяна преди зададеното време да се затваря и да не се обновява повече
     			$rec->state = 'closed';
+    			$rec->refreshData = FALSE;
     			$me->invoke('BeforeChangeState', array($rec, $rec->state));
     			$me->save($rec, 'state');
     			$me->logWrite('Затваряне на остаряла справка', $rec->id);
-    		} else {
-    			
-    			// Mаркиране че отчета че трябва да се обнови
-    			$me->setNewUpdateTimes[$rec->id] = $rec;
+    			unset($me->setNewUpdateTimes[$rec->id]);
     		}
     	}
     }
@@ -644,6 +647,10 @@ class frame2_Reports extends embed_Manager
     		$rec->removeSetUpdateTimes = TRUE;
     	} elseif($rec->state == 'active' && in_array($rec->brState, array('rejected', 'closed'))){
     		$rec->updateRefreshTimes = TRUE;
+    	}
+    	
+    	if(empty($rec->id)){
+    		$rec->__isCreated = TRUE;
     	}
     }
     

@@ -105,7 +105,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		trans_LineDetails::setTransUnitField($form, $rec->transUnitsInput);
 		
 		$form->FLD('lineNotes', 'text(rows=2)', 'caption=Забележки');
-		$form->setOptions('lineId', array('' => '') + trans_Lines::getActiveLines());
+		$form->setOptions('lineId', array('' => '') + trans_Lines::getSelectableLines());
 		$form->setDefault('lineId', $rec->{$mvc->lineFieldName});
 		$form->setDefault('weight', $rec->weightInput);
 		$form->setDefault('volume', $rec->volumeInput);
@@ -187,6 +187,13 @@ class trans_plg_LinesPlugin extends core_Plugin
 				$requiredRoles = 'no_one';
 			}
 		}
+		
+		if($action == 'changeline' && isset($rec->lineId)){
+			$lineState = trans_Lines::fetchField($rec->lineId, 'state');
+			if($lineState != 'draft' && $lineState != 'rejected'){
+				$requiredRoles = 'no_one';
+			}
+		}
 	}
 	
 	
@@ -227,6 +234,11 @@ class trans_plg_LinesPlugin extends core_Plugin
 		
 		if(isset($rec->lineId)){
 			$row->lineId = (isset($fields['-single'])) ? trans_Lines::getHyperlink($rec->lineId) : trans_Lines::getLink($rec->lineId, 0);
+		
+			if(!Mode::isReadOnly()){
+				$lineState = trans_Lines::fetchField($rec->lineId, 'state');
+				$row->lineId = "<span class='state-{$lineState} document-handler' style='line-height:110%'>{$row->lineId}</span>";
+			}
 		}
 		
 		core_Lg::pop();

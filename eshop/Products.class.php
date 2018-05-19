@@ -752,6 +752,12 @@ class eshop_Products extends core_Master
     	$this->requireRightFor('linktoeshop');
     	expect($productId = Request::get('productId', 'int'));
     	expect($productRec = cat_Products::fetch($productId, 'canStore,measureId'));
+    	
+    	// Редирект ако потребителя се върна с бутона 'НАЗАД'
+    	if(eshop_ProductDetails::isTheProductAlreadyInTheSameDomain($productId, cms_Domains::getPublicDomain()->id)){
+        	redirect(array('cat_Products', 'single', $productId));
+    	}
+    	
     	$this->requireRightFor('linktoeshop', (object)array('productId' => $productId));
     	
     	// Форсиране на домейн
