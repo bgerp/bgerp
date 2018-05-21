@@ -84,6 +84,12 @@ class eshop_Carts extends core_Master
     
     
     /**
+     * Кой може да чекаутва
+     */
+    public $canCheckout = 'every_one';
+    
+    
+    /**
      * Детайла, на модела
      */
     public $details = 'eshop_CartDetails';
@@ -94,32 +100,34 @@ class eshop_Carts extends core_Master
      */
     function description()
     {
-    	$this->FLD('ip', 'varchar', 'caption=Ип,input=none1');
-    	$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none1');
-    	$this->FLD('domainId', 'key(mvc=cms_Domains, select=domain)', 'caption=Брид,silent');
-    	$this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,silent');
-    	$this->FLD('total', 'double(decimals=2)', 'caption=Общи данни->Стойност,silent');
-    	$this->FLD('totalNoVat', 'double(decimals=2)', 'caption=Общи данни->Стойност без ДДС,silent');
-    	$this->FLD('productCount', 'int', 'caption=Общи данни->Брой,silent');
-    	$this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Общи данни->Плащане');
-    	$this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Общи данни->Доставка');
-    	$this->FLD('info', 'richtext(rows=2)', 'caption=Общи данни->Забележка');
-    	$this->FLD('invoiceNames', 'varchar(255)', 'caption=Данни на фирма за фактура->Наименование,class=contactData,hint=Имате на фирмата');
-    	$this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни на фирма за фактура->VAT/EIC');
-    	$this->FLD('invoiceAddress', 'varchar(255)', 'caption=Данни на фирма за фактура->Адрес,class=contactData,hint=Адрес на регистрация на фирмата');
-    	$this->FLD('invoicePCode', 'varchar(16)', 'caption=Данни на фирма за фактура->П. код,class=contactData,hint=Пощенски код на фирмата');
-    	$this->FLD('invoicePlace', 'varchar(64)', 'caption=Данни на фирма за фактура->Град,class=contactData,hint=Населено място: град или село и община');
-    	$this->FLD('invoiceCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни на фирма за фактура->Държава,hint=Фирма на държавата');
-    	$this->FLD('deliveryAddress', 'varchar(255)', 'caption=Данни за доставка->Адрес,class=contactData,hint=Вашият адрес');
-    	$this->FLD('deliveryPCode', 'varchar(16)', 'caption=Данни за доставка->П. код,class=contactData,hint=Пощенски код за доставка');
-    	$this->FLD('deliveryPlace', 'varchar(64)', 'caption=Данни за доставка->Град,class=contactData,hint=Населено място: град или село и община');
-    	$this->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за доставка->Държава,hint=Държава на доставка');
-    	$this->FLD('instruction', 'richtext(rows=2)', 'caption=Данни за доставка->Инструкции');
-    	$this->FLD('personNames', 'varchar(255)', 'caption=Данни на лице->Имена,class=contactData,hint=Вашето име||Your name,mandatory');
-    	$this->FLD('salutation', 'varchar(255)', 'caption=Данни на лице->Обръщение,class=contactData,hint=Обръщение||Salutation');
-    	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Данни на лице->Имейл,hint=Вашият имейл||Your email,mandatory');
-    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Данни на лице->Телефони,hint=Вашият телефон,mandatory');
-    	$this->FLD('state', 'enum(active=Активно,closed=Приключено,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
+    	$this->FLD('ip', 'varchar', 'caption=Ип,input=none');
+    	$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
+    	$this->FLD('domainId', 'key(mvc=cms_Domains, select=domain)', 'caption=Брид,input=none');
+    	$this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
+    	$this->FLD('total', 'double(decimals=2)', 'caption=Общи данни->Стойност,input=none');
+    	$this->FLD('totalNoVat', 'double(decimals=2)', 'caption=Общи данни->Стойност без ДДС,input=none');
+    	$this->FLD('productCount', 'int', 'caption=Общи данни->Брой,input=none');
+    	
+    	$this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име||Your name,mandatory');
+    	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,hint=Вашият имейл||Your email,mandatory');
+    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Тел,hint=Вашият телефон,mandatory');
+    	
+    	$this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Начин,mandatory,removeAndRefreshForm,silent');
+    	$this->FLD('deliveryData', 'blob(serialize, compress)', 'input=none');
+    	$this->FLD('instruction', 'richtext(rows=2)', 'caption=Доставка->Инструкции');
+    	
+    	$this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Начин,mandatory');
+    	$this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
+    	
+    	$this->FLD('invoiceNames', 'varchar(255)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
+    	$this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактура->VAT/EIC,input=hidden,mandatory,invoiceData');
+    	$this->FLD('invoiceAddress', 'varchar(255)', 'caption=Данни за фактура->Адрес,invoiceData,hint=Адрес на регистрация на фирмата,input=none,mandatory');
+    	$this->FLD('invoicePCode', 'varchar(16)', 'caption=Данни за фактура->П. код,invoiceData,hint=Пощенски код на фирмата,input=none,mandatory');
+    	$this->FLD('invoicePlace', 'varchar(64)', 'caption=Данни за фактура->Град,invoiceData,hint=Населено място: град или село и община,input=none,mandatory');
+    	$this->FLD('invoiceCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за фактура->Държава,hint=Фирма на държавата,input=none,mandatory,invoiceData');
+    	
+    	$this->FLD('info', 'richtext(rows=2)', 'caption=Общи данни->Забележка,input=none');
+    	$this->FLD('state', 'enum(draft=Чернова,active=Активно,closed=Приключено,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
     	
     	$this->setDbIndex('brid');
     	$this->setDbIndex('userId');
@@ -227,7 +235,7 @@ class eshop_Carts extends core_Master
     	
     	// Ако има потребител се търси имали чернова кошница за този потребител, ако не е логнат се търси по Брид-а
     	$where = (isset($userId)) ? "#userId = '{$userId}'" : "#userId IS NULL AND #brid = '{$brid}'";
-    	$rec = self::fetch("{$where} AND #state = 'active' AND #domainId = {$domainId}");
+    	$rec = self::fetch("{$where} AND (#state = 'active' OR #state = 'draft') AND #domainId = {$domainId}");
     	
     	if(empty($rec) && $bForce === TRUE){
     		$ip = core_Users::getRealIpAddr();
@@ -390,6 +398,25 @@ class eshop_Carts extends core_Master
     		$tpl->replace(core_Type::getByName('richtext')->toVerbal($settings->info), 'COMMON_TEXT');
     	}
     	
+    	if($rec->state == 'active'){
+    		if($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)){
+    			$tpl->replace($Driver->renderDeliveryInfo($rec), 'DELIVERY_BLOCK');
+    		}
+    		
+    		if($this->haveRightFor('editsale', $rec)){
+    			$editSaleBtn = ht::createLink('', array($this, 'editsale', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Редактиране на информацията за поъръчката');
+    			$tpl->append($editSaleBtn, 'saleEditBtn');
+    		}
+    		
+    		if($rec->makeInvoice != 'none'){
+    			$countryVerbal = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($rec->invoiceCountry);
+    			$tpl->replace($countryVerbal, 'invoiceCountry');
+    			foreach (array('invoiceNames', 'invoiceVatNo', 'invoicePCode', 'invoicePlace', 'invoiceAddress') as $name){
+    				$tpl->replace(core_Type::getByName('varchar')->toVerbal($rec->{$name}), $name);
+    			}
+    		}
+    	}
+    	
     	Mode::set('wrapper', 'cms_page_External');
     	core_Lg::pop();
     	
@@ -448,12 +475,12 @@ class eshop_Carts extends core_Master
     		$tpl->append($btn, 'CART_TOOLBAR');
     	}
     	
-    	if(eshop_CartDetails::haveRightFor('checkout', (object)array('cartId' => $rec->id))){
-    		$checkoutUrl = array();
-    		$disabledClass = !count($checkoutUrl) ? 'disabled': '';
-    		$btn = ht::createBtn('Поръчване', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=eshop-btn {$disabledClass},ef_icon=img/16/cart_go.png");
-    		$tpl->append($btn, 'CART_TOOLBAR');
+    	$checkoutUrl = array();
+    	if(eshop_Carts::haveRightFor('checkout', $rec)){
+    		$checkoutUrl = array(eshop_Carts, 'editsale', $rec->id, 'ret_url' => TRUE);
     	}
+    	$btn = ht::createBtn('Поръчване', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=eshop-btn {$disabledClass},ef_icon=img/16/cart_go.png");
+    	$tpl->append($btn, 'CART_TOOLBAR');
     	
     	$tpl->removeBlocks();
     	$tpl->removePlaces();
@@ -581,8 +608,14 @@ class eshop_Carts extends core_Master
     		}
     	}
     	
-    	if($action == 'addtocart'){
+    	if(in_array($action, array('addtocart', 'checkout'))){
     		if(!$mvc->haveRightFor('viewexternal', $rec)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'checkout' && isset($rec)){
+    		if(empty($rec->productCount)){
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -595,5 +628,95 @@ class eshop_Carts extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
+    }
+    
+    
+    /**
+     * Екшън за показване на външния изглед на кошницата
+     */
+    public function act_EditSale()
+    {
+    	$lang = cms_Domains::getPublicDomain('lang');
+    	core_Lg::push($lang);
+    	 
+    	$this->requireRightFor('checkout');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = self::fetch($id));
+    	$this->requireRightFor('checkout', $rec);
+    	
+    	$form = $this->getForm();
+    	$form->rec = $rec;
+    	
+    	$form->title = 'Информация за поръчка';
+    	$deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
+    	if(count($deliveryTerms) == 1){
+    		$form->setDefault('termId', key($deliveryTerms));
+    	} else {
+    		$deliveryTerms = array('' => '') + $deliveryTerms;
+    	}
+    	$form->setOptions('termId', $deliveryTerms);
+    	$form->setDefault('makeInvoice', 'none');
+    	
+    	$form->input(NULL, 'silent');
+    	
+    	if(isset($form->rec->termId)){
+    		if($Driver = cond_DeliveryTerms::getTransportCalculator($form->rec->termId)){
+    			$Driver->addCartDeliveryFields($form);
+    		}
+    	}
+    	
+    	if(isset($form->rec->makeInvoice)){
+    		$invoiceFields = $form->selectFields("#invoiceData");
+    		if($form->rec->makeInvoice != 'none'){
+    			foreach ($invoiceFields as $name => $fld){
+    				$form->setField($name, 'input');
+    			}
+    			$nameCaption = ($form->rec->makeInvoice == 'person') ? 'Лице' : 'Фирма';
+    			$form->setField('invoiceNames', "caption=Данни за фактура->{$nameCaption}");
+    		} else {
+    			foreach ($invoiceFields as $name => $fld){
+    				$form->setField($name, 'input=none');
+    			}
+    		}
+    	}
+    	
+    	$form->input();
+    	
+    	if($Driver){
+    		$Driver->inputCartCheckoutForm($form);
+    	}
+    	
+    	if($form->isSubmitted()){
+    		$rec = $form->rec;
+    		$rec->deliveryData = array();
+    		
+    		if($Driver){
+    			$Driver->getCartDeliveryFields($form);
+    			if(!$form->gotErrors()){
+    				$fields = $Driver->getCartDeliveryFields();
+    				foreach ($fields as $name){
+    					$rec->deliveryData[$name] = $rec->{$name};
+    				}
+    			}
+    		}
+    		
+    		$rec->state = 'active';
+    		$this->save($rec);
+    		core_Lg::pop();
+    		return followRetUrl();
+    	}
+    	
+    	Mode::set('wrapper', 'cms_page_External');
+    	core_Lg::pop();
+    	 
+    	// Добавяне на бутони
+    	$form->toolbar->addSbBtn('Финализиране', 'save', 'ef_icon = img/16/move.png, title = Финализиране на поръчката');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+    	
+    	$tpl = $form->renderHtml();
+    	core_Form::preventDoubleSubmission($tpl, $form);
+    	
+    	return $tpl;
+    	
     }
 }

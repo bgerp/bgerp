@@ -9,4 +9,39 @@
     <div id='cart-view-domain-text'>[#COMMON_TEXT#]</div>
     <!--ET_END COMMON_TEXT-->
     [#CART_TOOLBAR#]
+    <!--ET_BEGIN SALE_BLOCK-->
+    [#SALE_BLOCK#]
+    <table>
+    <tr><td>|Информация за поръчката|* [#saleEditBtn#]</td></tr>
+    <!--ET_BEGIN DELIVERY_BLOCK-->
+     <tr>
+     	<td>[#DELIVERY_BLOCK#]</td>
+     </tr>
+    <!--ET_END DELIVERY_BLOCK-->
+     <!--ET_BEGIN INVOICE_BLOCK-->
+     [#INVOICE_BLOCK#]
+     <tr>
+     	<td>|Информация за фактура|*</td>
+     </tr>
+     <tr>
+     	<td>|Име|*: [#invoiceNames#]</td>
+     </tr>
+     <tr>
+     	<td>|VAT/EIC|*: [#invoiceVatNo#]</td>
+     </tr>
+     <tr>
+     	<td>|Държава|*: [#invoiceCountry#]</td>
+     </tr>
+     <tr>
+     	<td>|П.код|*: [#invoicePCode#]</td>
+     </tr>
+     <tr>
+     	<td>|Място|*: [#invoicePlace#]</td>
+     </tr>
+     <tr>
+     	<td>|Адрес|*: [#invoiceAddress#]</td>
+     </tr>
+    <!--ET_END INVOICE_BLOCK-->
+    </table>
+    <!--ET_END SALE_BLOCK-->
 </div>

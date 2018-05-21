@@ -82,4 +82,28 @@ class cond_TransportCalc
     {
         return $this->class->getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $totalVolume, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
     }
+    
+    
+    public function addCartDeliveryFields(core_FieldSet &$form, $userId = NULL)
+    {
+    	return $this->class->addCartDeliveryFields($form, $userId);
+    }
+    
+    
+    public function getCartDeliveryFields()
+    {
+    	return $this->class->getCartDeliveryFields();
+    }
+    
+    
+    public function inputCartCheckoutForm(core_FieldSet &$form)
+    {
+    	return $this->class->inputCartCheckoutForm($form);
+    }
+    
+    
+    public function renderDeliveryInfo($rec)
+    {
+    	return $this->class->renderDeliveryInfo($rec);
+    }
 }

@@ -261,4 +261,51 @@ class tcost_FeeZones extends core_Master
     	
     	return $this->renderWrapping($form->renderHTML());
     }
+    
+    
+    public function addCartDeliveryFields(core_FieldSet &$form, $userId = NULL)
+    {
+    	$form->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,hint=Държава на доставка,mandatory');
+    	$form->FLD('deliveryPCode', 'varchar(16)', 'caption=Доставка->П. код,hint=Пощенски код за доставка,mandatory');
+    	$form->FLD('deliveryPlace', 'varchar(64)', 'caption=Доставка->Място,hint=Населено място: град или село и община,mandatory');
+    	$form->FLD('deliveryAddress', 'varchar(255)', 'caption=Доставка->Адрес,hint=Вашият адрес,mandatory');
+    	
+    	foreach (array('deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress') as $name){
+    		$form->setDefault($name, $form->rec->deliveryData[$name]);
+    	}
+    }
+    
+    
+    public function inputCartCheckoutForm(core_FieldSet &$form)
+    {
+    	$rec = $form->rec;
+    	
+    	if($rec->makeInvoice != 'none'){
+    		$form->setDefault('invoiceCountry', $rec->deliveryCountry);
+    		$form->setDefault('invoicePCode', $rec->deliveryPCode);
+    		$form->setDefault('invoicePlace', $rec->deliveryPlace);
+    		$form->setDefault('invoiceAddress', $rec->deliveryAddress);
+    	}
+    }
+    
+    public function getCartDeliveryFields()
+    {
+    	$fields = array('deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress');
+    	
+    	return $fields;
+    }
+    
+    
+    public function renderDeliveryInfo($rec)
+    {
+    	$tpl = new core_ET(tr("|Доставка|*: [#deliveryCountry#], [#deliveryPCode#] [#deliveryPlace#], [#deliveryAddress#]"));
+    	$countryVerbal = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($rec->deliveryData['deliveryCountry']);
+    	$tpl->replace($countryVerbal, 'deliveryCountry');
+    	
+    	foreach (array('deliveryPCode', 'deliveryPlace', 'deliveryAddress') as $name){
+    		$tpl->replace(core_Type::getByName('varchar')->toVerbal($rec->deliveryData[$name]), $name);
+    	}
+    
+    	return $tpl;
+    }
 }
