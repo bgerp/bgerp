@@ -84,24 +84,48 @@ class cond_TransportCalc
     }
     
     
-    public function addCartDeliveryFields(core_FieldSet &$form, $userId = NULL)
+    /**
+     * Добавя полета за доставка към форма
+     * 
+     * @param core_FieldSet $form
+     * @param string|NULL $userId
+     * @return void
+     */
+    public function addFields(core_FieldSet &$form, $userId = NULL)
     {
-    	return $this->class->addCartDeliveryFields($form, $userId);
+    	return $this->class->addFields($form, $userId);
     }
     
     
-    public function getCartDeliveryFields()
+    /**
+     * Добавя масив с полетата за доставка
+     *
+     * @return array
+     */
+    public function getFields()
     {
-    	return $this->class->getCartDeliveryFields();
+    	return $this->class->getFields();
     }
     
     
-    public function inputCartCheckoutForm(core_FieldSet &$form)
+    /**
+     * Проверява форма
+     *
+     * @param core_FieldSet $form
+     * @return void
+     */
+    public function checkForm(core_FieldSet &$form)
     {
-    	return $this->class->inputCartCheckoutForm($form);
+    	return $this->class->checkForm($form);
     }
     
     
+    /**
+     * Рендира информацията
+     *
+     * @param stdClass rec
+     * @return core_ET $tpl
+     */
     public function renderDeliveryInfo($rec)
     {
     	return $this->class->renderDeliveryInfo($rec);

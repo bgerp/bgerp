@@ -684,7 +684,12 @@ class eshop_Carts extends core_Master
     	
     	if(isset($form->rec->termId)){
     		if($Driver = cond_DeliveryTerms::getTransportCalculator($form->rec->termId)){
-    			$Driver->addCartDeliveryFields($form);
+    			$Driver->addFields($form);
+    			$fields = $Driver->getFields();
+    			
+    			foreach ($fields as $fld){
+    				$form->setDefault($fld, $form->rec->deliveryData[$fld]);
+    			}
     		}
     	}
     	
@@ -713,7 +718,7 @@ class eshop_Carts extends core_Master
     	$form->input();
     	
     	if($Driver){
-    		$Driver->inputCartCheckoutForm($form);
+    		$Driver->checkForm($form);
     	}
     	
     	if($form->isSubmitted()){
@@ -721,9 +726,8 @@ class eshop_Carts extends core_Master
     		$rec->deliveryData = array();
     		
     		if($Driver){
-    			$Driver->getCartDeliveryFields($form);
     			if(!$form->gotErrors()){
-    				$fields = $Driver->getCartDeliveryFields();
+    				$fields = $Driver->getFields();
     				foreach ($fields as $name){
     					$rec->deliveryData[$name] = $rec->{$name};
     				}

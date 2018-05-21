@@ -263,20 +263,29 @@ class tcost_FeeZones extends core_Master
     }
     
     
-    public function addCartDeliveryFields(core_FieldSet &$form, $userId = NULL)
+    /**
+     * Добавя полета за доставка към форма
+     * 
+     * @param core_FieldSet $form
+     * @param string|NULL $userId
+     * @return void
+     */
+    public function addFields(core_FieldSet &$form, $userId = NULL)
     {
     	$form->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,hint=Държава на доставка,mandatory');
     	$form->FLD('deliveryPCode', 'varchar(16)', 'caption=Доставка->П. код,hint=Пощенски код за доставка,mandatory');
     	$form->FLD('deliveryPlace', 'varchar(64)', 'caption=Доставка->Място,hint=Населено място: град или село и община,mandatory');
     	$form->FLD('deliveryAddress', 'varchar(255)', 'caption=Доставка->Адрес,hint=Вашият адрес,mandatory');
-    	
-    	foreach (array('deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress') as $name){
-    		$form->setDefault($name, $form->rec->deliveryData[$name]);
-    	}
     }
     
     
-    public function inputCartCheckoutForm(core_FieldSet &$form)
+    /**
+     * Проверява форма
+     *
+     * @param core_FieldSet $form
+     * @return void
+     */
+    public function checkForm(core_FieldSet &$form)
     {
     	$rec = $form->rec;
     	
@@ -288,7 +297,13 @@ class tcost_FeeZones extends core_Master
     	}
     }
     
-    public function getCartDeliveryFields()
+    
+    /**
+     * Добавя масив с полетата за доставка
+     *
+     * @return array
+     */
+    public function getFields()
     {
     	$fields = array('deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress');
     	
@@ -296,6 +311,12 @@ class tcost_FeeZones extends core_Master
     }
     
     
+    /**
+     * Рендира информацията
+     *
+     * @param stdClass rec
+     * @return core_ET $tpl
+     */
     public function renderDeliveryInfo($rec)
     {
     	$tpl = new core_ET(tr("|Доставка|*: [#deliveryCountry#], [#deliveryPCode#] [#deliveryPlace#], [#deliveryAddress#]"));
