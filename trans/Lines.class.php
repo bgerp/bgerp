@@ -155,7 +155,7 @@ class trans_Lines extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'title,start,repeat';
+    public $fieldsNotToClone = 'title,start,repeat,countTotal,countReady';
     
     
     /**
