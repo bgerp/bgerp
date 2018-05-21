@@ -71,7 +71,13 @@ class trans_Lines extends core_Master
      */
     public $canAdd = 'ceo, trans';
 
-
+    
+    /**
+     * Кой има право да прави документа на заявка?
+     */
+    public $canPending = 'ceo, trans';
+    
+    
     /**
      * Кой има право да пише?
      */
@@ -448,7 +454,7 @@ class trans_Lines extends core_Master
     {
     	$linesArr = array();
     	$query = self::getQuery();
-    	$query->where("#state = 'draft'");
+    	$query->where("#state = 'pending'");
     	
     	$recs = $query->fetchAll();
     	array_walk($recs, function($rec) use (&$linesArr) {$linesArr[$rec->id] = self::getRecTitle($rec, FALSE);});

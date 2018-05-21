@@ -190,7 +190,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		
 		if($action == 'changeline' && isset($rec->lineId)){
 			$lineState = trans_Lines::fetchField($rec->lineId, 'state');
-			if($lineState != 'draft' && $lineState != 'rejected'){
+			if($lineState != 'pending'){
 				$requiredRoles = 'no_one';
 			}
 		}
