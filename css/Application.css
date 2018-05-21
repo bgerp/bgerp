@@ -2515,6 +2515,9 @@ span.sharing-history-title {
   max-height: 90px;
   float: left; }
 
+.narrow #all {
+  position: relative; }
+
 #all #maincontent {
   clear: both;
   background-color: white; }
@@ -2682,10 +2685,16 @@ span.sharing-history-title {
       opacity: 0.7; }
 
 .narrow .logoutBlock {
-  background: #babacb; }
+  background: #babacb;
+  position: absolute;
+  right: 0px;
+  top: 0px; }
 
 .cmsTopContractor {
   position: relative; }
+
+#cart-view-total {
+  margin-bottom: 10px; }
 
 #cart-view-buttons {
   margin: 20px 0; }
@@ -2739,7 +2748,10 @@ span.sharing-history-title {
   cursor: pointer;
   width: 14px;
   height: 14px;
-  margin: 0 2px; }
+  padding: 0 2px; }
+
+.wide .cart-container {
+  display: inline-block; }
 
 .summary-holder {
   float: right; }
@@ -2778,6 +2790,9 @@ table .eshop-btn {
   .eshop-btn:disabled {
     background-color: #bbbbbb !important;
     color: #666666 !important; }
+
+.narrow .eshop-btn {
+  padding-left: 10px !important; }
 
   .foldertabs > .tab-row {
     overflow: hidden;
