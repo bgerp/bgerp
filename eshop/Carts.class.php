@@ -420,7 +420,7 @@ class eshop_Carts extends core_Master
     	}
     	
     	if($this->haveRightFor('checkout', $rec)){
-    		$editSaleBtn = ht::createLink('', array($this, 'order', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Редактиране на информацията за поъръчката');
+    		$editSaleBtn = ht::createLink('', array($this, 'order', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Редактиране на информацията за поръчката');
     		$tpl->append($editSaleBtn, 'saleEditBtn');
     	}
     	
