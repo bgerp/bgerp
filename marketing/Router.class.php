@@ -92,7 +92,7 @@ class marketing_Router
 	 */
 	public static function routeByCompanyEmail($email, $inCharge)
 	{
-		$companyRec = crm_Companies::fetch(array("#email LIKE '%[#1#]%'", $email));
+		$companyRec = crm_Companies::fetch(array("#email LIKE '%[#1#]%' AND #state = 'active'", $email));
 		
 		if($companyRec){
 			$emails = type_Emails::toArray($companyRec->email);
@@ -116,7 +116,7 @@ class marketing_Router
 	 */
 	public static function routeByPersonEmail($email, $inCharge)
 	{
-		$personRec = crm_Persons::fetch(array("#email LIKE '%[#1#]%'", $email));
+		$personRec = crm_Persons::fetch(array("#email LIKE '%[#1#]%' AND #state = 'active'", $email));
 		
 		if($personRec){
 			$emails = type_Emails::toArray($personRec->email);
@@ -363,7 +363,7 @@ class marketing_Router
             $query->orderBy('#last', 'DESC');
 			$query->show('folderId,name,last');
 			if(isset($countryId)){
-				$query->where("#country = {$countryId}");
+				$query->where("#country = {$countryId} AND #state = 'active'");
 			}
 			
 			// Подредба по последно използване
