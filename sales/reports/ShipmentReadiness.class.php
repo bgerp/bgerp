@@ -258,18 +258,19 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		// Под документа се показват и артикулите, които имат задания към него
 		$jQuery = planning_Jobs::getQuery();
 		$jQuery->where("#saleId = {$saleId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed')");
-		$jQuery->show('productId');
+		$jQuery->show('productId,quantityProduced');
 		while($jRec = $jQuery->fetch()){
 			$pRec = cat_products::fetch($jRec->productId, 'name,code,isPublic,measureId,canStore');
 			$inStock = ($pRec->canStore == 'yes') ? store_Products::getQuantity($jRec->productId, NULL, TRUE) : NULL;
 			$inStock = core_Type::getByName('double(smartRound)')->toVerbal($inStock) . " " . cat_UoM::getShortName($pRec->measureId);
-			$arr[] = array('job' => planning_Jobs::getLink($jRec->id), 'inStock' => $inStock);
+			$produced = core_Type::getByName('double(smartRound)')->toVerbal($jRec->quantityProduced);
+			$arr[] = array('job' => planning_Jobs::getLink($jRec->id), 'inStock' => $inStock, 'produced' => $produced);
 		}
 			
 		if(count($arr)){
 			$tableHtml = "<table class='small no-border'>";
 			foreach ($arr as $ar){
-				$tableHtml .= "<tr><td>{$ar['job']}</td><td class='nowrap'> / {$ar['inStock']}</td></tr>";
+				$tableHtml .= "<tr><td>{$ar['job']}</td></tr><tr><td class='nowrap'><span class='quiet'>" . tr('Заскл.'). ":</span> {$ar['produced']} / <span class='quiet'>" . tr('Наличност.'). ":</span> {$ar['inStock']}</td></tr>";
 			}
 			$tableHtml .= "</table>";
 
