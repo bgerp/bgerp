@@ -2,7 +2,9 @@
     <h3 style="margin: 0 0 20px">[#CART_NAME#] [#CART_COUNT#]</h3>
     <div class="cart-holder" style="display: inline-block">
         [#CART_TABLE#]
-        [#CART_TOTAL#]
+    </div>
+    <div id = 'cart-view-total' class="summary-holder">
+    [#CART_TOTAL#]
     </div>
     <div id='cart-view-info'>[#VAT_STATUS#]</div>
     <!--ET_BEGIN COMMON_TEXT-->
@@ -15,6 +17,12 @@
     <tr><td>|Информация за поръчката|* [#saleEditBtn#]</td></tr>
     <!--ET_BEGIN DELIVERY_BLOCK-->
      <tr>
+     	<td>|Начин на плащане|*: [#paymentId#]</td>
+     </tr>
+     <tr>
+     	<td>|Условие на доставка|*: [#termId#]</td>
+     </tr>
+     <tr>
      	<td>[#DELIVERY_BLOCK#]</td>
      </tr>
     <!--ET_END DELIVERY_BLOCK-->
@@ -24,10 +32,10 @@
      	<td>|Информация за фактура|*</td>
      </tr>
      <tr>
-     	<td>|Име|*: [#invoiceNames#]</td>
+     	<td>[#INV_CAPTION#]: [#invoiceNames#]</td>
      </tr>
      <tr>
-     	<td>|VAT/EIC|*: [#invoiceVatNo#]</td>
+     	<td>[#VAT_CAPTION#]: [#invoiceVatNo#]</td>
      </tr>
      <tr>
      	<td>|Държава|*: [#invoiceCountry#]</td>

@@ -399,26 +399,43 @@ class eshop_Carts extends core_Master
     	}
     	
     	if($rec->state == 'active'){
-    		if($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)){
-    			$tpl->replace($Driver->renderDeliveryInfo($rec), 'DELIVERY_BLOCK');
-    		}
-    		
-    		if($this->haveRightFor('editsale', $rec)){
-    			$editSaleBtn = ht::createLink('', array($this, 'editsale', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Редактиране на информацията за поъръчката');
-    			$tpl->append($editSaleBtn, 'saleEditBtn');
-    		}
-    		
-    		if($rec->makeInvoice != 'none'){
-    			$countryVerbal = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($rec->invoiceCountry);
-    			$tpl->replace($countryVerbal, 'invoiceCountry');
-    			foreach (array('invoiceNames', 'invoiceVatNo', 'invoicePCode', 'invoicePlace', 'invoiceAddress') as $name){
-    				$tpl->replace(core_Type::getByName('varchar')->toVerbal($rec->{$name}), $name);
-    			}
-    		}
+    		$tpl->append($this->renderCartOrderInfo($rec));
     	}
     	
     	Mode::set('wrapper', 'cms_page_External');
     	core_Lg::pop();
+    	
+    	return $tpl;
+    }
+    
+    
+    private function renderCartOrderInfo($rec)
+    {
+    	$tpl = new core_ET("");
+    	$row = $this->recToVerbal($rec);
+    	$tpl->replace($row->termId, 'termId');
+    	$tpl->replace($row->paymentId, 'paymentId');
+    	if($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)){
+    		$tpl->replace($Driver->renderDeliveryInfo($rec), 'DELIVERY_BLOCK');
+    	}
+    	
+    	if($this->haveRightFor('checkout', $rec)){
+    		$editSaleBtn = ht::createLink('', array($this, 'order', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Редактиране на информацията за поъръчката');
+    		$tpl->append($editSaleBtn, 'saleEditBtn');
+    	}
+    	
+    	if($rec->makeInvoice != 'none'){
+    		$countryVerbal = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($rec->invoiceCountry);
+    		$tpl->replace($countryVerbal, 'invoiceCountry');
+    		foreach (array('invoiceNames', 'invoiceVatNo', 'invoicePCode', 'invoicePlace', 'invoiceAddress') as $name){
+    			$tpl->replace(core_Type::getByName('varchar')->toVerbal($rec->{$name}), $name);
+    		}
+    		 
+    		$nameCaption = ($rec->makeInvoice == 'person') ? 'Лице' : 'Фирма';
+    		$tpl->replace(tr($nameCaption), 'INV_CAPTION');
+    		$vatCaption = ($rec->makeInvoice == 'person') ? 'ЕГН' : 'VAT/EIC';
+    		$tpl->replace(tr($vatCaption), 'VAT_CAPTION');
+    	}
     	
     	return $tpl;
     }
@@ -477,7 +494,7 @@ class eshop_Carts extends core_Master
     	
     	$checkoutUrl = array();
     	if(eshop_Carts::haveRightFor('checkout', $rec)){
-    		$checkoutUrl = array(eshop_Carts, 'editsale', $rec->id, 'ret_url' => TRUE);
+    		$checkoutUrl = array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE);
     	}
     	$btn = ht::createBtn('Поръчване', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=eshop-btn {$disabledClass},ef_icon=img/16/cart_go.png");
     	$tpl->append($btn, 'CART_TOOLBAR');
@@ -634,7 +651,7 @@ class eshop_Carts extends core_Master
     /**
      * Екшън за показване на външния изглед на кошницата
      */
-    public function act_EditSale()
+    public function act_Order()
     {
     	$lang = cms_Domains::getPublicDomain('lang');
     	core_Lg::push($lang);
@@ -673,6 +690,13 @@ class eshop_Carts extends core_Master
     			}
     			$nameCaption = ($form->rec->makeInvoice == 'person') ? 'Лице' : 'Фирма';
     			$form->setField('invoiceNames', "caption=Данни за фактура->{$nameCaption}");
+    			if($form->rec->makeInvoice == 'person'){
+    				$form->setField('invoiceVatNo', "caption=Данни за фактура->ЕГН");
+    				$form->setFieldType('invoiceVatNo', 'bglocal_EgnType');
+    			} else {
+    				$form->setField('invoiceVatNo', "caption=Данни за фактура->VAT/EIC");
+    			}
+    			$vatCaption = ($form->rec->makeInvoice == 'person') ? 'ЕГН' : 'VAT/EIC';
     		} else {
     			foreach ($invoiceFields as $name => $fld){
     				$form->setField($name, 'input=none');
@@ -717,6 +741,5 @@ class eshop_Carts extends core_Master
     	core_Form::preventDoubleSubmission($tpl, $form);
     	
     	return $tpl;
-    	
     }
 }
