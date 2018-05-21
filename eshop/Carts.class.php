@@ -492,11 +492,8 @@ class eshop_Carts extends core_Master
     		$tpl->append($btn, 'CART_TOOLBAR');
     	}
     	
-    	if($shopMenuId = cms_Content::getDefaultMenuId('eshop_Groups')){
-    		$shopUrl = cms_Content::getContentUrl($shopMenuId);
-    		$btn = ht::createLink('Пазаруване', $shopUrl, NULL, 'title=Към онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
-    		$tpl->append($btn, 'CART_TOOLBAR');
-    	}
+    	$btn = ht::createLink('Пазаруване', cls::get('eshop_Groups')->getUrlByMenuId(NULL), NULL, 'title=Към онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
+    	$tpl->append($btn, 'CART_TOOLBAR');
     	
     	$checkoutUrl = array();
     	if(eshop_Carts::haveRightFor('checkout', $rec)){
