@@ -82,7 +82,7 @@ function eshopActions() {
 	});
 
 	// Бутоните за +/- да променят количеството
-	$(document.body).on('click', ".btnUp, .btnDown",  function(){
+	$(document.body).on('click tap', ".btnUp, .btnDown",  function(){
 		var input = $(this).siblings('.option-quantity-input');
 		var val = parseFloat($(input).val());
 		var step = $(this).hasClass('btnUp') ? 1 : -1;

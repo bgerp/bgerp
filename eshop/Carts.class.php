@@ -482,13 +482,13 @@ class eshop_Carts extends core_Master
     	
     	if(eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
     		$emptyUrl = ($rec->productCount) ? array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => getRetUrl()) : array();
-    		$btn = ht::createBtn('Изчистване', $emptyUrl, NULL, NULL, 'title=Премахване на артикулите,class=eshop-btn,ef_icon=img/16/bin_closed.png');
-    		$tpl->append($btn, 'CART_TOOLBAR');
+    		$btn = ht::createLink('Изчисти', $emptyUrl, NULL, 'title=Премахване на артикулите,class=eshop-link,ef_icon=img/16/deletered.png');
+    		$tpl->append($btn, 'EMPTY_CART');
     	}
     	
     	if(eshop_CartDetails::haveRightFor('add', (object)array('cartId' => $rec->id))){
     		$addUrl = array('eshop_CartDetails', 'add', 'cartId' => $rec->id, 'external' => TRUE, 'ret_url' => TRUE);
-    		$btn = ht::createBtn('Добавяне', $addUrl, NULL, NULL, 'title=Добавяне на нов артикул,class=eshop-btn,ef_icon=img/16/add.png');
+    		$btn = ht::createLink('Добави', $addUrl, NULL, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
     		$tpl->append($btn, 'CART_TOOLBAR');
     	}
     	
@@ -496,7 +496,7 @@ class eshop_Carts extends core_Master
     	if(eshop_Carts::haveRightFor('checkout', $rec)){
     		$checkoutUrl = array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE);
     	}
-    	$btn = ht::createBtn('Поръчване', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=eshop-btn {$disabledClass},ef_icon=img/16/cart_go.png");
+    	$btn = ht::createBtn('Поръчай', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=order-btn eshop-btn {$disabledClass}");
     	$tpl->append($btn, 'CART_TOOLBAR');
     	
     	$tpl->removeBlocks();
