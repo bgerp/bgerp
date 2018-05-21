@@ -236,4 +236,16 @@ class eshop_Settings extends core_Manager
     {
     	core_Cache::remove('eshop_Settings', "{$rec->classId}|{$rec->objectId}");
     }
+    
+    
+    public static function getDeliveryTermOptions($class, $domainId = NULL)
+    {
+    	$settings = self::getSettings($class, $domainId);
+    	$terms = keylist::toArray($settings->terms);
+    	
+    	$options = array();
+    	array_walk($terms, function($termId) use (&$options) {$options[$termId] = cond_DeliveryTerms::getVerbal($termId, 'term');});
+    	
+    	return $options;
+    }
 }

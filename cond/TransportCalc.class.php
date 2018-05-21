@@ -82,4 +82,52 @@ class cond_TransportCalc
     {
         return $this->class->getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $totalVolume, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode);
     }
+    
+    
+    /**
+     * Добавя полета за доставка към форма
+     * 
+     * @param core_FieldSet $form
+     * @param string|NULL $userId
+     * @return void
+     */
+    public function addFields(core_FieldSet &$form, $userId = NULL)
+    {
+    	return $this->class->addFields($form, $userId);
+    }
+    
+    
+    /**
+     * Добавя масив с полетата за доставка
+     *
+     * @return array
+     */
+    public function getFields()
+    {
+    	return $this->class->getFields();
+    }
+    
+    
+    /**
+     * Проверява форма
+     *
+     * @param core_FieldSet $form
+     * @return void
+     */
+    public function checkForm(core_FieldSet &$form)
+    {
+    	return $this->class->checkForm($form);
+    }
+    
+    
+    /**
+     * Рендира информацията
+     *
+     * @param stdClass rec
+     * @return core_ET $tpl
+     */
+    public function renderDeliveryInfo($rec)
+    {
+    	return $this->class->renderDeliveryInfo($rec);
+    }
 }
