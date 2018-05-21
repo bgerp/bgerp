@@ -488,7 +488,13 @@ class eshop_Carts extends core_Master
     	
     	if(eshop_CartDetails::haveRightFor('add', (object)array('cartId' => $rec->id))){
     		$addUrl = array('eshop_CartDetails', 'add', 'cartId' => $rec->id, 'external' => TRUE, 'ret_url' => TRUE);
-    		$btn = ht::createLink('Добави', $addUrl, NULL, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
+    		$btn = ht::createLink('Добавяне', $addUrl, NULL, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
+    		$tpl->append($btn, 'CART_TOOLBAR');
+    	}
+    	
+    	if($shopMenuId = cms_Content::getDefaultMenuId('eshop_Groups')){
+    		$shopUrl = cms_Content::getContentUrl($shopMenuId);
+    		$btn = ht::createLink('Пазаруване', $shopUrl, NULL, 'title=Към онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
     		$tpl->append($btn, 'CART_TOOLBAR');
     	}
     	

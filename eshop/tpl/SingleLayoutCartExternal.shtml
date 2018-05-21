@@ -42,7 +42,7 @@
      <!--ET_BEGIN INVOICE_BLOCK-->
      [#INVOICE_BLOCK#]
     <div class="fleft half-width">
-    <h4 style="margin-bottom: 5px;">|Информация за фактура|* [#saleEditBtn#]</h4>
+    <h4 style="margin-bottom: 5px;">|Информация за фактура|*</h4>
         <table>
          <tr>
             <td>[#INV_CAPTION#]: [#invoiceNames#]</td>
