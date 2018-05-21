@@ -1,10 +1,10 @@
 <?php
 
-defIfNot('JPEGOPTIM_CMD', 'jpegoptim [#path#]');
+defIfNot('JPEGOPTIM_CMD', 'jpegoptim -q [#path#]');
 
 defIfNot('JPEGTRAN_CMD', 'jpegtran -copy none -optimize -outfile [#path#] [#path#]');
 
-defIfNot('OPTIPNG_CMD', 'optipng [#path#]');
+defIfNot('OPTIPNG_CMD', 'optipng [#path#] 1> /dev/null');
 
 defIfNot('PNGQUANT_CMD', 'pngquant --quality=65-80 --ext .png --force [#path#]');
 
