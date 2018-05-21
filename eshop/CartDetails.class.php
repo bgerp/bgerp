@@ -355,6 +355,7 @@ class eshop_CartDetails extends core_Detail
 		}
 		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+		$row->productId .= " ({$row->packagingId})";
 	}
 	
 	
