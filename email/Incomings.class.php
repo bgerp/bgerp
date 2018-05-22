@@ -1725,7 +1725,7 @@ class email_Incomings extends core_Master
         
         // Ако сметката е с рутиране
         if($accRec && ($accRec->applyRouting == 'yes')) {
-        
+            
             // Ако `boxTo` е обща кутия, прилагаме последователно `From`, `Domain`, `Country`
             if($accRec->email == $rec->toBox && $accRec->type != 'single') {
                 
