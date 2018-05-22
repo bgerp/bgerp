@@ -232,7 +232,7 @@ class backup_Setup extends core_ProtoSetup
         $rec->action = 'full';
         $rec->period = BACKUP_FULL_PERIOD;
         $rec->offset = BACKUP_FULL_OFFSET;
-        $rec->delay = 7;
+        $rec->delay = 55;
         $rec->timeLimit = 2400;
         $html .= core_Cron::addOnce($rec);
         
