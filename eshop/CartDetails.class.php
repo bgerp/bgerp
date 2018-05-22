@@ -251,7 +251,7 @@ class eshop_CartDetails extends core_Detail
 	 */
 	public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = NULL, $packPrice = NULL, $domainId = NULL)
 	{
-		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'active'"));
+		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'draft'"));
 		expect($eshopRec = eshop_Products::fetch($eshopProductId));
 		expect(cat_Products::fetch($productId));
 		

@@ -19,7 +19,7 @@
     <!--ET_BEGIN SALE_BLOCK-->
     [#SALE_BLOCK#]
     <div class="fleft half-width">
-        <h4 style="margin-bottom: 5px;">|Информация за поръчката|* [#saleEditBtn#]</h4>
+        <h4 style="margin-bottom: 5px;">|Информация за поръчката|*</h4>
         <table>
         <!--ET_BEGIN DELIVERY_BLOCK-->
          <tr>
