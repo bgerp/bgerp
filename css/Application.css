@@ -2721,7 +2721,7 @@ span.sharing-history-title {
   .half-width h4 {
     margin-top: 0; }
 
-.narrow .half-width {
+#.narrow .half-width {
   float: none !important;
   width: 100%; }
 
@@ -3439,6 +3439,31 @@ table .eshop-btn {
   width: 100% \9;
   max-width: none \9;
   *width: auto; }
+
+.cookies {
+  background-color: #333333;
+  float: none !important;
+  padding: 14px;
+  color: #eeeeee; }
+
+.cookies .agree {
+  padding: 3px 5px;
+  border-radius: 5px;
+  display: inline-block; }
+
+.wide .cookies .agree {
+  position: relative;
+  top: -3px;
+  float: right; }
+
+.narrow .cookies .agree {
+  margin-top: 5px; }
+
+.cookies .agree:hover {
+  cursor: pointer; }
+
+.cookies a:hover {
+  text-decoration: underline; }
 
 /*
  * край на стилове за блог

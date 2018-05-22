@@ -3151,7 +3151,7 @@ fieldset.sharing-history {
 	h4 {
 		margin-top: 0;
 	}
-}
+}#
 
 .narrow .half-width {
 	float: none !important;
@@ -3888,6 +3888,37 @@ table .eshop-btn {
 	*width: auto;
 }
 
+.cookies {
+	background-color: #333;
+	float: none !important;
+	padding: 14px;
+	color: #eee;
+}
+
+
+.cookies .agree {
+	padding: 3px 5px;
+	border-radius: 5px;
+	display: inline-block;
+}
+
+.wide .cookies .agree {
+	position: relative;
+	top: -3px;
+	float: right;
+}
+
+.narrow .cookies .agree{
+	margin-top: 5px;
+}
+
+.cookies .agree:hover {
+	cursor: pointer;
+}
+
+.cookies a:hover {
+	text-decoration: underline;
+}
 
 /*край на стилове за блог*/
 
