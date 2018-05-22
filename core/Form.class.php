@@ -694,9 +694,9 @@ class core_Form extends core_FieldSet
            
             // Създаваме input - елементите
             foreach($fields as $name => $field) {
-                
+               
                 expect($field->kind, $name, 'Липсващо поле');
-
+                
                 if(Mode::is('staticFormView')) {
                     $value = $field->type->toVerbal($vars[$name]);
                     $attr = array('class' => 'formFieldValue');
@@ -806,7 +806,7 @@ class core_Form extends core_FieldSet
 
                 // Рендиране на select или input полето
                 if ((count($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
-                    
+                	
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                     
@@ -830,7 +830,11 @@ class core_Form extends core_FieldSet
                     $input = $type->renderInput($name, $value, $attr);
                 }
                 
-                $fieldsLayout->replace($input, $name);
+                if(!empty($field->displayInToolbar)){
+                	$fieldsLayout->append($input, 'FORM_TOOLBAR');
+                } else {
+                	$fieldsLayout->replace($input, $name);
+                }
             }
 
             if(Mode::is('staticFormView')) {
@@ -860,6 +864,8 @@ class core_Form extends core_FieldSet
         $fields = $res = array();
 
         foreach($fields1 as $name => $field) {
+			if(!empty($field->displayInToolbar)) continue;
+        	
             list($group, $caption) = explode('->', $field->caption);
             if(!$caption) {
                 $group = 'autoGroup' . $i++;
