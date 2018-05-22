@@ -526,10 +526,9 @@ class eshop_Products extends core_Master
      */
     public function renderProduct($data)
     {
-        if(Mode::is('wide')) {
+        if(Mode::is('screenMode', 'wide')) {
             $tpl = getTplFromFile("eshop/tpl/ProductShow.shtml");
         } else {
-
             $tpl = getTplFromFile("eshop/tpl/ProductShowNarrow.shtml");
         }
         $tpl->placeObject($data->row);
