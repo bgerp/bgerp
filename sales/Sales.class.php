@@ -746,7 +746,7 @@ class sales_Sales extends deals_DealMaster
         $rec2->period = 60;
         $rec2->offset = mt_rand(0,30);
         $rec2->delay = 0;
-        $rec2->timeLimit = 100;
+        $rec2->timeLimit = 200;
         $res .= core_Cron::addOnce($rec2);
     }
     

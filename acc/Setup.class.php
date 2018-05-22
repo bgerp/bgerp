@@ -342,7 +342,7 @@ class acc_Setup extends core_ProtoSetup
             'action' => "SyncFeatures",
             'period' => 1440,
             'offset' => 60,
-            'timeLimit' => 600
+            'timeLimit' => 900
         ),
         array(
             'systemId' => "CheckAccLimits",

@@ -277,7 +277,7 @@ class doc_Setup extends core_ProtoSetup
                     'controller' => 'doc_Threads',
                     'action' => 'DeleteThread',
                     'period' => 5,
-                    'timeLimit' => 120,
+                    'timeLimit' => 200,
             ),
             array(
                     'systemId' => 'deleteOldObject',
