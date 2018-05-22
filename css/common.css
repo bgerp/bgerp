@@ -1510,11 +1510,15 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
     margin-right: 4px;
     position: relative;
     top: 1px; }
+  .formFooter input[type=checkbox]:checked + label {
+    color: #222222 !important; }
   .formFooter input[type=radio] + label a,
   .formFooter input[type=checkbox] + label a {
     opacity: 0.8; }
   .formFooter input[type=checkbox]:checked + label a {
     opacity: 1; }
+  .formFooter input[type=checkbox].inputError + label {
+    color: red; }
 
 form .inputAdvanced {
   background-color: #ddffdd !important; }
