@@ -2712,6 +2712,10 @@ span.sharing-history-title {
   width: 45%;
   margin-right: 5%; }
 
+.narrow .half-width {
+  float: none;
+  width: 100%; }
+
 #cart-external-status .count {
   border: 1px solid #526b00;
   background-color: #698900;
@@ -2792,10 +2796,10 @@ table .eshop-btn {
   margin-right: 0 !important; }
 
 .eshop-btn {
-  padding: 10px 20px !important;
+  background-position-x: 5px;
+  padding: 6px 10px 6px 26px !important;
   color: #333333 !important;
   border-radius: 3px;
-  font-size: 1.2em !important;
   box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
   background-color: #f6f6f6 !important;
   float: right; }
@@ -2804,6 +2808,10 @@ table .eshop-btn {
   .eshop-btn:disabled {
     background-color: #bbbbbb !important;
     color: #666666 !important; }
+
+.order-btn {
+  padding: 10px 20px !important;
+  font-size: 1.2em !important; }
 
 .narrow .eshop-btn {
   padding-left: 10px !important; }
