@@ -141,7 +141,9 @@ class sales_TransportValues extends core_Manager
     		$totalFee = NULL;
     	} else {
     		$totalWeight = self::normalizeTotalWeight($totalWeight, $productId, $TransportCostDriver);
-    		$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $weight, $volume, $totalWeight, $totalVolume, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
+    		
+    		$params = array('deliveryCountry' => $toCountryId, 'deliveryPCode' => $toPcodeId, 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
+    		$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $weight, $volume, $totalWeight, $totalVolume, $params);
     	}
     	
     	$fee = $totalFee['fee'];
@@ -571,7 +573,8 @@ class sales_TransportValues extends core_Manager
     	$ourCompany = crm_Companies::fetchOurCompany();
     	
     	// Опит за изчисляване на дъмми транспорт
-    	$totalFee = $Driver->getTransportFee($deliveryTermId, 1, 1, 1000, 1000, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode'], $ourCompany->country, $ourCompany->pCode);
+    	$params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
+    	$totalFee = $Driver->getTransportFee($deliveryTermId, 1, 1, 1000, 1000, $params);
     	
     	if($totalFee['fee'] <= 0) {
     		$toCountryId = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($codeAndCountryArr['countryId'] );
