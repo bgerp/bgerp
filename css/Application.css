@@ -2705,15 +2705,24 @@ span.sharing-history-title {
   font-weight: normal;
   display: inline-block; }
 
+.order-info {
+  background-color: #f1f1f1;
+  padding: 10px;
+  font-size: 0.9em;
+  margin-bottom: 10px; }
+
 .toolbar .eshop-link {
-  margin-top: 15px; }
+  margin-top: 15px;
+  margin-right: 20px; }
 
 .half-width {
-  width: 45%;
-  margin-right: 5%; }
+  display: inline-block;
+  max-width: 50%; }
+  .half-width h4 {
+    margin-top: 0; }
 
 .narrow .half-width {
-  float: none;
+  float: none !important;
   width: 100%; }
 
 #cart-external-status .count {
