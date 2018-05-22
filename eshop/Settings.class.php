@@ -238,6 +238,13 @@ class eshop_Settings extends core_Manager
     }
     
     
+    /**
+     * Връща начините за доставка на домейна
+     * 
+     * @param mixed $class
+     * @param int|NULL $domainId
+     * @return array $options
+     */
     public static function getDeliveryTermOptions($class, $domainId = NULL)
     {
     	$settings = self::getSettings($class, $domainId);
