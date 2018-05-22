@@ -498,7 +498,7 @@ class core_Form extends core_FieldSet
                     "<!--ET_BEGIN FORM_HIDDEN-->\n[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
                     "\n</td></tr><!--ET_BEGIN FORM_TOOLBAR-->\n<tr><td style='padding:0px;'><div class=\"formToolbar\">" .
                     "\n<!--ET_BEGIN FORM_FOOTER--><div class=\"formFooter\">[#FORM_FOOTER#]</div><!--ET_END FORM_FOOTER-->".
-                    "[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
+                    "[#FORM_TOOLBAR#]<!--ET_BEGIN FORM_TOOLBAR_INPUTS--><div class=\"formToolbar-inputs\">[#FORM_TOOLBAR_INPUTS#]</div><!--ET_END FORM_TOOLBAR_INPUTS--></div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
                     "[#AFTER_MAIN_TABLE#]" .
                     "\n</div>" .
                     "\n</form>\n");
@@ -831,7 +831,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 if(!empty($field->displayInToolbar)){
-                	$fieldsLayout->append($input, 'FORM_TOOLBAR');
+                	$fieldsLayout->append($input, 'FORM_TOOLBAR_INPUTS');
                 } else {
                 	$fieldsLayout->replace($input, $name);
                 }
