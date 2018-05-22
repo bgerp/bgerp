@@ -783,7 +783,7 @@ class marketing_Inquiries2 extends embed_Manager
         
     	$this->requireRightFor('new');
     	expect($drvId = Request::get('drvId', 'int'));
-    	$proto = Request::get('protos', 'varchar');
+    	$proto = Request::get('protos', 'varchar(10000)');
     	
     	$proto = keylist::toArray($proto);
         
@@ -817,7 +817,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$form->FLD('moq', 'double', 'input=hidden,silent');
     	$form->FLD('drvId', 'class', 'input=hidden,silent');
     	$form->FLD('quantityCount', 'double', 'input=hidden,silent');
-    	$form->FLD('protos', 'varchar', 'input=hidden,silent');
+    	$form->FLD('protos', 'varchar(10000)', 'input=hidden,silent');
     	
     	$mandatoryField = marketing_Setup::get('INQUIRE_MANDATORY_FIELDS');
     	if(in_array($mandatoryField, array('company', 'both'))){

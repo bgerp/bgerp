@@ -1315,7 +1315,7 @@ class acc_BalanceDetails extends core_Detail
             $v += $add;
             
             // Машинно закръгляне
-            $v = round($v, 9);
+            $v = round($v, 8);
         }
     }
     
