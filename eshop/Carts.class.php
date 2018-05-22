@@ -455,9 +455,11 @@ class eshop_Carts extends core_Master
     	$settings = cms_Domains::getSettings();
     	$row->currencyId = $settings->currencyId;
     	
-    	$row->totalNoVatCurrencyId = $row->currencyId;
+    	$vatAmount = $rec->total - $rec->totalNoVat;
+    	$row->totalNoVatCurrencyId = $row->vatCurrencyId = $row->currencyId;
     	$row->productCount .= "&nbsp;" . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
     	$block = ($onlyCount === TRUE) ? 'CART_COUNT' : 'CART_SUMMARY';
+    	$row->totalVat = core_Type::getByName('double(decimals=2)')->toVerbal($vatAmount);
     	
     	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock($block);
     	$tpl->placeObject($row);
