@@ -678,12 +678,12 @@ class eshop_Carts extends core_Master
     	$form->setDefault('makeInvoice', 'none');
     	
     	$form->input(NULL, 'silent');
+    	cms_Domains::addGdprInput($form);
     	
     	if(isset($form->rec->termId)){
     		if($Driver = cond_DeliveryTerms::getTransportCalculator($form->rec->termId)){
     			$Driver->addFields($form);
     			$fields = $Driver->getFields();
-    			
     			foreach ($fields as $fld){
     				$form->setDefault($fld, $form->rec->deliveryData[$fld]);
     			}
