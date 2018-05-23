@@ -32,7 +32,7 @@
                 <h4 style="margin-bottom: 5px;">|Информация за фактура|*</h4>
                 <table>
                     <tr>
-                        <td>[#INV_CAPTION#]: [#invoiceNames#]</td>
+                        <td>[#invoiceNames#]</td>
                     </tr>
                     <tr>
                         <td>[#VAT_CAPTION#]: [#invoiceVatNo#]</td>
