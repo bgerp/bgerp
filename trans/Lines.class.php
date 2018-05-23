@@ -333,7 +333,7 @@ class trans_Lines extends core_Master
     	$transUnits = $calcedUnits = array();
     	
     	$dQuery = trans_LineDetails::getQuery();
-    	$dQuery->where("#lineId = {$data->rec->id} AND #containerState != 'rejected'");
+    	$dQuery->where("#lineId = {$data->rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
     	
     	$returnClassId = store_Receipts::getClassId();
     	while($dRec = $dQuery->fetch()){
@@ -429,7 +429,7 @@ class trans_Lines extends core_Master
     	// Изчисляване на готовите и не-готовите редове
     	$dQuery = trans_LineDetails::getQuery();
     	$dQuery->where("#lineId = {$rec->id}");
-    	$dQuery->where("#containerState != 'rejected'");
+    	$dQuery->where("#containerState != 'rejected' AND #status != 'removed'");
     	$dQuery->show('status,containerState');
     	
     	while($dRec = $dQuery->fetch()){
