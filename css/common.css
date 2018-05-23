@@ -1228,6 +1228,11 @@ a.profile {
   background-color: #cef763;
   background-color: rgba(210, 255, 120, 0.6); }
 
+.state-removed {
+  background-color: #dddddd;
+  color: #888888;
+  text-decoration: line-through; }
+
   .state-rejected td,
   .state-rejected .document th,
   .state-rejected .document td a,
