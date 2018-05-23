@@ -119,7 +119,7 @@ class cat_interface_PackLabelImpl
 		$jQuery = planning_Jobs::getQuery();
 		$jQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 2 WHEN 'stopped' THEN 3 END)");
 		$jQuery->where("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
-		$jQuery->orderBy('order', 'ASC');
+		$jQuery->orderBy("#order=ASC,#id=DESC");
 		$jQuery->show('id,saleId');
 		if($jRec = $jQuery->fetch()){
 			$jobCode = mb_strtoupper(planning_Jobs::getHandle($jRec->id));
