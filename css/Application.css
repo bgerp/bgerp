@@ -2721,9 +2721,10 @@ span.sharing-history-title {
   .half-width h4 {
     margin-top: 0; }
 
-#.narrow .half-width {
+.narrow .half-width {
   float: none !important;
-  width: 100%; }
+  max-width: 100%;
+  margin: 5px 0; }
 
 #cart-external-status .count {
   border: 1px solid #526b00;
@@ -2743,6 +2744,7 @@ span.sharing-history-title {
 .optionsTable {
   color: #222222;
   min-width: 600px;
+  width: 100%;
   margin-bottom: 10px; }
   .optionsTable th {
     text-align: center;

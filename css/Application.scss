@@ -3151,11 +3151,12 @@ fieldset.sharing-history {
 	h4 {
 		margin-top: 0;
 	}
-}#
+}
 
 .narrow .half-width {
 	float: none !important;
-	width: 100%;
+	max-width: 100%;
+	margin: 5px 0;
 }
 
 #cart-external-status .count {
@@ -3177,6 +3178,7 @@ fieldset.sharing-history {
 .optionsTable {
 	color: #222;
 	min-width: 600px;
+	width: 100%;
 	margin-bottom: 10px;
 	th {
 		text-align: center;
