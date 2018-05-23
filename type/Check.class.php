@@ -22,7 +22,7 @@ class type_Check extends type_Enum {
 	 */
 	function init($params = array())
 	{
-		$yesCaption = isset($params['params']['value']) ? $params['params']['value'] : 'Да';
+		$yesCaption = isset($params['params']['label']) ? $params['params']['label'] : 'Да';
 		$this->options = array('no' => 'Не е направен избор', 'yes' => $yesCaption);
 		
 		parent::init($this->params);
