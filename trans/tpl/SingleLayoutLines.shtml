@@ -111,6 +111,7 @@
 		</table>
 	</div>
 	<!--ET_END TOTAL-->
+	<div>[#description#]</div>
 </div>
 <div class='footerDocBlock'>
 	<div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b></div>
