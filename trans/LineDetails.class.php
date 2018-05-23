@@ -129,6 +129,7 @@ class trans_LineDetails extends doc_Detail
     	$this->FLD('readyLu', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('classId', 'class', 'input=none');
     	$this->FLD('status', 'enum(waiting=Чакащо,ready=Готово)', 'input=none,notNull,value=waiting,caption=Статус,smartCenter,tdClass=status-cell');
+    	$this->EXT('containerState', 'doc_Containers', 'externalName=state,externalKey=containerId');
     	
     	$this->setDbIndex('containerId');
     	$this->setDbIndex('classId');
@@ -491,11 +492,11 @@ class trans_LineDetails extends doc_Detail
     		$className = tr(self::$classGroups[$className]);
     		 
     		// Общо записи от същия вид документ
-    		$total = self::count("#lineId = {$data->masterId} AND #classId = {$groupId}");
+    		$total = self::count("#lineId = {$data->masterId} AND #classId = {$groupId} AND #containerState != 'rejected'");
     		$totalVerbal = core_Type::getByName('int')->toVerbal($total);
     		 
     		// Общо готови записи от същия вид документ
-    		$ready = self::count("#lineId = {$data->masterId} AND #status = 'ready' AND #classId = {$groupId}");
+    		$ready = self::count("#lineId = {$data->masterId} AND #status = 'ready' AND #classId = {$groupId} AND #containerState != 'rejected'");
     		$readyVerbal = core_Type::getByName('int')->toVerbal($ready);
     		
     		// На всяка група се показва колко са готови от общата им бройка

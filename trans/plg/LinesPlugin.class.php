@@ -350,20 +350,6 @@ class trans_plg_LinesPlugin extends core_Plugin
 	
 	
 	/**
-	 * Изпълнява се преди оттеглянето на документа
-	 */
-	public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
-	{
-		$rec = $mvc->fetchRec($id);
-		if(isset($rec->lineId)){
-			core_Statuses::newStatus('Документа не може да се оттегли докато е включен в транспортна линия|*!', 'error');
-	
-			return FALSE;
-		}
-	}
-	
-	
-	/**
 	 * Трябва ли ръчно да се подготвя документа в Транспортната линия
 	 *
 	 * @param core_Mvc $mvc       - документ

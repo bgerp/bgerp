@@ -333,7 +333,7 @@ class trans_Lines extends core_Master
     	$transUnits = $calcedUnits = array();
     	
     	$dQuery = trans_LineDetails::getQuery();
-    	$dQuery->where("#lineId = {$data->rec->id}");
+    	$dQuery->where("#lineId = {$data->rec->id} AND #containerState != 'rejected'");
     	
     	$returnClassId = store_Receipts::getClassId();
     	while($dRec = $dQuery->fetch()){
@@ -408,9 +408,8 @@ class trans_Lines extends core_Master
     {
         $stateArr = arr::make($states);
     	$query = trans_LineDetails::getQuery();
-        $query->EXT('docState', 'doc_Containers', 'externalName=state,externalKey=containerId');
         $query->where("#lineId = {$id}");
-        $query->in('docState', $states);
+        $query->in('containerState', $states);
        
         return $query->count();
     }
@@ -430,7 +429,9 @@ class trans_Lines extends core_Master
     	// Изчисляване на готовите и не-готовите редове
     	$dQuery = trans_LineDetails::getQuery();
     	$dQuery->where("#lineId = {$rec->id}");
-    	$dQuery->show('status');
+    	$dQuery->where("#containerState != 'rejected'");
+    	$dQuery->show('status,containerState');
+    	
     	while($dRec = $dQuery->fetch()){
     		$rec->countTotal++;
     		if($dRec->status == 'ready') {
