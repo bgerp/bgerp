@@ -95,7 +95,7 @@ class vtotal_Checks extends core_Master
         $this->putNewFileForCheck($rec, $md5);
         
         // Форсираме сканирането на файла по крон, ако вече е бил сканиран
-        $cRec = self::fetch(array("#filemanDataId = '[#1#]'", $rec->dataId));
+        $cRec = $this->fetch(array("#filemanDataId = '[#1#]'", $rec->dataId));
         if ($cRec) {
             $maxScanLimit = vtotal_Setup::get("MAX_SCAN_OF_FILE");
             $sArr = array();
