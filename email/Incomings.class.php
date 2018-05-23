@@ -283,7 +283,7 @@ class email_Incomings extends core_Master
      * Извлича писмата от посочената сметка
      */
     function fetchAccount($accRec, $deadline, $maxFetchingTime)
-    { 
+    {
         // Заключваме тегленето от тази пощенска кутия
         $lockKey = 'Inbox:' . $accRec->id;
         
@@ -342,7 +342,7 @@ class email_Incomings extends core_Master
 
         if($numMsg > 0 && $accRec->deleteAfterPeriod > 0 && (!$nextDeleteTime || $nextDeleteTime <= $now)) {
             $nextDeleteTime = dt::addSecs($accRec->deleteAfterPeriod);
-            for($msgNo = 1; $msgNo < $maxMsgNo && ($deadline - 1 > time()); $msgNo++) { 
+            for($msgNo = 1; $msgNo < $maxMsgNo && ($deadline - 1 > time()); $msgNo++) {
                 $headers = $imapConn->getHeaders($msgNo);
             
                 $fRec = email_Fingerprints::fetchByHeaders($headers);
@@ -358,19 +358,21 @@ class email_Incomings extends core_Master
                 $deleteTime = dt::addSecs($accRec->deleteAfterPeriod, $fRec->downloadedOn);
 
                 if($deleteTime < $now) {
+                    email_Accounts::logDebug("Подготовка за изтриване на {$msgNo} от {$maxMsgNo}", $accRec->id);
                     $imapConn->delete($msgNo);
-                    email_Accounts::logInfo("Изтриване {$msgNo}", $accRec->id);
+                    email_Accounts::logInfo("Изтриване {$msgNo} от {$maxMsgNo}", $accRec->id);
                     $statusSum['delete']++;
                     $doExpunge = TRUE;
                 } else {
                     $nextDeleteTime = min($deleteTime, $nextDeleteTime);
+                    email_Incomings::logDebug("Не е дошло времето за изтриване на {$msgNo}");
                 }
             }
             
             // Колко минути да се съхранява в кеша информацията за следващото време за изтриване?
             $keepMinutes = (dt::mysql2Timestamp($nextDeleteTime) - dt::mysql2Timestamp(dt::now())) / 60;
             
-            log_System::add('email_Incomings', "Зададено слеващо изтриване на писма след " . $keepMinutes . ' min за ' . $accRec->email);
+            log_System::add('email_Incomings', "Зададено следващо изтриване на писма след " . $keepMinutes . ' min за ' . $accRec->email);
             if($keepMinutes > 1) {
                 core_Cache::set('email_Incomings', $cacheKey, $nextDeleteTime, $keepMinutes, array('email_Accounts'));
             }
