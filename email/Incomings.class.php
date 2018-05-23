@@ -344,7 +344,7 @@ class email_Incomings extends core_Master
             $nextDeleteTime = dt::addSecs($accRec->deleteAfterPeriod);
             for($msgNo = 1; $msgNo < $maxMsgNo && ($deadline - 1 > time()); $msgNo++) {
                 $headers = $imapConn->getHeaders($msgNo);
-            
+                
                 $fRec = email_Fingerprints::fetchByHeaders($headers);
 
                 if(!$fRec) {
@@ -358,7 +358,6 @@ class email_Incomings extends core_Master
                 $deleteTime = dt::addSecs($accRec->deleteAfterPeriod, $fRec->downloadedOn);
 
                 if($deleteTime < $now) {
-                    email_Accounts::logDebug("Подготовка за изтриване на {$msgNo} от {$maxMsgNo}", $accRec->id);
                     $imapConn->delete($msgNo);
                     email_Accounts::logInfo("Изтриване {$msgNo} от {$maxMsgNo}", $accRec->id);
                     $statusSum['delete']++;
