@@ -150,18 +150,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             $query->where("#art = '{$rec->articleType}'");
         }
-        
-//         $sQuery = sales_SalesDetails::getQuery();
-//         $sQuery->EXT('contoActions', 'sales_Sales', 'externalName=contoActions,externalKey=saleId');
-        
-        
-//         while ($sale = $query->fetch()){
-            
-//             $salesArr[]=$sale;
-//         }
-        
-     //   bp(count($salesArr),$salesArr, $query->buildQuery());
-        
+      
         $num = 1;
         $quantity = 0;
         $flag = FALSE;
@@ -172,25 +161,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             $DetClass = cls::get($recPrime->detailClassId);
             
-//             if ($DetClass instanceof sales_SalesDetails) {
-                
-//                 $marker = FALSE;
-                
-//                 $saleId = sales_SalesDetails::fetch($recPrime->detailRecId)->saleId;
-                
-//                 $contoActionArr = explode(',', sales_Sales::fetch($saleId)->contoActions);
-              
-//                 foreach ($contoActionArr as $v) {
-                   
-//                     if ($v == 'ship') {
-//                         $marker = TRUE;
-//                     }
-                    
-//                 }
-                
-//                 if (! $marker)
-//                     continue;
-//             }
+
             
             if (isset($recPrime->containerId)) {
                 
@@ -220,13 +191,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         
                         $recs[$id] = (object) array(
                             
-                            'kod' => (cat_Products::fetchField($recPrime->productId, 'code')) ? cat_Products::fetchField(
-                                $recPrime->productId, 'code') : "Art{$recPrime->productId}",
+                            'kod' => $recPrime->code ?$recPrime->code : "Art{$recPrime->productId}",
                             'measure' => cat_Products::getProductInfo($recPrime->productId)->productRec->measureId,
                             'productId' => $recPrime->productId,
                             'quantity' => $quantity,
                             'primeCost' => $primeCost,
-                            'group' => cat_Products::fetchField($recPrime->productId, 'groups')
+                            'group' =>$recPrime->groups
                         );
                     } else {
                         $obj = &$recs[$id];
