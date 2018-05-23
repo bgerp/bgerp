@@ -92,6 +92,13 @@ class cms_page_External extends core_page_Active
         
         // Добавяме лейаута
         $this->replace(cms_Content::getLayout(), 'CMS_LAYOUT');
+
+        // Добавяме лейаута
+        $domainRec = cms_Domains::getPublicDomain();
+
+        if(!empty($domainRec->cookieText)){
+            $this->replace($domainRec->cookieText, 'COOKIE_TEXT');
+        }
         
         // Ако е логнат потребител, който не е powerUser
         if(core_Users::haveRole('partner')){

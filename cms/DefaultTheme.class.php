@@ -47,8 +47,6 @@ class cms_DefaultTheme extends core_ProtoInner {
         // Икона за сайта
         $form->FLD('icon', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Икона за сайта->Favicon");
 
-        $form->FLD('cookieText', 'varchar', "caption=Бисквитки->Text, placeholder=Този сайт използва бисквитки (cookies) за повишаване на ефективността си.");
-
         // Фон на хедъра
         $form->FLD('headerColor', 'color_Type', "caption=Цветове за темата->Цвят на хедъра");
 
@@ -70,10 +68,6 @@ class cms_DefaultTheme extends core_ProtoInner {
     
     public function prepareWrapper($tpl)
     {
-        if($this->innerForm->cookieText) {
-            $tpl->replace($this->innerForm->cookieText, 'COOKIE_TEXT');
-        }
-
         // Добавяме заглавната картика
         $tpl->replace($this->getHeaderImg(), 'HEADER_IMG');
         

@@ -163,6 +163,8 @@ class cms_Domains extends core_Embedder
         
         $this->FLD('gdprText', 'html(rows=2)', 'caption=Текст за GDPR->Текст');
 
+        $this->FLD('cookieText', 'html(rows=2)', "caption=Бисквитки->Текст, placeholder=Този сайт използва бисквитки (cookies) за повишаване на ефективността си.");
+
     }
 
 
