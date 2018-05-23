@@ -62,6 +62,12 @@ class trans_LineDetails extends doc_Detail
     
     
     /**
+     * Кой има право да изтрива?
+     */
+    public $canDelete = 'trans,ceo';
+    
+    
+    /**
      * Кой има право да променя?
      */
     public $canEdit = 'no_one';
@@ -95,6 +101,12 @@ class trans_LineDetails extends doc_Detail
      * Работен кеш
      */
     private static $cache = array();
+    
+    
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id,lineId,containerId';
     
     
     /**
@@ -259,6 +271,10 @@ class trans_LineDetails extends doc_Detail
     	if($mvc->haveRightFor('doc_Comments', (object)array('originId' => $masterRec->containerId)) && $masterRec->state != 'rejected'){
     		$commentUrl = array('doc_Comments', 'add', 'originId' => $masterRec->containerId, 'detId' => $rec->id, 'ret_url' => TRUE);
     		$row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => "img/16/comment_add.png", 'title' => "Известяване на отговорниците на документа"));
+    	}
+    	
+    	if($row->_rowTools->hasBtn("del{$rec->id}")){
+    		$row->_rowTools->renameLink("del{$rec->id}", 'Изключване');
     	}
     }
     
@@ -441,6 +457,13 @@ class trans_LineDetails extends doc_Detail
     	if(in_array($action, array('togglestatus', 'prepare')) && isset($rec)){
     		$state = trans_Lines::fetchField($rec->lineId, 'state');
     		
+    		if(in_array($state, array('rejected', 'closed', 'draft', 'active'))){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if(in_array($action, array('delete')) && isset($rec)){
+    		$state = trans_Lines::fetchField($rec->lineId, 'state');
     		if(in_array($state, array('rejected', 'closed'))){
     			$requiredRoles = 'no_one';
     		}
@@ -585,5 +608,22 @@ class trans_LineDetails extends doc_Detail
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+    	foreach ($query->getDeletedRecs() as $id => $rec) {
+    		$Document = doc_Containers::getDocument($rec->containerId);
+    		
+    		// Изтриване от документа че е към тази линия
+    		$rec = $Document->fetch();
+    		$rec->lineId = NULL;
+    		$Document->getInstance()->save_($rec);
+    		doc_DocumentCache::invalidateByOriginId($rec->containerId);
+    	}
     }
 }
