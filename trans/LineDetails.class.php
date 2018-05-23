@@ -64,7 +64,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Кой може да изтрива?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'ceo,trans';
     
     
     /**
@@ -494,7 +494,14 @@ class trans_LineDetails extends doc_Detail
     	
     	if(in_array($action, array('remove')) && isset($rec)){
     		$state = trans_Lines::fetchField($rec->lineId, 'state');
-    		if(in_array($state, array('rejected', 'closed')) || $rec->status == 'removed'){
+    		if(in_array($state, array('rejected', 'closed', 'draft', 'pending')) || $rec->status == 'removed'){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if(in_array($action, array('delete')) && isset($rec)){
+    		$state = trans_Lines::fetchField($rec->lineId, 'state');
+    		if(in_array($state, array('rejected', 'closed', 'active')) || $rec->status == 'removed'){
     			$requiredRoles = 'no_one';
     		}
     	}
