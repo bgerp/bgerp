@@ -128,9 +128,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $query->EXT('contoActions', 'sales_Sales', 'externalName=contoActions,externalKey=saleId,remoteKey=id');
         
-        $query->like('contoActions', 'ship',FALSE);
-        
         $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
+        
+        $query->like('contoActions', 'ship',FALSE);
         
         if (isset($rec->dealers)) {
             
@@ -140,6 +140,24 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 
                 $query->whereArr("dealerId", $dealers, TRUE);
             }
+        }
+        
+        if ($rec->contragent) {
+        	
+        	
+        	$contragentId = doc_Folders::fetch($rec->contragent)->coverId;
+        	
+        	
+      //	$query->EXT('contragentId', 'doc_Containers', 'externalName=contragentId,externalKey=containerId,remoteKey=id');
+        	
+        	
+        
+        	
+        	//bp($origin,$contragentId,$rec->contragent,$aaa,$rec->containerId);
+        	
+        	
+        	
+        	
         }
         
         if (isset($rec->group)) {
@@ -157,6 +175,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         // за всеки един индикатор
         while ($recPrime = $query->fetch()) {
             
+        	$recPrimeArr[]=$recPrime;
+        	
+        	
             $id = $recPrime->productId;
             
             $DetClass = cls::get($recPrime->detailClassId);
@@ -186,6 +207,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $primeCost = $recPrime->sellCost * $recPrime->quantity;
                     }
                     
+            
                     // добавяме в масива събитието
                     if (! array_key_exists($id, $recs)) {
                         
@@ -196,7 +218,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                             'productId' => $recPrime->productId,
                             'quantity' => $quantity,
                             'primeCost' => $primeCost,
-                            'group' =>$recPrime->groups
+                            'group' =>$recPrime->groupMat
                         );
                     } else {
                         $obj = &$recs[$id];
@@ -208,7 +230,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
 
-        
+       
         return $recs;
     }
 
