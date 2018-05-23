@@ -365,7 +365,6 @@ class email_Incomings extends core_Master
                     $doExpunge = TRUE;
                 } else {
                     $nextDeleteTime = min($deleteTime, $nextDeleteTime);
-                    email_Incomings::logDebug("Не е дошло времето за изтриване на {$msgNo}");
                 }
             }
             
