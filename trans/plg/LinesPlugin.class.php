@@ -143,18 +143,12 @@ class trans_plg_LinesPlugin extends core_Plugin
 				$mvc->updateMaster($rec);
 				$mvc->logWrite('Редакция на транспорта', $rec->id);
 					
-				// Обновяване на modifiedOn на засегнатите транспортните линии
-				if($rec->lineId) {
-					$tRec = trans_Lines::fetch($rec->lineId);
-					$tRec->modifiedOn = dt::now();
-				} else {
+				if(!$rec->lineId) {
 					trans_LineDetails::delete("#containerId = {$rec->containerId}");
 				}
 				
 				if($exLineId && $exLineId != $rec->lineId) {
-					$tRec = trans_Lines::fetch($exLineId);
-					$tRec->modifiedOn = dt::now();
-					trans_Lines::save($tRec, 'modifiedOn');
+					$mvc->updateLines[$rec->lineId] = $exLineId;
 				}
 					
 				// Редирект след успешния запис
@@ -281,6 +275,35 @@ class trans_plg_LinesPlugin extends core_Plugin
 		}
 	}
 	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 *
+	 * @param core_Mvc $mvc
+	 * @param int $id първичния ключ на направения запис
+	 * @param stdClass $rec всички полета, които току-що са били записани
+	 */
+	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	{
+		if(isset($rec->lineId)){
+			$mvc->updateLines[$rec->lineId] = $rec->lineId;
+		}
+	}
+	
+	
+	/**
+	 * Изчиства записите, заопашени за запис
+	 */
+	public static function on_Shutdown($mvc)
+	{
+		// Обновяване на линиите
+		if(is_array($mvc->updateLines)){
+			$Lines = cls::get('trans_Lines');
+			foreach ($mvc->updateLines as $lineId) {
+				$Lines->updateMaster($lineId);
+			}
+		}
+	}
 	
 	
 	/**
