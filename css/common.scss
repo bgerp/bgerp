@@ -1316,6 +1316,12 @@ a.profile {
 	background-color: rgba(210, 255, 120, 0.6);
 }
 
+.state-removed {
+	background-color: #ddd;
+	color: #888;
+	text-decoration: line-through;
+}
+
 .state-rejected {
 	td, .document th, .document td a, .document p, .document h3, .document h4,
 	.richtext, .document a, .document span:not(.state), .richtext div, .cCode, .antetka,  .row-fluid div,
