@@ -370,8 +370,8 @@ class email_Incomings extends core_Master
             // Колко минути да се съхранява в кеша информацията за следващото време за изтриване?
             $keepMinutes = (dt::mysql2Timestamp($nextDeleteTime) - dt::mysql2Timestamp(dt::now())) / 60;
             
+            log_System::add('email_Incomings', "Зададено слеващо изтриване на писма след " . $keepMinutes . ' min за ' . $accRec->email);
             if($keepMinutes > 1) {
-                log_System::add('email_Incomings', "Зададено слеващо изтриване на писма след " . $keepMinutes . ' min за ' . $accRec->email);
                 core_Cache::set('email_Incomings', $cacheKey, $nextDeleteTime, $keepMinutes, array('email_Accounts'));
             }
         }
