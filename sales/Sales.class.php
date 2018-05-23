@@ -1100,6 +1100,9 @@ class sales_Sales extends deals_DealMaster
     		if(!Mode::isReadOnly()){
     			$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
     		}
+			$iban = bank_Accounts::fetchField($rec->bankAccountId, 'iban');
+			$row->bic =  bglocal_Banks::getBankBic($iban);
+			$row->bank =  bglocal_Banks::getBankName($iban);
     	}
     	
     	if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
