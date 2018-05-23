@@ -210,7 +210,7 @@ class trans_LineDetails extends doc_Detail
     		$row->documentHtml = $Document->getInlineDocumentBody();
     	}
     	
-    	$row->ROW_ATTR['class'] = ($rec->status == 'waiting') ? 'soft-rejected' : 'state-active';
+    	$row->ROW_ATTR['class'] = ($rec->status == 'waiting') ? 'state-pending' : 'state-active';
     	
     	if(!empty($transportInfo['notes'])){
     		$row->notes = core_Type::getByName('richtext')->toVerbal($transportInfo['notes']);
