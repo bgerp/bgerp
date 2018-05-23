@@ -235,11 +235,11 @@ class eshop_Carts extends core_Master
     	
     	// Ако има потребител се търси имали чернова кошница за този потребител, ако не е логнат се търси по Брид-а
     	$where = (isset($userId)) ? "#userId = '{$userId}'" : "#userId IS NULL AND #brid = '{$brid}'";
-    	$rec = self::fetch("{$where} AND (#state = 'active' OR #state = 'draft') AND #domainId = {$domainId}");
+    	$rec = self::fetch("{$where} AND #state = 'draft' AND #domainId = {$domainId}");
     	
     	if(empty($rec) && $bForce === TRUE){
     		$ip = core_Users::getRealIpAddr();
-    		$rec = (object)array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'state' => 'active');
+    		$rec = (object)array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'state' => 'draft');
     		self::save($rec);
     	}
     	
@@ -398,7 +398,7 @@ class eshop_Carts extends core_Master
     		$tpl->replace(core_Type::getByName('richtext')->toVerbal($settings->info), 'COMMON_TEXT');
     	}
     	
-    	if($rec->state == 'active'){
+    	if(!empty($rec->personNames)){
     		$tpl->append($this->renderCartOrderInfo($rec));
     	}
     	
@@ -455,9 +455,11 @@ class eshop_Carts extends core_Master
     	$settings = cms_Domains::getSettings();
     	$row->currencyId = $settings->currencyId;
     	
-    	$row->totalNoVatCurrencyId = $row->currencyId;
+    	$vatAmount = $rec->total - $rec->totalNoVat;
+    	$row->totalNoVatCurrencyId = $row->vatCurrencyId = $row->currencyId;
     	$row->productCount .= "&nbsp;" . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
     	$block = ($onlyCount === TRUE) ? 'CART_COUNT' : 'CART_SUMMARY';
+    	$row->totalVat = core_Type::getByName('double(decimals=2)')->toVerbal($vatAmount);
     	
     	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock($block);
     	$tpl->placeObject($row);
@@ -499,7 +501,7 @@ class eshop_Carts extends core_Master
     	if(eshop_Carts::haveRightFor('checkout', $rec)){
     		$checkoutUrl = array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE);
     	}
-    	$btn = ht::createBtn('Поръчай', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=order-btn eshop-btn {$disabledClass}");
+    	$btn = ht::createBtn('Данни за поръчка', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=order-btn eshop-btn {$disabledClass}");
     	$tpl->append($btn, 'CART_TOOLBAR');
     	
     	$tpl->removeBlocks();
@@ -609,7 +611,7 @@ class eshop_Carts extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'viewexternal' && isset($rec)){
-    		if($rec->state != 'active'){
+    		if($rec->state != 'draft'){
     			$requiredRoles = 'no_one';
     		} elseif(isset($userId) && $rec->userId != $userId){
     			$requiredRoles = 'no_one';
@@ -678,12 +680,12 @@ class eshop_Carts extends core_Master
     	$form->setDefault('makeInvoice', 'none');
     	
     	$form->input(NULL, 'silent');
+    	cms_Domains::addGdprInput($form);
     	
     	if(isset($form->rec->termId)){
     		if($Driver = cond_DeliveryTerms::getTransportCalculator($form->rec->termId)){
     			$Driver->addFields($form);
     			$fields = $Driver->getFields();
-    			
     			foreach ($fields as $fld){
     				$form->setDefault($fld, $form->rec->deliveryData[$fld]);
     			}
@@ -731,7 +733,6 @@ class eshop_Carts extends core_Master
     			}
     		}
     		
-    		$rec->state = 'active';
     		$this->save($rec);
     		core_Lg::pop();
     		return followRetUrl();

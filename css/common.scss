@@ -1617,11 +1617,18 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 		position: relative;
 		top: 1px;
 	}
+	input[type=checkbox]:checked + label {
+		color: #222 !important;
+	}
 	input[type=radio] + label a, input[type=checkbox] + label a {
 		opacity: 0.8;
 	}
 	input[type=checkbox]:checked + label a {
 		opacity: 1;
+
+	}
+	input[type=checkbox].inputError + label {
+		color: red;
 	}
 }
 

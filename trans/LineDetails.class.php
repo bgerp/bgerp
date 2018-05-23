@@ -62,6 +62,12 @@ class trans_LineDetails extends doc_Detail
     
     
     /**
+     * Кой има право да изтрива?
+     */
+    public $canDelete = 'trans,ceo';
+    
+    
+    /**
      * Кой има право да променя?
      */
     public $canEdit = 'no_one';
@@ -98,6 +104,12 @@ class trans_LineDetails extends doc_Detail
     
     
     /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id,lineId,containerId';
+    
+    
+    /**
      * Вербалните имена на класовете
      */
     private static $classGroups = array('store_ShipmentOrders'       => 'Експедиции', 
@@ -117,6 +129,7 @@ class trans_LineDetails extends doc_Detail
     	$this->FLD('readyLu', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('classId', 'class', 'input=none');
     	$this->FLD('status', 'enum(waiting=Чакащо,ready=Готово)', 'input=none,notNull,value=waiting,caption=Статус,smartCenter,tdClass=status-cell');
+    	$this->EXT('containerState', 'doc_Containers', 'externalName=state,externalKey=containerId');
     	
     	$this->setDbIndex('containerId');
     	$this->setDbIndex('classId');
@@ -259,6 +272,10 @@ class trans_LineDetails extends doc_Detail
     	if($mvc->haveRightFor('doc_Comments', (object)array('originId' => $masterRec->containerId)) && $masterRec->state != 'rejected'){
     		$commentUrl = array('doc_Comments', 'add', 'originId' => $masterRec->containerId, 'detId' => $rec->id, 'ret_url' => TRUE);
     		$row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => "img/16/comment_add.png", 'title' => "Известяване на отговорниците на документа"));
+    	}
+    	
+    	if($row->_rowTools->hasBtn("del{$rec->id}")){
+    		$row->_rowTools->renameLink("del{$rec->id}", 'Изключване');
     	}
     }
     
@@ -441,6 +458,13 @@ class trans_LineDetails extends doc_Detail
     	if(in_array($action, array('togglestatus', 'prepare')) && isset($rec)){
     		$state = trans_Lines::fetchField($rec->lineId, 'state');
     		
+    		if(in_array($state, array('rejected', 'closed', 'draft', 'active'))){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if(in_array($action, array('delete')) && isset($rec)){
+    		$state = trans_Lines::fetchField($rec->lineId, 'state');
     		if(in_array($state, array('rejected', 'closed'))){
     			$requiredRoles = 'no_one';
     		}
@@ -468,11 +492,11 @@ class trans_LineDetails extends doc_Detail
     		$className = tr(self::$classGroups[$className]);
     		 
     		// Общо записи от същия вид документ
-    		$total = self::count("#lineId = {$data->masterId} AND #classId = {$groupId}");
+    		$total = self::count("#lineId = {$data->masterId} AND #classId = {$groupId} AND #containerState != 'rejected'");
     		$totalVerbal = core_Type::getByName('int')->toVerbal($total);
     		 
     		// Общо готови записи от същия вид документ
-    		$ready = self::count("#lineId = {$data->masterId} AND #status = 'ready' AND #classId = {$groupId}");
+    		$ready = self::count("#lineId = {$data->masterId} AND #status = 'ready' AND #classId = {$groupId} AND #containerState != 'rejected'");
     		$readyVerbal = core_Type::getByName('int')->toVerbal($ready);
     		
     		// На всяка група се показва колко са готови от общата им бройка
@@ -585,5 +609,22 @@ class trans_LineDetails extends doc_Detail
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+    	foreach ($query->getDeletedRecs() as $id => $rec) {
+    		$Document = doc_Containers::getDocument($rec->containerId);
+    		
+    		// Изтриване от документа че е към тази линия
+    		$rec = $Document->fetch();
+    		$rec->lineId = NULL;
+    		$Document->getInstance()->save_($rec);
+    		doc_DocumentCache::invalidateByOriginId($rec->containerId);
+    	}
     }
 }

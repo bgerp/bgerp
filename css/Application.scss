@@ -3133,13 +3133,31 @@ fieldset.sharing-history {
 	font-weight: normal;
 	display: inline-block;
 }
+.order-info {
+	background-color: #f1f1f1;
+	padding: 10px;
+	font-size: 0.9em;
+	margin-bottom: 10px;
+}
+
 .toolbar .eshop-link {
 	margin-top: 15px;
+	margin-right: 20px;
 }
+
 .half-width {
-	width: 45%;
-	margin-right: 5%;
+	display: inline-block;
+	max-width: 50%;
+	h4 {
+		margin-top: 0;
+	}
+}#
+
+.narrow .half-width {
+	float: none !important;
+	width: 100%;
 }
+
 #cart-external-status .count {
 	border: 1px solid #526b00;
 	background-color: #698900;
@@ -3237,10 +3255,10 @@ table .eshop-btn {
 	margin-right: 0 !important;
 }
 .eshop-btn {
-	padding: 10px 20px !important;
+	background-position-x: 5px;
+	padding: 6px 10px 6px 26px!important;
 	color: #333 !important;
 	border-radius: 3px;
-	font-size: 1.2em !important;
 	box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
 	background-color: #f6f6f6 !important;
 	float: right;
@@ -3253,6 +3271,10 @@ table .eshop-btn {
 	}
 }
 
+.order-btn {
+	padding: 10px 20px !important;
+	font-size: 1.2em !important;
+}
 .narrow .eshop-btn {
 	padding-left: 10px !important;
 }
@@ -3866,6 +3888,37 @@ table .eshop-btn {
 	*width: auto;
 }
 
+.cookies {
+	background-color: #333;
+	float: none !important;
+	padding: 14px;
+	color: #eee;
+}
+
+
+.cookies .agree {
+	padding: 3px 5px;
+	border-radius: 5px;
+	display: inline-block;
+}
+
+.wide .cookies .agree {
+	position: relative;
+	top: -3px;
+	float: right;
+}
+
+.narrow .cookies .agree{
+	margin-top: 5px;
+}
+
+.cookies .agree:hover {
+	cursor: pointer;
+}
+
+.cookies a:hover {
+	text-decoration: underline;
+}
 
 /*край на стилове за блог*/
 

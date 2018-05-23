@@ -746,7 +746,7 @@ class sales_Sales extends deals_DealMaster
         $rec2->period = 60;
         $rec2->offset = mt_rand(0,30);
         $rec2->delay = 0;
-        $rec2->timeLimit = 100;
+        $rec2->timeLimit = 200;
         $res .= core_Cron::addOnce($rec2);
     }
     
@@ -1100,6 +1100,9 @@ class sales_Sales extends deals_DealMaster
     		if(!Mode::isReadOnly()){
     			$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
     		}
+			$iban = bank_Accounts::fetchField($rec->bankAccountId, 'iban');
+			$row->bic =  bglocal_Banks::getBankBic($iban);
+			$row->bank =  bglocal_Banks::getBankName($iban);
     	}
     	
     	if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
@@ -1197,9 +1200,12 @@ class sales_Sales extends deals_DealMaster
     	$total = sales_TransportValues::getTotalWeightAndVolume($products);
     	$codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, NULL, NULL, $rec->deliveryLocationId ? $rec->deliveryLocationId : $rec->deliveryAdress);
     	
+    	$ourCompany = crm_Companies::fetchOurCompany();
+    	$params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' =>  $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
+    	
     	// За всеки артикул се изчислява очаквания му транспорт
     	foreach ($products as $p2){
-    		$fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total['weight'], $total['volume'], $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
+    		$fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total['weight'], $total['volume'], $params);
     		
     		// Сумира се, ако е изчислен
     		if(is_array($fee) && $fee['totalFee'] > 0){

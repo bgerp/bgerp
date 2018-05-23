@@ -188,10 +188,11 @@ class cms_DefaultTheme extends core_ProtoInner {
         }
 
         $css .= "\n    .background-holder, body {background-color:#{$background} !important;}";
-        $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:#{$activeColor};}";
+        $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover, .cookies .agree {background-color:#{$activeColor};}";
 
         // стилове за меню и футър
         $css .= "\n    #cmsMenu {background-color:#{$baseColor};}";
+        $css .= "\n    .cookies {background-color:#{$baseColor};}";
         $css .= "\n    #cmsBottom {background-color:#{$baseColor}; border-top:1px solid #{$bordercolor} !important;}";
         $css .= "\n    #cmsMenu {border-top:1px solid #{$bordercolor} !important; border-bottom:1px solid #{$bordercolor} !important;}";
 
@@ -203,8 +204,10 @@ class cms_DefaultTheme extends core_ProtoInner {
 
         // Цвятове за линковете и h2 заглавията
         $css .= "\n    #cmsNavigation .nav_item a { color: #{$fontColor};}";
+        $css .= "\n    .cookies a { color: #{$bgcolorActive} !important;}";
+
         $css .= "\n    #all #maincontent .richtext a:visited, #all #maincontent .articles-menu a:visited, #all #maincontent .blogm-categories a:visited{ color: #{$visitedFontColor};}";
-        $css .= "\n    #cmsNavigation .sel_page a, #cmsNavigation a:hover {background-color: #{$bgcolorActive} !important; border: 1px solid #{$linkBorder} !important; color: #{$fontColor}}";
+        $css .= "\n    #cmsNavigation .sel_page a, #cmsNavigation a:hover, .cookies .agree {background-color: #{$bgcolorActive} !important; border: 1px solid #{$linkBorder} !important; color: #{$fontColor}}";
         $css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a {color: #{$fontColor};}";
         $css .= "\n    h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
 
