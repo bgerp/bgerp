@@ -49,10 +49,10 @@
                     <tr>
                         <td>|Адрес|*: [#invoiceAddress#]</td>
                     </tr>
-                    <!--ET_END INVOICE_BLOCK-->
+
                 </table>
             </div>
-
+            <!--ET_END INVOICE_BLOCK-->
             <div class="clearfix21"></div>
         </div>
         <!--ET_END SALE_BLOCK-->
