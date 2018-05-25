@@ -141,7 +141,7 @@ class cms_Articles extends core_Master
         $this->FLD('body', 'richtext(bucket=Notes)', 'caption=Текст,column=none');
 
         $this->FLD('footerTitleLink', 'varchar', 'caption=Показване във форми->Заглавие,autohide');
-        $this->FLD('footerForms', 'set(newEnquiryForm=Ново запитване,cartCheckout=Чекаут на количката)', 'caption=Показване във форми->Форми,autohide');
+        $this->FLD('footerForms', 'set(newEnquiryForm=Ново запитване,cartCheckout=Чекаут на количката,postingForm=Коментар в блога,bulletinForm=Абониране за бюлетина)', 'caption=Показване във форми->Форми,autohide');
         $this->FLD('footerTitleTemplate', 'varchar', 'caption=Показване във форми->Шаблон,autohide');
         $this->FLD('footerMandatoryCheck', 'enum(no=Не,yes=Да)', 'caption=Показване във форми->Задължително,autohide');
         $this->FLD('footerIsChecked', 'enum(no=Не,yes=Да)', 'caption=Показване във форми->Пре-чекнато,autohide');
@@ -905,6 +905,26 @@ class cms_Articles extends core_Master
             
             $res = TRUE;
         } 
+    }
+    
+    
+    /**
+     * Връща бутони във футъра като линк
+     * 
+     * @param string $formId
+     * @param int|NULL $domainId
+     * @return string
+     */
+    public function getFooterLinksHtml($formId, $domainId = NULL)
+    {
+    	$form = cls::get('core_Form');
+    	$form->formAttr['id'] = $formId;
+    	$form->layout = new core_ET("<!--ET_BEGIN FORM_FOOTER--><div class=\"formFooter\">[#FORM_FOOTER#]</div><!--ET_END FORM_FOOTER-->");
+    	
+    	self::addFooterLinks($form, $domainId);
+    	$r = $form->renderHtml();
+    	
+    	return $r;
     }
     
     
