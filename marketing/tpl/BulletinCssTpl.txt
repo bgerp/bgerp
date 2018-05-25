@@ -53,12 +53,12 @@ body {
     font-size: 1.4em;
     font-weight: bold;
 }
-.bulletinFilelds {
+.bulletinFields {
     width: 300px;
     margin: 0 auto;
 }
 
-.bulletinFilelds .rowBulletin input{
+.bulletinFields .rowBulletin input{
     border: 1px solid #ccc;
     border-radius: 4px;
     height: 2.2em;
@@ -70,8 +70,11 @@ body {
     display: block;
     width: 100%;
 }
+.bulletinFields .rowBulletin input.inputError{
+    border: 1px solid red;
+}
 
-.bulletinFilelds .rowBulletin span {
+.bulletinFields .rowBulletin span {
     display: block;
     line-height: 2.2em;
 }
