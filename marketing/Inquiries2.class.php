@@ -830,7 +830,6 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	$form->input(NULL, 'silent');
-    	cms_Articles::addFooterLinks($form);
     	
     	if(count($proto)){
     		$form->setOptions('proto', $proto);

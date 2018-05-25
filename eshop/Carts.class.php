@@ -718,7 +718,6 @@ class eshop_Carts extends core_Master
     	$form->setDefault('makeInvoice', 'none');
     	
     	$form->input(NULL, 'silent');
-    	cms_Articles::addFooterLinks($form);
     	
     	if(isset($form->rec->termId)){
     		if($Driver = cond_DeliveryTerms::getTransportCalculator($form->rec->termId)){
