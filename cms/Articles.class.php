@@ -926,7 +926,8 @@ class cms_Articles extends core_Master
     	if(empty($fields)) return '';
     	
     	foreach ($fields as $name => $fld){
-    		$input = $fld->type->renderInput($name, $form->rec->{$name});
+    		$attr = array();
+    		$input = $fld->type->renderInput($name, $form->rec->{$name}, $attr);
     		if(isset($fld->mandatory)){
     			$input->append(" data-mandatory='yes'", 'DATA_ATTR');
     		}
