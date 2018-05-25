@@ -114,7 +114,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	protected function prepareRecs($rec, &$data = NULL) 
 	{
 
-		$products = $recsYear = $recsLast = $recs = array ();
+		$recs = array ();
 		
 		$query = sales_PrimeCostByDocument::getQuery ();
 		
@@ -185,20 +185,19 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		}
 		
 		
-		// Масив бързи продажби //
+// 		// Масив бързи продажби //
 		
-		$sQuery = sales_Sales::getQuery ();
+// 		$sQuery = sales_Sales::getQuery ();
 		
-		$sQuery->like ( 'contoActions', 'ship', TRUE );
+// 		$sQuery->like ( 'contoActions', 'ship', FALSE );
 		
-		$sQuery->EXT ( 'detailId', 'sales_SalesDetails', 'externalName=id,remoteKey=saleId' );
+// 		$sQuery->EXT ( 'detailId', 'sales_SalesDetails', 'externalName=id,remoteKey=saleId' );
 		
-		while ( $sale = $sQuery->fetch () ) {
+// 		while ( $sale = $sQuery->fetch () ) {
 			
-			$salesWithShipArr [$sale->detailId] = $sale->detailId;
+// 			$salesWithShipArr [$sale->detailId] = $sale->detailId;
 			
-			$salesWithShip = keylist::fromArray ( $salesWithShipArr );
-		}
+// 		}
 		
 		$num = 1;
 		$quantity = 0;
@@ -206,16 +205,20 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		while ( $recPrime = $query->fetch () ) {
 		    
+    	    $DetClass = cls::get ( $recPrime->detailClassId );
 		    
-			
-			if (keylist::isIn ( $recPrime->detailRecId, $salesWithShip ))
-				continue;
-			
-			$recPrimeArr [] = $recPrime;
+    	    if ($DetClass instanceof sales_SalesDetails){
+    	        
+    	        $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
+    	        
+    	        if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
+    	    }
+		    
+		//   if (in_array($recPrime->detailRecId, $salesWithShipArr))continue;
 			
 			$id = $recPrime->productId;
 			
-			$DetClass = cls::get ( $recPrime->detailClassId );
+			
 			
 			
     			if ($rec->compare == 'previous') {
@@ -254,6 +257,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			
     	        }
 			
+    	        
+    	        
 			if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
 				
 			    $quantity = (- 1) * $recPrime->quantity;
@@ -427,13 +432,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$row->from = $Date->toVerbal ( $rec->from );
 		
 		$row->to = $Date->toVerbal ( $rec->to );
-		
-// 		$groupbyArr = array (
-// 				'none' => 'Няма',
-// 				'users' => 'Потребители' 
-// 		);
-// 		$row->groupBy = $groupbyArr [$rec->groupBy];
-		
+
 		if (isset ( $rec->group )) {
 			// избраната позиция
 			$groups = keylist::toArray ( $rec->group );
