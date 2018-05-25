@@ -899,12 +899,17 @@ class cms_Articles extends core_Master
     	$query->where("#footerTitleLink IS NOT NULL AND #footerTitleLink != ''");
     	$query->orderBy('id', 'ASC');
     	
-    	$tpl = new core_ET("<div class='footer-links'>[#FOOTER_LINKS#]</div>");
+    	$links = array();
     	while($rec = $query->fetch()){
-    		$url = self::getUrl($rec);
-    		$link = ht::createLink($rec->footerTitleLink, $url);
-    		$tpl->append($link, 'FOOTER_LINKS');
+    		$link = ht::createLink($rec->footerTitleLink, self::getUrl($rec));
+    		$links[] = $link->getContent();
     	}
+    	
+    	if(!count($links)) return core_ET("");
+    	
+    	$links = implode(' | ', $links);
+    	$tpl = new core_ET("<div class='footer-links'>[#FOOTER_LINKS#]</div>");
+    	$tpl->append($links, 'FOOTER_LINKS');
     	
     	return $tpl;
     }
