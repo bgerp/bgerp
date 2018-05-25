@@ -384,7 +384,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		) as $fld ) {
 			$row->{$fld} = $Double->toVerbal ( $dRec->{$fld} );
 			if ($dRec->{$fld} < 0) {
-				$row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
+			    $row->{$fld} = "<span class='red'>{$dRec->{$fld}}</span>";
 			}
 		}
 		
@@ -405,7 +405,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		        $color = 'green';$marker = '+';
 		    }elseif ($dRec->quantity - $dRec->quantityPrevious < 0){
 		        
-		        $color = 'red';$marker = '-';
+		        $color = 'red';$marker = '';
 		    }else {
 		        $color = 'black';$marker = '';
 		    }
