@@ -813,6 +813,7 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	$form = $this->prepareForm($drvId);
+    	$form->formAttr['id'] = 'newEnquiryForm';
     	$form->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'input=hidden,silent');
     	$form->FLD('moq', 'double', 'input=hidden,silent');
     	$form->FLD('drvId', 'class', 'input=hidden,silent');
@@ -829,7 +830,7 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	$form->input(NULL, 'silent');
-    	cms_Domains::addGdprInput($form);
+    	cms_Articles::addFooterLinks($form);
     	
     	if(count($proto)){
     		$form->setOptions('proto', $proto);
