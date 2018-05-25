@@ -185,7 +185,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		}
 		
 		
-// 		// Масив бързи продажби //
+ 		// Масив бързи продажби //
 		
 // 		$sQuery = sales_Sales::getQuery ();
 		
@@ -207,72 +207,89 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		    
     	    $DetClass = cls::get ( $recPrime->detailClassId );
 		    
-    	    if ($DetClass instanceof sales_SalesDetails){
-    	        
-    	        $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
-    	        
-    	        if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
-    	    }
-		    
 		//   if (in_array($recPrime->detailRecId, $salesWithShipArr))continue;
 			
 			$id = $recPrime->productId;
 			
+			if ($rec->compare == 'previous') {
 			
-			
-			
-    			if ($rec->compare == 'previous') {
-    			
-    			    if($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos){
-    			    
-    			    
-    			        if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
+			    if($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos){
+			        
+			        if ($DetClass instanceof sales_SalesDetails){
+			            
+			            $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
+			            
+			            if ($saleId){
+			                if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
+			            }else continue;
+			        }
+			    
+			    
+			        if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
+			        
+			            $quantityPrevious = (- 1) * $recPrime->quantity;
+			    
+    			    } else {
     			        
-    			            $quantityPrevious = (- 1) * $recPrime->quantity;
+    			        $quantityPrevious = $recPrime->quantity;
+    			   
+    			    }
     			    
-        			    } else {
-        			        
-        			        $quantityPrevious = $recPrime->quantity;
-        			   
-        			    }
-        			    
-        			}
     			}
-    			
-    			if ($rec->compare == 'year') {   
-    			    
-        			if($recPrime->valior >= $fromLastYear && $recPrime->valior <= $toLastYear){
-        			    
-        			    if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
-        			        
-        			        $quantityLastYear = (- 1) * $recPrime->quantity;
-        			        
-            			    } else {
-            			        
-            			        $quantityLastYear = $recPrime->quantity;
-        			        
-        			    }
-        			    
-        			}
-			
-    	        }
-			
-    	        
-    	        
-			if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
-				
-			    $quantity = (- 1) * $recPrime->quantity;
-				
-			    $primeCost = (- 1) * $recPrime->sellCost * $recPrime->quantity;
-			
-			} else {
-				
-			    $quantity = $recPrime->quantity;
-				
-			    $primeCost = $recPrime->sellCost * $recPrime->quantity;
-			
 			}
 			
+			if ($rec->compare == 'year') {   
+			    
+    			if($recPrime->valior >= $fromLastYear && $recPrime->valior <= $toLastYear){
+    			    
+    			    if ($DetClass instanceof sales_SalesDetails){
+    			        
+    			        $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
+    			        
+    			        if ($saleId){
+    			            if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
+    			        }else continue;
+    			    }
+    			    
+    			    if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
+    			        
+    			        $quantityLastYear = (- 1) * $recPrime->quantity;
+    			        
+        			    } else {
+        			        
+        			        $quantityLastYear = $recPrime->quantity;
+    			        
+    			    }
+    			    
+    			}
+		
+	        }
+		
+	        if ($recPrime->valior >= $rec->from && $recPrime->valior <= $rec->to){
+	            
+	            if ($DetClass instanceof sales_SalesDetails){
+	                
+	                $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
+	                
+	                if ($saleId){
+	                    if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
+	                }else continue;
+	            }
+	            
+    			if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
+    				
+    			    $quantity = (- 1) * $recPrime->quantity;
+    				
+    			    $primeCost = (- 1) * $recPrime->sellCost * $recPrime->quantity;
+    			
+    			} else {
+    				
+    			    $quantity = $recPrime->quantity;
+    				
+    			    $primeCost = $recPrime->sellCost * $recPrime->quantity;
+    			
+    			}
+	        }
 			// добавяме в масива събитието
 			if (! array_key_exists ( $id, $recs )) {
 				
