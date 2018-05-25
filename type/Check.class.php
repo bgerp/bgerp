@@ -34,7 +34,8 @@ class type_Check extends type_Enum {
 	 */
 	function renderInput_($name, $value = "", &$attr = array())
 	{
-		$caption = $this->options['yes'];
+		$caption = tr($this->options['yes']);
+		
 		$tpl = "<input type='checkbox' name='{$name}' value='yes' class='checkbox'" . ($value == 'yes' ? ' checked ' : '') . "> {$caption}";
 		
 		return $tpl;
