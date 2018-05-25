@@ -589,7 +589,10 @@ class acc_BalanceDetails extends core_Detail
         }
         
         $data->listFields = array();
-        $data->listFields['history'] = ' ';
+        
+        if(!Mode::isReadOnly()){
+        	$data->listFields['history'] = ' ';
+        }
         
         /**
          * Указва дали редом с паричните стойности да се покажат и колони с количества.
