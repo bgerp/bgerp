@@ -75,7 +75,7 @@ class marketing_Setup extends core_ProtoSetup
     		'marketing_Inquiries2',
             'marketing_Bulletins',
             'marketing_BulletinSubscribers',
-            'migrate::bulletinsData',
+//             'migrate::bulletinsData',
         );
 
         

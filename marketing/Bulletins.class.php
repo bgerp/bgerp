@@ -323,13 +323,6 @@ class marketing_Bulletins extends core_Master
         
         $jsTpl = new ET($js);
         
-        $dArr = self::parseDomain($bRec->domain);
-        $dRec = cms_Domains::fetch(array("#domain = '[#1#]' AND #lang = '[#2#]'", $dArr['domain'], $dArr['lang']));
-        $footerCms = cms_Articles::getFooterLinksHtml('bulletinForm', $dRec->id);
-        if ($footerCms) {
-            $jsTpl->replace(addslashes($footerCms), 'bulletinFooterLink');
-        }
-        
         $jsTpl->replace($bRec->delayAfterClose, 'delayAfterClose');
         $jsTpl->replace($bRec->delayBeforeOpen, 'delayBeforeOpen');        
         $jsTpl->replace($bRec->delayBeforeOpenInHit, 'delayBeforeOpenInHit');        
