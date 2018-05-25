@@ -968,7 +968,7 @@ class cms_Articles extends core_Master
     		$url = self::getUrl($rec);
     		$link = ht::createLink($rec->footerTitleLink, $url);
     		
-    		$tpl = (!empty($rec->footerTitleTemplate)) ? $rec->footerTitleTemplate : self::FOOTER_LINK_TEMPLATE;
+    		$tpl = (!empty($rec->footerTitleTemplate)) ? "|*" . $rec->footerTitleTemplate : self::FOOTER_LINK_TEMPLATE;
     		$labelTpl = new core_ET($tpl);
     		$labelTpl->replace($link, '1');
     		$label = $labelTpl->getContent();
