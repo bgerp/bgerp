@@ -233,7 +233,7 @@ class trans_Lines extends core_Master
     		$data->toolbar->addBtn('Печат (Детайли)', $url, "target=_blank,row=2", 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
     	}
     	
-    	if(empty($data->toolbar->hasBtn('btnActivate'))){
+    	if(!$data->toolbar->hasBtn('btnActivate')){
     		if(self::countDocumentsByState($rec->id, 'pending,draft,rejected')){
     			$data->toolbar->addBtn('Активиране', array(), FALSE, "error=В линията има чернови и/или документи на заявка|*!,ef_icon = img/16/lightning.png,title=Активиране на документа");
     		}
