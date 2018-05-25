@@ -22,9 +22,11 @@ class type_Check extends type_Enum {
 	 */
 	function init($params = array())
 	{
-		$yesCaption = isset($params['params']['value']) ? $params['params']['value'] : 'Да';
+		$yesCaption = isset($params['params']['label']) ? $params['params']['label'] : 'Да';
 		$this->options = array('no' => 'Не е направен избор', 'yes' => $yesCaption);
-		
+		if(!empty($params['params']['errorIfNotChecked'])){
+			$this->params['errorIfNotChecked'] = $params['params']['errorIfNotChecked'];
+		}
 		parent::init($this->params);
 	}
 	
@@ -34,8 +36,11 @@ class type_Check extends type_Enum {
 	 */
 	function renderInput_($name, $value = "", &$attr = array())
 	{
-		$caption = $this->options['yes'];
-		$tpl = "<input type='checkbox' name='{$name}' value='yes' class='checkbox'" . ($value == 'yes' ? ' checked ' : '') . "> {$caption}";
+		$caption = tr($this->options['yes']);
+		$attr['class'] .= " checkbox";
+		
+		$errorClass = isset($attr['errorClass']) ? "errorclass=' inputError'": "";
+		$tpl = "<input type='checkbox' name='{$name}' {$errorClass} value='yes' class='{$attr['class']}'" . ($value == 'yes' ? ' checked ' : '') . "> <label>{$caption}</label>";
 		
 		return $tpl;
 	}
@@ -49,7 +54,9 @@ class type_Check extends type_Enum {
     	$value = ($value == 'yes') ? 'yes' : 'no';
     	
     	if(isset($this->params['mandatory']) && $value != 'yes'){
-    		$this->error = "Стойността трябва да е избрана|*!";
+    		$error = ($this->params['errorIfNotChecked']) ? $this->params['errorIfNotChecked'] : "Стойността трябва да е избрана|*!";
+    		$this->error = $error;
+    		return FALSE;
     	}
     	
     	return $value;
