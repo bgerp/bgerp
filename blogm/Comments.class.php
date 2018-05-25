@@ -158,6 +158,7 @@ class blogm_Comments extends core_Detail {
         $cRec = (object) array('articleId' => $data->articleId); 
         if(self::haveRightFor('add', $cRec)) {  
         	$data->commentForm = self::getForm();
+        	$data->commentForm->formAttr['id'] = 'postingForm';
             $data->commentForm->setField('state', 'input=none');
             $data->commentForm->setHidden('articleId', $data->articleId);
             
