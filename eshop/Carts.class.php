@@ -104,6 +104,7 @@ class eshop_Carts extends core_Master
     	$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
     	$this->FLD('domainId', 'key(mvc=cms_Domains, select=domain)', 'caption=Брид,input=none');
     	$this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
+    	$this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Стойност,input=none');
     	$this->FLD('total', 'double(decimals=2)', 'caption=Общи данни->Стойност,input=none');
     	$this->FLD('totalNoVat', 'double(decimals=2)', 'caption=Общи данни->Стойност без ДДС,input=none');
     	$this->FLD('productCount', 'int', 'caption=Общи данни->Брой,input=none');
@@ -258,7 +259,21 @@ class eshop_Carts extends core_Master
     	$rec = $this->fetchRec($id);
     	if(!$rec) return;
     	
-    	$rec->productCount = $rec->total = $rec->totalNoVat = 0;
+    	$rec->productCount = $rec->total = $rec->deliveryNoVat = $rec->totalNoVat = 0;
+    	
+    	// Ако има цена за доставка добавя се и тя
+    	if($delivery = eshop_CartDetails::getDeliveryInfo($rec)){
+    		if($delivery['amount'] > 0){
+    			$settings = cms_Domains::getSettings();
+    			$delivery = currency_CurrencyRates::convertAmount($delivery['amount'], NULL, NULL, $settings->currencyId);
+    			$rec->deliveryNoVat = $delivery;
+    			$rec->totalNoVat += $rec->deliveryNoVat;
+    			
+    			$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+    			$rec->total += $delivery * (1 + cat_Products::getVat($transportId));
+    		}
+    	}
+    	
     	$dQuery = eshop_CartDetails::getQuery();
     	$dQuery->where("#cartId = {$rec->id}");
     	
@@ -271,18 +286,18 @@ class eshop_Carts extends core_Master
     		$sum = $finalPrice * ($dRec->quantity / $dRec->quantityInPack);
     		
     		if($dRec->haveVat == 'yes'){
-    			$rec->totalNoVat += $sum / (1 + $dRec->vat);
-    			$rec->total += $sum;
+    			$rec->totalNoVat += round($sum / (1 + $dRec->vat), 2);
+    			$rec->total += round($sum, 2);
     		} else {
-    			$rec->totalNoVat += $sum;
-    			$rec->total += $sum * (1 + $dRec->vat);
+    			$rec->totalNoVat += round($sum, 2);
+    			$rec->total += round($sum * (1 + $dRec->vat), 2);
     		}
     	}
     	
     	$rec->totalNoVat = round($rec->totalNoVat, 2);
     	$rec->total = round($rec->total, 2);
     	
-    	$id = $this->save_($rec, 'productCount,total,totalNoVat');
+    	$id = $this->save_($rec, 'productCount,total,totalNoVat,deliveryNoVat');
     	
     	return $id;
     }
@@ -580,6 +595,14 @@ class eshop_Carts extends core_Master
     		
     		$data->rows[$dRec->id] = $row;
     	}
+    	
+    	if($data->rec->deliveryNoVat > 0){
+    		$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+    		$deliveryAmount = $data->rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
+    		$deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+    		
+    		$data->rows['-1'] = (object)array('productId' => tr('Доставка'), 'amount' => $deliveryAmount);
+    	}
     }
     
     
@@ -670,6 +693,8 @@ class eshop_Carts extends core_Master
     	$form->rec = $rec;
     	
     	$form->title = 'Информация за поръчка';
+    	$form->formAttr['id'] = 'checkoutForm';
+    	
     	$deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
     	if(count($deliveryTerms) == 1){
     		$form->setDefault('termId', key($deliveryTerms));
@@ -680,7 +705,7 @@ class eshop_Carts extends core_Master
     	$form->setDefault('makeInvoice', 'none');
     	
     	$form->input(NULL, 'silent');
-    	cms_Domains::addGdprInput($form);
+    	cms_Articles::addFooterLinks($form);
     	
     	if(isset($form->rec->termId)){
     		if($Driver = cond_DeliveryTerms::getTransportCalculator($form->rec->termId)){
