@@ -2,9 +2,7 @@
     <h3 class='comment-form-title'>|Добавете коментар|*</h3>
     <form [#FORM_ATTR#]> 
     <!--ET_BEGIN FORM_ERROR-->
-    <div class="formError">
-        [#FORM_ERROR#]
-    </div>
+    [#FORM_ERROR#]
     <!--ET_END FORM_ERROR-->
     <div class='formFields'>
         [#FORM_FIELDS#]
