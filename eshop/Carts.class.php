@@ -328,7 +328,7 @@ class eshop_Carts extends core_Master
     	if(empty($settings)) return new core_ET(' ');
     	
     	$cartId = ($cartId) ? $cartId : self::force(NULL, NULL, FALSE);
-		$url = array();
+		$url = array('eshop_Carts', 'force');
     	
     	if(isset($cartId)){
     		$cartRec = self::fetch($cartId);
@@ -365,6 +365,13 @@ class eshop_Carts extends core_Master
     	core_Lg::pop();
     	
     	return $tpl;
+    }
+    
+    public function act_Force()
+    {
+    	$cartId = self::force();
+    	 
+    	redirect(array($this, 'view', $cartId, 'ret_url' => TRUE));
     }
     
     
@@ -497,8 +504,8 @@ class eshop_Carts extends core_Master
     	$rec = self::fetchRec($id);
     	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock('CART_TOOLBAR');
     	
-    	if(eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
-    		$emptyUrl = ($rec->productCount) ? array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => getRetUrl()) : array();
+    	if(!empty($rec->productCount) && eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
+    		$emptyUrl = array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => getRetUrl());
     		$btn = ht::createLink('Изчисти', $emptyUrl, NULL, 'title=Премахване на артикулите,class=eshop-link,ef_icon=img/16/deletered.png');
     		$tpl->append($btn, 'EMPTY_CART');
     	}
