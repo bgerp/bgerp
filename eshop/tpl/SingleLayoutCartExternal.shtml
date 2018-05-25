@@ -6,7 +6,7 @@
         [#SALE_BLOCK#]
         <div class="order-info">
             <div class="half-width fleft">
-                <h4 style="margin-bottom: 5px;">|Информация за поръчката|*</h4>
+                <h4 style="margin-bottom: 5px;">|Информация за поръчката|* [#editBtn#]</h4>
                 <table>
                     <!--ET_BEGIN DELIVERY_BLOCK-->
                     <tr>

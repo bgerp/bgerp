@@ -516,8 +516,14 @@ class eshop_Carts extends core_Master
     	if(eshop_Carts::haveRightFor('checkout', $rec)){
     		$checkoutUrl = array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE);
     	}
-    	$btn = ht::createBtn('Данни за поръчка', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=order-btn eshop-btn {$disabledClass}");
-    	$tpl->append($btn, 'CART_TOOLBAR');
+    	
+    	if(empty($rec->personNames)){
+    		$btn = ht::createBtn('Данни за поръчка', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=order-btn eshop-btn {$disabledClass}");
+    		$tpl->append($btn, 'CART_TOOLBAR');
+    	} else {
+    		$editBtn = ht::createLink('', $checkoutUrl, FALSE, 'ef_icon=img/16/edit.png,title=Редактиране на данните за поръчка');
+    		$tpl->append($editBtn, 'editBtn');
+    	}
     	
     	$tpl->removeBlocks();
     	$tpl->removePlaces();

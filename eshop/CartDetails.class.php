@@ -407,8 +407,6 @@ class eshop_CartDetails extends core_Detail
 		// Ако заявката е по ajax
 		if (Request::get('ajax_mode')) return self::getUpdateCartResponse($cartId);
 		
-		if($deletedCart === TRUE) return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(NULL));
-		
 		return followRetUrl(NULL, NULL, $msg);
 	}
 	
