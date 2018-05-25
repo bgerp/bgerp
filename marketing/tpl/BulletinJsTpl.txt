@@ -241,7 +241,7 @@ function bulletinFormOpen()
 				"<!--ET_BEGIN logoUp--><div class = 'centered'><img class='logImg' src='[#logoUp#]' alt='Logo'></div><!--ET_END logoUp-->[#formTitle#]" +
                 "<!--ET_BEGIN formTitleRight--><div><!--ET_BEGIN logoLeft--><img class='logImgLeft' src='[#logoLeft#]' alt='Logo'><!--ET_END logoLeft-->[#formTitleRight#]</div><!--ET_END formTitleRight-->" +
 				"<div class='clearfix21'></div>" +
-				"<form class='bulletinForm' action='[#formAction#]'>" +
+				"<form class='bulletinForm' id='bulletinForm' action='[#formAction#]'>" +
                 "<div class='bulletinFilelds'>" +
 				"<div class='rowBulletin'><span>[#emailName#] ([#weSaveIt#]): </span><input type='text' id='bulletinEmail' name='email' placeholder='example@domain.com'></div>" +
 				"<div class='bulletinError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
