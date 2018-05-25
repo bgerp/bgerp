@@ -908,12 +908,6 @@ class cms_Articles extends core_Master
     }
     
     
-    function act_Test()
-    {
-    	self::getFooterLinksHtml('newEnquiryForm');
-    }
-    
-    
     /**
      * Връща бутони във футъра като линк
      * 
@@ -974,7 +968,6 @@ class cms_Articles extends core_Master
     		$labelTpl->replace($link, '1');
     		$label = $labelTpl->getContent();
     		$mandatory = ($rec->footerMandatoryCheck == 'yes') ? 'mandatory' : '';
-    		
     		
     		$form->FLD("footerFld{$rec->id}", "varchar", "displayInToolbar");
     		$form->setFieldType("footerFld{$rec->id}", cls::get('type_Check', array('params' => array('label' => $label, 'errorIfNotChecked' => 'Трябва да сте се съгласили'))));
