@@ -11,7 +11,7 @@
         <input name="Comment" id='blogm-Comment'>
     </div>
     <div class='formToolbar'>
-    <!--ET_BEGIN FORM_FOOTER--><div class=\"formFooter\">[#FORM_FOOTER#]</div><!--ET_END FORM_FOOTER-->
+    <!--ET_BEGIN FORM_FOOTER--><div class="formFooter">[#FORM_FOOTER#]</div><!--ET_END FORM_FOOTER-->
         [#FORM_TOOLBAR#][#FORM_HIDDEN#]
     </div>
     </form>
