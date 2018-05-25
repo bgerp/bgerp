@@ -100,6 +100,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$form->setDefault ( 'articleType', 'all' );
 		
+		$form->setDefault ( 'compare', 'no' );
+		
 	}
 	
 	/**
@@ -122,13 +124,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$query->EXT ( 'code', 'cat_Products', 'externalName=code,externalKey=productId' );
 		
-		$query->where ( "#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'" );
+		$query->EXT ( 'folderDocId', 'doc_Containers', 'externalName=folderId,externalKey=containerId' );
 		
-		$query->EXT ( 'folderId', 'doc_Containers', 'externalName=folderId,externalKey=containerId' );
+		$query->EXT ( 'stateDoc', 'doc_Folders', 'externalName=state,externalKey=folderDocId' );
 		
-		$query->EXT ( 'state', 'doc_Folders', 'externalName=state,externalKey=folderId' );
-		
-		$query->where ( "#state != 'rejected'" );
+		$query->where ( "#stateDoc != 'rejected'" );
 		
 		if (isset ( $rec->dealers )) {
 			
@@ -142,12 +142,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		if ($rec->contragent) {
 			
-			$query->EXT ( 'coverId', 'doc_Folders', 'externalName=coverId,externalKey=folderId' );
+			$query->EXT ( 'coverId', 'doc_Folders', 'externalName=coverId,externalKey=folderDocId' );
 			
 			$contragentId = doc_Folders::fetch ( $rec->contragent )->coverId;
 			
 			$query->where ( "#coverId = {$contragentId}" );
 		}
+		
+		
 		
 		if (isset ( $rec->group )) {
 			$query->likeKeylist ( "groupMat", $rec->group );
@@ -157,6 +159,33 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			
 			$query->where ( "#art = '{$rec->articleType}'" );
 		}
+		
+		if ($rec->compare == 'no') {
+		    
+		    $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
+		}
+		
+		// Last период
+		
+		if (isset($rec->compare) == 'previous') {
+		   
+		    $daysInPeriod = dt::daysBetween($rec->to, $rec->from) + 1;
+		    $fromPreviuos = dt::addDays(- $daysInPeriod, $rec->from);
+		    $toPreviuos = dt::addDays(- $daysInPeriod, $rec->to);
+		    
+		}
+		
+		// LastYear период
+		
+		if (isset($rec->compare) == 'year') {
+		    
+		    $fromLastYear = dt::addDays(- 365, $rec->from);
+		    $toLastYear = dt::addDays(- 365, $rec->to);
+		    
+		}
+		
+		
+		// Масив бързи продажби //
 		
 		$sQuery = sales_Sales::getQuery ();
 		
@@ -176,6 +205,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$flag = FALSE;
 		
 		while ( $recPrime = $query->fetch () ) {
+		    
+		    
 			
 			if (keylist::isIn ( $recPrime->detailRecId, $salesWithShip ))
 				continue;
@@ -186,12 +217,55 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			
 			$DetClass = cls::get ( $recPrime->detailClassId );
 			
+			
+    			if ($rec->compare == 'previous') {
+    			
+    			    if($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos){
+    			    
+    			    
+    			        if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
+    			        
+    			            $quantityPrevious = (- 1) * $recPrime->quantity;
+    			    
+        			    } else {
+        			        
+        			        $quantityPrevious = $recPrime->quantity;
+        			   
+        			    }
+        			    
+        			}
+    			}
+    			
+    			if ($rec->compare == 'year') {   
+    			    
+        			if($recPrime->valior >= $fromLastYear && $recPrime->valior <= $toLastYear){
+        			    
+        			    if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
+        			        
+        			        $quantityLastYear = (- 1) * $recPrime->quantity;
+        			        
+            			    } else {
+            			        
+            			        $quantityLastYear = $recPrime->quantity;
+        			        
+        			    }
+        			    
+        			}
+			
+    	        }
+			
 			if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
-				$quantity = (- 1) * $recPrime->quantity;
-				$primeCost = (- 1) * $recPrime->sellCost * $recPrime->quantity;
+				
+			    $quantity = (- 1) * $recPrime->quantity;
+				
+			    $primeCost = (- 1) * $recPrime->sellCost * $recPrime->quantity;
+			
 			} else {
-				$quantity = $recPrime->quantity;
-				$primeCost = $recPrime->sellCost * $recPrime->quantity;
+				
+			    $quantity = $recPrime->quantity;
+				
+			    $primeCost = $recPrime->sellCost * $recPrime->quantity;
+			
 			}
 			
 			// добавяме в масива събитието
@@ -203,14 +277,21 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 						'measure' => cat_Products::getProductInfo ( $recPrime->productId )->productRec->measureId,
 						'productId' => $recPrime->productId,
 						'quantity' => $quantity,
+						'quantityPrevious' => $quantityPrevious,
+						'quantityLastYear' => $quantityLastYear,
 						'primeCost' => $primeCost,
 						'group' => $recPrime->groupMat 
 				);
 			} else {
 				$obj = &$recs [$id];
 				$obj->quantity += $quantity;
+				$obj->quantityPrevious += $quantityPrevious;
+				$obj->quantityLastYear += $quantityLastYear;
 				$obj->primeCost += $primeCost;
 			}
+			
+			$quantity = $quantityPrevious = $quantityLastYear = 0;
+			
 		}
 		
 		return $recs;
@@ -234,7 +315,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$fld->FLD ( 'productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул' );
 		$fld->FLD ( 'measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered' );
 		$fld->FLD ( 'quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество->Продадено' );
-		$fld->FLD ( 'quantityLast', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество->Сравнение' );
+		if ($rec->compare != 'no'){
+		
+		    $fld->FLD ( 'quantityCompare', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество->Сравнение' );
+		}
 		$fld->FLD ( 'primeCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност' );
 		if ($export === TRUE) {
 			$fld->FLD ( 'group', 'keylist(mvc=cat_groups,select=name)', 'caption=Група' );
@@ -275,7 +359,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		foreach ( array (
 				'quantity',
 				'primeCost',
-				'quantityLast' 
 		) as $fld ) {
 			$row->{$fld} = $Double->toVerbal ( $dRec->{$fld} );
 			if ($dRec->{$fld} < 0) {
@@ -291,6 +374,35 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			}
 			
 			$row->group = $gro;
+		}
+		
+		
+		if ($rec->compare == 'previous'){
+		    if ($dRec->quantity - $dRec->quantityPrevious > 0){
+		    
+		        $color = 'green';$marker = '+';
+		    }elseif ($dRec->quantity - $dRec->quantityPrevious < 0){
+		        
+		        $color = 'red';$marker = '-';
+		    }else {
+		        $color = 'black';$marker = '';
+		    }
+		    $row->quantityCompare = "<span class= {$color}>"."{$marker}" . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity - $dRec->quantityPrevious) . "</span>";
+		}
+		
+		if ($rec->compare == 'year'){
+		    
+		    if ($dRec->quantity - $dRec->quantityLastYear > 0){
+		        
+		        $color = 'green';$marker = '+';
+		    }elseif ($dRec->quantity - $dRec->quantityLastYear < 0){
+		        
+		        $color = 'red';$marker = '';
+		    }else {
+		        $color = 'black';$marker = '';
+		    }
+		    
+		    $row->quantityCompare = "<span class= {$color}>"."{$marker}" . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity - $dRec->quantityLastYear) . "</span>";
 		}
 		
 		return $row;
@@ -311,13 +423,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$artArr = array ();
 		
 		$Date = cls::get ( 'type_Date' );
+		
 		$row->from = $Date->toVerbal ( $rec->from );
+		
 		$row->to = $Date->toVerbal ( $rec->to );
-		$groupbyArr = array (
-				'none' => 'Няма',
-				'users' => 'Потребители' 
-		);
-		$row->groupBy = $groupbyArr [$rec->groupBy];
+		
+// 		$groupbyArr = array (
+// 				'none' => 'Няма',
+// 				'users' => 'Потребители' 
+// 		);
+// 		$row->groupBy = $groupbyArr [$rec->groupBy];
 		
 		if (isset ( $rec->group )) {
 			// избраната позиция
@@ -342,9 +457,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		}
 		
 		$arrCompare = array (
-				'no' => 'Без',
-				'previous' => 'Предходен',
-				'year' => 'Миналогодишен' 
+				'no' => 'Без сравнение',
+				'previous' => 'С предходен период',
+				'year' => 'С миналогодишен период' 
 		);
 		$row->compare = $arrCompare [$rec->compare];
 	}
