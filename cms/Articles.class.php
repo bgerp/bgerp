@@ -217,6 +217,10 @@ class cms_Articles extends core_Master
     		if(!empty($rec->footerTitleLink) && empty($rec->footerForms)){
     			$form->setError('footerForms', 'Не сте избрали форми където да се показва');
     		}
+    		
+    		if(!empty($rec->footerForms) && empty($rec->footerTitleLink)){
+    			$form->setError('footerTitleLink', 'Трябва да зададете заглавие');
+    		}
     	}
     }
     
@@ -911,20 +915,35 @@ class cms_Articles extends core_Master
     /**
      * Връща бутони във футъра като линк
      * 
-     * @param string $formId
-     * @param int|NULL $domainId
-     * @return string
+     * @param string $formId     - ид на форма
+     * @param int|NULL $domainId - ид на домейн
+     * @return string            - добавените полета като стринг
      */
-    public function getFooterLinksHtml($formId, $domainId = NULL)
+    public static function getFooterLinksHtml($formId, $domainId = NULL)
     {
     	$form = cls::get('core_Form');
     	$form->formAttr['id'] = $formId;
-    	$form->layout = new core_ET("<!--ET_BEGIN FORM_FOOTER--><div class=\"formFooter\">[#FORM_FOOTER#]</div><!--ET_END FORM_FOOTER-->");
     	
+    	$tpl = new core_ET("");
     	self::addFooterLinks($form, $domainId);
-    	$r = $form->renderHtml();
+    	$fields = $form->selectFields();
+    	if(empty($fields)) return '';
     	
-    	return $r;
+    	foreach ($fields as $name => $fld){
+    		$attr = array();
+    		$input = $fld->type->renderInput($name, $form->rec->{$name}, $attr);
+    		if(isset($fld->mandatory)){
+    			$input->append(" data-mandatory='yes'", 'DATA_ATTR');
+    		}
+    		if(isset($fld->type->params['errorIfNotChecked'])){
+    			$input->append(" data-errorIfNotChecked='{$fld->type->params['errorIfNotChecked']}'", 'DATA_ATTR');
+    		}
+    		$input->removeBlocks();
+    		$input->removePlaces();
+    		$tpl->append($input);
+    	}
+    	
+    	return $tpl->getContent();
     }
     
     
@@ -949,7 +968,7 @@ class cms_Articles extends core_Master
     		$url = self::getUrl($rec);
     		$link = ht::createLink($rec->footerTitleLink, $url);
     		
-    		$tpl = (!empty($rec->footerTitleTemplate)) ? $rec->footerTitleTemplate : self::FOOTER_LINK_TEMPLATE;
+    		$tpl = (!empty($rec->footerTitleTemplate)) ? "|*" . $rec->footerTitleTemplate : self::FOOTER_LINK_TEMPLATE;
     		$labelTpl = new core_ET($tpl);
     		$labelTpl->replace($link, '1');
     		$label = $labelTpl->getContent();

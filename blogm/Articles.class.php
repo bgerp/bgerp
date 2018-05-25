@@ -343,7 +343,8 @@ class blogm_Articles extends core_Master {
         
         // Обработка на формата за добавяне на коментари
         if($cForm = $data->commentForm) {
-        
+        	cms_Articles::addFooterLinks($cForm);
+        	
             // Зареждаме REQUEST данните във формата за коментар
             $cRec = $cForm->input();
             
