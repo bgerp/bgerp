@@ -75,7 +75,6 @@ class marketing_Setup extends core_ProtoSetup
     		'marketing_Inquiries2',
             'marketing_Bulletins',
             'marketing_BulletinSubscribers',
-//             'migrate::bulletinsData',
         );
 
         
@@ -108,17 +107,5 @@ class marketing_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Бюлетин за външната част', 'marketing_BulletinPlg', 'cms_page_External', 'private');
         
         return $html;
-    }
-    
-    
-    /**
-     * Миграция за подновяване на данните на бюлетина
-     */
-    public static function bulletinsData()
-    {
-        $bQuery = marketing_Bulletins::getQuery();
-        while ($bRec = $bQuery->fetch()) {
-            marketing_Bulletins::save($bRec);
-        }
     }
 }
