@@ -40,7 +40,7 @@ class type_Check extends type_Enum {
 		$attr['class'] .= " checkbox";
 		
 		$errorClass = isset($attr['errorClass']) ? "errorclass=' inputError'": "";
-		$tpl = "<input type='checkbox' name='{$name}' {$errorClass} value='yes' class='{$attr['class']}'" . ($value == 'yes' ? ' checked ' : '') . "> <label>{$caption}</label>";
+		$tpl = new core_ET("<input type='checkbox' [#DATA_ATTR#] name='{$name}' {$errorClass} value='yes' class='{$attr['class']}'" . ($value == 'yes' ? ' checked ' : '') . "> <label>{$caption}</label>");
 		
 		return $tpl;
 	}
