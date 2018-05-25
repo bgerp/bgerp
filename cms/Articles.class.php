@@ -975,7 +975,7 @@ class cms_Articles extends core_Master
     		$mandatory = ($rec->footerMandatoryCheck == 'yes') ? 'mandatory' : '';
     		
     		$form->FLD("footerFld{$rec->id}", "varchar", "displayInToolbar");
-    		$form->setFieldType("footerFld{$rec->id}", cls::get('type_Check', array('params' => array('label' => $label, 'errorIfNotChecked' => 'Трябва да сте се съгласили'))));
+    		$form->setFieldType("footerFld{$rec->id}", cls::get('type_Check', array('params' => array('label' => $label, 'errorIfNotChecked' => 'Трябва да се съгласите!'))));
     		$form->setField("footerFld{$rec->id}", "{$mandatory},caption=" . strip_tags($label));
     		
     		if($rec->footerIsChecked == 'yes'){
