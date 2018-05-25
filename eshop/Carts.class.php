@@ -240,7 +240,7 @@ class eshop_Carts extends core_Master
     	
     	if(empty($rec) && $bForce === TRUE){
     		$ip = core_Users::getRealIpAddr();
-    		$rec = (object)array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'state' => 'draft');
+    		$rec = (object)array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'state' => 'draft', 'productCount' => 0);
     		self::save($rec);
     	}
     	
