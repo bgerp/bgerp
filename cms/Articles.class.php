@@ -217,6 +217,10 @@ class cms_Articles extends core_Master
     		if(!empty($rec->footerTitleLink) && empty($rec->footerForms)){
     			$form->setError('footerForms', 'Не сте избрали форми където да се показва');
     		}
+    		
+    		if(!empty($rec->footerForms) && empty($rec->footerTitleLink)){
+    			$form->setError('footerTitleLink', 'Трябва да зададете заглавие');
+    		}
     	}
     }
     
