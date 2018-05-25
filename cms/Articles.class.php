@@ -908,23 +908,43 @@ class cms_Articles extends core_Master
     }
     
     
+    function act_Test()
+    {
+    	self::getFooterLinksHtml('newEnquiryForm');
+    }
+    
+    
     /**
      * Връща бутони във футъра като линк
      * 
-     * @param string $formId
-     * @param int|NULL $domainId
-     * @return string
+     * @param string $formId     - ид на форма
+     * @param int|NULL $domainId - ид на домейн
+     * @return string            - добавените полета като стринг
      */
-    public function getFooterLinksHtml($formId, $domainId = NULL)
+    public static function getFooterLinksHtml($formId, $domainId = NULL)
     {
     	$form = cls::get('core_Form');
     	$form->formAttr['id'] = $formId;
-    	$form->layout = new core_ET("<!--ET_BEGIN FORM_FOOTER--><div class=\"formFooter\">[#FORM_FOOTER#]</div><!--ET_END FORM_FOOTER-->");
     	
+    	$tpl = new core_ET("");
     	self::addFooterLinks($form, $domainId);
-    	$r = $form->renderHtml();
+    	$fields = $form->selectFields();
+    	if(empty($fields)) return '';
     	
-    	return $r;
+    	foreach ($fields as $name => $fld){
+    		$input = $fld->type->renderInput($name, $form->rec->{$name});
+    		if(isset($fld->mandatory)){
+    			$input->append(" data-mandatory='yes'", 'DATA_ATTR');
+    		}
+    		if(isset($fld->type->params['errorIfNotChecked'])){
+    			$input->append(" data-errorIfNotChecked='{$fld->type->params['errorIfNotChecked']}'", 'DATA_ATTR');
+    		}
+    		$input->removeBlocks();
+    		$input->removePlaces();
+    		$tpl->append($input);
+    	}
+    	
+    	return $tpl->getContent();
     }
     
     
@@ -954,6 +974,7 @@ class cms_Articles extends core_Master
     		$labelTpl->replace($link, '1');
     		$label = $labelTpl->getContent();
     		$mandatory = ($rec->footerMandatoryCheck == 'yes') ? 'mandatory' : '';
+    		
     		
     		$form->FLD("footerFld{$rec->id}", "varchar", "displayInToolbar");
     		$form->setFieldType("footerFld{$rec->id}", cls::get('type_Check', array('params' => array('label' => $label, 'errorIfNotChecked' => 'Трябва да сте се съгласили'))));
