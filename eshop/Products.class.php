@@ -526,10 +526,9 @@ class eshop_Products extends core_Master
      */
     public function renderProduct($data)
     {
-        if(Mode::is('wide')) {
+        if(Mode::is('screenMode', 'wide')) {
             $tpl = getTplFromFile("eshop/tpl/ProductShow.shtml");
         } else {
-
             $tpl = getTplFromFile("eshop/tpl/ProductShowNarrow.shtml");
         }
         $tpl->placeObject($data->row);
@@ -547,7 +546,8 @@ class eshop_Products extends core_Master
      */
     public static function getUrl($rec, $canonical = FALSE)
     {   
-        $gRec = eshop_Groups::fetch($rec->groupId);
+    	$rec = self::fetchRec($rec);
+    	$gRec = eshop_Groups::fetch($rec->groupId);
 		if(empty($gRec->menuId)) return array();
 		
         $mRec = cms_Content::fetch($gRec->menuId);

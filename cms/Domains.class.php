@@ -160,6 +160,10 @@ class cms_Domains extends core_Embedder
         
         // SEO Ключови думи
         $this->FLD('seoKeywords', 'text(255,rows=3)', 'caption=SEO->Keywords,autohide');
+        
+        $this->FLD('gdprText', 'html(rows=2)', 'caption=Текст за GDPR->Текст');
+
+        $this->FLD('cookieText', 'html(rows=2)', "caption=Бисквитки->Текст, placeholder=Този сайт използва бисквитки (cookies) за повишаване на ефективността си.");
 
     }
 
@@ -600,5 +604,24 @@ class cms_Domains extends core_Embedder
     	$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
     	
     	return eshop_Settings::getSettings('cms_Domains', $domainId, $date = NULL);
+    }
+    
+    
+    /**
+     * Добавя инпут за съгласяване с GDPR регламента, ако има зададен текст
+     * 
+     * @param core_FieldSet $form
+     * @param int|NULL $domainId
+     * @return void
+     */
+    public static function addGdprInput(core_FieldSet &$form, $domainId = NULL)
+    {
+    	$domainId = ($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
+    	$gdprText = self::fetchField($domainId, 'gdprText');
+    	if(empty($gdprText)) return;
+    	
+    	$form->FLD('GDPR', 'set', 'maxRadio=1,displayInToolbar,mandatory');
+    	$form->setSuggestions('GDPR', array('yes' => "|*{$gdprText}"));
+    	$form->setFieldTypeParams('GDPR', array('maxChars' => 200, 'displayHtml' => TRUE));
     }
 }

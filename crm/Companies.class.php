@@ -1048,10 +1048,31 @@ class crm_Companies extends core_Master
             $tpl->append(66, 'smallFontSize');
         }
         $tpl->append($fAddres, 'address');
-        $tpl->append($tel, 'tel');
-        $tpl->append($fax, 'fax');
-        $tpl->append($cRec->website, 'site');
-        $tpl->append($email, 'email');
+        
+        if (trim($tel)) {
+            $tpl->append($tel, 'tel');
+        } else {
+            $tpl->removeBlock('tel');
+        }
+        
+        if (trim($fax)) {
+            $tpl->append($fax, 'fax');
+        } else {
+            $tpl->removeBlock('fax');
+        }
+        
+        if (trim($cRec->website)) {
+            $tpl->append($cRec->website, 'site');
+        } else {
+            $tpl->removeBlock('site');
+        }
+        
+        if (trim($email)) {
+            $tpl->append($email, 'email');
+        } else {
+            $tpl->removeBlock('email');
+        }
+        
         $tpl->append($baseColor, 'baseColor');
         $tpl->append($activeColor, 'activeColor');
         

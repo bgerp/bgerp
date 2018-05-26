@@ -73,6 +73,15 @@
 				</table>
 			</td>
 		</tr>
+		<!--ET_BEGIN description-->
+		<tr>
+			<td colspan="3">
+
+				[#description#]
+
+			</td>
+		</tr>
+		<!--ET_END description-->
 	</table>
 	<div class="lines"></div>
 	<div class='mergedDetailsholder'>
@@ -111,7 +120,7 @@
 		</table>
 	</div>
 	<!--ET_END TOTAL-->
-</div>
+	</div>
 <div class='footerDocBlock'>
 	<div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b></div>
 </div>

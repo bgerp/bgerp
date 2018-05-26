@@ -274,12 +274,14 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         if (is_array($dRec->payDocuments)) {
             
             foreach ($dRec->payDocuments as $onePayDoc) {
-                $containerArr[] = $onePayDoc->containerId;
-                $Document = doc_Containers::getDocument($onePayDoc->containerId);
                 
-                $payDocClass = $Document->className;
-                
-                $paidDatesList .= "," . $payDocClass::fetch($Document->that)->valior;
+                if (! is_null($onePayDoc->containerId)) {
+                    $Document = doc_Containers::getDocument($onePayDoc->containerId);
+                } else
+                    continue;
+                    $payDocClass = $Document->className;
+                    
+                    $paidDatesList .= "," . $payDocClass::fetch($Document->that)->valior;
             }
         }
         if ($verbal === TRUE) {

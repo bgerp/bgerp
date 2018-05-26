@@ -53,12 +53,12 @@ body {
     font-size: 1.4em;
     font-weight: bold;
 }
-.bulletinFilelds {
+.bulletinFields {
     width: 300px;
     margin: 0 auto;
 }
 
-.bulletinFilelds .rowBulletin input{
+.bulletinFields .rowBulletin input{
     border: 1px solid #ccc;
     border-radius: 4px;
     height: 2.2em;
@@ -70,8 +70,11 @@ body {
     display: block;
     width: 100%;
 }
+.bulletinFields .rowBulletin input.inputError{
+    border: 1px solid red;
+}
 
-.bulletinFilelds .rowBulletin span {
+.bulletinFields .rowBulletin span {
     display: block;
     line-height: 2.2em;
 }
@@ -211,7 +214,7 @@ body {
         margin: 0 auto;
         max-width: 400px;
     }
-    .bulletinFilelds {
+    .bulletinFields {
         max-width: 380px;
         padding: 0 15px;
         margin: 0 auto;
@@ -244,10 +247,10 @@ body {
         margin: 5% 5% 0 5% ;
         max-width: 90%
     }
-    .bulletinFilelds .rowBulletin input {
+    .bulletinFields .rowBulletin input {
         font-size: 0.9em;
     }
-    .bulletinFilelds .rowBulletin span {
+    .bulletinFields .rowBulletin span {
         font-size: 0.9em;
         line-height: 1.3em;
         margin-bottom: 5px;
@@ -269,7 +272,7 @@ body {
     .logImgLeft {
         max-height: 100px;
     }
-    .bulletinFilelds span {
+    .bulletinFields span {
         font-size: 0.85em;
     }
 }
@@ -289,7 +292,7 @@ body {
     .bulletinReg {
         width: 300px;
     }
-    .bulletinFilelds {
+    .bulletinFields {
         clear: both;
         max-width: 300px;
     }
@@ -306,7 +309,7 @@ body {
         width: 280px;
         padding: 0 0 10px 0 !important;
     }
-    .bulletinFilelds {
+    .bulletinFields {
         max-width: 260px;
     }
     .push_button {

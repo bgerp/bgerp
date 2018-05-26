@@ -37,6 +37,7 @@ body{
     background-color: #ddf;
     padding:5px;
 }
+
 .wide .app-name{ 
 	top: 21%;
 	left: 2%;
@@ -47,4 +48,14 @@ body{
          top: 24%;
         
     }
+}
+
+
+.gdpr {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    margin-left: -40px;
+    font-size: 0.7em;
+    color: #ccc;
 }

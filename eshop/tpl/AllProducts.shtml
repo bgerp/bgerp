@@ -1,5 +1,5 @@
 <div class='cms-row'>
-    <div class='cms-last' style='margin-right:2%;'>
+    <div class='cms-last' style='margin:0 2%;'>
         [#PAGE_CONTENT#] 
         <!--ET_BEGIN SOCIAL-->
         <div class='clearfix21'></div>

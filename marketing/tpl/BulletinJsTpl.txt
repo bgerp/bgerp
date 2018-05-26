@@ -241,10 +241,10 @@ function bulletinFormOpen()
 				"<!--ET_BEGIN logoUp--><div class = 'centered'><img class='logImg' src='[#logoUp#]' alt='Logo'></div><!--ET_END logoUp-->[#formTitle#]" +
                 "<!--ET_BEGIN formTitleRight--><div><!--ET_BEGIN logoLeft--><img class='logImgLeft' src='[#logoLeft#]' alt='Logo'><!--ET_END logoLeft-->[#formTitleRight#]</div><!--ET_END formTitleRight-->" +
 				"<div class='clearfix21'></div>" +
-				"<form class='bulletinForm' action='[#formAction#]'>" +
-                "<div class='bulletinFilelds'>" +
+				"<form class='bulletinForm' id='bulletinForm' action='[#formAction#]'>" +
+                "<div class='bulletinFields'>" +
 				"<div class='rowBulletin'><span>[#emailName#] ([#weSaveIt#]): </span><input type='text' id='bulletinEmail' name='email' placeholder='example@domain.com'></div>" +
-				"<div class='bulletinError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
+				"<div class='bulletinError' id='emailError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
 				"<input type='submit' name='submit' value='[#submitBtnVal#]' class='push_button'>" +
                 "</div><div class='clearfix21'></div> " +
 				"<div style='text-align: center;'><a href='#' class='bulletinCancel'>[#cancelBtnVal#]</a></div>"+
@@ -289,14 +289,15 @@ function onClickCatcher()
         if (lastChar != '/') {
         	url += '/';
         }
-    	
+        
         var email = document.getElementById('bulletinEmail').value;
         
         // Трябва да е валиден имейл и да има стойност
         if (!validateEmail(email)) {
-        	$('.bulletinError').css('visibility', 'visible');
-        	$('#bulletinEmail').css('border', '1px solid red');
-        	return;
+        	$('#emailError').css('visibility', 'visible');
+        	$('#bulletinEmail').addClass('inputError');
+        	
+            return ;
         }
         
         email = encodeURIComponent(email);
