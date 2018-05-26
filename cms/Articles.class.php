@@ -905,7 +905,7 @@ class cms_Articles extends core_Master
     		$links[] = $link->getContent();
     	}
     	
-    	if(!count($links)) return core_ET("");
+    	if(!count($links)) return new core_ET("");
     	
     	$links = implode(' | ', $links);
     	$tpl = new core_ET("<div class='footer-links'>[#FOOTER_LINKS#]</div>");
