@@ -673,7 +673,7 @@ class crm_Profiles extends core_Master
         $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола (пак),input,hint={$passReHint},width=15em");
     
         // Подготвяме лентата с инструменти на формата
-        $form->toolbar->addSbBtn('Смяна', 'change_password', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addSbBtn('Запис', 'change_password', 'ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
         
         // Потготвяме заглавието на формата
