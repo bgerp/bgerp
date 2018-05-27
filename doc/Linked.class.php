@@ -992,6 +992,8 @@ class doc_Linked extends core_Manager
         
         if ($params['folderId']) {
             $cQuery->where(array("#folderId = '[#1#]'", $params['folderId']));
+        } else {
+            $cQuery->where(array("#modifiedOn >= '[#1#]'", dt::addDays(-730)));
         }
         
         if ($params['unsetId']) {

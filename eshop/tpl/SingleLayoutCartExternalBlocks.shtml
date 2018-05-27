@@ -4,15 +4,17 @@
     [#CART_SUMMARY#]
     
         <table>
-    <!--ET_BEGIN totalNoVat-->
             <tr>
-                <td class="aright">|Без ДДС|* [#totalNoVatCurrencyId#]: </td>
-                <td class="aright"><b>[#totalNoVat#] </b></td>
+                <td class="aright">|Основа|*: </td>
+                <td class="aright"><b>[#totalNoVat#] <span class='cCode' style='font-weight:normal'>[#totalNoVatCurrencyId#]</span></b></td>
             </tr>
-    <!--ET_END totalNoVat-->
+    		<tr>
+                <td class="aright">|ДДС|*: </td>
+                <td class="aright"><b>[#totalVat#] <span class='cCode' style='font-weight:normal'>[#vatCurrencyId#]</span></b></td>
+            </tr>
             <tr>
-                <td class="aright">|Общо|* [#currencyId#]: </td>
-                <td class="aright"><b>[#total#] </b></td>
+                <td class="aright">|Общо|*: </td>
+                <td class="aright"><b>[#total#] <span class='cCode' style='font-weight:normal'>[#currencyId#]</span></b></td>
             </tr>
         </table>
 <!--ET_END CART_SUMMARY-->

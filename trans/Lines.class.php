@@ -223,7 +223,7 @@ class trans_Lines extends core_Master
     	$rec = $data->rec;
     	
     	if($data->toolbar->hasBtn('btnClose')){
-    		if(self::haveDraftDocuments($rec->id)){
+    		if(self::countDocumentsByState($rec->id, 'draft')){
     			$data->toolbar->setError('btnClose', "Линията не може да бъде затворена докато има чернови документи към нея|*!");
     		}
     	}
@@ -231,6 +231,12 @@ class trans_Lines extends core_Master
     	if($mvc->haveRightFor('single', $data->rec) && $rec->state != 'rejected'){
     		$url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes');
     		$data->toolbar->addBtn('Печат (Детайли)', $url, "target=_blank,row=2", 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
+    	}
+    	
+    	if(!$data->toolbar->hasBtn('btnActivate')){
+    		if(self::countDocumentsByState($rec->id, 'pending,draft,rejected')){
+    			$data->toolbar->addBtn('Активиране', array(), FALSE, "error=В линията има чернови и/или документи на заявка|*!,ef_icon = img/16/lightning.png,title=Активиране на документа");
+    		}
     	}
     }
     
@@ -327,7 +333,7 @@ class trans_Lines extends core_Master
     	$transUnits = $calcedUnits = array();
     	
     	$dQuery = trans_LineDetails::getQuery();
-    	$dQuery->where("#lineId = {$data->rec->id}");
+    	$dQuery->where("#lineId = {$data->rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
     	
     	$returnClassId = store_Receipts::getClassId();
     	while($dRec = $dQuery->fetch()){
@@ -398,12 +404,13 @@ class trans_Lines extends core_Master
      * Връща броя на документите в посочената линия
      * Може да се филтрират по #state и да се ограничат до maxDocs
      */
-    private static function haveDraftDocuments($id)
+    private static function countDocumentsByState($id, $states)
     {
-        $query = trans_LineDetails::getQuery();
-        $query->EXT('docState', 'doc_Containers', 'externalName=state,externalKey=containerId');
-        $query->where("#lineId = {$id} AND #docState = 'draft'");
-        
+        $stateArr = arr::make($states);
+    	$query = trans_LineDetails::getQuery();
+        $query->where("#lineId = {$id}");
+        $query->in('containerState', $states);
+       
         return $query->count();
     }
     
@@ -422,7 +429,9 @@ class trans_Lines extends core_Master
     	// Изчисляване на готовите и не-готовите редове
     	$dQuery = trans_LineDetails::getQuery();
     	$dQuery->where("#lineId = {$rec->id}");
-    	$dQuery->show('status');
+    	$dQuery->where("#containerState != 'rejected' AND #status != 'removed'");
+    	$dQuery->show('status,containerState');
+    	
     	while($dRec = $dQuery->fetch()){
     		$rec->countTotal++;
     		if($dRec->status == 'ready') {
@@ -583,6 +592,21 @@ class trans_Lines extends core_Master
     		$data = (object)array('id' => (string)$rec->id, 'index' => (string)$i);
     	
     		core_CallOnTime::setOnce($this->className, 'closeAfterDate', $data, $closeTime);
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'activate' && isset($rec)){
+    		if(empty($rec->countTotal)){
+    			$requiredRoles = 'no_one';
+    		}elseif(self::countDocumentsByState($rec->id, 'pending,draft,rejected')){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
 }

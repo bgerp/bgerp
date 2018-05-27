@@ -160,7 +160,6 @@ class cms_Domains extends core_Embedder
         
         // SEO Ключови думи
         $this->FLD('seoKeywords', 'text(255,rows=3)', 'caption=SEO->Keywords,autohide');
-
     }
 
 
@@ -601,4 +600,7 @@ class cms_Domains extends core_Embedder
     	
     	return eshop_Settings::getSettings('cms_Domains', $domainId, $date = NULL);
     }
+    
+    
+
 }

@@ -121,19 +121,17 @@ class sales_TransportValues extends core_Manager
      * @param double $quantity     - к-во
      * @param double $totalWeight  - общо тегло   
      * @param double $totalVolume  - общ обем
-     * @param int $toCountryId     - ид на държава
-     * @param string $toPcodeId    - пощенски код
+     * @param array $deliveryData  - информация за доставка
      * @return FALSE|array $res       - информация за цената на транспорта или NULL, ако няма
      * 					['totalFee']  - обща сума на целия транспорт, в основна валута без ДДС
      * 					['singleFee'] - цената от транспорта за 1-ца от артикула, в основна валута без ДДС
      */
-    public static function getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $totalVolume, $toCountryId, $toPcodeId)
+    public static function getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $totalVolume, $deliveryData)
     {
     	// Имали в условието на доставка, драйвер за изчисляване на цени?
     	$TransportCostDriver = cond_DeliveryTerms::getTransportCalculator($deliveryTermId);
     	if(!is_object($TransportCostDriver)) return FALSE;
     	
-    	$ourCompany = crm_Companies::fetchOurCompany();
     	$weight = cat_Products::getTransportWeight($productId, $quantity);
     	$volume = cat_Products::getTransportVolume($productId, $quantity);
     	 
@@ -141,7 +139,7 @@ class sales_TransportValues extends core_Manager
     		$totalFee = NULL;
     	} else {
     		$totalWeight = self::normalizeTotalWeight($totalWeight, $productId, $TransportCostDriver);
-    		$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $weight, $volume, $totalWeight, $totalVolume, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
+    		$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $weight, $volume, $totalWeight, $totalVolume, $deliveryData);
     	}
     	
     	$fee = $totalFee['fee'];
@@ -507,7 +505,10 @@ class sales_TransportValues extends core_Manager
     	// Опит за изчисляване на транспорт
     	$totalWeight = cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingWeight');
     	$totalVolume = cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingVolume');
-    	$feeArr = self::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $totalVolume, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
+    	
+    	$ourCompany = crm_Companies::fetchOurCompany();
+    	$params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' =>  $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
+    	$feeArr = self::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $totalVolume, $params);
     	
     	return $feeArr;
     }
@@ -571,7 +572,8 @@ class sales_TransportValues extends core_Manager
     	$ourCompany = crm_Companies::fetchOurCompany();
     	
     	// Опит за изчисляване на дъмми транспорт
-    	$totalFee = $Driver->getTransportFee($deliveryTermId, 1, 1, 1000, 1000, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode'], $ourCompany->country, $ourCompany->pCode);
+    	$params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
+    	$totalFee = $Driver->getTransportFee($deliveryTermId, 1, 1, 1000, 1000, $params);
     	
     	if($totalFee['fee'] <= 0) {
     		$toCountryId = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($codeAndCountryArr['countryId'] );

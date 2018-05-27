@@ -2469,6 +2469,8 @@ en,Виж още на,See more on
 en,Попълнете полетата и натиснете бутона за изпращане.,Fill the form and send request.
 en,"Имейл адресът трябва да бъде този, с който сте се регистрирали.",The email address should be the one you signed up for.
 en,На този имейл ще получите линк за избор на нова парола за достъп.,At this email address you will receive a link to choice a new password.
+en,Няма регистриран потребител с този имейл,There is no registered user with this email
+en,"За съжеление възникна грешка и не успяхме да изпратим имейла за възстановяване на паролата. Опитайте по-късно или се свържете със системния администратор","Unfortunately, there was an error and we were unable to send the password recovery email. Try it later or contact your system administrator"
 en,Продуктови групи,Product groups
 en,Детайли за,Details for
 en,Създайте нов акаунт в,Create a new account at
