@@ -88,7 +88,7 @@ class email_SpamRules extends core_Manager
      */
     function description()
     {
-        $this->FLD('systemId' ,  'varchar(32)', 'caption=Ключ');
+        $this->FLD('systemId' ,  'varchar(32)', 'caption=Ключ,input=none');
         $this->FLD('email' , 'varchar', 'caption=Условие->Изпращач', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('subject' , 'varchar', 'caption=Условие->Относно', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('body' , 'varchar', 'caption=Условие->Текст', array('attr'=>array('style'=>'width: 350px;')));
