@@ -356,6 +356,9 @@ class eshop_CartDetails extends core_Detail
 		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 		$row->productId .= " ({$row->packagingId})";
+		
+		$url = eshop_Products::getUrl($rec->eshopProductId);
+		$row->productId = ht::createLinkRef($row->productId, $url);
 	}
 	
 	
@@ -403,8 +406,6 @@ class eshop_CartDetails extends core_Detail
 		
 		// Ако заявката е по ajax
 		if (Request::get('ajax_mode')) return self::getUpdateCartResponse($cartId);
-		
-		if($deletedCart === TRUE) return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(NULL));
 		
 		return followRetUrl(NULL, NULL, $msg);
 	}
@@ -476,5 +477,40 @@ class eshop_CartDetails extends core_Detail
 		if (Request::get('ajax_mode')) return self::getUpdateCartResponse($cartId);
 		
 		return followRremoveexternaletUrl($retUrl);
+	}
+	
+	
+	/**
+	 * Колко ще е доставката ои втведените данни
+	 * 
+	 * @param stdClass $masterRec
+	 * @return NULL|double
+	 */
+	public static function getDeliveryInfo($masterRec)
+	{
+		$masterRec = eshop_Carts::fetchRec($masterRec);
+		$query = self::getQuery();
+		$query->where("#cartId = {$masterRec->id}");
+		$query->show('productId,quantity,packagingId');
+		
+		if(empty($masterRec->termId)) return NULL;
+		if(!$query->count()) return NULL;
+		$TransCalc = cond_DeliveryTerms::getTransportCalculator($masterRec->termId);
+		if(!$TransCalc) return NULL;
+		
+		$products = arr::extractSubArray($query->fetchAll(), 'productId,quantity,packagingId');
+    	$total = sales_TransportValues::getTotalWeightAndVolume($products);
+		
+    	// За всеки артикул се изчислява очаквания му транспорт
+    	$transportAmount = 0;
+    	foreach ($products as $p1){
+    		$fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total['weight'], $total['volume'], $masterRec->deliveryData);
+    		
+    		if(is_array($fee) && $fee['totalFee'] > 0){
+    			$transportAmount += $fee['totalFee'];
+    		}
+    	}
+    	
+    	return array('amount' => $transportAmount);
 	}
 }

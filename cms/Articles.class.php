@@ -15,12 +15,6 @@
 class cms_Articles extends core_Master
 {
     
-    
-	/**
-	 * Темплейт на линка във футъра
-	 */
-	const FOOTER_LINK_TEMPLATE = 'Съгласен съм с|* [#1#]';
-	
 	
     /**
      * Заглавие
@@ -55,7 +49,7 @@ class cms_Articles extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    var $changableFields = 'level, menuId,  title, body, vid, seoTitle, seoDescription, seoKeywords,footerTitleLink,footerForms,footerTitleTemplate,footerMandatoryCheck,footerIsChecked';
+    var $changableFields = 'level, menuId,  title, body, vid, seoTitle, seoDescription, seoKeywords,footerTitleLink';
 
     
     /**
@@ -140,11 +134,7 @@ class cms_Articles extends core_Master
         $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory,width=100%');
         $this->FLD('body', 'richtext(bucket=Notes)', 'caption=Текст,column=none');
 
-        $this->FLD('footerTitleLink', 'varchar', 'caption=Показване във форми->Заглавие,autohide');
-        $this->FLD('footerForms', 'set(newEnquiryForm=Ново запитване,cartCheckout=Чекаут на количката,postingForm=Коментар в блога,bulletinForm=Абониране за бюлетина)', 'caption=Показване във форми->Форми,autohide');
-        $this->FLD('footerTitleTemplate', 'varchar', 'caption=Показване във форми->Шаблон,autohide');
-        $this->FLD('footerMandatoryCheck', 'enum(no=Не,yes=Да)', 'caption=Показване във форми->Задължително,autohide');
-        $this->FLD('footerIsChecked', 'enum(no=Не,yes=Да)', 'caption=Показване във форми->Пре-чекнато,autohide');
+        $this->FLD('footerTitleLink', 'varchar', 'caption=Показване във футъра->Заглавие,autohide');
         
         $this->setDbUnique('menuId,level');
     }
@@ -201,27 +191,7 @@ class cms_Articles extends core_Master
             cms_Domains::selectCurrent($cRec->domainId);
         }
 
-        $data->form->setOptions('menuId', arr::combine( array('' => ''), cms_Content::getMenuOpt($mvc))); 
-        $data->form->setField('footerTitleTemplate', "placeholder=" . self::FOOTER_LINK_TEMPLATE);
-    }
-
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     */
-    protected static function on_AfterInputEditForm($mvc, &$form)
-    {
-    	$rec = &$form->rec;
-    	
-    	if($form->isSubmitted()){
-    		if(!empty($rec->footerTitleLink) && empty($rec->footerForms)){
-    			$form->setError('footerForms', 'Не сте избрали форми където да се показва');
-    		}
-    		
-    		if(!empty($rec->footerForms) && empty($rec->footerTitleLink)){
-    			$form->setError('footerTitleLink', 'Трябва да зададете заглавие');
-    		}
-    	}
+        $data->form->setOptions('menuId', arr::combine( array('' => ''), cms_Content::getMenuOpt($mvc)));
     }
     
     
@@ -913,47 +883,12 @@ class cms_Articles extends core_Master
     
     
     /**
-     * Връща бутони във футъра като линк
-     * 
-     * @param string $formId     - ид на форма
-     * @param int|NULL $domainId - ид на домейн
-     * @return string            - добавените полета като стринг
-     */
-    public static function getFooterLinksHtml($formId, $domainId = NULL)
-    {
-    	$form = cls::get('core_Form');
-    	$form->formAttr['id'] = $formId;
-    	
-    	$tpl = new core_ET("");
-    	self::addFooterLinks($form, $domainId);
-    	$fields = $form->selectFields();
-    	if(empty($fields)) return '';
-    	
-    	foreach ($fields as $name => $fld){
-    		$attr = array();
-    		$input = $fld->type->renderInput($name, $form->rec->{$name}, $attr);
-    		if(isset($fld->mandatory)){
-    			$input->append(" data-mandatory='yes'", 'DATA_ATTR');
-    		}
-    		if(isset($fld->type->params['errorIfNotChecked'])){
-    			$input->append(" data-errorIfNotChecked='{$fld->type->params['errorIfNotChecked']}'", 'DATA_ATTR');
-    		}
-    		$input->removeBlocks();
-    		$input->removePlaces();
-    		$tpl->append($input);
-    	}
-    	
-    	return $tpl->getContent();
-    }
-    
-    
-    /**
      * Добавяне на текстове за съгласие към формата
      * 
-     * @param core_Form $form  - коя форма
      * @param int|NULL $domainId - за кой домейн
+     * @return core_ET $tpl      - шаблон с линковете
      */
-    public static function addFooterLinks(core_Form $form, $domainId = NULL)
+    public static function addFooterLinks($domainId = NULL)
     {
     	$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
     	
@@ -961,26 +896,21 @@ class cms_Articles extends core_Master
     	$query = self::getQuery();
     	$query->EXT('domainId', 'cms_Content', 'externalName=domainId,externalKey=menuId');
     	$query->where("#domainId = {$domainId} AND #state = 'active'");
-    	$query->where("#footerTitleLink IS NOT NULL AND #footerTitleLink != '' AND #footerForms LIKE '%{$form->formAttr['id']}%'");
+    	$query->where("#footerTitleLink IS NOT NULL AND #footerTitleLink != ''");
     	$query->orderBy('id', 'ASC');
     	
+    	$links = array();
     	while($rec = $query->fetch()){
-    		$url = self::getUrl($rec);
-    		$link = ht::createLink($rec->footerTitleLink, $url);
-    		
-    		$tpl = (!empty($rec->footerTitleTemplate)) ? "|*" . $rec->footerTitleTemplate : self::FOOTER_LINK_TEMPLATE;
-    		$labelTpl = new core_ET($tpl);
-    		$labelTpl->replace($link, '1');
-    		$label = $labelTpl->getContent();
-    		$mandatory = ($rec->footerMandatoryCheck == 'yes') ? 'mandatory' : '';
-    		
-    		$form->FLD("footerFld{$rec->id}", "varchar", "displayInToolbar");
-    		$form->setFieldType("footerFld{$rec->id}", cls::get('type_Check', array('params' => array('label' => $label, 'errorIfNotChecked' => 'Трябва да сте се съгласили'))));
-    		$form->setField("footerFld{$rec->id}", "{$mandatory},caption=" . strip_tags($label));
-    		
-    		if($rec->footerIsChecked == 'yes'){
-    			$form->setDefault("footerFld{$rec->id}", 'yes');
-    		}
+    		$link = ht::createLink($rec->footerTitleLink, self::getUrl($rec));
+    		$links[] = $link->getContent();
     	}
+    	
+    	if(!count($links)) return new core_ET("");
+    	
+    	$links = implode(' | ', $links);
+    	$tpl = new core_ET("<div class='footer-links'>[#FOOTER_LINKS#]</div>");
+    	$tpl->append($links, 'FOOTER_LINKS');
+    	
+    	return $tpl;
     }
 }

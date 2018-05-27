@@ -38,9 +38,10 @@ class type_Check extends type_Enum {
 	{
 		$caption = tr($this->options['yes']);
 		$attr['class'] .= " checkbox";
+		ht::setUniqId($attr);
 		
 		$errorClass = isset($attr['errorClass']) ? "errorclass=' inputError'": "";
-		$tpl = new core_ET("<input type='checkbox' [#DATA_ATTR#] name='{$name}' {$errorClass} value='yes' class='{$attr['class']}'" . ($value == 'yes' ? ' checked ' : '') . "> <label>{$caption}</label>");
+		$tpl = new core_ET("<input type='checkbox' [#DATA_ATTR#] name='{$name}' {$errorClass} value='yes' class='{$attr['class']}' id='{$attr['id']}'" . ($value == 'yes' ? ' checked ' : '') . "> <label id='label_{$attr['id']}'>{$caption}</label>");
 		
 		return $tpl;
 	}

@@ -2602,7 +2602,8 @@ span.sharing-history-title {
   clear: both;
   padding: 0;
   display: block;
-  min-height: 28px; }
+  min-height: 38px;
+  position: relative; }
 
 .wide #cmsBottom {
   min-width: 500px;
@@ -2610,6 +2611,46 @@ span.sharing-history-title {
 
 .narrow #cmsBottom {
   min-height: 26px; }
+
+.footer-links {
+  display: block;
+  text-align: center;
+  margin-top: 7px;
+  color: white !important;
+  text-shadow: 0px 0px 2px black; }
+  .footer-links a {
+    font-size: 0.75em;
+    color: white !important;
+    text-shadow: 0px 0px 2px black;
+    display: inline-block;
+    margin: 0 5px; }
+    .footer-links a:hover {
+      text-decoration: underline; }
+
+.narrow .footer-links {
+  float: none;
+  clear: both;
+  margin-bottom: 2px; }
+
+.foorterAdd {
+  color: #cccccc;
+  font-size: 0.7em !important; }
+
+.wide .foorterAdd {
+  position: absolute;
+  padding-bottom: 4px;
+  right: 5px;
+  top: 4px; }
+
+.narrow .foorterAdd {
+  float: right;
+  margin-top: 4px; }
+
+.wide .socialBtns {
+  position: absolute;
+  left: 1px;
+  top: 1px;
+  height: 30px; }
 
 #all {
   border: solid 1px #777777;

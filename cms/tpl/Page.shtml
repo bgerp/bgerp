@@ -30,9 +30,13 @@
             [#CMS_LAYOUT#]
         </div>
         <div id="cmsBottom">
-            [#cms_Feeds::generateFeedLink#]
-            [#social_Followers::getButtons#]
+            <div class="socialBtns">
+                [#cms_Feeds::generateFeedLink#]
+                [#social_Followers::getButtons#]
+            </div>
+
             [#cms_Content::getFooter#]
+            [#cms_Articles::addFooterLinks#]
         </div>
     </div>
 </div>

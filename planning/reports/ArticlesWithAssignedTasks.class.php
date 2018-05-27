@@ -65,9 +65,9 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     {
         $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 'caption=Отговорници,mandatory,after = title');
         $fieldset->FLD('typeOfSorting', 'enum(up=Възходящо,down=Низходящо)', 
-            'caption=Подередени по->Ред,maxRadio=2,columns=2,mandatory,after=title');
+            'caption=Подредени по->Ред,maxRadio=2,columns=2,mandatory,after=title');
         $fieldset->FLD('orderingDate', 'enum(activated=Дата на активиране,pay=Дата на падеж)', 
-            'caption=Подередени по->Дата,maxRadio=2,columns=2,mandatory,after=title');
+            'caption=Подредени по->Дата,maxRadio=2,columns=2,mandatory,after=title');
     }
 
     /**

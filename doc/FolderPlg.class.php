@@ -500,6 +500,11 @@ class doc_FolderPlg extends core_Plugin
             $rec->state = 'active';
         }
         
+        // Партньорите да не са собственици на папки
+        if (haveRole('partner', $rec->inCharge)) {
+            $rec->inCharge = NULL;
+        }
+        
         // Подсигуряване да не се създава корица с отговорник @system или @anonym
         // в такъв случай отговорника става първия регистриран потребител в системата
         if(!$rec->inCharge || $rec->inCharge == -1){
