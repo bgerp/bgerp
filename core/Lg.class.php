@@ -291,11 +291,11 @@ class core_Lg extends core_Manager
             // Само потребители с определена роля могат да добавят (автоматично) в превода
             if (haveRole('translate') || !haveRole('powerUser')) {
                 $this->save($rec, NULL, 'IGNORE');
-            }
-            
-            $tLg = substr($lg, 0, 2);
-            if (is_numeric($tLg)) {
-                wp($lg);
+                
+                $tLg = substr($lg, 0, 2);
+                if (is_numeric($tLg) || (mb_strlen($rec->translated) > 100) || (i18n_Charset::is7Bit($rec->kstring))) {
+                    wp($rec, 'translate');
+                }
             }
             
             // Записваме в кеш-масива
