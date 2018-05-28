@@ -3322,8 +3322,13 @@ table .eshop-btn {
 	padding: 10px 20px !important;
 	font-size: 1.2em !important;
 }
+
 .narrow .eshop-btn {
 	padding-left: 10px !important;
+	&.order-btn {
+		padding-left: 20px !important;
+		margin: 10px 0;
+	}
 }
 
 .foldertabs {
