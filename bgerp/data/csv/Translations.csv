@@ -2470,7 +2470,7 @@ en,Попълнете полетата и натиснете бутона за �
 en,"Имейл адресът трябва да бъде този, с който сте се регистрирали.",The email address should be the one you signed up for.
 en,На този имейл ще получите линк за избор на нова парола за достъп.,At this email address you will receive a link to choice a new password.
 en,Няма регистриран потребител с този имейл,There is no registered user with this email
-en,"За съжеление възникна грешка и не успяхме да изпратим имейла за възстановяване на паролата. Опитайте по-късно или се свържете със системния администратор","Unfortunately, there was an error and we were unable to send the password recovery email. Try it later or contact your system administrator"
+en,"За съжаление възникна грешка и не успяхме да изпратим имейла за възстановяване на паролата. Опитайте по-късно или се свържете със системния администратор","Unfortunately, there was an error and we were unable to send the password recovery email. Try it later or contact your system administrator"
 en,Продуктови групи,Product groups
 en,Детайли за,Details for
 en,Създайте нов акаунт в,Create a new account at
@@ -2524,7 +2524,7 @@ en,На посочения от вас имейл ще получите линк
 en,Регистриране на нов потребител в,Register new user in
 en,"След като попълните полетата по-долу, натиснете бутона 'Регистрирай'","After filling in the fields below, click the 'Register'"
 en,Активиране на акаунт,Account activation
-en,"За съжеление възникна грешка и не успяхме да изпратим имейла за активиране. Опитайте по-късно или се свържете със системния администратор","Unfortunately, there was an error and we were unable to send the activation email. Try it later or contact your system administrator"
+en,"За съжаление възникна грешка и не успяхме да изпратим имейла за активиране. Опитайте по-късно или се свържете със системния администратор","Unfortunately, there was an error and we were unable to send the activation email. Try it later or contact your system administrator"
 en,Вече има регистриран потребител с този имейл,There is already a registered user with this email
 en,"Вече има регистриран потребител с този ник. Изберете друг, например","There is already a registered user with this nick. Choose another, for example"
 en,"Моля проверете всички папки, в т.ч. и папката за СПАМ, за имейл със заглавие 'Activation'","Please check all folders, incl. and the SPAM folder for an email with the subject 'Activation'"
