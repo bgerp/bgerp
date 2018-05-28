@@ -18,6 +18,16 @@
                     <tr>
                         <td>[#DELIVERY_BLOCK#]</td>
                     </tr>
+                    <!--ET_BEGIN deliveryTime-->
+                    <tr>
+                        <td>|Доставка до|*: <b>[#deliveryTime#]</b></td>
+                    </tr>
+                    <!--ET_END deliveryTime-->
+                    <!--ET_BEGIN deliveryError-->
+                    <tr>
+                        <td class='stamp' style='font-size:1em'>[#deliveryError#]</td>
+                    </tr>
+                    <!--ET_END deliveryError-->
                     <!--ET_BEGIN instruction-->
                     <tr>
                         <td>|Инструкции|*: [#instruction#]</td>
