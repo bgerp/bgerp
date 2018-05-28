@@ -491,6 +491,8 @@ class eshop_Carts extends core_Master
     		$tpl->replace(tr($nameCaption), 'INV_CAPTION');
     		$vatCaption = ($rec->makeInvoice == 'person') ? 'ЕГН' : 'VAT/EIC';
     		$tpl->replace(tr($vatCaption), 'VAT_CAPTION');
+    	} else {
+    		$tpl->replace(tr('Без фактура'), 'NO_INVOICE');
     	}
     	
     	if($rec->deliveryNoVat < 0){
