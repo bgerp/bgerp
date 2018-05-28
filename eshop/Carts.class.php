@@ -71,6 +71,12 @@ class eshop_Carts extends core_Master
 	public $canViewexternal = 'every_one';
 	
 	
+	/**
+	 * Кой може да финализира поръчката?
+	 */
+	public $canFinalize = 'every_one';
+	
+	
     /**
      * Кой има право да го изтрие?
      */
@@ -105,6 +111,7 @@ class eshop_Carts extends core_Master
     	$this->FLD('domainId', 'key(mvc=cms_Domains, select=domain)', 'caption=Брид,input=none');
     	$this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
     	$this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Стойност,input=none');
+    	$this->FLD('deliveryTime', 'time', 'caption=Общи данни->Срок на доставка,input=none');
     	$this->FLD('total', 'double(decimals=2)', 'caption=Общи данни->Стойност,input=none');
     	$this->FLD('totalNoVat', 'double(decimals=2)', 'caption=Общи данни->Стойност без ДДС,input=none');
     	$this->FLD('productCount', 'int', 'caption=Общи данни->Брой,input=none');
@@ -263,6 +270,7 @@ class eshop_Carts extends core_Master
     	
     	// Ако има цена за доставка добавя се и тя
     	if($delivery = eshop_CartDetails::getDeliveryInfo($rec)){
+    		$rec->deliveryTime = $delivery['deliveryTime'];
     		if($delivery['amount'] > 0){
     			$settings = cms_Domains::getSettings();
     			$delivery = currency_CurrencyRates::convertAmount($delivery['amount'], NULL, NULL, $settings->currencyId);
@@ -271,6 +279,8 @@ class eshop_Carts extends core_Master
     			
     			$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
     			$rec->total += $delivery * (1 + cat_Products::getVat($transportId));
+    		} else {
+    			$rec->deliveryNoVat = -1;
     		}
     	}
     	
@@ -297,7 +307,7 @@ class eshop_Carts extends core_Master
     	$rec->totalNoVat = round($rec->totalNoVat, 2);
     	$rec->total = round($rec->total, 2);
     	
-    	$id = $this->save_($rec, 'productCount,total,totalNoVat,deliveryNoVat');
+    	$id = $this->save_($rec, 'productCount,total,totalNoVat,deliveryNoVat,deliveryTime');
     	
     	return $id;
     }
@@ -459,6 +469,15 @@ class eshop_Carts extends core_Master
     		$tpl->replace(tr($vatCaption), 'VAT_CAPTION');
     	}
     	
+    	if($rec->deliveryNoVat < 0){
+    		$tpl->replace(tr('Има проблем при изчислението на доставката. Моля обърнете се към нас!'), 'deliveryError');
+    	}
+    	
+    	if(isset($rec->deliveryTime)){
+    		$deliveryTime = dt::mysql2verbal(dt::addSecs($rec->deliveryTime, NULL, FALSE), 'd.m.Y');
+    		$tpl->replace($deliveryTime, 'deliveryTime');
+    	}
+    	
     	return $tpl;
     }
     
@@ -530,6 +549,11 @@ class eshop_Carts extends core_Master
     	} else {
     		$editBtn = ht::createLink('', $checkoutUrl, FALSE, 'ef_icon=img/16/edit.png,title=Редактиране на данните за поръчка');
     		$tpl->append($editBtn, 'editBtn');
+    	}
+    	
+    	if(eshop_Carts::haveRightFor('finalize', $rec)){
+    		$btn = ht::createBtn('Финализиране', array(), NULL, NULL, "title=Финализиране на поръчката,class=order-btn eshop-btn {$disabledClass}");
+    		$tpl->append($btn, 'CART_TOOLBAR');
     	}
     	
     	$tpl->removeBlocks();
@@ -609,12 +633,14 @@ class eshop_Carts extends core_Master
     		$data->rows[$dRec->id] = $row;
     	}
     	
-    	if($data->rec->deliveryNoVat > 0){
-    		$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-    		$deliveryAmount = $data->rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
-    		$deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
-    		
-    		$data->rows['-1'] = (object)array('productId' => tr('Доставка'), 'amount' => $deliveryAmount);
+    	if(isset($data->rec->deliveryNoVat)){
+    		if($data->rec->deliveryNoVat >= 0){
+    			$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+    			$deliveryAmount = $data->rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
+    			$deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+    			
+    			$data->rows['-1'] = (object)array('productId' => tr('Доставка'), 'amount' => $deliveryAmount);
+    		}
     	}
     }
     
@@ -666,7 +692,7 @@ class eshop_Carts extends core_Master
     		}
     	}
     	
-    	if(in_array($action, array('addtocart', 'checkout'))){
+    	if(in_array($action, array('addtocart', 'checkout', 'finalize'))){
     		if(!$mvc->haveRightFor('viewexternal', $rec)){
     			$requiredRoles = 'no_one';
     		}
@@ -735,8 +761,7 @@ class eshop_Carts extends core_Master
     			foreach ($invoiceFields as $name => $fld){
     				$form->setField($name, 'input');
     			}
-    			$nameCaption = ($form->rec->makeInvoice == 'person') ? 'Лице' : 'Фирма';
-    			$form->setField('invoiceNames', "caption=Данни за фактура->{$nameCaption}");
+    			$form->setField('invoiceNames', "caption=Данни за фактура->Име");
     			if($form->rec->makeInvoice == 'person'){
     				$form->setField('invoiceVatNo', "caption=Данни за фактура->ЕГН");
     				$form->setFieldType('invoiceVatNo', 'bglocal_EgnType');
@@ -771,6 +796,8 @@ class eshop_Carts extends core_Master
     		}
     		
     		$this->save($rec);
+    		$this->updateMaster($rec);
+    		
     		core_Lg::pop();
     		return followRetUrl();
     	}
