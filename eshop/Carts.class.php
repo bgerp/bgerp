@@ -268,24 +268,26 @@ class eshop_Carts extends core_Master
     	
     	$rec->productCount = $rec->total = $rec->deliveryNoVat = $rec->totalNoVat = 0;
     	
-    	// Ако има цена за доставка добавя се и тя
-    	if($delivery = eshop_CartDetails::getDeliveryInfo($rec)){
-    		$rec->deliveryTime = $delivery['deliveryTime'];
-    		if($delivery['amount'] > 0){
-    			$settings = cms_Domains::getSettings();
-    			$delivery = currency_CurrencyRates::convertAmount($delivery['amount'], NULL, NULL, $settings->currencyId);
-    			$rec->deliveryNoVat = $delivery;
-    			$rec->totalNoVat += $rec->deliveryNoVat;
-    			
-    			$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-    			$rec->total += $delivery * (1 + cat_Products::getVat($transportId));
-    		} else {
-    			$rec->deliveryNoVat = -1;
-    		}
-    	}
-    	
     	$dQuery = eshop_CartDetails::getQuery();
     	$dQuery->where("#cartId = {$rec->id}");
+    	
+    	// Ако има цена за доставка добавя се и тя
+    	if($dQuery->count()){
+    		if($delivery = eshop_CartDetails::getDeliveryInfo($rec)){
+    			$rec->deliveryTime = $delivery['deliveryTime'];
+    			if($delivery['amount'] > 0){
+    				$settings = cms_Domains::getSettings();
+    				$delivery = currency_CurrencyRates::convertAmount($delivery['amount'], NULL, NULL, $settings->currencyId);
+    				$rec->deliveryNoVat = $delivery;
+    				$rec->totalNoVat += $rec->deliveryNoVat;
+    				 
+    				$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+    				$rec->total += $delivery * (1 + cat_Products::getVat($transportId));
+    			} else {
+    				$rec->deliveryNoVat = -1;
+    			}
+    		}
+    	}
     	
     	while($dRec = $dQuery->fetch()){
     		$rec->productCount++;
