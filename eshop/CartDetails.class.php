@@ -427,12 +427,17 @@ class eshop_CartDetails extends core_Detail
 		$resObj2->func = "html";
 		$resObj2->arg = array('id' => 'cart-view-single', 'html' => eshop_Carts::renderView($cartId)->getContent(), 'replace' => TRUE);
 		
+		// Ще се реплейсне статуса на кошницата
+		$resObj3 = new stdClass();
+		$resObj3->func = "html";
+		$resObj3->arg = array('id' => 'cart-external-status', 'html' => eshop_Carts::getStatus($cartId)->getContent(), 'replace' => TRUE);
+		
 		// Показваме веднага и чакащите статуси
 		$hitTime = Request::get('hitTime', 'int');
 		$idleTime = Request::get('idleTime', 'int');
 		$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
 			
-		$res = array_merge(array($resObj1, $resObj2), (array)$statusData);
+		$res = array_merge(array($resObj1, $resObj2, $resObj3), (array)$statusData);
 		core_Lg::pop();
 		
 		return $res;
@@ -461,7 +466,7 @@ class eshop_CartDetails extends core_Detail
 	
 	
 	/**
-	 * Колко ще е доставката ои втведените данни
+	 * Колко ще е доставката от въведените данни
 	 * 
 	 * @param stdClass $masterRec
 	 * @return NULL|double

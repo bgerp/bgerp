@@ -380,6 +380,10 @@ class eshop_Carts extends core_Master
     	return $tpl;
     }
     
+    
+    /**
+     * Екшън за форсиране на количка
+     */
     public function act_Force()
     {
     	$cartId = self::force();
@@ -404,6 +408,12 @@ class eshop_Carts extends core_Master
     }
     
     
+    /**
+     * Рендира изгледа
+     * 
+     * @param stdClass $rec
+     * @return core_ET $tpl
+     */
     public static function renderView($rec)
     {
     	$rec = self::fetchRec($rec);
@@ -671,7 +681,7 @@ class eshop_Carts extends core_Master
     			$deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, NULL, NULL, $settings->currencyId);
     			$deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
     			
-    			$data->rows['-1'] = (object)array('productId' => tr('Доставка'), 'amount' => $deliveryAmount);
+    			$data->rows['-1'] = (object)array('productId' => "<b>" . tr('Доставка') . "</b>", 'amount' => "<b>" . $deliveryAmount. "</b>");
     		}
     	}
     }
