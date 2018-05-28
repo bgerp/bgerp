@@ -2514,9 +2514,29 @@ en,Палета,pallets
 en,Кашон,carton
 en,кашона,cartons
 en,Кашона,cartons
+en,кашони,cartons
 en,товар,load
 en,товара,loads
 en,Товар,load
 en,Товара,loads
 en,ЛЕ,LU
-en,кашони,cartons
+en,На посочения от вас имейл ще получите линк за избор на паролата за достъп,"At the email you specify, you will receive a link to select the password"
+en,Регистриране на нов потребител в,Register new user in
+en,"След като попълните полетата по-долу, натиснете бутона 'Регистрирай'","After filling in the fields below, click the 'Register'"
+en,Активиране на акаунт,Account activation
+en,"За съжеление възникна грешка и не успяхме да изпратим имейла за активиране. Опитайте по-късно или се свържете със системния администратор","Unfortunately, there was an error and we were unable to send the activation email. Try it later or contact your system administrator"
+en,Вече има регистриран потребител с този имейл,There is already a registered user with this email
+en,"Вече има регистриран потребител с този ник. Изберете друг, например","There is already a registered user with this nick. Choose another, for example"
+en,"Моля проверете всички папки, в т.ч. и папката за СПАМ, за имейл със заглавие 'Activation'","Please check all folders, incl. and the SPAM folder for an email with the subject 'Activation'"
+en,В него се съдържат инструкции за активиране на вашата сметка,It contains instructions for activating your account
+en,"Ако не откриете писмото, опитайте да се регистрирате чрез друг ваш имейл адрес или направете опит с този след няколко дни","If you do not find the letter, try signing up with another email address or try this one within a few days"
+en,Благодарим ви за регистрацията,Thank you for your registration
+еn,"На посочения от вас адрес беше изпратено писмо със заглавие 'Активиране на акаунт'","An email has been sent to the address you specified, 'Account activation'"
+en,"В него се съдържа линк, чрез който трябва да зададете вашата парола за","It contains a link that you need to set your password for"
+en,Поздрави от екипа!,Greetings from the team!
+en,Заявката за смяната на паролата е приета,The password change request has been accepted
+en,На посочения от вас адрес беше изпратено писмо със заглавие 'Промяна на парола',"An email has been sent to the address you specified, 'Change Password'"
+en,"В него се съдържа линк, чрез който трябва да зададете вашата нова парола за","It contains a link that you need to set your new password for"
+en,Благодарим за регистрацията Ви,Thank you for your registration
+en,"За да активирате акаунта си, моля следвайте долния линк","To activate your account, please follow the link below"
+en,Линка ще изтече в,Link will expire on
