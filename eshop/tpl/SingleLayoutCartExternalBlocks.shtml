@@ -27,3 +27,66 @@
 <!--ET_BEGIN CART_TOOLBAR-->
 <div id = 'cart-view-buttons'>[#CART_TOOLBAR#]</div>
 <!--ET_END CART_TOOLBAR-->
+
+<!--ET_BEGIN SALE_BLOCK-->
+        [#SALE_BLOCK#]
+            <div class="half-width fleft">
+                <h4 style="margin-bottom: 5px;">|Информация за поръчката|* [#editBtn#]</h4>
+                <table>
+                    <!--ET_BEGIN DELIVERY_BLOCK-->
+                    <tr>
+                        <td>|Начин на плащане|*: [#paymentId#]</td>
+                    </tr>
+                    <tr>
+                        <td>|Условие на доставка|*: [#termId#]</td>
+                    </tr>
+                    <tr>
+                        <td>[#DELIVERY_BLOCK#]</td>
+                    </tr>
+                    <!--ET_BEGIN deliveryTime-->
+                    <tr>
+                        <td>|Доставка до|*: <b>[#deliveryTime#]</b></td>
+                    </tr>
+                    <!--ET_END deliveryTime-->
+                    <!--ET_BEGIN deliveryError-->
+                    <tr>
+                        <td class='stamp' style='font-size:1em'>[#deliveryError#]</td>
+                    </tr>
+                    <!--ET_END deliveryError-->
+                    <!--ET_BEGIN instruction-->
+                    <tr>
+                        <td>|Инструкции|*: [#instruction#]</td>
+                    </tr>
+                    <!--ET_END instruction-->
+                </table>
+            </div>
+            <!--ET_END DELIVERY_BLOCK-->
+            <!--ET_BEGIN INVOICE_BLOCK-->
+            [#INVOICE_BLOCK#]
+            <div class="half-width fright">
+                <h4 style="margin-bottom: 5px;">|Информация за фактура|*</h4>
+                <table>
+                    <tr>
+                        <td>[#invoiceNames#]</td>
+                    </tr>
+                    <tr>
+                        <td>[#VAT_CAPTION#]: [#invoiceVatNo#]</td>
+                    </tr>
+                    <tr>
+                        <td>|Държава|*: [#invoiceCountry#]</td>
+                    </tr>
+                    <tr>
+                        <td>|П.код|*: [#invoicePCode#]</td>
+                    </tr>
+                    <tr>
+                        <td>|Място|*: [#invoicePlace#]</td>
+                    </tr>
+                    <tr>
+                        <td>|Адрес|*: [#invoiceAddress#]</td>
+                    </tr>
+
+                </table>
+            </div>
+            <!--ET_END INVOICE_BLOCK-->
+            <div class="clearfix21"></div>
+<!--ET_END SALE_BLOCK-->

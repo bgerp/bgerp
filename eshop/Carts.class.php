@@ -266,7 +266,8 @@ class eshop_Carts extends core_Master
     	$rec = $this->fetchRec($id);
     	if(!$rec) return;
     	
-    	$rec->productCount = $rec->total = $rec->deliveryNoVat = $rec->totalNoVat = 0;
+    	$rec->productCount = $rec->total = $rec->totalNoVat = 0;
+    	$rec->deliveryNoVat = $rec->deliveryTime = NULL;
     	
     	$dQuery = eshop_CartDetails::getQuery();
     	$dQuery->where("#cartId = {$rec->id}");
@@ -274,8 +275,8 @@ class eshop_Carts extends core_Master
     	// Ако има цена за доставка добавя се и тя
     	if($dQuery->count()){
     		if($delivery = eshop_CartDetails::getDeliveryInfo($rec)){
-    			$rec->deliveryTime = $delivery['deliveryTime'];
     			if($delivery['amount'] > 0){
+    				$rec->deliveryTime = $delivery['deliveryTime'];
     				$settings = cms_Domains::getSettings();
     				$delivery = currency_CurrencyRates::convertAmount($delivery['amount'], NULL, NULL, $settings->currencyId);
     				$rec->deliveryNoVat = $delivery;
@@ -403,18 +404,11 @@ class eshop_Carts extends core_Master
     }
     
     
-    /**
-     * Екшън за показване на външния изглед на кошницата
-     */
-    public function act_View()
+    public static function renderView($rec)
     {
+    	$rec = self::fetchRec($rec);
     	$lang = cms_Domains::getPublicDomain('lang');
     	core_Lg::push($lang);
-    	
-    	$this->requireRightFor('viewexternal');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = self::fetch($id));
-    	$this->requireRightFor('viewexternal', $rec);
     	
     	$tpl = getTplFromFile("eshop/tpl/SingleLayoutCartExternal.shtml");
     	$tpl->replace(self::renderViewCart($rec), 'CART_TABLE');
@@ -422,38 +416,66 @@ class eshop_Carts extends core_Master
     	$tpl->replace(self::renderCartSummary($rec, TRUE), 'CART_COUNT');
     	$tpl->replace(self::renderCartToolbar($rec, TRUE), 'CART_TOOLBAR');
     	$tpl->replace(self::getCartDisplayName(), 'CART_NAME');
-    	
+    	 
     	$settings = cms_Domains::getSettings();
-    	
+    	 
     	$cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
     	$tpl->replace($cartInfo, 'VAT_STATUS');
-    	
+    	 
     	if(!empty($settings->info)){
     		$tpl->replace(core_Type::getByName('richtext')->toVerbal($settings->info), 'COMMON_TEXT');
     	}
-    	
+    	 
     	if(!empty($rec->personNames)){
-    		$tpl->append($this->renderCartOrderInfo($rec));
+    		$tpl->append(self::renderCartOrderInfo($rec), 'ORDER_INFO');
     	}
     	
-    	Mode::set('wrapper', 'cms_page_External');
     	core_Lg::pop();
     	
     	return $tpl;
     }
     
     
-    private function renderCartOrderInfo($rec)
+    /**
+     * Екшън за показване на външния изглед на кошницата
+     */
+    public function act_View()
     {
-    	$tpl = new core_ET("");
-    	$row = $this->recToVerbal($rec);
+    	$this->requireRightFor('viewexternal');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = self::fetch($id));
+    	$this->requireRightFor('viewexternal', $rec);
+    	
+    	$tpl = self::renderView($rec);
+    	$tpl->prepend("<div id = 'cart-view-single'>");
+    	$tpl->append('div');
+    	
+    	Mode::set('wrapper', 'cms_page_External');
+    	
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Рендира информация за поръчката
+     * 
+     * @param stdClass $rec
+     * @return core_ET $tpl
+     */
+    private static function renderCartOrderInfo($rec)
+    {
+    	$rec = self::fetchRec($rec);
+    	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock('SALE_BLOCK');
+    	
+    	$row = self::recToVerbal($rec);
     	$tpl->replace($row->termId, 'termId');
     	$tpl->replace($row->paymentId, 'paymentId');
     	if($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)){
     		$tpl->replace($Driver->renderDeliveryInfo($rec), 'DELIVERY_BLOCK');
     	}
     	
-    	if($this->haveRightFor('checkout', $rec)){
+    	if(self::haveRightFor('checkout', $rec)){
     		$editSaleBtn = ht::createLink('', array($this, 'order', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Редактиране на информацията за поръчката');
     		$tpl->append($editSaleBtn, 'saleEditBtn');
     	}
@@ -480,6 +502,11 @@ class eshop_Carts extends core_Master
     		$tpl->replace($deliveryTime, 'deliveryTime');
     	}
     	
+    	if(eshop_Carts::haveRightFor('checkout', $rec)) {
+    		$editBtn = ht::createLink('', array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Редактиране на данните за поръчка');
+    		$tpl->append($editBtn, 'editBtn');
+    	}
+    	
     	return $tpl;
     }
     
@@ -491,18 +518,25 @@ class eshop_Carts extends core_Master
      * @param boolean $onlyCount - само общата бройка или общата сума
      * @return core_ET $tpl      - шаблон на съмарито
      */
-    public static function renderCartSummary($id, $onlyCount = FALSE)
+    private static function renderCartSummary($id, $onlyCount = FALSE)
     {
     	$rec = self::fetchRec($id, '*', FALSE);
     	$row = self::recToVerbal($rec);
     	$settings = cms_Domains::getSettings();
-    	$row->currencyId = $settings->currencyId;
     	
-    	$vatAmount = $rec->total - $rec->totalNoVat;
+    	$total = currency_CurrencyRates::convertAmount($rec->total, NULL, NULL, $settings->currencyId);
+    	$totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, NULL, NULL, $settings->currencyId);
+    	$vatAmount = $total - $totalNoVat;
+    	
+    	$Double = core_Type::getByName('double(decimals=2)');
+    	$row->totalNoVat = $Double->toVerbal($totalNoVat);
+    	$row->total = $Double->toVerbal($total);
+    	$row->totalVat = $Double->toVerbal($vatAmount);
+    	
+    	$row->currencyId = $settings->currencyId;
     	$row->totalNoVatCurrencyId = $row->vatCurrencyId = $row->currencyId;
     	$row->productCount .= "&nbsp;" . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
     	$block = ($onlyCount === TRUE) ? 'CART_COUNT' : 'CART_SUMMARY';
-    	$row->totalVat = core_Type::getByName('double(decimals=2)')->toVerbal($vatAmount);
     	
     	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock($block);
     	$tpl->placeObject($row);
@@ -520,7 +554,7 @@ class eshop_Carts extends core_Master
      * @param boolean $onlyCount - само общата бройка или общата сума
      * @return core_ET $tpl      - шаблон на съмарито
      */
-    public static function renderCartToolbar($id)
+    private static function renderCartToolbar($id)
     {
     	$rec = self::fetchRec($id);
     	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock('CART_TOOLBAR');
@@ -540,17 +574,10 @@ class eshop_Carts extends core_Master
     	$btn = ht::createLink('Пазаруване', cls::get('eshop_Groups')->getUrlByMenuId(NULL), NULL, 'title=Към онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
     	$tpl->append($btn, 'CART_TOOLBAR');
     	
-    	$checkoutUrl = array();
-    	if(eshop_Carts::haveRightFor('checkout', $rec)){
-    		$checkoutUrl = array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE);
-    	}
-    	
+    	$checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE) : array();
     	if(empty($rec->personNames)){
     		$btn = ht::createBtn('Данни за поръчка', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=order-btn eshop-btn {$disabledClass}");
     		$tpl->append($btn, 'CART_TOOLBAR');
-    	} else {
-    		$editBtn = ht::createLink('', $checkoutUrl, FALSE, 'ef_icon=img/16/edit.png,title=Редактиране на данните за поръчка');
-    		$tpl->append($editBtn, 'editBtn');
     	}
     	
     	if(eshop_Carts::haveRightFor('finalize', $rec)){
@@ -571,7 +598,7 @@ class eshop_Carts extends core_Master
      * @param mixed $rec
      * @return core_ET $tpl      - шаблон на съмарито
      */
-    public static function renderViewCart($rec)
+    private static function renderViewCart($rec)
     {
     	$rec = self::fetchRec($rec);
     	
@@ -596,6 +623,7 @@ class eshop_Carts extends core_Master
     	$fields = cls::get('eshop_CartDetails')->selectFields();
     	$fields['-external'] = TRUE;
     	$data->listFields = arr::make("code=Код,productId=Артикул,quantity=К-во,finalPrice=Цена,amount=Сума");
+    	$settings = cms_Domains::getSettings();
     	
     	$data->productRecs = $data->productRows = array();
     	$dQuery = eshop_CartDetails::getQuery();
@@ -605,7 +633,6 @@ class eshop_Carts extends core_Master
     		$row = eshop_CartDetails::recToVerbal($dRec, $fields);
     		
     		if(!empty($dRec->discount)){
-    			$settings = cms_Domains::getSettings();
     			$discountType = type_Set::toArray($settings->discountType);
 				$row->finalPrice .= "<div class='external-discount'>";
     			
@@ -639,6 +666,7 @@ class eshop_Carts extends core_Master
     		if($data->rec->deliveryNoVat >= 0){
     			$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
     			$deliveryAmount = $data->rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
+    			$deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, NULL, NULL, $settings->currencyId);
     			$deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
     			
     			$data->rows['-1'] = (object)array('productId' => tr('Доставка'), 'amount' => $deliveryAmount);
