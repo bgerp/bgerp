@@ -633,9 +633,9 @@ en,Записи на индикаторите,Indicators records
 en,Записи на камера,Records from cam
 en,Записи от сензорите,Records from sensors
 en,Записи,Recordings
-en,Запитване за поръчков продукт,Custom Product Еnquiry
-en,Запитване за,Еnquiry about
-en,Запитване,Еnquiry
+en,Запитване за поръчков продукт,Custom Product Enquiry
+en,Запитване за,Enquiry about
+en,Запитване,Enquiry
 en,Запитване->Драйвер,Inquiry->Driver
 en,Запитване->МКП,Inquiry->MOQ
 en,Запитване->Параметри,Inquiry->Parameters
@@ -2531,7 +2531,7 @@ en,"Моля проверете всички папки, в т.ч. и папка
 en,В него се съдържат инструкции за активиране на вашата сметка,It contains instructions for activating your account
 en,"Ако не откриете писмото, опитайте да се регистрирате чрез друг ваш имейл адрес или направете опит с този след няколко дни","If you do not find the letter, try signing up with another email address or try this one within a few days"
 en,Благодарим ви за регистрацията,Thank you for your registration
-еn,"На посочения от вас адрес беше изпратено писмо със заглавие 'Активиране на акаунт'","An email has been sent to the address you specified, 'Account activation'"
+en,"На посочения от вас адрес беше изпратено писмо със заглавие 'Активиране на акаунт'","An email has been sent to the address you specified, 'Account activation'"
 en,"В него се съдържа линк, чрез който трябва да зададете вашата парола за","It contains a link that you need to set your password for"
 en,Поздрави от екипа!,Greetings from the team!
 en,Заявката за смяната на паролата е приета,The password change request has been accepted
