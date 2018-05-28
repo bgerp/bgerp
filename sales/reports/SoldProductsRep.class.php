@@ -2,12 +2,6 @@
 
 
 
-// 0 : (string) store_ShipmentOrderDetails
-// 1 : (string) sales_ServicesDetails
-// 2 : (string) sales_SalesDetails
-// 3 : (string) store_ReceiptDetails
-
-
 /**
  * Мениджър на отчети за продадени артикули продукти по групи и търговци
  *
@@ -141,7 +135,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		if(isset($rec->compare) == 'no') {
 		    
 	  
-		  //  $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
+		    $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
 		}
 		
 		// Last период
@@ -167,7 +161,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		}
 		
 		
-		$query->where ( "#stateDoc != 'rejected'" );
+		$query->where( "#stateDoc != 'rejected'" );
 		
 		
 		if (isset ( $rec->dealers )) {
@@ -201,13 +195,29 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		}
 		
 		
-		
-		
-		
-		
  		// Масив бързи продажби //
 		
  //		$sQuery = sales_Sales::getQuery ();
+ 
+// 		if(isset($rec->compare) == 'no') {
+		    
+// 		    $sQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
+// 		}
+		
+// 		// Last период
+		
+// 		if (isset($rec->compare) == 'previous') {
+		    
+// 		    $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
+// 		}
+		
+// 		//LastYear период
+		
+// 		if (isset($rec->compare) == 'year') {
+		    
+// 		    $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
+		    
+// 		}
 		
 // 		$sQuery->like ( 'contoActions', 'ship', FALSE );
 		
@@ -241,14 +251,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			
  			    if($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos){
 			        
-// 			        if ($DetClass instanceof sales_SalesDetails){
+			        if ($DetClass instanceof sales_SalesDetails){
 			            
-// 			            $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
+			            $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
 			            
-// 			            if ($saleId){
-// 			                if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
-// 			            }else continue;
-// 			        }
+			            if ($saleId){
+			                if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
+			            }else continue;
+			        }
 			    
 			    
 			        if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
@@ -268,14 +278,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			    
     			if($recPrime->valior >= $fromLastYear && $recPrime->valior <= $toLastYear){
     			    
-//     			    if ($DetClass instanceof sales_SalesDetails){
+    			    if ($DetClass instanceof sales_SalesDetails){
     			        
-//     			        $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
+    			        $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
     			        
-//     			        if ($saleId){
-//     			            if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
-//     			        }else continue;
-//     			    }
+    			        if ($saleId){
+    			            if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
+    			        }else continue;
+    			    }
     			    
     			    if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
     			        
