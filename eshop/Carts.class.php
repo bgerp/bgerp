@@ -448,7 +448,7 @@ class eshop_Carts extends core_Master
     	
     	$tpl = self::renderView($rec);
     	$tpl->prepend("<div id = 'cart-view-single'>");
-    	$tpl->append('div');
+    	$tpl->append('</div>');
     	
     	Mode::set('wrapper', 'cms_page_External');
     	
@@ -733,6 +733,12 @@ class eshop_Carts extends core_Master
     			$requiredRoles = 'no_one';
     		}
     	}
+    	
+    	if($action == 'finalize' && isset($rec)){
+    		if(empty($rec->personNames)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
     }
     
     
@@ -836,7 +842,7 @@ class eshop_Carts extends core_Master
     	core_Lg::pop();
     	 
     	// Добавяне на бутони
-    	$form->toolbar->addSbBtn('Финализиране', 'save', 'ef_icon = img/16/move.png, title = Финализиране на поръчката');
+    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на адресните данни');
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	
     	$tpl = $form->renderHtml();

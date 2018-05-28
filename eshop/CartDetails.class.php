@@ -499,6 +499,13 @@ class eshop_CartDetails extends core_Detail
 	}
 	
 	
+	/**
+	 * Обновява ценовата информация
+	 * 
+	 * @param stdClass $rec
+	 * @param int|NULL $domainId
+	 * @param boolean $save
+	 */
 	private static function updatePriceInfo(&$rec, $domainId = NULL, $save = FALSE)
 	{
 		$settings = cms_Domains::getSettings($domainId);
@@ -520,7 +527,6 @@ class eshop_CartDetails extends core_Detail
 		
 		$update = FALSE;
 		if(!isset($rec->finalPrice) || (isset($rec->finalPrice) && round($rec->finalPrice, 2) != round($finalPrice, 2))){
-			core_Statuses::newStatus($finalPrice . "->" . $rec->finalPrice);
 			$rec->oldPrice = $rec->finalPrice;
 			$rec->finalPrice = $finalPrice;
 			$rec->discount = $discount;
