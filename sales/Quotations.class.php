@@ -821,9 +821,6 @@ class sales_Quotations extends core_Master
     	
     	if($action == 'salefromquotation'){
     		$res = sales_Sales::getRequiredRoles('add', $rec, $userId);
-    		if(core_Users::isContractor($userId)){
-    			$res = 'no_one';
-    		}
     	}
     }
     
@@ -1037,7 +1034,7 @@ class sales_Quotations extends core_Master
     	$force = Request::get('force', 'int');
     	
     	// Ако не форсираме нова продажба
-    	if(!$force){
+    	if(!$force && !core_Users::isContractor()){
     		// Опитваме се да намерим съществуваща чернова продажба
     		if(!Request::get('dealId', 'key(mvc=sales_Sales)') && !Request::get('stop')){
     			return new Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE, 'quotationId' => $rec->id));
