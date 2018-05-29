@@ -145,6 +145,12 @@ class sales_Quotations extends core_Master
     
     
     /**
+     * Кой  може да клонира системни записи
+     */
+    public $canClonesysdata = 'ceo, sales';
+    
+    
+    /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf';
