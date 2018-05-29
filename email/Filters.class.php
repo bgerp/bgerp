@@ -260,9 +260,8 @@ class email_Filters extends core_Manager
     public static function match($subjectData, $filterRec)
     {
         foreach ($subjectData as $filterField=>$haystack) {
-            // Ако няма въведена стойност или са само *
-            $tFiltered = trim($filterRec->{$filterField}, '*');
-            if (!strlen($tFiltered)) continue ;
+            // Ако няма въведена стойност или са само * или интервали
+            if (!strlen(trim($filterRec->{$filterField}, '*')) || !strlen(trim($filterRec->{$filterField}))) continue ;
             
             $pattern = self::getPatternForFilter($filterRec->{$filterField});
             
