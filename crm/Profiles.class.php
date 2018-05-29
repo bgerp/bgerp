@@ -505,11 +505,11 @@ class crm_Profiles extends core_Master
             list($tomorrow, $hoursTomorrow) = explode(" ", dt::addDays(1));
 
             if ($dateFrom == $dateTo && ($dateFrom == $yesterday || $dateFrom == $today || $dateFrom == $tomorrow)) {
-                $state = static::$map[$data->rec->stateInfo] . "  ". $mvc->getVerbal($data->rec, 'stateDateFrom');
+                $state = tr(static::$map[$data->rec->stateInfo]) . "  ". $mvc->getVerbal($data->rec, 'stateDateFrom');
             } elseif($dateFrom == $dateTo) {
-                $state = static::$map[$data->rec->stateInfo] . " на ". $mvc->getVerbal($data->rec, 'stateDateFrom');
+                $state = tr(static::$map[$data->rec->stateInfo]) . " " . tr('на') . " ". $mvc->getVerbal($data->rec, 'stateDateFrom');
             } else { 
-                $state = static::$map[$data->rec->stateInfo] . " от ". $mvc->getVerbal($data->rec, 'stateDateFrom') . " до ". $mvc->getVerbal($data->rec, 'stateDateTo');
+                $state = tr(static::$map[$data->rec->stateInfo]) . " " . tr('от') . " ". $mvc->getVerbal($data->rec, 'stateDateFrom') . " " . tr('до') . " ". $mvc->getVerbal($data->rec, 'stateDateTo');
             }
 
             $tpl->append($state, 'userStatus');  
@@ -1224,38 +1224,43 @@ class crm_Profiles extends core_Master
                         list($dateFrom, $hoursFrom) = explode(" ", $rec->stateDateFrom);
                         list($dateTo, $hoursTo) = explode(" ", $rec->stateDateTo);
                         
+                        $stateInfo = tr(static::$map[$rec->stateInfo]);
+                        $on = tr('на');
+                        $from = tr('от');
+                        $to = tr('до');
+                        
                         if ($dateFrom == $dateTo) {
-                            $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateFrom, 'd M') . "</span>";
+                            $stateData = "<span class='small'>" . $stateInfo . " {$on} ". dt::mysql2verbal($rec->stateDateFrom, 'd M') . "</span>";
                             
                             if($hoursFrom != "00:00:00") {
-                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " от ". dt::mysql2verbal($rec->stateDateFrom, 'H:i') . "</span>";
+                                $stateData = "<span class='small'>" . $stateInfo . " {$on} ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'H:i') . "</span>";
                             }
                             
                             if($hoursTo != "23:59:59") {
-                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateTo, 'd M')  . " до ". dt::mysql2verbal($rec->stateDateTo, 'H:i') . "</span>";
+                                $stateData = "<span class='small'>" . $stateInfo . " {$on} ". dt::mysql2verbal($rec->stateDateTo, 'd M')  . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'H:i') . "</span>";
                             }
                             
                             if($hoursFrom != "00:00:00" && $hoursTo != "23:59:59") { 
-                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " от ". dt::mysql2verbal($rec->stateDateFrom, 'H:i') . " до ". dt::mysql2verbal($rec->stateDateTo, 'H:i') . "</span>";
+                                $stateData = "<span class='small'>" . $stateInfo . " {$on} ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'H:i') . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'H:i') . "</span>";
                             }
                         } else { 
-                            $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
+                            $stateData = "<span class='small'>" . $stateInfo . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
                         
                             if($hoursFrom == "00:00:00") {
-                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'd M') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
+                                $stateData = "<span class='small'>" . $stateInfo . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'd M') . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
                             }
                             
                             if($hoursTo == "23:59:59") {
-                                 $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'd M'). "</span>";
+                                $stateData = "<span class='small'>" . $stateInfo . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'd M'). "</span>";
                             }
                             
                             if($hoursFrom == "00:00:00" && $hoursTo == "23:59:59") {
-                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  .  " до ". dt::mysql2verbal($rec->stateDateTo, 'd M') . "</span>";
+                                $stateData = "<span class='small'>" . $stateInfo . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  .  " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'd M') . "</span>";
                             }
                         }
                         
                         $link  = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
-                        $row->userId = ht::createHint($link, $stateData,'notice');
+                        $row->userId = ht::createHint($link, '|*' . $stateData,'notice');
                     } else {
                         $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
                     }
