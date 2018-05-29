@@ -506,7 +506,7 @@ class eshop_Carts extends core_Master
     	}
     	
     	if($rec->deliveryNoVat < 0){
-    		$tpl->replace(tr('Има проблем при изчислението на доставката. Моля обърнете се към нас!'), 'deliveryError');
+    		$tpl->replace(tr('Има проблем при изчислението на доставката. Моля, обърнете се към нас!'), 'deliveryError');
     	}
     	
     	if(isset($rec->deliveryTime)){

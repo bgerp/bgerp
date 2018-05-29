@@ -107,7 +107,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	}
 	
 	
-	
+	// Action fo test //
 	public static function act_testtt()
 	{
 	    
@@ -143,16 +143,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$query->EXT ( 'code', 'cat_Products', 'externalName=code,externalKey=productId' );
 		
-		$query->EXT ( 'docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId' );
-		
-		$query->EXT ( 'docId', 'doc_Containers', 'externalName=docId,externalKey=containerId' );
-		
-		$query->EXT ( 'docClassName', 'core_Classes', 'externalName=name,externalKey=docClass' );
-		
-		
-		
-		
-	//	$query->EXT ( 'stateDoc', 'xxxxxxxxxx', 'externalName=state,externalKey=docId');
+		$query->EXT ( 'docState', 'doc_Containers', 'externalName=state,externalKey=containerId' );
 		
 		if(isset($rec->compare) == 'no') {
 		    
@@ -181,8 +172,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		    
 		}
 		
-		
-		//	$query->where( "#stateDoc != 'rejected'" );
+			$query->where( "#docState != 'rejected'" );
 		
 		
 		if (isset ( $rec->dealers )) {
@@ -255,11 +245,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$num = 1;
 		$quantity = 0;
 		$flag = FALSE;
-		$aaa = array();
+		
 		while ( $recPrime = $query->fetch () ) {
 		    
     	    $DetClass = cls::get ( $recPrime->detailClassId );
-    	    
 
     	    if ($DetClass instanceof sales_SalesDetails){
 	        
@@ -270,17 +259,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
  			if ($rec->compare == 'previous') {
 			
  			    if($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos){
-			        
-// 			        if ($DetClass instanceof sales_SalesDetails){
-			            
-// 			            $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
-			            
-// 			            if ($saleId){
-// 			                if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
-// 			            }else continue;
-// 			        }
-			    
-			    
+
 			        if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
 			        
 			            $quantityPrevious = (- 1) * $recPrime->quantity;
@@ -297,16 +276,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			if ($rec->compare == 'year') {   
 			    
     			if($recPrime->valior >= $fromLastYear && $recPrime->valior <= $toLastYear){
-    			    
-//     			    if ($DetClass instanceof sales_SalesDetails){
-    			        
-//     			        $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
-    			        
-//     			        if ($saleId){
-//     			            if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
-//     			        }else continue;
-//     			    }
-    			    
+      			    
     			    if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
     			        
     			        $quantityLastYear = (- 1) * $recPrime->quantity;
@@ -323,16 +293,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 	        if ($recPrime->valior >= $rec->from && $recPrime->valior <= $rec->to){
 	            
-// 	            if ($DetClass instanceof sales_SalesDetails){
-	                
-// 	                $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
-	                
-// 	                if ($saleId){
-// 	                    if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
-// 	                }else continue;
-// 	            }
-	            
-    			if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
+
+	            if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
     				
     			    $quantity = (- 1) * $recPrime->quantity;
     				
