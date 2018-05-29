@@ -2867,6 +2867,9 @@ table .eshop-btn {
 
 .narrow .eshop-btn {
   padding-left: 10px !important; }
+  .narrow .eshop-btn.order-btn {
+    padding-left: 20px !important;
+    margin: 10px 0; }
 
   .foldertabs > .tab-row {
     overflow: hidden;
