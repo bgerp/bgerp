@@ -1405,7 +1405,15 @@ class sales_Quotations extends core_Master
     				$fld = "p".ucfirst($fld);
     			}
     			if(!empty($data->{$fld})){
-    				$newRec->{$fld} = $data->{$fld};
+    				$value = $data->{$fld};
+    				if($fld == 'email'){
+    					$emails = type_Emails::toArray($data->{$fld});
+    					$value = isset($emails[0]) ? $emails[0] : NULL;
+    				} elseif($fld == 'tel'){
+    					$tels = drdata_PhoneType::toArray($data->{$fld});
+    					$value = isset($tels[0]) ? $tels[0]->number : NULL;
+    				}
+    				$newRec->{$fld} = $value;
     			}
     		}
     	}

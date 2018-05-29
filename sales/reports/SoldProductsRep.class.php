@@ -106,6 +106,21 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 	}
 	
+	
+	
+	public static function act_testtt()
+	{
+	    
+	    $rec = unserialize(file_get_contents('debug.txt'));
+	    
+	    //bp($rec);
+	    self::prepareRecs($rec);
+	    
+	    
+	    bp($rec);
+	}
+	////////////////////////////////////////////////////////////////
+	
 	/**
 	 * Кои записи ще се показват в таблицата
 	 *
@@ -115,10 +130,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	 */
 	protected function prepareRecs($rec, &$data = NULL) 
 	{
+	    
+	    file_put_contents('debug.txt',serialize($rec));
 
 		$recs = array ();
-		
-		$checkClassesArr = array(store_ShipmentOrderDetails,sales_SalesDetails,store_ReceiptDetails,sales_ServicesDetails);
 		
 	    $query = sales_PrimeCostByDocument::getQuery ();
 		
@@ -128,13 +143,17 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$query->EXT ( 'code', 'cat_Products', 'externalName=code,externalKey=productId' );
 		
-		$query->EXT ( 'folderDocId', 'doc_Containers', 'externalName=folderId,externalKey=containerId' );
+		$query->EXT ( 'docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId' );
 		
-		$query->EXT ( 'stateDoc', 'doc_Folders', 'externalName=state,externalKey=folderDocId' );
+		$query->EXT ( 'docId', 'doc_Containers', 'externalName=docId,externalKey=containerId' );
+		
+		$query->EXT ( 'docClassName', 'core_Classes', 'externalName=name,externalKey=docClass' );
+		
+		
+	//	$query->EXT ( 'stateDoc', 'doc_Folders', 'externalName=state,externalKey=folderDocId' );
 		
 		if(isset($rec->compare) == 'no') {
 		    
-	  
 		    $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
 		}
 		
@@ -161,7 +180,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		}
 		
 		
-		$query->where( "#stateDoc != 'rejected'" );
+		//	$query->where( "#stateDoc != 'rejected'" );
 		
 		
 		if (isset ( $rec->dealers )) {
@@ -235,13 +254,19 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$aaa = array();
 		while ( $recPrime = $query->fetch () ) {
 		    
-		  
+		    $aaa[]=$recPrime;
 		    
     	    $DetClass = cls::get ( $recPrime->detailClassId );
     	    
+    	    $cont = doc_Containers::fetch($recPrime->containerId );
+    	    $fold = doc_Containers::fetch($recPrime->containerId )->folderId;
+    	    $class = core_Classes::fetch($cont->docClass)->name;
+    	    
+    	  //  bp($class::fetch($cont->docId));
+    	//   bp($recPrime,doc_Containers::fetch($recPrime->containerId ),doc_Folders::fetch($fold));
 
     	    if (!in_array(core_Classes::fetchField($recPrime->detailClassId,'name'), $aaa)){
-    	    $aaa[]=core_Classes::fetchField($recPrime->detailClassId,'name');
+    	   
 		}
 		//   if (in_array($recPrime->detailRecId, $salesWithShipArr))continue;
 			
@@ -353,9 +378,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			$quantity = $quantityPrevious = $quantityLastYear = 0;
 			
 		}
-	
-	//	bp($recs);
+		// bp($recs);
 		return $recs;
+		
 	}
 	
 	/**
@@ -467,6 +492,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		}
 		
 		return $row;
+		
+		
 	}
 	
 	/**
@@ -489,16 +516,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$row->to = $Date->toVerbal ( $rec->to );
 
-// 		if (isset ( $rec->group )) {
-// 			// избраната позиция
-// 			$groups = keylist::toArray ( $rec->group );
-// 			foreach ( $groups as &$g ) {
-// 				$gro = cat_Groups::getVerbal ( $g, 'name' );
-// 				array_push ( $groArr, $gro );
-// 			}
+		if (isset ( $rec->group )) {
+			// избраната позиция
+			$groups = keylist::toArray ( $rec->group );
+			foreach ( $groups as &$g ) {
+				$gro = cat_Groups::getVerbal ( $g, 'name' );
+				array_push ( $groArr, $gro );
+			}
 			
-// 			$row->group = implode ( ', ', $groArr );
-// 		}
+			$row->group = implode ( ', ', $groArr );
+		}
 		
 		if (isset ( $rec->article )) {
 			// избраната позиция
