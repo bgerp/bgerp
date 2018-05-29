@@ -509,6 +509,10 @@ class eshop_Carts extends core_Master
     		$tpl->replace(tr('Има проблем при изчислението на доставката. Моля, обърнете се към нас!'), 'deliveryError');
     	}
     	
+    	if(!empty($rec->instruction)){
+    		$tpl->replace($row->instruction, 'instruction');
+    	}
+    	
     	if(isset($rec->deliveryTime)){
     		$deliveryTime = dt::mysql2verbal(dt::addSecs($rec->deliveryTime, NULL, FALSE), 'd.m.Y');
     		$tpl->replace($deliveryTime, 'deliveryTime');
