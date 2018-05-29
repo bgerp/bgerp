@@ -1,5 +1,7 @@
 <?php
 
+
+
 /**
  * Мениджър на отчети за продадени артикули продукти по групи и търговци
  *
@@ -116,7 +118,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
 		$recs = array ();
 		
-		$query = sales_PrimeCostByDocument::getQuery ();
+		$checkClassesArr = array(store_ShipmentOrderDetails,sales_SalesDetails,store_ReceiptDetails,sales_ServicesDetails);
+		
+	    $query = sales_PrimeCostByDocument::getQuery ();
 		
 		$query->EXT ( 'groupMat', 'cat_Products', 'externalName=groups,externalKey=productId' );
 		
@@ -128,7 +132,37 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$query->EXT ( 'stateDoc', 'doc_Folders', 'externalName=state,externalKey=folderDocId' );
 		
-		$query->where ( "#stateDoc != 'rejected'" );
+		if(isset($rec->compare) == 'no') {
+		    
+	  
+		    $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
+		}
+		
+		// Last период
+		
+		if (isset($rec->compare) == 'previous') {
+		    
+		    $daysInPeriod = dt::daysBetween($rec->to, $rec->from) + 1;
+		    $fromPreviuos = dt::addDays(- $daysInPeriod, $rec->from);
+		    $toPreviuos = dt::addDays(- $daysInPeriod, $rec->to);
+		    
+		    $query->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
+		}
+		
+		 //LastYear период
+		
+		if (isset($rec->compare) == 'year') {
+		    
+		    $fromLastYear = dt::addDays(- 365, $rec->from);
+		    $toLastYear = dt::addDays(- 365, $rec->to);
+		    
+		    $query->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
+		    
+		}
+		
+		
+		$query->where( "#stateDoc != 'rejected'" );
+		
 		
 		if (isset ( $rec->dealers )) {
 			
@@ -160,34 +194,30 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			$query->where ( "#art = '{$rec->articleType}'" );
 		}
 		
-		if ($rec->compare == 'no') {
-		    
-		    $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
-		}
-		
-		// Last период
-		
-		if (isset($rec->compare) == 'previous') {
-		   
-		    $daysInPeriod = dt::daysBetween($rec->to, $rec->from) + 1;
-		    $fromPreviuos = dt::addDays(- $daysInPeriod, $rec->from);
-		    $toPreviuos = dt::addDays(- $daysInPeriod, $rec->to);
-		    
-		}
-		
-		// LastYear период
-		
-		if (isset($rec->compare) == 'year') {
-		    
-		    $fromLastYear = dt::addDays(- 365, $rec->from);
-		    $toLastYear = dt::addDays(- 365, $rec->to);
-		    
-		}
-		
 		
  		// Масив бързи продажби //
 		
-// 		$sQuery = sales_Sales::getQuery ();
+ //		$sQuery = sales_Sales::getQuery ();
+ 
+// 		if(isset($rec->compare) == 'no') {
+		    
+// 		    $sQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
+// 		}
+		
+// 		// Last период
+		
+// 		if (isset($rec->compare) == 'previous') {
+		    
+// 		    $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
+// 		}
+		
+// 		//LastYear период
+		
+// 		if (isset($rec->compare) == 'year') {
+		    
+// 		    $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
+		    
+// 		}
 		
 // 		$sQuery->like ( 'contoActions', 'ship', FALSE );
 		
@@ -202,18 +232,24 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$num = 1;
 		$quantity = 0;
 		$flag = FALSE;
-		
+		$aaa = array();
 		while ( $recPrime = $query->fetch () ) {
 		    
-    	    $DetClass = cls::get ( $recPrime->detailClassId );
+		  
 		    
+    	    $DetClass = cls::get ( $recPrime->detailClassId );
+    	    
+
+    	    if (!in_array(core_Classes::fetchField($recPrime->detailClassId,'name'), $aaa)){
+    	    $aaa[]=core_Classes::fetchField($recPrime->detailClassId,'name');
+		}
 		//   if (in_array($recPrime->detailRecId, $salesWithShipArr))continue;
 			
 			$id = $recPrime->productId;
 			
-			if ($rec->compare == 'previous') {
+ 			if ($rec->compare == 'previous') {
 			
-			    if($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos){
+ 			    if($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos){
 			        
 			        if ($DetClass instanceof sales_SalesDetails){
 			            
@@ -235,8 +271,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     			   
     			    }
     			    
-    			}
-			}
+     			}
+ 			}
 			
 			if ($rec->compare == 'year') {   
 			    
@@ -290,6 +326,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     			
     			}
 	        }
+		
+	 
 			// добавяме в масива събитието
 			if (! array_key_exists ( $id, $recs )) {
 				
@@ -315,7 +353,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			$quantity = $quantityPrevious = $quantityLastYear = 0;
 			
 		}
-		
+	
+	//	bp($recs);
 		return $recs;
 	}
 	
@@ -450,16 +489,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$row->to = $Date->toVerbal ( $rec->to );
 
-		if (isset ( $rec->group )) {
-			// избраната позиция
-			$groups = keylist::toArray ( $rec->group );
-			foreach ( $groups as &$g ) {
-				$gro = cat_Groups::getVerbal ( $g, 'name' );
-				array_push ( $groArr, $gro );
-			}
+// 		if (isset ( $rec->group )) {
+// 			// избраната позиция
+// 			$groups = keylist::toArray ( $rec->group );
+// 			foreach ( $groups as &$g ) {
+// 				$gro = cat_Groups::getVerbal ( $g, 'name' );
+// 				array_push ( $groArr, $gro );
+// 			}
 			
-			$row->group = implode ( ', ', $groArr );
-		}
+// 			$row->group = implode ( ', ', $groArr );
+// 		}
 		
 		if (isset ( $rec->article )) {
 			// избраната позиция

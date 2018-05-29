@@ -96,6 +96,7 @@ class eshop_CartDetails extends core_Detail
 		$this->FLD('quantityInPack', 'double', 'input=none');
 		$this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none');
 		
+		$this->FLD('oldPrice', 'double(decimals=2)', 'caption=Стара цена,input=none');
 		$this->FLD('finalPrice', 'double(decimals=2)', 'caption=Цена,input=none');
 		$this->FLD('vat', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=ДДС %,input=none');
 		$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'input=none');
@@ -281,7 +282,7 @@ class eshop_CartDetails extends core_Detail
 		
 		if($exRec = self::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}")){
 			$exRec->quantity += $dRec->quantity;
-			self::save($exRec, 'quantity');
+			self::save($exRec, 'quantity,finalPrice,oldPrice,discount');
 		} else {
 			self::save($dRec);
 		}
@@ -296,27 +297,7 @@ class eshop_CartDetails extends core_Detail
 	 */
 	protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
-		$settings = cms_Domains::getSettings();
-		$cartRec = eshop_Carts::fetch($rec->cartId);
-		$vat = cat_Products::getVat($rec->productId);
-		
-		if(!isset($rec->finalPrice)){
-			if(isset($settings->listId)){
-				expect($price = price_ListRules::getPrice($settings->listId, $rec->productId, $rec->packagingId), 'Няма цена');
-				
-				$priceObject = cls::get(price_ListToCustomers)->getPriceByList($settings->listId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-				if(!empty($priceObject->discount)){
-					$rec->discount = $priceObject->discount;
-				}
-					
-				$rec->finalPrice = $price * $rec->quantityInPack;
-				if($rec->haveVat == 'yes'){
-					$rec->finalPrice *= 1 + $vat;
-				}
-		
-				$rec->finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, NULL, $rec->currencyId);
-			}
-		}
+		self::updatePriceInfo($rec);
 	}
 	
 	
@@ -349,9 +330,24 @@ class eshop_CartDetails extends core_Detail
 			$plus = ht::createElement('img', array('src' => sbf('img/16/plus-black.png', ''), 'class' => 'btnUp', 'title' => 'Увеличаване на количеството'));
 			$row->quantity = $minus . ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}'") . $plus;
 		
+			self::updatePriceInfo($rec, NULL, TRUE);
+			
 			$settings = cms_Domains::getSettings();
 			$finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, $rec->currencyId, $settings->currencyId);
 			$row->finalPrice = $mvc->getFieldType('finalPrice')->toVerbal($finalPrice);
+		
+			if($rec->oldPrice){
+				$difference = round($rec->finalPrice, 2) - round($rec->oldPrice, 2);
+				$caption = ($difference > 0) ? 'увеличена' : 'намалена';
+				$difference = abs($difference);
+				$difference = currency_CurrencyRates::convertAmount($difference, NULL, $rec->currencyId, $settings->currencyId);
+				$differenceVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($difference);
+				$hint = "Цената е {$caption} с|* {$differenceVerbal}";
+				$row->finalPrice = ht::createHint($row->finalPrice, $hint, 'warning');
+			}
+			
+			$amount = currency_CurrencyRates::convertAmount($rec->amount, NULL, $rec->currencyId, $settings->currencyId);
+			$row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
 		}
 		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
@@ -424,35 +420,24 @@ class eshop_CartDetails extends core_Detail
 		core_Lg::push($lang);
 		
 		// Ще реплейснем само бележката
-		$resObj = new stdClass();
-		$resObj->func = "html";
-		$resObj->arg = array('id' => 'cart-view-table', 'html' => eshop_Carts::renderViewCart($cartId)->getContent(), 'replace' => TRUE);
-			
-		// Ще реплейснем само бележката
 		$resObj1 = new stdClass();
-		$resObj1->func = "html";
-		$resObj1->arg = array('id' => 'cart-view-count', 'html' => eshop_Carts::renderCartSummary($cartId, TRUE)->getContent(), 'replace' => TRUE);
-			
-		// Ще реплейснем само бележката
+		$resObj1->func = "smartCenter";
+
 		$resObj2 = new stdClass();
 		$resObj2->func = "html";
-		$resObj2->arg = array('id' => 'cart-view-total', 'html' => eshop_Carts::renderCartSummary($cartId)->getContent(), 'replace' => TRUE);
-			
-		// Ще реплейснем само бележката
+		$resObj2->arg = array('id' => 'cart-view-single', 'html' => eshop_Carts::renderView($cartId)->getContent(), 'replace' => TRUE);
+		
+		// Ще се реплейсне статуса на кошницата
 		$resObj3 = new stdClass();
 		$resObj3->func = "html";
-		$resObj3->arg = array('id' => 'cart-view-buttons', 'html' => eshop_Carts::renderCartToolbar($cartId)->getContent(), 'replace' => TRUE);
-
-		// Ще реплейснем само бележката
-		$resObj4 = new stdClass();
-		$resObj4->func = "smartCenter";
-
+		$resObj3->arg = array('id' => 'cart-external-status', 'html' => eshop_Carts::getStatus($cartId)->getContent(), 'replace' => TRUE);
+		
 		// Показваме веднага и чакащите статуси
 		$hitTime = Request::get('hitTime', 'int');
 		$idleTime = Request::get('idleTime', 'int');
 		$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
 			
-		$res = array_merge(array($resObj, $resObj1, $resObj2, $resObj3, $resObj4), (array)$statusData);
+		$res = array_merge(array($resObj1, $resObj2, $resObj3), (array)$statusData);
 		core_Lg::pop();
 		
 		return $res;
@@ -481,7 +466,7 @@ class eshop_CartDetails extends core_Detail
 	
 	
 	/**
-	 * Колко ще е доставката ои втведените данни
+	 * Колко ще е доставката от въведените данни
 	 * 
 	 * @param stdClass $masterRec
 	 * @return NULL|double
@@ -505,12 +490,56 @@ class eshop_CartDetails extends core_Detail
     	$transportAmount = 0;
     	foreach ($products as $p1){
     		$fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total['weight'], $total['volume'], $masterRec->deliveryData);
-    		
-    		if(is_array($fee) && $fee['totalFee'] > 0){
+    		if(is_array($fee)){
     			$transportAmount += $fee['totalFee'];
     		}
     	}
     	
-    	return array('amount' => $transportAmount);
+    	$res = array('amount' => $transportAmount);
+    	if(isset($fee['deliveryTime'])){
+    		$res['deliveryTime'] = $fee['deliveryTime'];
+		}
+		
+		return $res;
+	}
+	
+	
+	/**
+	 * Обновява ценовата информация
+	 * 
+	 * @param stdClass $rec
+	 * @param int|NULL $domainId
+	 * @param boolean $save
+	 */
+	private static function updatePriceInfo(&$rec, $domainId = NULL, $save = FALSE)
+	{
+		$settings = cms_Domains::getSettings($domainId);
+		
+		if(isset($settings->listId)){
+			$price = price_ListRules::getPrice($settings->listId, $rec->productId, $rec->packagingId);
+			$priceObject = cls::get('price_ListToCustomers')->getPriceByList($settings->listId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+			if(!empty($priceObject->discount)){
+				$discount = $priceObject->discount;
+			}
+					
+			$finalPrice = $price * $rec->quantityInPack;
+			if($rec->haveVat == 'yes'){
+				$finalPrice *= 1 + $rec->vat;
+			}
+		
+			$finalPrice = currency_CurrencyRates::convertAmount($finalPrice, NULL, NULL, $rec->currencyId);
+		}
+		
+		$update = FALSE;
+		if(!isset($rec->finalPrice) || (isset($rec->finalPrice) && round($rec->finalPrice, 2) != round($finalPrice, 2))){
+			$rec->oldPrice = $rec->finalPrice;
+			$rec->finalPrice = $finalPrice;
+			$rec->discount = $discount;
+			$update = TRUE;
+		}
+		
+		if($update === TRUE && $save === TRUE){
+			self::save($rec, 'oldPrice,finalPrice,discount');
+		}
 	}
 }

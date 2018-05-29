@@ -196,7 +196,7 @@ class core_Lg extends core_Manager
      * Превежда зададения ключов стринг
      */
     function translate($kstring, $key = FALSE, $lg = NULL)
-    {  
+    {
         // Празните стрингове и обектите не се превеждат
         if (is_object($kstring) || !trim($kstring)) return $kstring;
         
@@ -291,6 +291,11 @@ class core_Lg extends core_Manager
             // Само потребители с определена роля могат да добавят (автоматично) в превода
             if (haveRole('translate') || !haveRole('powerUser')) {
                 $this->save($rec, NULL, 'IGNORE');
+                
+                $tLg = substr($lg, 0, 2);
+                if (is_numeric($tLg) || (mb_strlen($rec->translated) > 100) || (i18n_Charset::is7Bit($rec->kstring))) {
+                    wp($rec, 'translate');
+                }
             }
             
             // Записваме в кеш-масива
@@ -464,7 +469,7 @@ class core_Lg extends core_Manager
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
         if(haveRole('debug')) {
-            $data->toolbar->addBtn('Reset', array($mvc, 'resetDB'));
+            $data->toolbar->addBtn('Reset', array($mvc, 'resetDB'), 'warning=Наистина ли желаете да нулирате таблицата?');
             $lg = $data->listFilter->rec->lg;
             setIfNot($lg, 'en');
             $data->toolbar->addBtn('Export CSV', array($mvc, 'exportCSV', 'lg' => $lg));
