@@ -85,6 +85,20 @@ class auto_handler_CreateQuotationFromInquiry {
     		// Създаване на оферта към артикула
     		core_Users::forceSystemUser();
     		$fields = array('originId' => cat_Products::fetchField($productId, 'containerId'));
+    		
+    		if(haveRole('partner', $marketingRec->createdBy)){
+    			$profileRec = crm_Profiles::getProfile($marketingRec->createdBy);
+    			if(!empty($profileRec->buzEmail)){
+    				$emails = type_Emails::toArray($profileRec->buzEmail);
+    				$fields['email'] = $emails[0];
+    			}
+    			
+    			if(!empty($profileRec->buzTel)){
+    				$tels = drdata_PhoneType::toArray($profileRec->buzTel);
+    				$fields['tel'] = $tels[0]->number;
+    			}
+    		}
+    		
     		$quoteId = sales_Quotations::createNewDraft($Cover->getInstance()->getClassId(), $Cover->that, NULL, $fields);
     		sales_Quotations::logWrite("Създаване от запитване", $quoteId);
     		
