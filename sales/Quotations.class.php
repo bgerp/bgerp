@@ -235,8 +235,8 @@ class sales_Quotations extends core_Master
 		$this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData,input=hidden');
         $this->FLD('person', 'varchar', 'caption=Име, changable, class=contactData,after=reff');
         $this->FLD('email', 'varchar', 'caption=Имейл, changable, class=contactData,after=person');
-        $this->FLD('tel', 'varchar', 'caption=Тел., changable, class=contactData,after=email');
-        $this->FLD('fax', 'varchar', 'caption=Факс, changable, class=contactData,after=tel');
+        $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Тел., changable, class=contactData,after=email');
+        $this->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Факс, changable, class=contactData,after=tel');
         $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Получател->Държава,mandatory,contactData,contragentDataField=countryId,input=hidden');
         $this->FLD('pCode', 'varchar', 'caption=Получател->П. код, changable, class=contactData,input=hidden');
         $this->FLD('place', 'varchar', 'caption=Получател->Град/с, changable, class=contactData,input=hidden');
