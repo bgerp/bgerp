@@ -61,7 +61,6 @@ class auto_handler_CreateQuotationFromInquiry {
     		$productId = $this->createProduct($marketingRec, $Cover, $document);
     	} catch(core_exception_Expect $e){
     		$productId = NULL;
-    		marketing_Inquiries2::logDebug($error, $marketingRec->id);
     		reportException($e);
     	}
     	
