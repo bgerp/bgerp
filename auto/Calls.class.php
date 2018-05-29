@@ -207,9 +207,9 @@ class auto_Calls extends core_Manager
 					}
 				}
 			} catch (core_exception_Expect $e){
+			    self::logDebug("Грешка при изпълнението на автоматизация '{$rec->event}'");
+			    self::logDebug($e->getTraceAsString(), $rec);
 				reportException($e);
-				self::logDebug("Грешка при изпълнението на автоматизация '{$rec->event}'");
-				self::logDebug($e->getTraceAsString(), $rec);
 				$status = 'неуспешно';
 			}
 			

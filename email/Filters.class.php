@@ -260,9 +260,9 @@ class email_Filters extends core_Manager
     public static function match($subjectData, $filterRec)
     {
         foreach ($subjectData as $filterField=>$haystack) {
-            if (empty($filterRec->{$filterField})) {
-                continue;
-            }
+            // Ако няма въведена стойност или са само *
+            $tFiltered = trim($filterRec->{$filterField}, '*');
+            if (!strlen($tFiltered)) continue ;
             
             $pattern = self::getPatternForFilter($filterRec->{$filterField});
             
@@ -294,7 +294,7 @@ class email_Filters extends core_Manager
         
         $pattern = preg_quote($pattern, '/');
         
-        $pattern = str_ireplace('\\*', '.*', $pattern);
+        $pattern = str_ireplace('\\*', '.{0,1000}', $pattern);
         
         $pattern = "/" . $pattern . "/iu";
         
