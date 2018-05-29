@@ -385,7 +385,7 @@ class core_Debug
             $result = ($v) ? "TRUE" : "FALSE";
         } elseif (is_object($v)) {
             if(get_class($v) == 'stdClass') {
-                $result = ht::createElement('span', array('title' => self::arrayToString($v)), get_class($v));
+                $result = ht::createElement('span', array('title' => '|*' . self::arrayToString($v)), get_class($v));
             } else {
                 $result =  get_class($v);
             }
