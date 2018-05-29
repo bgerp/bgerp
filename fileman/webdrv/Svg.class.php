@@ -84,7 +84,7 @@ class fileman_webdrv_Svg extends fileman_webdrv_Inkscape
         } else {
             if (is_file($errFilePath)) {
                 $err = @file_get_contents($errFilePath);
-                self::logErr('Грешка при конвертиране: ' . $errFilePath);
+                self::logErr('Грешка при конвертиране: ' . $err);
             }
         }
         
