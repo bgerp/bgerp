@@ -126,29 +126,31 @@ class colab_FolderToPartners extends core_Manager
             
             if(count($fIds) == 1) {
                 $folderId = $fIds[0];
-            }
+            } else {
 
-            if(!$folderId) {
-                // Първа е папката в която този потребител последно е писал
-                $cQuery = doc_Containers::getQuery();
-                $cQuery->limit(1);
-                $cQuery->orderBy('#modifiedOn', 'DESC');
-                $cQuery->where("#createdBy = {$cu}");
-                $cRec = $cQuery->fetch();
-                if($cRec) {
-                    $folderId = $cRec->folderId;
+                if(!$folderId) {
+                    // Първа е папката в която този потребител последно е писал
+                    $cQuery = doc_Containers::getQuery();
+                    $cQuery->limit(1);
+                    $cQuery->orderBy('#modifiedOn', 'DESC');
+                    $cQuery->where("#createdBy = {$cu}");
+                    $cQuery->where('#folderId IN (' . implode(',', $fIds) . ')');
+                    $cRec = $cQuery->fetch();
+                    if($cRec) {
+                        $folderId = $cRec->folderId;
+                    }
                 }
-            }
-            
-            if(!$folderId && count($fIds) > 1) {
-                // След това е папката, в която има последно движение
-                $fQuery = doc_Folders::getQuery();
-                $fQuery->limit(1);
-                $fQuery->orderBy('#last', 'DESC');
-                $fQuery->where('#id IN (' . implode(',', $fIds) . ')');
-                $fRec = $fQuery->fetch();
-                if($fRec) {
-                    $folderId = $rec->id;
+                
+                if(!$folderId) {
+                    // След това е папката, в която има последно движение
+                    $fQuery = doc_Folders::getQuery();
+                    $fQuery->limit(1);
+                    $fQuery->orderBy('#last', 'DESC');
+                    $fQuery->where('#id IN (' . implode(',', $fIds) . ')');
+                    $fRec = $fQuery->fetch();
+                    if($fRec) {
+                        $folderId = $rec->id;
+                    }
                 }
             }
         }
