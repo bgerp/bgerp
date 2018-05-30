@@ -118,7 +118,7 @@ class eshop_Carts extends core_Master
     	
     	$this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име||Your name,mandatory');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,hint=Вашият имейл||Your email,mandatory');
-    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Тел,hint=Вашият телефон,mandatory');
+    	$this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Контактни данни->Тел,hint=Вашият телефон,mandatory');
     	
     	$this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Начин,mandatory,removeAndRefreshForm,silent');
     	$this->FLD('deliveryData', 'blob(serialize, compress)', 'input=none');
@@ -506,7 +506,11 @@ class eshop_Carts extends core_Master
     	}
     	
     	if($rec->deliveryNoVat < 0){
-    		$tpl->replace(tr('Има проблем при изчислението на доставката. Моля обърнете се към нас!'), 'deliveryError');
+    		$tpl->replace(tr('Има проблем при изчислението на доставката. Моля, обърнете се към нас!'), 'deliveryError');
+    	}
+    	
+    	if(!empty($rec->instruction)){
+    		$tpl->replace($row->instruction, 'instruction');
     	}
     	
     	if(isset($rec->deliveryTime)){

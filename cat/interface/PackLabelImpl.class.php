@@ -125,7 +125,7 @@ class cat_interface_PackLabelImpl
 			$jobCode = mb_strtoupper(planning_Jobs::getHandle($jRec->id));
 			if($lg != 'bg' && isset($jRec->saleId)){
 				$lData = cls::get('sales_Sales')->getLogisticData($jRec->saleId);
-				$countryCode = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $lData['fromCountry']), 'letterCode2');
+				$countryCode = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $lData['toCountry']), 'letterCode2');
 				$countryCode .= " " . date("m/y");
 			}
 		}

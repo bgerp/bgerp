@@ -193,7 +193,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Лице,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,oldFieldName=name');
     	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,formOrder=52,contragentDataField=countryId,mandatory');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,hint=Вашият имейл||Your email,formOrder=53,mandatory');
-    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
+    	$this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Контактни данни->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
     	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни данни->П. код,class=contactData,hint=Вашият пощенски код,formOrder=55');
         $this->FLD('place', 'varchar(64)', 'caption=Контактни данни->Град,class=contactData,hint=Населено място: град или село и община,formOrder=56');
         $this->FLD('address', 'varchar(255)', 'caption=Контактни данни->Адрес,class=contactData,hint=Вашият адрес,formOrder=57');
@@ -820,7 +820,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$form->FLD('quantityCount', 'double', 'input=hidden,silent');
     	$form->FLD('protos', 'varchar(10000)', 'input=hidden,silent');
     	
-    	$mandatoryField = marketing_Setup::get('INQUIRE_MANDATORY_FIELDS');
+    	$mandatoryField = bgerp_Setup::get('MANDATORY_CONTACT_FIELDS');
     	if(in_array($mandatoryField, array('company', 'both'))){
     		$form->setField('company', 'mandatory');
     	}
@@ -882,7 +882,7 @@ class marketing_Inquiries2 extends embed_Manager
     		$rec->brid = log_Browsers::getBrid();
     		
     		// Винаги се рутира към правилната папка
-    		$rec->folderId = marketing_InquiryRouter::route($rec);
+    		$rec->folderId = marketing_InquiryRouter::route($rec->company, $rec->personNames, $rec->email, $rec->tel, $rec->country, $rec->pCode, $rec->place, $rec->address, $rec->brid);
     		
     		// Запис и редирект
     		if($this->haveRightFor('new')){

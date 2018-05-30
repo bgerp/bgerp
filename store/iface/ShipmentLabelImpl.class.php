@@ -85,8 +85,11 @@ class store_iface_ShipmentLabelImpl
 	public function getLabelEstimatedCnt($id)
 	{
 		$rec = $this->class->fetchRec($id);
-    	$count = ($rec->palletCountInput) ? $rec->palletCountInput : store_ShipmentOrders::countCollets($rec->id);
-    	$count = (empty($count)) ? NULL : $count;
+		
+		$count = 0;
+		$transUnits = is_array($rec->transUnits) ? $rec->transUnits : array();
+		array_walk($transUnits, function($e) use (&$count){$count += $e;});
+		$count = max(1, $count);
     	
     	if(isset($count)){
     		$count = ceil($count);
