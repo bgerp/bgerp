@@ -106,6 +106,23 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 	}
 	
+	
+	// Action for test //
+	public static function act_test()
+	{
+	    requireRole('powerUser');
+	    
+	    $rec = unserialize(file_get_contents('debug.txt'));
+	    
+	    self::prepareRecs($rec);
+	    
+	    self::groupRecs($recs, $group);
+	    
+	    bp($rec); // $rec->count - брой документи //
+	}
+	
+	////////////////////////////////////////////////////////////////
+	
 	/**
 	 * Кои записи ще се показват в таблицата
 	 *
@@ -115,26 +132,23 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	 */
 	protected function prepareRecs($rec, &$data = NULL) 
 	{
+	    
+	    file_put_contents('debug.txt',serialize($rec));
 
 		$recs = array ();
-		
-		$checkClassesArr = array(store_ShipmentOrderDetails,sales_SalesDetails,store_ReceiptDetails,sales_ServicesDetails);
 		
 	    $query = sales_PrimeCostByDocument::getQuery ();
 		
 		$query->EXT ( 'groupMat', 'cat_Products', 'externalName=groups,externalKey=productId' );
 		
-		$query->EXT ( 'art', 'cat_Products', 'externalName=isPublic,externalKey=productId' );
+		$query->EXT ( 'isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId' );
 		
 		$query->EXT ( 'code', 'cat_Products', 'externalName=code,externalKey=productId' );
 		
-		$query->EXT ( 'folderDocId', 'doc_Containers', 'externalName=folderId,externalKey=containerId' );
-		
-		$query->EXT ( 'stateDoc', 'doc_Folders', 'externalName=state,externalKey=folderDocId' );
+		$query->EXT ( 'docState', 'doc_Containers', 'externalName=state,externalKey=containerId' );
 		
 		if(isset($rec->compare) == 'no') {
 		    
-	  
 		    $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
 		}
 		
@@ -160,8 +174,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		    
 		}
 		
-		
-		$query->where( "#stateDoc != 'rejected'" );
+			$query->where( "#docState != 'rejected'" );
 		
 		
 		if (isset ( $rec->dealers )) {
@@ -191,76 +204,75 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		if ($rec->articleType != 'all') {
 			
-			$query->where ( "#art = '{$rec->articleType}'" );
+			$query->where ( "#isPublic = '{$rec->articleType}'" );
 		}
 		
 		
  		// Масив бързи продажби //
 		
- //		$sQuery = sales_Sales::getQuery ();
+ 		$sQuery = sales_Sales::getQuery ();
  
-// 		if(isset($rec->compare) == 'no') {
+		if(isset($rec->compare) == 'no') {
 		    
-// 		    $sQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
-// 		}
+		    $sQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
+		}
 		
-// 		// Last период
+		// Last период
 		
-// 		if (isset($rec->compare) == 'previous') {
+		if (isset($rec->compare) == 'previous') {
 		    
-// 		    $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
-// 		}
+		    $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
+		}
 		
-// 		//LastYear период
+		//LastYear период
 		
-// 		if (isset($rec->compare) == 'year') {
+		if (isset($rec->compare) == 'year') {
 		    
-// 		    $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
+		    $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
 		    
-// 		}
+		}
 		
-// 		$sQuery->like ( 'contoActions', 'ship', FALSE );
+		$sQuery->like ( 'contoActions', 'ship', FALSE );
 		
-// 		$sQuery->EXT ( 'detailId', 'sales_SalesDetails', 'externalName=id,remoteKey=saleId' );
+		$sQuery->EXT ( 'detailId', 'sales_SalesDetails', 'externalName=id,remoteKey=saleId' );
 		
-// 		while ( $sale = $sQuery->fetch () ) {
+		while ( $sale = $sQuery->fetch () ) {
 			
-// 			$salesWithShipArr [$sale->detailId] = $sale->detailId;
-			
-// 		}
+		    $salesWithShipArr [$sale->detailId] = $sale->detailId;
+		    
+		}
+		
+		$rec->count = $query->count();
+		
+		$timeLimit = $query->count() * 0.05;
+		
+		if ($timeLimit >= 30) {
+		    core_App::setTimeLimit($timeLimit);
+		}
 		
 		$num = 1;
 		$quantity = 0;
 		$flag = FALSE;
-		$aaa = array();
+		
 		while ( $recPrime = $query->fetch () ) {
 		    
-		  
-		    
-    	    $DetClass = cls::get ( $recPrime->detailClassId );
-    	    
+		    $DetClass = cls::get ( $recPrime->detailClassId );
 
-    	    if (!in_array(core_Classes::fetchField($recPrime->detailClassId,'name'), $aaa)){
-    	    $aaa[]=core_Classes::fetchField($recPrime->detailClassId,'name');
-		}
-		//   if (in_array($recPrime->detailRecId, $salesWithShipArr))continue;
-			
+    	    if ($DetClass instanceof sales_SalesDetails){
+    	        
+    	        if (is_array($salesWithShipArr)){
+	        
+    	            if (in_array($recPrime->detailRecId, $salesWithShipArr))continue;
+    	        
+    	        }
+    	        
+    	    }
 			$id = $recPrime->productId;
 			
  			if ($rec->compare == 'previous') {
 			
  			    if($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos){
-			        
-			        if ($DetClass instanceof sales_SalesDetails){
-			            
-			            $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
-			            
-			            if ($saleId){
-			                if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
-			            }else continue;
-			        }
-			    
-			    
+
 			        if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
 			        
 			            $quantityPrevious = (- 1) * $recPrime->quantity;
@@ -277,16 +289,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			if ($rec->compare == 'year') {   
 			    
     			if($recPrime->valior >= $fromLastYear && $recPrime->valior <= $toLastYear){
-    			    
-    			    if ($DetClass instanceof sales_SalesDetails){
-    			        
-    			        $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
-    			        
-    			        if ($saleId){
-    			            if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
-    			        }else continue;
-    			    }
-    			    
+      			    
     			    if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
     			        
     			        $quantityLastYear = (- 1) * $recPrime->quantity;
@@ -303,16 +306,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 	        if ($recPrime->valior >= $rec->from && $recPrime->valior <= $rec->to){
 	            
-	            if ($DetClass instanceof sales_SalesDetails){
-	                
-	                $saleId = sales_SalesDetails::fetchField($recPrime->detailRecId,'saleId');
-	                
-	                if ($saleId){
-	                    if(!in_array('ship', (explode(',',sales_Sales::fetchField($saleId,'contoActions')))))continue;
-	                }else continue;
-	            }
-	            
-    			if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
+
+	            if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
     				
     			    $quantity = (- 1) * $recPrime->quantity;
     				
@@ -340,7 +335,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 						'quantityPrevious' => $quantityPrevious,
 						'quantityLastYear' => $quantityLastYear,
 						'primeCost' => $primeCost,
-						'group' => $recPrime->groupMat 
+						'group' => cat_Products::fetchField($recPrime->productId, 'groups')
+						 
 				);
 			} else {
 				$obj = &$recs [$id];
@@ -354,8 +350,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			
 		}
 	
-	//	bp($recs);
+		$recs = self::groupRecs($recs, $rec->group);
+		
 		return $recs;
+		
 	}
 	
 	/**
@@ -467,6 +465,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		}
 		
 		return $row;
+		
+		
 	}
 	
 	/**
@@ -489,16 +489,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$row->to = $Date->toVerbal ( $rec->to );
 
-// 		if (isset ( $rec->group )) {
-// 			// избраната позиция
-// 			$groups = keylist::toArray ( $rec->group );
-// 			foreach ( $groups as &$g ) {
-// 				$gro = cat_Groups::getVerbal ( $g, 'name' );
-// 				array_push ( $groArr, $gro );
-// 			}
+		if (isset ( $rec->group )) {
+			// избраната позиция
+			$groups = keylist::toArray ( $rec->group );
+			foreach ( $groups as &$g ) {
+				$gro = cat_Groups::getVerbal ( $g, 'name' );
+				array_push ( $groArr, $gro );
+			}
 			
-// 			$row->group = implode ( ', ', $groArr );
-// 		}
+			$row->group = implode ( ', ', $groArr );
+		}
 		
 		if (isset ( $rec->article )) {
 			// избраната позиция
@@ -583,4 +583,50 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$tpl->append ( $fieldTpl, 'DRIVER_FIELDS' );
 	}
+	
+	    /**
+	     * Групиране по продуктови групи
+	     *
+	     * @param array $recs
+	     * @param string $group
+	     * @param stdClass $data
+	     * @return array
+	     */
+	    private function groupRecs($recs, $group)
+	    {
+	        $ordered = array();
+	
+	        $groups = keylist::toArray($group);
+	        if (! count($groups)) {
+	            return $recs;
+	        } else {
+	            cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(
+	                &$groups
+	            ));
+	        }
+	       // bp($groups);
+	        // За всеки маркер
+	        foreach ($groups as $grId => $groupName) {
+	
+	            // Отделяме тези записи, които съдържат текущия маркер
+	            $res = array_filter($recs,
+	                function (&$e) use($grId, $groupName) {
+	                    if (keylist::isIn($grId, $e->group)) {
+	                        $e->group = $grId;
+	                        return TRUE;
+	                    }
+	                    return FALSE;
+	                });
+	
+	            if (count($res)) {
+	                arr::natOrder($res, 'kod');
+	                $ordered += $res;
+	            }
+	        }
+	
+	        return $ordered;
+	    }
+	
+	
+	
 }

@@ -1366,11 +1366,11 @@ class core_Html
     /**
      * Подготвя атрибутите на бутон или хипервръзка
      */
-    private static function prepareLinkAndBtnAttr($attr, $warning = '')
+    private static function prepareLinkAndBtnAttr($attr, $warning = '', $trTitle = FALSE)
     {
         $attr = arr::make($attr);
         
-        if($attr['title']) {
+        if ($attr['title'] && $trTitle) {
             $attr['title'] = tr($attr['title']);
         }
 

@@ -71,10 +71,12 @@
                 <td>[#country#]</td>
             </tr>
             <!--ET_END country-->
+            <!--ET_BEGIN personNames-->
             <tr>
                 <td>|Лице|*</td>
                 <td>[#personNames#]</td>
             </tr>
+            <!--ET_END personNames-->
             <tr>
                 <td>|Имейли|*</td>
                 <td>[#email#]</td>

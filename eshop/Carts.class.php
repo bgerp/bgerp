@@ -118,7 +118,7 @@ class eshop_Carts extends core_Master
     	
     	$this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име||Your name,mandatory');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,hint=Вашият имейл||Your email,mandatory');
-    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Тел,hint=Вашият телефон,mandatory');
+    	$this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Контактни данни->Тел,hint=Вашият телефон,mandatory');
     	
     	$this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Начин,mandatory,removeAndRefreshForm,silent');
     	$this->FLD('deliveryData', 'blob(serialize, compress)', 'input=none');
@@ -424,7 +424,8 @@ class eshop_Carts extends core_Master
     	$tpl->replace(self::renderViewCart($rec), 'CART_TABLE');
     	$tpl->replace(self::renderCartSummary($rec), 'CART_TOTAL');
     	$tpl->replace(self::renderCartSummary($rec, TRUE), 'CART_COUNT');
-    	$tpl->replace(self::renderCartToolbar($rec, TRUE), 'CART_TOOLBAR');
+    	$tpl->replace(self::renderCartToolbar($rec, TRUE), 'CART_TOOLBAR_LEFT');
+		$tpl->replace(self::renderCartToolbar($rec, TRUE), 'CART_TOOLBAR_RIGHT');
     	$tpl->replace(self::getCartDisplayName(), 'CART_NAME');
     	 
     	$settings = cms_Domains::getSettings();
@@ -506,7 +507,11 @@ class eshop_Carts extends core_Master
     	}
     	
     	if($rec->deliveryNoVat < 0){
-    		$tpl->replace(tr('Има проблем при изчислението на доставката. Моля обърнете се към нас!'), 'deliveryError');
+    		$tpl->replace(tr('Има проблем при изчислението на доставката. Моля, обърнете се към нас!'), 'deliveryError');
+    	}
+    	
+    	if(!empty($rec->instruction)){
+    		$tpl->replace($row->instruction, 'instruction');
     	}
     	
     	if(isset($rec->deliveryTime)){
@@ -569,7 +574,7 @@ class eshop_Carts extends core_Master
     private static function renderCartToolbar($id)
     {
     	$rec = self::fetchRec($id);
-    	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock('CART_TOOLBAR');
+    	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock('CART_TOOLBAR_RIGHT');
     	
     	if(!empty($rec->productCount) && eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
     		$emptyUrl = array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => getRetUrl());
@@ -579,22 +584,22 @@ class eshop_Carts extends core_Master
     	
     	if(eshop_CartDetails::haveRightFor('add', (object)array('cartId' => $rec->id))){
     		$addUrl = array('eshop_CartDetails', 'add', 'cartId' => $rec->id, 'external' => TRUE, 'ret_url' => TRUE);
-    		$btn = ht::createLink('Добавяне', $addUrl, NULL, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
-    		$tpl->append($btn, 'CART_TOOLBAR');
+    		$btn = ht::createLink('Добавяне на артикул', $addUrl, NULL, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
+    		$tpl->append($btn, 'CART_TOOLBAR_LEFT');
     	}
     	
-    	$btn = ht::createLink('Пазаруване', cls::get('eshop_Groups')->getUrlByMenuId(NULL), NULL, 'title=Към онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
-    	$tpl->append($btn, 'CART_TOOLBAR');
+    	$btn = ht::createLink('Продължи пазаруването', cls::get('eshop_Groups')->getUrlByMenuId(NULL), NULL, 'title=Към онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
+    	$tpl->append($btn, 'CART_TOOLBAR_LEFT');
     	
     	$checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE) : array();
     	if(empty($rec->personNames)){
     		$btn = ht::createBtn('Данни за поръчка', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=order-btn eshop-btn {$disabledClass}");
-    		$tpl->append($btn, 'CART_TOOLBAR');
+    		$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
     	}
     	
     	if(eshop_Carts::haveRightFor('finalize', $rec)){
     		$btn = ht::createBtn('Финализиране', array(), NULL, NULL, "title=Финализиране на поръчката,class=order-btn eshop-btn {$disabledClass}");
-    		$tpl->append($btn, 'CART_TOOLBAR');
+    		$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
     	}
     	
     	$tpl->removeBlocks();

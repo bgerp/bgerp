@@ -466,7 +466,7 @@ class trans_Lines extends core_Master
     	$query->where("#state = 'pending'");
     	
     	$recs = $query->fetchAll();
-    	array_walk($recs, function($rec) use (&$linesArr) {$linesArr[$rec->id] = self::getRecTitle($rec, FALSE);});
+    	array_walk($recs, function($rec) use (&$linesArr) {$linesArr[$rec->id] = trans_Lines::getRecTitle($rec, FALSE);});
     	
     	return $linesArr;
     }

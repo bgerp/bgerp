@@ -107,6 +107,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             $salesQuery->where("#folderId = {$rec->contragent}");
         }
         
+        //Масив с затварящи документи по обединени договори //
         $salesUN = array();
         
         while ($sale = $salesQuery->fetch()) {
