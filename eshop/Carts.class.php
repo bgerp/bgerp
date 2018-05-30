@@ -774,7 +774,7 @@ class eshop_Carts extends core_Master
     {
     	$lang = cms_Domains::getPublicDomain('lang');
     	core_Lg::push($lang);
-    	 
+    	
     	$this->requireRightFor('checkout');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = self::fetch($id));
@@ -867,7 +867,6 @@ class eshop_Carts extends core_Master
     	}
     	
     	Mode::set('wrapper', 'cms_page_External');
-    	core_Lg::pop();
     	 
     	// Добавяне на бутони
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на адресните данни');
@@ -875,6 +874,7 @@ class eshop_Carts extends core_Master
     	
     	$tpl = $form->renderHtml();
     	core_Form::preventDoubleSubmission($tpl, $form);
+    	core_Lg::pop();
     	
     	return $tpl;
     }
