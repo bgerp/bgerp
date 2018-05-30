@@ -715,6 +715,13 @@ class colab_FolderToPartners extends core_Manager
     		$personRec->buzCompanyId = $companyId;
     		$personRec->country = $form->rec->country;
     		$personRec->inCharge = $companyRec->inCharge;
+    		
+    		// Имейлът да е бизнес имейла му
+    		$buzEmailsArr = type_Emails::toArray($personRec->buzEmail);
+    		$buzEmailsArr[] = $personRec->email;
+    		$personRec->buzEmail = type_Emails::fromArray($buzEmailsArr);
+    		$personRec->email = '';
+    		
     		crm_Persons::save($personRec);
     		
     		$folderId = crm_Companies::forceCoverAndFolder($companyId);
