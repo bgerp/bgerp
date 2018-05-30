@@ -657,6 +657,8 @@ class eshop_Products extends core_Master
     	$description = html2text_Converter::toRichText($description);
     	$description = cls::get('type_Richtext')->fromVerbal($description);
     	$description = str_replace("\n\n", "\n", $description);
+    	
+    	$description = str_replace("- ", "* ", $description);
     	$form->setDefault('longInfo', $description);
     }
     
