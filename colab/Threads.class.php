@@ -146,6 +146,9 @@ class colab_Threads extends core_Manager
 		// Трябва папката и да е споделена на текущия потребител и документа начало на нишка да е видим
 		$this->requireRightFor('single', $data->threadRec);
 		
+		// Ако има папка записва се като активна
+		Mode::setPermanent('lastActiveCompanyFolder', $data->folderId);
+		
 		// Показваме само неоттеглените документи, чиито контейнери са видими за партньори
 		$cu = core_Users::getCurrent();
 		$sharedUsers = colab_Folders::getSharedUsers($data->folderId);
