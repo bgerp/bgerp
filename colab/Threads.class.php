@@ -224,14 +224,20 @@ class colab_Threads extends core_Manager
 	 */
 	function act_List()
 	{
-	    if (core_Users::isPowerUser()) {
-	        $folderId = Request::get('folderId', 'int');
+		$folderId = Request::get('folderId', 'int');
+		
+		if (core_Users::isPowerUser()) {
 	        if ($folderId && doc_Folders::haveRightFor('single', $folderId)) {
 	            
 	            return new Redirect(array('doc_Threads', 'list', 'folderId' => $folderId));
 	        }
 	    }
 	    
+	    // Ако има папка записва се като активна
+	    if(isset($folderId) && colab_Folders::haveRightFor('list', (object)array('folderId' => $folderId))){
+	    	Mode::setPermanent('lastActiveCompanyFolder', $folderId);
+	    }
+	   
 	    return parent::act_List();
 	}
 	

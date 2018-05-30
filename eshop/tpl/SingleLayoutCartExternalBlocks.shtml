@@ -24,9 +24,13 @@
 <span id = 'cart-view-count'>|с|* [#productCount#]</span>
 <!--ET_END CART_COUNT-->
 
-<!--ET_BEGIN CART_TOOLBAR-->
-<div id = 'cart-view-buttons'>[#CART_TOOLBAR#]</div>
-<!--ET_END CART_TOOLBAR-->
+<!--ET_BEGIN CART_TOOLBAR_LEFT-->
+<div class = 'cart-view-buttons-left'>[#CART_TOOLBAR_LEFT#]</div>
+<!--ET_END CART_TOOLBAR_LEFT-->
+
+<!--ET_BEGIN CART_TOOLBAR_RIGHT-->
+<div class = 'cart-view-buttons-right'>[#CART_TOOLBAR_RIGHT#]</div>
+<!--ET_END CART_TOOLBAR_RIGHT-->
 
 <!--ET_BEGIN SALE_BLOCK-->
         [#SALE_BLOCK#]
@@ -50,15 +54,16 @@
                     <!--ET_END deliveryTime-->
                     <!--ET_BEGIN deliveryError-->
                     <tr>
-                        <td class='stamp' style='font-size:1em'>[#deliveryError#]</td>
+                        <td><span class='stamp' style='font-size:1em;'>[#deliveryError#]</span></td>
                     </tr>
                     <!--ET_END deliveryError-->
                     <!--ET_BEGIN instruction-->
                     <tr>
-                        <td>|Инструкции|*: [#instruction#]</td>
+                        <td>|Инструкции|*: <span class="richtext-holder"> [#instruction#]</span></td>
                     </tr>
                     <!--ET_END instruction-->
                 </table>
+                <div id='cart-view-info' class="clearfix21">[#VAT_STATUS#]</div>
             </div>
             <!--ET_END DELIVERY_BLOCK-->
             <!--ET_BEGIN INVOICE_BLOCK-->

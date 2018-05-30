@@ -153,6 +153,12 @@ class cat_interface_PackLabelImpl
 		$params = cat_Products::getParams($rec->productId, NULL, TRUE);
 		$params = cat_Params::getParamNameArr($params, TRUE);
 		
+		$additionalFields = array();
+		$Driver = cat_Products::getDriver($rec->productId);
+		if(is_object($Driver)){
+			$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
+		}
+		
 		$arr = array();
 		for($i = 1; $i <= $cnt; $i++){
 			$res = array('CODE' => $code, 'NAME' => $name, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity);	
@@ -173,14 +179,13 @@ class cat_interface_PackLabelImpl
 				$res['EAN'] = $rec->eanCode;
 			}
 			
-			if($Driver = cat_Products::getDriver($rec->productId)){
-				$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
+			if(is_object($Driver)){
 				if(count($additionalFields)){
 					$res = $additionalFields + $res;
 				}
 				
 				$res['SERIAL'] = 'EXAMPLE';
- 				if($onlyPreview === FALSE){
+				if($onlyPreview === FALSE){
 					$res['SERIAL'] = $Driver->generateSerial($rec->productId, 'cat_products_Packagings', $rec->id);
 				}
 			}
