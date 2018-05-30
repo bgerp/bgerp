@@ -230,7 +230,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		    
 		}
 		
-		$sQuery->like ( 'contoActions', 'ship', TRUE );
+		$sQuery->like ( 'contoActions', 'ship', FALSE );
 		
 		$sQuery->EXT ( 'detailId', 'sales_SalesDetails', 'externalName=id,remoteKey=saleId' );
 		
@@ -238,8 +238,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			
 		    $salesWithShipArr [$sale->detailId] = $sale->detailId;
 		    
-		    
-			
+		}
+		
+		$rec->count = $query->count();
+		
+		$timeLimit = $query->count() * 0.05;
+		
+		if ($timeLimit >= 30) {
+		    core_App::setTimeLimit($timeLimit);
 		}
 		
 		$num = 1;
@@ -247,23 +253,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$flag = FALSE;
 		
 		while ( $recPrimes = $query->fetch () ) {
-		
-		
-		    $recPrimeArr[] = $recPrimes;
-		}
-		
-		$rec->count = count($recPrimeArr);
-		
-		$timeLimit = count($recPrimeArr) * 0.05;
-		
-		if ($timeLimit >= 30) {
-		    core_App::setTimeLimit($timeLimit);
-		}
-		
-		if (is_array($recPrimeArr)){
 		    
-		    foreach ($recPrimeArr as $recPrime ){
-    	    
 		    $DetClass = cls::get ( $recPrime->detailClassId );
 
     	    if ($DetClass instanceof sales_SalesDetails){
@@ -356,7 +346,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			$quantity = $quantityPrevious = $quantityLastYear = 0;
 			
 		}
-	}
+	
 	//bp($rec->group,$recs);
 	     $recs = $this->groupRecs($recs, $rec->group);
 		
