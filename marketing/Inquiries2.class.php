@@ -256,10 +256,20 @@ class marketing_Inquiries2 extends embed_Manager
     	$cu = core_Users::getCurrent('id', FALSE);
     	if(isset($cu) && !core_Users::isPowerUser()){
     		$personRec = crm_Profiles::getProfile($cu);
+    		
     		$emails = type_Emails::toArray($personRec->buzEmail);
     		$marketingEmail = count($emails) ? $emails[0] : $personRec->email;
     		$form->setDefault('personNames', $personRec->name);
     		$form->setDefault('email', $marketingEmail);
+    		
+    		if($companyFolderId = core_Mode::get('lastActiveCompanyFolder')){
+    			$form->setDefault('company', doc_Folders::getCover($companyFolderId)->fetchField('name'));
+    		}
+    		
+    		if(isset($personRec->buzCompanyId)){
+    			$companyName = crm_Companies::fetchField($personRec->buzCompanyId, 'name');
+    			$form->setDefault('company', $companyName);
+    		}
     	}
     	
     	$hide = (isset($cu) && core_Users::haveRole('partner', $cu)) ? TRUE : FALSE;

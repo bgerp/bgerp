@@ -1508,6 +1508,13 @@ class core_Users extends core_Manager
             }
         }
         
+        // Ако потребителя е партньор се записва в сесията първата му споделена папка като активна
+        if(core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)){
+        	if($lastSharedFolder = colab_FolderToPartners::getLastSharedCompanyFolder($userRec->id)){
+        		Mode::setPermanent('lastActiveCompanyFolder', $lastSharedFolder);
+        	}
+        }
+        
         // Записваме в лога успешното логване
         core_LoginLog::add('success', $userRec->id, $inputs->time);
     }

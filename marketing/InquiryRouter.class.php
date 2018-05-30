@@ -26,9 +26,10 @@ class marketing_InquiryRouter extends core_Manager
 	public static function route($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid)
 	{
 		// Ако е от колаборатор към първата споделена папка на колаборатор
-		if(core_Packs::isInstalled('colab')){
-			$firstFolderId = colab_FolderToPartners::getLastSharedCompanyFolder();
-			if(!empty($firstFolderId)) return $firstFolderId;
+		if(core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)){
+			if($companyFolderId = core_Mode::get('lastActiveCompanyFolder')){
+				return $companyFolderId;
+			}
 		}
 		
 		// Ако има компания
@@ -126,6 +127,7 @@ class marketing_InquiryRouter extends core_Manager
 		
 		// Намираме папка на компания с този имейл
 		$folderId = marketing_Router::routeByCompanyEmail($email, $inCharge);
+		
 		if($folderId) return $folderId;
 		
 		// Рутиране според имейла, взимаме папката ако корицата и е фирма
