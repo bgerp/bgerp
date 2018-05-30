@@ -116,7 +116,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	    
 	    self::prepareRecs($rec);
 	    
-	    bp($rec);
+	    bp($rec); // $rec->count - брой документи //
 	}
 	
 	////////////////////////////////////////////////////////////////
@@ -139,7 +139,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$query->EXT ( 'groupMat', 'cat_Products', 'externalName=groups,externalKey=productId' );
 		
-		$query->EXT ( 'art', 'cat_Products', 'externalName=isPublic,externalKey=productId' );
+		$query->EXT ( 'isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId' );
 		
 		$query->EXT ( 'code', 'cat_Products', 'externalName=code,externalKey=productId' );
 		
@@ -202,7 +202,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		if ($rec->articleType != 'all') {
 			
-			$query->where ( "#art = '{$rec->articleType}'" );
+			$query->where ( "#isPublic = '{$rec->articleType}'" );
 		}
 		
 		
@@ -246,13 +246,33 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$quantity = 0;
 		$flag = FALSE;
 		
-		while ( $recPrime = $query->fetch () ) {
+		while ( $recPrimes = $query->fetch () ) {
+		
+		
+		    $recPrimeArr[] = $recPrimes;
+		}
+		
+		$rec->count = count($recPrimeArr);
+		
+		$timeLimit = count($recPrimeArr) * 0.05;
+		
+		if ($timeLimit >= 30) {
+		    core_App::setTimeLimit($timeLimit);
+		}
+		
+		if (is_array($recPrimeArr)){
 		    
-    	    $DetClass = cls::get ( $recPrime->detailClassId );
+		    foreach ($recPrimeArr as $recPrime ){
+    	    
+		    $DetClass = cls::get ( $recPrime->detailClassId );
 
     	    if ($DetClass instanceof sales_SalesDetails){
+    	        
+    	        if (is_array($salesWithShipArr)){
 	        
-    	        if (in_array($recPrime->detailRecId, $salesWithShipArr))continue;
+    	            if (in_array($recPrime->detailRecId, $salesWithShipArr))continue;
+    	        
+    	        }
     	    }
 			$id = $recPrime->productId;
 			
@@ -336,6 +356,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			$quantity = $quantityPrevious = $quantityLastYear = 0;
 			
 		}
+	}
 	//bp($rec->group,$recs);
 	     $recs = $this->groupRecs($recs, $rec->group);
 		

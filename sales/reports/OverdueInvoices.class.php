@@ -113,13 +113,15 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $salesInvoicesArr[] = $salesAllInvoices;
         }
         
-        foreach ($salesInvoicesArr as $salesInvoices) {
-            
-            $timeLimit = count($salesInvoicesArr) * 0.05;
+        $timeLimit = count($salesInvoicesArr) * 0.05;
             
             if ($timeLimit >= 30) {
                 core_App::setTimeLimit($timeLimit);
             }
+        
+        foreach ($salesInvoicesArr as $salesInvoices) {
+            
+            
             
             $cQuery = crm_ext_ContragentInfo::getQuery();
             
