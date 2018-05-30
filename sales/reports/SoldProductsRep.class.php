@@ -242,6 +242,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		    
 		}
 		
+		//Синхронизира таймлимита с броя записи //
 		$rec->count = $query->count();
 		
 		$timeLimit = $query->count() * 0.05;
