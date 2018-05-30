@@ -107,18 +107,18 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	}
 	
 	
-	// Action fo test //
+	// Action for test //
 	public static function act_testtt()
 	{
+	    requireRole('powerUser');
 	    
 	    $rec = unserialize(file_get_contents('debug.txt'));
 	    
-	    //bp($rec);
 	    self::prepareRecs($rec);
 	    
-	    
-	    bp($rec);
+	    bp($rec); // $rec->count - брой документи //
 	}
+	
 	////////////////////////////////////////////////////////////////
 	
 	/**
@@ -139,7 +139,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$query->EXT ( 'groupMat', 'cat_Products', 'externalName=groups,externalKey=productId' );
 		
-		$query->EXT ( 'art', 'cat_Products', 'externalName=isPublic,externalKey=productId' );
+		$query->EXT ( 'isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId' );
 		
 		$query->EXT ( 'code', 'cat_Products', 'externalName=code,externalKey=productId' );
 		
@@ -202,7 +202,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		if ($rec->articleType != 'all') {
 			
-			$query->where ( "#art = '{$rec->articleType}'" );
+			$query->where ( "#isPublic = '{$rec->articleType}'" );
 		}
 		
 		
@@ -230,7 +230,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		    
 		}
 		
-		$sQuery->like ( 'contoActions', 'ship', TRUE );
+		$sQuery->like ( 'contoActions', 'ship', FALSE );
 		
 		$sQuery->EXT ( 'detailId', 'sales_SalesDetails', 'externalName=id,remoteKey=saleId' );
 		
@@ -238,21 +238,31 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			
 		    $salesWithShipArr [$sale->detailId] = $sale->detailId;
 		    
-		    
-			
+		}
+		
+		$rec->count = $query->count();
+		
+		$timeLimit = $query->count() * 0.05;
+		
+		if ($timeLimit >= 30) {
+		    core_App::setTimeLimit($timeLimit);
 		}
 		
 		$num = 1;
 		$quantity = 0;
 		$flag = FALSE;
 		
-		while ( $recPrime = $query->fetch () ) {
+		while ( $recPrimes = $query->fetch () ) {
 		    
-    	    $DetClass = cls::get ( $recPrime->detailClassId );
+		    $DetClass = cls::get ( $recPrime->detailClassId );
 
     	    if ($DetClass instanceof sales_SalesDetails){
+    	        
+    	        if (is_array($salesWithShipArr)){
 	        
-    	        if (in_array($recPrime->detailRecId, $salesWithShipArr))continue;
+    	            if (in_array($recPrime->detailRecId, $salesWithShipArr))continue;
+    	        
+    	        }
     	    }
 			$id = $recPrime->productId;
 			
@@ -337,6 +347,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			
 		}
 	
+	//bp($rec->group,$recs);
 	     $recs = $this->groupRecs($recs, $rec->group);
 		
 		
@@ -592,7 +603,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	                &$groups
 	            ));
 	        }
-	
+	       // bp($groups);
 	        // За всеки маркер
 	        foreach ($groups as $grId => $groupName) {
 	

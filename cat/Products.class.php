@@ -1016,7 +1016,8 @@ class cat_Products extends embed_Manager {
     		$rec->code = "Art{$rec->id}";
     	} else {
     		if(empty($rec->code)){
-    			$rec->code = ($rec->id) ? static::fetchField($rec->id, 'code') : NULL;
+    			$code = ($rec->id) ? static::fetchField($rec->id, 'code') : NULL;
+    			$rec->code = ($code) ? $code : "Art{$rec->id}";
     		}
     	}
     }
