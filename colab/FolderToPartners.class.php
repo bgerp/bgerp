@@ -101,6 +101,28 @@ class colab_FolderToPartners extends core_Manager
     
     
     /**
+     * Форсира папката като споделена към потребител-партньор
+     * 
+     * @param int $folderId
+     * @param int|NULL $userId
+     * @return int|FALSE
+     */
+    public static function force($folderId, $userId = NULL)
+    {
+    	$userId = isset($userId) ? $userId : core_Users::getCurrent('id', FALSE);
+    	if(empty($userId) || !core_Users::isContractor($userId)) return FALSE;
+    	
+    	$rec = self::fetchField("#folderId = {$folderId} AND #contractorId = {$userId}");
+    	if(!$rec) {
+    		$rec = (object)array('folderId' => $folderId, 'contractorId' => $userId);
+    		self::save($rec);
+    	}
+    	
+    	return $rec->id;
+    }
+    
+    
+    /**
      * Коя е първата споделена папка на фирма на партньор
      * 
      * @param int|NULL $userId - ид на партньор
