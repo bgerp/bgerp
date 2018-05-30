@@ -181,7 +181,7 @@ class plg_UserReg extends core_Plugin
                 }
                 
                 // Проверка дали никът не се повтаря
-                if ($eRec = $mvc->fetch("#nick = '{$rec->nick}'")) {
+                if ($eRec = $mvc->fetch("#nick = '{$rec->nick}'") || core_Users::isForbiddenNick($rec->nick)) {
                     if (EF_USSERS_EMAIL_AS_NICK) {
                         if ($eRec->state == 'active') {
                             $form->setError('email', "Вече има регистриран потребител с този имейл|*. |Ако сте забравили паролата си, можете да я възстановите тук");

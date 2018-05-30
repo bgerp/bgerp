@@ -188,6 +188,13 @@ class core_Users extends core_Manager
      * Кой има право да изтрива потребителите, създадени от системата?
      */
     public $canDeletesysdata = 'admin';
+    
+    
+    /**
+     * Масив със съответствие на mime типове към разширения
+     */
+    static $forbiddenNicksArr = array();
+    
 
     
     /**
@@ -469,6 +476,48 @@ class core_Users extends core_Manager
         
         return !(boolean) $cnt;
     }
+    
+    
+    /**
+     * Връща масив със списъка със забраненените имейли
+     */
+    public static function getForbiddenNicksArr()
+    {
+        if(empty(self::$forbiddenNicksArr)) {
+            // Вземаме цялото име на файла
+            $inc = getFullPath('core/data/forbiddenNicks.inc.php');
+            
+            // Инклудваме го, за да можем да му използваме променливите
+            include($inc);
+            
+            // Зареждаме масива в статична променлива
+            self::$forbiddenNicksArr = $forbiddenNicksArr;
+        }
+        
+        return self::$forbiddenNicksArr;
+    }
+    
+    
+    /**
+     * Проверява дали подададения ник е в списъка със забранените
+     *
+     * @param string $nick
+     *
+     * @return boolean
+     */
+    public static function isForbiddenNick($nick)
+    {
+        $fNicksArr = self::getForbiddenNicksArr();
+        
+        $nick = trim($nick);
+        $nick = mb_strtolower($nick);
+        
+        if ($fNicksArr[$nick]) return TRUE;
+        
+        return FALSE;
+    }
+    
+    
     
     
     /**
