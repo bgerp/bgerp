@@ -349,7 +349,7 @@ class eshop_Carts extends core_Master
     			if(!$cartRec->productCount) return new core_ET(' ');
     		}
     		
-    		$amount = core_Type::getByName('double(smartRound)')->toVerbal($cartRec->total);
+    		$amount = core_Type::getByName('double(decimals=2)')->toVerbal($cartRec->total);
     		$amount = str_replace('&nbsp;', ' ', $amount);
     		$count = core_Type::getByName('int')->toVerbal($cartRec->productCount);
     		$url = array('eshop_Carts', 'view', $cartId);
