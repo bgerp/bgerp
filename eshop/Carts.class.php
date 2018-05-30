@@ -127,7 +127,7 @@ class eshop_Carts extends core_Master
     	$this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Начин,mandatory');
     	$this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
     	
-    	$this->FLD('invoiceNames', 'varchar(255)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
+    	$this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
     	$this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактура->VAT/EIC,input=hidden,mandatory,invoiceData');
     	$this->FLD('invoiceAddress', 'varchar(255)', 'caption=Данни за фактура->Адрес,invoiceData,hint=Адрес на регистрация на фирмата,input=none,mandatory');
     	$this->FLD('invoicePCode', 'varchar(16)', 'caption=Данни за фактура->П. код,invoiceData,hint=Пощенски код на фирмата,input=none,mandatory');
@@ -594,6 +594,13 @@ class eshop_Carts extends core_Master
     		$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
     	}
     	
+    	if(isset($rec->paymentId)){
+    		//$paymentUrl = cond_PaymentMethods::getPaymentUrl($rec->paymentId);
+    		//$btn = ht::createBtn('Плащане', $paymentUrl, NULL, NULL, "title=Плащане на поръчката,class=order-btn eshop-btn {$disabledClass}");
+    		//$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
+    	}
+    	
+    	
     	if(eshop_Carts::haveRightFor('finalize', $rec)){
     		$btn = ht::createBtn('Финализиране', array(), NULL, NULL, "title=Финализиране на поръчката,class=order-btn eshop-btn {$disabledClass}");
     		$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
@@ -786,7 +793,17 @@ class eshop_Carts extends core_Master
     		$deliveryTerms = array('' => '') + $deliveryTerms;
     	}
     	$form->setOptions('termId', $deliveryTerms);
-    	$form->setDefault('makeInvoice', 'none');
+    	
+    	$makeInvoice = bgerp_Setup::get('MANDATORY_CONTACT_FIELDS');
+    	if($makeInvoice == 'company'){
+    		$form->setDefault('makeInvoice', 'company');
+    		$form->setField('makeInvoice', 'input=hidden');
+    	} elseif($makeInvoice != 'none'){
+    		$form->setDefault('makeInvoice', 'person');
+    		$form->setField('makeInvoice', 'input=hidden');
+    	} else {
+    		$form->setDefault('makeInvoice', 'none');
+    	}
     	
     	$form->input(NULL, 'silent');
     	
@@ -806,11 +823,13 @@ class eshop_Carts extends core_Master
     			foreach ($invoiceFields as $name => $fld){
     				$form->setField($name, 'input');
     			}
-    			$form->setField('invoiceNames', "caption=Данни за фактура->Име");
+    			
     			if($form->rec->makeInvoice == 'person'){
+    				$form->setField('invoiceNames', "caption=Данни за фактура->Име");
     				$form->setField('invoiceVatNo', "caption=Данни за фактура->ЕГН");
     				$form->setFieldType('invoiceVatNo', 'bglocal_EgnType');
     			} else {
+    				$form->setField('invoiceNames', "caption=Данни за фактура->Фирма");
     				$form->setField('invoiceVatNo', "caption=Данни за фактура->VAT/EIC");
     			}
     			$vatCaption = ($form->rec->makeInvoice == 'person') ? 'ЕГН' : 'VAT/EIC';
