@@ -424,7 +424,8 @@ class eshop_Carts extends core_Master
     	$tpl->replace(self::renderViewCart($rec), 'CART_TABLE');
     	$tpl->replace(self::renderCartSummary($rec), 'CART_TOTAL');
     	$tpl->replace(self::renderCartSummary($rec, TRUE), 'CART_COUNT');
-    	$tpl->replace(self::renderCartToolbar($rec, TRUE), 'CART_TOOLBAR');
+    	$tpl->replace(self::renderCartToolbar($rec, TRUE), 'CART_TOOLBAR_LEFT');
+		$tpl->replace(self::renderCartToolbar($rec, TRUE), 'CART_TOOLBAR_RIGHT');
     	$tpl->replace(self::getCartDisplayName(), 'CART_NAME');
     	 
     	$settings = cms_Domains::getSettings();
@@ -573,7 +574,7 @@ class eshop_Carts extends core_Master
     private static function renderCartToolbar($id)
     {
     	$rec = self::fetchRec($id);
-    	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock('CART_TOOLBAR');
+    	$tpl = clone getTplFromFile('eshop/tpl/SingleLayoutCartExternalBlocks.shtml')->getBlock('CART_TOOLBAR_RIGHT');
     	
     	if(!empty($rec->productCount) && eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
     		$emptyUrl = array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => getRetUrl());

@@ -24,12 +24,12 @@
 <span id = 'cart-view-count'>|с|* [#productCount#]</span>
 <!--ET_END CART_COUNT-->
 
-<!--ET_BEGIN CART_TOOLBAR-->
-<div id = 'cart-view-buttons-left'>[#CART_TOOLBAR_LEFT#]</div>
-<!--ET_END CART_TOOLBAR-->
+<!--ET_BEGIN CART_TOOLBAR_LEFT-->
+<div class = 'cart-view-buttons-left'>[#CART_TOOLBAR_LEFT#]</div>
+<!--ET_END CART_TOOLBAR_LEFT-->
 
 <!--ET_BEGIN CART_TOOLBAR_RIGHT-->
-<div id = 'cart-view-buttons-right'>[#CART_TOOLBAR_RIGHT#]</div>
+<div class = 'cart-view-buttons-right'>[#CART_TOOLBAR_RIGHT#]</div>
 <!--ET_END CART_TOOLBAR_RIGHT-->
 
 <!--ET_BEGIN SALE_BLOCK-->
@@ -59,7 +59,7 @@
                     <!--ET_END deliveryError-->
                     <!--ET_BEGIN instruction-->
                     <tr>
-                        <td>|Инструкции|*: [#instruction#]</td>
+                        <td>|Инструкции|*: <span class="richtext-holder"> [#instruction#]</span></td>
                     </tr>
                     <!--ET_END instruction-->
                 </table>

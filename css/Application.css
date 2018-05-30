@@ -2737,9 +2737,12 @@ span.sharing-history-title {
 #cart-view-total {
   margin-bottom: 10px; }
 
-#cart-view-buttons {
-  margin: 20px 0;
+.cart-view-buttons-left {
+  float: left;
   clear: both; }
+  .cart-view-buttons-left a {
+    display: block;
+    margin-bottom: 10px; }
 
 .eshop-link {
   font-size: 16px;

@@ -3169,9 +3169,13 @@ fieldset.sharing-history {
 	margin-bottom: 10px;
 }
 
-#cart-view-buttons {
-	margin: 20px 0;
+.cart-view-buttons-left {
+	float: left;
 	clear: both;
+	a {
+		display: block;
+		margin-bottom: 10px;
+	}
 }
 .eshop-link {
 	font-size: 16px;
