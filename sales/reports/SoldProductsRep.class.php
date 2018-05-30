@@ -252,7 +252,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$quantity = 0;
 		$flag = FALSE;
 		
-		while ( $recPrimes = $query->fetch () ) {
+		while ( $recPrime = $query->fetch () ) {
 		    
 		    $DetClass = cls::get ( $recPrime->detailClassId );
 
