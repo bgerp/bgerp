@@ -882,7 +882,7 @@ class marketing_Inquiries2 extends embed_Manager
     		$rec->brid = log_Browsers::getBrid();
     		
     		// Винаги се рутира към правилната папка
-    		$rec->folderId = marketing_InquiryRouter::route($rec);
+    		$rec->folderId = marketing_InquiryRouter::route($rec->company, $rec->email, $rec->country, $rec->tel, $rec->pCode, $rec->place, $rec->address, $rec->brid);
     		
     		// Запис и редирект
     		if($this->haveRightFor('new')){
