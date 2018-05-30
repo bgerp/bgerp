@@ -820,7 +820,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$form->FLD('quantityCount', 'double', 'input=hidden,silent');
     	$form->FLD('protos', 'varchar(10000)', 'input=hidden,silent');
     	
-    	$mandatoryField = marketing_Setup::get('INQUIRE_MANDATORY_FIELDS');
+    	$mandatoryField = bgerp_Setup::get('MANDATORY_CONTACT_FIELDS');
     	if(in_array($mandatoryField, array('company', 'both'))){
     		$form->setField('company', 'mandatory');
     	}
