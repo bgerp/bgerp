@@ -113,41 +113,19 @@ class marketing_InquiryRouter extends core_Manager
 	private static function routeInquiryFromCompany($rec, $inCharge)
 	{
 		// Намираме папка на компания с този имейл
-		core_Debug::startTimer("routebycompanyemail{$rec->id}");
-		
 		$folderId = marketing_Router::routeByCompanyEmail($rec->email, $inCharge);
-		
-		core_Debug::stopTimer("routebycompanyemail{$rec->id}");
-		$time1 = round(core_Debug::$timers["routebycompanyemail{$rec->id}"]->workingTime, 2);
-		log_System::add('marketing_Inquiries2', "routeByCompanyEmail - '{$time1}' - FOUND '{$folderId}'", $rec->id);
-		
 		if($folderId) return $folderId;
 		
 		// Рутиране според имейла, взимаме папката ако корицата и е фирма
-		core_Debug::startTimer("routeByEmail{$rec->id}");
 		$folderId = marketing_Router::routeByEmail($rec->email, 'company');
-		core_Debug::stopTimer("routeByEmail{$rec->id}");
-		$time2 = round(core_Debug::$timers["routeByEmail{$rec->id}"]->workingTime, 2);
-		log_System::add('marketing_Inquiries2', "routeByEmail - '{$time2}' - FOUND '{$folderId}'", $rec->id);
-		
 		if($folderId) return $folderId;
 		
 		// Рутираме в папка на фирма със същото име от същата държава
-		core_Debug::startTimer("routeByCompanyName{$rec->id}");
 		$folderId = marketing_Router::routeByCompanyName($rec->company, $rec->country, $inCharge);
-		core_Debug::stopTimer("routeByCompanyName{$rec->id}");
-		$time3 = round(core_Debug::$timers["routeByCompanyName{$rec->id}"]->workingTime, 2);
-		log_System::add('marketing_Inquiries2', "routeByCompanyName - '{$time3}' - FOUND '{$folderId}'", $rec->id);
-		
 		if($folderId) return $folderId;
 		
 		// Опит за рутиране по БРИД
-		core_Debug::startTimer("routeByBrid{$rec->id}");
 		$folderId = marketing_Router::routeByBrid($rec->brid);
-		core_Debug::stopTimer("routeByBrid{$rec->id}");
-		$time4 = round(core_Debug::$timers["routeByBrid{$rec->id}"]->workingTime, 2);
-		log_System::add('marketing_Inquiries2', "routeByBrid - '{$time4}' - FOUND '{$folderId}'", $rec->id);
-		
 		if($folderId) return $folderId;
 		
 		// Форсиране на папка и визитка на фирма с въведените данни
