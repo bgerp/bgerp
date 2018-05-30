@@ -189,8 +189,8 @@ class marketing_Inquiries2 extends embed_Manager
     	$this->FLD('quantity1', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47');
     	$this->FLD('quantity2', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
     	$this->FLD('quantity3', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
-    	$this->FLD('company', 'varchar(255)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=50');
-    	$this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Лице,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,oldFieldName=name');
+    	$this->FLD('company', 'varchar(128)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=50');
+    	$this->FLD('personNames', 'varchar(128)', 'caption=Контактни данни->Лице,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,oldFieldName=name');
     	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,formOrder=52,contragentDataField=countryId,mandatory');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,hint=Вашият имейл||Your email,formOrder=53,mandatory');
     	$this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Контактни данни->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
@@ -256,10 +256,20 @@ class marketing_Inquiries2 extends embed_Manager
     	$cu = core_Users::getCurrent('id', FALSE);
     	if(isset($cu) && !core_Users::isPowerUser()){
     		$personRec = crm_Profiles::getProfile($cu);
+    		
     		$emails = type_Emails::toArray($personRec->buzEmail);
     		$marketingEmail = count($emails) ? $emails[0] : $personRec->email;
     		$form->setDefault('personNames', $personRec->name);
     		$form->setDefault('email', $marketingEmail);
+    		
+    		if($companyFolderId = core_Mode::get('lastActiveCompanyFolder')){
+    			$form->setDefault('company', doc_Folders::getCover($companyFolderId)->fetchField('name'));
+    		}
+    		
+    		if(isset($personRec->buzCompanyId)){
+    			$companyName = crm_Companies::fetchField($personRec->buzCompanyId, 'name');
+    			$form->setDefault('company', $companyName);
+    		}
     	}
     	
     	$hide = (isset($cu) && core_Users::haveRole('partner', $cu)) ? TRUE : FALSE;

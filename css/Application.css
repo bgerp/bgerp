@@ -2737,9 +2737,12 @@ span.sharing-history-title {
 #cart-view-total {
   margin-bottom: 10px; }
 
-#cart-view-buttons {
-  margin: 20px 0;
+.cart-view-buttons-left {
+  float: left;
   clear: both; }
+  .cart-view-buttons-left a {
+    display: block;
+    margin-bottom: 10px; }
 
 .eshop-link {
   font-size: 16px;
@@ -2826,6 +2829,11 @@ span.sharing-history-title {
   float: right; }
     .summary-holder table td {
       padding: 5px 10px; }
+
+  .richtext-holder .richtext {
+    display: inline-block;
+    color: black;
+    line-height: 1em; }
 
 .remove-from-cart:hover {
   cursor: pointer; }

@@ -703,6 +703,12 @@ class colab_FolderToPartners extends core_Manager
     		}
     	}
     	
+    	if($form->isSubmitted()){
+    	    if (core_Users::isForbiddenNick($form->rec->nick)) {
+    	        $form->setError('nick', "Вече съществува запис със същите данни");
+    	    }
+    	}
+    	
     	$Users->invoke('AfterInputEditForm', array(&$form));
     	
     	// След събмит ако всичко е наред създаваме потребител, лице и профил
