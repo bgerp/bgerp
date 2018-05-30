@@ -3278,6 +3278,14 @@ fieldset.sharing-history {
 	}
 }
 
+.richtext-holder {
+	.richtext {
+		display: inline-block;
+		 color: #000;
+		line-height: 1em;
+	}
+}
+
 .remove-from-cart:hover {
 	cursor: pointer;
 }

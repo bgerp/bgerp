@@ -2827,6 +2827,11 @@ span.sharing-history-title {
     .summary-holder table td {
       padding: 5px 10px; }
 
+  .richtext-holder .richtext {
+    display: inline-block;
+    color: black;
+    line-height: 1em; }
+
 .remove-from-cart:hover {
   cursor: pointer; }
 
