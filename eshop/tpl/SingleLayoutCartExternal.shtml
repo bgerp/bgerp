@@ -14,8 +14,9 @@
         <div id='cart-view-domain-text'>[#COMMON_TEXT#]</div>
         <!--ET_END COMMON_TEXT-->
         <div class="toolbar">
-        [#CART_TOOLBAR#]
+        [#CART_TOOLBAR_LEFT#]
         </div>
+        [#CART_TOOLBAR_RIGHT#]
     </div>
-    <div id='cart-view-info' class="clearfix21">[#VAT_STATUS#]</div>
+
 </div>
