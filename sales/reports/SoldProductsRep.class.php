@@ -107,18 +107,18 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	}
 	
 	
-	// Action fo test //
+	// Action for test //
 	public static function act_testtt()
 	{
+	    requireRole('powerUser');
 	    
 	    $rec = unserialize(file_get_contents('debug.txt'));
 	    
-	    //bp($rec);
 	    self::prepareRecs($rec);
-	    
 	    
 	    bp($rec);
 	}
+	
 	////////////////////////////////////////////////////////////////
 	
 	/**
@@ -336,7 +336,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			$quantity = $quantityPrevious = $quantityLastYear = 0;
 			
 		}
-	
+	//bp($rec->group,$recs);
 	     $recs = $this->groupRecs($recs, $rec->group);
 		
 		
@@ -592,7 +592,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	                &$groups
 	            ));
 	        }
-	
+	       // bp($groups);
 	        // За всеки маркер
 	        foreach ($groups as $grId => $groupName) {
 	

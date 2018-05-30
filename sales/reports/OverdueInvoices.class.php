@@ -81,6 +81,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         // Масив със записи от изходящи фактури
         $sRecs = array();
         
+        $salesQuery = sales_Sales::getQuery();
+        
+        $salesQuery->where("#closedDocuments != ''");
+        
         $sQuery = sales_Invoices::getQuery();
         
         $sQuery->where("#state = 'active'");
@@ -89,6 +93,19 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             "#createdOn < '[#1#]'",
             $rec->checkDate . ' 23:59:59'
         ));
+        
+        
+        //Масив с затварящи документи по обединени договори //
+        $salesUN = array();
+        
+        while ($sale = $salesQuery->fetch()) {
+            
+            foreach ((keylist::toArray($sale->closedDocuments)) as $v) {
+                $salesUN[$v] = ($v);
+            }
+        }
+        
+        $salesUN = keylist::fromArray($salesUN);
         
         // Фактури ПРОДАЖБИ
         while ($salesAllInvoices = $sQuery->fetch()) {
@@ -119,6 +136,15 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             if ($cQuery->fetch()->overdueSales != 'yes')
                 continue;
             
+                $firstDocument = doc_Threads::getFirstDocument($salesInvoices->threadId);
+                
+                $className = $firstDocument->className;
+                
+                $unitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $salesUN);
+                
+                if (($className::fetchField($firstDocument->that, 'state') == 'closed') && ! $unitedCheck)
+                    continue;
+            
             $threadsId[$salesInvoices->threadId] = $salesInvoices->threadId;
         }
         
@@ -136,7 +162,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                     // фактура от нишката и масив от платежни документи по тази фактура//
                     foreach ($invoicePayments as $inv => $paydocs) {
                         
-                        if (($paydocs->payout > $paydocs->amount - 0.01) && ($paydocs->payout < $paydocs->amount + 0.01))
+                        if (($paydocs->payout >= $paydocs->amount - 0.01) && 
+                            ($paydocs->payout <= $paydocs->amount + 0.01))
                             continue;
                         
                         $Invoice = doc_Containers::getDocument($inv);
