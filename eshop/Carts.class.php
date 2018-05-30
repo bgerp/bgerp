@@ -583,22 +583,22 @@ class eshop_Carts extends core_Master
     	
     	if(eshop_CartDetails::haveRightFor('add', (object)array('cartId' => $rec->id))){
     		$addUrl = array('eshop_CartDetails', 'add', 'cartId' => $rec->id, 'external' => TRUE, 'ret_url' => TRUE);
-    		$btn = ht::createLink('Добавяне', $addUrl, NULL, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
-    		$tpl->append($btn, 'CART_TOOLBAR');
+    		$btn = ht::createLink('Добавяне на артикул', $addUrl, NULL, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
+    		$tpl->append($btn, 'CART_TOOLBAR_LEFT');
     	}
     	
-    	$btn = ht::createLink('Пазаруване', cls::get('eshop_Groups')->getUrlByMenuId(NULL), NULL, 'title=Към онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
-    	$tpl->append($btn, 'CART_TOOLBAR');
+    	$btn = ht::createLink('Продължи пазаруването', cls::get('eshop_Groups')->getUrlByMenuId(NULL), NULL, 'title=Към онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
+    	$tpl->append($btn, 'CART_TOOLBAR_LEFT');
     	
     	$checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE) : array();
     	if(empty($rec->personNames)){
     		$btn = ht::createBtn('Данни за поръчка', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=order-btn eshop-btn {$disabledClass}");
-    		$tpl->append($btn, 'CART_TOOLBAR');
+    		$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
     	}
     	
     	if(eshop_Carts::haveRightFor('finalize', $rec)){
     		$btn = ht::createBtn('Финализиране', array(), NULL, NULL, "title=Финализиране на поръчката,class=order-btn eshop-btn {$disabledClass}");
-    		$tpl->append($btn, 'CART_TOOLBAR');
+    		$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
     	}
     	
     	$tpl->removeBlocks();
