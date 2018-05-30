@@ -108,13 +108,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	
 	
 	// Action for test //
-	public static function act_testtt()
+	public static function act_test()
 	{
 	    requireRole('powerUser');
 	    
 	    $rec = unserialize(file_get_contents('debug.txt'));
 	    
 	    self::prepareRecs($rec);
+	    
+	    self::groupRecs($recs, $group);
 	    
 	    bp($rec); // $rec->count - брой документи //
 	}
@@ -263,6 +265,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     	            if (in_array($recPrime->detailRecId, $salesWithShipArr))continue;
     	        
     	        }
+    	        
     	    }
 			$id = $recPrime->productId;
 			
@@ -347,9 +350,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			
 		}
 	
-	//bp($rec->group,$recs);
-	     $recs = $this->groupRecs($recs, $rec->group);
-		
+		$recs = self::groupRecs($recs, $rec->group);
 		
 		return $recs;
 		
