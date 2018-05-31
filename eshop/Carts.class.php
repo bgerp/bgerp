@@ -129,10 +129,10 @@ class eshop_Carts extends core_Master
     	
     	$this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
     	$this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактура->VAT/EIC,input=hidden,mandatory,invoiceData');
-    	$this->FLD('invoiceAddress', 'varchar(255)', 'caption=Данни за фактура->Адрес,invoiceData,hint=Адрес на регистрация на фирмата,input=none,mandatory');
+    	$this->FLD('invoiceCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за фактура->Държава,hint=Фирма на държавата,input=none,mandatory,invoiceData');
     	$this->FLD('invoicePCode', 'varchar(16)', 'caption=Данни за фактура->П. код,invoiceData,hint=Пощенски код на фирмата,input=none,mandatory');
     	$this->FLD('invoicePlace', 'varchar(64)', 'caption=Данни за фактура->Град,invoiceData,hint=Населено място: град или село и община,input=none,mandatory');
-    	$this->FLD('invoiceCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за фактура->Държава,hint=Фирма на държавата,input=none,mandatory,invoiceData');
+    	$this->FLD('invoiceAddress', 'varchar(255)', 'caption=Данни за фактура->Адрес,invoiceData,hint=Адрес на регистрация на фирмата,input=none,mandatory');
     	
     	$this->FLD('info', 'richtext(rows=2)', 'caption=Общи данни->Забележка,input=none');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активно,closed=Приключено,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
@@ -392,6 +392,28 @@ class eshop_Carts extends core_Master
     }
     
     
+    public function act_Finalize()
+    {
+    	$this->requireRightFor('finalize');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = self::fetch($id));
+    	$this->requireRightFor('finalize', $rec);
+    	
+    	$company = NULL;
+    	$personNames = $rec->personNames;
+    	if($rec->makeInvoice == 'company'){
+    		$company = $rec->invoiceNames;
+    	} elseif($rec->makeInvoice == 'person'){
+    		$personNames = $rec->invoiceNames;
+    	}
+    	
+    	bp($company, $personNames);
+    	
+    	$folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
+    	
+    }
+    
+    
     /**
      * След изтриване
      *
@@ -426,11 +448,7 @@ class eshop_Carts extends core_Master
     	self::renderCartToolbar($rec, $tpl);
     	self::renderCartSummary($rec, $tpl);
     	self::renderCartOrderInfo($rec, $tpl);
-    	
-    	
     	$tpl->replace(self::getCartDisplayName(), 'CART_NAME');
-    	
-    	 
     	$settings = cms_Domains::getSettings();
     	 
     	if(!empty($settings->info)){
@@ -461,7 +479,6 @@ class eshop_Carts extends core_Master
     	$tpl->append('</div>');
     	
     	Mode::set('wrapper', 'cms_page_External');
-    	
     	
     	return $tpl;
     }
@@ -575,17 +592,17 @@ class eshop_Carts extends core_Master
     	
     	if(!empty($rec->productCount) && eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
     		$emptyUrl = array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => $shopUrl);
-    		$btn = ht::createLink('Изчисти', $emptyUrl, NULL, 'title=Премахване на артикулите,class=eshop-link,ef_icon=img/16/deletered.png');
+    		$btn = ht::createLink('Изчистване', $emptyUrl, NULL, 'title=Изчистване на артикулите,class=eshop-link,ef_icon=img/16/deletered.png');
     		$tpl->append($btn, 'EMPTY_CART');
     	}
     	
     	if(eshop_CartDetails::haveRightFor('add', (object)array('cartId' => $rec->id))){
     		$addUrl = array('eshop_CartDetails', 'add', 'cartId' => $rec->id, 'external' => TRUE, 'ret_url' => TRUE);
-    		$btn = ht::createLink('Добавяне на артикул', $addUrl, NULL, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
+    		$btn = ht::createLink('Нов артикул', $addUrl, NULL, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
     		$tpl->append($btn, 'CART_TOOLBAR_LEFT');
     	}
     	
-    	$btn = ht::createLink('Продължи пазаруването', $shopUrl, NULL, 'title=Към онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
+    	$btn = ht::createLink('Пазаруване', $shopUrl, NULL, 'title=Към онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
     	$tpl->append($btn, 'CART_TOOLBAR_LEFT');
     	
     	$checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE) : array();
@@ -600,9 +617,8 @@ class eshop_Carts extends core_Master
     		//$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
     	}
     	
-    	
     	if(eshop_Carts::haveRightFor('finalize', $rec)){
-    		$btn = ht::createBtn('Финализиране', array(), NULL, NULL, "title=Финализиране на поръчката,class=order-btn eshop-btn {$disabledClass}");
+    		$btn = ht::createBtn('Финализиране', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте че искате да завършите поръчката|*!', NULL, "title=Финализиране на поръчката,class=order-btn eshop-btn {$disabledClass}");
     		$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
     	}
     }
@@ -753,6 +769,8 @@ class eshop_Carts extends core_Master
     	if($action == 'finalize' && isset($rec)){
     		if(empty($rec->personNames)){
     			$requiredRoles = 'no_one';
+    		} elseif($rec->deliveryNoVat < 0){
+    			$requiredRoles = 'no_one';
     		}
     	}
     }
@@ -795,14 +813,9 @@ class eshop_Carts extends core_Master
     	$form->setOptions('termId', $deliveryTerms);
     	
     	$makeInvoice = bgerp_Setup::get('MANDATORY_CONTACT_FIELDS');
-    	if($makeInvoice == 'company'){
+    	if(in_array($makeInvoice, array('company', 'both'))){
     		$form->setDefault('makeInvoice', 'company');
     		$form->setField('makeInvoice', 'input=hidden');
-    	} elseif($makeInvoice != 'none'){
-    		$form->setDefault('makeInvoice', 'person');
-    		$form->setField('makeInvoice', 'input=hidden');
-    	} else {
-    		$form->setDefault('makeInvoice', 'none');
     	}
     	
     	$form->input(NULL, 'silent');
@@ -841,7 +854,6 @@ class eshop_Carts extends core_Master
     	}
     	
     	$form->input();
-    	
     	if($Driver){
     		$Driver->checkForm($form);
     	}
@@ -849,7 +861,6 @@ class eshop_Carts extends core_Master
     	if($form->isSubmitted()){
     		$rec = $form->rec;
     		$rec->deliveryData = array();
-    		
     		if($Driver){
     			if(!$form->gotErrors()){
     				$fields = $Driver->getFields();
@@ -861,8 +872,8 @@ class eshop_Carts extends core_Master
     		
     		$this->save($rec);
     		$this->updateMaster($rec);
-    		
     		core_Lg::pop();
+    		
     		return followRetUrl();
     	}
     	
