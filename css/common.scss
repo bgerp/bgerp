@@ -1217,6 +1217,10 @@ a.profile {
 	&.no-one {
 		font-style: italic;
 	}
+	&.state-rejected {
+		display: inline-block;
+		color: #777 !important;
+	}
 }
 
 .profile-state {
