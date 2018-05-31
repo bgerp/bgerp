@@ -245,7 +245,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         
         $ext = fileman::getExt($fRec->name);
         
-        expect($ext === 'html' || $ext === 'xhtml' || $ext === 'txt');
+        expect($ext === 'html' || $ext === 'xhtml' || $ext === 'txt', $ext);
         
         $retUrl = getRetUrl();
         
@@ -262,7 +262,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
                 $edit = '';
             }
             
-            $newName = $nameArr['name'] . $edit . $name['ext'];
+            $newName = $nameArr['name'] . $edit . $nameArr['ext'];
             $newFileHnd = fileman::absorbStr($html, $bucket, $newName);
             
             if ($newFileHnd) {
