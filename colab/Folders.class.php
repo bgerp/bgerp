@@ -191,8 +191,12 @@ class colab_Folders extends core_Manager
 	
 	/**
 	 * Връща всички споделени папки до този контрактор
+	 * 
+	 * @param int|NULL $cu            - потребител 
+	 * @param boolean  $showTitle     - дали папките да са заглавия
+	 * @return array   $sharedFolders - масив със споделените папки
 	 */
-	public static function getSharedFolders($cu = NULL)
+	public static function getSharedFolders($cu = NULL, $showTitle = FALSE)
 	{
 		if(!$cu){
 			$cu = core_Users::getCurrent();
@@ -204,12 +208,14 @@ class colab_Folders extends core_Manager
 		
 		$sharedQuery = colab_FolderToPartners::getQuery();
 		$sharedQuery->EXT('state', 'doc_Folders', 'externalName=state,externalKey=folderId');
+		$sharedQuery->EXT('title', 'doc_Folders', 'externalName=title,externalKey=folderId');
 		$sharedQuery->where("#contractorId = {$cu}");
 		$sharedQuery->where("#state != 'rejected'");
-		$sharedQuery->show('folderId');
+		$sharedQuery->show('folderId,title');
 		$sharedQuery->groupBy('folderId');
 		while($fRec = $sharedQuery->fetch()){
-			$sharedFolders[$fRec->folderId] = $fRec->folderId;
+			$value = ($showTitle === TRUE) ? $fRec->title : $fRec->folderId;
+			$sharedFolders[$fRec->folderId] = $value;
 		}
 		
 		return $sharedFolders;
