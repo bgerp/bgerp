@@ -237,7 +237,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
      */
     function act_editHtml()
     {
-        requireRole('powerUser');
+        requireRole('user');
         
         $fh = Request::get('fileHnd');
         
