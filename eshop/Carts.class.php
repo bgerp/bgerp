@@ -125,8 +125,9 @@ class eshop_Carts extends core_Master
     	$this->FLD('instruction', 'richtext(rows=2)', 'caption=Доставка->Инструкции');
     	
     	$this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Начин,mandatory');
-    	$this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
+    	$this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=saleFolderId|invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
     	
+    	$this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактура->Папка,input=hidden,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
     	$this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
     	$this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактура->VAT/EIC,input=hidden,mandatory,invoiceData');
     	$this->FLD('invoiceCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за фактура->Държава,hint=Фирма на държавата,input=none,mandatory,invoiceData');
@@ -407,7 +408,6 @@ class eshop_Carts extends core_Master
     		$personNames = $rec->invoiceNames;
     	}
     	
-    	bp($company, $personNames);
     	
     	$folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
     	
@@ -500,6 +500,14 @@ class eshop_Carts extends core_Master
     	$tpl->replace($row->paymentId, 'paymentId');
     	if($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)){
     		$tpl->replace($Driver->renderDeliveryInfo($rec), 'DELIVERY_BLOCK');
+    	}
+    	
+    	if($companyFolderId = core_Mode::get('lastActiveCompanyFolder')){
+    		if(colab_Threads::haveRightFor('list', (object)array('folderId' => $companyFolderId))){
+    			$folderTitle = doc_Folders::getVerbal($companyFolderId, 'title');
+				$activeFolderId = ht::createLink($folderTitle, array('colab_Threads', 'list', 'folderId' => $companyFolderId), FALSE, 'ef_icon=img/16/folder-icon.png');
+				$tpl->append($activeFolderId, 'activeFolderId');
+    		}
     	}
     	
     	if(self::haveRightFor('checkout', $rec)){
@@ -694,15 +702,16 @@ class eshop_Carts extends core_Master
     		$data->rows[$dRec->id] = $row;
     	}
     	
-    	if(isset($data->rec->deliveryNoVat)){
-    		if($data->rec->deliveryNoVat >= 0){
-    			$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-    			$deliveryAmount = $data->rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
-    			$deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, NULL, NULL, $settings->currencyId);
-    			$deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+    	// Ако има доставка
+    	if(isset($data->rec->deliveryNoVat) && $data->rec->deliveryNoVat >= 0){
+    		
+    		// Показва се сумата на доставка
+    		$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+    		$deliveryAmount = $data->rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
+    		$deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, NULL, NULL, $settings->currencyId);
+    		$deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
     			
-    			$data->rows['-1'] = (object)array('productId' => "<b>" . tr('Доставка') . "</b>", 'amount' => "<b>" . $deliveryAmount. "</b>");
-    		}
+    		$data->rows['-1'] = (object)array('productId' => "<b>" . tr('Доставка') . "</b>", 'amount' => "<b>" . $deliveryAmount. "</b>");
     	}
     }
     
@@ -800,9 +809,26 @@ class eshop_Carts extends core_Master
     	
     	$form = $this->getForm();
     	$form->rec = $rec;
+    	$form->title = 'Данни за поръчка';
     	
-    	$form->title = 'Информация за поръчка';
-    	$form->formAttr['id'] = 'checkoutForm';
+    	if($cu = core_Users::getCurrent('id', FALSE)){
+    		
+    		// Има ли споделени папки контрактора
+    		$options = colab_Folders::getSharedFolders($cu, TRUE, 'crm_CompanyAccRegIntf');
+    		
+    		// Задаване като опции
+    		if(count($options)){
+    			$form->setDefault('makeInvoice', 'company');
+    			$form->setField('makeInvoice', 'input=hidden');
+    			$form->setField('saleFolderId', 'input,mandatory');
+    			$form->setOptions('saleFolderId', $options);
+    			
+    			// Коя папка е избрана по дефолт
+    			$companyFolderId = core_Mode::get('lastActiveCompanyFolder');
+    			$defaultFolder = ($companyFolderId) ? $companyFolderId : key($options);
+    			$form->setDefault('saleFolderId', $defaultFolder);
+    		}
+    	}
     	
     	$deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
     	if(count($deliveryTerms) == 1){
@@ -819,7 +845,20 @@ class eshop_Carts extends core_Master
     	}
     	
     	$form->input(NULL, 'silent');
+    	if(isset($form->rec->saleFolderId)){
+    		
+    		// Ако има избрана папка записване на контрагент данните
+    		if($contragentData = doc_Folders::getContragentData($form->rec->saleFolderId)){
+    			$form->setDefault('invoiceNames', $contragentData->company);
+    			$form->setDefault('invoiceVatNo', $contragentData->vatNo);
+    			$form->setDefault('invoiceCountry', $contragentData->countryId);
+    			$form->setDefault('invoicePCode', $contragentData->pCode);
+    			$form->setDefault('invoicePlace', $contragentData->place);
+    			$form->setDefault('invoiceAddress', $contragentData->address);
+    		}
+    	}
     	
+    	// Ако има условие на доставка то драйвера му може да добави допълнителни полета
     	if(isset($form->rec->termId)){
     		if($Driver = cond_DeliveryTerms::getTransportCalculator($form->rec->termId)){
     			$Driver->addFields($form);
@@ -830,26 +869,25 @@ class eshop_Carts extends core_Master
     		}
     	}
     	
-    	if(isset($form->rec->makeInvoice)){
-    		$invoiceFields = $form->selectFields("#invoiceData");
-    		if($form->rec->makeInvoice != 'none'){
-    			foreach ($invoiceFields as $name => $fld){
-    				$form->setField($name, 'input');
-    			}
+    	$invoiceFields = $form->selectFields("#invoiceData");
+    	if($form->rec->makeInvoice != 'none'){
     			
-    			if($form->rec->makeInvoice == 'person'){
-    				$form->setField('invoiceNames', "caption=Данни за фактура->Име");
-    				$form->setField('invoiceVatNo', "caption=Данни за фактура->ЕГН");
-    				$form->setFieldType('invoiceVatNo', 'bglocal_EgnType');
-    			} else {
-    				$form->setField('invoiceNames', "caption=Данни за фактура->Фирма");
-    				$form->setField('invoiceVatNo', "caption=Данни за фактура->VAT/EIC");
-    			}
-    			$vatCaption = ($form->rec->makeInvoice == 'person') ? 'ЕГН' : 'VAT/EIC';
+    		// Ако има ф-ра полетата за ф-ра се показват
+    		foreach ($invoiceFields as $name => $fld){
+    			$form->setField($name, 'input');
+    		}
+    		if($form->rec->makeInvoice == 'person'){
+    			$form->setField('invoiceNames', "caption=Данни за фактура->Име");
+    			$form->setField('invoiceVatNo', "caption=Данни за фактура->ЕГН");
+    			$form->setFieldType('invoiceVatNo', 'bglocal_EgnType');
     		} else {
-    			foreach ($invoiceFields as $name => $fld){
-    				$form->setField($name, 'input=none');
-    			}
+    			$form->setField('invoiceNames', "caption=Данни за фактура->Фирма");
+    			$form->setField('invoiceVatNo', "caption=Данни за фактура->VAT/EIC");
+    		}
+    		$vatCaption = ($form->rec->makeInvoice == 'person') ? 'ЕГН' : 'VAT/EIC';
+    	} else {
+    		foreach ($invoiceFields as $name => $fld){
+    			$form->setField($name, 'input=none');
     		}
     	}
     	
@@ -860,6 +898,8 @@ class eshop_Carts extends core_Master
     	
     	if($form->isSubmitted()){
     		$rec = $form->rec;
+    		
+    		// Компресиране на данните за доставка от драйвера
     		$rec->deliveryData = array();
     		if($Driver){
     			if(!$form->gotErrors()){
