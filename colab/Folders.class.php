@@ -307,7 +307,7 @@ class colab_Folders extends core_Manager
     	if(!$Cover->haveInterface('crm_CompanyAccRegIntf')) return;
     	
     	$companyFolderId = core_Mode::get('lastActiveCompanyFolder');
-    	if($companyFolderId != $folderId){core_Statuses::newStatus($folderId);
+    	if($companyFolderId != $folderId){
     		Mode::setPermanent('lastActiveCompanyFolder', $folderId);
     	}
     }
