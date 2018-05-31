@@ -483,8 +483,6 @@ class colab_FolderToPartners extends core_Manager
     	expect($companyRec = crm_Companies::fetch($companyId));
     	$companyName = crm_Companies::getVerbal($companyId, 'name');
     	
-        core_Lg::push(drdata_Countries::getLang($companyRec->country));
-
     	$this->requireRightFor('sendemail', $companyRec);
     	
     	$form = cls::get('core_Form');
@@ -505,12 +503,14 @@ class colab_FolderToPartners extends core_Manager
     	
     	$form->setDefault('from', email_Outgoings::getDefaultInboxId());
     	
+    	core_Lg::push(drdata_Countries::getLang($companyRec->country));
+    	
     	$subject = tr("Създайте нов акаунт в") . " " . core_Setup::get('EF_APP_TITLE', TRUE);
 
     	$form->setDefault('subject', $subject);
     	
     	$placeHolder = '{{' . tr('линк||link') . '}}';
-
+    	
     	$body = new ET(
             tr("Уважаеми потребителю||Dear User") . ",\n\n" . 
             tr("За да се регистрираш като служител на фирма||To have registration as a member of company") .
@@ -526,6 +526,8 @@ class colab_FolderToPartners extends core_Manager
 		$body = $body->getContent() . "\n\n" . $footer;
 		
     	$form->setDefault('body', $body);
+    	
+    	core_Lg::pop();
     	
     	$form->input();
 
@@ -551,9 +553,7 @@ class colab_FolderToPartners extends core_Manager
     	 
     	$tpl = $this->renderWrapping($form->renderHtml());
     	core_Form::preventDoubleSubmission($tpl, $form);
-    	
-        core_Lg::pop();
-
+        
     	return $tpl;
     }
     
