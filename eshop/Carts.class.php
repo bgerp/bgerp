@@ -670,17 +670,17 @@ class eshop_Carts extends core_Master
     	
     	if(!empty($rec->productCount) && eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
     		$emptyUrl = array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => $shopUrl);
-    		$btn = ht::createLink('Изчистване', $emptyUrl, NULL, 'title=Изчистване на артикулите,class=eshop-link,ef_icon=img/16/deletered.png');
+    		$btn = ht::createLink('Изчисти', $emptyUrl, NULL, 'title=Премахване на артикулите,class=eshop-link,ef_icon=img/16/deletered.png');
     		$tpl->append($btn, 'EMPTY_CART');
     	}
     	
     	if(eshop_CartDetails::haveRightFor('add', (object)array('cartId' => $rec->id))){
     		$addUrl = array('eshop_CartDetails', 'add', 'cartId' => $rec->id, 'external' => TRUE, 'ret_url' => TRUE);
-    		$btn = ht::createLink('Нов артикул', $addUrl, NULL, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
+    		$btn = ht::createLink('Добавяне на артикул', $addUrl, NULL, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
     		$tpl->append($btn, 'CART_TOOLBAR_LEFT');
     	}
     	
-    	$btn = ht::createLink('Пазаруване', $shopUrl, NULL, 'title=Към онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
+    	$btn = ht::createLink('Продължи пазаруването', $shopUrl, NULL, 'title=Към онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
     	$tpl->append($btn, 'CART_TOOLBAR_LEFT');
     	
     	$checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE) : array();
