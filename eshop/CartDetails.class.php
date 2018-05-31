@@ -512,6 +512,7 @@ class eshop_CartDetails extends core_Detail
 	private static function updatePriceInfo(&$rec, $domainId = NULL, $save = FALSE)
 	{
 		$settings = cms_Domains::getSettings($domainId);
+		$rec->currencyId = isset($rec->currencyId) ? $rec->currencyId : $settings->currencyId;
 		
 		if(isset($settings->listId)){
 			$price = price_ListRules::getPrice($settings->listId, $rec->productId, $rec->packagingId);

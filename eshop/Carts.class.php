@@ -32,7 +32,7 @@ class eshop_Carts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'ip,brid,domainId,userId,state';
+    public $listFields = 'ip,brid,domainId,userId,saleId,activatedOn,state';
     
     
     /**
@@ -137,6 +137,8 @@ class eshop_Carts extends core_Master
     	
     	$this->FLD('info', 'richtext(rows=2)', 'caption=Общи данни->Забележка,input=none');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активно,closed=Приключено,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
+    	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
+    	$this->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated->На,input=none');
     	
     	$this->setDbIndex('brid');
     	$this->setDbIndex('userId');
@@ -255,7 +257,10 @@ class eshop_Carts extends core_Master
     	return $rec->id;
     }
     
-    
+    function act_Test()
+    {
+    	$this->updateMaster(24);
+    }
     /**
      * Обновява данни в мастъра
      *
@@ -291,9 +296,10 @@ class eshop_Carts extends core_Master
     		}
     	}
     	
+    	
     	while($dRec = $dQuery->fetch()){
     		$rec->productCount++;
-    		$finalPrice = $dRec->finalPrice;
+    		$finalPrice = currency_CurrencyRates::convertAmount($dRec->finalPrice, NULL, $dRec->currencyId);
     		if(!$dRec->discount){
     			$finalPrice -= $finalPrice * $dRec->discount;
     		}
@@ -393,6 +399,9 @@ class eshop_Carts extends core_Master
     }
     
     
+    /**
+     * Финализиране на поръчката
+     */
     public function act_Finalize()
     {
     	$this->requireRightFor('finalize');
@@ -408,9 +417,70 @@ class eshop_Carts extends core_Master
     		$personNames = $rec->invoiceNames;
     	}
     	
+    	// Рутиране в папка
+    	$folderId = isset($rec->saleFolderId) ? $rec->saleFolderId : marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
+    	$Cover = doc_Folders::getCover($folderId);
+    	$settings = cms_Domains::getSettings();
     	
-    	$folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
+    	// Дефолтни данни на продажбата
+    	$fields = array('valior'           => dt::today(), 
+    			        'deliveryTermId'   => $rec->termId, 
+    			        'deliveryTermTime' => $rec->deliveryTime, 
+    			        'paymentMethodId'  => $rec->paymentId, 
+    			        'makeInvoice'      => ($rec->makeInvoice == 'none') ? 'no' : 'yes',
+    					'chargeVat'        => $settings->chargeVat,
+    					'currencyId'       => $settings->currencyId,
+    					'shipmentStoreId'  => $settings->storeId,
+    	);
     	
+    	// Създаване на продажба по количката
+   		$saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
+   		sales_SalesDetails::delete("#saleId = {$saleId}");
+   		
+   		// Добавяне на артикулите от количката в продажбата
+   		$dQuery = eshop_CartDetails::getQuery();
+   		$dQuery->where("#cartId = {$id}");
+   		while($dRec = $dQuery->fetch()){
+   			$price = isset($dRec->discount) ? ($dRec->finalPrice / (1 - $dRec->discount)) : $dRec->finalPrice;
+   			$price = $price / $dRec->quantityInPack;
+   			if($dRec->haveVat == 'yes'){
+   				$price /= 1 + $dRec->vat;
+   			}
+   			
+   			$price = currency_CurrencyRates::convertAmount($price, NULL, $dRec->currencyId);
+   			$price = round($price, 2);
+   			
+   			sales_Sales::addRow($saleId, $dRec->productId, $dRec->packQuantity, $price, $dRec->packagingId, $dRec->discount);
+   		}
+   		
+   		// Добавяне на транспорта, ако има
+   		if(isset($rec->deliveryNoVat) && $rec->deliveryNoVat > 0){
+   			$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+   			sales_Sales::addRow($saleId, $transportId, 1, $rec->deliveryNoVat);
+   		}
+   		
+   		// Продажбата става на заявка
+   		$saleRec = sales_Sales::fetch($saleId);
+   		$saleRec->state = 'pending';
+   		$saleRec->brState = 'draft';
+   		$saleRec->pendingSaved = TRUE;
+   		sales_Sales::save($saleRec, 'state');
+   		
+   		// Активиране на количката
+   		$rec->saleId = $saleId;
+   		$rec->state = 'active';
+   		$rec->activatedOn = dt::now();
+   		self::save($rec, 'state,saleId,activatedOn');
+   		
+   		// Ако е партньор и има достъп до нишката, директно се реидректва към нея
+   		if(core_Packs::isInstalled('colab') && core_Users::isContractor()){
+   			doc_Threads::doUpdateThread($saleRec->threadId);
+   			$threadRec = doc_Threads::fetch($saleRec->threadId);
+   			
+   			if(colab_Threads::haveRightFor('single', $threadRec)){
+   				return new Redirect(array('colab_Threads', 'single', 'threadId' => $saleRec->threadId), 'Успешно създадена заявка за продажба');
+   			}
+   		}
     }
     
     
@@ -791,6 +861,10 @@ class eshop_Carts extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
+    	
+    	if(isset($rec->saleId)){
+    		$row->saleId = sales_Sales::getLink($rec->saleId, 0);
+    	}
     }
     
     
