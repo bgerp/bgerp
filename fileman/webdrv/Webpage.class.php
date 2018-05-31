@@ -245,7 +245,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         
         $ext = fileman::getExt($fRec->name);
         
-        expect($ext === 'html' || $ext === 'xhtml');
+        expect($ext === 'html' || $ext === 'xhtml' || $ext === 'txt');
         
         $retUrl = getRetUrl();
         
