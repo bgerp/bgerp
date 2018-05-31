@@ -375,7 +375,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
 	        $row->invoice = ht::createLink($number,$url,FALSE, array('ef_icon' => 'img/16/invoice.png'));
 	    }
 
-        $row->dealer = crm_Profiles::createLink($rec->dealer, $row->dealer);
+        $row->dealer = crm_Profiles::createLink($rec->dealer);
 
 	    foreach (array('uDelay', 'delay1', 'delay2', 'delay3', 'amount') as $fld){
 	       if (isset($rec->{$fld})) {
