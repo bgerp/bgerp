@@ -193,7 +193,7 @@ class bgerp_Bookmark extends core_Manager
             $attr['onclick'] = "addParamsToBookmarkBtn(this, '{$sUrl}', '{$localUrl}'); return ;";
 
             $attr['class'] = 'bookmarkLink addBookmarkLink';
-            $img =  ht::createElement('img', array('src' => sbf('img/32/' . $icon, ''), 'title' => tr('Добавяне на връзка'), 'width' => 20, 'height' => 20, 'alt' => 'add bookmark'));
+            $img =  ht::createElement('img', array('src' => sbf('img/32/' . $icon, ''), 'title' => 'Добавяне на връзка', 'width' => 20, 'height' => 20, 'alt' => 'add bookmark'));
             $tpl = ht::createLink($img, $url, FALSE, $attr);
         }
         

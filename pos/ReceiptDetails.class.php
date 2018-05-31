@@ -451,7 +451,7 @@ class pos_ReceiptDetails extends core_Detail {
     		$delUrl = toUrl(array($mvc->className, 'deleteRec'), 'local');
     		$row->DEL_BTN = ht::createElement('img', array('src' => sbf('img/16/deletered.png', ''), 
     													   'class' => 'pos-del-btn', 'data-recId' => $rec->id, 
-    													   'title' => tr('Изтриване на реда'),
+    													   'title' => 'Изтриване на реда',
     													   'data-warning' => tr('|Наистина ли искате да изтриете записа|*?'), 
     													   'data-url' => $delUrl));
     	}
