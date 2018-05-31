@@ -65,7 +65,9 @@
          </div>
          
          <div class="half-width fright">
-         	<div>|Активна папка|* [#activeFolderId#]</div>
+            <!--ET_BEGIN activeFolderId-->
+         	<div style="padding-bottom: 5px;">|Последна папка|*: [#activeFolderId#]</div>
+            <!--ET_END activeFolderId-->
          	<!--ET_BEGIN INVOICE_BLOCK-->
          	[#INVOICE_BLOCK#]
             <h4 style="margin-bottom: 5px;">|Информация за фактура|*</h4>
