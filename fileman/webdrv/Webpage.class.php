@@ -262,7 +262,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
                 $edit = '';
             }
             
-            $newName = $nameArr['name'] . $edit . $nameArr['ext'];
+            $newName = $nameArr['name'] . $edit . '.' . $nameArr['ext'];
             $newFileHnd = fileman::absorbStr($html, $bucket, $newName);
             
             if ($newFileHnd) {
