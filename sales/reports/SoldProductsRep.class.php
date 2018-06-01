@@ -449,7 +449,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		) as $fld ) {
 		    $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal( $dRec->{$fld} );
 			if ($dRec->{$fld} < 0) {
-			    $row->{$fld} = "<span class='red'>".core_Type::getByName('double(decimals=2)')->toVerbal{$dRec->{$fld}}."</span>";
+			    
+			 
+			    $row->{$fld} = "<span class='red'>".core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld})."</span>";
 			}
 		}
 		
