@@ -253,22 +253,33 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
             $retUrl = array('fileman_Files', 'single', $fh);
         }
         
+        // При натискане на бутона запис, да сваля файла
         if ($html = Request::get('html')) {
-            $bucket = fileman_Buckets::fetchField($fRec->bucketId, 'name');
-            $nameArr = fileman::getNameAndExt($fRec->name);
             
-            $edit = '_edit';
-            if (preg_match("/{$edit}(_[0-9])*$/", $nameArr['name'])) {
-                $edit = '';
-            }
+            $html = i18n_Charset::convertToUtf8($html, array(), TRUE);
             
-            $newName = $nameArr['name'] . $edit . '.' . $nameArr['ext'];
-            $newFileHnd = fileman::absorbStr($html, $bucket, $newName);
+            cls::load('fileman_Download');
             
-            if ($newFileHnd) {
-                
-                return new Redirect(array($this, 'editHtml', 'fileHnd' => $newFileHnd, 'ret_url' => $retUrl));
-            }
+            $filePathName = 'edit_' . str::getRand('$*****');
+            
+            do {
+                $dir = EF_DOWNLOAD_DIR . '/' . $filePathName;
+                if (!is_dir($dir)) {
+                    @mkdir($dir, 0777, TRUE);
+                    
+                    break;
+                }
+            } while ($i++ < 1000);
+            
+            $path = $dir . '/' . $fRec->name;
+            
+            @file_put_contents($path, $html);
+            
+            $sPath = EF_DOWNLOAD_ROOT . '/' . $filePathName . '/' . $fRec->name;
+            
+            $link = sbf($sPath, '', TRUE);
+            
+            redirect($link);
         }
         
         $form = cls::get('core_Form');

@@ -99,6 +99,10 @@ class auto_handler_CreateQuotationFromInquiry {
     			}
     		}
     		
+    		if(!empty($marketingRec->deliveryAdress)){
+    			$fields['deliveryAdress'] = $marketingRec->deliveryAdress;
+    		}
+    		
     		$quoteId = sales_Quotations::createNewDraft($Cover->getInstance()->getClassId(), $Cover->that, NULL, $fields);
     		sales_Quotations::logWrite("Създаване от запитване", $quoteId);
     		
