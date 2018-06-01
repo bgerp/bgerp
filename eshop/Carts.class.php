@@ -903,14 +903,24 @@ class eshop_Carts extends core_Master
     	$form = $this->getForm();
     	$form->rec = $rec;
     	$form->title = 'Данни за поръчка';
-    	if($cu = core_Users::getCurrent('id', FALSE)){
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	$defaultTermId = $defaultPaymentId = NULL;
+    	
+    	$deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
+    	$paymentMethods = eshop_Settings::getPaymentMethodOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
+    	
+    	if($cu){
     		$options = colab_Folders::getSharedFolders($cu, TRUE, 'crm_CompanyAccRegIntf');
+    		$profileRec = crm_Profiles::getProfile($cu);
+    		$form->setDefault('personNames', $profileRec->name);
+    		$form->setDefault('email', $profileRec->email);
+    		$form->setDefault('tel', $profileRec->tel);
     		
     		// Задаване като опции
     		if(count($options)){
     			$form->setDefault('makeInvoice', 'company');
     			$form->setField('makeInvoice', 'input=hidden');
-    			$form->setField('saleFolderId', 'input,mandatory');
+    			$form->setField('saleFolderId', 'input');
     			$form->setOptions('saleFolderId', $options);
     			
     			// Коя папка е избрана по дефолт
@@ -918,15 +928,35 @@ class eshop_Carts extends core_Master
     			$defaultFolder = ($companyFolderId) ? $companyFolderId : key($options);
     			$form->setDefault('saleFolderId', $defaultFolder);
     		}
+    		
+    		// Добавяне на партньорското условие на доставка
+    		$defaultTermId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'deliveryTermSale');
+    		$form->setDefault('termId', $defaultTermId);
+    		if($defaultTermId && !array_key_exists($defaultTermId, $deliveryTerms)){
+    			$deliveryTerms[$defaultTermId] = cond_DeliveryTerms::getVerbal($defaultTermId, 'term');
+    		}
+    		
+    		// Добавяне на партньорския метод за плащане
+    		$defaultPaymentId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'paymentMethodSale');
+    		$form->setDefault('paymentId', $defaultPaymentId);
+    		if($defaultPaymentId && !array_key_exists($defaultPaymentId, $paymentMethods)){
+    			$paymentMethods[$defaultPaymentId] = cond_PaymentMethods::getVerbal($paymentId, 'name');
+    		}
     	}
     	
-    	$deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
     	if(count($deliveryTerms) == 1){
     		$form->setDefault('termId', key($deliveryTerms));
     	} else {
     		$deliveryTerms = array('' => '') + $deliveryTerms;
     	}
     	$form->setOptions('termId', $deliveryTerms);
+    	
+    	if(count($paymentMethods) == 1){
+    		$form->setDefault('paymentId', key($paymentMethods));
+    	} else {
+    		$paymentMethods = array('' => '') + $paymentMethods;
+    	}
+    	$form->setOptions('paymentId', $paymentMethods);
     	
     	$makeInvoice = bgerp_Setup::get('MANDATORY_CONTACT_FIELDS');
     	if(in_array($makeInvoice, array('company', 'both'))){

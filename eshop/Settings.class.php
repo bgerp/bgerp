@@ -255,4 +255,23 @@ class eshop_Settings extends core_Manager
     	
     	return $options;
     }
+    
+    
+    /**
+     * Връща методите на плащане за домейна
+     *
+     * @param mixed $class
+     * @param int|NULL $domainId
+     * @return array $options
+     */
+    public static function getPaymentMethodOptions($class, $domainId = NULL)
+    {
+    	$settings = self::getSettings($class, $domainId);
+    	$payments = keylist::toArray($settings->payments);
+    	
+    	$options = array();
+    	array_walk($payments, function($paymentId) use (&$options) {$options[$paymentId] = cond_PaymentMethods::getVerbal($paymentId, 'name');});
+    	 
+    	return $options;
+    }
 }
