@@ -111,10 +111,10 @@ class drdata_VatType extends type_Varchar
             $status = $this->statuses[''];
         }
         $attr = array();
-        $attr['title'] = tr($status[0]);
+        $attr['title'] = $status[0];
         
         if(trim($info)) {
-            $attr['title'] .= "\n" . $info;  
+            $attr['title'] .= "|*\n" . $info;  
         }
         $attr['class'] = $status[1];
  

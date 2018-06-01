@@ -124,7 +124,7 @@ class social_Followers extends core_Master
 			$url = array('social_Followers', 'Redirect', $socialNetwork->id);
 				
 			// Създаваме линка на бутона
-			$link = ht::createLink("{$img}" . $socialNetwork->sharedCnt, $url, NULL, array("class" => "soc-following noSelect", "target"=>"_blank", "rel"=>"nofollow", "title" => $socialNetwork->title));
+			$link = ht::createLink("{$img}" . $socialNetwork->sharedCnt, $url, NULL, array("class" => "soc-following noSelect", "target"=>"_blank", "rel"=>"nofollow", "title" => '|*' . $socialNetwork->title));
        
 			// Добавямего към шаблона
 			$tpl->append($link);  

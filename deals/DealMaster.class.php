@@ -906,11 +906,11 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 	    
     	if(isset($rec->dealerId)){
-    		$row->dealerId = crm_Profiles::createLink($rec->dealerId, $row->dealerId);
+    		$row->dealerId = crm_Profiles::createLink($rec->dealerId);
     	}
     	
     	if(isset($rec->initiatorId)){
-    		$row->initiatorId = crm_Profiles::createLink($rec->initiatorId, $row->initiatorId);
+    		$row->initiatorId = crm_Profiles::createLink($rec->initiatorId);
     	}
     	
 	    if($fields['-single']){

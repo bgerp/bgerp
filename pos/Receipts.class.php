@@ -727,7 +727,7 @@ class pos_Receipts extends core_Master {
     		$block->append($htmlScan, 'FIRST_TOOLS_ROW');
     	}
     	
-    	$block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => tr('Въведи'))), 'INPUT_FLD');
+    	$block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въведи')), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
     	$block->append(ht::createFnBtn('Код', NULL, NULL, array('class' => "{$disClass} buttonForm", 'id' => 'addProductBtn', 'data-url' => $addUrl, 'title' => 'Продуктов код или баркод')), 'FIRST_TOOLS_ROW');
@@ -1056,7 +1056,7 @@ class pos_Receipts extends core_Master {
     	
     	$value = $rec->total - $rec->paid;
     	$value = ($value > 0) ? $value : NULL;
-    	$block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;', 'value' => $value, 'title' => tr('Въведи платена сума'))) . "<br />", 'INPUT_PAYMENT');
+    	$block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;', 'value' => $value, 'title' => 'Въведи платена сума')) . "<br />", 'INPUT_PAYMENT');
     	
     	// Показваме всички активни методи за плащания
     	$disClass = ($payUrl) ? '' : 'disabledBtn';

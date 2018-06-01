@@ -97,7 +97,10 @@ class marketing_InquiryRouter extends core_Manager
 		if($folderId) return $folderId;
 		
 		// Форсиране на папка и запис във визитника на лице с посочените данни
-		return marketing_Router::forcePersonFolder($personNames, $email, $countryId, $tel, $pCode, $place, $address, $inCharge);
+		$folderId = marketing_Router::forcePersonFolder($personNames, $email, $countryId, $tel, $pCode, $place, $address, $inCharge);
+		colab_FolderToPartners::force($folderId);
+		
+		return $folderId;
 	}
 	
 	
@@ -127,7 +130,6 @@ class marketing_InquiryRouter extends core_Manager
 		
 		// Намираме папка на компания с този имейл
 		$folderId = marketing_Router::routeByCompanyEmail($email, $inCharge);
-		
 		if($folderId) return $folderId;
 		
 		// Рутиране според имейла, взимаме папката ако корицата и е фирма
@@ -143,6 +145,9 @@ class marketing_InquiryRouter extends core_Manager
 		if($folderId) return $folderId;
 		
 		// Форсиране на папка и визитка на фирма с въведените данни
-		return marketing_Router::forceCompanyFolder($company, $email, $countryId, $tel, $pCode, $place, $address, $inCharge);
+		$folderId = marketing_Router::forceCompanyFolder($company, $email, $countryId, $tel, $pCode, $place, $address, $inCharge);
+		colab_FolderToPartners::force($folderId);
+		
+		return $folderId;
 	}
 }

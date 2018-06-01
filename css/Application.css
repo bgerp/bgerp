@@ -2733,6 +2733,9 @@ span.sharing-history-title {
 
 .cmsTopContractor {
   position: relative; }
+  .cmsTopContractor .app-name {
+    font-size: 4.5em !important;
+    left: 2% !important; }
 
 #cart-view-total {
   margin-bottom: 10px; }

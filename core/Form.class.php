@@ -713,7 +713,7 @@ class core_Form extends core_FieldSet
                 $attr = $field->attr ? $field->attr : array();
                 
                 if ($field->hint) {
-                    $attr['title'] = tr($field->hint);
+                    $attr['title'] = $field->hint;
                 }
 
                 if ($field->class) {

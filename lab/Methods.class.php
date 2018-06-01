@@ -34,7 +34,7 @@ class lab_Methods extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,name,equipment,paramId,
+    public $listFields = 'id,name,abbreviatedName,equipment,paramId,
                              minVal,maxVal';
 
     /**
@@ -80,6 +80,7 @@ class lab_Methods extends core_Master
         $this->FLD('paramId', 'key(mvc=lab_Parameters,select=name,allowEmpty,remember)', 
             'caption=Параметър,notSorting,mandatory');
         $this->FLD('name', 'varchar(255)', 'caption=Наименование');
+        $this->FLD('abbreviatedName', 'varchar(255)', 'caption=Съкращение');
         $this->FLD('formula', 'text', 'caption=Формула');
         $this->FLD('equipment', 'varchar(255)', 'caption=Оборудване,notSorting');
         $this->FLD('description', 'richtext(bucket=Notes)', 'caption=Описание,notSorting');
@@ -99,22 +100,28 @@ class lab_Methods extends core_Master
         
         if ($form->isSubmitted()) {
             
+            if ($rec->formula){
+            
             $contex = array();
             
             preg_match_all("/\\$[_a-z][a-z0-9_]*/i", $rec->formula, $matches);
             
-            foreach ($matches[0] as $v) {
+                foreach ($matches[0] as $v) {
+                    
+                    $contex += array(
+                        $v => 1
+                    );
+                }
+            
+                if ((str::prepareMathExpr($rec->formula, $contex)) === FALSE) {
+                    
+                    $form->setError('formula', "Некоректно въведена формула !");
+                }
                 
-                $contex += array(
-                    $v => 1
-                );
             }
             
-            if ((str::prepareMathExpr($rec->formula, $contex)) === FALSE) {
-                
-                $form->setError('formula', "Некоректно въведена формула !");
-            }
         }
+    
     }
 
     /**

@@ -401,12 +401,16 @@ class lab_Tests extends core_Master
         
         $data->listFilter->showFields = 'dateStart';
         
-        $data->listFilter->FNC('dateEnd', 'date', 'caption=До,placeholder=От');
+        $data->listFilter->FNC('dateEnd', 'date', 'caption=До,placeholder=До');
         
         $data->listFilter->showFields .= ',dateEnd';
         
-        $data->listFilter->FNC('paramIdFilter', 'key(mvc=lab_Parameters,select=name, allowEmpty)',
-            'caption=Параметри,refreshForm');
+        $data->listFilter->FNC('paramIdFilter', 'varchar',
+            'caption=Параметри,placeholder=Параметър');
+        
+        $paramsForChois = self::suggestionsParams();
+        
+        $data->listFilter->setOptions('paramIdFilter',array(''=>' ')+$paramsForChois);
         
         $data->listFilter->showFields .= ',paramIdFilter';
         
@@ -415,46 +419,6 @@ class lab_Tests extends core_Master
         $data->listFilter->input();
         
         $data->query->where("#state != 'rejected'");
-        
-        if ($data->listFilter->rec->paramIdFilter){
-            
-          
-            $metQuery = lab_Methods::getQuery();
-            
-            $metQuery->where(array("#paramId = '[#1#]'", $data->listFilter->rec->paramIdFilter));
-            
-            while ($methods = $metQuery->fetch()){
-            	
-            	$methodName = type_Varchar::escape(lab_Methods::fetchField($methods->id,'name'));
-            	
-            	$methodKey = $methods->id.'.'.$methodName;
-                
-                $methosArr[$methodKey]=$methodName;
-            }
-            
-            if (count($methosArr)>1){
-            	
-            	$data->listFilter->view = 'vertical';
-            	
-            	$data->listFilter->FNC('methodIdFilter', 'varchar',
-            			'caption=Методи,refreshForm');
-            	
-            	$data->listFilter->showFields = arr::make($data->listFilter->showFields);
-            	
-            	array_splice($data->listFilter->showFields, 3, 0, 'methodIdFilter');
-            	
-            	$data->listFilter->showFields = implode(',', $data->listFilter->showFields);
-            	
-            	$data->listFilter->setSuggestions('methodIdFilter',array('избери метод '=>' ')+$methosArr);
-            	
-            	$data->listFilter->setWarning($data->listFilte->methodIdFilter, 'Ала Бала');
-            	
-            	$data->listFilter->input();
-            	
-            	
-            	
-            }
-        }
         
         if ($data->listFilter->isSubmitted()) {
         
@@ -477,28 +441,18 @@ class lab_Tests extends core_Master
             
             if ($data->listFilter->rec->paramIdFilter) {
                 
+                list ( $paramsCheckId,$paramName,$methodCheckId) = explode ( '.', $data->listFilter->rec->paramIdFilter);
+               
                 $data->query->EXT('paramValue', 'lab_TestDetails', 'externalName=value,remoteKey=testId');
 
                 $data->query->EXT('paramName', 'lab_TestDetails', 'externalName=paramName,remoteKey=testId');
                 
                 $data->query->EXT('methodId', 'lab_TestDetails', 'externalName=methodId,remoteKey=testId');
                 
-                
-                
-                if ($data->listFilter->rec->methodIdFilter){
+            	$data->query->where(array("#paramName = '[#1#]'", $data->listFilter->rec->paramIdFilter));
                 	
-                
-                	list ( $MethodCheckId) = explode ( '.', $data->listFilter->rec->methodIdFilter);
-                	
-                	$data->query->where(array("#methodId = '[#1#]'", $MethodCheckId));
-                	
-                }else{
-                	
-                	$data->query->where(array("#paramName = '[#1#]'", $data->listFilter->rec->paramIdFilter));
-                }
-                
-                
-                
+            	$data->query->where(array("#methodId = '[#1#]'", $methodCheckId));
+
                 $data->query->orderBy('paramValue', 'DESC');
                 
                 $data->listFields = arr::make($data->listFields,TRUE);
@@ -664,6 +618,21 @@ class lab_Tests extends core_Master
             }
         }
  
+    }
+    
+    function suggestionsParams()
+    {
+        $metQuery = lab_Methods::getQuery();
+        
+        while ($methods = $metQuery->fetch()){
+            
+            $paramKey = $methods->paramId.'.'.type_Varchar::escape(lab_Parameters::fetchField($methods->paramId,'name').'.'.$methods->id);
+            $paramsArr[$paramKey] = type_Varchar::escape(lab_Parameters::fetchField($methods->paramId,'name').'.'.$methods->abbreviatedName);
+            
+            
+        }
+        
+       return $paramsArr;
     }
     
 }

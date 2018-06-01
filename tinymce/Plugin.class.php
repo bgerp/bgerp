@@ -38,7 +38,26 @@ class tinymce_Plugin extends core_Plugin
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr, $options = array())
     {
-
+        $tinyPlugins = '';
+        if ($invoker->params['tinyPlugins']) {
+            $tinyPlugins = $invoker->params['tinyPlugins'];
+        }
+        
+        $tinyToolbars = '';
+        if ($invoker->params['tinyToolbars']) {
+            $tinyToolbars = $invoker->params['tinyToolbars'] . ' | ';
+            
+            if (!$tinyPlugins) {
+                $tinyPlugins = $invoker->params['tinyToolbars'];
+            }
+        }
+        
+		$fs = '';
+        if ($invoker->params['tinyFullScreen']) {
+            $fs = "setup: function(editor) {editor.on('init', function(e) {editor.execCommand('mceFullScreen');});},";
+        }
+        
+        
         $tpl->push("tinymce/4.7.13/tinymce.min.js", 'JS');
         
         if(core_Lg::getCurrent() == 'bg') {
@@ -46,7 +65,7 @@ class tinymce_Plugin extends core_Plugin
         } else {
             $locale = 'en_GB';
         }
-        jquery_Jquery::run($tpl, "tinymce.init({selector: '#{$attr['id']}', language: '{$locale}', branding: false,  plugins : 'advlist autolink link image lists charmap textcolor codemirror', toolbar: 'redo undo | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright  alignjustify  | numlist bullist outdent indent  | code', removed_menuitems: 'newdocument',
+        jquery_Jquery::run($tpl, "tinymce.init({ {$fs} selector: '#{$attr['id']}', language: '{$locale}', branding: false,  plugins : 'advlist autolink link image lists charmap textcolor codemirror {$tinyPlugins}', toolbar: '{$tinyToolbars}redo undo | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright  alignjustify  | numlist bullist outdent indent  | code', removed_menuitems: 'newdocument',
             codemirror: {
                 indentOnInit: true, 
                 fullscreen: true,  

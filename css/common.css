@@ -1143,6 +1143,9 @@ a.profile {
       color: red; }
   a.profile.no-one {
     font-style: italic; }
+  a.profile.state-rejected {
+    display: inline-block;
+    color: #777777 !important; }
 
 .profile-state {
   text-decoration: underline !important; }

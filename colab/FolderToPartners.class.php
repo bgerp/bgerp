@@ -101,6 +101,28 @@ class colab_FolderToPartners extends core_Manager
     
     
     /**
+     * Форсира папката като споделена към потребител-партньор
+     * 
+     * @param int $folderId
+     * @param int|NULL $userId
+     * @return int|FALSE
+     */
+    public static function force($folderId, $userId = NULL)
+    {
+    	$userId = isset($userId) ? $userId : core_Users::getCurrent('id', FALSE);
+    	if(empty($userId) || !core_Users::isContractor($userId)) return FALSE;
+    	
+    	$rec = self::fetchField("#folderId = {$folderId} AND #contractorId = {$userId}");
+    	if(!$rec) {
+    		$rec = (object)array('folderId' => $folderId, 'contractorId' => $userId);
+    		self::save($rec);
+    	}
+    	
+    	return $rec->id;
+    }
+    
+    
+    /**
      * Коя е първата споделена папка на фирма на партньор
      * 
      * @param int|NULL $userId - ид на партньор
@@ -126,29 +148,31 @@ class colab_FolderToPartners extends core_Manager
             
             if(count($fIds) == 1) {
                 $folderId = $fIds[0];
-            }
+            } else {
 
-            if(!$folderId) {
-                // Първа е папката в която този потребител последно е писал
-                $cQuery = doc_Containers::getQuery();
-                $cQuery->limit(1);
-                $cQuery->orderBy('#modifiedOn', 'DESC');
-                $cQuery->where("#createdBy = {$cu}");
-                $cRec = $cQuery->fetch();
-                if($cRec) {
-                    $folderId = $cRec->folderId;
+                if(!$folderId) {
+                    // Първа е папката в която този потребител последно е писал
+                    $cQuery = doc_Containers::getQuery();
+                    $cQuery->limit(1);
+                    $cQuery->orderBy('#modifiedOn', 'DESC');
+                    $cQuery->where("#createdBy = {$cu}");
+                    $cQuery->where('#folderId IN (' . implode(',', $fIds) . ')');
+                    $cRec = $cQuery->fetch();
+                    if($cRec) {
+                        $folderId = $cRec->folderId;
+                    }
                 }
-            }
-            
-            if(!$folderId && count($fIds) > 1) {
-                // След това е папката, в която има последно движение
-                $fQuery = doc_Folders::getQuery();
-                $fQuery->limit(1);
-                $fQuery->orderBy('#last', 'DESC');
-                $fQuery->where('#id IN (' . implode(',', $fIds) . ')');
-                $fRec = $fQuery->fetch();
-                if($fRec) {
-                    $folderId = $rec->id;
+                
+                if(!$folderId) {
+                    // След това е папката, в която има последно движение
+                    $fQuery = doc_Folders::getQuery();
+                    $fQuery->limit(1);
+                    $fQuery->orderBy('#last', 'DESC');
+                    $fQuery->where('#id IN (' . implode(',', $fIds) . ')');
+                    $fRec = $fQuery->fetch();
+                    if($fRec) {
+                        $folderId = $rec->id;
+                    }
                 }
             }
         }
@@ -459,8 +483,6 @@ class colab_FolderToPartners extends core_Manager
     	expect($companyRec = crm_Companies::fetch($companyId));
     	$companyName = crm_Companies::getVerbal($companyId, 'name');
     	
-        core_Lg::push(drdata_Countries::getLang($companyRec->country));
-
     	$this->requireRightFor('sendemail', $companyRec);
     	
     	$form = cls::get('core_Form');
@@ -481,12 +503,14 @@ class colab_FolderToPartners extends core_Manager
     	
     	$form->setDefault('from', email_Outgoings::getDefaultInboxId());
     	
+    	core_Lg::push(drdata_Countries::getLang($companyRec->country));
+    	
     	$subject = tr("Създайте нов акаунт в") . " " . core_Setup::get('EF_APP_TITLE', TRUE);
 
     	$form->setDefault('subject', $subject);
     	
     	$placeHolder = '{{' . tr('линк||link') . '}}';
-
+    	
     	$body = new ET(
             tr("Уважаеми потребителю||Dear User") . ",\n\n" . 
             tr("За да се регистрираш като служител на фирма||To have registration as a member of company") .
@@ -502,6 +526,8 @@ class colab_FolderToPartners extends core_Manager
 		$body = $body->getContent() . "\n\n" . $footer;
 		
     	$form->setDefault('body', $body);
+    	
+    	core_Lg::pop();
     	
     	$form->input();
 
@@ -527,9 +553,7 @@ class colab_FolderToPartners extends core_Manager
     	 
     	$tpl = $this->renderWrapping($form->renderHtml());
     	core_Form::preventDoubleSubmission($tpl, $form);
-    	
-        core_Lg::pop();
-
+        
     	return $tpl;
     }
     

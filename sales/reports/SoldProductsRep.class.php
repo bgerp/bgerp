@@ -147,25 +147,27 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$query->EXT ( 'docState', 'doc_Containers', 'externalName=state,externalKey=containerId' );
 		
-		if(isset($rec->compare) == 'no') {
+		if(($rec->compare) == 'no') {
 		    
 		    $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
 		}
 		
 		// Last период
 		
-		if (isset($rec->compare) == 'previous') {
+		if (($rec->compare) == 'previous') {
 		    
 		    $daysInPeriod = dt::daysBetween($rec->to, $rec->from) + 1;
 		    $fromPreviuos = dt::addDays(- $daysInPeriod, $rec->from);
 		    $toPreviuos = dt::addDays(- $daysInPeriod, $rec->to);
+		    
+		    
 		    
 		    $query->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
 		}
 		
 		 //LastYear период
 		
-		if (isset($rec->compare) == 'year') {
+		if (($rec->compare) == 'year') {
 		    
 		    $fromLastYear = dt::addDays(- 365, $rec->from);
 		    $toLastYear = dt::addDays(- 365, $rec->to);
@@ -175,7 +177,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		}
 		
 			$query->where( "#docState != 'rejected'" );
-		
+	
 		
 		if (isset ( $rec->dealers )) {
 			
@@ -242,6 +244,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		    
 		}
 		
+		//Синхронизира таймлимита с броя записи //
 		$rec->count = $query->count();
 		
 		$timeLimit = $query->count() * 0.05;
@@ -255,7 +258,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$flag = FALSE;
 		
 		while ( $recPrime = $query->fetch () ) {
-		    
+		   
 		    $DetClass = cls::get ( $recPrime->detailClassId );
 
     	    if ($DetClass instanceof sales_SalesDetails){
@@ -351,6 +354,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		}
 	
 		$recs = self::groupRecs($recs, $rec->group);
+		
+		
 		
 		return $recs;
 		
@@ -604,7 +609,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	                &$groups
 	            ));
 	        }
-	       // bp($groups);
+	      
 	        // За всеки маркер
 	        foreach ($groups as $grId => $groupName) {
 	

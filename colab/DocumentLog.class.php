@@ -166,7 +166,7 @@ class colab_DocumentLog extends core_Manager
                 if ($viewCnt) {
                     $attr = array();
                     $attr['class'] = 'showViewed docSettingsCnt tooltip-arrow-link';
-                    $attr['title'] = tr('Виждания от колаборатори');
+                    $attr['title'] = 'Виждания от колаборатори';
                     $attr['data-url'] = toUrl(array(get_called_class(), 'showViewed', 'containerId' => $containerId), 'local');
                     $attr['data-useHover'] = '1';
                     $attr['data-useCache'] = '1';
