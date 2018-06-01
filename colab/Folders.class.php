@@ -189,27 +189,36 @@ class colab_Folders extends core_Manager
 	}
 	
 	
+	
 	/**
 	 * Връща всички споделени папки до този контрактор
+	 * 
+	 * @param int|NULL $cu            - потребител 
+	 * @param boolean  $showTitle     - дали папките да са заглавия
+	 * @param string   $interface     - интерфейс
+	 * @return array   $sharedFolders - масив със споделените папки
 	 */
-	public static function getSharedFolders($cu = NULL)
+	public static function getSharedFolders($cu = NULL, $showTitle = FALSE, $interface = NULL)
 	{
-		if(!$cu){
-			$cu = core_Users::getCurrent();
-		}
-		
 		$sharedFolders = array();
+		$cu = isset($cu) ? $cu : core_Users::getCurrent();
 		
-		if (!$cu) return $sharedFolders;
+		if(!$cu) return $sharedFolders;
 		
 		$sharedQuery = colab_FolderToPartners::getQuery();
 		$sharedQuery->EXT('state', 'doc_Folders', 'externalName=state,externalKey=folderId');
+		$sharedQuery->EXT('title', 'doc_Folders', 'externalName=title,externalKey=folderId');
+		$sharedQuery->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
+		
 		$sharedQuery->where("#contractorId = {$cu}");
 		$sharedQuery->where("#state != 'rejected'");
-		$sharedQuery->show('folderId');
+		$sharedQuery->show('folderId,title,coverClass');
 		$sharedQuery->groupBy('folderId');
+		
 		while($fRec = $sharedQuery->fetch()){
-			$sharedFolders[$fRec->folderId] = $fRec->folderId;
+			if(isset($interface) && !cls::haveInterface($interface, $fRec->coverClass)) continue;
+			$value = ($showTitle === TRUE) ? $fRec->title : $fRec->folderId;
+			$sharedFolders[$fRec->folderId] = $value;
 		}
 		
 		return $sharedFolders;
@@ -277,5 +286,29 @@ class colab_Folders extends core_Manager
     public static function getContentHash_(&$status)
     {
         doc_Folders::getContentHash_($status);
+    }
+    
+    
+    /**
+     * Записване в сесията последната активна папка на фирма на партньор
+     * 
+     * @param int|NULL $folderId - папка, ако няма последната спдоелена папка на партньор
+     * @param int|NULL $cu       - потребител, ако няма текущия
+     */
+    public static function setLastActiveCompanyFolderId($folderId = NULL, $cu = NULL)
+    {
+    	$cu = isset($cu) ? $cu : core_Users::getCurrent('id', FALSE);
+    	if(empty($cu)) return;
+    	
+    	$folderId = isset($folderId) ? $folderId : colab_FolderToPartners::getLastSharedCompanyFolder($cu);
+    	if(empty($folderId)) return;
+    	
+    	$Cover = doc_Folders::getCover($folderId);
+    	if(!$Cover->haveInterface('crm_CompanyAccRegIntf')) return;
+    	
+    	$companyFolderId = core_Mode::get('lastActiveCompanyFolder');
+    	if($companyFolderId != $folderId){
+    		Mode::setPermanent('lastActiveCompanyFolder', $folderId);
+    	}
     }
 }

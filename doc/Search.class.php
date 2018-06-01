@@ -473,7 +473,7 @@ class doc_Search extends core_Manager
         $handle = $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
         
         if(mb_strlen($docRow->title) > doc_Threads::maxLenTitle) {
-            $attr['title'] = $docRow->title;
+            $attr['title'] = '|*' . $docRow->title;
         }
         $linkUrl = array($docProxy->className, 'single', $docProxy->that);
         

@@ -254,6 +254,8 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	$cu = core_Users::getCurrent('id', FALSE);
+    	$hide = (isset($cu) && core_Users::haveRole('partner', $cu)) ? TRUE : FALSE;
+    	
     	if(isset($cu) && !core_Users::isPowerUser()){
     		$personRec = crm_Profiles::getProfile($cu);
     		
@@ -264,15 +266,10 @@ class marketing_Inquiries2 extends embed_Manager
     		
     		if($companyFolderId = core_Mode::get('lastActiveCompanyFolder')){
     			$form->setDefault('company', doc_Folders::getCover($companyFolderId)->fetchField('name'));
-    		}
-    		
-    		if(isset($personRec->buzCompanyId)){
-    			$companyName = crm_Companies::fetchField($personRec->buzCompanyId, 'name');
-    			$form->setDefault('company', $companyName);
+    		} else {
+    			$hide = FALSE;
     		}
     	}
-    	
-    	$hide = (isset($cu) && core_Users::haveRole('partner', $cu)) ? TRUE : FALSE;
     	
     	$contactFields = $this->selectFields("#class == 'contactData'");
     	if(is_array($contactFields)){

@@ -1,27 +1,149 @@
 <div class='cart-holder-external'>
-    <h3 style="margin: 0 0 20px">[#CART_NAME#] [#CART_COUNT#] [#EMPTY_CART#]</h3>
-    <div class='cart-container clearfix21'>
-    <div class="order-info" id='cart-view-order-info'>
-		[#ORDER_INFO#]
-		</div>
-        <div class="cart-holder scrolling-holder" >
-            [#CART_TABLE#]
-        </div>
-        <!--ET_BEGIN CART_TOOLBAR_LEFT-->
-        <div class = 'cart-view-buttons-left'>[#CART_TOOLBAR_LEFT#]</div>
-        <!--ET_END CART_TOOLBAR_LEFT-->
-        <div id = 'cart-view-total' class="summary-holder">
-        [#CART_TOTAL#]
-        </div>
-        <div class="clearfix21"></div>
-        <!--ET_BEGIN COMMON_TEXT-->
-        <div id='cart-view-domain-text'>[#COMMON_TEXT#]</div>
-        <!--ET_END COMMON_TEXT-->
-
-
-        <!--ET_BEGIN CART_TOOLBAR_RIGHT-->
-        <div class = 'cart-view-buttons-right'>[#CART_TOOLBAR_RIGHT#]</div>
-        <!--ET_END CART_TOOLBAR_RIGHT-->
-    </div>
-
+   <h3 style="margin: 0 0 20px">[#CART_NAME#] <span id = 'cart-view-count'>|с|* [#productCount#]</span> [#EMPTY_CART#]</h3>
+   <div class='cart-container clearfix21'>
+      <div class="order-info" id='cart-view-order-info'>
+         <!--ET_BEGIN SALE_BLOCK-->
+         [#SALE_BLOCK#]
+         <div class="half-width fleft">
+            <h4 style="margin-bottom: 5px;">|Информация за поръчката|* [#editBtn#]</h4>
+            <table>
+               <!--ET_BEGIN personNames-->
+               <tr>
+                  <td>|Имена|*: [#personNames#]</td>
+               </tr>
+               <!--ET_END personNames-->
+               <!--ET_BEGIN email-->
+               <tr>
+                  <td>|Имейл|*: [#email#]</td>
+               </tr>
+               <!--ET_END email-->
+               <!--ET_BEGIN tel-->
+               <tr>
+                  <td>|Тел.|*: [#tel#]</td>
+               </tr>
+               <!--ET_END tel-->
+               <!--ET_BEGIN paymentId-->
+               <tr>
+                  <td>|Начин на плащане|*: [#paymentId#]</td>
+               </tr>
+               <!--ET_END paymentId-->
+               <!--ET_BEGIN DELIVERY_BLOCK-->
+               [#DELIVERY_BLOCK#]
+               <tr>
+                  <td><h4 style="margin-bottom: 0px;margin-top:5px">|Доставка|*</h4></td>
+               </tr>
+               <!--ET_BEGIN termId-->
+               <tr>
+                  <td>|Условие на доставка|*: [#termId#]</td>
+               </tr>
+               <!--ET_END termId-->
+               <tr>
+                  <td>[#DELIVERY_BLOCK#]</td>
+               </tr>
+               <!--ET_BEGIN deliveryTime-->
+               <tr>
+                  <td>|Доставка до|*: <b>[#deliveryTime#]</b></td>
+               </tr>
+               <!--ET_END deliveryTime-->
+               <!--ET_BEGIN deliveryError-->
+               <tr>
+                  <td><span class='stamp' style='font-size:1em;'>[#deliveryError#]</span></td>
+               </tr>
+               <!--ET_END deliveryError-->
+               <!--ET_BEGIN instruction-->
+               <tr>
+                  <td>|Инструкции|*: <span class="richtext-holder"> [#instruction#]</span></td>
+               </tr>
+               <!--ET_END instruction-->
+               <!--ET_END DELIVERY_BLOCK-->
+               <!--ET_BEGIN VAT_STATUS-->
+               <tr>
+                  <td style='padding-top:10px'>[#VAT_STATUS#]</td>
+               </tr>
+               <!--ET_END VAT_STATUS-->
+            </table>
+         </div>
+         
+         <div class="half-width fright">
+            <!--ET_BEGIN activeFolderId-->
+         	<div style="padding-bottom: 5px;">|Последна папка|*: [#activeFolderId#]</div>
+            <!--ET_END activeFolderId-->
+         	<!--ET_BEGIN INVOICE_BLOCK-->
+         	[#INVOICE_BLOCK#]
+            <h4 style="margin-bottom: 5px;">|Информация за фактура|*</h4>
+            <table>
+               <!--ET_BEGIN NO_INVOICE-->
+               <tr>
+                  <td>[#NO_INVOICE#]</td>
+               </tr>
+               <!--ET_END NO_INVOICE-->
+               <!--ET_BEGIN invoiceNames-->
+               <tr>
+                  <td>[#invoiceNames#]</td>
+               </tr>
+               <!--ET_END invoiceNames-->
+               <!--ET_BEGIN invoiceVatNo-->
+               <tr>
+                  <td>[#VAT_CAPTION#]: [#invoiceVatNo#]</td>
+               </tr>
+               <!--ET_END invoiceVatNo-->
+               <!--ET_BEGIN invoiceCountry-->
+               <tr>
+                  <td>|Държава|*: [#invoiceCountry#]</td>
+               </tr>
+               <!--ET_END invoiceCountry-->
+               <!--ET_BEGIN invoicePCode-->
+               <tr>
+                  <td>|П.код|*: [#invoicePCode#]</td>
+               </tr>
+               <!--ET_END invoicePCode-->
+               <!--ET_BEGIN invoicePlace-->
+               <tr>
+                  <td>|Място|*: [#invoicePlace#]</td>
+               </tr>
+               <!--ET_END invoicePlace-->
+               <!--ET_BEGIN invoiceAddress-->
+               <tr>
+                  <td>|Адрес|*: [#invoiceAddress#]</td>
+               </tr>
+               <!--ET_END invoiceAddress-->
+            </table>
+            <!--ET_END INVOICE_BLOCK-->
+         </div>
+         <div class="clearfix21"></div>
+         <!--ET_END SALE_BLOCK-->
+      </div>
+      <div class="cart-holder scrolling-holder" >
+         [#CART_TABLE#]
+      </div>
+      <!--ET_BEGIN CART_TOOLBAR_LEFT-->
+      <div class = 'cart-view-buttons-left'>[#CART_TOOLBAR_LEFT#]</div>
+      <!--ET_END CART_TOOLBAR_LEFT-->
+      <div id = 'cart-view-total' class="summary-holder">
+         <table>
+            <tr>
+               <td class="aright">|Основа|*: </td>
+               <td class="aright"><span class='cCode' style='font-weight:normal'>[#totalNoVatCurrencyId#]</span></td>
+               <td class="aright"><b>[#totalNoVat#]</b></td>
+            </tr>
+            <tr>
+               <td class="aright">|ДДС|*: </td>
+               <td class="aright"><span class='cCode' style='font-weight:normal'>[#vatCurrencyId#]</span></td>
+               <td class="aright"><b>[#totalVat#]</b></td>
+            </tr>
+            <tr>
+               <td class="aright">|Общо|*: </td>
+               <td class="aright"><span class='cCode' style='font-weight:normal'>[#currencyId#]</span></td>
+               <td class="aright"><b>[#total#]</b></td>
+            </tr>
+         </table>
+      </div>
+      <div class="clearfix21"></div>
+      <!--ET_BEGIN COMMON_TEXT-->
+      <div id='cart-view-domain-text'>[#COMMON_TEXT#]</div>
+      <!--ET_END COMMON_TEXT-->
+      <!--ET_BEGIN CART_TOOLBAR_RIGHT-->
+      <div class = 'cart-view-buttons-right'>[#CART_TOOLBAR_RIGHT#]</div>
+      <!--ET_END CART_TOOLBAR_RIGHT-->
+   </div>
 </div>

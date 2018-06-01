@@ -228,4 +228,64 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
             return $htmlPart;
         }
     }
+    
+    
+    /**
+     * Екшън за редактиране на HTML файл
+     * 
+     * @return Redirect|core_ET
+     */
+    function act_editHtml()
+    {
+        requireRole('user');
+        
+        $fh = Request::get('fileHnd');
+        
+        expect($fRec = fileman::fetchByFh($fh));
+        
+        $ext = fileman::getExt($fRec->name);
+        
+        expect($ext === 'html' || $ext === 'xhtml' || $ext === 'txt', $ext);
+        
+        $retUrl = getRetUrl();
+        
+        if (empty($retUrl)) {
+            $retUrl = array('fileman_Files', 'single', $fh);
+        }
+        
+        if ($html = Request::get('html')) {
+            $bucket = fileman_Buckets::fetchField($fRec->bucketId, 'name');
+            $nameArr = fileman::getNameAndExt($fRec->name);
+            
+            $edit = '_edit';
+            if (preg_match("/{$edit}(_[0-9])*$/", $nameArr['name'])) {
+                $edit = '';
+            }
+            
+            $newName = $nameArr['name'] . $edit . '.' . $nameArr['ext'];
+            $newFileHnd = fileman::absorbStr($html, $bucket, $newName);
+            
+            if ($newFileHnd) {
+                
+                return new Redirect(array($this, 'editHtml', 'fileHnd' => $newFileHnd, 'ret_url' => $retUrl));
+            }
+        }
+        
+        $form = cls::get('core_Form');
+        
+        $form->FNC('html', 'html(tinyToolbars=fullscreen print save, tinyFullScreen)', 'input, caption=HTML', array('attr' => array('id' => 'editor')));
+        $fContent = fileman::extractStr($fh);
+        $form->setDefault('html', $fContent);
+        
+        $form->toolbar->addBtn('Файл', array('fileman_Files', 'single', $fh, 'ret_url' => TRUE), "ef_icon = fileman/icons/16/html.png, title=Преглед на файла");
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        
+        $form->title = 'Редактиране на HTML файл';
+        
+        // Сменяма wrapper'а да е празна страница
+        Mode::set('wrapper', 'page_Empty');
+        
+        // Връщаме съдържанието
+        return $form->renderHtml();
+    }
 }

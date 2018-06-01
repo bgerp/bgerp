@@ -146,6 +146,9 @@ class colab_Threads extends core_Manager
 		// Трябва папката и да е споделена на текущия потребител и документа начало на нишка да е видим
 		$this->requireRightFor('single', $data->threadRec);
 		
+		// Ако има папка записва се като активна
+		colab_Folders::setLastActiveCompanyFolderId($data->folderId);
+		
 		// Показваме само неоттеглените документи, чиито контейнери са видими за партньори
 		$cu = core_Users::getCurrent();
 		$sharedUsers = colab_Folders::getSharedUsers($data->folderId);
@@ -228,14 +231,13 @@ class colab_Threads extends core_Manager
 		
 		if (core_Users::isPowerUser()) {
 	        if ($folderId && doc_Folders::haveRightFor('single', $folderId)) {
-	            
 	            return new Redirect(array('doc_Threads', 'list', 'folderId' => $folderId));
 	        }
 	    }
 	    
 	    // Ако има папка записва се като активна
 	    if(isset($folderId) && colab_Folders::haveRightFor('list', (object)array('folderId' => $folderId))){
-	    	Mode::setPermanent('lastActiveCompanyFolder', $folderId);
+	    	colab_Folders::setLastActiveCompanyFolderId($folderId);
 	    }
 	   
 	    return parent::act_List();
