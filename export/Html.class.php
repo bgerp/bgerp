@@ -102,7 +102,7 @@ class export_Html extends core_Mvc
         
         $fileHnd = fileman::absorbStr($html, 'exportCsv', $fileName);
         
-        $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/html.png, title=" . tr('Сваляне на документа'));
+        $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/html.png, title=Сваляне на документа");
         
         // Ако линка ще сочи към частна мрежа, показваме предупреждение
         if (core_App::checkCurrentHostIsPrivate()) {
