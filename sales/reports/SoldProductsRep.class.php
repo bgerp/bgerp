@@ -85,6 +85,18 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			if (isset ( $form->rec->from ) && isset ( $form->rec->to ) && ($form->rec->from > $form->rec->to)) {
 				$form->setError ( 'from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.' );
 			}
+			
+			if (isset($form->rec->compare) && $form->rec->compare == 'year'){
+			    
+			    $toLastYear = dt::addDays(- 365, $form->rec->to);
+			    if ($form->rec->from < $toLastYear){
+			     
+			        $form->setError ( 'from,to', 'Периода трябва да е по-малък от 365 дни за да сравнявате с миналогодишен период.' );
+			        
+			    }
+			    
+			}
+			
 		}
 	}
 	
@@ -214,21 +226,21 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
  		$sQuery = sales_Sales::getQuery ();
  
-		if(isset($rec->compare) == 'no') {
+		if(($rec->compare) == 'no') {
 		    
 		    $sQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
 		}
 		
 		// Last период
 		
-		if (isset($rec->compare) == 'previous') {
+		if (($rec->compare) == 'previous') {
 		    
 		    $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
 		}
 		
 		//LastYear период
 		
-		if (isset($rec->compare) == 'year') {
+		if (($rec->compare) == 'year') {
 		    
 		    $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
 		    
@@ -257,8 +269,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$quantity = 0;
 		$flag = FALSE;
 		
+		
 		while ( $recPrime = $query->fetch () ) {
-		   
+		    
+		    $quantityPrevious = $quantity = $quantityLastYear = NULL;
+		    
 		    $DetClass = cls::get ( $recPrime->detailClassId );
 
     	    if ($DetClass instanceof sales_SalesDetails){
@@ -325,13 +340,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     			}
 	        }
 		
-	 
 			// добавяме в масива събитието
 			if (! array_key_exists ( $id, $recs )) {
-				
+			  
 				$recs [$id] = ( object ) array (
-						
-						'kod' => $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}",
+				    
+				    
+						'code' => $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}",
 						'measure' => cat_Products::getProductInfo ( $recPrime->productId )->productRec->measureId,
 						'productId' => $recPrime->productId,
 						'quantity' => $quantity,
@@ -341,6 +356,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 						'group' => cat_Products::fetchField($recPrime->productId, 'groups')
 						 
 				);
+				
 			} else {
 				$obj = &$recs [$id];
 				$obj->quantity += $quantity;
@@ -349,11 +365,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 				$obj->primeCost += $primeCost;
 			}
 			
-			$quantity = $quantityPrevious = $quantityLastYear = 0;
-			
 		}
+		
+		
+	    
+		
 	
 		$recs = self::groupRecs($recs, $rec->group);
+		
+		
 		
 		
 		
@@ -375,7 +395,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
 		$fld = cls::get ( 'core_FieldSet' );
 		
-		$fld->FLD ( 'kod', 'varchar', 'caption=Код' );
+		$fld->FLD ( 'code', 'varchar', 'caption=Код' );
 		$fld->FLD ( 'productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул' );
 		$fld->FLD ( 'measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered' );
 		$fld->FLD ( 'quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество->Продадено' );
@@ -401,8 +421,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	 * @return stdClass $row - вербалния запис
 	 */
 	protected function detailRecToVerbal($rec, &$dRec) 
+	
 	{
 
+	    
 		$Int = cls::get ( 'type_Int' );
 		$Date = cls::get ( 'type_Date' );
 		$Double = cls::get ( 'type_Double' );
@@ -410,8 +432,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$groArr = array ();
 		$row = new stdClass ();
 		
-		if (isset ( $dRec->kod )) {
-			$row->kod = $dRec->kod;
+	
+		if (isset ( $dRec->code )) {
+			$row->code = $dRec->code;
 		}
 		
 		$row->productId = cat_Products::getLinkToSingle_ ( $dRec->productId, 'name' );
@@ -440,35 +463,37 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			$row->group = $gro;
 		}
 		
-		
-		if ($rec->compare == 'previous'){
-		    if ($dRec->quantity - $dRec->quantityPrevious > 0){
+		if ($rec->compare != 'no'){
 		    
-		        $color = 'green';$marker = '+';
-		    }elseif ($dRec->quantity - $dRec->quantityPrevious < 0){
-		        
-		        $color = 'red';$marker = '';
-		    }else {
-		        $color = 'black';$marker = '';
-		    }
-		    $row->quantityCompare = "<span class= {$color}>"."{$marker}" . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity - $dRec->quantityPrevious) . "</span>";
+    		if ($rec->compare == 'previous'){
+    		    if (($dRec->quantity - $dRec->quantityPrevious) > 0){
+    		    
+    		        $color = 'green';$marker = '+';
+    		    }elseif (($dRec->quantity - $dRec->quantityPrevious) < 0){
+    		        
+    		        $color = 'red';$marker = '';
+    		    }else {
+    		        $color = 'black';$marker = '';
+    		    }
+    		    $row->quantityCompare = "<span class= {$color}>"."{$marker}" . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity - $dRec->quantityPrevious) . "</span>";
+    		}
+    		
+    		if ($rec->compare == 'year'){
+    		    
+    		    if (($dRec->quantity - $dRec->quantityLastYear) > 0){
+    		        
+    		        $color = 'green';$marker = '+';
+    		    }elseif (($dRec->quantity - $dRec->quantityLastYear) < 0){
+    		        
+    		        $color = 'red';$marker = '';
+    		    }else {
+    		        $color = 'black';$marker = '';
+    		    }
+    		    
+    		    $row->quantityCompare = "<span class= {$color}>"."{$marker}" . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity - $dRec->quantityLastYear) . "</span>";
+    		}
+    		
 		}
-		
-		if ($rec->compare == 'year'){
-		    
-		    if ($dRec->quantity - $dRec->quantityLastYear > 0){
-		        
-		        $color = 'green';$marker = '+';
-		    }elseif ($dRec->quantity - $dRec->quantityLastYear < 0){
-		        
-		        $color = 'red';$marker = '';
-		    }else {
-		        $color = 'black';$marker = '';
-		    }
-		    
-		    $row->quantityCompare = "<span class= {$color}>"."{$marker}" . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity - $dRec->quantityLastYear) . "</span>";
-		}
-		
 		return $row;
 		
 		
@@ -624,7 +649,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	                });
 	
 	            if (count($res)) {
-	                arr::natOrder($res, 'kod');
+	                arr::natOrder($res, 'code');
 	                $ordered += $res;
 	            }
 	        }
