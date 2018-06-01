@@ -138,6 +138,7 @@ class eshop_Carts extends core_Master
     	$this->FLD('info', 'richtext(rows=2)', 'caption=Общи данни->Забележка,input=none');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активно,closed=Приключено,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
+    	$this->FLD('locationId', 'key(mvc=crm_Locations,select=title)', 'caption=Локация,input=none');
     	$this->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated->На,input=none');
     	
     	$this->setDbIndex('brid');
@@ -457,7 +458,7 @@ class eshop_Carts extends core_Master
    		}
    		
    		// Продажбата става на заявка, кошницата се активира
-   		self::makeSalePending($saleId);
+   		$saleRec = self::makeSalePending($saleId);
    		self::activate($rec, $saleId);
    		
    		// Ако е партньор и има достъп до нишката, директно се реидректва към нея
@@ -476,7 +477,7 @@ class eshop_Carts extends core_Master
      * Продажба да се обърне в състояние заявка
      *
      * @param int $saleId
-     * @return void
+     * @return stdClass $saleRec
      */
     private static function makeSalePending($saleId)
     {
@@ -485,6 +486,8 @@ class eshop_Carts extends core_Master
     	$saleRec->brState = 'draft';
     	$saleRec->pendingSaved = TRUE;
     	sales_Sales::save($saleRec, 'state');
+    	
+    	return $saleRec;
     }
     
     
@@ -1028,6 +1031,11 @@ class eshop_Carts extends core_Master
     					$rec->deliveryData[$name] = $rec->{$name};
     				}
     			}
+    		}
+    		
+    		// Ако има избрана папка обновява се
+    		if(!empty($rec->saleFolderId)){
+    			crm_Companies::updateContactDataByFolderId($rec->saleFolderId, $rec->invoiceNames, $rec->invoiceVatNo, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress);
     		}
     		
     		$this->save($rec);
