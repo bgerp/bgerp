@@ -262,6 +262,8 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
                 $edit = '';
             }
             
+            $html = i18n_Charset::convertToUtf8($html, array(), TRUE);
+            
             $newName = $nameArr['name'] . $edit . '.' . $nameArr['ext'];
             $newFileHnd = fileman::absorbStr($html, $bucket, $newName);
             
