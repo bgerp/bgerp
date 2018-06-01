@@ -245,17 +245,16 @@ class eshop_CartDetails extends core_Detail
 	 * @param int $cartId          - кошница
 	 * @param int $eshopProductId  - артикул от е-мага
 	 * @param int $productId       - артикул от каталога
-	 * @param double $packQuantity - к-во
+	 * @param int $packagingId     - избрана опаковка/мярка
+	 * @param double $packQuantity - к-во в избраната опаковка
 	 * @param int $quantityInPack  - к-во в опаковка
 	 * @param double $packPrice    - ед. цена с ДДС, във валутата от настройките или NULL
-	 * @param int|NULL $domainId   - домейн
 	 */
-	public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = NULL, $packPrice = NULL, $domainId = NULL)
+	public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = NULL, $packPrice = NULL)
 	{
 		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'draft'"));
 		expect($eshopRec = eshop_Products::fetch($eshopProductId));
 		expect(cat_Products::fetch($productId));
-		
 		expect($productRec = eshop_ProductDetails::fetch("#eshopProductId = '{$eshopProductId}' AND #productId = '{$productId}'"));
 		
 		if(empty($quantityInPack)){
@@ -263,8 +262,7 @@ class eshop_CartDetails extends core_Detail
 			$quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
 		}
 		
-		$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
-		$settings = eshop_Settings::getSettings('cms_Domains', $domainId);
+		$settings = eshop_Settings::getSettings('cms_Domains', $cartRec->domainId);
 		$vat = cat_Products::getVat($productId);
 		$quantity = $packQuantity * $quantityInPack;
 		$currencyId = isset($settings->currencyId) ? $settings->currencyId : acc_Periods::getBaseCurrencyCode();

@@ -441,7 +441,7 @@ class sales_Quotations extends core_Master
 	    	
 	    	if(isset($rec->deliveryTermId)){
 	    		if($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $rec->deliveryPlaceId)){
-	    			$form->setError('deliveryTermId,deliveryAdress,deliveryPlaceId', $error);
+	    			$form->setWarning('deliveryTermId,deliveryAdress,deliveryPlaceId', $error);
 	    		}
 	    	}
 	    	
@@ -660,6 +660,13 @@ class sales_Quotations extends core_Master
     					$row->btnTransport = $link->getContent();
     				
     				}
+    			}
+    		}
+    		
+    		if(isset($rec->deliveryTermId)){
+    			if($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $rec->deliveryPlaceId)){
+    				unset($row->deliveryTermId);
+    				$row->deliveryError =  tr('За траспортните разходи моля свържете се с представител на фирмата');
     			}
     		}
     	}
@@ -1348,6 +1355,7 @@ class sales_Quotations extends core_Master
      *   o $fields['pCode']           - пощенски код
      *   o $fields['place']           - град
      *   o $fields['address']         - адрес
+     *   o $fields['deliveryAdress']  - адрес за доставка
      *  
      * @return mixed                  - ид на запис или FALSE
      */
@@ -1366,6 +1374,12 @@ class sales_Quotations extends core_Master
     	$newRec->contragentClassId = $Cover->getClassId();
     	$newRec->contragentId = $contragentId;
     	$newRec->originId = (isset($fields['originId'])) ? $fields['originId'] : NULL;
+    	
+    	if(!empty($fields['deliveryAdress'])){
+    		expect(drdata_Address::parsePlace($fields['deliveryAdress']), 'Адресът трябва да съдържа държава и пощенски код');
+    		$newRec->deliveryAdress = $fields['deliveryAdress'];
+    	}
+    	
     	if(isset($newRec->originId)){
     		$origin = doc_Containers::getDocument($newRec->originId);
     		$newRec->folderId = $origin->fetchField('folderId');

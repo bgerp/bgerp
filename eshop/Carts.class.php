@@ -257,10 +257,7 @@ class eshop_Carts extends core_Master
     	return $rec->id;
     }
     
-    function act_Test()
-    {
-    	$this->updateMaster(24);
-    }
+    
     /**
      * Обновява данни в мастъра
      *
@@ -459,18 +456,9 @@ class eshop_Carts extends core_Master
    			sales_Sales::addRow($saleId, $transportId, 1, $rec->deliveryNoVat);
    		}
    		
-   		// Продажбата става на заявка
-   		$saleRec = sales_Sales::fetch($saleId);
-   		$saleRec->state = 'pending';
-   		$saleRec->brState = 'draft';
-   		$saleRec->pendingSaved = TRUE;
-   		sales_Sales::save($saleRec, 'state');
-   		
-   		// Активиране на количката
-   		$rec->saleId = $saleId;
-   		$rec->state = 'active';
-   		$rec->activatedOn = dt::now();
-   		self::save($rec, 'state,saleId,activatedOn');
+   		// Продажбата става на заявка, кошницата се активира
+   		self::makeSalePending($saleId);
+   		self::activate($rec, $saleId);
    		
    		// Ако е партньор и има достъп до нишката, директно се реидректва към нея
    		if(core_Packs::isInstalled('colab') && core_Users::isContractor()){
@@ -481,6 +469,37 @@ class eshop_Carts extends core_Master
    				return new Redirect(array('colab_Threads', 'single', 'threadId' => $saleRec->threadId), 'Успешно създадена заявка за продажба');
    			}
    		}
+    }
+    
+    
+    /**
+     * Продажба да се обърне в състояние заявка
+     *
+     * @param int $saleId
+     * @return void
+     */
+    private static function makeSalePending($saleId)
+    {
+    	$saleRec = sales_Sales::fetch($saleId);
+    	$saleRec->state = 'pending';
+    	$saleRec->brState = 'draft';
+    	$saleRec->pendingSaved = TRUE;
+    	sales_Sales::save($saleRec, 'state');
+    }
+    
+    
+    /**
+     * Активиране на количката
+     * 
+     * @param stdClass $rec
+     * @param int $saleId
+     */
+    private static function activate($rec, $saleId)
+    {
+    	$rec->saleId = $saleId;
+    	$rec->state = 'active';
+    	$rec->activatedOn = dt::now();
+    	self::save($rec, 'state,saleId,activatedOn');
     }
     
     
@@ -884,10 +903,7 @@ class eshop_Carts extends core_Master
     	$form = $this->getForm();
     	$form->rec = $rec;
     	$form->title = 'Данни за поръчка';
-    	
     	if($cu = core_Users::getCurrent('id', FALSE)){
-    		
-    		// Има ли споделени папки контрактора
     		$options = colab_Folders::getSharedFolders($cu, TRUE, 'crm_CompanyAccRegIntf');
     		
     		// Задаване като опции

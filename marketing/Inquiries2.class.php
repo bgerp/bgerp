@@ -197,8 +197,9 @@ class marketing_Inquiries2 extends embed_Manager
     	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни данни->П. код,class=contactData,hint=Вашият пощенски код,formOrder=55');
         $this->FLD('place', 'varchar(64)', 'caption=Контактни данни->Град,class=contactData,hint=Населено място: град или село и община,formOrder=56');
         $this->FLD('address', 'varchar(255)', 'caption=Контактни данни->Адрес,class=contactData,hint=Вашият адрес,formOrder=57');
-    	$this->FLD('inqDescription', 'richtext(rows=4,bucket=InquiryBucket)', 'caption=Вашето запитване||Your inquiry->Съобщение||Message');
-    
+    	$this->FLD('inqDescription', 'richtext(rows=4,bucket=InquiryBucket)', 'caption=Вашето запитване||Your inquiry->Съобщение||Message,formOrder=50000');
+    	$this->FLD('deliveryAdress', 'varchar', 'caption=Вашето запитване||Your inquiry->Доставка||Delivery,formOrder=50004');
+    	
     	$this->FLD('ip', 'varchar', 'caption=Ип,input=none');
     	$this->FLD('browser', 'varchar(80)', 'caption=UA String,input=none');
       	$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
@@ -215,7 +216,8 @@ class marketing_Inquiries2 extends embed_Manager
     { 
     	$form = &$data->form;
     	$form->setField('innerClass', "remember,removeAndRefreshForm=proto|measureId|meta");
-
+		$form->setField('deliveryAdress', array('placeholder' => 'Държава, Пощенски код'));
+		
     	// Ако има избран прототип, зареждаме му данните в река
     	if(isset($form->rec->proto)){
     		if($pRec = cat_Products::fetch($form->rec->proto)) {
@@ -994,6 +996,12 @@ class marketing_Inquiries2 extends embed_Manager
     		
     		if(count($errorQuantities)){
     			$form->setError(implode(',', $errorQuantities), "Количествата трябва да са различни||Quantities must be different|*");
+    		}
+    		
+    		if(!empty($rec->deliveryAdress)){
+    			if(!drdata_Address::parsePlace($rec->deliveryAdress)){
+    				$form->setError('deliveryAdress', 'Адресът трябва да съдържа държава и пощенски код');
+    			}
     		}
     	}
     }
