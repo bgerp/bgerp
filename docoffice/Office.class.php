@@ -282,4 +282,38 @@ class docoffice_Office
     {
         return permanent_Data::read('officePort');
     }
+    
+    
+    /**
+     * Конвертира подададени HTML стринг в doc файл
+     * 
+     * @param string $htmlStr
+     * @param string $htmlName
+     * @param string|NULL $bucket
+     * 
+     * @return string
+     */
+    public static function htmlToDoc($htmlStr, $htmlName = 'html.html', $bucket = NULL)
+    {
+        $htmlFile = fileman::addStrToFile($htmlStr, $htmlName);
+        
+        $nameAndExt = fileman::getNameAndExt($htmlFile);
+        
+        $docFile = $nameAndExt['name'] . '.doc';
+        
+        include_once getFullPath('/docoffice/HtmlToDoc.php');
+        
+        $c = new HTML_TO_DOC();
+        $b = $c->createDoc($htmlFile, $docFile);
+        
+        expect(is_file($docFile));
+        
+        if (isset($bucket)) {
+            $res = fileman::absorb($docFile, 'exportCsv');
+        } else {
+            $res = @file_get_contents($docFile);
+        }
+        
+        return $res;
+    }
 }

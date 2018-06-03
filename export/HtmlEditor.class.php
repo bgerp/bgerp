@@ -39,6 +39,14 @@ class export_HtmlEditor extends core_Mvc
     {
         if (!core_Packs::isInstalled('tinymce')) return FALSE;
         
+        if (haveRole('partner')) {
+            if (!cls::load($clsId, TRUE)) return FALSE;
+            
+            $clsInst = cls::get($clsId);
+            
+            if (!($clsInst instanceof sales_Quotations)) return FALSE;
+        }
+        
         $hInst = cls::get('export_Html');
         
         return $hInst->canUseExport($clsId, $objId);

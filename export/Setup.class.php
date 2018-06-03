@@ -37,5 +37,6 @@ class export_Setup extends core_ProtoSetup
             'export_HtmlEditor',
             'export_Csv',
             'export_Xls',
+            'export_Doc',
     );
 }

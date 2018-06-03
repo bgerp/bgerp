@@ -85,7 +85,9 @@
 				        <!--ET_BEGIN deliveryTermId-->
 				        <li>Delivery: [#deliveryTermId#]</li>
 				        <!--ET_END deliveryTermId-->
-				        
+				        <!--ET_BEGIN deliveryError-->
+	                    <li><b class='red'>[#deliveryError#]</b></li>
+	                    <!--ET_END deliveryError-->
 				        <!--ET_BEGIN deliveryPlaceId-->
 				        <li>Delivery place: [#deliveryPlaceId#]</li>
 				        <!--ET_END deliveryPlaceId-->
