@@ -240,7 +240,7 @@ class eshop_CartDetails extends core_Detail
     
     
 	/**
-	 * Добавя артикул в кошницата
+	 * Добавя ред в количката
 	 * 
 	 * @param int $cartId          - кошница
 	 * @param int $eshopProductId  - артикул от е-мага
@@ -249,8 +249,10 @@ class eshop_CartDetails extends core_Detail
 	 * @param double $packQuantity - к-во в избраната опаковка
 	 * @param int $quantityInPack  - к-во в опаковка
 	 * @param double $packPrice    - ед. цена с ДДС, във валутата от настройките или NULL
+	 * @param string $currencyId   - код на валута
+	 * @param boolean $hasVat      - дали сумата е с ДДС или не
 	 */
-	public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = NULL, $packPrice = NULL)
+	public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = NULL, $packPrice = NULL, $currencyId = NULL, $hasVat = NULL)
 	{
 		expect($cartRec = eshop_Carts::fetch("#id = {$cartId} AND #state = 'draft'"));
 		expect($eshopRec = eshop_Products::fetch($eshopProductId));
@@ -265,7 +267,7 @@ class eshop_CartDetails extends core_Detail
 		$settings = eshop_Settings::getSettings('cms_Domains', $cartRec->domainId);
 		$vat = cat_Products::getVat($productId);
 		$quantity = $packQuantity * $quantityInPack;
-		$currencyId = isset($settings->currencyId) ? $settings->currencyId : acc_Periods::getBaseCurrencyCode();
+		$currencyId = isset($currencyId) ? $currencyId : (isset($settings->currencyId) ? $settings->currencyId : acc_Periods::getBaseCurrencyCode());
 		
 		$dRec = (object)array('cartId'         => $cartId, 
 				              'eshopProductId' => $eshopProductId, 
@@ -274,14 +276,22 @@ class eshop_CartDetails extends core_Detail
 				              'quantityInPack' => $quantityInPack,
 							  'vat'            => $vat,
 				              'quantity'       => $quantity,
-							  'currencyId'     => $currencyId, 
-							  'haveVat'        => ($settings->chargeVat) ? $settings->chargeVat : 'yes',      
+							  'currencyId'     => $currencyId,   
 		);
+		
+		if(!empty($packPrice)){
+			$dRec->finalPrice = $packPrice;
+			$dRec->haveVat = ($hasVat) ? (($hasVat === TRUE) ? 'yes' : 'no') : (($settings->chargeVat) ? $settings->chargeVat : 'yes');
+			$dRec->_updatePrice = FALSE;
+		} else {
+			$dRec->haveVat = ($settings->chargeVat) ? $settings->chargeVat : 'yes';
+		}
 		
 		if($exRec = self::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}")){
 			$exRec->quantity += $dRec->quantity;
 			self::save($exRec, 'quantity,finalPrice,oldPrice,discount');
 		} else {
+			$dRec->oldPrice = NULL;
 			self::save($dRec);
 		}
 	}
@@ -295,6 +305,8 @@ class eshop_CartDetails extends core_Detail
 	 */
 	protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
+		if($rec->_updatePrice === FALSE) return;
+		
 		self::updatePriceInfo($rec);
 	}
 	

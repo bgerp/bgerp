@@ -203,7 +203,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		if ($rec->contragent) {
 			
-			$query->EXT ( 'coverId', 'doc_Folders', 'externalName=coverId,externalKey=folderDocId' );
+		    $query->EXT ( 'docFolderId', 'doc_Containers', 'externalName=folderId,externalKey=containerId' );
+		    
+			$query->EXT ( 'coverId', 'doc_Folders', 'externalName=coverId,externalKey=docFolderId' );
 			
 			$contragentId = doc_Folders::fetch ( $rec->contragent )->coverId;
 			
@@ -447,9 +449,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 				'quantity',
 				'primeCost',
 		) as $fld ) {
-			$row->{$fld} = $Double->toVerbal ( $dRec->{$fld} );
+		    $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
 			if ($dRec->{$fld} < 0) {
-			    $row->{$fld} = "<span class='red'>{$dRec->{$fld}}</span>";
+			    
+			 
+			    $row->{$fld} = "<span class='red'>".core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld})."</span>";
 			}
 		}
 		

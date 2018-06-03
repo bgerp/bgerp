@@ -658,7 +658,6 @@ class sales_Quotations extends core_Master
     					$url = array('sales_QuotationsDetails', 'add', 'quotationId' => $rec->id, 'productId' => $transportId, 'packPrice' => $packPrice, 'optional' => 'no','ret_url' => TRUE);
     					$link = ht::createLink('Добавяне', $url, FALSE, array('ef_icon' => 'img/16/lorry_go.png', "style" => 'font-weight:normal;font-size: 0.8em', 'title' => 'Добавяне на допълнителен транспорт'));
     					$row->btnTransport = $link->getContent();
-    				
     				}
     			}
     		}
@@ -666,7 +665,7 @@ class sales_Quotations extends core_Master
     		if(isset($rec->deliveryTermId)){
     			if($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $rec->deliveryPlaceId)){
     				unset($row->deliveryTermId);
-    				$row->deliveryError =  tr('За траспортните разходи моля свържете се с представител на фирмата');
+    				$row->deliveryError =  tr('За транспортните разходи, моля свържете се с представител на фирмата');
     			}
     		}
     	}

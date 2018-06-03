@@ -66,7 +66,7 @@
          
          <div class="half-width fright">
             <!--ET_BEGIN activeFolderId-->
-         	<div style="padding-bottom: 5px;">|Последна папка|*: [#activeFolderId#]</div>
+         	<div style="padding-bottom: 5px;">|Активна папка|*: [#activeFolderId#]</div>
             <!--ET_END activeFolderId-->
          	<!--ET_BEGIN INVOICE_BLOCK-->
          	[#INVOICE_BLOCK#]

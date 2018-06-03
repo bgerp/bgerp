@@ -1119,6 +1119,7 @@ class doc_Threads extends core_Manager
         $exp->functions['checkmovetime'] = 'doc_Threads::checkExpectationMoveTime';
         $exp->functions['getfolderopt'] = 'doc_Threads::getFolderOpt';
         $exp->functions['getcurrentuser'] = 'core_Users::getCurrent';
+        $exp->functions['getbestfolder'] = 'doc_Threads::getbestfolder';
 
         $exp->DEF('dest=Преместване към', 'enum(exFolder=Съществуваща папка, 
                                                 newCompany=Нова папка на фирма,
@@ -1137,7 +1138,9 @@ class doc_Threads extends core_Manager
         }
         
         $exp->DEF('#folderId=Папка', 'key2(mvc=doc_Folders, moveThread=' . $threadId . ', where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\')', 'class=w100,mandatory');
-        $exp->DEF('#folderIdSelect=Папка', 'key2(mvc=doc_Folders, allowEmpty, moveThread=' . $threadId . ', where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\', allowEmpty)', 'class=w100');
+        
+        $exp->DEF('#folderIdSelect=Папка', 'key2(mvc=doc_Folders, allowEmpty, moveThread=' . $threadId . ', where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\' AND #id !\\= ' . $tRec->folderId  . ', allowEmpty)', 'class=w100');
+        $exp->ASSUME('#folderIdSelect', "getBestFolder(#threadId)", "getBestFolder(#threadId)");
 
         $exp->rule("#folderId", "#folderIdSelect", '#folderIdSelect && #dest == "exFolder"');
 
@@ -1404,6 +1407,43 @@ class doc_Threads extends core_Manager
     }
 
 
+    /**
+     * Намира най-подходящата папка, където може да бъде преместена тази нишка
+     */
+    public static function getBestFolder($threadId)
+    {   
+        $altFolderId = NULL;
+
+        $tRec = doc_Threads::fetch($threadId);
+        $fRec = doc_Folders::fetch($tRec->folderId);
+       
+        $class = cls::get($fRec->coverClass);
+        if(cls::haveInterface('doc_ContragentDataIntf', $class)) {
+            $cData = $class->getContragentData($fRec->coverId);
+
+            if($cData->email) {
+                $altFolderId = email_Router::getEmailFolder($cData->email);
+            }
+        }
+        
+        if($altFolderId == $tRec->folderId) {
+            $altFolderId = NULL;
+        }
+ 
+        if(!$altFolderId) {
+            $cData = self::getContragentData($threadId);
+          
+            if($cData->email) {
+                $altFolderId = email_Router::getEmailFolder($cData->email);
+            }
+        }
+
+        if($altFolderId == $tRec->folderId) {
+            $altFolderId = NULL;
+        }
+ 
+        return $altFolderId;
+    }
 
 
     /**
