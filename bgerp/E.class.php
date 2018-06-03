@@ -200,7 +200,7 @@ class bgerp_E extends core_Manager
             
             $form->setField('format, validity', 'input=none');
 			
-            $form->toolbar->addBtn('Сваляне', $downloadUrl, "ef_icon = fileman/icons/16/{$format}.png, title=" . tr('Сваляне на документа'));
+            $form->toolbar->addBtn('Сваляне', $downloadUrl, "ef_icon = fileman/icons/16/{$format}.png, title=Сваляне на документа");
             $form->toolbar->addBtn('Затваряне', $retUrl, 'ef_icon = img/16/close-red.png, title=' . tr('Връщане към документа') . ', class=fright');
             
             $form->title = "Линк за сваляне";

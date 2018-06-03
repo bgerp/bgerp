@@ -104,7 +104,7 @@ class export_Pdf extends core_Mvc
         //Манипулатора на новосъздадения pdf файл
         $fileHnd = doc_PdfCreator::convert($html, $fileName);
         
-        $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/pdf.png, title=" . tr('Сваляне на документа'));
+        $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/pdf.png, title=Сваляне на документа");
         
         $form->info .= "<b>" . tr('Файл|*: ') . "</b>" . fileman::getLink($fileHnd);
         

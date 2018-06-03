@@ -257,6 +257,8 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         if ($html = Request::get('html')) {
             
             $html = i18n_Charset::convertToUtf8($html, array(), TRUE);
+
+            $html = "<!DOCTYPE html><html><head><title>Document</title><meta charset=\"UTF-8\"></head><body style='font-family: Arial'>" . $html . "</body></html>";
             
             cls::load('fileman_Download');
             

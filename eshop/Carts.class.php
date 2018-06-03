@@ -138,6 +138,7 @@ class eshop_Carts extends core_Master
     	$this->FLD('info', 'richtext(rows=2)', 'caption=Общи данни->Забележка,input=none');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активно,closed=Приключено,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
+    	$this->FLD('locationId', 'key(mvc=crm_Locations,select=title)', 'caption=Локация,input=none');
     	$this->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated->На,input=none');
     	
     	$this->setDbIndex('brid');
@@ -457,7 +458,7 @@ class eshop_Carts extends core_Master
    		}
    		
    		// Продажбата става на заявка, кошницата се активира
-   		self::makeSalePending($saleId);
+   		$saleRec = self::makeSalePending($saleId);
    		self::activate($rec, $saleId);
    		
    		// Ако е партньор и има достъп до нишката, директно се реидректва към нея
@@ -476,7 +477,7 @@ class eshop_Carts extends core_Master
      * Продажба да се обърне в състояние заявка
      *
      * @param int $saleId
-     * @return void
+     * @return stdClass $saleRec
      */
     private static function makeSalePending($saleId)
     {
@@ -485,6 +486,8 @@ class eshop_Carts extends core_Master
     	$saleRec->brState = 'draft';
     	$saleRec->pendingSaved = TRUE;
     	sales_Sales::save($saleRec, 'state');
+    	
+    	return $saleRec;
     }
     
     
@@ -903,14 +906,24 @@ class eshop_Carts extends core_Master
     	$form = $this->getForm();
     	$form->rec = $rec;
     	$form->title = 'Данни за поръчка';
-    	if($cu = core_Users::getCurrent('id', FALSE)){
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	$defaultTermId = $defaultPaymentId = NULL;
+    	
+    	$deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
+    	$paymentMethods = eshop_Settings::getPaymentMethodOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
+    	
+    	if($cu){
     		$options = colab_Folders::getSharedFolders($cu, TRUE, 'crm_CompanyAccRegIntf');
+    		$profileRec = crm_Profiles::getProfile($cu);
+    		$form->setDefault('personNames', $profileRec->name);
+    		$form->setDefault('email', $profileRec->email);
+    		$form->setDefault('tel', $profileRec->tel);
     		
     		// Задаване като опции
     		if(count($options)){
     			$form->setDefault('makeInvoice', 'company');
     			$form->setField('makeInvoice', 'input=hidden');
-    			$form->setField('saleFolderId', 'input,mandatory');
+    			$form->setField('saleFolderId', 'input');
     			$form->setOptions('saleFolderId', $options);
     			
     			// Коя папка е избрана по дефолт
@@ -918,15 +931,35 @@ class eshop_Carts extends core_Master
     			$defaultFolder = ($companyFolderId) ? $companyFolderId : key($options);
     			$form->setDefault('saleFolderId', $defaultFolder);
     		}
+    		
+    		// Добавяне на партньорското условие на доставка
+    		$defaultTermId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'deliveryTermSale');
+    		$form->setDefault('termId', $defaultTermId);
+    		if($defaultTermId && !array_key_exists($defaultTermId, $deliveryTerms)){
+    			$deliveryTerms[$defaultTermId] = cond_DeliveryTerms::getVerbal($defaultTermId, 'term');
+    		}
+    		
+    		// Добавяне на партньорския метод за плащане
+    		$defaultPaymentId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'paymentMethodSale');
+    		$form->setDefault('paymentId', $defaultPaymentId);
+    		if($defaultPaymentId && !array_key_exists($defaultPaymentId, $paymentMethods)){
+    			$paymentMethods[$defaultPaymentId] = cond_PaymentMethods::getVerbal($paymentId, 'name');
+    		}
     	}
     	
-    	$deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
     	if(count($deliveryTerms) == 1){
     		$form->setDefault('termId', key($deliveryTerms));
     	} else {
     		$deliveryTerms = array('' => '') + $deliveryTerms;
     	}
     	$form->setOptions('termId', $deliveryTerms);
+    	
+    	if(count($paymentMethods) == 1){
+    		$form->setDefault('paymentId', key($paymentMethods));
+    	} else {
+    		$paymentMethods = array('' => '') + $paymentMethods;
+    	}
+    	$form->setOptions('paymentId', $paymentMethods);
     	
     	$makeInvoice = bgerp_Setup::get('MANDATORY_CONTACT_FIELDS');
     	if(in_array($makeInvoice, array('company', 'both'))){
@@ -998,6 +1031,11 @@ class eshop_Carts extends core_Master
     					$rec->deliveryData[$name] = $rec->{$name};
     				}
     			}
+    		}
+    		
+    		// Ако има избрана папка обновява се
+    		if(!empty($rec->saleFolderId)){
+    			crm_Companies::updateContactDataByFolderId($rec->saleFolderId, $rec->invoiceNames, $rec->invoiceVatNo, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress);
     		}
     		
     		$this->save($rec);
