@@ -251,7 +251,7 @@ class eshop_Settings extends core_Manager
     	$terms = keylist::toArray($settings->terms);
     	
     	$options = array();
-    	array_walk($terms, function($termId) use (&$options) {$options[$termId] = tr(cond_DeliveryTerms::getVerbal($termId, 'term'));});
+    	array_walk($terms, function($termId) use (&$options) {$options[$termId] = cond_DeliveryTerms::getVerbal($termId, 'codeName');});
     	
     	return $options;
     }

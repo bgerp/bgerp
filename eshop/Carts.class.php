@@ -120,7 +120,7 @@ class eshop_Carts extends core_Master
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,hint=Вашият имейл||Your email,mandatory');
     	$this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Контактни данни->Тел,hint=Вашият телефон,mandatory');
     	
-    	$this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Начин,removeAndRefreshForm=,silent');
+    	$this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Начин,removeAndRefreshForm=deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|deliveryData,silent');
     	$this->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,hint=Държава на доставка');
     	$this->FLD('deliveryPCode', 'varchar(16)', 'caption=Доставка->П. код,hint=Пощенски код за доставка');
     	$this->FLD('deliveryPlace', 'varchar(64)', 'caption=Доставка->Място,hint=Населено място: град или село и община');
@@ -1041,7 +1041,7 @@ class eshop_Carts extends core_Master
     	 
     	$deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
     	$paymentMethods = eshop_Settings::getPaymentMethodOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
-    	 
+    	
     	if($cu){
     		$options = colab_Folders::getSharedFolders($cu, TRUE, 'crm_CompanyAccRegIntf');
     		$profileRec = crm_Profiles::getProfile($cu);
@@ -1066,9 +1066,9 @@ class eshop_Carts extends core_Master
     		$defaultTermId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'deliveryTermSale');
     		$form->setDefault('termId', $defaultTermId);
     		if($defaultTermId && !array_key_exists($defaultTermId, $deliveryTerms)){
-    			$deliveryTerms[$defaultTermId] = tr(cond_DeliveryTerms::getVerbal($defaultTermId, 'term'));
+    			$deliveryTerms[$defaultTermId] = cond_DeliveryTerms::getVerbal($defaultTermId, 'codeName');
     		}
-    	
+    		
     		// Добавяне на партньорския метод за плащане
     		$defaultPaymentId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'paymentMethodSale');
     		$form->setDefault('paymentId', $defaultPaymentId);
