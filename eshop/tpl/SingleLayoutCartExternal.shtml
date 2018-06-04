@@ -37,9 +37,13 @@
                   <td>|Условие на доставка|*: [#termId#]</td>
                </tr>
                <!--ET_END termId-->
+               
+               <!--ET_BEGIN deliveryCountry-->
                <tr>
-                  <td>[#DELIVERY_BLOCK#]</td>
+                  <td>|Доставка|*: [#deliveryCountry#], [#deliveryPCode#] [#deliveryPlace#], [#deliveryAddress#]</td>
                </tr>
+               <!--ET_END deliveryCountry-->
+               
                <!--ET_BEGIN deliveryTime-->
                <tr>
                   <td>|Доставка до|*: <b>[#deliveryTime#]</b></td>
@@ -121,16 +125,20 @@
       <!--ET_END CART_TOOLBAR_LEFT-->
       <div id = 'cart-view-total' class="summary-holder">
          <table>
+         	<!--ET_BEGIN totalNoVat-->
             <tr>
                <td class="aright">|Основа|*: </td>
                <td class="aright"><span class='cCode' style='font-weight:normal'>[#totalNoVatCurrencyId#]</span></td>
                <td class="aright"><b>[#totalNoVat#]</b></td>
             </tr>
+            <!--ET_END totalNoVat-->
+            <!--ET_BEGIN totalVat-->
             <tr>
                <td class="aright">|ДДС|*: </td>
                <td class="aright"><span class='cCode' style='font-weight:normal'>[#vatCurrencyId#]</span></td>
                <td class="aright"><b>[#totalVat#]</b></td>
             </tr>
+            <!--ET_END totalVat-->
             <tr>
                <td class="aright">|Общо|*: </td>
                <td class="aright"><span class='cCode' style='font-weight:normal'>[#currencyId#]</span></td>

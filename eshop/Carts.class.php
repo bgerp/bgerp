@@ -120,12 +120,16 @@ class eshop_Carts extends core_Master
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,hint=Вашият имейл||Your email,mandatory');
     	$this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Контактни данни->Тел,hint=Вашият телефон,mandatory');
     	
-    	$this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Начин,mandatory,removeAndRefreshForm,silent');
+    	$this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Начин,removeAndRefreshForm=,silent');
+    	$this->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,hint=Държава на доставка');
+    	$this->FLD('deliveryPCode', 'varchar(16)', 'caption=Доставка->П. код,hint=Пощенски код за доставка');
+    	$this->FLD('deliveryPlace', 'varchar(64)', 'caption=Доставка->Място,hint=Населено място: град или село и община');
+    	$this->FLD('deliveryAddress', 'varchar(255)', 'caption=Доставка->Адрес,hint=Вашият адрес');
     	$this->FLD('deliveryData', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('instruction', 'richtext(rows=2)', 'caption=Доставка->Инструкции');
     	
     	$this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Начин,mandatory');
-    	$this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=saleFolderId|invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
+    	$this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|locationId');
     	
     	$this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактура->Папка,input=hidden,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
     	$this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
@@ -138,7 +142,7 @@ class eshop_Carts extends core_Master
     	$this->FLD('info', 'richtext(rows=2)', 'caption=Общи данни->Забележка,input=none');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активно,closed=Приключено,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
-    	$this->FLD('locationId', 'key(mvc=crm_Locations,select=title)', 'caption=Локация,input=none');
+    	$this->FLD('locationId', 'key(mvc=crm_Locations,select=title)', 'caption=Локация,input=none,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress,after=instruction');
     	$this->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated->На,input=none');
     	
     	$this->setDbIndex('brid');
@@ -594,6 +598,13 @@ class eshop_Carts extends core_Master
     		$tpl->replace($Driver->renderDeliveryInfo($rec), 'DELIVERY_BLOCK');
     	}
     	
+    	$countryVerbal = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($rec->deliveryCountry);
+    	$tpl->replace($countryVerbal, 'deliveryCountry');
+    	 
+    	foreach (array('deliveryPCode', 'deliveryPlace', 'deliveryAddress') as $name){
+    		$tpl->replace(core_Type::getByName('varchar')->toVerbal($rec->{$name}), $name);
+    	}
+    	
     	if($companyFolderId = core_Mode::get('lastActiveCompanyFolder')){
     		if(colab_Threads::haveRightFor('list', (object)array('folderId' => $companyFolderId))){
     			$folderTitle = doc_Folders::getVerbal($companyFolderId, 'title');
@@ -660,18 +671,23 @@ class eshop_Carts extends core_Master
     	$settings = cms_Domains::getSettings();
     	
     	$total = currency_CurrencyRates::convertAmount($rec->total, NULL, NULL, $settings->currencyId);
-    	$totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, NULL, NULL, $settings->currencyId);
-    	$vatAmount = $total - $totalNoVat;
-    	
     	$Double = core_Type::getByName('double(decimals=2)');
-    	$row->totalNoVat = $Double->toVerbal($totalNoVat);
+    	
     	$row->total = $Double->toVerbal($total);
-    	$row->totalVat = $Double->toVerbal($vatAmount);
-    	
     	$row->currencyId = $settings->currencyId;
-    	$row->totalNoVatCurrencyId = $row->vatCurrencyId = $row->currencyId;
-    	$row->productCount .= "&nbsp;" . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
     	
+    	if($settings->chargeVat != 'yes'){
+    		$totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, NULL, NULL, $settings->currencyId);
+    		$vatAmount = $total - $totalNoVat;
+    		
+    		$row->totalNoVat = $Double->toVerbal($totalNoVat);
+    		$row->totalVat = $Double->toVerbal($vatAmount);
+    		$row->totalNoVatCurrencyId = $row->vatCurrencyId = $row->currencyId;
+    	} else {
+    		unset($row->totalNoVat);
+    	}
+    	
+    	$row->productCount .= "&nbsp;" . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
     	$tpl->placeObject($row);
     	
     	return $tpl;
@@ -706,7 +722,7 @@ class eshop_Carts extends core_Master
     	$tpl->append($btn, 'CART_TOOLBAR_LEFT');
     	
     	$checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE) : array();
-    	if(empty($rec->personNames)){
+    	if(empty($rec->personNames) && count($checkoutUrl)){
     		$btn = ht::createBtn('Данни за поръчка', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=order-btn eshop-btn {$disabledClass}");
     		$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
     	}
@@ -803,7 +819,7 @@ class eshop_Carts extends core_Master
     		$deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, NULL, NULL, $settings->currencyId);
     		$deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
     			
-    		$data->rows['-1'] = (object)array('productId' => "<b>" . tr('Доставка') . "</b>", 'amount' => "<b>" . $deliveryAmount. "</b>");
+    		$data->rows['-1'] = (object)array('productId' => "<b>" . tr('Доставка||Shipping') . "</b>", 'amount' => "<b>" . $deliveryAmount. "</b>");
     	}
     }
     
@@ -903,82 +919,18 @@ class eshop_Carts extends core_Master
     	expect($rec = self::fetch($id));
     	$this->requireRightFor('checkout', $rec);
     	
-    	$form = $this->getForm();
-    	$form->rec = $rec;
+    	$data = new stdClass();
+    	$data->action = 'order';
+    	$this->prepareEditForm($data);
+    	$data->form->setAction($this, 'order');
+    	
+    	$form = &$data->form;
     	$form->title = 'Данни за поръчка';
-    	$cu = core_Users::getCurrent('id', FALSE);
-    	$defaultTermId = $defaultPaymentId = NULL;
     	
-    	$deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
-    	$paymentMethods = eshop_Settings::getPaymentMethodOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
-    	
-    	if($cu){
-    		$options = colab_Folders::getSharedFolders($cu, TRUE, 'crm_CompanyAccRegIntf');
-    		$profileRec = crm_Profiles::getProfile($cu);
-    		$form->setDefault('personNames', $profileRec->name);
-    		$form->setDefault('email', $profileRec->email);
-    		$form->setDefault('tel', $profileRec->tel);
-    		
-    		// Задаване като опции
-    		if(count($options)){
-    			$form->setDefault('makeInvoice', 'company');
-    			$form->setField('makeInvoice', 'input=hidden');
-    			$form->setField('saleFolderId', 'input');
-    			$form->setOptions('saleFolderId', $options);
-    			
-    			// Коя папка е избрана по дефолт
-    			$companyFolderId = core_Mode::get('lastActiveCompanyFolder');
-    			$defaultFolder = ($companyFolderId) ? $companyFolderId : key($options);
-    			$form->setDefault('saleFolderId', $defaultFolder);
-    		}
-    		
-    		// Добавяне на партньорското условие на доставка
-    		$defaultTermId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'deliveryTermSale');
-    		$form->setDefault('termId', $defaultTermId);
-    		if($defaultTermId && !array_key_exists($defaultTermId, $deliveryTerms)){
-    			$deliveryTerms[$defaultTermId] = cond_DeliveryTerms::getVerbal($defaultTermId, 'term');
-    		}
-    		
-    		// Добавяне на партньорския метод за плащане
-    		$defaultPaymentId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'paymentMethodSale');
-    		$form->setDefault('paymentId', $defaultPaymentId);
-    		if($defaultPaymentId && !array_key_exists($defaultPaymentId, $paymentMethods)){
-    			$paymentMethods[$defaultPaymentId] = cond_PaymentMethods::getVerbal($paymentId, 'name');
-    		}
-    	}
-    	
-    	if(count($deliveryTerms) == 1){
-    		$form->setDefault('termId', key($deliveryTerms));
-    	} else {
-    		$deliveryTerms = array('' => '') + $deliveryTerms;
-    	}
-    	$form->setOptions('termId', $deliveryTerms);
-    	
-    	if(count($paymentMethods) == 1){
-    		$form->setDefault('paymentId', key($paymentMethods));
-    	} else {
-    		$paymentMethods = array('' => '') + $paymentMethods;
-    	}
-    	$form->setOptions('paymentId', $paymentMethods);
-    	
-    	$makeInvoice = bgerp_Setup::get('MANDATORY_CONTACT_FIELDS');
-    	if(in_array($makeInvoice, array('company', 'both'))){
-    		$form->setDefault('makeInvoice', 'company');
-    		$form->setField('makeInvoice', 'input=hidden');
-    	}
-    	
+    	self::prepareOrderForm($form);
     	$form->input(NULL, 'silent');
     	if(isset($form->rec->saleFolderId)){
-    		
-    		// Ако има избрана папка записване на контрагент данните
-    		if($contragentData = doc_Folders::getContragentData($form->rec->saleFolderId)){
-    			$form->setDefault('invoiceNames', $contragentData->company);
-    			$form->setDefault('invoiceVatNo', $contragentData->vatNo);
-    			$form->setDefault('invoiceCountry', $contragentData->countryId);
-    			$form->setDefault('invoicePCode', $contragentData->pCode);
-    			$form->setDefault('invoicePlace', $contragentData->place);
-    			$form->setDefault('invoiceAddress', $contragentData->address);
-    		}
+    		self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
     	}
     	
     	// Ако има условие на доставка то драйвера му може да добави допълнителни полета
@@ -1019,6 +971,13 @@ class eshop_Carts extends core_Master
     		$Driver->checkForm($form);
     	}
     	
+    	if($rec->makeInvoice != 'none'){
+    		$form->setDefault('invoiceCountry', $rec->deliveryCountry);
+    		$form->setDefault('invoicePCode', $rec->deliveryPCode);
+    		$form->setDefault('invoicePlace', $rec->deliveryPlace);
+    		$form->setDefault('invoiceAddress', $rec->deliveryAddress);
+    	}
+    	
     	if($form->isSubmitted()){
     		$rec = $form->rec;
     		
@@ -1036,6 +995,21 @@ class eshop_Carts extends core_Master
     		// Ако има избрана папка обновява се
     		if(!empty($rec->saleFolderId)){
     			crm_Companies::updateContactDataByFolderId($rec->saleFolderId, $rec->invoiceNames, $rec->invoiceVatNo, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress);
+    		}
+    		
+    		$cu = core_Users::getCurrent('id', FALSE);
+    		
+    		if(isset($cu) && core_Users::isContractor($cu)){
+    			if(isset($rec->saleFolderId)){
+    				$Cover = doc_Folders::getCover($rec->saleFolderId);
+    				$contragentClassId = $Cover->getClassId();
+    				$contragentId = $Cover->that;
+    			} else {
+    				$contragentClassId = crm_Persons::getClassId();
+    				$contragentId = crm_Profiles::getProfile($cu)->id;
+    			}
+    			
+    			crm_Locations::update($contragentClassId, $contragentId, $rec->deliveryCountry, 'За получаване на пратки', $rec->deliveryPCode, $rec->deliveryPlace, $rec->deliveryAddress, $rec->locationId);
     		}
     		
     		$this->save($rec);
@@ -1056,5 +1030,102 @@ class eshop_Carts extends core_Master
     	core_Lg::pop();
     	
     	return $tpl;
+    }
+    
+    
+    private static function prepareOrderForm(&$form)
+    {
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	$defaultTermId = $defaultPaymentId = NULL;
+    	 
+    	$deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
+    	$paymentMethods = eshop_Settings::getPaymentMethodOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
+    	 
+    	if($cu){
+    		$options = colab_Folders::getSharedFolders($cu, TRUE, 'crm_CompanyAccRegIntf');
+    		$profileRec = crm_Profiles::getProfile($cu);
+    		$form->setDefault('personNames', $profileRec->name);
+    		$form->setDefault('email', $profileRec->email);
+    		$form->setDefault('tel', $profileRec->tel);
+    	
+    		// Задаване като опции
+    		if(count($options)){
+    			$form->setDefault('makeInvoice', 'company');
+    			$form->setField('makeInvoice', 'input=hidden');
+    			$form->setField('saleFolderId', 'input');
+    			$form->setOptions('saleFolderId', $options);
+    			 
+    			// Коя папка е избрана по дефолт
+    			$companyFolderId = core_Mode::get('lastActiveCompanyFolder');
+    			$defaultFolder = ($companyFolderId) ? $companyFolderId : key($options);
+    			$form->setDefault('saleFolderId', $defaultFolder);
+    		}
+    	
+    		// Добавяне на партньорското условие на доставка
+    		$defaultTermId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'deliveryTermSale');
+    		$form->setDefault('termId', $defaultTermId);
+    		if($defaultTermId && !array_key_exists($defaultTermId, $deliveryTerms)){
+    			$deliveryTerms[$defaultTermId] = cond_DeliveryTerms::getVerbal($defaultTermId, 'term');
+    		}
+    	
+    		// Добавяне на партньорския метод за плащане
+    		$defaultPaymentId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'paymentMethodSale');
+    		$form->setDefault('paymentId', $defaultPaymentId);
+    		if($defaultPaymentId && !array_key_exists($defaultPaymentId, $paymentMethods)){
+    			$paymentMethods[$defaultPaymentId] = cond_PaymentMethods::getVerbal($paymentId, 'name');
+    		}
+    	}
+    	 
+    	if(count($deliveryTerms) == 1){
+    		$form->setDefault('termId', key($deliveryTerms));
+    	} else {
+    		$deliveryTerms = array('' => '') + $deliveryTerms;
+    	}
+    	$form->setOptions('termId', $deliveryTerms);
+    	 
+    	if(count($paymentMethods) == 1){
+    		$form->setDefault('paymentId', key($paymentMethods));
+    	} else {
+    		$paymentMethods = array('' => '') + $paymentMethods;
+    	}
+    	$form->setOptions('paymentId', $paymentMethods);
+    	 
+    	$makeInvoice = bgerp_Setup::get('MANDATORY_CONTACT_FIELDS');
+    	if(in_array($makeInvoice, array('company', 'both'))){
+    		$form->setDefault('makeInvoice', 'company');
+    		$form->setField('makeInvoice', 'input=hidden');
+    	}
+    }
+    
+    
+    private static function setDefaultsFromFolder(&$form, $folderId)
+    {
+    	$rec = &$form->rec;
+    	
+    	// Ако има избрана папка записване на контрагент данните
+    	if($contragentData = doc_Folders::getContragentData($folderId)){
+    		$form->setDefault('invoiceNames', $contragentData->company);
+    		$form->setDefault('invoiceVatNo', $contragentData->vatNo);
+    		$form->setDefault('invoiceCountry', $contragentData->countryId);
+    		$form->setDefault('invoicePCode', $contragentData->pCode);
+    		$form->setDefault('invoicePlace', $contragentData->place);
+    		$form->setDefault('invoiceAddress', $contragentData->address);
+    		
+    		$locations = crm_Locations::getContragentOptions('crm_Companies', $contragentData->companyId);
+    		if(count($locations)){
+    			$form->setOptions('locationId', array('' => '') + $locations);
+    			$form->setField('locationId', 'input');
+    			$form->input('locationId', 'silent');
+    		}
+    		
+    		if(isset($rec->locationId)){
+    			$locationRec = crm_Locations::fetch($rec->locationId);
+    			foreach (array('deliveryCountry' => 'countryId', 'deliveryPCode' => 'pCode', 'deliveryPlace' => 'place', 'deliveryAddress' => 'address') as $delField => $locField){
+    				if(!empty($locationRec->{$locField})){
+    					$form->setDefault($delField, $locationRec->{$locField});
+    				}
+    			}
+    		}
+    	}
     }
 }
