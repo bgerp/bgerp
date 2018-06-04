@@ -601,7 +601,14 @@ class label_TemplateFormats extends core_Detail
                 
                 $form->FNC($placeHolderField, $type, "caption={$caption}, input=input, silent");
             } elseif ($rec->type == 'barcode') {
-                $form->FNC($placeHolderField, 'text(rows=2)', "caption={$caption}, input=input, silent");
+                $bType = 'text(rows=2)';
+                if ($rec->formatParams['BarcodeType'] == 'ean13') {
+                    $bType = 'gs1_TypeEan(gln)';
+                } elseif ($rec->formatParams['BarcodeType'] == 'ean8') {
+                    $bType = 'gs1_TypeEan()';
+                }
+                
+                $form->FNC($placeHolderField, $bType, "caption={$caption}, input=input, silent");
             }
         }
     }
