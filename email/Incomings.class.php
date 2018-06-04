@@ -1995,7 +1995,7 @@ class email_Incomings extends core_Master
 
         $accRec = email_Accounts::fetch($rec->accId);
         
-        $isCommon = ($accRec->email == $rec->toBox && $accRec->type != 'single');
+        $isCommon = (($accRec->email == $rec->toBox || $accRec->email == $rec->toEml) && $accRec->type != 'single');
 
         return $isCommon;
     }
