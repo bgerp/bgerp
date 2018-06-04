@@ -72,7 +72,7 @@ class cat_interface_PackLabelImpl
 		$placeholders['SIZE']             = (object)array('type' => 'text');
 		$placeholders['CATALOG_PRICE']    = (object)array('type' => 'text');
 		$placeholders['CATALOG_CURRENCY'] = (object)array('type' => 'text');
-		$placeholders['EAN']              = (object)array('type' => 'text');
+		$placeholders['EAN']              = (object)array('type' => 'barcode');
 		
 		if(isset($objId)){
 			$labelData = $this->getLabelData($objId, 1, TRUE);
