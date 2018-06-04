@@ -1729,7 +1729,7 @@ class email_Incomings extends core_Master
         if($accRec && ($accRec->applyRouting == 'yes')) {
             
             // Ако `boxTo` е обща кутия, прилагаме последователно `From`, `Domain`, `Country`
-            if($accRec->email == $rec->toBox && $accRec->type != 'single') {
+            if (($accRec->email == $rec->toBox || $accRec->email == $rec->toEml) && $accRec->type != 'single') {
                 
                 // Ако папката е с рутиране и boxTo е обща кутия, прилагаме `From`
                 if(email_Router::doRuleFrom($rec)) {
