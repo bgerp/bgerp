@@ -1066,14 +1066,14 @@ class eshop_Carts extends core_Master
     		$defaultTermId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'deliveryTermSale');
     		$form->setDefault('termId', $defaultTermId);
     		if($defaultTermId && !array_key_exists($defaultTermId, $deliveryTerms)){
-    			$deliveryTerms[$defaultTermId] = cond_DeliveryTerms::getVerbal($defaultTermId, 'term');
+    			$deliveryTerms[$defaultTermId] = tr(cond_DeliveryTerms::getVerbal($defaultTermId, 'term'));
     		}
     	
     		// Добавяне на партньорския метод за плащане
     		$defaultPaymentId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'paymentMethodSale');
     		$form->setDefault('paymentId', $defaultPaymentId);
     		if($defaultPaymentId && !array_key_exists($defaultPaymentId, $paymentMethods)){
-    			$paymentMethods[$defaultPaymentId] = cond_PaymentMethods::getVerbal($paymentId, 'name');
+    			$paymentMethods[$defaultPaymentId] = tr(cond_PaymentMethods::getVerbal($paymentId, 'name'));
     		}
     	}
     	 
