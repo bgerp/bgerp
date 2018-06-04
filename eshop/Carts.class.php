@@ -929,9 +929,7 @@ class eshop_Carts extends core_Master
     	
     	self::prepareOrderForm($form);
     	$form->input(NULL, 'silent');
-    	if(isset($form->rec->saleFolderId)){
-    		self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
-    	}
+    	self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
     	
     	// Ако има условие на доставка то драйвера му може да добави допълнителни полета
     	if(isset($form->rec->termId)){
@@ -1009,7 +1007,7 @@ class eshop_Carts extends core_Master
     				$contragentId = crm_Profiles::getProfile($cu)->id;
     			}
     			
-    			crm_Locations::update($contragentClassId, $contragentId, $rec->deliveryCountry, 'За получаване на пратки', $rec->deliveryPCode, $rec->deliveryPlace, $rec->deliveryAddress, $rec->locationId);
+    			$rec->locationId = crm_Locations::update($contragentClassId, $contragentId, $rec->deliveryCountry, 'За получаване на пратки', $rec->deliveryPCode, $rec->deliveryPlace, $rec->deliveryAddress, $rec->locationId);
     		}
     		
     		$this->save($rec);
@@ -1098,32 +1096,47 @@ class eshop_Carts extends core_Master
     }
     
     
+    /**
+     * Дефолти от избраната папка
+     * 
+     * @param core_Form $form
+     * @param int|NULL $folderId
+     */
     private static function setDefaultsFromFolder(&$form, $folderId)
     {
     	$rec = &$form->rec;
     	
-    	// Ако има избрана папка записване на контрагент данните
-    	if($contragentData = doc_Folders::getContragentData($folderId)){
-    		$form->setDefault('invoiceNames', $contragentData->company);
-    		$form->setDefault('invoiceVatNo', $contragentData->vatNo);
-    		$form->setDefault('invoiceCountry', $contragentData->countryId);
-    		$form->setDefault('invoicePCode', $contragentData->pCode);
-    		$form->setDefault('invoicePlace', $contragentData->place);
-    		$form->setDefault('invoiceAddress', $contragentData->address);
+    	if(isset($folderId)){
     		
-    		$locations = crm_Locations::getContragentOptions('crm_Companies', $contragentData->companyId);
-    		if(count($locations)){
-    			$form->setOptions('locationId', array('' => '') + $locations);
-    			$form->setField('locationId', 'input');
-    			$form->input('locationId', 'silent');
+    		// Ако има избрана папка записване на контрагент данните
+    		if($contragentData = doc_Folders::getContragentData($folderId)){
+    			$form->setDefault('invoiceNames', $contragentData->company);
+    			$form->setDefault('invoiceVatNo', $contragentData->vatNo);
+    			$form->setDefault('invoiceCountry', $contragentData->countryId);
+    			$form->setDefault('invoicePCode', $contragentData->pCode);
+    			$form->setDefault('invoicePlace', $contragentData->place);
+    			$form->setDefault('invoiceAddress', $contragentData->address);
     		}
     		
-    		if(isset($rec->locationId)){
-    			$locationRec = crm_Locations::fetch($rec->locationId);
-    			foreach (array('deliveryCountry' => 'countryId', 'deliveryPCode' => 'pCode', 'deliveryPlace' => 'place', 'deliveryAddress' => 'address') as $delField => $locField){
-    				if(!empty($locationRec->{$locField})){
-    					$form->setDefault($delField, $locationRec->{$locField});
-    				}
+    		$locations = crm_Locations::getContragentOptions('crm_Companies', $contragentData->companyId);
+    	} else {
+    		$cu = core_Users::getCurrent('id', FALSE);
+    		if(isset($cu) && core_Users::isContractor($cu)){
+    			$locations = crm_Locations::getContragentOptions('crm_Persons', crm_Profiles::getProfile($cu)->id);
+    		}
+    	}
+    	
+    	if(count($locations)){
+    		$form->setOptions('locationId', array('' => '') + $locations);
+    		$form->setField('locationId', 'input');
+    		$form->input('locationId', 'silent');
+    	}
+    	
+    	if(isset($rec->locationId)){
+    		$locationRec = crm_Locations::fetch($rec->locationId);
+    		foreach (array('deliveryCountry' => 'countryId', 'deliveryPCode' => 'pCode', 'deliveryPlace' => 'place', 'deliveryAddress' => 'address') as $delField => $locField){
+    			if(!empty($locationRec->{$locField})){
+    				$form->setDefault($delField, $locationRec->{$locField});
     			}
     		}
     	}
