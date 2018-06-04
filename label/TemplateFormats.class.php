@@ -295,7 +295,7 @@ class label_TemplateFormats extends core_Detail
                 
                 foreach ($labelDataArr as $lName => $v) {
                     $unset = FALSE;
-                    if ($v->type == 'string') {
+                    if ($v->type == 'text') {
                         if ($type != 'caption' && $type != 'barcode') {
                             $unset = TRUE;
                         }
