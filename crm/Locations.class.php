@@ -180,6 +180,20 @@ class crm_Locations extends core_Master {
     		$newRec = (object)$newRec;
     	}
     	
+    	// Ако има стара локация, но няма промени по нея не се ъпдейтва
+    	if(is_object($exLocationRec)){
+    		$skip = TRUE;
+    		$fields = arr::make('countryId,type,pCode,place,address,mol,gln,email,tel,gpsCoords,comment,title', TRUE);
+    		foreach ($fields as $name){
+    			if($exLocationRec->{$name} != $newRec->{$name}){
+    				$skip = FALSE;
+    				break;
+    			}
+    		}
+    		
+    		if($skip === TRUE) return $exLocationRec->id;
+    	}
+    	
     	return self::save($newRec);
     }
     
@@ -261,7 +275,7 @@ class crm_Locations extends core_Master {
     }
     
     
-     /**
+    /**
      * Изпълнява се след въвеждането на данните от заявката във формата
      */
     protected static function on_AfterInputEditForm($mvc, $form)
