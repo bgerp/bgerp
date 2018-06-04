@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър за артикул в кошница
+ * Мениджър за детайл на кошниците
  *
  *
  * @category  bgerp
@@ -306,7 +306,6 @@ class eshop_CartDetails extends core_Detail
 	protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
 		if($rec->_updatePrice === FALSE) return;
-		
 		self::updatePriceInfo($rec);
 	}
 	
@@ -344,7 +343,7 @@ class eshop_CartDetails extends core_Detail
 			
 			$settings = cms_Domains::getSettings();
 			$finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, $rec->currencyId, $settings->currencyId);
-			$row->finalPrice = $mvc->getFieldType('finalPrice')->toVerbal($finalPrice);
+			$row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
 		
 			if($rec->oldPrice){
 				$difference = round($rec->finalPrice, 2) - round($rec->oldPrice, 2);
@@ -491,6 +490,7 @@ class eshop_CartDetails extends core_Detail
 		$TransCalc = cond_DeliveryTerms::getTransportCalculator($masterRec->termId);
 		if(!$TransCalc) return NULL;
 		
+		// Колко е общото тегло и обем за доставка
 		$products = arr::extractSubArray($query->fetchAll(), 'productId,quantity,packagingId');
     	$total = sales_TransportValues::getTotalWeightAndVolume($products);
 		$deliveryData = array('deliveryCountry' => $masterRec->deliveryCountry, 'deliveryPCode' => $masterRec->deliveryPCode, 'deliveryPlace' => $masterRec->deliveryPlace, 'deliveryAddress' => $masterRec->deliveryAddress);

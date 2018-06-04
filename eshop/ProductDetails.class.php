@@ -329,7 +329,7 @@ class eshop_ProductDetails extends core_Detail
 		$row->quantity = ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", NULL, "size=4,class=eshop-product-option,placeholder=1");
 		
 		$catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
-		$row->catalogPrice = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPriceInfo->price);
+		$row->catalogPrice = core_Type::getByName('double(smartRound)')->toVerbal($catalogPriceInfo->price);
 		$row->catalogPrice = "<b>{$row->catalogPrice}</b>";
 		$row->orderPrice = $catalogPriceInfo->price;
 		$row->orderCode = $fullCode;

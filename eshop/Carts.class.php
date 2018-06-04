@@ -298,7 +298,6 @@ class eshop_Carts extends core_Master
     		}
     	}
     	
-    	
     	while($dRec = $dQuery->fetch()){
     		$rec->productCount++;
     		$finalPrice = currency_CurrencyRates::convertAmount($dRec->finalPrice, NULL, $dRec->currencyId);
@@ -354,10 +353,7 @@ class eshop_Carts extends core_Master
     	
     	if(isset($cartId)){
     		$cartRec = self::fetch($cartId);
-    		if($settings->enableCart == 'no'){
-    			if(!$cartRec->productCount) return new core_ET(' ');
-    		}
-    		
+    		if($settings->enableCart == 'no' && !$cartRec->productCount) return new core_ET(' ');
     		$amount = core_Type::getByName('double(decimals=2)')->toVerbal($cartRec->total);
     		$amount = str_replace('&nbsp;', ' ', $amount);
     		$count = core_Type::getByName('int')->toVerbal($cartRec->productCount);
@@ -442,16 +438,16 @@ class eshop_Carts extends core_Master
    		// Добавяне на артикулите от количката в продажбата
    		$dQuery = eshop_CartDetails::getQuery();
    		$dQuery->where("#cartId = {$id}");
-   		while($dRec = $dQuery->fetch()){
-   			$price = isset($dRec->discount) ? ($dRec->finalPrice / (1 - $dRec->discount)) : $dRec->finalPrice;
-   			$price = $price / $dRec->quantityInPack;
+   		while($dRec = $dQuery->fetch()){ $dRec->discount = NULL;
+   			$amount = isset($dRec->discount) ? ($dRec->amount / (1 - $dRec->discount)) : $dRec->amount;
+   			$amount = round($amount, 2);
+   			
+   			$price = ($amount  / $dRec->quantity);
    			if($dRec->haveVat == 'yes'){
    				$price /= 1 + $dRec->vat;
    			}
    			
    			$price = currency_CurrencyRates::convertAmount($price, NULL, $dRec->currencyId);
-   			$price = round($price, 2);
-   			
    			sales_Sales::addRow($saleId, $dRec->productId, $dRec->packQuantity, $price, $dRec->packagingId, $dRec->discount);
    		}
    		
@@ -744,7 +740,7 @@ class eshop_Carts extends core_Master
      * Рендиране на изгледа на кошницата във външната част
      *
      * @param mixed $rec
-     * @return core_ET $tpl      - шаблон на съмарито
+     * @return core_ET $tpl - шаблон на съмарито
      */
     private static function renderViewCart($rec)
     {
@@ -810,10 +806,8 @@ class eshop_Carts extends core_Master
     		$data->rows[$dRec->id] = $row;
     	}
     	
-    	// Ако има доставка
+    	// Ако има доставка се показва и тя
     	if(isset($data->rec->deliveryNoVat) && $data->rec->deliveryNoVat >= 0){
-    		
-    		// Показва се сумата на доставка
     		$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
     		$deliveryAmount = $data->rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
     		$deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, NULL, NULL, $settings->currencyId);
@@ -839,6 +833,7 @@ class eshop_Carts extends core_Master
     	$data->listTableMvc->setFieldType('quantity', core_Type::getByName('varchar'));
     	$data->listTableMvc->setField('quantity', 'tdClass=quantity-input-column');
     	$table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => 'optionsTable', 'tableId' => 'cart-view-table'));
+    	
     	plg_RowTools2::on_BeforeRenderListTable($data->listTableMvc, $tpl, $data);
     	$tpl->replace($table->get($data->rows, $data->listFields));
     	
@@ -899,7 +894,6 @@ class eshop_Carts extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
-    	
     	if(isset($rec->saleId)){
     		$row->saleId = sales_Sales::getLink($rec->saleId, 0);
     	}
@@ -1031,6 +1025,12 @@ class eshop_Carts extends core_Master
     }
     
     
+    /**
+     * Подготвя формата за поръчка
+     * 
+     * @param core_Form $form
+     * @return void
+     */
     private static function prepareOrderForm(&$form)
     {
     	$cu = core_Users::getCurrent('id', FALSE);
@@ -1106,9 +1106,8 @@ class eshop_Carts extends core_Master
     {
     	$rec = &$form->rec;
     	
+    	// Ако има избрана папка се записват контрагент данните
     	if(isset($folderId)){
-    		
-    		// Ако има избрана папка записване на контрагент данните
     		if($contragentData = doc_Folders::getContragentData($folderId)){
     			$form->setDefault('invoiceNames', $contragentData->company);
     			$form->setDefault('invoiceVatNo', $contragentData->vatNo);
@@ -1117,7 +1116,6 @@ class eshop_Carts extends core_Master
     			$form->setDefault('invoicePlace', $contragentData->place);
     			$form->setDefault('invoiceAddress', $contragentData->address);
     		}
-    		
     		$locations = crm_Locations::getContragentOptions('crm_Companies', $contragentData->companyId);
     	} else {
     		$cu = core_Users::getCurrent('id', FALSE);
@@ -1126,12 +1124,14 @@ class eshop_Carts extends core_Master
     		}
     	}
     	
+    	// Ако има локации задават се
     	if(count($locations)){
     		$form->setOptions('locationId', array('' => '') + $locations);
     		$form->setField('locationId', 'input');
     		$form->input('locationId', 'silent');
     	}
     	
+    	// Ако е избрана локация допълват се адресните данни за доставка
     	if(isset($rec->locationId)){
     		$locationRec = crm_Locations::fetch($rec->locationId);
     		foreach (array('deliveryCountry' => 'countryId', 'deliveryPCode' => 'pCode', 'deliveryPlace' => 'place', 'deliveryAddress' => 'address') as $delField => $locField){
