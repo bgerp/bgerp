@@ -251,7 +251,7 @@ class eshop_Settings extends core_Manager
     	$terms = keylist::toArray($settings->terms);
     	
     	$options = array();
-    	array_walk($terms, function($termId) use (&$options) {$options[$termId] = cond_DeliveryTerms::getVerbal($termId, 'term');});
+    	array_walk($terms, function($termId) use (&$options) {$options[$termId] = tr(cond_DeliveryTerms::getVerbal($termId, 'term'));});
     	
     	return $options;
     }
@@ -270,7 +270,7 @@ class eshop_Settings extends core_Manager
     	$payments = keylist::toArray($settings->payments);
     	
     	$options = array();
-    	array_walk($payments, function($paymentId) use (&$options) {$options[$paymentId] = cond_PaymentMethods::getVerbal($paymentId, 'name');});
+    	array_walk($payments, function($paymentId) use (&$options) {$options[$paymentId] = tr(cond_PaymentMethods::getVerbal($paymentId, 'name'));});
     	 
     	return $options;
     }
