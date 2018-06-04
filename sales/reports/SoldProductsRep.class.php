@@ -55,8 +55,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	public function addFields(core_Fieldset &$fieldset) 
 	{
 
-		$fieldset->FLD ( 'from', 'date(smartTime)', 'caption=От,after=title,single=none,mandatory' );
-		$fieldset->FLD ( 'to', 'date(smartTime)', 'caption=До,after=from,single=none,mandatory' );
+		$fieldset->FLD ( 'from', 'date', 'caption=От,after=title,single=none,mandatory' );
+		$fieldset->FLD ( 'to', 'date', 'caption=До,after=from,single=none,mandatory' );
 		$fieldset->FLD ( 'compare', 'enum(no=Без, previous=Предходен, year=Миналогодишен)', 'caption=Сравнение,after=to,single=none' );
 		$fieldset->FLD ( 'group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=compare,single=none' );
 		$fieldset->FLD ( 'articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', "caption=Тип артикули,maxRadio=3,columns=3,removeAndRefreshForm,after=group" );
@@ -91,7 +91,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			    $toLastYear = dt::addDays(- 365, $form->rec->to);
 			    if ($form->rec->from < $toLastYear){
 			     
-			        $form->setError ( 'from,to', 'Периода трябва да е по-малък от 365 дни за да сравнявате с миналогодишен период.' );
+			        $form->setError ( 'compare', 'Периода трябва да е по-малък от 365 дни за да сравнявате с "миналогодишен" период.
+                                                  За да сравнявате периоди по-големи от 1 година, използвайте сравнение с "предходен" период' );
 			        
 			    }
 			    
@@ -117,7 +118,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$form->setDefault ( 'compare', 'no' );
 		
 	}
-	
 	
 	// Action for test //
 	public static function act_test()
@@ -169,10 +169,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		if (($rec->compare) == 'previous') {
 		    
 		    $daysInPeriod = dt::daysBetween($rec->to, $rec->from) + 1;
-		    $fromPreviuos = dt::addDays(- $daysInPeriod, $rec->from);
-		    $toPreviuos = dt::addDays(- $daysInPeriod, $rec->to);
-		    
-		    
+		    $fromPreviuos = dt::addDays(- $daysInPeriod, $rec->from,FALSE);
+		    $toPreviuos = dt::addDays(- $daysInPeriod, $rec->to,FALSE);
 		    
 		    $query->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
 		}
@@ -190,7 +188,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 			$query->where( "#docState != 'rejected'" );
 	
-		
 		if (isset ( $rec->dealers )) {
 			
 			if ((min ( array_keys ( keylist::toArray ( $rec->dealers ) ) ) >= 1)) {
@@ -274,6 +271,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		while ( $recPrime = $query->fetch () ) {
 		    
+		   $aaa[]=$recPrime;
+		    
 		    $quantityPrevious = $quantity = $quantityLastYear = NULL;
 		    
 		    $DetClass = cls::get ( $recPrime->detailClassId );
@@ -290,7 +289,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			$id = $recPrime->productId;
 			
  			if ($rec->compare == 'previous') {
-			
+ 			    
  			    if($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos){
 
 			        if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
