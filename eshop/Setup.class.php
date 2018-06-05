@@ -119,6 +119,7 @@ class eshop_Setup extends core_ProtoSetup
         
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Разширяване на външната част за онлайн магазина', 'eshop_plg_External', 'cms_page_External', 'private');
+        $html .= $Plugins->installPlugin('Разширяване на потребителите свързана с външната част', 'eshop_plg_Users', 'core_Users', 'private');
         
         return $html;
     }
