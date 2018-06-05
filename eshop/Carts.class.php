@@ -307,16 +307,16 @@ class eshop_Carts extends core_Master
     		$sum = $finalPrice * ($dRec->quantity / $dRec->quantityInPack);
     		
     		if($dRec->haveVat == 'yes'){
-    			$rec->totalNoVat += round($sum / (1 + $dRec->vat), 2);
-    			$rec->total += round($sum, 2);
+    			$rec->totalNoVat += round($sum / (1 + $dRec->vat), 4);
+    			$rec->total += round($sum, 4);
     		} else {
-    			$rec->totalNoVat += round($sum, 2);
-    			$rec->total += round($sum * (1 + $dRec->vat), 2);
+    			$rec->totalNoVat += round($sum, 4);
+    			$rec->total += round($sum * (1 + $dRec->vat), 4);
     		}
     	}
     	
-    	$rec->totalNoVat = round($rec->totalNoVat, 2);
-    	$rec->total = round($rec->total, 2);
+    	$rec->totalNoVat = round($rec->totalNoVat, 4);
+    	$rec->total = round($rec->total, 4);
     	
     	$id = $this->save_($rec, 'productCount,total,totalNoVat,deliveryNoVat,deliveryTime');
     	
@@ -433,16 +433,15 @@ class eshop_Carts extends core_Master
     	
     	// Създаване на продажба по количката
    		$saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
-   		sales_SalesDetails::delete("#saleId = {$saleId}");
+   		//sales_SalesDetails::delete("#saleId = {$saleId}");
    		
    		// Добавяне на артикулите от количката в продажбата
    		$dQuery = eshop_CartDetails::getQuery();
    		$dQuery->where("#cartId = {$id}");
-   		while($dRec = $dQuery->fetch()){ $dRec->discount = NULL;
-   			$amount = isset($dRec->discount) ? ($dRec->amount / (1 - $dRec->discount)) : $dRec->amount;
-   			$amount = round($amount, 2);
+   		while($dRec = $dQuery->fetch()){ 
+   			$price = ($dRec->amount  / $dRec->quantity);
+   			$price = isset($dRec->discount) ? ($price / (1 - $dRec->discount)) : $price;
    			
-   			$price = ($amount  / $dRec->quantity);
    			if($dRec->haveVat == 'yes'){
    				$price /= 1 + $dRec->vat;
    			}
@@ -452,7 +451,7 @@ class eshop_Carts extends core_Master
    		}
    		
    		// Добавяне на транспорта, ако има
-   		if(isset($rec->deliveryNoVat) && $rec->deliveryNoVat > 0){
+   		if(isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0){
    			$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
    			sales_Sales::addRow($saleId, $transportId, 1, $rec->deliveryNoVat);
    		}
@@ -723,10 +722,11 @@ class eshop_Carts extends core_Master
     		$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
     	}
     	
-    	if(isset($rec->paymentId)){
-    		//$paymentUrl = cond_PaymentMethods::getPaymentUrl($rec->paymentId);
-    		//$btn = ht::createBtn('Плащане', $paymentUrl, NULL, NULL, "title=Плащане на поръчката,class=order-btn eshop-btn {$disabledClass}");
-    		//$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
+    	// Ако се изисква онлайн плащане добавя се бутон към него
+    	if(isset($rec->paymentId) && cond_PaymentMethods::doRequireOnlinePayment($rec->paymentId)){
+    		$paymentUrl = cond_PaymentMethods::getOnlinePaymentUrl($rec->paymentId);
+    		$btn = ht::createBtn('Плащане', $paymentUrl, NULL, NULL, "title=Плащане на поръчката,class=order-btn eshop-btn {$disabledClass}");
+    		$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
     	}
     	
     	if(eshop_Carts::haveRightFor('finalize', $rec)){
