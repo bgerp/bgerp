@@ -283,7 +283,7 @@ class eshop_Carts extends core_Master
     	// Ако има цена за доставка добавя се и тя
     	if($dQuery->count()){
     		if($delivery = eshop_CartDetails::getDeliveryInfo($rec)){
-    			if($delivery['amount'] > 0){
+    			if($delivery['amount'] >= 0){
     				$rec->deliveryTime = $delivery['deliveryTime'];
     				$settings = cms_Domains::getSettings();
     				$delivery = currency_CurrencyRates::convertAmount($delivery['amount'], NULL, NULL, $settings->currencyId);
