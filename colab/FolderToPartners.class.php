@@ -137,13 +137,13 @@ class colab_FolderToPartners extends core_Manager
     	$query->where("#contractorId = {$cu}");
     	$query->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
     	$query->where("#coverClass =" . crm_Companies::getClassId());
-
+        
         $fIds = array();
     	$query->show('folderId');
     	while($rec = $query->fetch()) {
             $fIds[] = $rec->folderId;
         }
-
+        
         if(count($fIds)) {
             
             if(count($fIds) == 1) {
@@ -157,6 +157,7 @@ class colab_FolderToPartners extends core_Manager
                     $cQuery->orderBy('#modifiedOn', 'DESC');
                     $cQuery->where("#createdBy = {$cu}");
                     $cQuery->where('#folderId IN (' . implode(',', $fIds) . ')');
+                    $cQuery->where("#state != 'rejected'");
                     $cRec = $cQuery->fetch();
                     if($cRec) {
                         $folderId = $cRec->folderId;
@@ -169,6 +170,7 @@ class colab_FolderToPartners extends core_Manager
                     $fQuery->limit(1);
                     $fQuery->orderBy('#last', 'DESC');
                     $fQuery->where('#id IN (' . implode(',', $fIds) . ')');
+                    $fQuery->where("#state != 'rejected'");
                     $fRec = $fQuery->fetch();
                     if($fRec) {
                         $folderId = $rec->id;
@@ -177,6 +179,10 @@ class colab_FolderToPartners extends core_Manager
             }
         }
     	
+        if (!empty($folderId) && !colab_Folders::haveRightFor('list', (object)array('folderId' => $folderId), $cu)) {
+            $folderId = NULL;
+        }
+        
     	return (!empty($folderId)) ? $folderId : NULL;
     }
     
