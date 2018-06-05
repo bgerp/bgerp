@@ -105,6 +105,12 @@
                 <td>[#address#]</td>
             </tr>
             <!--ET_END address-->
+            <!--ET_BEGIN deliveryAdress-->
+            <tr>
+                <td>|Доставка|*</td>
+                <td>[#deliveryAdress#]</td>
+            </tr>
+            <!--ET_END deliveryAdress-->
         </table>
     </div>
     <!--ET_BEGIN brid-->
