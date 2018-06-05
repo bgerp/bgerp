@@ -271,8 +271,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		while ( $recPrime = $query->fetch () ) {
 		    
-		   $aaa[]=$recPrime;
-		    
 		    $quantityPrevious = $quantity = $quantityLastYear = NULL;
 		    
 		    $DetClass = cls::get ( $recPrime->detailClassId );
@@ -368,15 +366,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			
 		}
 		
-		
-	    
-		
-	
-		$recs = self::groupRecs($recs, $rec->group);
-		
-		
-		
-		
+		$tempArr=array();
+		foreach ($recs as $v){
+		  
+		    list($firstGroup)=explode('|',  trim($v->group,'|'));
+		    $v->group = $firstGroup;
+		    
+		}
 		
 		return $recs;
 		
@@ -617,48 +613,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$tpl->append ( $fieldTpl, 'DRIVER_FIELDS' );
 	}
 	
-	    /**
-	     * Групиране по продуктови групи
-	     *
-	     * @param array $recs
-	     * @param string $group
-	     * @param stdClass $data
-	     * @return array
-	     */
-	    private function groupRecs($recs, $group)
-	    {
-	        $ordered = array();
-	
-	        $groups = keylist::toArray($group);
-	        if (! count($groups)) {
-	            return $recs;
-	        } else {
-	            cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(
-	                &$groups
-	            ));
-	        }
-	      
-	        // За всеки маркер
-	        foreach ($groups as $grId => $groupName) {
-	
-	            // Отделяме тези записи, които съдържат текущия маркер
-	            $res = array_filter($recs,
-	                function (&$e) use($grId, $groupName) {
-	                    if (keylist::isIn($grId, $e->group)) {
-	                        $e->group = $grId;
-	                        return TRUE;
-	                    }
-	                    return FALSE;
-	                });
-	
-	            if (count($res)) {
-	                arr::natOrder($res, 'code');
-	                $ordered += $res;
-	            }
-	        }
-	
-	        return $ordered;
-	    }
+
 	
 	
 	
