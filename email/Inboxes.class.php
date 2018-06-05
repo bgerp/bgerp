@@ -386,7 +386,7 @@ class email_Inboxes extends core_Master
         
         // Ако имейлът на сметката има домейн за миграция - новата сметка се използва
         $accEml = self::replaceDomains($accRec->email);
-        $newAccRec = email_Accounts::fetch(array("#email = '#1#]'", $accEml));
+        $newAccRec = email_Accounts::fetch(array("#email = '[#1#]'", $accEml));
         if($newAccRec) {
             $accRec = $newAccRec;
             $accId = $accRec->id;
