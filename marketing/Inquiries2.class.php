@@ -216,7 +216,7 @@ class marketing_Inquiries2 extends embed_Manager
     { 
     	$form = &$data->form;
     	$form->setField('innerClass', "remember,removeAndRefreshForm=proto|measureId|meta");
-		$form->setField('deliveryAdress', array('placeholder' => 'Държава, Пощенски код'));
+		$form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
 		
     	// Ако има избран прототип, зареждаме му данните в река
     	if(isset($form->rec->proto)){
