@@ -224,8 +224,18 @@ class planning_Jobs extends core_Master
     private static function getOldJobs($productId, $id, $folderId)
     {
     	$res = array();
+    	
+    	// Старите задания към артикула или към артикулите в неговата папка
+    	$pQuery = cat_Products::getQuery();
+    	$pQuery->where("#folderId = {$folderId}");
+    	$pQuery->show('id');
+    	$products = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+    	$products[$productId] = $productId;
+    	
     	$query = self::getQuery();
-    	$query->where("#id != '{$id}' AND (#productId = {$productId} OR #folderId = '{$folderId}') AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed')");
+    	$query->in('productId', $products);
+    	$query->where("#id != '{$id}' AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed')");
+    	
     	$query->orderBy('id', 'DESC');
     	$query->show('id,productId,state');
     	
