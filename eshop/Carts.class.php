@@ -563,6 +563,13 @@ class eshop_Carts extends core_Master
     	$this->requireRightFor('viewexternal');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = self::fetch($id));
+    	
+    	// Редирект към ешопа ако количката е активна
+    	if($rec->state == 'active'){
+    		$shopUrl = cls::get('eshop_Groups')->getUrlByMenuId(NULL);
+    		redirect($shopUrl);
+    	}
+    	
     	$this->requireRightFor('viewexternal', $rec);
     	
     	$tpl = self::renderView($rec);
