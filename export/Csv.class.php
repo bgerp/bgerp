@@ -195,7 +195,7 @@ class export_Csv extends core_Mvc
             
             $fileName = $clsInst->getHandle($cRec->id) . '_Export.csv';
             
-            $fileHnd = fileman::absorbStr($csv, 'exportCsv', $fileName);
+            $fileHnd = fileman::absorbStr($csv, 'exportFiles', $fileName);
         }
         
         if ($lg) {
