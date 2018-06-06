@@ -264,6 +264,29 @@ class eshop_Carts extends core_Master
     
     
     /**
+     * Последната активна поръчка
+     * 
+     * @param int|NULL $domainId
+     * @param int|NULL $userId
+     * @return stdClass|FALSE
+     */
+    private static function getLastActivatedCart($domainId = NULL, $userId = NULL)
+    {
+    	$userId = isset($userId) ? $userId : core_Users::getCurrent('id', FALSE);
+    	$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
+    	$brid = log_Browsers::getBrid();
+    	 
+    	// Ако има потребител се търси имали чернова кошница за този потребител, ако не е логнат се търси по Брид-а
+    	$where = (isset($userId)) ? "#userId = '{$userId}'" : "#userId IS NULL AND #brid = '{$brid}'";
+    	$query = self::getQuery();
+    	$query->where("{$where} AND #state = 'active' AND #domainId = {$domainId}");
+    	$query->orderBy('activatedOn', "DESC");
+    	
+    	return $query->fetch();
+    }
+    
+    
+    /**
      * Обновява данни в мастъра
      *
      * @param int $id първичен ключ на статия
@@ -548,6 +571,14 @@ class eshop_Carts extends core_Master
     	
     	$cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
     	$tpl->replace($cartInfo, 'VAT_STATUS');
+    	
+    	// Ако има последно активирана кошница да се показва като съобщение
+    	if($lastCart = self::getLastActivatedCart()){
+    		if($lastCart->activatedOn >= dt::addSecs(-1 * 60 * 60 * 2, dt::now())){
+    			$email = core_Type::getByName('email')->toVerbal($lastCart->email);
+    			$tpl->replace($email, 'CHECK_EMAIL');
+    		}
+    	}
     	
     	core_Lg::pop();
     	
