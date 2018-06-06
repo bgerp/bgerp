@@ -168,6 +168,13 @@ class export_Export extends core_Mvc
             $form->setReadOnly('type');
             
             $form->toolbar->addBtn('Затваряне', $retUrl, 'ef_icon = img/16/close-red.png, title=' . tr('Връщане към документа') . ', class=fright');
+            
+			// Добавяме необходимите бутони от интерфейсите
+            $intfArr = core_Classes::getOptionsByInterface('export_FileActionIntf');
+            foreach ($intfArr as $cls) {
+                $intfCls = cls::getInterface('export_FileActionIntf', $cls);
+                $intfCls->addActionBtn($form, $eRes);
+            }
         } else {
             $form->toolbar->addSbBtn('Генериране', 'save', 'ef_icon = img/16/world_link.png, title = ' . tr('Генериране на линк за сваляне'));
             $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title= ' . tr('Прекратяване на действията'));

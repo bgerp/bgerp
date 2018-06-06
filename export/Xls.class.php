@@ -112,7 +112,7 @@ class export_Xls extends core_Mvc
                     $fPath = fileman_webdrv_Office::convertToFile($fRec, 'xls', FALSE, 'export_Xls::afterConvertToXls', 'xls');
                     
                     if ($fPath && is_file($fPath)) {
-                        $nFileHnd = fileman::absorb($fPath, 'exportCsv');
+                        $nFileHnd = fileman::absorb($fPath, 'exportFiles');
                         
                         // Изтриваме директорията след като качим файла
                         core_Os::deleteDir(dirname($fPath));

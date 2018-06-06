@@ -18,6 +18,7 @@
 class tinymce_Plugin extends core_Plugin
 {
     
+    
     /**
      * Изпълнява се преди рендирането на input
      * 
@@ -57,6 +58,15 @@ class tinymce_Plugin extends core_Plugin
             $fs = "setup: function(editor) {editor.on('init', function(e) {editor.execCommand('mceFullScreen');});},";
         }
         
+        if ($invoker->params['tinySaveCallback']) {
+            $fs .= "save_onsavecallback: function(editor){
+                    
+                    var content = editor.getContent();
+                                        
+                    getEfae().process({url: '{$invoker->params['tinySaveCallback']}'}, {data: content});
+                                    
+                },";
+        }
         
         $tpl->push("tinymce/4.7.13/tinymce.min.js", 'JS');
         
@@ -65,7 +75,7 @@ class tinymce_Plugin extends core_Plugin
         } else {
             $locale = 'en_GB';
         }
-        jquery_Jquery::run($tpl, "tinymce.init({ {$fs} selector: '#{$attr['id']}', language: '{$locale}', branding: false,  plugins : 'advlist autolink link image lists charmap textcolor codemirror {$tinyPlugins}', toolbar: '{$tinyToolbars}redo undo | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright  alignjustify  | numlist bullist outdent indent  | code', removed_menuitems: 'newdocument',
+        jquery_Jquery::run($tpl, "tinymce.init({ {$fs} selector: '#{$attr['id']}', language: '{$locale}', relative_urls: false, remove_script_host: false, convert_urls: true, branding: false,  plugins : 'advlist autolink link image lists charmap textcolor codemirror {$tinyPlugins}', toolbar: '{$tinyToolbars}redo undo | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright  alignjustify  | numlist bullist outdent indent  | code', removed_menuitems: 'newdocument',
             codemirror: {
                 indentOnInit: true, 
                 fullscreen: true,  
@@ -83,7 +93,5 @@ class tinymce_Plugin extends core_Plugin
             }
         
         });", TRUE);
-  
-   
     }
 }

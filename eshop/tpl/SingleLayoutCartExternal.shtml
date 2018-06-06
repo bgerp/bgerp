@@ -5,8 +5,8 @@
          <!--ET_BEGIN SALE_BLOCK-->
          [#SALE_BLOCK#]
          <div class="half-width fleft">
-            <h4 style="margin-bottom: 5px;">|Информация за поръчката|* [#editBtn#]</h4>
-            <table>
+            <h4 style="margin-bottom: 3px;">|Информация за поръчката|* [#editBtn#]</h4>
+            <table style="margin-left: 10px;">
                <!--ET_BEGIN personNames-->
                <tr>
                   <td>|Имена|*: [#personNames#]</td>
@@ -27,11 +27,13 @@
                   <td>|Начин на плащане|*: [#paymentId#]</td>
                </tr>
                <!--ET_END paymentId-->
+               </table>
                <!--ET_BEGIN DELIVERY_BLOCK-->
+
                [#DELIVERY_BLOCK#]
-               <tr>
-                  <td><h4 style="margin-bottom: 0px;margin-top:5px">|Доставка|*</h4></td>
-               </tr>
+               <h4 style="margin: 10px 0 3px;">|Доставка|*</h4>
+
+            <table style="margin-left: 10px;">
                <!--ET_BEGIN termId-->
                <tr>
                   <td>|Условие на доставка|*: [#termId#]</td>
@@ -60,12 +62,13 @@
                </tr>
                <!--ET_END instruction-->
                <!--ET_END DELIVERY_BLOCK-->
-               <!--ET_BEGIN VAT_STATUS-->
-               <tr>
-                  <td style='padding-top:10px'>[#VAT_STATUS#]</td>
-               </tr>
-               <!--ET_END VAT_STATUS-->
+
             </table>
+            <!--ET_BEGIN VAT_STATUS-->
+
+            <div style="padding-top:10px;">[#VAT_STATUS#]</div>
+
+               <!--ET_END VAT_STATUS-->
          </div>
          
          <div class="half-width fright">
@@ -74,8 +77,8 @@
             <!--ET_END activeFolderId-->
          	<!--ET_BEGIN INVOICE_BLOCK-->
          	[#INVOICE_BLOCK#]
-            <h4 style="margin-bottom: 5px;">|Информация за фактура|*</h4>
-            <table>
+            <h4 style="margin-bottom: 3px;">|Информация за фактура|*</h4>
+            <table style="margin-left: 10px;">
                <!--ET_BEGIN NO_INVOICE-->
                <tr>
                   <td>[#NO_INVOICE#]</td>

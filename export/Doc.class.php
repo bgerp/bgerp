@@ -107,7 +107,7 @@ class export_Doc extends core_Mvc
         
         $fileName = $clsInst->getHandle($cRec->id) . '_Export.html';
 		
-        $fileHnd = docoffice_Office::htmlToDoc($html, $fileName, 'exportCsv');
+        $fileHnd = docoffice_Office::htmlToDoc($html, $fileName, 'exportFiles');
         
         $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/doc.png, title=Сваляне на документа");
         
