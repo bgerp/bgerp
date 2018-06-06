@@ -153,9 +153,10 @@
       <!--ET_BEGIN CART_TOOLBAR_RIGHT-->
       <div class = 'cart-view-buttons-right'>[#CART_TOOLBAR_RIGHT#]</div>
       <!--ET_END CART_TOOLBAR_RIGHT-->
-      
+      <div class="clearfix21"></div>
       <!--ET_BEGIN CHECK_EMAIL-->
-      <div>|Имате предишна активна поръчка, моля проверете си имейла|* <b>[#CHECK_EMAIL#]</b></div>
+      <div style="margin-top: 25px;">|Имате предишна активна поръчка, моля проверете си имейла|* <b>[#CHECK_EMAIL#]</b>.</div>
       <!--ET_END CHECK_EMAIL-->
    </div>
+
 </div>
