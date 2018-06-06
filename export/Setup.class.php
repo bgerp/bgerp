@@ -34,7 +34,6 @@ class export_Setup extends core_ProtoSetup
             'export_Link',
             'export_Pdf',
             'export_Html',
-            'export_HtmlEditor',
             'export_Csv',
             'export_Xls',
             'export_Doc',
