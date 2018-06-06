@@ -482,10 +482,10 @@ class eshop_Carts extends core_Master
    		// Продажбата става на заявка, кошницата се активира
    		$saleRec = self::makeSalePending($saleId);
    		self::activate($rec, $saleId);
+   		doc_Threads::doUpdateThread($saleRec->threadId);
    		
    		// Ако е партньор и има достъп до нишката, директно се реидректва към нея
    		if(core_Packs::isInstalled('colab') && core_Users::isContractor()){
-   			doc_Threads::doUpdateThread($saleRec->threadId);
    			$threadRec = doc_Threads::fetch($saleRec->threadId);
    			
    			if(colab_Threads::haveRightFor('single', $threadRec)){
