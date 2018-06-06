@@ -492,6 +492,8 @@ class eshop_Carts extends core_Master
    				return new Redirect(array('colab_Threads', 'single', 'threadId' => $saleRec->threadId), 'Успешно създадена заявка за продажба');
    			}
    		}
+   		
+   		return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(NULL), 'Успешно изпратена поръчка');
     }
     
     
@@ -575,8 +577,7 @@ class eshop_Carts extends core_Master
     	// Ако има последно активирана кошница да се показва като съобщение
     	if($lastCart = self::getLastActivatedCart()){
     		if($lastCart->activatedOn >= dt::addSecs(-1 * 60 * 60 * 2, dt::now())){
-    			$email = core_Type::getByName('email')->toVerbal($lastCart->email);
-    			$tpl->replace($email, 'CHECK_EMAIL');
+    			$tpl->replace($lastCart->email, 'CHECK_EMAIL');
     		}
     	}
     	
