@@ -213,12 +213,19 @@ class eshop_ProductDetails extends core_Detail
 		$domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
 		$settings = cms_Domains::getSettings($domainId);
 		
-		if(isset($settings->listId)){
-			if($price = price_ListRules::getPrice($settings->listId, $productId, $packagingId)){
-				$priceObject = cls::get(price_ListToCustomers)->getPriceByList($settings->listId, $productId, $packagingId, $quantityInPack);
+		// Ценовата политика е от активната папка
+		$listId = $settings->listId;
+		if($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')){
+			$Cover = doc_Folders::getCover($lastActiveFolder);
+			$listId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
+		}
+		
+		// Ако има ценоразпис
+		if(isset($listId)){
+			if($price = price_ListRules::getPrice($listId, $productId, $packagingId)){
+				$priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $productId, $packagingId, $quantityInPack);
 				
 				$price *= $quantityInPack;
-				
 				if($settings->chargeVat == 'yes'){
 					$price *= 1 + cat_Products::getVat($productId);
 				}

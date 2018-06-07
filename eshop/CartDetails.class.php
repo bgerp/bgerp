@@ -526,9 +526,17 @@ class eshop_CartDetails extends core_Detail
 		$settings = cms_Domains::getSettings($domainId);
 		$rec->currencyId = isset($rec->currencyId) ? $rec->currencyId : $settings->currencyId;
 		
-		if(isset($settings->listId)){
-			$price = price_ListRules::getPrice($settings->listId, $rec->productId, $rec->packagingId);
-			$priceObject = cls::get('price_ListToCustomers')->getPriceByList($settings->listId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+		// Коя е ценовата политика
+		$listId = $settings->listId;
+		if($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')){
+			$Cover = doc_Folders::getCover($lastActiveFolder);
+			$listId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
+		}
+		
+		// Ако има взема се цената от нея
+		if(isset($listId)){
+			$price = price_ListRules::getPrice($listId, $rec->productId, $rec->packagingId);
+			$priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 			if(!empty($priceObject->discount)){
 				$discount = $priceObject->discount;
 			}
@@ -541,6 +549,7 @@ class eshop_CartDetails extends core_Detail
 			$finalPrice = currency_CurrencyRates::convertAmount($finalPrice, NULL, NULL, $rec->currencyId);
 		}
 		
+		// Ако цената е променена, обновява се
 		$update = FALSE;
 		if(!isset($rec->finalPrice) || (isset($rec->finalPrice) && round($rec->finalPrice, 2) != round($finalPrice, 2))){
 			$rec->oldPrice = $rec->finalPrice;
