@@ -452,10 +452,12 @@ class eshop_Carts extends core_Master
     					'chargeVat'        => $settings->chargeVat,
     					'currencyId'       => $settings->currencyId,
     					'shipmentStoreId'  => $settings->storeId,
+    					'note'             => "Order {$rec->id}",
     	);
     	
     	// Създаване на продажба по количката
    		$saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
+   		sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId);
    		//sales_SalesDetails::delete("#saleId = {$saleId}");
    		
    		// Добавяне на артикулите от количката в продажбата
@@ -483,6 +485,7 @@ class eshop_Carts extends core_Master
    		$saleRec = self::makeSalePending($saleId);
    		self::activate($rec, $saleId);
    		doc_Threads::doUpdateThread($saleRec->threadId);
+   		self::sendEmail($rec, $saleRec);
    		
    		// Ако е партньор и има достъп до нишката, директно се реидректва към нея
    		if(core_Packs::isInstalled('colab') && core_Users::isContractor()){
@@ -527,6 +530,39 @@ class eshop_Carts extends core_Master
     	$rec->state = 'active';
     	$rec->activatedOn = dt::now();
     	self::save($rec, 'state,saleId,activatedOn');
+    }
+    
+    
+    /**
+     * Изпраща имейл
+     * 
+     * @param stdClass $rec
+     * @param stdClass $saleRec
+     */
+    private static function sendEmail($rec, $saleRec)
+    {
+    	$settings = cms_Domains::getSettings($rec->domainId);
+    	if(empty($settings->inboxId)) return;
+    	
+    	// Подготовка на имейла
+    	$emailRec = (object)array('subject'  => 'test', //@TODO
+    			                  'body'     => "#Sal{$saleRec->id}", //@TODO
+    			                  'folderId' => $saleRec->folderId,
+    			                  'originId' => $saleRec->containerId,
+    			                  'threadId' => $saleRec->threadId,
+    			                  'state'    => 'active',
+    	                          'email'    => $rec->email, 'tel' => $rec->tel, 'recipient' => $rec->personNames);
+    	
+    	// Активиране на изходящия имейл
+    	email_Outgoings::save($emailRec);
+    	email_Outgoings::logWrite('Автоматичен имейл към онлайн поръчка', $emailRec->id);
+    	cls::get('email_Outgoings')->invoke('AfterActivation', array(&$emailRec));
+    	
+    	// Изпращане на имейла
+    	$options = (object)array('encoding' => 'utf-8', 'boxFrom' => $settings->inboxId, 'emailsTo' => $emailRec->email);
+    	$lg = email_Outgoings::getLanguage($emailRec->originId, $emailRec->threadId, $emailRec->folderId, $emailRec->body);
+    	email_Outgoings::send($emailRec, $options, $lg);
+    	email_Outgoings::logWrite('Изпращане на автоматичен имейл', $emailRec->id);
     }
     
     

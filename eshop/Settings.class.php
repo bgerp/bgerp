@@ -92,6 +92,8 @@ class eshop_Settings extends core_Manager
     	$this->FLD('enableCart', 'enum(yes=Винаги,no=Aко съдържа продукти)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
     	$this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
     	$this->FLD('info', 'richtext(rows=3)', 'caption=Условия на продажбата под количката->Текст');
+    	$this->FLD('inboxId', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Кутия от която да се изпраща имейл->Кутия');
+    	
     	$this->FLD('state', 'enum(active=Активно,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
     	
     	$this->setDbIndex('classId, objectId');
