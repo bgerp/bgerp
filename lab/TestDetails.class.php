@@ -156,7 +156,8 @@ class lab_TestDetails extends core_Detail
                 $allMethodsArr[$mRec->id] = $mRec->name;
             }
         }
-        
+      
+        $methodIdSelectArr = array();
         $data->allMethodsArr = $allMethodsArr;
         
         // $methodIdSelectArr
@@ -183,7 +184,7 @@ class lab_TestDetails extends core_Detail
                  $data->form->setField('methodId', 'input=none');
                 
             } else {
-            	
+               
                 $data->form->setOptions('methodId',array(' '=>'избери метод ')+$methodIdSelectArr);
                 
             }
