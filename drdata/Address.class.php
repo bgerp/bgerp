@@ -911,7 +911,12 @@ class drdata_Address extends core_MVC
         return $res;
     }
 
-
+    function act_test()
+    {
+    	$str = 'Great Britain, M1 1AH';
+    	$r = self::parsePlace($str);
+    	bp($r);
+    }
     /**
      * Парсира място, като се опитва да извлече държава и код
      * 
@@ -929,10 +934,10 @@ class drdata_Address extends core_MVC
         foreach ($ukStrings as $p){
         	$pos = strpos($normalizedString, $p);
         	if($pos === FALSE) continue;
-        
+        	$isUk = TRUE;
+        	
         	if(strpos($str, ',') === FALSE){
-        		$str = substr_replace($str, ',', $pos, 0);
-        		$isUk = TRUE;
+        		$str = substr_replace($str, ',', $pos + strlen($p), 0);
         		break;
         	}
         }
