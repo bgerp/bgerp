@@ -300,7 +300,7 @@ class colab_Folders extends core_Manager
     	$cu = isset($cu) ? $cu : core_Users::getCurrent('id', FALSE);
     	if(empty($cu)) return;
     	
-    	$folderId = isset($folderId) ? $folderId : colab_FolderToPartners::getLastSharedCompanyFolder($cu);
+    	$folderId = isset($folderId) ? $folderId : colab_FolderToPartners::getLastSharedContragentFolder($cu);
     	if(empty($folderId)) return;
     	
     	$Cover = doc_Folders::getCover($folderId);

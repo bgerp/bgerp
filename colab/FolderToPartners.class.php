@@ -128,7 +128,7 @@ class colab_FolderToPartners extends core_Manager
      * @param int|NULL $userId - ид на партньор
      * @return NULL|int $folderId - първата споделена папка
      */
-    public static function getLastSharedCompanyFolder($cu = NULL)
+    public static function getLastSharedContragentFolder($cu = NULL)
     {
     	$cu = isset($cu) ? $cu : core_Users::getCurrent('id', FALSE);
     	if(empty($cu) || !core_Users::isContractor($cu)) return NULL;

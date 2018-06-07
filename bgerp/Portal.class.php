@@ -56,7 +56,7 @@ class bgerp_Portal extends core_Manager
     	// И текущия потребител е контрактор, но не е powerUser
     	if(core_Users::haveRole('partner')){
             
-            $folderId =  colab_FolderToPartners::getLastSharedCompanyFolder();
+            $folderId =  colab_FolderToPartners::getLastSharedContragentFolder();
             
             if($folderId) {
 
