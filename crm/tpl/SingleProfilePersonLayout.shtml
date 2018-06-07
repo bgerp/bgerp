@@ -1,5 +1,12 @@
 
 <div class="user-title [#userClass#]" >
+    
+    <!--ET_BEGIN editLink-->
+    <div class="profile-editLink">
+        [#editLink#]
+    </div>
+    <!--ET_END editLink-->
+    
     <div class="user-name">[#name#]</div>
 
     <!--ET_BEGIN image-->

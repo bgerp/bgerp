@@ -115,6 +115,8 @@ class cms_Profiles extends core_Master
         // Промяна на някой данни, след подготовката на профила
         $this->modifyProfile($data);
         
+        $data->Person->row->editLink = ht::createLink('', array($this, 'EditProfile', 'ret_url' => TRUE), FALSE, 'title=Редактиране на профила, ef_icon=img/16/edit.png');
+        
         if(core_Users::haveRole('partner')){
         	unset($data->row->createdOn);
         	unset($data->row->createdBy);
@@ -177,6 +179,75 @@ class cms_Profiles extends core_Master
 	            }
 			}
         }
+        
+        $tpl = $form->renderHtml();
+        $tpl = $this->renderWrapping($tpl);
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Екшън за редактиране на данните на колаборатора
+     * 
+     * @return core_ET
+     */
+    public function act_EditProfile()
+    {
+        requireRole('partner');
+        
+        $form = cls::get('core_Form');
+        
+        $fMap = array('names', 'email', 'avatar');
+        
+        $form->FNC('names', 'varchar', 'caption=Имена,mandatory, input, width=100%');
+        $form->FNC('email', 'email(64, ci)', 'caption=Имейл,mandatory, input,width=100%');
+        $form->FNC('avatar', 'fileman_FileType(bucket=Avatars)', 'caption=Аватар, input, width=100%');
+        
+        $uRec = core_Users::fetch(core_Users::getCurrent());
+        
+        foreach ($fMap as $f) {
+            $form->setDefault($f, $uRec->{$f});
+        }
+        
+        $form->input();
+        
+        $retUrl = getRetUrl();
+        
+        if (empty($retUrl)) {
+            $retUrl = array('cms_Profiles', 'single');
+        }
+        
+        if ($form->isSubmitted()) {
+            
+            foreach ($fMap as $f) {
+                $uRec->{$f} = $form->rec->{$f};
+            }
+            
+            core_Users::save($uRec, $fMap);
+            
+            try {
+                $personRec = crm_Profiles::getProfile();
+                
+                crm_Profiles::syncPerson($personRec->id, $uRec);
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+            }
+            
+            $personRec = crm_Profiles::getProfile();
+            
+            $personRec->buzEmail = $form->rec->email;
+            
+            crm_Persons::save($personRec);
+            
+            // Редиректваме към предварително установения адрес
+            return new Redirect($retUrl);
+        }
+        
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title=Запис на данните');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        
+        $form->title = 'Редактиране на профила';
         
         $tpl = $form->renderHtml();
         $tpl = $this->renderWrapping($tpl);
