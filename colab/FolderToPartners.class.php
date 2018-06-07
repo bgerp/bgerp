@@ -123,7 +123,7 @@ class colab_FolderToPartners extends core_Manager
     
     
     /**
-     * Коя е първата споделена папка на фирма на партньор
+     * Коя е първата споделена папка на контрагент на партньор
      * 
      * @param int|NULL $userId - ид на партньор
      * @return NULL|int $folderId - първата споделена папка
@@ -133,57 +133,76 @@ class colab_FolderToPartners extends core_Manager
     	$cu = isset($cu) ? $cu : core_Users::getCurrent('id', FALSE);
     	if(empty($cu) || !core_Users::isContractor($cu)) return NULL;
     	
+    	// Коя е последно активната му папка на Фирма
+    	$folderId = self::getLastSharedFolder($cu, 'crm_Companies');
+    	
+    	// Ако няма тогава е последно активната му папка на Лице
+    	if(empty($folderId)){
+    		$folderId = self::getLastSharedFolder($cu, 'crm_Persons');
+    	}
+    	
+    	return (!empty($folderId)) ? $folderId : NULL;
+    }
+    
+    
+    /**
+     * Последната активна папка на потребителя
+     * 
+     * @param int $cu              - потребител
+     * @param mixed $class         - Клас на корицата
+     * @return NULL|int $folderId  - Ид на папка
+     */
+    private static function getLastSharedFolder($cu, $class)
+    {
+    	$Class = cls::get($class);
     	$query = self::getQuery();
     	$query->where("#contractorId = {$cu}");
     	$query->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
-    	$query->where("#coverClass =" . crm_Companies::getClassId());
-        
-        $fIds = array();
-    	$query->show('folderId');
-    	while($rec = $query->fetch()) {
-            $fIds[] = $rec->folderId;
-        }
-        
-        if(count($fIds)) {
-            
-            if(count($fIds) == 1) {
-                $folderId = $fIds[0];
-            } else {
-
-                if(!$folderId) {
-                    // Първа е папката в която този потребител последно е писал
-                    $cQuery = doc_Containers::getQuery();
-                    $cQuery->limit(1);
-                    $cQuery->orderBy('#modifiedOn', 'DESC');
-                    $cQuery->where("#createdBy = {$cu}");
-                    $cQuery->where('#folderId IN (' . implode(',', $fIds) . ')');
-                    $cQuery->where("#state != 'rejected'");
-                    $cRec = $cQuery->fetch();
-                    if($cRec) {
-                        $folderId = $cRec->folderId;
-                    }
-                }
-                
-                if(!$folderId) {
-                    // След това е папката, в която има последно движение
-                    $fQuery = doc_Folders::getQuery();
-                    $fQuery->limit(1);
-                    $fQuery->orderBy('#last', 'DESC');
-                    $fQuery->where('#id IN (' . implode(',', $fIds) . ')');
-                    $fQuery->where("#state != 'rejected'");
-                    $fRec = $fQuery->fetch();
-                    if($fRec) {
-                        $folderId = $rec->id;
-                    }
-                }
-            }
-        }
+    	$query->where("#coverClass =" . $Class->getClassId());
     	
-        if (!empty($folderId) && !colab_Folders::haveRightFor('list', (object)array('folderId' => $folderId), $cu)) {
-            $folderId = NULL;
-        }
-        
-    	return (!empty($folderId)) ? $folderId : NULL;
+    	$query->show('folderId');
+    	$fIds = arr::extractValuesFromArray($query->fetchAll(), 'folderId');
+    	
+    	if(count($fIds)) {
+    	
+    		if(count($fIds) == 1) {
+    			$folderId = key($fIds);
+    		} else {
+    	
+    			if(!$folderId) {
+    				// Първа е папката в която този потребител последно е писал
+    				$cQuery = doc_Containers::getQuery();
+    				$cQuery->limit(1);
+    				$cQuery->orderBy('#modifiedOn', 'DESC');
+    				$cQuery->where("#createdBy = {$cu}");
+    				$cQuery->where('#folderId IN (' . implode(',', $fIds) . ')');
+    				$cQuery->where("#state != 'rejected'");
+    				$cRec = $cQuery->fetch();
+    				if($cRec) {
+    					$folderId = $cRec->folderId;
+    				}
+    			}
+    	
+    			if(!$folderId) {
+    				// След това е папката, в която има последно движение
+    				$fQuery = doc_Folders::getQuery();
+    				$fQuery->limit(1);
+    				$fQuery->orderBy('#last', 'DESC');
+    				$fQuery->where('#id IN (' . implode(',', $fIds) . ')');
+    				$fQuery->where("#state != 'rejected'");
+    				$fRec = $fQuery->fetch();
+    				if($fRec) {
+    					$folderId = $rec->id;
+    				}
+    			}
+    		}
+    	}
+    	 
+    	if (!empty($folderId) && !colab_Folders::haveRightFor('list', (object)array('folderId' => $folderId), $cu)) {
+    		$folderId = NULL;
+    	}
+    	
+    	return $folderId;
     }
     
     
@@ -225,15 +244,7 @@ class colab_FolderToPartners extends core_Manager
     
     
     /**
-     * 
-     * 
-     * @param array $params
-     * @param NULL|integer $limit
-     * @param string $q
-     * @param NULL|integer|array $onlyIds
-     * @param boolean $includeHiddens
-     * 
-     * @return array
+     * Опции за партньори
      */
     public static function getContractorOptions($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
@@ -391,7 +402,7 @@ class colab_FolderToPartners extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->names = core_Users::getVerbal($rec->contractorId, 'names');
     	$row->names .= " (" . crm_Profiles::createLink($rec->contractorId) . ") ";
