@@ -115,7 +115,7 @@ class cms_Profiles extends core_Master
         // Промяна на някой данни, след подготовката на профила
         $this->modifyProfile($data);
         
-        $data->Person->row->editLink = ht::createLink('', array($this, 'EditProfile', 'ret_url' => TRUE), FALSE, 'title=Редактиране на профила, ef_icon=img/16/edit.png');
+        $data->Person->row->editLink = ht::createLink('', array($this, 'EditProfile', 'ret_url' => TRUE), FALSE, 'title=Редактиране на профила, ef_icon=img/32/edit.png');
         
         if(core_Users::haveRole('partner')){
         	unset($data->row->createdOn);
