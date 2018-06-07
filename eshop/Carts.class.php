@@ -675,7 +675,7 @@ class eshop_Carts extends core_Master
     		$tpl->replace(core_Type::getByName('varchar')->toVerbal($rec->{$name}), $name);
     	}
     	
-    	if($companyFolderId = core_Mode::get('lastActiveCompanyFolder')){
+    	if($companyFolderId = core_Mode::get('lastActiveContragentFolder')){
     		if(colab_Threads::haveRightFor('list', (object)array('folderId' => $companyFolderId))){
     			$folderTitle = doc_Folders::getVerbal($companyFolderId, 'title');
 				$activeFolderId = ht::createLink($folderTitle, array('colab_Threads', 'list', 'folderId' => $companyFolderId), FALSE, 'ef_icon=img/16/folder-icon.png');
@@ -1132,7 +1132,7 @@ class eshop_Carts extends core_Master
     			$form->setOptions('saleFolderId', $options);
     			 
     			// Коя папка е избрана по дефолт
-    			$companyFolderId = core_Mode::get('lastActiveCompanyFolder');
+    			$companyFolderId = core_Mode::get('lastActiveContragentFolder');
     			$defaultFolder = ($companyFolderId) ? $companyFolderId : key($options);
     			$form->setDefault('saleFolderId', $defaultFolder);
     		}

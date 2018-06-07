@@ -290,12 +290,12 @@ class colab_Folders extends core_Manager
     
     
     /**
-     * Записване в сесията последната активна папка на фирма на партньор
+     * Записване в сесията последната активна папка на контрагент на партньор
      * 
      * @param int|NULL $folderId - папка, ако няма последната спдоелена папка на партньор
      * @param int|NULL $cu       - потребител, ако няма текущия
      */
-    public static function setLastActiveCompanyFolderId($folderId = NULL, $cu = NULL)
+    public static function setLastActiveContragentFolder($folderId = NULL, $cu = NULL)
     {
     	$cu = isset($cu) ? $cu : core_Users::getCurrent('id', FALSE);
     	if(empty($cu)) return;
@@ -304,11 +304,11 @@ class colab_Folders extends core_Manager
     	if(empty($folderId)) return;
     	
     	$Cover = doc_Folders::getCover($folderId);
-    	if(!$Cover->haveInterface('crm_CompanyAccRegIntf')) return;
+    	if(!$Cover->haveInterface('crm_ContragentAccRegIntf')) return;
     	
-    	$companyFolderId = core_Mode::get('lastActiveCompanyFolder');
+    	$companyFolderId = core_Mode::get('lastActiveContragentFolder');
     	if($companyFolderId != $folderId){
-    		Mode::setPermanent('lastActiveCompanyFolder', $folderId);
+    		Mode::setPermanent('lastActiveContragentFolder', $folderId);
     	}
     }
 }
