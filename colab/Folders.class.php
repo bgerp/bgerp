@@ -191,15 +191,15 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
-	 * Връща всички споделени папки до този партньор, ако личната му
-	 * е без видими документи, тя се пропуска
+	 * Връща всички споделени папки до този партньор
 	 * 
-	 * @param int|NULL $cu            - потребител 
-	 * @param boolean  $showTitle     - дали папките да са заглавия
-	 * @param string   $interface     - интерфейс
-	 * @return array   $sharedFolders - масив със споделените папки
+	 * @param int|NULL $cu                      - потребител 
+	 * @param boolean  $showTitle               - дали папките да са заглавия
+	 * @param string   $interface               - интерфейс
+	 * @param boolean $skipPrivateFolderIfEmpty - да се пропусне ли частната папка ако е празна
+	 * @return array   $sharedFolders           - масив със споделените папки
 	 */
-	public static function getSharedFolders($cu = NULL, $showTitle = FALSE, $interface = NULL)
+	public static function getSharedFolders($cu = NULL, $showTitle = FALSE, $interface = NULL, $skipPrivateFolderIfEmpty = TRUE)
 	{
 		$sharedFolders = array();
 		$cu = isset($cu) ? $cu : core_Users::getCurrent();
@@ -216,13 +216,17 @@ class colab_Folders extends core_Manager
 		$sharedQuery->show('folderId,title,coverClass');
 		$sharedQuery->groupBy('folderId');
 		
-		// Коя е личната папка на партньора
-		if($privateFolderId = crm_Persons::fetchField(crm_Profiles::fetchField("#userId = {$cu}", 'personId'), 'folderId')){
+		// Трябва ли да се пропусне личната папка
+		if($skipPrivateFolderIfEmpty === TRUE){
 			
-			// Ако в нея няма видими документи за него, пропуска се
-			$count = doc_Threads::count("#folderId = {$privateFolderId} AND #visibleForPartners = 'yes'");
-			if(!$count){
-				$sharedQuery->where("#folderId != {$privateFolderId}");
+			// Коя е личната папка на партньора
+			if($privateFolderId = crm_Persons::fetchField(crm_Profiles::fetchField("#userId = {$cu}", 'personId'), 'folderId')){
+					
+				// Ако в нея няма видими документи за него, пропуска се
+				$count = doc_Threads::count("#folderId = {$privateFolderId} AND #visibleForPartners = 'yes'");
+				if(!$count){
+					$sharedQuery->where("#folderId != {$privateFolderId}");
+				}
 			}
 		}
 		
