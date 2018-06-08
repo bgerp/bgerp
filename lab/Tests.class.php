@@ -7,7 +7,8 @@
  * @category  bgerp
  * @package   lab
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ *            Angel Trifonov angel.trifonoff@gmail.com
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -244,6 +245,8 @@ class lab_Tests extends core_Master
 
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
+       
+        
         if ($data->rec->id && $data->rec->state == 'active') {
             
             $handle = $mvc->getHandle($data->rec->id);
@@ -301,6 +304,10 @@ class lab_Tests extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
+       
+        
+        $data->toolbar->removeBtn('btnClose');
+        
         if ($mvc->haveRightFor('compare', $data->rec)) {
             $url = array(
                 $mvc,

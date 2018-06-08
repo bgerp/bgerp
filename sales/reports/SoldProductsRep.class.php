@@ -128,8 +128,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	    
 	    self::prepareRecs($rec);
 	    
-	    self::groupRecs($recs, $group);
-	    
 	    bp($rec); // $rec->count - брой документи //
 	}
 	
@@ -344,15 +342,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			  
 				$recs [$id] = ( object ) array (
 				    
-				    
-						'code' => $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}",
-						'measure' => cat_Products::getProductInfo ( $recPrime->productId )->productRec->measureId,
-						'productId' => $recPrime->productId,
-						'quantity' => $quantity,
-						'quantityPrevious' => $quantityPrevious,
-						'quantityLastYear' => $quantityLastYear,
-						'primeCost' => $primeCost,
-						'group' => cat_Products::fetchField($recPrime->productId, 'groups')
+					'code'             => $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}",
+					'measure'          => cat_Products::getProductInfo ( $recPrime->productId )->productRec->measureId,
+					'productId'        => $recPrime->productId,
+					'quantity'         => $quantity,
+					'quantityPrevious' => $quantityPrevious,
+					'quantityLastYear' => $quantityLastYear,
+					'primeCost'        => $primeCost,
+					'group'            => cat_Products::fetchField($recPrime->productId, 'groups')
 						 
 				);
 				
