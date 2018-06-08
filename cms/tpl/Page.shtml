@@ -29,11 +29,7 @@
             <!--ET_END USERLINK-->
             [#CMS_LAYOUT#]
         </div>
-        <!--ET_BEGIN FOOTER_LINKS_NARROW-->
-        <div class="additionalFooter">
-            [#FOOTER_LINKS_NARROW#]
-        </div>
-        <!--ET_END FOOTER_LINKS_NARROW-->
+
         <div id="cmsBottom">
             <div class="socialBtns">
                 [#cms_Feeds::generateFeedLink#]
@@ -42,5 +38,10 @@
             [#cms_Content::getFooter#]
             [#FOOTER_LINKS_WIDE#]
         </div>
+        <!--ET_BEGIN FOOTER_LINKS_NARROW-->
+        <div class="additionalFooter">
+            [#FOOTER_LINKS_NARROW#]
+        </div>
+        <!--ET_END FOOTER_LINKS_NARROW-->
     </div>
 </div>

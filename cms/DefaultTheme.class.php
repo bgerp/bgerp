@@ -188,12 +188,13 @@ class cms_DefaultTheme extends core_ProtoInner {
         }
 
         $css .= "\n    .background-holder, body {background-color:#{$background} !important;}";
-        $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover, .cookies .agree, .additionalFooter {background-color:#{$activeColor};}";
+
+        $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover, .cookies .agree {background-color:#{$activeColor};}";
 
         // стилове за меню и футър
         $css .= "\n    #cmsMenu {background-color:#{$baseColor};}";
         $css .= "\n    .cookies {background-color:#{$baseColor};}";
-        $css .= "\n    #cmsBottom {background-color:#{$baseColor}; border-top:1px solid #{$bordercolor} !important;}";
+        $css .= "\n    #cmsBottom {background-color:#{$baseColor}; border-top:1px solid #{$bordercolor} !important;border-bottom:1px solid #{$bordercolor} !important;}";
         $css .= "\n    #cmsMenu {border-top:1px solid #{$bordercolor} !important; border-bottom:1px solid #{$bordercolor} !important;}";
 
         // цветове на формите в зависимост от основния цвят
@@ -201,6 +202,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         $css .= "\n    .vertical .formTitle, .vertical .formGroup {background-color:#{$baseColor} !important; border-color:#{$bordercolor};}";
 
         $linkBorder =  phpcolor_Adapter::changeColor($bgcolorActive, 'mix', 5, $bordercolor);
+        $css .= "\n    .additionalFooter {background-color:#{$background} !important;}";
 
         // Цвятове за линковете и h2 заглавията
         $css .= "\n    #cmsNavigation .nav_item a { color: #{$fontColor};}";
