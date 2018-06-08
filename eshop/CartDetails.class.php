@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър за артикул в кошница
+ * Мениджър за детайл на кошниците
  *
  *
  * @category  bgerp
@@ -306,7 +306,6 @@ class eshop_CartDetails extends core_Detail
 	protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
 		if($rec->_updatePrice === FALSE) return;
-		
 		self::updatePriceInfo($rec);
 	}
 	
@@ -344,7 +343,7 @@ class eshop_CartDetails extends core_Detail
 			
 			$settings = cms_Domains::getSettings();
 			$finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, $rec->currencyId, $settings->currencyId);
-			$row->finalPrice = $mvc->getFieldType('finalPrice')->toVerbal($finalPrice);
+			$row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
 		
 			if($rec->oldPrice){
 				$difference = round($rec->finalPrice, 2) - round($rec->oldPrice, 2);
@@ -491,13 +490,16 @@ class eshop_CartDetails extends core_Detail
 		$TransCalc = cond_DeliveryTerms::getTransportCalculator($masterRec->termId);
 		if(!$TransCalc) return NULL;
 		
+		// Колко е общото тегло и обем за доставка
 		$products = arr::extractSubArray($query->fetchAll(), 'productId,quantity,packagingId');
     	$total = sales_TransportValues::getTotalWeightAndVolume($products);
-		
+		$deliveryData = array('deliveryCountry' => $masterRec->deliveryCountry, 'deliveryPCode' => $masterRec->deliveryPCode, 'deliveryPlace' => $masterRec->deliveryPlace, 'deliveryAddress' => $masterRec->deliveryAddress);
+		$deliveryData += $masterRec->deliveryData;
+    	
     	// За всеки артикул се изчислява очаквания му транспорт
     	$transportAmount = 0;
     	foreach ($products as $p1){
-    		$fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total['weight'], $total['volume'], $masterRec->deliveryData);
+    		$fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total['weight'], $total['volume'], $deliveryData);
     		if(is_array($fee)){
     			$transportAmount += $fee['totalFee'];
     		}
@@ -524,9 +526,17 @@ class eshop_CartDetails extends core_Detail
 		$settings = cms_Domains::getSettings($domainId);
 		$rec->currencyId = isset($rec->currencyId) ? $rec->currencyId : $settings->currencyId;
 		
-		if(isset($settings->listId)){
-			$price = price_ListRules::getPrice($settings->listId, $rec->productId, $rec->packagingId);
-			$priceObject = cls::get('price_ListToCustomers')->getPriceByList($settings->listId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+		// Коя е ценовата политика
+		$listId = $settings->listId;
+		if($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')){
+			$Cover = doc_Folders::getCover($lastActiveFolder);
+			$listId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
+		}
+		
+		// Ако има взема се цената от нея
+		if(isset($listId)){
+			$price = price_ListRules::getPrice($listId, $rec->productId, $rec->packagingId);
+			$priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 			if(!empty($priceObject->discount)){
 				$discount = $priceObject->discount;
 			}
@@ -539,6 +549,7 @@ class eshop_CartDetails extends core_Detail
 			$finalPrice = currency_CurrencyRates::convertAmount($finalPrice, NULL, NULL, $rec->currencyId);
 		}
 		
+		// Ако цената е променена, обновява се
 		$update = FALSE;
 		if(!isset($rec->finalPrice) || (isset($rec->finalPrice) && round($rec->finalPrice, 2) != round($finalPrice, 2))){
 			$rec->oldPrice = $rec->finalPrice;

@@ -7,7 +7,8 @@
  * @category  bgerp
  * @package   lab
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ *            Angel Trifonov angel.trifonoff@gmail.com
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -156,7 +157,8 @@ class lab_TestDetails extends core_Detail
                 $allMethodsArr[$mRec->id] = $mRec->name;
             }
         }
-        
+      
+        $methodIdSelectArr = array();
         $data->allMethodsArr = $allMethodsArr;
         
         // $methodIdSelectArr
@@ -183,7 +185,7 @@ class lab_TestDetails extends core_Detail
                  $data->form->setField('methodId', 'input=none');
                 
             } else {
-            	
+               
                 $data->form->setOptions('methodId',array(' '=>'избери метод ')+$methodIdSelectArr);
                 
             }
@@ -415,19 +417,7 @@ class lab_TestDetails extends core_Detail
         		$rec->value = '---';
         	}
         
-        	//             if ($resCnt > 1) {
-        	//                 // Намираме грешката
-        	//                 $dlt = 0;
         
-        	//                 for ($i = 0; $i < $resCnt; $i ++) {
-        	//                     $dlt += ($resultsArr[$i] - $rec->value) * ($resultsArr[$i] - $rec->value);
-        	//                 }
-        
-        	//                 // $rec->error = sqrt($dlt) / sqrt((count($resultsArr) * (count($resultsArr)-1))) / $rec->value;
-        	//                 $rec->error = 'ok';
-        	//             } else {
-        	//                 $rec->error = NULL;
-        	//             }
         } elseif ($parametersRec->type == 'bool') {
         	$rec->value = $resultsArr[0];
         	$rec->error = NULL;
@@ -527,7 +517,7 @@ class lab_TestDetails extends core_Detail
     /**
      * Изчислява израза
      *
-     * @param text $expr
+     * @param  $expr
      *            - формулата
      * @param array $params
      *            - параметрите

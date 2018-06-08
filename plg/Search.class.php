@@ -179,8 +179,6 @@ class plg_Search extends core_Plugin
             $field = 'searchKeywords';
         }
         
-        $minLenFTS = self::getFTSMinWordLen($query);
-        
         $wCacheArr = array();
         
         if ($words = static::parseQuery($search)) {
@@ -238,22 +236,13 @@ class plg_Search extends core_Plugin
                 }
             
                 $w = trim(static::normalizeText($w, array('*'))); 
-                $minWordLen = strlen($w);
                 
                 // Ако търсената дума е празен интервал
                 $wTrim = trim($w);
                 if (!strlen($wTrim)) continue;
                 
                 if(strpos($w, ' ')) {
-                    
                     $mode = '"';
-            
-                    $wArr = explode(' ', $w);
-                    $minWordLen = 0;
-                    foreach($wArr as $part) {
-                        $partLen = strlen($part);
-                        $minWordLen = max($minWordLen, $partLen);
-                    }
                 }
 
                 // Ако няма да се търси точно съвпадение, ограничаваме дължината на думите
@@ -267,7 +256,7 @@ class plg_Search extends core_Plugin
                     $w = trim($w, '%');
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if (self::isStopWord($w, FALSE, $minLenFTS) || $minWordLen < $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0 || $query->dontUseFts) {  
+                    if (self::isStopWord($w) || !empty($query->mvc->dbEngine) || $limit > 0 || $query->dontUseFts) {  
                         if($limit > 0 && $like == 'LIKE') {
                             $field1 =  "LEFT(#{$field}, {$limit})";
                         } else {
@@ -308,7 +297,7 @@ class plg_Search extends core_Plugin
             $minLenFTS = self::getFTSMinWordLen();
         }
         
-        if (strlen($word) < $minLenFTS) return FALSE;
+        if (strlen($word) < $minLenFTS) return TRUE;
         
         $type = 'sqlStopWord';
         $handler = 'stopWords';

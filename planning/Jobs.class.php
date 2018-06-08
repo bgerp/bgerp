@@ -221,11 +221,21 @@ class planning_Jobs extends core_Master
      * @param int $id        - ид на текущото задание
      * @return array $res    - масив с предишните задания
      */
-    private static function getOldJobs($productId, $id)
+    private static function getOldJobs($productId, $id, $folderId)
     {
     	$res = array();
+    	
+    	// Старите задания към артикула или към артикулите в неговата папка
+    	$pQuery = cat_Products::getQuery();
+    	$pQuery->where("#folderId = {$folderId}");
+    	$pQuery->show('id');
+    	$products = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+    	$products[$productId] = $productId;
+    	
     	$query = self::getQuery();
-    	$query->where("#id != '{$id}' AND #productId = {$productId} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed')");
+    	$query->in('productId', $products);
+    	$query->where("#id != '{$id}' AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed')");
+    	
     	$query->orderBy('id', 'DESC');
     	$query->show('id,productId,state');
     	
@@ -249,7 +259,7 @@ class planning_Jobs extends core_Master
     	$rec = &$form->rec;
     	
     	// Ако има предишни задания зареждат се за избор
-    	$oldJobs = self::getOldJobs($rec->productId, $rec->id);
+    	$oldJobs = self::getOldJobs($rec->productId, $rec->id, $rec->folderId);
     	
     	if(count($oldJobs)){
     		$form->setField('oldJobId', 'input');

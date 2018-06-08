@@ -911,7 +911,12 @@ class drdata_Address extends core_MVC
         return $res;
     }
 
-
+    function act_test()
+    {
+    	$str = 'Great Britain, M1 1AH';
+    	$r = self::parsePlace($str);
+    	bp($r);
+    }
     /**
      * Парсира място, като се опитва да извлече държава и код
      * 
@@ -921,23 +926,44 @@ class drdata_Address extends core_MVC
     {
         $div = array(',', ';', '-', ' ');
         $best = NULL;
-
+        $str = str::removeWhitespaces($str, ' ');
+        $normalizedString = mb_strtolower($str);
+       	$isUk = FALSE;
+        
+        $ukStrings = array('uk', 'united kingdom', 'england', 'britain', 'great britain', 'united kingdom of great brtain and northern ireland');
+        foreach ($ukStrings as $p){
+        	$pos = strpos($normalizedString, $p);
+        	if($pos === FALSE) continue;
+        	$isUk = TRUE;
+        	
+        	if(strpos($str, ',') === FALSE){
+        		$str = substr_replace($str, ',', $pos + strlen($p), 0);
+        		break;
+        	}
+        }
+        
+        $pattern = ($isUk === TRUE) ? "^([A-PR-UWYZ0-9][A-HK-Y0-9][AEHMNPRTVXY0-9]?[ABEHMNPRVWXY0-9]? {1,2}[0-9][ABD-HJLN-UW-Z]{2}|GIR 0AA)$" : "[0-9]{3} ?[0-9]{1,3}";
+        
         foreach($div as $d) {
             $arr = explode($d, $str);
+            
             $o = new stdClass();
             foreach($arr as $part) {
                 $part = trim($part, ",;- \t\n\r");
-                if(preg_match("/[0-9]/", $part)) {
+                $part = trim($part);
+                if(preg_match("/{$pattern}/", $part)) {
                     $o->pCode = $part;
+                   
                     continue;
                 }
+               
                 if($countryId = drdata_Countries::getIdByName($part)) {
                     $o->countryId = $countryId;
                 }
                 if($o->countryId && $o->code) break;
             }
 
-            if(!$best && $o->countryId) {
+            if(!$best && $o->countryId && $o->pCode) {
                 $best = new stdClass();
                 $best = $o;
             }
@@ -946,7 +972,7 @@ class drdata_Address extends core_MVC
                 $best = $o;
             }
         }
-
+        
         return $best;
     }
 }

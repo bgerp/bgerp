@@ -39,8 +39,16 @@ class tinymce_Setup extends core_ProtoSetup
      * Описание на модула
      */
     var $info = "Wysiwyg редактор за HTML данни използващ tinyMCE";
-
-
+    
+    
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+            'tinymce_import_Html',
+    );
+    
+    
     /**
      * Инсталиране на пакета
      */
@@ -51,10 +59,9 @@ class tinymce_Setup extends core_ProtoSetup
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
 
-
         // Инсталиране към всички полета, но без активиране
         $html .= $Plugins->installPlugin('tinyMCE', 'tinymce_Plugin', 'type_Html', 'private');
-
+        
         return $html;
     }
 

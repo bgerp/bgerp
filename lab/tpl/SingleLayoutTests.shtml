@@ -114,7 +114,7 @@
         </tr>
         <tr>
             <td></td>
-            <td><span class="sign_names nowrap"><!--ET_BEGIN username-->/ [#activatedBy#] /<!--ET_END username--></span></td>
+            <td><span class="sign_names nowrap"><!--ET_BEGIN activatedBy-->/ [#activatedBy#] /<!--ET_END activatedBy--></span></td>
         </tr>
     </table>
 </div>

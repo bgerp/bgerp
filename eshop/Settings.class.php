@@ -92,6 +92,8 @@ class eshop_Settings extends core_Manager
     	$this->FLD('enableCart', 'enum(yes=Винаги,no=Aко съдържа продукти)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
     	$this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
     	$this->FLD('info', 'richtext(rows=3)', 'caption=Условия на продажбата под количката->Текст');
+    	$this->FLD('inboxId', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Кутия от която да се изпраща имейл->Кутия');
+    	
     	$this->FLD('state', 'enum(active=Активно,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
     	
     	$this->setDbIndex('classId, objectId');
@@ -251,7 +253,7 @@ class eshop_Settings extends core_Manager
     	$terms = keylist::toArray($settings->terms);
     	
     	$options = array();
-    	array_walk($terms, function($termId) use (&$options) {$options[$termId] = cond_DeliveryTerms::getVerbal($termId, 'term');});
+    	array_walk($terms, function($termId) use (&$options) {$options[$termId] = cond_DeliveryTerms::getVerbal($termId, 'codeName');});
     	
     	return $options;
     }
@@ -270,7 +272,7 @@ class eshop_Settings extends core_Manager
     	$payments = keylist::toArray($settings->payments);
     	
     	$options = array();
-    	array_walk($payments, function($paymentId) use (&$options) {$options[$paymentId] = cond_PaymentMethods::getVerbal($paymentId, 'name');});
+    	array_walk($payments, function($paymentId) use (&$options) {$options[$paymentId] = tr(cond_PaymentMethods::getVerbal($paymentId, 'name'));});
     	 
     	return $options;
     }

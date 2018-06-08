@@ -55,8 +55,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	public function addFields(core_Fieldset &$fieldset) 
 	{
 
-		$fieldset->FLD ( 'from', 'date(smartTime)', 'caption=От,after=title,single=none,mandatory' );
-		$fieldset->FLD ( 'to', 'date(smartTime)', 'caption=До,after=from,single=none,mandatory' );
+		$fieldset->FLD ( 'from', 'date', 'caption=От,after=title,single=none,mandatory' );
+		$fieldset->FLD ( 'to', 'date', 'caption=До,after=from,single=none,mandatory' );
 		$fieldset->FLD ( 'compare', 'enum(no=Без, previous=Предходен, year=Миналогодишен)', 'caption=Сравнение,after=to,single=none' );
 		$fieldset->FLD ( 'group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=compare,single=none' );
 		$fieldset->FLD ( 'articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', "caption=Тип артикули,maxRadio=3,columns=3,removeAndRefreshForm,after=group" );
@@ -91,7 +91,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			    $toLastYear = dt::addDays(- 365, $form->rec->to);
 			    if ($form->rec->from < $toLastYear){
 			     
-			        $form->setError ( 'from,to', 'Периода трябва да е по-малък от 365 дни за да сравнявате с миналогодишен период.' );
+			        $form->setError ( 'compare', 'Периода трябва да е по-малък от 365 дни за да сравнявате с "миналогодишен" период.
+                                                  За да сравнявате периоди по-големи от 1 година, използвайте сравнение с "предходен" период' );
 			        
 			    }
 			    
@@ -118,7 +119,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 	}
 	
-	
 	// Action for test //
 	public static function act_test()
 	{
@@ -127,8 +127,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	    $rec = unserialize(file_get_contents('debug.txt'));
 	    
 	    self::prepareRecs($rec);
-	    
-	    self::groupRecs($recs, $group);
 	    
 	    bp($rec); // $rec->count - брой документи //
 	}
@@ -169,10 +167,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		if (($rec->compare) == 'previous') {
 		    
 		    $daysInPeriod = dt::daysBetween($rec->to, $rec->from) + 1;
-		    $fromPreviuos = dt::addDays(- $daysInPeriod, $rec->from);
-		    $toPreviuos = dt::addDays(- $daysInPeriod, $rec->to);
-		    
-		    
+		    $fromPreviuos = dt::addDays(- $daysInPeriod, $rec->from,FALSE);
+		    $toPreviuos = dt::addDays(- $daysInPeriod, $rec->to,FALSE);
 		    
 		    $query->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
 		}
@@ -190,7 +186,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 			$query->where( "#docState != 'rejected'" );
 	
-		
 		if (isset ( $rec->dealers )) {
 			
 			if ((min ( array_keys ( keylist::toArray ( $rec->dealers ) ) ) >= 1)) {
@@ -290,7 +285,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			$id = $recPrime->productId;
 			
  			if ($rec->compare == 'previous') {
-			
+ 			    
  			    if($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos){
 
 			        if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
@@ -347,15 +342,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			  
 				$recs [$id] = ( object ) array (
 				    
-				    
-						'code' => $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}",
-						'measure' => cat_Products::getProductInfo ( $recPrime->productId )->productRec->measureId,
-						'productId' => $recPrime->productId,
-						'quantity' => $quantity,
-						'quantityPrevious' => $quantityPrevious,
-						'quantityLastYear' => $quantityLastYear,
-						'primeCost' => $primeCost,
-						'group' => cat_Products::fetchField($recPrime->productId, 'groups')
+					'code'             => $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}",
+					'measure'          => cat_Products::getProductInfo ( $recPrime->productId )->productRec->measureId,
+					'productId'        => $recPrime->productId,
+					'quantity'         => $quantity,
+					'quantityPrevious' => $quantityPrevious,
+					'quantityLastYear' => $quantityLastYear,
+					'primeCost'        => $primeCost,
+					'group'            => cat_Products::fetchField($recPrime->productId, 'groups')
 						 
 				);
 				
@@ -369,15 +363,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 			
 		}
 		
-		
-	    
-		
-	
-		$recs = self::groupRecs($recs, $rec->group);
-		
-		
-		
-		
+		$tempArr=array();
+		foreach ($recs as $v){
+		  
+		    list($firstGroup)=explode('|',  trim($v->group,'|'));
+		    $v->group = $firstGroup;
+		    
+		}
 		
 		return $recs;
 		
@@ -618,48 +610,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$tpl->append ( $fieldTpl, 'DRIVER_FIELDS' );
 	}
 	
-	    /**
-	     * Групиране по продуктови групи
-	     *
-	     * @param array $recs
-	     * @param string $group
-	     * @param stdClass $data
-	     * @return array
-	     */
-	    private function groupRecs($recs, $group)
-	    {
-	        $ordered = array();
-	
-	        $groups = keylist::toArray($group);
-	        if (! count($groups)) {
-	            return $recs;
-	        } else {
-	            cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(
-	                &$groups
-	            ));
-	        }
-	      
-	        // За всеки маркер
-	        foreach ($groups as $grId => $groupName) {
-	
-	            // Отделяме тези записи, които съдържат текущия маркер
-	            $res = array_filter($recs,
-	                function (&$e) use($grId, $groupName) {
-	                    if (keylist::isIn($grId, $e->group)) {
-	                        $e->group = $grId;
-	                        return TRUE;
-	                    }
-	                    return FALSE;
-	                });
-	
-	            if (count($res)) {
-	                arr::natOrder($res, 'code');
-	                $ordered += $res;
-	            }
-	        }
-	
-	        return $ordered;
-	    }
+
 	
 	
 	

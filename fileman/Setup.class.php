@@ -214,6 +214,8 @@ class fileman_Setup extends core_ProtoSetup
             // Установяваме модела за последни файлове
             'fileman_Log',
             
+            'fileman_import_Base64',
+            
             'migrate::addFileLen',
             'migrate::bucketRoles',
             'migrate::regenerateData1',

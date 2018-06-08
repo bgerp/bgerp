@@ -213,12 +213,19 @@ class eshop_ProductDetails extends core_Detail
 		$domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
 		$settings = cms_Domains::getSettings($domainId);
 		
-		if(isset($settings->listId)){
-			if($price = price_ListRules::getPrice($settings->listId, $productId, $packagingId)){
-				$priceObject = cls::get(price_ListToCustomers)->getPriceByList($settings->listId, $productId, $packagingId, $quantityInPack);
+		// Ценовата политика е от активната папка
+		$listId = $settings->listId;
+		if($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')){
+			$Cover = doc_Folders::getCover($lastActiveFolder);
+			$listId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
+		}
+		
+		// Ако има ценоразпис
+		if(isset($listId)){
+			if($price = price_ListRules::getPrice($listId, $productId, $packagingId)){
+				$priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $productId, $packagingId, $quantityInPack);
 				
 				$price *= $quantityInPack;
-				
 				if($settings->chargeVat == 'yes'){
 					$price *= 1 + cat_Products::getVat($productId);
 				}
@@ -329,7 +336,7 @@ class eshop_ProductDetails extends core_Detail
 		$row->quantity = ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", NULL, "size=4,class=eshop-product-option,placeholder=1");
 		
 		$catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
-		$row->catalogPrice = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPriceInfo->price);
+		$row->catalogPrice = core_Type::getByName('double(smartRound)')->toVerbal($catalogPriceInfo->price);
 		$row->catalogPrice = "<b>{$row->catalogPrice}</b>";
 		$row->orderPrice = $catalogPriceInfo->price;
 		$row->orderCode = $fullCode;

@@ -27,7 +27,7 @@ class marketing_InquiryRouter extends core_Manager
 	{
 		// Ако е от колаборатор към първата споделена папка на колаборатор
 		if(core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)){
-			if($companyFolderId = core_Mode::get('lastActiveCompanyFolder')){
+			if($companyFolderId = core_Mode::get('lastActiveContragentFolder')){
 				return $companyFolderId;
 			}
 		}

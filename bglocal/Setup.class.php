@@ -57,18 +57,11 @@ class bglocal_Setup extends core_ProtoSetup
         'bglocal_DistrictCourts',
     );
     
-    /**
-     * Роли за достъп до модула
-     */
-    //var $roles = 'currency';
-    
     
     /**
-     * Връзки от менюто, сочещи към модула
+     * Дефинирани класове, които имат интерфейси
      */
-    /*var $menuItems = array(
-            array(2.2, 'Финанси', 'Валути', 'currency_Currencies', 'default', "currency, ceo"),
-        );*/
+    var $defClasses = "bglocal_interface_FreeShipping";
     
     
     /**

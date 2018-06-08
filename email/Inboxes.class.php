@@ -381,8 +381,16 @@ class email_Inboxes extends core_Master
      * Намира първия имейл в стринга, който е записан в системата
      */
     static function getToBox($mime, $accId)
-    {   
+    {  
         $accRec = email_Accounts::fetch($accId);
+        
+        // Ако имейлът на сметката има домейн за миграция - новата сметка се използва
+        $accEml = self::replaceDomains($accRec->email);
+        $newAccRec = email_Accounts::fetch(array("#email = '[#1#]'", $accEml));
+        if($newAccRec) {
+            $accRec = $newAccRec;
+            $accId = $accRec->id;
+        }
 
         // Ако сметката е частна, то $toBox е нейния имейл
         if($accRec->type == 'single') {
@@ -396,7 +404,7 @@ class email_Inboxes extends core_Master
             $mime->getHeader('Delivered-To', '*') . ' ' .
             $mime->getHeader('To') . ' ' .
             $mime->getHeader('Cc')));
-
+ 
         // Ако няма никакви имейли, към които е изпратено писмото, $toBox е имейла на сметката
         if (!is_array($emailsArr) || !count($emailsArr)) {
 
@@ -405,7 +413,7 @@ class email_Inboxes extends core_Master
 
         // Всички вътрешни кутии към тази сметка
         $allBoxes = static::getAllInboxes($accId);
-        
+     
         // Търсим във всички съществуващи кутии
         foreach ($emailsArr as  &$eml) {
             

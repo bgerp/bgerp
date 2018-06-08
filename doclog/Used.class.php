@@ -210,6 +210,13 @@ class doclog_Used extends core_Manager
             
             if (!self::save($rec, NULL, 'IGNORE')) continue;
             
+            // Добавяме използване на документа
+            if ($usedArr['usedCid']) {
+                $uDoc = doc_Containers::getDocument($usedArr['usedCid']);
+                $uDoc->instance->logRead('Използване на документа', $uDoc->that);
+                log_Data::flush();
+            }
+            
             try {
                 $threadId = doc_Containers::fetchField($rec->usedContainerId, 'threadId');
                 doclog_Documents::removeHistoryFromCache($threadId);

@@ -262,7 +262,7 @@ class sales_Quotations extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = $data->form;
-    	$form->setField('deliveryAdress', array('placeholder' => 'Държава, Пощенски код'));
+    	$form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
     	$rec = &$data->form->rec;
        
     	$contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
