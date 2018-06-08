@@ -191,7 +191,8 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
-	 * Връща всички споделени папки до този контрактор
+	 * Връща всички споделени папки до този партньор, ако личната му
+	 * е без видими документи, тя се пропуска
 	 * 
 	 * @param int|NULL $cu            - потребител 
 	 * @param boolean  $showTitle     - дали папките да са заглавия
@@ -215,6 +216,17 @@ class colab_Folders extends core_Manager
 		$sharedQuery->show('folderId,title,coverClass');
 		$sharedQuery->groupBy('folderId');
 		
+		// Коя е личната папка на партньора
+		if($privateFolderId = crm_Persons::fetchField(crm_Profiles::fetchField("#userId = {$cu}", 'personId'), 'folderId')){
+			
+			// Ако в нея няма видими документи за него, пропуска се
+			$count = doc_Threads::count("#folderId = {$privateFolderId} AND #visibleForPartners = 'yes'");
+			if(!$count){
+				$sharedQuery->where("#folderId != {$privateFolderId}");
+			}
+		}
+		
+		// Подготовка на споделените папки
 		while($fRec = $sharedQuery->fetch()){
 			if(isset($interface) && !cls::haveInterface($interface, $fRec->coverClass)) continue;
 			$value = ($showTitle === TRUE) ? $fRec->title : $fRec->folderId;
