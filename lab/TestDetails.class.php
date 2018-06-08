@@ -517,7 +517,7 @@ class lab_TestDetails extends core_Detail
     /**
      * Изчислява израза
      *
-     * @param text $expr
+     * @param  $expr
      *            - формулата
      * @param array $params
      *            - параметрите
