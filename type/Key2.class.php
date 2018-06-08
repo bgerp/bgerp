@@ -221,7 +221,7 @@ class type_Key2 extends type_Int
             $ajaxUrl = '';
             $handler = $this->getHandler();
             if ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions-1)) {
-                $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute');
+                $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute-force');
             }
           
             $allowClear = FALSE;
