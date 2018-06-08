@@ -39,6 +39,10 @@ class tinymce_Plugin extends core_Plugin
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr, $options = array())
     {
+        setIfNot($invoker->params['tinyEditor'], 'yes');
+        
+        if ($invoker->params['tinyEditor'] == 'no') return ;
+        
         $tinyPlugins = '';
         if ($invoker->params['tinyPlugins']) {
             $tinyPlugins = $invoker->params['tinyPlugins'];

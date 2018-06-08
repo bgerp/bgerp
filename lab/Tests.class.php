@@ -514,7 +514,7 @@ class lab_Tests extends core_Master
                 
                 $haveOtherTests = is_object(lab_Tests::fetch("#id != {$rec->id}"));
                 
-                if ($rec->state != 'active' || ! $haveOtherTests) {
+                if ($rec->state == 'draft' || ! $haveOtherTests) {
                     $requiredRoles = 'no_one';
                     
                     return;
@@ -627,7 +627,7 @@ class lab_Tests extends core_Master
  
     }
     
-    function suggestionsParams()
+    static function suggestionsParams()
     {
         $metQuery = lab_Methods::getQuery();
         
