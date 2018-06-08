@@ -409,14 +409,26 @@ class cond_PaymentMethods extends core_Master
     
     
     /**
-     * Изисква ли се урл за плащане
+     * Има ли възможност за онлайн плаюане
+     *
+     * @param int $id
+     * @return boolean
+     */
+    public static function doRequireOnlinePayment($id)
+    {
+    	//@todo
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Какво е урл-то за онлайн плащане
      * 
      * @param int $id
      * @return array
      */
-    public static function getPaymentUrl($id)
+    public static function getOnlinePaymentUrl($id)
     {
-    	// @todo
     	return array();
     }
 }

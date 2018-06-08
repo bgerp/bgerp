@@ -2873,8 +2873,25 @@ table .eshop-btn {
     color: #666666 !important; }
 
 .order-btn {
+  color: white !important;
+  text-shadow: 1px 1px 0 #333333;
   padding: 10px 20px !important;
-  font-size: 1.2em !important; }
+  font-size: 1.2em !important;
+  -moz-box-shadow: inset 0px 1px 0px 0px #54a3f7;
+  -webkit-box-shadow: inset 0px 1px 0px 0px #54a3f7;
+  box-shadow: inset 0px 1px 0px 0px #54a3f7;
+  background: linear-gradient(to bottom, #007dc1 5%, #0061a7 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#007dc1', endColorstr='#0061a7', GradientType=0);
+  background-color: #007dc1; }
+
+
+
+  .order-btn:hover {
+    background: linear-gradient(to bottom, #0061a7 5%, #007dc1 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#0061a7', endColorstr='#007dc1', GradientType=0);
+    background-color: #0061a7; }
+
+
 
 .narrow .eshop-btn {
   padding-left: 10px !important; }

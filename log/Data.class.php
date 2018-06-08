@@ -430,6 +430,8 @@ class log_Data extends core_Manager
         // Записваме crc32 стойностите на стринговете
         log_Actions::saveActions();
         log_Classes::saveActions();
+        
+        self::$toAdd = array();
     }
     
     

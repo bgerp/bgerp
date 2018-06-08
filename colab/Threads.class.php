@@ -147,7 +147,7 @@ class colab_Threads extends core_Manager
 		$this->requireRightFor('single', $data->threadRec);
 		
 		// Ако има папка записва се като активна
-		colab_Folders::setLastActiveCompanyFolderId($data->folderId);
+		colab_Folders::setLastActiveContragentFolder($data->folderId);
 		
 		// Показваме само неоттеглените документи, чиито контейнери са видими за партньори
 		$cu = core_Users::getCurrent();
@@ -237,7 +237,7 @@ class colab_Threads extends core_Manager
 	    
 	    // Ако има папка записва се като активна
 	    if(isset($folderId) && colab_Folders::haveRightFor('list', (object)array('folderId' => $folderId))){
-	    	colab_Folders::setLastActiveCompanyFolderId($folderId);
+	    	colab_Folders::setLastActiveContragentFolder($folderId);
 	    }
 	   
 	    return parent::act_List();

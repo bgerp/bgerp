@@ -7,7 +7,8 @@
  * @category  bgerp
  * @package   lab
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ *            Angel Trifonov angel.trifonoff@gmail.com
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */

@@ -739,15 +739,13 @@ class doc_DocumentPlg extends core_Plugin
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
         if (!Mode::is('MassImporting') && (($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected') || $rec->state != 'draft')) {
             $usedDocuments = $mvc->getUsedDocs($rec->id);
-            foreach((array)$usedDocuments as $usedCid){
+            foreach ((array)$usedDocuments as $usedCid) {
                 $msg = '';
-                
                 if (($rec->state == 'rejected') || ($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected')) {
                     doclog_Used::remove($containerId, $usedCid);
                     $msg = 'Премахнато използване';
                 } elseif (($rec->state != 'draft') && ($rec->state != 'rejected')) {
                     doclog_Used::add($containerId, $usedCid);
-                    $msg = 'Използване на документа';
                 }
 
                 if ($msg) {

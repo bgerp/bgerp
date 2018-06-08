@@ -139,18 +139,19 @@ class crm_Locations extends core_Master {
     
     
     /**
-     * Добавя локация към контрагента
+     * Обновява или добавя локация към контрагента
      * 
-     * @param int $contragentClassId - клас на контрагента
-     * @param int $contragentId      - ид на контрагента
-     * @param int $countryId         - ид на държава
-     * @param string $type           - тип на локацията
-     * @param string|NULL $pCode     - п. код
-     * @param string|NULL $place     - населено място
-     * @param string|NULL $address   - адрес
-     * @param array $otherParams     - други параметри
+     * @param int $contragentClassId  - Клас на контрагента
+     * @param int $contragentId       - Ид на контрагента
+     * @param int $countryId          - Ид на държава
+     * @param string $type            - Тип на локацията
+     * @param string|NULL $pCode      - П. код
+     * @param string|NULL $place      - Населено място
+     * @param string|NULL $address    - Адрес
+     * @param string|NULL $locationId - Локация която да се обнови, NULL за нова
+     * @param array $otherParams      - Други параметри
      */
-    public static function add($contragentClassId, $contragentId, $countryId, $type, $pCode, $place, $address, $otherParams = array())
+    public static function update($contragentClassId, $contragentId, $countryId, $type, $pCode, $place, $address, $locationId = NULL, $otherParams = array())
     {
     	$newRec = (object)array('contragentCls' => $contragentClassId, 
     						    'contragentId'  => $contragentId, 
@@ -161,12 +162,36 @@ class crm_Locations extends core_Master {
     							'address'       => $address,
     	);
     	
+    	// Ако има локация, ъпдейт
+    	if(isset($locationId)){
+    		$exLocationRec = self::fetch($locationId);
+    		$newRec->id = $locationId;
+    		$newRec->type = $exLocationRec->type;
+    		if(!empty($exLocationRec->title)){
+    			$newRec->title = $exLocationRec->title;
+    		}
+    	}
+    	
     	// Ако има други параметри и са от допустимите се добавят
     	if(count($otherParams)){
     		$otherFields = arr::make(array('mol', 'gln', 'email', 'tel', 'gpsCoords', 'comment', 'title'), TRUE);
     		$otherFields = array_intersect_key($otherParams, $otherFields);
     		$newRec = (array)$newRec + $otherFields;
     		$newRec = (object)$newRec;
+    	}
+    	
+    	// Ако има стара локация, но няма промени по нея не се ъпдейтва
+    	if(is_object($exLocationRec)){
+    		$skip = TRUE;
+    		$fields = arr::make('countryId,type,pCode,place,address,mol,gln,email,tel,gpsCoords,comment,title', TRUE);
+    		foreach ($fields as $name){
+    			if($exLocationRec->{$name} != $newRec->{$name}){
+    				$skip = FALSE;
+    				break;
+    			}
+    		}
+    		
+    		if($skip === TRUE) return $exLocationRec->id;
     	}
     	
     	return self::save($newRec);
@@ -250,7 +275,7 @@ class crm_Locations extends core_Master {
     }
     
     
-     /**
+    /**
      * Изпълнява се след въвеждането на данните от заявката във формата
      */
     protected static function on_AfterInputEditForm($mvc, $form)

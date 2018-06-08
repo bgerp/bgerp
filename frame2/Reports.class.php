@@ -693,11 +693,10 @@ class frame2_Reports extends embed_Manager
     	if(($action == 'edit' || $action == 'clonerec') && isset($rec->driverClass) && isset($rec->id)){
     		if($Driver = $mvc->getDriver($rec)){
     			$fRec = $mvc->fetch($rec->id, 'createdBy,sharedUsers,changeFields');
+    			
+    			// Взимат се стойностите от записа в БД, защото може да е подменен ако се разглежда по стара версия
     			foreach (array('createdBy', 'sharedUsers', 'changeFields') as $exFld){
-                    ${$exFld} = $rec->{$exFld};
-                    if (empty(${$exFld})) {
-                    	${$exFld} = $fRec->{$exFld};
-                    }
+                    ${$exFld} = $fRec->{$exFld};
                 }
 			
                 // Кои са избраните полета за промяна (ако има)

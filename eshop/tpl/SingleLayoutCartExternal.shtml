@@ -5,8 +5,8 @@
          <!--ET_BEGIN SALE_BLOCK-->
          [#SALE_BLOCK#]
          <div class="half-width fleft">
-            <h4 style="margin-bottom: 5px;">|Информация за поръчката|* [#editBtn#]</h4>
-            <table>
+            <h4 style="margin-bottom: 3px;">|Информация за поръчката|* [#editBtn#]</h4>
+            <table style="margin-left: 10px;">
                <!--ET_BEGIN personNames-->
                <tr>
                   <td>|Имена|*: [#personNames#]</td>
@@ -27,19 +27,25 @@
                   <td>|Начин на плащане|*: [#paymentId#]</td>
                </tr>
                <!--ET_END paymentId-->
+               </table>
                <!--ET_BEGIN DELIVERY_BLOCK-->
+
                [#DELIVERY_BLOCK#]
-               <tr>
-                  <td><h4 style="margin-bottom: 0px;margin-top:5px">|Доставка|*</h4></td>
-               </tr>
+               <h4 style="margin: 10px 0 3px;">|Доставка|*</h4>
+
+            <table style="margin-left: 10px;">
                <!--ET_BEGIN termId-->
                <tr>
                   <td>|Условие на доставка|*: [#termId#]</td>
                </tr>
                <!--ET_END termId-->
+               
+               <!--ET_BEGIN deliveryCountry-->
                <tr>
-                  <td>[#DELIVERY_BLOCK#]</td>
+                  <td>|Доставка|*: [#deliveryCountry#], [#deliveryPCode#] [#deliveryPlace#], [#deliveryAddress#]</td>
                </tr>
+               <!--ET_END deliveryCountry-->
+               
                <!--ET_BEGIN deliveryTime-->
                <tr>
                   <td>|Доставка до|*: <b>[#deliveryTime#]</b></td>
@@ -56,12 +62,13 @@
                </tr>
                <!--ET_END instruction-->
                <!--ET_END DELIVERY_BLOCK-->
-               <!--ET_BEGIN VAT_STATUS-->
-               <tr>
-                  <td style='padding-top:10px'>[#VAT_STATUS#]</td>
-               </tr>
-               <!--ET_END VAT_STATUS-->
+
             </table>
+            <!--ET_BEGIN VAT_STATUS-->
+
+            <div style="padding-top:10px;">[#VAT_STATUS#]</div>
+
+               <!--ET_END VAT_STATUS-->
          </div>
          
          <div class="half-width fright">
@@ -70,8 +77,8 @@
             <!--ET_END activeFolderId-->
          	<!--ET_BEGIN INVOICE_BLOCK-->
          	[#INVOICE_BLOCK#]
-            <h4 style="margin-bottom: 5px;">|Информация за фактура|*</h4>
-            <table>
+            <h4 style="margin-bottom: 3px;">|Информация за фактура|*</h4>
+            <table style="margin-left: 10px;">
                <!--ET_BEGIN NO_INVOICE-->
                <tr>
                   <td>[#NO_INVOICE#]</td>
@@ -121,16 +128,20 @@
       <!--ET_END CART_TOOLBAR_LEFT-->
       <div id = 'cart-view-total' class="summary-holder">
          <table>
+         	<!--ET_BEGIN totalNoVat-->
             <tr>
                <td class="aright">|Основа|*: </td>
                <td class="aright"><span class='cCode' style='font-weight:normal'>[#totalNoVatCurrencyId#]</span></td>
                <td class="aright"><b>[#totalNoVat#]</b></td>
             </tr>
+            <!--ET_END totalNoVat-->
+            <!--ET_BEGIN totalVat-->
             <tr>
                <td class="aright">|ДДС|*: </td>
                <td class="aright"><span class='cCode' style='font-weight:normal'>[#vatCurrencyId#]</span></td>
                <td class="aright"><b>[#totalVat#]</b></td>
             </tr>
+            <!--ET_END totalVat-->
             <tr>
                <td class="aright">|Общо|*: </td>
                <td class="aright"><span class='cCode' style='font-weight:normal'>[#currencyId#]</span></td>
@@ -145,5 +156,9 @@
       <!--ET_BEGIN CART_TOOLBAR_RIGHT-->
       <div class = 'cart-view-buttons-right'>[#CART_TOOLBAR_RIGHT#]</div>
       <!--ET_END CART_TOOLBAR_RIGHT-->
+      <div class="clearfix21"></div>
+      <!--ET_BEGIN CHECK_EMAIL-->
+      <div style="margin-top: 25px;">|Имате предишна активна поръчка, моля проверете си имейла|* <b>[#CHECK_EMAIL#]</b>.</div>
+      <!--ET_END CHECK_EMAIL-->
    </div>
 </div>

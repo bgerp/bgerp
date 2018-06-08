@@ -611,7 +611,7 @@ class core_Html
                 $hint = '[Alt]+' . $c;
             }
 
-            $attr['title'] .= ($attr['title'] ? ' ' : '') . $hint;
+            $attr['title'] .= ($attr['title'] ? '|* ' : '') . $hint;
         }
     }
 

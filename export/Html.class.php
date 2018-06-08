@@ -100,7 +100,7 @@ class export_Html extends core_Mvc
         $CssToInlineInst = cls::get(csstoinline_Setup::get('CONVERTER_CLASS'));
         $html = $CssToInlineInst->convert($html, $css);
         
-        $fileHnd = fileman::absorbStr($html, 'exportCsv', $fileName);
+        $fileHnd = fileman::absorbStr($html, 'exportFiles', $fileName);
         
         $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/html.png, title=Сваляне на документа");
         

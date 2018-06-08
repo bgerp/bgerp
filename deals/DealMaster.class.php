@@ -233,7 +233,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	{
 		$form = &$data->form;
 		$form->setDefault('valior', dt::now());
-		$form->setField('deliveryAdress', array('placeholder' => 'Държава, Пощенски код'));
+		$form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
 		$rec = $form->rec;
 		
 		if(empty($form->rec->id)){
