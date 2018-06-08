@@ -214,9 +214,15 @@ class marketing_Inquiries2 extends embed_Manager
      */
     private function expandEditForm(&$data)
     { 
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	$hide = (isset($cu) && core_Users::haveRole('partner', $cu)) ? TRUE : FALSE;
+    	
     	$form = &$data->form;
     	$form->setField('innerClass', "remember,removeAndRefreshForm=proto|measureId|meta");
 		$form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
+		if(empty($cu)){
+			$form->setField('deliveryAdress', 'input=none');
+		}
 		
     	// Ако има избран прототип, зареждаме му данните в река
     	if(isset($form->rec->proto)){
@@ -254,9 +260,6 @@ class marketing_Inquiries2 extends embed_Manager
     		$fCaption = ($quantityCount === 1) ? 'Количество' : "Количество|* {$i}";
     		$form->setField("quantity{$i}", "input,unit={$uom},caption={$caption}->{$fCaption}");
     	}
-    	
-    	$cu = core_Users::getCurrent('id', FALSE);
-    	$hide = (isset($cu) && core_Users::haveRole('partner', $cu)) ? TRUE : FALSE;
     	
     	if(isset($cu) && !core_Users::isPowerUser()){
     		$personRec = crm_Profiles::getProfile($cu);
