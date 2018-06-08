@@ -787,13 +787,13 @@ class marketing_Inquiries2 extends embed_Manager
      */
     function act_New()
     {
-        Mode::set('showBulletin', FALSE);
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	Mode::set('showBulletin', FALSE);
         Request::setProtected('title,drvId,protos,moq,quantityCount,lg,measureId');
         
     	$this->requireRightFor('new');
     	expect($drvId = Request::get('drvId', 'int'));
     	$proto = Request::get('protos', 'varchar(10000)');
-    	
     	$proto = keylist::toArray($proto);
         
         // Поставя временно външният език, за език на интерфейса
@@ -878,7 +878,7 @@ class marketing_Inquiries2 extends embed_Manager
 
     	vislog_History::add("Форма за " . $form->getFieldType('title')->toVerbal($form->rec->title));
 
-    	if(isset($form->rec->title)){
+    	if(isset($form->rec->title) && !isset($cu)){
     		$form->setField('title', 'input=hidden');
     	}
     	
@@ -897,8 +897,6 @@ class marketing_Inquiries2 extends embed_Manager
     		if($this->haveRightFor('new')){
     		    
     		    vislog_History::add('Ново маркетингово запитване');
-    		    
-    			$cu = core_Users::getCurrent('id', FALSE);
     		    
     			// Ако няма потребител
     			if(!$cu){
