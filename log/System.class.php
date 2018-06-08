@@ -364,8 +364,12 @@ class log_System extends core_Manager
             
             foreach ($adminsArr as $userId) {
                 if (!$this->haveRightFor('list', NULL, $userId)) continue;
-                $urlArr = array($this, 'list', 'type' => $rec->type);
-                bgerp_Notifications::add($msg, $urlArr, $userId, 'warning');
+                $cUrlArr = array($this, 'list', 'type' => $rec->type);
+                $urlArr = $cUrlArr;
+                
+                $cUrlArr['date'] = dt::now(FALSE);
+                
+                bgerp_Notifications::add($msg, $urlArr, $userId, 'warning', $cUrlArr);
             }
         }
     }
