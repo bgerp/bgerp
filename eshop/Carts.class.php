@@ -564,7 +564,7 @@ class eshop_Carts extends core_Master
     	$body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
     	
     	// Подготовка на имейла
-    	$emailRec = (object)array('subject'  => tr("Онлайн поръчка") . "№{$rec->if}",
+    	$emailRec = (object)array('subject'  => tr("Онлайн поръчка") . " №{$rec->id}",
     			                  'body'     => $body,
     			                  'folderId' => $saleRec->folderId,
     			                  'originId' => $saleRec->containerId,
