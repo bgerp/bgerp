@@ -29,14 +29,16 @@
             <!--ET_END USERLINK-->
             [#CMS_LAYOUT#]
         </div>
+        <div class="additionalFooter">
+            [#FOOTER_LINKS_NARROW#]
+        </div>
         <div id="cmsBottom">
             <div class="socialBtns">
                 [#cms_Feeds::generateFeedLink#]
                 [#social_Followers::getButtons#]
             </div>
-
             [#cms_Content::getFooter#]
-            [#cms_Articles::addFooterLinks#]
+            [#FOOTER_LINKS_WIDE#]
         </div>
     </div>
 </div>
