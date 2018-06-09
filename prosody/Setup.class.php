@@ -51,7 +51,7 @@ class prosody_Setup extends core_ProtoSetup
 	/**
 	 * Описание на модула
 	 */
-	public $info = "REST API за Prosody";
+	public $info = "REST API за Prosody XMPP Чат";
 	
 	
     public $defClasses = 'prosody_RemoteDriver';
