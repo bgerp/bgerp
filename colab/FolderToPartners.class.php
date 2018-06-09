@@ -219,11 +219,9 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function getFolderOptions($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
-        $resArr = doc_Folders::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
-        
-        if (!empty($resArr) && ($params['removeDuplicate'] || $params['exludeContractors'])) {
+        $excludeArr = array();
+        if ($params['removeDuplicate'] || $params['exludeContractors']) {
             $query = self::getQuery();
-            $fArr = array_keys($resArr);
             
             $query->in('folderId', $fArr);
             
@@ -235,9 +233,15 @@ class colab_FolderToPartners extends core_Manager
             }
             
             while ($rec = $query->fetch()) {
-                unset($resArr[$rec->folderId]);
+                $excludeArr[$rec->folderId] = $rec->folderId;
             }
         }
+        
+        if (!empty($excludeArr)) {
+            $params['excludeArr'] = $excludeArr;
+        }
+        
+        $resArr = doc_Folders::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
         
         return $resArr;
     }
@@ -248,13 +252,9 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function getContractorOptions($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
-        $resArr = core_Users::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
-        
-        if (!empty($resArr) && ($params['removeDuplicate'] || $params['excludeFolders'])) {
+        $excludeArr = array();
+        if ($params['removeDuplicate'] || $params['excludeFolders']) {
             $query = self::getQuery();
-            $uArr = array_keys($resArr);
-            
-            $query->in('contractorId', $uArr);
             
             $query->show('contractorId');
             
@@ -264,9 +264,15 @@ class colab_FolderToPartners extends core_Manager
             }
             
             while ($rec = $query->fetch()) {
-                unset($resArr[$rec->contractorId]);
+                $excludeArr[$rec->contractorId] = $rec->contractorId;
             }
         }
+        
+        if (!empty($excludeArr)) {
+            $params['excludeArr'] = $excludeArr;
+        }
+        
+        $resArr = core_Users::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
         
         return $resArr;
     }

@@ -222,4 +222,50 @@ class colab_Setup extends core_ProtoSetup
         
         $Threads->logDebug("Поправка на partnerDocLast - {$rCnt} от {$qCnt}");
     }
+    
+    
+    /**
+     * Споделя частните папки на партньорите
+     */
+    function sharePrivateFolders()
+    {
+    	$partnerId = core_Roles::fetchByName('partner');
+    	$params = array('rolesArr' => 'partner', 'titleFld' => 'id');
+    	$partners = core_Users::getSelectArr($params);
+    	
+    	if(!count($partners)) return;
+    	
+    	$folders = $profiles = array();
+    	$sharedQuery = colab_FolderToPartners::getQuery();
+    	$sharedQuery->show('contractorId,folderId');
+    	
+    	while($sRec = $sharedQuery->fetch()){
+    		if(!array_key_exists($sRec->contractorId, $folders)){
+    			$folders[$sRec->contractorId] = array();
+    		}
+    		$folders[$sRec->contractorId][] = $sRec->folderId;
+    	}
+    	
+    	$profQuery = crm_Profiles::getQuery();
+    	$profQuery->show('userId,personId');
+    	while($pRec = $profQuery->fetch()){
+    		$profiles[$pRec->userId] = $pRec->personId;
+    	}
+    	
+    	$now = dt::now();
+    	$toSave = array();
+    	foreach ($partners as $userId){
+    		if(!array_key_exists($userId, $profiles)) continue;
+    		$personId = $profiles[$userId];
+    		
+    		$exFolders = (is_array($folders[$userId])) ? $folders[$userId] : array();
+    		$folderId = crm_Persons::forceCoverAndFolder($personId);
+    		if(in_array($folderId, $exFolders)) continue;
+    		
+    		$toSave[] = (object)array('contractorId' => $userId, 'folderId' => $folderId, 'createdOn' => $now, 'createdBy' => core_Users::SYSTEM_USER);
+    	}
+    	
+    	if(!count($toSave)) return;
+    	cls::get('colab_FolderToPartners')->saveArray($toSave);
+    }
 }

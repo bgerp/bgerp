@@ -2456,6 +2456,10 @@ class core_Users extends core_Manager
     {
         $query = self::getQuery();
         
+        if ($params['excludeArr']) {
+            $query->notIn('id', $params['excludeArr']);
+        }
+        
         if (is_array($onlyIds)) {
             if(!count($onlyIds)) {
                 return array();

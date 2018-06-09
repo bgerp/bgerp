@@ -2617,9 +2617,9 @@ span.sharing-history-title {
   text-align: center;
   margin-top: 7px;
   color: white !important;
-  text-shadow: 0px 0px 2px black; }
+  text-shadow: 0px 0px 2px black;
+  font-size: 0.75em; }
   .footer-links a {
-    font-size: 0.75em;
     color: white !important;
     text-shadow: 0px 0px 2px black;
     display: inline-block;
@@ -2627,10 +2627,14 @@ span.sharing-history-title {
     .footer-links a:hover {
       text-decoration: underline; }
 
-.narrow .footer-links {
-  float: none;
-  clear: both;
-  margin-bottom: 2px; }
+.additionalFooter {
+  font-size: 0.95em;
+  padding: 10px 2px; }
+  .additionalFooter .footer-links {
+    margin: 0 !important;
+    text-shadow: none; }
+    .additionalFooter .footer-links a {
+      text-shadow: none; }
 
 .foorterAdd {
   color: #cccccc;

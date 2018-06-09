@@ -1608,6 +1608,8 @@ class fileman_Files extends core_Master
             status_Messages::newStatus($msg, $type, NULL, 60, $hitId);
             $res = status_Messages::getStatusesData(Request::get('hitTime', 'int'), 0, $hitId);
             
+            $this->logWrite('Нова версия', $fRec->id);
+            
             return $res;
         }
     }

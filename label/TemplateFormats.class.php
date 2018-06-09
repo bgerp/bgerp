@@ -763,11 +763,9 @@ class label_TemplateFormats extends core_Detail
                     
                     // Вземаме минималната височина и широчината
                     $minWidthAndHeight = barcode_Generator::getMinWidthAndHeight($barcodeType, $formatVal);
-                    
-                    $minWidthAndHeight = barcode_Generator::getMinWidthAndHeight($barcodeType, $formatVal);
                     $width = max($minWidthAndHeight['width'], $rec->formatParams['Width']);
                     $height = max($minWidthAndHeight['height'], $rec->formatParams['Height']);
-                  
+                    
                     // Масив с размерите
                     $sizeArr = array('width' => $width, 'height' => $height);
                     

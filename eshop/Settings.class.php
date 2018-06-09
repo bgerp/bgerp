@@ -71,6 +71,18 @@ class eshop_Settings extends core_Manager
     public $canDelete = 'no_one';
     
     
+   /**
+    * Дефолтен шаблон за имейл на български за онлайн поръчка
+    */
+    const DEFAULT_EMAIL_BODY_BG = "Запознайте се с [#SALE_HANDLER#],\n\nУважаеми [#NAME#],\nако желаеш да се регистрираш, моля последвай този [#link#], изтича след 7 дена";
+      
+    
+    /**
+     * Дефолтен шаблон за имейл на английски за онлайн поръчка
+     */
+    const DEFAULT_EMAIL_BODY_EN = "Please see [#SALE_HANDLER#],\n\nDear [#NAME#],\nif you want to register, please follow [#link#], expires after 7 days";
+     
+    
     /**
      * Описание на модела
      */
@@ -93,8 +105,8 @@ class eshop_Settings extends core_Manager
     	$this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
     	$this->FLD('info', 'richtext(rows=3)', 'caption=Условия на продажбата под количката->Текст');
     	$this->FLD('inboxId', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Кутия от която да се изпраща имейл->Кутия');
-    	
     	$this->FLD('state', 'enum(active=Активно,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
+    	$this->FLD('emailBody', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Текст');
     	
     	$this->setDbIndex('classId, objectId');
     }
@@ -156,6 +168,11 @@ class eshop_Settings extends core_Manager
     			$form->setReadOnly('chargeVat');
     		}
     	}
+    	
+    	// Добавяне на плейсхолдър
+    	$lang = cls::get($form->rec->classId)->fetchField($form->rec->objectId, 'lang');
+    	$placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_BG : self::DEFAULT_EMAIL_BODY_EN;
+    	$form->setParams('emailBody', array('placeholder' => $placeholderValue));
     }
     
     
@@ -200,6 +217,12 @@ class eshop_Settings extends core_Manager
     		$date = dt::now();
     		$settingRec = self::get($classId, $objectId, $date);
     		core_Cache::set('eshop_Settings', $cacheKey, $settingRec, 10080);
+    	}
+    	
+    	// Ако няма тяло на имейла да се взимат дефолтните
+    	if(empty($settingRec->emailBody)){
+    		$lang = cls::get($settingRec->classId)->fetchField($settingRec->objectId, 'lang');
+    		$settingRec->emailBody = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_BG : self::DEFAULT_EMAIL_BODY_EN;
     	}
     	
     	return $settingRec;

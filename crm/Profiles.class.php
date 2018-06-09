@@ -300,7 +300,7 @@ class crm_Profiles extends core_Master
                 }
 
         		$data->ColabFolders->rowsArr = array();
-        		$sharedFolders = colab_Folders::getSharedFolders($data->rec->userId);
+        		$sharedFolders = colab_Folders::getSharedFolders($data->rec->userId, FALSE, NULL, FALSE);
         	
         		$params = array('Ctr' => 'doc_Folders', 'Act' => 'list');
         		foreach ($sharedFolders as $folderId) {
@@ -930,6 +930,13 @@ class crm_Profiles extends core_Master
         if($mustSave) {
             crm_Persons::save($person);
           
+            if(core_Packs::isInstalled('colab') && core_Users::isContractor($user)){
+            	$privateFolderId = crm_Persons::forceCoverAndFolder($person->id);
+            	if(!colab_FolderToPartners::fetch("#folderId = {$privateFolderId} AND #contractorId = {$person->id}")){
+            		colab_FolderToPartners::save((object)array('folderId' => $privateFolderId, 'contractorId' => $user->id));
+            	}
+            }
+            
             return $person->id;
         }
     }
