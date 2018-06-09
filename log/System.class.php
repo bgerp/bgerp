@@ -203,9 +203,13 @@ class log_System extends core_Manager
         
         // Заявка за филтриране
         $fRec = $data->listFilter->rec;
-
-        if($fRec->date) {
-            $query->where("#createdOn >= '{$fRec->date}' AND #createdOn <= '{$fRec->date} 23:59:59'");
+        
+        if ($fRec->date) {
+            if ($fRec->date == dt::now(FALSE)) {
+                $query->where("#createdOn >= '{$fRec->date}'");
+            } else {
+                $query->where("#createdOn >= '{$fRec->date}' AND #createdOn <= '{$fRec->date} 23:59:59'");
+            }
         }
         
         if($fRec->class) {

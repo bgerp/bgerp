@@ -1914,6 +1914,11 @@ class doc_Folders extends core_Master
     public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
         $query = self::getQuery();
+        
+        if ($params['excludeArr']) {
+            $query->notIn('id', $params['excludeArr']);
+        }
+        
 	    $query->orderBy("last=DESC");
 
 	    // Ако има зададен интерфейс за кориците, взимат се само тези папки, чиито корици имат интерфейса

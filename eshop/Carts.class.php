@@ -429,8 +429,8 @@ class eshop_Carts extends core_Master
     	expect($id = Request::get('id', 'int'));
     	expect($rec = self::fetch($id));
     	$this->requireRightFor('finalize', $rec);
-    	
     	Mode::push('eshopFinalize', TRUE);
+    	$cu = core_Users::getCurrent('id', FALSE);
     	
     	$company = NULL;
     	$personNames = $rec->personNames;
@@ -487,18 +487,18 @@ class eshop_Carts extends core_Master
    		$saleRec = self::makeSalePending($saleId);
    		self::activate($rec, $saleId);
    		doc_Threads::doUpdateThread($saleRec->threadId);
-   		self::sendEmail($rec, $saleRec);
-   		
-   		Mode::pop('eshopFinalize');
    		
    		// Ако е партньор и има достъп до нишката, директно се реидректва към нея
-   		if(core_Packs::isInstalled('colab') && core_Users::isContractor()){
+   		if(core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu)){
    			$threadRec = doc_Threads::fetch($saleRec->threadId);
-   			
    			if(colab_Threads::haveRightFor('single', $threadRec)){
    				return new Redirect(array('colab_Threads', 'single', 'threadId' => $saleRec->threadId), 'Успешно създадена заявка за продажба');
    			}
+   		} else {
+   			self::sendEmail($rec, $saleRec);
    		}
+   		
+   		Mode::pop('eshopFinalize');
    		
    		return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(NULL), 'Успешно изпратена поръчка');
     }
@@ -548,9 +548,24 @@ class eshop_Carts extends core_Master
     	$settings = cms_Domains::getSettings($rec->domainId);
     	if(empty($settings->inboxId)) return;
     	
+    	$lang = cms_Domains::fetchField($rec->domainId, 'lang');
+    	core_Lg::push($lang);
+    	
+    	// Подготовка на тялото на имейла
+    	$body = new core_ET($settings->emailBody);
+    	$body->replace($rec->personNames, "NAME");
+    	$body->replace("#Sal{$saleRec->id}", "SALE_HANDLER");
+    	
+    	// Линка за регистрация
+    	$Cover = doc_Folders::getCover($saleRec->folderId);
+    	$url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => $Cover->that, 'email' => $rec->email, 'rand' => str::getRand()), 604800);
+    	$url = "[link={$url}]" . tr('връзка||link') . "[/link]";
+    	$body->replace($url, "link");
+    	$body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
+    	
     	// Подготовка на имейла
-    	$emailRec = (object)array('subject'  => 'test', //@TODO
-    			                  'body'     => "#Sal{$saleRec->id}", //@TODO
+    	$emailRec = (object)array('subject'  => tr("Онлайн поръчка") . " №{$rec->id}",
+    			                  'body'     => $body,
     			                  'folderId' => $saleRec->folderId,
     			                  'originId' => $saleRec->containerId,
     			                  'threadId' => $saleRec->threadId,
@@ -564,8 +579,9 @@ class eshop_Carts extends core_Master
     	
     	// Изпращане на имейла
     	$options = (object)array('encoding' => 'utf-8', 'boxFrom' => $settings->inboxId, 'emailsTo' => $emailRec->email);
-    	$lg = email_Outgoings::getLanguage($emailRec->originId, $emailRec->threadId, $emailRec->folderId, $emailRec->body);
-    	email_Outgoings::send($emailRec, $options, $lg);
+    	email_Outgoings::send($emailRec, $options, $lang);
+    	
+    	core_Lg::pop($lang);
     }
     
     

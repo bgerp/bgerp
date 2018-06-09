@@ -381,8 +381,6 @@ function bp()
  */
 function wp()
 {   
-    return;
-
     try {
         $dump = func_get_args();
     

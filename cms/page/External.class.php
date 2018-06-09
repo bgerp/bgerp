@@ -79,7 +79,7 @@ class cms_page_External extends core_page_Active
         if ($skin) {
             $skin->prepareWrapper($this);
         }
-    	
+
         // Скрипт за генериране на min-height, според устройството
         jquery_Jquery::run($this, "setMinHeightExt();");
         
@@ -95,7 +95,15 @@ class cms_page_External extends core_page_Active
 
         // Добавяме лейаута
         $domainRec = cms_Domains::getPublicDomain();
-        
+
+        // Къде да добавим линковете
+        $footerLinks = cms_Articles::addFooterLinks();
+        if(Mode::is('screenMode', 'narrow')) {
+            $this->replace($footerLinks, 'FOOTER_LINKS_NARROW');
+        } else {
+            $this->replace($footerLinks, 'FOOTER_LINKS_WIDE');
+        }
+
         // Ако е логнат потребител, който не е powerUser
         if(core_Users::haveRole('partner')){
         	$this->placeExternalUserData();
