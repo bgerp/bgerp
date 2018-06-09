@@ -213,14 +213,16 @@ class eshop_Settings extends core_Manager
     	if(isset($date)) return self::get($classId, $objectId, $date);
     	
     	$settingRec = core_Cache::get('eshop_Settings', $cacheKey);
-    	if($settingRec === FALSE){
+    	if(!is_object($settingRec)){
     		$date = dt::now();
     		$settingRec = self::get($classId, $objectId, $date);
-    		core_Cache::set('eshop_Settings', $cacheKey, $settingRec, 10080);
+            if(is_object($settingRec)) {
+    		    core_Cache::set('eshop_Settings', $cacheKey, $settingRec, 10080);
+            }
     	}
     	
     	// Ако няма тяло на имейла да се взимат дефолтните
-    	if(empty($settingRec->emailBody)){
+    	if(is_object($settingRec) && empty($settingRec->emailBody)){
     		$lang = cls::get($settingRec->classId)->fetchField($settingRec->objectId, 'lang');
     		$settingRec->emailBody = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_BG : self::DEFAULT_EMAIL_BODY_EN;
     	}
