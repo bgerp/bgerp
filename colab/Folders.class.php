@@ -218,9 +218,11 @@ class colab_Folders extends core_Manager
 		
 		// Трябва ли да се пропусне личната папка
 		if($skipPrivateFolderIfEmpty === TRUE){
-			
+
+			$personId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
+
 			// Коя е личната папка на партньора
-			if($privateFolderId = crm_Persons::fetchField(crm_Profiles::fetchField("#userId = {$cu}", 'personId'), 'folderId')){
+			if($personId && ($privateFolderId = crm_Persons::fetchField($personId, 'folderId'))){
 					
 				// Ако в нея няма видими документи за него, пропуска се
 				$count = doc_Threads::count("#folderId = {$privateFolderId} AND #visibleForPartners = 'yes'");
