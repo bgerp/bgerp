@@ -20,7 +20,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
 	
     /**
      * 
-     * @var acc_ClosePeriod
+     * @var acc_transaction_ClosePeriod
      */
     public $class;
     
