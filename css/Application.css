@@ -2613,6 +2613,7 @@ span.sharing-history-title {
   min-height: 26px; }
 
 .footer-links {
+  padding-top: 5px;
   display: block;
   text-align: center;
   margin-top: 7px;
@@ -2620,7 +2621,6 @@ span.sharing-history-title {
   text-shadow: 0px 0px 2px black;
   font-size: 0.75em; }
   .footer-links a {
-    color: white !important;
     text-shadow: 0px 0px 2px black;
     display: inline-block;
     margin: 0 5px; }
