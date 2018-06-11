@@ -183,7 +183,7 @@ class marketing_Inquiries2 extends embed_Manager
     function description()
     {
     	$this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,silent,input=hidden,refreshForm,placeholder=Популярни продукти,groupByDiv=»");
-    	$this->FLD('title', 'varchar', 'caption=Заглавие,silent');
+    	$this->FLD('title', 'varchar', 'caption=Заглавие');
      
     	$this->FLD('quantities', 'blob(serialize,compress)', 'input=none,column=none');
     	$this->FLD('quantity1', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47');
@@ -792,13 +792,14 @@ class marketing_Inquiries2 extends embed_Manager
     {
     	$cu = core_Users::getCurrent('id', FALSE);
     	Mode::set('showBulletin', FALSE);
-        Request::setProtected('title,drvId,protos,moq,quantityCount,lg,measureId');
+        Request::setProtected('drvId,protos,moq,quantityCount,lg,measureId');
         
     	$this->requireRightFor('new');
     	expect($drvId = Request::get('drvId', 'int'));
     	$proto = Request::get('protos', 'varchar(10000)');
     	$proto = keylist::toArray($proto);
-        
+        $title = Request::get('title');
+    	
         // Поставя временно външният език, за език на интерфейса
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
@@ -831,6 +832,9 @@ class marketing_Inquiries2 extends embed_Manager
     	$form->FLD('drvId', 'class', 'input=hidden,silent');
     	$form->FLD('quantityCount', 'double', 'input=hidden,silent');
     	$form->FLD('protos', 'varchar(10000)', 'input=hidden,silent');
+    	if(empty($cu)){
+    		$form->setDefault('title', $title);
+    	}
     	
     	$mandatoryField = bgerp_Setup::get('MANDATORY_CONTACT_FIELDS');
     	if(in_array($mandatoryField, array('company', 'both'))){
@@ -877,9 +881,8 @@ class marketing_Inquiries2 extends embed_Manager
     		$this->invoke('AfterInputEditForm', array(&$form));
     	}
     	
-    	$form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($form->rec->title)}</b>";
-
-    	vislog_History::add("Форма за " . $form->getFieldType('title')->toVerbal($form->rec->title));
+    	$form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($title)}</b>";
+    	vislog_History::add("Форма за " . $form->getFieldType('title')->toVerbal($title));
 
     	if(isset($form->rec->title) && !isset($cu)){
     		$form->setField('title', 'input=hidden');
@@ -912,12 +915,6 @@ class marketing_Inquiries2 extends embed_Manager
                     }
                     log_Browsers::setVars($userData);
     			}
-
-                if($Driver) {
-                    if($title = $Driver->getProductTitle($rec)) {
-                        $rec->title = $title;
-                    }
-                }
 
     			$id = $this->save($rec);
     			doc_Threads::doUpdateThread($rec->threadId);
