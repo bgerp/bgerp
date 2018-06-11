@@ -968,9 +968,9 @@ en,Макс. размер,Max file size
 en,Максимална,Maximum
 en,Максимално,Max
 en,Максимум,Maximum
-en,Манипулатор,Manipulator
-en,Манипулатори на нишки,Thread Manipulator
-en,Манипулатори,Manipulator
+en,Манипулатор,Handler
+en,Манипулатори на нишки,Thread handler
+en,Манипулатори,Handlers
 en,Маркер,Marker
 en,Маркери на арт_bdd11,Articles markers
 en,Маркери,Markers
