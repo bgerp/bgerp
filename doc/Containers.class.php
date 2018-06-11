@@ -1787,6 +1787,8 @@ class doc_Containers extends core_Manager
      */
     static function getVerbalLink($params)
     {
+        $urlArr = $params;
+        
         try {
             // Опитваме се да вземем инстанция на класа
             $ctrInst = cls::get($params['Ctr']);
@@ -1810,7 +1812,11 @@ class doc_Containers extends core_Manager
             $field = $ctrInst->rowToolsSingleField;
 
             // Очакваме да имаме права за съответния екшън
-            expect($rec && $ctrInst->haveRightFor('single', $rec));
+            expect($rec && ($ctrInst->haveRightFor('single', $rec) || $ctrInst->haveRightFor('viewpsingle', $rec)));
+            
+            if ($rec->containerId) {
+                $urlArr = array('L', 'S', $rec->containerId);
+            }
         } catch (core_exception_Expect $e) {
             
             // Ако възникне някаква греша
@@ -1854,7 +1860,7 @@ class doc_Containers extends core_Manager
             $attr['target'] = '_blank';    
             
             //Създаваме линк
-            $res = ht::createLink($title, $params, NULL, $attr); 
+            $res = ht::createLink($title, $urlArr, NULL, $attr); 
         }
         
         return $res;
