@@ -505,7 +505,7 @@ class eshop_Carts extends core_Master
    		
    		Mode::pop('eshopFinalize');
    		
-   		return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(NULL), 'Успешно изпратена поръчка');
+   		return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(NULL), 'Поръчката е направена|*!');
     }
     
     
@@ -829,7 +829,7 @@ class eshop_Carts extends core_Master
     	}
     	
     	if(eshop_Carts::haveRightFor('finalize', $rec)){
-    		$btn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте че искате да завършите поръчката|*!', NULL, "title=Финализиране на поръчката,class=order-btn eshop-btn {$disabledClass}");
+    		$btn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', NULL, "title=Финализиране на поръчката,class=order-btn eshop-btn {$disabledClass}");
     		$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
     	}
     }
@@ -1018,7 +1018,7 @@ class eshop_Carts extends core_Master
     	$data->form->setAction($this, 'order');
     	
     	$form = &$data->form;
-    	$form->title = 'Данни за поръчка';
+    	$form->title = 'Данни за поръчката';
     	
     	self::prepareOrderForm($form);
     	$form->input(NULL, 'silent');
