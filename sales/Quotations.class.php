@@ -357,8 +357,8 @@ class sales_Quotations extends core_Master
     	}
     	
     	$dData = $data->sales_QuotationsDetails;
-    	
     	if($dData->countNotOptional && $dData->notOptionalHaveOneQuantity){
+    		core_Lg::push($data->rec->tplLang);
     		$keys = array_keys($dData->rows);
     		$firstProductRow = $dData->rows[$keys[0]][0];
     		
@@ -367,12 +367,13 @@ class sales_Quotations extends core_Master
     		}
     		
     		if(isset($firstProductRow->term)){
-    			$data->row->others .= "<li>" . tr('Срок за доставка') .": {$firstProductRow->term}</li>";
+    			$data->row->others .= "<li>" . tr('Срок за д-ка') .": {$firstProductRow->term}</li>";
     		}
     		
     		if(isset($firstProductRow->weight)){
     			$data->row->others .= "<li>" . tr('Транспортно тегло') .": {$firstProductRow->weight}</li>";
     		}
+    		core_Lg::pop();
     	}
     }
     
