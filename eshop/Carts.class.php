@@ -829,7 +829,7 @@ class eshop_Carts extends core_Master
     	}
     	
     	if(eshop_Carts::haveRightFor('finalize', $rec)){
-    		$btn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', NULL, "title=Финализиране на поръчката,class=order-btn eshop-btn {$disabledClass}");
+    		$btn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', NULL, "title=Завършване на поръчката,class=order-btn eshop-btn {$disabledClass}");
     		$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
     	}
     }
