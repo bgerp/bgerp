@@ -22,7 +22,6 @@ class jqcolorpicker_Plugin extends core_Plugin {
      */
     function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr = array())
     {
-        if(Mode::is('screenMode', 'narrow')) return;
         ht::setUniqId($attr);
     }
     
@@ -32,7 +31,6 @@ class jqcolorpicker_Plugin extends core_Plugin {
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
     {
-        if(Mode::is('screenMode', 'narrow')) return;
 
         $options = $invoker->options;
         
