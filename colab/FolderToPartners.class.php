@@ -758,6 +758,25 @@ class colab_FolderToPartners extends core_Manager
     	
     	$Users->invoke('AfterInputEditForm', array(&$form));
     	
+    	if ($form->isSubmitted() && haveRole('powerUser')) {
+    	    $cRec = clone $form->rec;
+    	    $cRec->name = $form->rec->names;
+    	    $wStr = crm_Persons::getSimilarWarningStr($cRec, $fields);
+    	    
+    	    if ($fields) {
+    	        $fieldsArr = arr::make($fields, TRUE);
+    	        if ($fieldsArr['name']) {
+    	            $fieldsArr['names'] = 'names';
+    	            unset($fieldsArr['name']);
+    	            $fields = implode(',', $fieldsArr);
+    	        }
+    	    }
+    	    
+    	    if ($wStr) {
+    	        $form->setWarning($fields, $wStr);
+    	    }
+    	}
+    	
     	// След събмит ако всичко е наред създаваме потребител, лице и профил
     	if ($form->isSubmitted()) {
     		$uId = $Users->save($form->rec);
