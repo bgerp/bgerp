@@ -1023,6 +1023,15 @@ class eshop_Carts extends core_Master
     	self::prepareOrderForm($form);
     	$form->input(NULL, 'silent');
     	self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	if(isset($cu)){
+    		$profileRec = crm_Profiles::getProfile($cu);
+    		if($form->rec->saleFolderId == $profileRec->folderId){
+    			$form->rec->makeInvoice = 'person';
+    		} else {
+    			$form->rec->makeInvoice = 'company';
+    		}
+    	}
     	
     	// Ако има условие на доставка то драйвера му може да добави допълнителни полета
     	if(isset($form->rec->termId)){
@@ -1142,7 +1151,7 @@ class eshop_Carts extends core_Master
     	$paymentMethods = eshop_Settings::getPaymentMethodOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
     	
     	if($cu){
-    		$options = colab_Folders::getSharedFolders($cu, TRUE, 'crm_CompanyAccRegIntf');
+    		$options = colab_Folders::getSharedFolders($cu, TRUE, 'crm_ContragentAccRegIntf', FALSE);
     		$profileRec = crm_Profiles::getProfile($cu);
     		$form->setDefault('personNames', $profileRec->name);
     		$form->setDefault('email', $profileRec->email);
