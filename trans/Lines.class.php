@@ -91,6 +91,12 @@ class trans_Lines extends core_Master
     
     
     /**
+     * Кой може да активира?
+     */
+    public $canActivate = 'ceo,trans,store';
+    
+    
+    /**
      * Детайла, на модела
      */
     public $details = 'trans_LineDetails';
