@@ -3044,6 +3044,9 @@ table .eshop-btn {
   .contractorExtHolder .toolbar-btn {
     max-width: 16px !important; }
 
+.cmsContentContractor .drawing {
+  padding-top: 30px; }
+
 .narrow #login-form {
   max-width: 17em !important;
   margin: 20px auto; }
