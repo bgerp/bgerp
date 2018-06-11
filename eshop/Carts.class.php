@@ -445,6 +445,11 @@ class eshop_Carts extends core_Master
     	$Cover = doc_Folders::getCover($folderId);
     	$settings = cms_Domains::getSettings();
     	
+    	$templateId = cls::get('sales_Sales')->getDefaultTemplate((object)array('folderId' => $folderId));
+    	$templateLang = doc_TplManager::fetchField($templateId, 'lang');
+    	
+    	core_Lg::push($templateLang);
+    	
     	// Дефолтни данни на продажбата
     	$fields = array('valior'           => dt::today(), 
     			        'deliveryTermId'   => $rec->termId, 
@@ -454,13 +459,13 @@ class eshop_Carts extends core_Master
     					'chargeVat'        => $settings->chargeVat,
     					'currencyId'       => $settings->currencyId,
     					'shipmentStoreId'  => $settings->storeId,
-    					'note'             => "Order {$rec->id}",
+    					'note'             => tr('Онлайн поръчка') . " №{$rec->id}",
     	);
     	
     	// Създаване на продажба по количката
    		$saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
+   		core_Lg::pop();
    		sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId);
-   		//sales_SalesDetails::delete("#saleId = {$saleId}");
    		
    		// Добавяне на артикулите от количката в продажбата
    		$dQuery = eshop_CartDetails::getQuery();
