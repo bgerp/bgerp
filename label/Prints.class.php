@@ -220,7 +220,7 @@ class label_Prints extends core_Master
         
         $oLang = core_Lg::getCurrent();
         
-        if(isset($classId) && isset($objId)){
+        if (isset($classId) && isset($objId)) {
         	$intfInst = cls::getInterface('label_SequenceIntf', $classId);
         	
         	$lang = '';
@@ -316,7 +316,9 @@ class label_Prints extends core_Master
             
 			// Ако е променен езика, вземаме данните пак
             if ($lang != $oLang) {
-                $labelDataArr = $intfInst->getLabelPlaceholders($objId);
+                if ($classId && $objId) {
+                    $labelDataArr = $intfInst->getLabelPlaceholders($objId);
+                }
             }
             
 			// При редакция да се попълват стойностите
@@ -377,8 +379,6 @@ class label_Prints extends core_Master
         
         if ($classId && $objId) {
             $mvc->requireRightFor('add', (object)array('classId' => $classId, 'objectId' => $objId));
-            
-            $intfInst = cls::getInterface('label_SequenceIntf', $classId);
             
             $lName = $intfInst->getLabelName($objId);
             if ($lName) {
