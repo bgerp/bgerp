@@ -250,7 +250,9 @@ class colab_Setup extends core_ProtoSetup
     	$profQuery = crm_Profiles::getQuery();
     	$profQuery->show('userId,personId');
     	while($pRec = $profQuery->fetch()){
-    		$profiles[$pRec->userId] = $pRec->personId;
+    		if(isset($pRec->personId)){
+    			$profiles[$pRec->userId] = $pRec->personId;
+    		}
     	}
     	
     	$now = dt::now();
