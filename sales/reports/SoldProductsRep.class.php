@@ -395,6 +395,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$recs = $tempArr;
 		
+		if (! is_null($recs)){
+		
+		    arr::natOrder($recs, 'code');
+		}
 		return $recs;
 		
 	}
@@ -642,38 +646,38 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 	     * @param stdClass $data
 	     * @return array
 	     */
-	    public function groupRecs($recs, $group)
-	    {
-	        $ordered = array();
+// 	    public function groupRecs($recs, $group)
+// 	    {
+// 	        $ordered = array();
 	    
-	        $groups = keylist::toArray($group);
-	        if (! count($groups)) {
-	            return $recs;
-	        } else {
-	            cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(
-	                &$groups
-	            ));
-	        }
+// 	        $groups = keylist::toArray($group);
+// 	        if (! count($groups)) {
+// 	            return $recs;
+// 	        } else {
+// 	            cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(
+// 	                &$groups
+// 	            ));
+// 	        }
 	
-	        // За всеки маркер
-	        foreach ($groups as $grId => $groupName) {
+// 	        // За всеки маркер
+// 	        foreach ($groups as $grId => $groupName) {
 	
-	                // Отделяме тези записи, които съдържат текущия маркер
-	                $res = array_filter($recs,
-	                    function (&$e) use($grId, $groupName) {
-	                        if (keylist::isIn($grId, $e->group)) {
-	                            $e->group = $grId;
-	                            return TRUE;
-	                        }
-	                        return FALSE;
-	                    });
+// 	                // Отделяме тези записи, които съдържат текущия маркер
+// 	                $res = array_filter($recs,
+// 	                    function (&$e) use($grId, $groupName) {
+// 	                        if (keylist::isIn($grId, $e->group)) {
+// 	                            $e->group = $grId;
+// 	                            return TRUE;
+// 	                        }
+// 	                        return FALSE;
+// 	                    });
 	    
-	                    if (count($res)) {
-	                        arr::natOrder($res, 'kod');
-	                        $ordered += $res;
-	                    }
-	        }
+// 	                    if (count($res)) {
+// 	                        arr::natOrder($res, 'kod');
+// 	                        $ordered += $res;
+// 	                    }
+// 	        }
 	
-        }
+//         }
 	
 }
