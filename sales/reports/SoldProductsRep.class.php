@@ -395,6 +395,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$recs = $tempArr;
 		
+		$recs = core_Array::natOrder($recs, 'code');
+		
 		return $recs;
 		
 	}
