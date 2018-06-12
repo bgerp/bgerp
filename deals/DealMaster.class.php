@@ -1611,9 +1611,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Ако няма търговец, това е текущия потребител
     	$fields['dealerId'] = (empty($fields['dealerId'])) ? core_Users::getCurrent() : $fields['dealerId'];
     	 
-    	// Ако няма инициатор, това е отговорника на контрагента
-    	$fields['initiatorId'] = (empty($fields['initiatorId'])) ? $contragentClass::fetchField($contragentId, 'inCharge') : $fields['initiatorId'];
-    	 
     	// Ако не е подадено да се начислявали ддс, определяме от контрагента
     	if(empty($fields['chargeVat'])){
     		$fields['chargeVat'] = ($contragentClass::shouldChargeVat($contragentId)) ? 'yes' : 'no';
