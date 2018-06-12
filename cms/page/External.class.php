@@ -125,6 +125,7 @@ class cms_page_External extends core_page_Active
         $this->replace($user, 'USERLINK');
         $this->replace($logout, 'LOGOUT');
         $this->replace("class='cmsTopContractor'", 'TOP_CLASS');
+        $this->replace("class='cmsContentContractor'", 'CONTENT_CLASS');
     }
     
     

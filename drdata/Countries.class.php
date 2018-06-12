@@ -339,7 +339,7 @@ class drdata_Countries extends core_Manager {
                 'o.a.e.' => 'united arab emirates',
                 'oesterreich' => 'austria',
                 'osterreich' => 'austria',
-                'palestinian territory' => 'palestinа',
+                'palestinian territory' => 'palestina',
                 'polska' => 'poland',
                 'protugal' => 'portugal',
                 'rbulgaria' => 'bulgaria',
@@ -420,7 +420,7 @@ class drdata_Countries extends core_Manager {
             );
 
             foreach($mis as $w => $c) {
-                expect($id = $commonNamesArr[$c], $c, $commonNamesArr);
+                expect($id = $commonNamesArr[$c], $c, $commonNamesArr, $mis);
                 expect(!$commonNamesArr[$w], $w, $commonNamesArr);
                 $commonNamesArr[$w] = $id;
             }

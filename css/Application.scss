@@ -3026,6 +3026,7 @@ fieldset.sharing-history {
 }
 
 .footer-links {
+	padding-top: 5px;
 	display: block;
 	text-align: center;
 	margin-top: 7px;
@@ -3033,7 +3034,6 @@ fieldset.sharing-history {
 	text-shadow: 0px 0px 2px #000;
 	font-size: 0.75em;
 	a {
-		color: #fff !important;
 		text-shadow: 0px 0px 2px #000;
 		display: inline-block;
 		margin: 0 5px;
@@ -3526,6 +3526,10 @@ table .eshop-btn {
 	.toolbar-btn{
 		max-width: 16px !important;
 	}
+}
+
+.cmsContentContractor .drawing {
+	padding-top: 30px;
 }
 
 .narrow #login-form {

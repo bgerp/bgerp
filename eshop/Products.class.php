@@ -238,10 +238,10 @@ class eshop_Products extends core_Master
         if($rec->coDriver) {
             if(marketing_Inquiries2::haveRightFor('new')){
             	$title = 'Изпратете запитване за|* ' . tr($rec->name);
-            	Request::setProtected('title,drvId,protos,moq,quantityCount,lg,measureId');
+            	Request::setProtected('drvId,protos,moq,quantityCount,lg,measureId');
             	$lg = cms_Content::getLang();
             	if(cls::load($rec->coDriver, TRUE)){
-            		$url = array('marketing_Inquiries2', 'new', 'drvId' => $rec->coDriver, 'Lg' => $lg, 'protos' => $rec->proto, 'quantityCount' => $rec->quantityCount, 'moq' => $rec->coMoq, 'title' => $rec->name, 'ret_url' => TRUE);
+            		$url = array('marketing_Inquiries2', 'new', 'title' => $rec->name, 'drvId' => $rec->coDriver, 'Lg' => $lg, 'protos' => $rec->proto, 'quantityCount' => $rec->quantityCount, 'moq' => $rec->coMoq, 'ret_url' => TRUE);
             		$uomId = NULL;
             		$defUom = cat_Setup::get('DEFAULT_MEASURE_ID');
             		if(!$defUom){

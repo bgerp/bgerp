@@ -968,9 +968,9 @@ en,Макс. размер,Max file size
 en,Максимална,Maximum
 en,Максимално,Max
 en,Максимум,Maximum
-en,Манипулатор,Manipulator
-en,Манипулатори на нишки,Thread Manipulator
-en,Манипулатори,Manipulator
+en,Манипулатор,Handler
+en,Манипулатори на нишки,Thread handler
+en,Манипулатори,Handlers
 en,Маркер,Marker
 en,Маркери на арт_bdd11,Articles markers
 en,Маркери,Markers
@@ -1002,6 +1002,7 @@ en,Мета информация,Meta information
 en,Метод,Method
 en,Методи за лабо_c1b4f,Methods for laboratory testing
 en,Методи на плащане,Payment methods
+en,Метод на плащане,Payment method
 en,Методи,Methods
 en,Миграция,Migration
 en,Мин. дневни,Min. daily
@@ -1528,7 +1529,7 @@ en,Прекалено дълг_7fa8,Too long time for relogin
 en,Прекалено крат_9f06,Too short time for relogin
 en,Прекъснато,Interrupted
 en,Премахване,Remove
-en,Премахване на артикулите,Remove all items
+en,Изчистване на всички артикули,Clear all items
 en,Добавяне на нов артикул,Add new item
 en,Преместване в _56087,Move selected threads to a new Company folder
 en,Преместване в _8ff89,Moving in new Persons folder
@@ -1740,7 +1741,7 @@ en,Редактиране на_a0d5,Editing label from teplate
 en,Редактиране на_b8ea,Record editing
 en,Редактиране,Edit
 en,Редакция,Edit
-en,Редактиране на профила,Edit of profile
+en,Редактиране на профила,Edit profile
 en,Редове,Rows
 en,Режим,Regime
 en,Резервни части,Spare parts
@@ -2321,7 +2322,7 @@ en,на ден,per day
 en,на момента,in time
 en,на сървъра,on the server
 en,на,on
-en,Намяляване на количеството,Reduce quantity
+en,Намяляване на количеството,Decrease quantity
 en,Увеличаване на количеството,Increase quantity
 en,намиращи се в,located in
 en,напомняне,reminder
@@ -2454,6 +2455,7 @@ en,50% авансово и 50% до 30 дни след фактуриране, 5
 en,50% авансово и 50% до 10 дни след фактуриране, 50% downpayment and 50% until 10 days after invoicing
 en,По проформа,From pro forma
 en,Срок за д-ка,Delivery time
+en,Срок за доставка,Delivery time
 en,Чакащо плащане,Expected payment
 en,ЧМР,CMR
 en,чмр,cmr
@@ -2693,3 +2695,20 @@ en,"Получихме заявка за промяна на паролата В
 en,"За да промените паролата, моля използвайте следния линк","To change the password, please follow the link"
 en,Промяна на парола,Password change
 en,Грешна стара парола,Wrong current password
+en,Инструкции,Instructions
+en,Онлайн поръчка,Online order
+en,Данни за фактура,Invoice details
+en,Данни за поръчката,Order details
+en,Активна папка,Active folder
+en,Продължи пазаруването,Continue shopping
+en,Към онлайн магазина,To the online store
+en,Изчисти,Clear
+en,"Имате предишна активна поръчка, моля проверете си имейла","You have active order, please check your email"
+en,Прекратяване на действията,Cancel all actions
+en,Запис на данните за поръчката,Save order details
+en,Редактиране на данните на поръчката,Edit order details
+en,Завършване,Finish
+en,Завършване на поръчката,Finish order
+en,"Сигурни ли сте, че искате да направите поръчката", "Are you sure you want to place the order"
+en,Поръчката е направена,The order was placed
+en,Премахване на артикул,Remove item

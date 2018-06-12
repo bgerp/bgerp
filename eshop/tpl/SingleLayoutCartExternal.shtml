@@ -5,7 +5,7 @@
          <!--ET_BEGIN SALE_BLOCK-->
          [#SALE_BLOCK#]
          <div class="half-width fleft">
-            <h4 style="margin-bottom: 3px;">|Информация за поръчката|* [#editBtn#]</h4>
+            <h4 style="margin-bottom: 3px;">|Данни за поръчката|* [#editBtn#]</h4>
             <table style="margin-left: 10px;">
                <!--ET_BEGIN personNames-->
                <tr>
@@ -24,7 +24,7 @@
                <!--ET_END tel-->
                <!--ET_BEGIN paymentId-->
                <tr>
-                  <td>|Начин на плащане|*: [#paymentId#]</td>
+                  <td>|Метод на плащане|*: [#paymentId#]</td>
                </tr>
                <!--ET_END paymentId-->
                </table>
@@ -77,7 +77,7 @@
             <!--ET_END activeFolderId-->
          	<!--ET_BEGIN INVOICE_BLOCK-->
          	[#INVOICE_BLOCK#]
-            <h4 style="margin-bottom: 3px;">|Информация за фактура|*</h4>
+            <h4 style="margin-bottom: 3px;">|Данни за фактура|*</h4>
             <table style="margin-left: 10px;">
                <!--ET_BEGIN NO_INVOICE-->
                <tr>
@@ -101,7 +101,7 @@
                <!--ET_END invoiceCountry-->
                <!--ET_BEGIN invoicePCode-->
                <tr>
-                  <td>|П.код|*: [#invoicePCode#]</td>
+                  <td>|П. код|*: [#invoicePCode#]</td>
                </tr>
                <!--ET_END invoicePCode-->
                <!--ET_BEGIN invoicePlace-->

@@ -26,7 +26,7 @@ class eshop_CartDetails extends core_Detail
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools2,plg_AlignDecimals2,plg_Modified';
+	public $loadList = 'plg_RowTools2,plg_AlignDecimals2,plg_Modified,plg_SaveAndNew';
 	
 	
 	/**
@@ -326,7 +326,7 @@ class eshop_CartDetails extends core_Detail
 			core_RowToolbar::createIfNotExists($row->_rowTools);
 			if($mvc->haveRightFor('removeexternal', $rec)){
 				$removeUrl = toUrl(array('eshop_CartDetails', 'removeexternal', $rec->id), 'local');
-				$row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => "img/16/delete.png", 'title' => "Изтриване на реда", 'data-cart' => $rec->cartId, "data-url" => $removeUrl, "class" => 'remove-from-cart'));
+				$row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => "img/16/delete.png", 'title' => "Премахване на артикул", 'data-cart' => $rec->cartId, "data-url" => $removeUrl, "class" => 'remove-from-cart'));
 			}
 			
 			$row->productId = cat_Products::getVerbal($rec->productId, 'name');
