@@ -220,7 +220,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$form = &$data->form;
     	$form->setField('innerClass', "remember,removeAndRefreshForm=proto|measureId|meta");
 		$form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
-		if(empty($cu)){
+		if(empty($cu) || (isset($cu) && !core_Users::isPowerUser($cu))){
 			$form->setField('deliveryAdress', 'input=none');
 		}
 		
