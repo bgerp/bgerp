@@ -42,6 +42,7 @@ class colab_Setup extends core_ProtoSetup
         'colab_FolderToPartners',
         'colab_DocumentLog',
         'migrate::addColabLastTime',
+    	'migrate::sharePrivateFolders'
     );
     
     
