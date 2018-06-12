@@ -451,16 +451,21 @@ class eshop_Carts extends core_Master
     	core_Lg::push($templateLang);
     	
     	// Дефолтни данни на продажбата
-    	$fields = array('valior'           => dt::today(), 
-    			        'deliveryTermId'   => $rec->termId, 
-    			        'deliveryTermTime' => $rec->deliveryTime, 
-    			        'paymentMethodId'  => $rec->paymentId, 
-    			        'makeInvoice'      => ($rec->makeInvoice == 'none') ? 'no' : 'yes',
-    					'chargeVat'        => $settings->chargeVat,
-    					'currencyId'       => $settings->currencyId,
-    					'shipmentStoreId'  => $settings->storeId,
-    					'note'             => tr('Онлайн поръчка') . " №{$rec->id}",
+    	$fields = array('valior'             => dt::today(), 
+    			        'deliveryTermId'     => $rec->termId, 
+    			        'deliveryTermTime'   => $rec->deliveryTime, 
+    			        'paymentMethodId'    => $rec->paymentId, 
+    			        'makeInvoice'        => ($rec->makeInvoice == 'none') ? 'no' : 'yes',
+    					'chargeVat'          => $settings->chargeVat,
+    					'currencyId'         => $settings->currencyId,
+    					'shipmentStoreId'    => $settings->storeId,
+    					'note'               => tr('Онлайн поръчка') . " №{$rec->id}",
+    					'deliveryLocationId' => $rec->locationId,
     	);
+    	
+    	if($dealerId = sales_Sales::getDefaultDealerId($folderId, $fields['deliveryLocationId'])){
+    		$fields['dealerId'] = $dealerId;
+    	}
     	
     	// Създаване на продажба по количката
    		$saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
@@ -1094,7 +1099,8 @@ class eshop_Carts extends core_Master
     		
     		// Ако има избрана папка обновява се
     		if(!empty($rec->saleFolderId)){
-    			crm_Companies::updateContactDataByFolderId($rec->saleFolderId, $rec->invoiceNames, $rec->invoiceVatNo, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress);
+    			$Cover = doc_Folders::getCover($rec->saleFolderId);
+    			$Cover->getInstance()->updateContactDataByFolderId($rec->saleFolderId, $rec->invoiceNames, $rec->invoiceVatNo, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress);
     		}
     		
     		$cu = core_Users::getCurrent('id', FALSE);
