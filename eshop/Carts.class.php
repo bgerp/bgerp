@@ -1040,6 +1040,12 @@ class eshop_Carts extends core_Master
     	
     	// Ако има условие на доставка то драйвера му може да добави допълнителни полета
     	if(isset($form->rec->termId)){
+    		
+    		// Държавата за доставка да е тази от ип-то по дефолт
+    		if($countryCode2 = drdata_IpToCountry::get()) {
+    			$form->setDefault('deliveryCountry', drdata_Countries::fetchField("#letterCode2 = '{$countryCode2}'", 'id'));
+    		}
+    		
     		if($Driver = cond_DeliveryTerms::getTransportCalculator($form->rec->termId)){
     			$Driver->addFields($form);
     			$fields = $Driver->getFields();
