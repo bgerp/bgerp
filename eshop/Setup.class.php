@@ -95,6 +95,7 @@ class eshop_Setup extends core_ProtoSetup
             array(3.55, 'Сайт', 'Е-маг', 'eshop_Groups', 'default', "ceo, eshop"),
         );
     
+    
     /**
 	 * Описание на конфигурационните константи
 	 */
@@ -106,6 +107,22 @@ class eshop_Setup extends core_ProtoSetup
 	);
 	
 	
+	/**
+	 * Настройки за Cron
+	 */
+	public $cronSettings = array(
+			array(
+					'systemId' => "Delete Carts",
+					'description' => "Изтриване на старите колички",
+					'controller' => "eshop_Carts",
+					'action' => "DeleteDraftCarts",
+					'period' => 1440,
+					'offset' => 60,
+					'timeLimit' => 100
+			),
+	);
+
+
     /**
      * Инсталиране на пакета
      */

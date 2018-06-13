@@ -32,7 +32,7 @@ class eshop_Carts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'ip,brid,domainId,userId,saleId,activatedOn,state';
+    public $listFields = 'ip,brid,domainId,userId,saleId,createdOn,activatedOn,state';
     
     
     /**
@@ -1277,6 +1277,32 @@ class eshop_Carts extends core_Master
     			if(!empty($locationRec->{$locField})){
     				$form->setDefault($delField, $locationRec->{$locField});
     			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изтриване на забравните колички
+     */
+    public function cron_DeleteDraftCarts()
+    {
+    	// Всички чернови колички
+    	$now = dt::now();
+    	$query = self::getQuery();
+    	$query->where("#state = 'draft'");
+    	
+    	// За всяка
+    	while($rec = $query->fetch()){
+    		
+    		// Колко е очаквания и 'живот'
+    		$settings = cms_Domains::getSettings($rec->domainId);
+    		$lifetime = isset($rec->userId) ? $settings->lifetimeForUserDraftCarts : $settings->lifetimeForUserDraftCarts;
+    		
+    		// Ако и е изтекла продължителността и е чернова се изтрива
+    		$endOfLife = dt::addSecs($lifetime, $rec->createdOn);
+    		if($endOfLife <= $now){
+    			self::delete($rec->id);
     		}
     	}
     }
