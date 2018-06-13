@@ -817,7 +817,7 @@ class eshop_Carts extends core_Master
     		$tpl->append($btn, 'CART_TOOLBAR_LEFT');
     	}
     	
-    	$btn = ht::createLink(tr('Продължи пазаруването'), $shopUrl, NULL, 'title=Към онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
+    	$btn = ht::createLink(tr('Към магазина'), $shopUrl, NULL, 'title=Връщане в онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
     	$tpl->append($btn, 'CART_TOOLBAR_LEFT');
     	
     	$checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE) : array();
