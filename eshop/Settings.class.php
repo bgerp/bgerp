@@ -113,6 +113,32 @@ class eshop_Settings extends core_Manager
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	if($form->isSubmitted()){
+    		if(!empty($rec->emailBody)){
+    			$missing = array();
+    			foreach (array('[#SALE_HANDLER#]', '[#NAME#]', '[#link#]') as $placeholder){
+    				if(strpos($rec->emailBody, $placeholder) === FALSE){
+    					$missing[] = $placeholder;
+    				}
+    			}
+    			
+    			if(count($missing)){
+    				$form->setWarning('emailBody', "Пропуснати са следните плейсхолдъри|*: <b>" . implode(", ", $missing) . "</b>");
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
      * Изпълнява се преди запис
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
