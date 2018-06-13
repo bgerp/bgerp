@@ -807,7 +807,7 @@ class eshop_Carts extends core_Master
     	
     	if(!empty($rec->productCount) && eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
     		$emptyUrl = array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => $shopUrl);
-    		$btn = ht::createLink(tr('Изчисти'), $emptyUrl, NULL, 'title=Изчистване на всички артикули,class=eshop-link,ef_icon=img/16/deletered.png');
+    		$btn = ht::createLink(tr('Изчисти'), $emptyUrl, 'Сигурни ли сте, че искате да изчистите артикулите', 'title=Изчистване на всички артикули,class=eshop-link,ef_icon=img/16/deletered.png');
     		$tpl->append($btn, 'EMPTY_CART');
     	}
     	
