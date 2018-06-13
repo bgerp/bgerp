@@ -131,7 +131,7 @@ class eshop_Carts extends core_Master
     	$this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Начин,mandatory');
     	$this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|locationId');
     	
-    	$this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактура->Папка,input=hidden,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
+    	$this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактура->Папка,input=none,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
     	$this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
     	$this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактура->VAT/EIC,input=hidden,mandatory,invoiceData');
     	$this->FLD('invoiceCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за фактура->Държава,hint=Фирма на държавата,input=none,mandatory,invoiceData');
@@ -1026,6 +1026,7 @@ class eshop_Carts extends core_Master
     	$form->title = 'Данни за поръчката';
     	
     	self::prepareOrderForm($form);
+    	
     	$form->input(NULL, 'silent');
     	self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
     	$cu = core_Users::getCurrent('id', FALSE);
@@ -1057,7 +1058,7 @@ class eshop_Carts extends core_Master
     	
     	$invoiceFields = $form->selectFields("#invoiceData");
     	if($form->rec->makeInvoice != 'none'){
-    			
+    		
     		// Ако има ф-ра полетата за ф-ра се показват
     		foreach ($invoiceFields as $name => $fld){
     			$form->setField($name, 'input');
