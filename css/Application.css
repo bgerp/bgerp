@@ -2889,6 +2889,7 @@ span.sharing-history-title {
   .quantity-input-column input {
     text-align: right;
     width: 60px;
+    height: 27px;
     padding: 2px 5px;
     border: 1px solid #cccccc;
     border-radius: 3px;
