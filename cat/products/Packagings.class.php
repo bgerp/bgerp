@@ -385,12 +385,14 @@ class cat_products_Packagings extends core_Detail
         $form->setField('quantity', "unit={$unit}");
         
         // Ако редактираме, но опаковката е използвана не може да се променя
-        if(isset($rec->id)){
-            if(self::isUsed($rec->productId, $rec->packagingId, TRUE)){
-                $form->setReadOnly('packagingId');
-                $form->setReadOnly('quantity');
-            }
-        }
+        if($requiredRoles != 'no_one'){
+			if(isset($rec->id)){
+				if(self::isUsed($rec->productId, $rec->packagingId, TRUE)){
+					$form->setReadOnly('packagingId');
+					$form->setReadOnly('quantity');
+				}
+			}
+		}
     }
     
    
