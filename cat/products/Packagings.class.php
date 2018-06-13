@@ -387,8 +387,6 @@ class cat_products_Packagings extends core_Detail
         // Ако редактираме, но опаковката е използвана не може да се променя
         if(isset($rec->id)){
             if(self::isUsed($rec->productId, $rec->packagingId, TRUE)){
-                $requiredRoles = 'no_one';
-            } else {
                 $form->setReadOnly('packagingId');
                 $form->setReadOnly('quantity');
             }
