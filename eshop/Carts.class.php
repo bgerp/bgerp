@@ -179,7 +179,7 @@ class eshop_Carts extends core_Master
     	}
     	
     	// Ако има избран склад, проверка дали к-то е допустимо
-    	$msg = '|Проблем при добавянето на артикулът|*!';
+    	$msg = '|Проблем при добавянето на артикула|*!';
     	$settings = cms_Domains::getSettings();
     	if(isset($settings->storeId) &&  $canStore == 'yes'){
     		$quantity = store_Products::getQuantity($productId, $settings->storeId, TRUE);
@@ -249,7 +249,7 @@ class eshop_Carts extends core_Master
     	$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
     	$brid = log_Browsers::getBrid();
     	
-    	// Ако има потребител се търси имали чернова кошница за този потребител, ако не е логнат се търси по Брид-а
+    	// Ако има потребител се търси има ли чернова кошница за този потребител, ако не е логнат се търси по Брид-а
     	$where = (isset($userId)) ? "#userId = '{$userId}'" : "#userId IS NULL AND #brid = '{$brid}'";
     	$rec = self::fetch("{$where} AND #state = 'draft' AND #domainId = {$domainId}");
     	
@@ -276,7 +276,7 @@ class eshop_Carts extends core_Master
     	$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
     	$brid = log_Browsers::getBrid();
     	 
-    	// Ако има потребител се търси имали чернова кошница за този потребител, ако не е логнат се търси по Брид-а
+    	// Ако има потребител се търси има ли чернова кошница за този потребител, ако не е логнат се търси по Брид-а
     	$where = (isset($userId)) ? "#userId = '{$userId}'" : "#userId IS NULL AND #brid = '{$brid}'";
     	$query = self::getQuery();
     	$query->where("{$where} AND #state = 'active' AND #domainId = {$domainId}");
