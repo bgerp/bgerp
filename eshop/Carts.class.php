@@ -134,10 +134,10 @@ class eshop_Carts extends core_Master
     	$this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактура->Папка,input=none,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
     	$this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
     	$this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактура->VAT/EIC,input=hidden,mandatory,invoiceData');
-    	$this->FLD('invoiceCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за фактура->Държава,hint=Фирма на държавата,input=none,mandatory,invoiceData');
-    	$this->FLD('invoicePCode', 'varchar(16)', 'caption=Данни за фактура->П. код,invoiceData,hint=Пощенски код на фирмата,input=none,mandatory');
-    	$this->FLD('invoicePlace', 'varchar(64)', 'caption=Данни за фактура->Град,invoiceData,hint=Населено място: град или село и община,input=none,mandatory');
-    	$this->FLD('invoiceAddress', 'varchar(255)', 'caption=Данни за фактура->Адрес,invoiceData,hint=Адрес на регистрация на фирмата,input=none,mandatory');
+    	$this->FLD('invoiceCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за фактура->Държава,hint=Фирма на държавата,input=none,invoiceData');
+    	$this->FLD('invoicePCode', 'varchar(16)', 'caption=Данни за фактура->П. код,invoiceData,hint=Пощенски код на фирмата,input=none');
+    	$this->FLD('invoicePlace', 'varchar(64)', 'caption=Данни за фактура->Град,invoiceData,hint=Населено място: град или село и община,input=none');
+    	$this->FLD('invoiceAddress', 'varchar(255)', 'caption=Данни за фактура->Адрес,invoiceData,hint=Адрес на регистрация на фирмата,input=none');
     	
     	$this->FLD('info', 'richtext(rows=2)', 'caption=Общи данни->Забележка,input=none');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активно,closed=Приключено,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
@@ -1092,47 +1092,62 @@ class eshop_Carts extends core_Master
     	
     	if($form->isSubmitted()){
     		$rec = $form->rec;
+    		$arr = array('invoiceCountry' => 'deliveryCountry', 'invoicePCode' => 'deliveryPCode', 'invoicePlace' => 'deliveryPlace', 'invoiceAddress' => 'deliveryAddress');
     		
-    		// Компресиране на данните за доставка от драйвера
-    		$rec->deliveryData = array();
-    		if($Driver){
-    			if(!$form->gotErrors()){
-    				$fields = $Driver->getFields();
-    				foreach ($fields as $name){
-    					$rec->deliveryData[$name] = $rec->{$name};
+    		$emptyFields = array();
+    		foreach ($arr as $invField => $delField){
+    			$rec->{$invField} = !empty($rec->{$invField}) ? $rec->{$invField} : $rec->{$delField};
+    			if(empty($rec->{$invField})){
+    				$emptyFields[] = $invField;
+    			}
+    		}
+    		
+    		if(count($emptyFields)){
+    			$form->setError($emptyFields, 'Липсващи данни');
+    		}
+    		
+    		if(!$form->gotErrors()){
+    			// Компресиране на данните за доставка от драйвера
+    			$rec->deliveryData = array();
+    			if($Driver){
+    				if(!$form->gotErrors()){
+    					$fields = $Driver->getFields();
+    					foreach ($fields as $name){
+    						$rec->deliveryData[$name] = $rec->{$name};
+    					}
     				}
     			}
-    		}
-    		
-    		// Ако има избрана папка обновява се
-    		if(!empty($rec->saleFolderId)){
-    			$Cover = doc_Folders::getCover($rec->saleFolderId);
-    			$Cover->getInstance()->updateContactDataByFolderId($rec->saleFolderId, $rec->invoiceNames, $rec->invoiceVatNo, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress);
-    		}
-    		
-    		$cu = core_Users::getCurrent('id', FALSE);
-    		
-    		if(isset($cu) && core_Users::isContractor($cu)){
-    			if(isset($rec->saleFolderId)){
+    			
+    			// Ако има избрана папка обновява се
+    			if(!empty($rec->saleFolderId)){
     				$Cover = doc_Folders::getCover($rec->saleFolderId);
-    				$contragentClassId = $Cover->getClassId();
-    				$contragentId = $Cover->that;
-    			} else {
-    				$contragentClassId = crm_Persons::getClassId();
-    				$contragentId = crm_Profiles::getProfile($cu)->id;
+    				$Cover->getInstance()->updateContactDataByFolderId($rec->saleFolderId, $rec->invoiceNames, $rec->invoiceVatNo, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress);
     			}
     			
-    			// Ако има въведени адресни данни
-    			if(!empty($rec->deliveryCountry) || !empty($rec->deliveryPCode) || !empty($rec->deliveryPlace) || !empty($rec->deliveryAddress)){
-    				$rec->locationId = crm_Locations::update($contragentClassId, $contragentId, $rec->deliveryCountry, 'За получаване на пратки', $rec->deliveryPCode, $rec->deliveryPlace, $rec->deliveryAddress, $rec->locationId);
+    			$cu = core_Users::getCurrent('id', FALSE);
+    			
+    			if(isset($cu) && core_Users::isContractor($cu)){
+    				if(isset($rec->saleFolderId)){
+    					$Cover = doc_Folders::getCover($rec->saleFolderId);
+    					$contragentClassId = $Cover->getClassId();
+    					$contragentId = $Cover->that;
+    				} else {
+    					$contragentClassId = crm_Persons::getClassId();
+    					$contragentId = crm_Profiles::getProfile($cu)->id;
+    				}
+    				 
+    				// Ако има въведени адресни данни
+    				if(!empty($rec->deliveryCountry) || !empty($rec->deliveryPCode) || !empty($rec->deliveryPlace) || !empty($rec->deliveryAddress)){
+    					$rec->locationId = crm_Locations::update($contragentClassId, $contragentId, $rec->deliveryCountry, 'За получаване на пратки', $rec->deliveryPCode, $rec->deliveryPlace, $rec->deliveryAddress, $rec->locationId);
+    				}
     			}
+    			
+    			$this->save($rec);
+    			$this->updateMaster($rec);
+    			core_Lg::pop();
+    			
+    			return followRetUrl();
     		}
-    		
-    		$this->save($rec);
-    		$this->updateMaster($rec);
-    		core_Lg::pop();
-    		
-    		return followRetUrl();
     	}
     	
     	Mode::set('wrapper', 'cms_page_External');

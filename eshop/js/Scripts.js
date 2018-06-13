@@ -93,4 +93,27 @@ function eshopActions() {
 		// Ръчно инвоукване на ивент на инпут полето
 		input.keyup();
 	});
+	
+	
+	$(document.body).on('change', "select[name=deliveryCountry]",  function(){
+		var deliveryCountry = $(this).val();
+		
+		$("select[name=invoiceCountry]").attr("placeholder", deliveryCountry);
+		$("select[name=invoiceCountry]").trigger("change");
+	});
+	
+	$(document.body).on('keyup', "input[name=deliveryPlace], input[name=invoicePlace]",  function(){
+		var deliveryPlace = $("input[name=deliveryPlace]").val();
+		$("input[name=invoicePlace]").attr("placeholder", deliveryPlace);
+	});
+	
+	$(document.body).on('keyup', "input[name=deliveryAddress], input[name=invoiceAddress]",  function(){
+		var deliveryAddress = $("input[name=deliveryAddress]").val();
+		$("input[name=invoiceAddress]").attr("placeholder", deliveryAddress);
+	});
+	
+	$(document.body).on('keyup', "input[name=deliveryPCode], input[name=invoicePCode]",  function(){
+		var deliveryPCode = $("input[name=deliveryPCode]").val();
+		$("input[name=invoicePCode]").attr("placeholder", deliveryPCode);
+	});
 };
