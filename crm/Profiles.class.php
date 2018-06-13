@@ -933,7 +933,9 @@ class crm_Profiles extends core_Master
             if(core_Packs::isInstalled('colab') && core_Users::isContractor($user)){
             	$privateFolderId = crm_Persons::forceCoverAndFolder($person->id);
             	if(!colab_FolderToPartners::fetch("#folderId = {$privateFolderId} AND #contractorId = {$user->id}")){
+            		Mode::push('preventNotifications', TRUE);
             		colab_FolderToPartners::save((object)array('folderId' => $privateFolderId, 'contractorId' => $user->id));
+            		Mode::pop('preventNotifications');
             	}
             }
             
