@@ -197,7 +197,7 @@ class eshop_Products extends core_Master
 
             $menuId = eshop_Groups::fetchField($rec->groupId, 'menuId');
 
-            if($exRec = $query->fetch(array("#code = '[#1#]' AND #menuId = '[#2#]'", $rec->code, $menuId))) {
+            if(strlen($rec->code) && ($exRec = $query->fetch(array("#code = '[#1#]' AND #menuId = '[#2#]'", $rec->code, $menuId)))) {
                 $form->setError('code', "Повторение на кода със съществуващ продукт: |* <strong>" . $mvc->getVerbal($rec, 'name') . '</strong>');
             }
         }
