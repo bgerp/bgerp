@@ -3112,4 +3112,37 @@ class crm_Persons extends core_Master
             }
         }
     }
+    
+    
+    /**
+     * Обновяване на адресните данни на фирмата
+     *
+     * @param int $folderId         - ид на папка
+     * @param string $name          - име на папката
+     * @param string $egn           - ЕГН
+     * @param int $countryId        - ид на държава
+     * @param string|NULL $pCode    - п. код
+     * @param string|NULL $place    - населено място
+     * @param string|NULL $address  - адрес
+     * @return void
+     */
+    public static function updateContactDataByFolderId($folderId, $name, $egn, $countryId, $pCode, $place, $address)
+    {
+    	$saveFields = array();
+    	$rec = self::fetch("#folderId = {$folderId}");
+    	$arr = array('name' => $name, 'vatId' => $vatId, 'country' => $countryId, 'pCode' => $pCode, 'place' => $place, 'address' => $address);
+    	 
+    	// Обновяване на зададените полета
+    	foreach ($arr as $name => $value){
+    		if(!empty($value) && $rec->{$name} != $value){
+    			$rec->{$name} = $value;
+    			$saveFields[] = $name;
+    		}
+    	}
+    	 
+    	// Ако има полета за обновяване
+    	if(count($saveFields)){
+    		self::save($rec, $saveFields);
+    	}
+    }
 }

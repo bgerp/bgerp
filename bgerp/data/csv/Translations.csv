@@ -2700,8 +2700,9 @@ en,Онлайн поръчка,Online order
 en,Данни за фактура,Invoice details
 en,Данни за поръчката,Order details
 en,Активна папка,Active folder
-en,Продължи пазаруването,Continue shopping
-en,Към онлайн магазина,To the online store
+en,Към магазина,To the eshop
+en,Връщане в онлайн магазина,Return to the eshop
+en,"Сигурни ли сте, че искате да изчистите артикулите","Are you sure, that you want to clear all items"
 en,Изчисти,Clear
 en,"Имате предишна активна поръчка, моля проверете си имейла","You have active order, please check your email"
 en,Прекратяване на действията,Cancel all actions

@@ -90,7 +90,7 @@ class eshop_CartDetails extends core_Detail
 	{
 		$this->FLD('cartId', 'key(mvc=eshop_Carts)', 'caption=Кошница,mandatory,input=hidden,silent');
 		$this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,silent');
-		$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack,mandatory');
+		$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'tdClass=productCell,caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack,mandatory');
 		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack|displayPrice');
 		$this->FLD('quantity', 'double', 'caption=Количество,input=none');
 		$this->FLD('quantityInPack', 'double', 'input=none');
@@ -335,16 +335,16 @@ class eshop_CartDetails extends core_Detail
 			$quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
 			$dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
 
-			$minus = ht::createElement('img', array('src' => sbf('img/16/minus-black.png', ''), 'class' => 'btnDown', 'title' => 'Намяляване на количеството'));
-			$plus = ht::createElement('img', array('src' => sbf('img/16/plus-black.png', ''), 'class' => 'btnUp', 'title' => 'Увеличаване на количеството'));
-			$row->quantity = $minus . ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}'") . $plus;
+			$minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намaляване на количеството'), "-");
+			$plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), "+");
+			$row->quantity = "<span>" . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}'") . $plus . "</span>";
 		
 			self::updatePriceInfo($rec, NULL, TRUE);
 			
 			$settings = cms_Domains::getSettings();
 			$finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, $rec->currencyId, $settings->currencyId);
 			$row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
-		
+			
 			if($rec->oldPrice){
 				$difference = round($rec->finalPrice, 2) - round($rec->oldPrice, 2);
 				$caption = ($difference > 0) ? 'увеличена' : 'намалена';
@@ -555,6 +555,7 @@ class eshop_CartDetails extends core_Detail
 			$rec->oldPrice = $rec->finalPrice;
 			$rec->finalPrice = $finalPrice;
 			$rec->discount = $discount;
+			$rec->amount = $rec->finalPrice * ($rec->quantity / $rec->quantityInPack);
 			$update = TRUE;
 		}
 		

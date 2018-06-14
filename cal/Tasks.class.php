@@ -813,7 +813,14 @@ class cal_Tasks extends embed_Manager
             
             $cQuery->orderBy('activatedOn', 'ASC');
             
+            $isPartner = haveRole('partner');
+            
             while ($cRec = $cQuery->fetch()) {
+                
+                // Партньорите да не виждат всичките прогреси - само видимите документи
+                if ($isPartner) {
+                    if (!doc_Comments::haveRightFor('single', $cRec)) continue;
+                }
                 
                 $rowAttr = array();
                 

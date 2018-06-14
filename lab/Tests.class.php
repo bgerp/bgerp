@@ -173,7 +173,7 @@ class lab_Tests extends core_Master
         $this->FLD('sharedUsers', 'userList(roles=powerUser,allowEmpty)', 'caption=Нотифициране->Потребители');
         $this->FLD('activatedOn', 'datetime', 'caption=Активиран на,input=none,notSorting');
         $this->FLD('lastChangedOn', 'datetime', 'caption=Последна промяна,input=none,notSorting');
-        $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит,pending=Зaявка)',
+        $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит,pending=Зaявка,stopped=Спрян,closed=Приключен,wakeup=Събуден)',
             'caption=Статус,input=none,notSorting');
       
         
@@ -232,6 +232,8 @@ class lab_Tests extends core_Master
      */
     public static function on_BeforeSave($mvc, $id, $rec) //
     {
+       
+        
         if ($rec->foreignId) {
             
             $rec->originId = $rec->foreignId;
@@ -246,7 +248,6 @@ class lab_Tests extends core_Master
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
        
-        
         if ($data->rec->id && $data->rec->state == 'active') {
             
             $handle = $mvc->getHandle($data->rec->id);
@@ -306,7 +307,7 @@ class lab_Tests extends core_Master
     {
        
         
-        $data->toolbar->removeBtn('btnClose');
+       // $data->toolbar->removeBtn('btnClose');
         
         if ($mvc->haveRightFor('compare', $data->rec)) {
             $url = array(
@@ -532,7 +533,11 @@ class lab_Tests extends core_Master
         if (! $id)
             return;
         
+            
+            
         $rec = $this->fetch($id);
+        
+        
         $title = $this->singleTitle . " " . $rec->title;
         
         $row = new stdClass();
@@ -630,6 +635,8 @@ class lab_Tests extends core_Master
     static function suggestionsParams()
     {
         $metQuery = lab_Methods::getQuery();
+        
+        $paramsArr = array();
         
         while ($methods = $metQuery->fetch()){
             

@@ -198,7 +198,7 @@ class colab_FolderToPartners extends core_Manager
     		}
     	}
     	 
-    	if (!empty($folderId) && !colab_Folders::haveRightFor('list', (object)array('folderId' => $folderId), $cu)) {
+    	if (!empty($folderId) && !colab_Threads::haveRightFor('list', (object)array('folderId' => $folderId), $cu)) {
     		$folderId = NULL;
     	}
     	

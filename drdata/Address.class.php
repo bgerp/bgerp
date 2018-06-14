@@ -963,7 +963,7 @@ class drdata_Address extends core_MVC
                 if($o->countryId && $o->code) break;
             }
 
-            if(!$best && $o->countryId && $o->pCode) {
+            if(!$best && $o->countryId) {
                 $best = new stdClass();
                 $best = $o;
             }

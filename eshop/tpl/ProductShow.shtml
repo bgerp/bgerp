@@ -15,6 +15,7 @@
 		<div class='eshop-product-labels'>
 			<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code--> 
             <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]
+			<div class="clearfix21"></div>
 		</div>
 		[#info#]
 		<br>

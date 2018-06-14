@@ -930,12 +930,14 @@ class crm_Profiles extends core_Master
         if($mustSave) {
             crm_Persons::save($person);
           
+            Mode::push('preventNotifications', TRUE);
             if(core_Packs::isInstalled('colab') && core_Users::isContractor($user)){
             	$privateFolderId = crm_Persons::forceCoverAndFolder($person->id);
-            	if(!colab_FolderToPartners::fetch("#folderId = {$privateFolderId} AND #contractorId = {$person->id}")){
+            	if(!colab_FolderToPartners::fetch("#folderId = {$privateFolderId} AND #contractorId = {$user->id}")){
             		colab_FolderToPartners::save((object)array('folderId' => $privateFolderId, 'contractorId' => $user->id));
             	}
             }
+            Mode::pop('preventNotifications');
             
             return $person->id;
         }
@@ -1349,7 +1351,7 @@ class crm_Profiles extends core_Master
      * @param string $requiredRoles
      * @param string $action
      * @param object $rec
-     * @param id $userId
+     * @param integer $userId
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {

@@ -72,17 +72,19 @@ class cal_Progresses extends core_Mvc
             $doc = doc_Containers::getDocument($originId);
             $tRec = $doc->fetch();
             
-            $shareUsersArr = type_Users::toArray($tRec->assign);
-            
-            if ($tRec->createdBy > 0) {
-                $shareUsersArr[$tRec->createdBy] = $tRec->createdBy;
-            }
-            
-            $cu = core_Users::getCurrent();
-            unset($shareUsersArr[$cu]);
-            
-            if (!empty($shareUsersArr)) {
-                $data->form->setDefault('sharedUsers', $shareUsersArr);
+            if (!haveRole('partner')) {
+                $shareUsersArr = type_Users::toArray($tRec->assign);
+                
+                if ($tRec->createdBy > 0) {
+                    $shareUsersArr[$tRec->createdBy] = $tRec->createdBy;
+                }
+                
+                $cu = core_Users::getCurrent();
+                unset($shareUsersArr[$cu]);
+                
+                if (!empty($shareUsersArr)) {
+                    $data->form->setDefault('sharedUsers', $shareUsersArr);
+                }
             }
             
             if ($doc->instance instanceof embed_Manager) {
