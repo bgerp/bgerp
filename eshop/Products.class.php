@@ -308,8 +308,9 @@ class eshop_Products extends core_Master
     public static function prepareGroupList($data)
     {
         $pQuery = self::getQuery();
-
-        while($pRec = $pQuery->fetch("#state = 'active' AND #groupId = {$data->groupId}")) {
+		$pQuery->where("#state = 'active' AND #groupId = {$data->groupId}");
+        
+        while($pRec = $pQuery->fetch()) {
             $data->recs[] = $pRec;
             $pRow = $data->rows[] = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
 
@@ -332,6 +333,29 @@ class eshop_Products extends core_Master
             $pRow->image = $img->createImg(array('class' => 'eshop-product-image'));
             if(self::haveRightFor('edit', $pRec)) {
                 $pRec->editUrl = array('eshop_Products', 'edit', $pRec->id, 'ret_url' => TRUE);
+            }
+            
+            // Детайлите на артикула
+            $dQuery = eshop_ProductDetails::getQuery();
+            $dQuery->where("#eshopProductId = {$pRec->id}");
+            
+            // Ако има само един артикул
+            if($dQuery->count() == 1){
+            	$dRec = $dQuery->fetch();
+            	$productRec = cat_Products::fetch($dRec->productId, 'measureId');
+            	
+            	// Ако е избрана основната мярка 
+            	if(keylist::isIn($productRec->measureId, $dRec->packagings)){
+            		
+            		// Ако има цена показва се в реда
+            		if($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $productRec->measureId, 1)){
+            			$singlePrice = core_Type::getByName('double(decimals=2)')->toVerbal($singlePrice->price);
+            			$settings = cms_Domains::getSettings();
+            			$pRow->singlePrice = $singlePrice;
+            			$pRow->singleCurrencyId = $settings->currencyId;
+            			$pRow->measureId = cat_UoM::getVerbal($productRec->measureId, 'name');
+            		}
+            	}
             }
         }
 
