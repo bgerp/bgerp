@@ -65,6 +65,10 @@ class plg_Clone extends core_Plugin
         // добавяме дефолти ще се запишат на чисто
         $mvc->invoke('AfterPrepareEditForm', array(&$data, &$data));
         
+        if ($data->singleTitle) {
+            $mvc->singleTitle = $data->singleTitle;
+        }
+        
         // Задаваме екшъна
         $form->setAction($mvc, 'clonefields');
         $form->_cloneForm = TRUE;
