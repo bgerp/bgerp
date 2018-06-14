@@ -354,6 +354,9 @@ class eshop_Products extends core_Master
             			$pRow->singlePrice = $singlePrice;
             			$pRow->singleCurrencyId = $settings->currencyId;
             			$pRow->measureId = cat_UoM::getVerbal($productRec->measureId, 'name');
+            			
+            			$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
+            			$pRow->addBtn = ht::createImg(array('src' => sbf("img/16/cart_go.png", ''),'title'=> 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $productRec->measureId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn eshop-group-list-btn'));
             		}
             	}
             }
