@@ -2702,7 +2702,8 @@ span.sharing-history-title {
     vertical-align: top; }
 
 .wide .drawing img {
-  max-width: 380px; }
+  max-width: 380px;
+  padding-top: 30px; }
 
 .narrow .drawing img {
   width: 100%;
@@ -3099,9 +3100,6 @@ table .eshop-btn {
     text-shadow: none; }
   .contractorExtHolder .toolbar-btn {
     max-width: 16px !important; }
-
-.cmsContentContractor .drawing {
-  padding-top: 30px; }
 
 .narrow #login-form {
   max-width: 17em !important;
