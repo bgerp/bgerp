@@ -580,6 +580,27 @@ class bgerp_Notifications extends core_Manager
             }
         } elseif (strpos($msg, '|създаде заявка за|') !== FALSE) {
             $stopNotifyArr['newPending'] = 'doc_Folders';
+        } else {
+            // Ако нотификацията е за смяна на състоянието
+            if ($containerId) {
+                $doc = doc_Containers::getDocument($containerId);
+                
+                $plugins = arr::make($doc->instance->loadList, TRUE);
+                
+                if ($plugins['planning_plg_StateManager']) {
+                    if ($nActArr = $doc->instance->notifyActionNamesArr) {
+                        foreach ($nActArr as $actName) {
+                            $actName = mb_strtolower($actName);
+                            
+                            if (strpos($msg, "|{$actName} на|* ") !== FALSE) {
+                                $stopNotifyArr['stateChange'] = 'doc_Folders';
+                                
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
         
         $stoppedArr = $valsArr = array();
@@ -636,7 +657,7 @@ class bgerp_Notifications extends core_Manager
         
         // В зависимост от състоянието връщаме/спираме настройките за бъдещите нотификации
         if (is_array($stoppedArr) && $update) {
-            $notifyVerbMap = array('notify' => 'Нов документ', 'personalEmailIncoming' => 'Личен имейл', 'folOpenings' => 'Отворени теми', 'newPending' => 'Създадена заявка', 'newThread' => 'Нова тема', 'newDoc' => 'Нов документ');
+            $notifyVerbMap = array('notify' => 'Нов документ', 'personalEmailIncoming' => 'Личен имейл', 'folOpenings' => 'Отворени теми', 'newPending' => 'Създадена заявка', 'stateChange' => 'Променено състояние на документ', 'newThread' => 'Нова тема', 'newDoc' => 'Нов документ');
             
             $notifyMsg = '';
             
@@ -885,10 +906,13 @@ class bgerp_Notifications extends core_Manager
             $enumTypeArr['caption'] = $fCaption . '->Създадени заявки';
             $form->FNC('newPending', $enumChoice, $enumTypeArr);
             
+            $enumTypeArr['caption'] = $fCaption . '->Промяна на състоянието на документ';
+            $form->FNC('stateChange', $enumChoice, $enumTypeArr);
+            
             $enumTypeArr['caption'] = $fCaption . '->Личен имейл';
             $form->FNC('personalEmailIncoming', $enumChoice, $enumTypeArr);
             
-            $sArr[$fKey] = array('newDoc', 'newThread', 'newPending', 'folOpenings', 'personalEmailIncoming');
+            $sArr[$fKey] = array('newDoc', 'newThread', 'newPending', 'stateChange', 'folOpenings', 'personalEmailIncoming');
             
             // Добавяме стойностите по подразбиране
             $valsArr[$fKey] = core_Settings::fetchKeyNoMerge($fKey);
@@ -896,6 +920,7 @@ class bgerp_Notifications extends core_Manager
             setIfNot($valsArr[$fKey]['newThread'], 'default');
             setIfNot($valsArr[$fKey]['folOpenings'], 'default');
             setIfNot($valsArr[$fKey]['newPending'], 'default');
+            setIfNot($valsArr[$fKey]['stateChange'], 'default');
         }
         
         // Настройки за нишка
