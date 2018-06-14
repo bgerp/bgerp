@@ -103,12 +103,12 @@ class cms_DefaultTheme extends core_ProtoInner {
         if(phpcolor_Adapter::checkColor($baseColor, 'dark')) {
             $mixColor = "#aaa";
             $css .= "\n    #cmsBottom a, #cmsBottom a:hover, #cmsMenu a {color:#fff !important; text-shadow: 0px 0px 2px #000}";
-            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] .formTable input:first-child[type=submit] {color:#fff !important;}";
+            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] .formTable input[type=submit] {color:#fff !important;}";
         } else {
             $mixColor = "#666";
             // стилове за тъмен цвят
             $css .= "\n     #cmsBottom a, #cmsBottom a:hover, #cmsMenu a {color:#000 !important; text-shadow: none}";
-            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] .formTable input:first-child[type=submit] {color:#000 !important;}";
+            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] .formTable input[type=submit] {color:#000 !important;}";
         }
 
         if ($this->innerForm->activeColor) {
