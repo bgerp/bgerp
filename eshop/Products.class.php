@@ -378,18 +378,18 @@ class eshop_Products extends core_Master
                 $rec = $data->recs[$id];
 
                 $pTpl = getTplFromFile('eshop/tpl/ProductListGroup.shtml');
-
-                if($rec->editUrl) {
+				if($rec->editUrl) {
                     $row->editLink = ht::createLink($editImg, $rec->editUrl);
                 }
-                
                 $url = self::getUrl($rec);
 
                 $row->name = ht::createLink($row->name, $url);
                 $row->image = ht::createLink($row->image, $url);
 
                 $pTpl->placeObject($row);
-
+                $pTpl->removePlaces();
+                $pTpl->removeBlocks();
+                
                 $layout->append($pTpl);
             }
         }
