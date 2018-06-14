@@ -287,11 +287,11 @@ class core_Detail extends core_Manager
     	if(!$preposition){
     		$preposition = 'към';
     	}
-    	 
+    	
     	if ($singleTitle) {
-    		$single = ' на| ' . mb_strtolower($singleTitle);
+    		$single = ' на|* |' . mb_strtolower($singleTitle);
     	}
-    	 
+    	
     	$title = ($recId) ? "Редактиране{$single} {$preposition}" : "Добавяне{$single} {$preposition}";
     	$title .= "|* " . cls::get($master)->getFormTitleLink($masterId);
     	
