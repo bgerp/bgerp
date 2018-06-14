@@ -253,7 +253,7 @@ class eshop_Products extends core_Master
             			$uomId = cat_UoM::fetchBySysId('pcs')->id;
             		}
             		$url['measureId'] = $uomId;
-            		$row->coInquiry = ht::createLink(tr('Запитване'), $url, NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
+            		$row->coInquiry = ht::createLink(tr('Запитване'), $url, NULL, "ef_icon=img/16/button-question-icon.png,title={$title},class=productBtn");
             	}
             }
         }
@@ -356,9 +356,8 @@ class eshop_Products extends core_Master
             			$pRow->measureId = cat_UoM::getVerbal($productRec->measureId, 'name');
             			
             			$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-            			
-            			$pRow->addBtn = ht::createLink(tr('Купи'), NULL, NULL, array('ef_icon' => "img/16/cart_go.png", 'title'=> 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $productRec->measureId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn eshop-group-list-btn'));
-            		}
+            			$pRow->addBtn = ht::createFnBtn('Купи', NULL, FALSE, array('ef_icon' => "img/16/cart_go.png", 'title'=> 'Добавяне на артикул към кошницата', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $productRec->measureId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
+					}
             	}
             }
         }

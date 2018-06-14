@@ -3387,6 +3387,24 @@ table .eshop-btn {
 	}
 }
 
+
+.productBtn {
+	float: left;
+	padding: 4px 8px 5px 25px !important;
+	font-size: 0.8em;
+	font-family: Arial, sans-serif;
+	color: #333 !important;
+	display: inline-block;
+	background-color: #f6f6f6 !important;
+	border: 1px solid #bbbbbb;
+	border-radius: 3px;
+	box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
+	margin: 0 10px 0 0 !important;
+	&:hover{
+		background-color: #eee !important;
+	}
+
+}
 .order-btn {
 	color: #fff !important;
 	text-shadow: 1px 1px 0 #333;
@@ -4947,10 +4965,11 @@ div.location.public {
 	color: #444;
 }
 
-.eshop-product-labels > span, .eshop-product-labels > a {
+.eshop-product-labels > span {
     margin-right:10px;
     @include border-radius(3px);
-	padding:2px;
+	padding: 4px;
+	float: left;
 	font-size:0.8em;
 	background-color:#e6e6e6;
 	border: solid 1px #d8d8d8;
