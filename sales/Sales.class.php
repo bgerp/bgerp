@@ -309,27 +309,30 @@ class sales_Sales extends deals_DealMaster
     	$rec = $form->rec;
     	
     	if(empty($rec->id)){
-    		
-    		// Ако има локация, питаме търговските маршрути, кой да е дефолтния търговец
-    		if(isset($rec->deliveryLocationId)){
-    			$dealerId = sales_Routes::getSalesmanId($rec->deliveryLocationId);
-    		}
-    		
-    		// Ако няма, но отговорника на папката е търговец - него
-    		if(empty($dealerId)){
-    			$inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
-    			if(core_Users::haveRole('sales', $inCharge)){
-    				$dealerId = $inCharge;
-    			}
-    		}
-    		
-    		// В краен случай от последната продажба на същия потребител
-    		if(empty($dealerId)){
-    			$dealerId = cond_plg_DefaultValues::getFromLastDocument($mvc, $rec->folderId, 'dealerId', TRUE);
-    		}
-    		
+    		$dealerId = self::getDefaultDealerId($rec->folderId, $rec->deliveryLocationId);
     		$form->setDefault('dealerId', $dealerId);
     	}
+    }
+    
+    
+    /**
+     * Кой е дефолтния търговец по продажбата
+     * 
+     * @param int $folderId       - папка
+     * @param int $locationId     - локация
+     * @return int|NULL $dealerId - ид на търговец
+     */
+    public static function getDefaultDealerId($folderId, $locationId)
+    {
+    	$dealerId = sales_Routes::getSalesmanId($locationId);
+    	if(isset($dealerId)) return $dealerId;
+    	
+    	$dealerId = doc_Folders::fetchField($folderId, 'inCharge');
+    	if(core_Users::haveRole('sales', $dealerId)) return $dealerId;
+    	
+    	$dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $folderId, 'dealerId', TRUE);
+    	
+    	return $dealerId;
     }
     
     

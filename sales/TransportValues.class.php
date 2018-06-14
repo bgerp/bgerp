@@ -560,15 +560,10 @@ class sales_TransportValues extends core_Manager
     	if(empty($Driver)) return FALSE;
     	
     	$toPcodeId = $toCountryId = NULL;
-    	if(!empty($deliveryAddress)){
-    		if($parsePlace = drdata_Address::parsePlace($deliveryAddress)){
-    			$toCountryId = $parsePlace->countryId;
-    			$toPcodeId = $parsePlace->pCode;
-    		}
-    	}
     	
     	// Извличане на държавата и кода
-    	$codeAndCountryArr = self::getCodeAndCountryId($contragentClassId, $contragentId, $toPcodeId, $toCountryId, $deliveryLocationId);
+    	$location = isset($deliveryLocationId) ? $deliveryLocationId : $deliveryAddress;
+    	$codeAndCountryArr = self::getCodeAndCountryId($contragentClassId, $contragentId, $toPcodeId, $toCountryId, $location);
     	$ourCompany = crm_Companies::fetchOurCompany();
     	
     	// Опит за изчисляване на дъмми транспорт

@@ -198,7 +198,7 @@ class colab_FolderToPartners extends core_Manager
     		}
     	}
     	 
-    	if (!empty($folderId) && !colab_Folders::haveRightFor('list', (object)array('folderId' => $folderId), $cu)) {
+    	if (!empty($folderId) && !colab_Threads::haveRightFor('list', (object)array('folderId' => $folderId), $cu)) {
     		$folderId = NULL;
     	}
     	
@@ -757,6 +757,25 @@ class colab_FolderToPartners extends core_Manager
     	}
     	
     	$Users->invoke('AfterInputEditForm', array(&$form));
+    	
+    	if ($form->isSubmitted() && haveRole('powerUser')) {
+    	    $cRec = clone $form->rec;
+    	    $cRec->name = $form->rec->names;
+    	    $wStr = crm_Persons::getSimilarWarningStr($cRec, $fields);
+    	    
+    	    if ($fields) {
+    	        $fieldsArr = arr::make($fields, TRUE);
+    	        if ($fieldsArr['name']) {
+    	            $fieldsArr['names'] = 'names';
+    	            unset($fieldsArr['name']);
+    	            $fields = implode(',', $fieldsArr);
+    	        }
+    	    }
+    	    
+    	    if ($wStr) {
+    	        $form->setWarning($fields, $wStr);
+    	    }
+    	}
     	
     	// След събмит ако всичко е наред създаваме потребител, лице и профил
     	if ($form->isSubmitted()) {

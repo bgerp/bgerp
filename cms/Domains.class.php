@@ -598,9 +598,6 @@ class cms_Domains extends core_Embedder
     	if(!core_Packs::isInstalled('eshop')) return array();
     	$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
     	
-    	return eshop_Settings::getSettings('cms_Domains', $domainId, $date = NULL);
+    	return eshop_Settings::getSettings('cms_Domains', $domainId, $date);
     }
-    
-    
-
 }

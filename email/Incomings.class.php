@@ -1724,6 +1724,15 @@ class email_Incomings extends core_Master
             $accRec = email_Accounts::fetch($rec->accId);
         }
         
+        // Ако имейлът на сметката има домейн за миграция - новата сметка се използва
+        $accEml = self::replaceDomains($accRec->email);
+        if ($accEml != $accRec->email) {
+            $newAccRec = email_Accounts::fetch(array("#email = '[#1#]'", $accEml));
+            if($newAccRec) {
+                $accRec = $newAccRec;
+            }
+        }
+        
         // Ако сметката е с рутиране
         if($accRec && ($accRec->applyRouting == 'yes')) {
             

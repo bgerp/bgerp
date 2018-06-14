@@ -16,7 +16,7 @@ defIfNot('ESHOP_MIN_GROUPS_FOR_NAVIGATION', 4);
 /**
  * Име на кошницата във външната част
  */
-defIfNot('ESHOP_CART_EXTERNAL_NAME', 'Кошница');
+defIfNot('ESHOP_CART_EXTERNAL_NAME', 'Количка');
 
 
 /**
@@ -95,6 +95,7 @@ class eshop_Setup extends core_ProtoSetup
             array(3.55, 'Сайт', 'Е-маг', 'eshop_Groups', 'default', "ceo, eshop"),
         );
     
+    
     /**
 	 * Описание на конфигурационните константи
 	 */
@@ -106,6 +107,22 @@ class eshop_Setup extends core_ProtoSetup
 	);
 	
 	
+	/**
+	 * Настройки за Cron
+	 */
+	public $cronSettings = array(
+			array(
+					'systemId' => "Delete Carts",
+					'description' => "Изтриване на старите колички",
+					'controller' => "eshop_Carts",
+					'action' => "DeleteDraftCarts",
+					'period' => 1440,
+					'offset' => 60,
+					'timeLimit' => 100
+			),
+	);
+
+
     /**
      * Инсталиране на пакета
      */
@@ -115,7 +132,7 @@ class eshop_Setup extends core_ProtoSetup
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('eshopImages', 'Илюстрации в емаг', 'jpg,jpeg,png,bmp,gif,image/*', '3MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('eshopImages', 'Илюстрации в емаг', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'user', 'every_one');
         
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Разширяване на външната част за онлайн магазина', 'eshop_plg_External', 'cms_page_External', 'private');
