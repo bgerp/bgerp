@@ -636,6 +636,8 @@ class lab_Tests extends core_Master
     {
         $metQuery = lab_Methods::getQuery();
         
+        $paramsArr = array();
+        
         while ($methods = $metQuery->fetch()){
             
             $paramKey = $methods->paramId.'.'.type_Varchar::escape(lab_Parameters::fetchField($methods->paramId,'name').'.'.$methods->id);
