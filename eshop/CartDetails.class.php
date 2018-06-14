@@ -344,7 +344,7 @@ class eshop_CartDetails extends core_Detail
 			$settings = cms_Domains::getSettings();
 			$finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, NULL, $rec->currencyId, $settings->currencyId);
 			$row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
-		
+			
 			if($rec->oldPrice){
 				$difference = round($rec->finalPrice, 2) - round($rec->oldPrice, 2);
 				$caption = ($difference > 0) ? 'увеличена' : 'намалена';
@@ -555,6 +555,7 @@ class eshop_CartDetails extends core_Detail
 			$rec->oldPrice = $rec->finalPrice;
 			$rec->finalPrice = $finalPrice;
 			$rec->discount = $discount;
+			$rec->amount = $rec->finalPrice * ($rec->quantity / $rec->quantityInPack);
 			$update = TRUE;
 		}
 		
