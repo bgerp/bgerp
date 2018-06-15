@@ -2729,6 +2729,10 @@ span.sharing-history-title {
     .logoutBlock a:hover,
     .logoutBlock span.linkWithIcon:hover {
       opacity: 0.7; }
+    .logoutBlock a.selected-external-tab,
+    .logoutBlock span.linkWithIcon.selected-external-tab {
+      color: black !important;
+      text-shadow: 0 0px 0 black; }
 
 .narrow .logoutBlock {
   background: #babacb;
@@ -4416,7 +4420,7 @@ div.location.public {
 .eshop-product-list:hover .eshop-product-labels {
   color: #444444; }
 
-.eshop-product-labels > span {
+.eshop-product-labels span {
   margin-right: 10px;
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
@@ -4430,7 +4434,7 @@ div.location.public {
   text-shadow: 1px 1px 1px #cccccc;
   display: inline-block;
   margin-bottom: 5px; }
-  .eshop-product-labels > span:last-child {
+  .eshop-product-labels span:last-child {
     margin-right: 0 !important; }
 
 .eshop-product-images {

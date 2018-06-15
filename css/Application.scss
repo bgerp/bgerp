@@ -3160,6 +3160,10 @@ fieldset.sharing-history {
         &:hover {
             opacity: 0.7;
         }
+		&.selected-external-tab {
+			color: #000 !important;
+			text-shadow:  0 0px 0 #000;
+		}
     }
 }
 
@@ -4962,7 +4966,7 @@ div.location.public {
 	color: #444;
 }
 
-.eshop-product-labels > span {
+.eshop-product-labels span {
     margin-right:10px;
     @include border-radius(3px);
 	padding: 4px;
