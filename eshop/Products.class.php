@@ -342,21 +342,24 @@ class eshop_Products extends core_Master
             // Ако има само един артикул
             if($dQuery->count() == 1){
             	$dRec = $dQuery->fetch();
-            	$productRec = cat_Products::fetch($dRec->productId, 'measureId');
+            	$packs = cat_Products::getPacks($dRec->productId);
+            	$basePackagingId = key($packs);
             	
             	// Ако е избрана основната мярка 
-            	if(keylist::isIn($productRec->measureId, $dRec->packagings)){
+            	if(keylist::isIn($basePackagingId, $dRec->packagings)){
+            		$packRec = cat_products_Packagings::getPack($dRec->productId, $basePackagingId);
+            		$quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             		
             		// Ако има цена показва се в реда
-            		if($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $productRec->measureId, 1)){
+            		if($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $basePackagingId, $quantityInPack)){
             			$singlePrice = core_Type::getByName('double(decimals=2)')->toVerbal($singlePrice->price);
             			$settings = cms_Domains::getSettings();
             			$pRow->singlePrice = $singlePrice;
             			$pRow->singleCurrencyId = $settings->currencyId;
-            			$pRow->measureId = cat_UoM::getVerbal($productRec->measureId, 'name');
+            			$pRow->measureId = cat_UoM::getVerbal($basePackagingId, 'name');
             			
             			$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-            			$pRow->addBtn = ht::createFnBtn('Купи', NULL, FALSE, array('ef_icon' => "img/16/cart_go.png", 'title'=> 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $productRec->measureId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
+            			$pRow->addBtn = ht::createFnBtn('Купи|*', NULL, FALSE, array('ef_icon' => "img/16/cart_go.png", 'title'=> 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $basePackagingId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
 					}
             	}
             }
