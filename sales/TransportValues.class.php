@@ -570,7 +570,7 @@ class sales_TransportValues extends core_Manager
     	$params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
     	$totalFee = $Driver->getTransportFee($deliveryTermId, 1, 1, 1000, 1000, $params);
     	
-    	if($totalFee['fee'] <= 0) {
+    	if($totalFee['fee'] < 0) {
     		$toCountryId = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($codeAndCountryArr['countryId'] );
     		$errAddress = cond_DeliveryTerms::getVerbal($deliveryTermId, 'codeName') . ", " . $toCountryId . " " . $codeAndCountryArr['pCode'];
     		
