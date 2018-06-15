@@ -671,7 +671,7 @@ class eshop_Carts extends core_Master
     	}
     	
     	$this->requireRightFor('viewexternal', $rec);
-    	Mode::setPermanent('currentExternalTab', 'eshop_Carts');
+    	Mode::set('currentExternalTab', 'eshop_Carts');
     	
     	$tpl = self::renderView($rec);
     	$tpl->prepend("<div id = 'cart-view-single'>");
