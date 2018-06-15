@@ -398,7 +398,10 @@ class eshop_Carts extends core_Master
     	$cartName = self::getCartDisplayName();
     	$tpl->replace($cartName, 'text');
     	$tpl->replace($count, 'count');
-    	$tpl = ht::createLink($tpl, $url, FALSE, "title={$hint}, ef_icon=img/16/cart-black.png");
+    	
+    	$currentTab = Mode::get('currentExternalTab');
+    	$selectedClass = ($currentTab == 'eshop_Carts') ? 'class=selected-external-tab' : '';
+    	$tpl = ht::createLink($tpl, $url, FALSE, "title={$hint}, ef_icon=img/16/cart-black.png,{$selectedClass}");
 
 		$tpl->removeBlocks();
     	$tpl->removePlaces();
@@ -668,6 +671,7 @@ class eshop_Carts extends core_Master
     	}
     	
     	$this->requireRightFor('viewexternal', $rec);
+    	Mode::setPermanent('currentExternalTab', 'eshop_Carts');
     	
     	$tpl = self::renderView($rec);
     	$tpl->prepend("<div id = 'cart-view-single'>");

@@ -99,6 +99,7 @@ class cms_Profiles extends core_Master
         }
           
         $this->requireRightFor('single');
+        Mode::setPermanent('currentExternalTab', 'cms_Profiles');
         
     	// Създаваме обекта $data
         $data = new stdClass();
