@@ -52,7 +52,7 @@ function eshopActions() {
 		$(this).removeClass('inputError');
 		var packQuantity = $(this).val();
 		
-		if(packQuantity && ()!$.isNumeric(packQuantity) || packQuantity < 1)){
+		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1)){
 			$(this).addClass('inputError');
 		} else {
 			
