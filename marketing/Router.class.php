@@ -321,7 +321,7 @@ class marketing_Router
 	{
 		$name = str::utf2ascii($name);
 		$name = strtolower($name);
-		$name = preg_replace('/[^\w]/', ' ', $name);
+		$name = trim(preg_replace('/[^\w]/', ' ', $name));
 		$nameL = "#{$name}#";
 		
 		// Кеширане на думите, които трябва да се премахнат
