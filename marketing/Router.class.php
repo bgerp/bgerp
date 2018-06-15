@@ -17,7 +17,7 @@ class marketing_Router
 	/**
 	 * Работен кеш
 	 */
-	public static $companyTypes;
+	public static $companyTypes = array();
 	
 	
 	/**
@@ -322,23 +322,21 @@ class marketing_Router
 		$name = str::utf2ascii($name);
 		$name = strtolower($name);
 		$name = preg_replace('/[^\w]/', ' ', $name);
+		$nameL = "#{$name}#";
 		
-		if(!self::$companyTypes){
+		// Кеширане на думите, които трябва да се премахнат
+		if(!count(self::$companyTypes)){
 			$companyTypes = getFileContent('drdata/data/companyTypes.txt');
-            $companyTypes = explode("\n", $companyTypes);
-            foreach($companyTypes as $type) {
-                $type = trim($type, "\n| ");
-                if($type) {
-                    self::$companyTypes .= (self::$companyTypes ? '|' : '') . preg_quote($type, '/');
-                }
-            }
-		}
-	 
-		if(self::$companyTypes){
-            $name = preg_replace("/(" . self::$companyTypes . ")/", ' ', $name);
+			self::$companyTypes = explode("\n", $companyTypes);
 		}
 		
-		$name = trim($name);
+		// За всяка дума ако е в началото или края на името се маха
+		foreach(self::$companyTypes as $word) {
+			$word = trim($word, '|');
+			$nameL = str_replace(array("#{$word} ", " {$word}#"), array('', ''), $nameL);
+		}
+		
+		$name = trim(str_replace('#', '', $nameL));
 		
 		return $name;
 	}
