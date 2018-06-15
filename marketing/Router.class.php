@@ -321,7 +321,7 @@ class marketing_Router
 	{
 		$name = str::utf2ascii($name);
 		$name = strtolower($name);
-		$name = trim(preg_replace('/[^\w]/', ' ', $name));
+		$name = str::removeWhitespaces($name, ' ');
 		$nameL = "#{$name}#";
 		
 		// Кеширане на думите, които трябва да се премахнат
@@ -333,7 +333,8 @@ class marketing_Router
 		// За всяка дума ако е в началото или края на името се маха
 		foreach(self::$companyTypes as $word) {
 			$word = trim($word, '|');
-			$nameL = str_replace(array("#{$word} ", " {$word}#"), array('', ''), $nameL);
+			$word2 = str_replace('.', ' ', $word);
+			$nameL = str_replace(array("#{$word} ", " {$word}#", "#{$word2} ", " {$word2}#"), array('', ''), $nameL);
 		}
 		
 		$name = trim(str_replace('#', '', $nameL));
