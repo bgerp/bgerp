@@ -437,7 +437,10 @@ class acc_Balances extends core_Master
     		$rec->fromDate = $pRec->start;
     		$rec->toDate = $pRec->end;
     		$rec->periodId = $pRec->id;
-    		self::forceCalc($rec);
+            $j = 0;
+            do {
+    		    self::forceCalc($rec);
+            } while($rec->lastCalculateChange == 'yes' && $j++ < 10);
     	}
     	
     	// Освобождаваме заключването на процеса
