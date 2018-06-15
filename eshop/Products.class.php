@@ -359,7 +359,7 @@ class eshop_Products extends core_Master
             			$pRow->measureId = cat_UoM::getVerbal($basePackagingId, 'name');
             			
             			$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-            			$pRow->addBtn = ht::createFnBtn('Купи|*', NULL, FALSE, array('ef_icon' => "img/16/cart_go.png", 'title'=> 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $basePackagingId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
+            			$pRow->addBtn = ht::createFnBtn('Купи', NULL, FALSE, array('ef_icon' => "img/16/cart_go.png", 'title'=> 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $basePackagingId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
 					}
             	}
             }
