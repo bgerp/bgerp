@@ -333,8 +333,7 @@ class marketing_Router
 		// За всяка дума ако е в началото или края на името се маха
 		foreach(self::$companyTypes as $word) {
 			$word = trim($word, '|');
-			$word2 = str_replace('.', ' ', $word);
-			$nameL = str_replace(array("#{$word} ", " {$word}#", "#{$word2} ", " {$word2}#"), array('', ''), $nameL);
+			$nameL = str_replace(array("#{$word} ", " {$word}#"), array('', ''), $nameL);
 		}
 		
 		$name = trim(str_replace('#', '', $nameL));
