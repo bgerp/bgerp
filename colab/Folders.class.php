@@ -103,6 +103,8 @@ class colab_Folders extends core_Manager
 	        }
 	    }
 	    
+	    Mode::setPermanent('currentExternalTab', 'cms_Profiles');
+	   
 	    return parent::act_List();
 	}
 	

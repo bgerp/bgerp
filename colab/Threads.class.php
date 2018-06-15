@@ -131,7 +131,7 @@ class colab_Threads extends core_Manager
 	    }
 	    
 		$this->requireRightFor('single');
-		
+		Mode::setPermanent('currentExternalTab', 'cms_Profiles');
 		$this->currentTab = 'Нишка';
 		
 		// Създаваме обекта $data
@@ -234,6 +234,8 @@ class colab_Threads extends core_Manager
 	            return new Redirect(array('doc_Threads', 'list', 'folderId' => $folderId));
 	        }
 	    }
+	    
+	    Mode::setPermanent('currentExternalTab', 'cms_Profiles');
 	    
 	    // Ако има папка записва се като активна
 	    if(isset($folderId) && colab_Folders::haveRightFor('list', (object)array('folderId' => $folderId))){
