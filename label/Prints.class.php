@@ -837,8 +837,11 @@ class label_Prints extends core_Master
                 }
                 
                 if($clsInst instanceof core_Detail){
-                	$oMasterId = $clsInst->fetchField($rec->objectId, $clsInst->masterKey);
-                	$row->source = $clsInst->Master->getHyperlink($oMasterId);
+                	if($oMasterId = $clsInst->fetchField($rec->objectId, $clsInst->masterKey)){
+                		$row->source = $clsInst->Master->getHyperlink($oMasterId);
+                	} else {
+                		$row->source = "<span class='red'>" . tr("Проблем с показването") . "</span>";
+                	}
                 } elseif(cls::haveInterface('doc_DocumentIntf', $clsInst)){
                 	$row->source = $clsInst->getLink($rec->objectId, 0);
                 } else {
