@@ -422,7 +422,7 @@ class eshop_Products extends core_Master
         }
 
         if($data->addUrl) {
-            $layout->append(ht::createBtn('Нов продукт', $data->addUrl,  NULL, NULL, array('style' => 'margin-top:15px;')));
+            $layout->append(ht::createBtn('Нов продукт', $data->addUrl,  NULL, NULL, array('style' => 'margin-top:15px;', 'ef_icon' => 'img/16/star_2.png')));
         }
 
         return $layout;
