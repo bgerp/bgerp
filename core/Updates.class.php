@@ -223,7 +223,7 @@ class core_Updates extends core_Manager
     /**
      * Чекаутва тага на новата версия, към която ще бъде обновена базата данни
      */
-    public function getNewVersionTag()
+    public static function getNewVersionTag()
     {
         // Вземаме текущата версия на DB
         $dbVer = self::parseVersion(self::getBgErpDbVersion());
