@@ -405,7 +405,7 @@ class eshop_ProductDetails extends core_Detail
 		$fieldset->setField('quantity', 'tdClass=quantity-input-column');
 		
 		$table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
-		$listFields = arr::make("code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;");
+		$listFields = arr::make("code=Код,productId=Опция,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;");
 		if($data->optionsProductsCount == 1){
 			unset($listFields['code']);
 			unset($listFields['productId']);
