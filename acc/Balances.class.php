@@ -443,7 +443,7 @@ class acc_Balances extends core_Master
              do {
     		    self::forceCalc($rec);
                 self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
-            } while($rec->lastCalculateChange != 'yes' && $j++ < 10);
+            } while($rec->lastCalculateChange != 'no' && $j++ < 10);
     	}
     	
     	// Освобождаваме заключването на процеса
