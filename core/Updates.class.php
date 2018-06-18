@@ -301,7 +301,7 @@ class core_Updates extends core_Manager
         $best = '99.99';
 
         if(!$version) {
-            $version = self::getBgErpDbVersion();
+            $version = self::parseVersion(core_Packs::getConfigKey('core', 'LAST_DB_VERSION'));
         }
 
         foreach($releases as $rel) {
@@ -314,21 +314,6 @@ class core_Updates extends core_Manager
         }
 
         return $bestRel;
-    }
-
-
-    /**
-     * Връща текущата версия, до която са мигрирани данните в базата
-     */
-    public static function getBgErpDbVersion()
-    {
-        $res = core_Packs::getConfigKey('core', 'LAST_DB_VERSION');
-        
-        if(!$res) {
-            $res = '17.43';
-        } 
-
-        return $res;
     }
 
 

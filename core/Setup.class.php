@@ -189,13 +189,19 @@ defIfNot('CORE_MAX_ROWS_FOR_PRINTING', 1000);
 
 /**
  * Версия на кода, към която са актуални данните в базата
+ * По дефолт, стойността е равна на версия "Ореляк" - последната, 
+ * която носи всички миграции. Тази константа не трябва да се
+ * променя при по-нови версии
  */
-defIfNot('CORE_LAST_DB_VERSION', '');
+define('CORE_LAST_DB_VERSION', '17.43-Orelyak');
+
 
 /**
  * Версия на кода която работи в момента
+ * Тази константа не трябва да се ползва с core_Setup::getConfig(),
+ * а само с: core_setup::CURRENT_VERSION
  */
-defIfNot('CORE_CODE_VERSION', '17.43-Orelyak');
+define('CORE_CODE_VERSION', '17.43-Orelyak');
 
 
 /**
