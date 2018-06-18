@@ -225,13 +225,23 @@ class core_Updates extends core_Manager
      */
     public static function getNewVersionTag()
     {
+        try {
+            $lastDbVersion = core_Packs::getConfigKey('core', 'LAST_DB_VERSION');
+        } catch (core_exception_Db $e) {
+            if (!$e->isNotExistsDB() && !$e->isNotInitializedDB()) {
+                reportException($e);
+                
+                throw $e;
+            }
+        }
+        
         // Вземаме текущата версия на DB
-        $dbVer = self::parseVersion(self::getBgErpDbVersion());
-
+        $dbVer = self::parseVersion(self::parseVersion($lastDbVersion));
+        
         $pastVers = explode(',', core_Setup::PAST_VERSIONS);
         
         $newVer = core_Setup::CURRENT_VERSION;
-
+        
         foreach($pastVers as $v) {
             if(self::parseVersion($v) == $dbVer) {
                 $success = TRUE;
@@ -243,7 +253,7 @@ class core_Updates extends core_Manager
         if(!$success) {
             $newVer = NULL;
         }
-
+        
         return $newVer;
     }
 
