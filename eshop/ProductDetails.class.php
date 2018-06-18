@@ -44,7 +44,7 @@ class eshop_ProductDetails extends core_Detail
 	/**
 	 * Кои полета да се показват в листовия изглед
 	 */
-	public $listFields = 'productId,packagings=Опаковки/Мерки,modifiedOn,modifiedBy';
+	public $listFields = 'productId,title,packagings=Опаковки/Мерки,modifiedOn,modifiedBy';
 	
 	
 	/**
@@ -79,6 +79,9 @@ class eshop_ProductDetails extends core_Detail
 		$this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,silent');
 		$this->FLD('productId', "key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=eshop_ProductDetails::getSellableProducts)", 'caption=Артикул,silent,removeAndRefreshForm=packagings');
 		$this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
+		$this->FLD('title', 'varchar', 'caption=Заглавие');
+		
+		$this->setDbUnique('eshopProductId,title');
 	}
 		
      
@@ -270,7 +273,7 @@ class eshop_ProductDetails extends core_Detail
 	 */
 	public static function prepareExternal(&$data)
 	{
-		$data->rows = array();
+		$data->rows = $data->recs = array();
 		$fields = cls::get(get_called_class())->selectFields();
 		$fields['-external'] = $fields;
 		
@@ -278,9 +281,10 @@ class eshop_ProductDetails extends core_Detail
 		$query = self::getQuery();
 		$query->where("#eshopProductId = {$data->rec->id}");
 		$query->orderBy('productId');
+		$data->optionsProductsCount = $query->count();
 		
 		while($rec = $query->fetch()){
-			$newRec = (object)array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId);
+			$newRec = (object)array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title);
 			if(!self::getPublicDisplayPrice($rec->productId)) continue;
 			$packagins = keylist::toArray($rec->packagings);
 			
@@ -293,12 +297,14 @@ class eshop_ProductDetails extends core_Detail
 				$packRec = cat_products_Packagings::getPack($rec->productId, $packagingId);
 				$clone->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
 				
+				$data->recs[] = $clone;
 				$data->rows[] = self::getExternalRow($clone);
 				$i++;
 			}
 		}
 		
 		if(count($data->rows)){
+			
 			uasort($data->rows, function($obj1, $obj2) {
 				if($obj1->orderCode == $obj2->orderCode){
 					return $obj1->orderPrice > $obj2->orderPrice;
@@ -327,7 +333,7 @@ class eshop_ProductDetails extends core_Detail
 	private static function getExternalRow($rec)
 	{
 		$row = new stdClass();
-		$row->productId = cat_Products::getVerbal($rec->productId, 'name');
+		$row->productId = (empty($rec->title)) ? cat_Products::getVerbal($rec->productId, 'name') : core_Type::getByName('varchar')->toVerbal($rec->title);
 		$fullCode = cat_products::getVerbal($rec->productId, 'code');
 		$row->code = substr($fullCode, 0, 10);
 		$row->code = "<span title={$fullCode}>{$row->code}</span>";
@@ -400,6 +406,10 @@ class eshop_ProductDetails extends core_Detail
 		
 		$table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
 		$listFields = arr::make("code=Код,productId=Артикул,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;");
+		if($data->optionsProductsCount == 1){
+			unset($listFields['code']);
+			unset($listFields['productId']);
+		}
 		
 		$settings = cms_Domains::getSettings();
 		if(empty($settings)){
