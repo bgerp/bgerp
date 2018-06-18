@@ -341,7 +341,7 @@ class eshop_ProductDetails extends core_Detail
 		$row->orderPrice = $catalogPriceInfo->price;
 		$row->orderCode = $fullCode;
 		$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-		$row->btn = ht::createFnBtn('Добавяне', NULL, FALSE, array('title'=> 'Добавяне на артикул', 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn'));
+		$row->btn = ht::createFnBtn('Купи||Buy', NULL, FALSE, array('title'=> "Добавяне в|* " . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn'));
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 		
 		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
