@@ -367,7 +367,10 @@ class bgerp_Setup extends core_ProtoSetup {
             
         } while (!empty($haveError) && ($loop<5));
         
+        // Записваме в конфигурацията, че базата е мигрирана към текущата версия
+        core_Packs::setConfig('core', array('CORE_LAST_DB_VERSION' => core_Setup::CURRENT_VERSION)); 
 
+        // Започваме пак да записваме дебъг съобщенията
         core_Debug::$isLogging = TRUE;
         
         
@@ -437,6 +440,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $html .= parent::install();
 
         core_SystemLock::remove();
+
         return $html;
     }
 

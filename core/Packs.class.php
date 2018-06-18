@@ -1135,6 +1135,7 @@ class core_Packs extends core_Manager
             }
 
             $form->FNC($field, $type, $params);
+ 
           
             if (($data[$field] || $data[$field] === (double) 0 || $data[$field] === (int) 0) && 
                 (!defined($field) || ($data[$field] != constant($field)))) { 
@@ -1143,7 +1144,11 @@ class core_Packs extends core_Manager
                 $form->setDefault($field, constant($field));
                 $form->setField($field, array('attr' => array('class' => 'const-default-value')));
             }
-        }
+            
+            if($params['readOnly']) {
+                $form->setReadOnly($field);
+            }
+      }
 
         $form->setHidden('pack', $rec->name);
 
