@@ -226,7 +226,7 @@ class core_Updates extends core_Manager
     public static function getNewVersionTag()
     {
         try {
-            $lastDbVersion = core_Packs::getConfigKey('core', 'CORE_LAST_DB_VERSION');
+            $lastDbVersion = core_Setup::get('LAST_DB_VERSION');
         } catch (core_exception_Db $e) {
             if (!$e->isNotExistsDB() && !$e->isNotInitializedDB()) {
                 reportException($e);
@@ -311,7 +311,7 @@ class core_Updates extends core_Manager
         $best = '99.99';
 
         if(!$version) {
-            $version = self::parseVersion(core_Packs::getConfigKey('core', 'CORE_LAST_DB_VERSION'));
+            $version = self::parseVersion(core_Setup::get('LAST_DB_VERSION'));
         }
 
         foreach($releases as $rel) {
