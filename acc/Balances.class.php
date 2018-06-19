@@ -403,8 +403,6 @@ class acc_Balances extends core_Master
         // Отбелязваме, кога за последно е калкулиран този баланс
         $rec->lastCalculate = dt::now();
         self::save($rec, 'lastCalculate,lastCalculateChange');
-        
-        self::logDebug("After SAVE: {$rec->lastCalculate}; {$rec->lastCalculateChange};");
     }
     
     
