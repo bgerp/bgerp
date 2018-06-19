@@ -259,6 +259,39 @@ class core_Updates extends core_Manager
 
 
     /**
+     * Връща версиите за посоченото репо и бранч
+     * Ако не са посочени параметри, вземат се текущите за bgERP
+     */
+    public static function getReleaseTags($branch = NULL, $repo = NULL, &$log = NULL)
+    {
+        setIfNot($branch, BGERP_GIT_BRANCH, 'master');
+        setIfNot($repo, EF_APP_PATH);
+
+        $tags = git_Lib::getTags($repo, $log);
+        
+        $res = array();
+
+        if(is_array($tags)) {
+            foreach($tags as $t) {
+                $id = self::parseVersion($t);
+                if($id) {
+                    foreach(array('dev', 'test', 'DC1', 'DC2', '.') as $b) {
+                        if(stripos($t, $b) !== FALSE) {
+                            if($b == $branch || ($branch == 'master' && $b == '.')) {
+                                $res[$id] = $t;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Намира датата на последния комит в gitHub
      */
     public static function getLastCommitOnGitHub($owner = 'bgerp', $repo = 'bgerp', $branch = 'master')
