@@ -236,22 +236,22 @@ class core_Updates extends core_Manager
         }
         
         // Вземаме текущата версия на DB
-        $dbVer = self::parseVersion(self::parseVersion($lastDbVersion));
+        $dbVer = self::parseVersion($lastDbVersion);
         
         $pastVers = self::getReleaseTags();
         
         $newVer = NULL;
         
+        $success = FALSE;
         foreach($pastVers as $v) {
-            if(self::parseVersion($v) == $dbVer) {
-                $success = TRUE;
+            if ($success) {
+                $newVer = $v;
                 break;
             }
-            $newVer = $v;
-        }
-
-        if(!$success) {
-            $newVer = NULL;
+            
+            if(self::parseVersion($v) == $dbVer) {
+                $success = TRUE;
+            }
         }
         
         return $newVer;
