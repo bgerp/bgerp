@@ -1018,6 +1018,8 @@ class sales_Quotations extends core_Master
     	
     	// Създаваме нова продажба от офертата
     	$saleId = sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+    	sales_Sales::logWrite("Създаване от оферта", $saleId);
+    	
     	if(isset($rec->bankAccountId)){
     		$uRec = (object)array('id' => $saleId, 'bankAccountId' => bank_OwnAccounts::fetchField($rec->bankAccountId, 'bankAccountId'));
     		cls::get('sales_Sales')->save_($uRec);
@@ -1058,6 +1060,7 @@ class sales_Quotations extends core_Master
     	// За всеки детайл на офертата подаваме го като детайл на продажбата
     	foreach ($items as $item){
     		$addedRecId = sales_Sales::addRow($sId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->tolerance, $item->term, $item->notes);
+    		sales_Sales::logWrite("Създаване на детайл от оферта", $sId);
     		
     		// Копира се и транспорта, ако има
     		$cRec = sales_TransportValues::get($this, $item->quotationId, $item->id);
