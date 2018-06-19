@@ -226,7 +226,7 @@ class core_Updates extends core_Manager
     public static function getNewVersionTag()
     {
         try {
-            $lastDbVersion = core_Packs::getConfigKey('core', 'CORE_LAST_DB_VERSION');
+            $lastDbVersion = core_Setup::get('LAST_DB_VERSION');
         } catch (core_exception_Db $e) {
             if (!$e->isNotExistsDB() && !$e->isNotInitializedDB()) {
                 reportException($e);
@@ -238,9 +238,9 @@ class core_Updates extends core_Manager
         // Вземаме текущата версия на DB
         $dbVer = self::parseVersion(self::parseVersion($lastDbVersion));
         
-        $pastVers = explode(',', core_Setup::PAST_VERSIONS);
+        $pastVers = self::getReleaseTags();
         
-        $newVer = core_Setup::CURRENT_VERSION;
+        $newVer = NULL;
         
         foreach($pastVers as $v) {
             if(self::parseVersion($v) == $dbVer) {
@@ -255,6 +255,42 @@ class core_Updates extends core_Manager
         }
         
         return $newVer;
+    }
+
+
+    /**
+     * Връща версиите за посоченото репо и бранч
+     * Ако не са посочени параметри, вземат се текущите за bgERP
+     */
+    public static function getReleaseTags($branch = NULL, $repo = NULL, &$log = NULL)
+    {
+        setIfNot($branch, BGERP_GIT_BRANCH, 'master');
+        setIfNot($repo, EF_APP_PATH);
+
+        $tags = git_Lib::getTags($repo, $log);
+        
+        $res = array();
+
+        if(is_array($tags)) {
+            foreach($tags as $t) {
+                $id = self::parseVersion($t);
+                if($id) {
+                    foreach(array('dev', 'test', 'DC1', 'DC2', '.') as $b) {
+                        if(stripos($t, $b) !== FALSE) {
+                            if($b == $branch || ($branch == 'master' && $b == '.')) {
+                                $res[$id] = $t;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Подреждаме версиите от най-новата към по-старите
+        krsort($res);
+
+        return $res;
     }
 
 
@@ -311,7 +347,7 @@ class core_Updates extends core_Manager
         $best = '99.99';
 
         if(!$version) {
-            $version = self::parseVersion(core_Packs::getConfigKey('core', 'CORE_LAST_DB_VERSION'));
+            $version = self::parseVersion(core_Setup::get('LAST_DB_VERSION'));
         }
 
         foreach($releases as $rel) {

@@ -104,7 +104,7 @@ class sales_QuotationsDetails extends doc_Detail {
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'price,packPrice,tolerance,term,weight';
+    public $fieldsNotToClone = 'price,packPrice,tolerance,term,weight,quantityInPack';
     
     
   	/**
@@ -1111,5 +1111,8 @@ class sales_QuotationsDetails extends doc_Detail {
     		$rec->deliveryTimeFromFee = $cRec->deliveryTime;
     		$rec->syncFee = TRUE;
     	}
+    	
+    	$packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+    	$rec->quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
     }
 }

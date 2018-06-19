@@ -356,7 +356,7 @@ class eshop_Products extends core_Master
             			$pRow->measureId = cat_UoM::getShortName($measureId);
             			
             			$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-            			$pRow->addBtn = ht::createFnBtn('Купи', NULL, FALSE, array('ef_icon' => "img/16/cart_go.png", 'title'=> 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $basePackagingId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
+            			$pRow->addBtn = ht::createFnBtn('Купи', NULL, FALSE, array('ef_icon' => "img/16/cart_go.png", 'title'=> 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $measureId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
 					}
             	}
             }
@@ -422,7 +422,7 @@ class eshop_Products extends core_Master
         }
 
         if($data->addUrl) {
-            $layout->append(ht::createBtn('Нов продукт', $data->addUrl,  NULL, NULL, array('style' => 'margin-top:15px;')));
+            $layout->append(ht::createBtn('Нов продукт', $data->addUrl,  NULL, NULL, array('style' => 'margin-top:15px;', 'ef_icon' => 'img/16/star_2.png')));
         }
 
         return $layout;
