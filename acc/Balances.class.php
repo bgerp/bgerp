@@ -429,7 +429,9 @@ class acc_Balances extends core_Master
     	$pQuery->orderBy('#end', 'ASC');
     	$pQuery->where("#state != 'closed'");
     	$pQuery->where("#state != 'draft'");
-            		 
+        
+        $rc = 0;
+        
     	while($pRec = $pQuery->fetch()) {
  
     		$rec = new stdClass();
@@ -437,7 +439,13 @@ class acc_Balances extends core_Master
     		$rec->fromDate = $pRec->start;
     		$rec->toDate = $pRec->end;
     		$rec->periodId = $pRec->id;
-    		self::forceCalc($rec);
+            
+            $j = 0;
+	        do {
+    		    self::forceCalc($rec);
+                self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
+            } while($rec->lastCalculateChange != 'no' && $j++ < 10 && $rc == 0);
+			$rc++
     	}
     	
     	// Освобождаваме заключването на процеса
