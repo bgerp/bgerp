@@ -440,17 +440,17 @@ class acc_Balances extends core_Master
     		$rec->toDate = $pRec->end;
     		$rec->periodId = $pRec->id;
             	
-		    // Преизчисляваме баланса няколко пъти, за да подаде верни данни на следващите ...
+		// Преизчисляваме баланса няколко пъти, за да подаде верни данни на следващите ...
 		
-            $j = 0;
+            	$j = 0;
 	        do {
     		    self::forceCalc($rec);
       		    self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
-            } while($rec->lastCalculateChange != 'no' && $j++ < 10 && $rc);
+            	} while($rec->lastCalculateChange != 'no' && $j++ < 10 && $rc);
 		
-		    // ... но само първият (най-старият; този в който има нови данни)
+		// ... но само първият (най-старият; този в който има нови данни)
 		
-		    $rc = FALSE;
+		$rc = FALSE;
     	}
     	
     	// Освобождаваме заключването на процеса
