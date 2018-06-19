@@ -35,7 +35,7 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * Името на полито, по което плъгина GroupByDate ще групира редовете
+     * Името на полето, по което плъгина GroupByDate ще групира редовете
      */
     var $groupByDateField = 'modifiedOn';
     
@@ -139,11 +139,11 @@ class bgerp_Notifications extends core_Manager
             $priority = 'normal';
         }
 
-        // Потребителя не може да си прави нотификации сам на себе си
+        // Потребителят не може да си прави нотификации сам на себе си
         // Режима 'preventNotifications' спира задаването на всякакви нотификации
         if (($userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return ;
         
-        // Да не се нотифицира контрактора
+        // Да не се нотифицира контракторът
         if (core_Users::haveRole('partner', $userId)) return ;
         
         $rec = new stdClass();
@@ -380,7 +380,7 @@ class bgerp_Notifications extends core_Manager
      *
      * @param core_Manager $mvc
      * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param stdClass $rec Това е записът в машинно представяне
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
@@ -418,7 +418,7 @@ class bgerp_Notifications extends core_Manager
         }
         
         // Превеждаме съобщението
-        // Спираме преовада и въте, ако има за превеждане, тогава се превежда
+        // Спираме превода и вътре, ако има за превеждане, тогава се превежда
         $row->msg = tr("|*{$row->msg}");
         $row->msg = str::limitLen($row->msg, self::maxLenTitle, 20, " ... ", TRUE);
         
@@ -427,7 +427,7 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * Екшън връщащ бутоните за контектстното меню
+     * Екшън връщащ бутоните за контекстното меню
      */
     function act_getContextMenu()
     {
@@ -642,7 +642,7 @@ class bgerp_Notifications extends core_Manager
                 $key = $tKey;
             }
             
-            // Ако преди това не е била забранане стойност
+            // Ако преди това не е била забранена стойност
             if (!$valsArr[$key][$kVal] || ($valsArr[$key][$kVal] != 'no')) {
                 $stoppedArr[$kClass][$kVal] = $valsArr[$key][$kVal];
                 $valsArr[$key][$kVal] = 'no';
@@ -790,7 +790,7 @@ class bgerp_Notifications extends core_Manager
         
         self::save($rec, 'state, lastTime');
         
-        // Ако сме активирали нотификацията, връщаме автоматично нилираните настройки за нотифициране
+        // Ако сме активирали нотификацията, връщаме автоматично нулираните настройки за нотифициране
         if ($rec->state == 'active') {
             $valsArr = self::getAutoNotifyArr($rec, 'revert');
         }
@@ -803,7 +803,7 @@ class bgerp_Notifications extends core_Manager
             
             $notifyMsg = $notifyMsg ? "<br>" . $notifyMsg : '';
             
-            return new Redirect(array('Portal', 'show'), "|Успепшно {$msg} нотификацията|*{$notifyMsg}");
+            return new Redirect(array('Portal', 'show'), "|Успешно {$msg} нотификацията|*{$notifyMsg}");
         }
         
         $res = $this->action('render');
@@ -987,7 +987,7 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * Помощна фунцкия за парсирана не URL-то
+     * Помощна фунцкия за парсиране на URL-то
      * 
      * @param mixed $rec
      * @return array
@@ -1052,7 +1052,7 @@ class bgerp_Notifications extends core_Manager
         
         $modifiedBefore = dt::subtractSecs(180);
         
-        // Инвалиидиране на кеша след запазване на подредбата -  да не стои запазено до следващото инвалидиране
+        // Инвалидиране на кеша след запазване на подредбата - да не стои запазено до следващото инвалидиране
         $cQuery->where(array("#modifiedOn > '[#1#]'", $modifiedBefore));
         $cQuery->orWhere(array("#lastTime > '[#1#]'", $modifiedBefore));
         $cQuery->limit(1);
@@ -1376,7 +1376,7 @@ class bgerp_Notifications extends core_Manager
         // Ако заявката е по ajax
         if (Request::get('ajax_mode')) {
             
-            // Броя на нотифиакциите
+            // Броя на нотификациите
             $notifCnt = static::getOpenCnt();
             
             $res = array();
@@ -1431,7 +1431,7 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * Колко нови за потребителя нотификации има, след позледното разглеждане на портала?
+     * Колко нови за потребителя нотификации има, след последното разглеждане на портала?
      */
     public static function getNewCntFromLastOpen($userId = NULL, $arg = NULL)
     {
