@@ -65,9 +65,9 @@ class git_Lib
     /**
      * Връща текущият бранч на репозитори
      * 
-     * @param string $repoPath - път до git репозитори
-     * @param array() $log - масив с логове
-     * @return boolean - При неуспех - FALSE или текущият бранч
+     * @param string    $repoPath - път до git репозитори
+     * @param array     $log - масив с логове
+     * @return array    масив със всички тагове
      */
     public static function getTags($repoPath, &$log)
     {
