@@ -4480,7 +4480,7 @@ div.location.public {
     text-align: center; }
   .eshop-product-list .eshop-product-list-name {
     font-weight: bold;
-    padding: 0 5px 8px 5px;
+    padding: 0 5px 8px 0px;
     height: 1%; }
   .eshop-product-list:hover {
     border: solid 1px #bbbbbb; }
