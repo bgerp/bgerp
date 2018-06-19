@@ -2914,8 +2914,7 @@ table .eshop-btn {
   color: #333333 !important;
   border-radius: 3px;
   box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
-  background-color: #f6f6f6 !important;
-  float: right; }
+  background-color: #f6f6f6 !important; }
   .eshop-btn:hover {
     background-color: #eeeeee !important; }
   .eshop-btn:disabled {
@@ -2923,7 +2922,6 @@ table .eshop-btn {
     color: #666666 !important; }
 
 .productBtn {
-  float: left;
   padding: 4px 8px 5px 25px !important;
   font-size: 0.8em;
   font-family: Arial, sans-serif;
@@ -4427,7 +4425,6 @@ div.location.public {
   -ms-border-radius: 3px;
   border-radius: 3px;
   padding: 4px;
-  float: left;
   font-size: 0.8em;
   background-color: #e6e6e6;
   border: solid 1px #d8d8d8;
@@ -4475,7 +4472,7 @@ div.location.public {
   _height: 1%; }
   .eshop-product-list .richtext {
     line-height: 1.35em; }
-  .eshop-product-list .eshop-product-image {
+  .eshop-product-list .eshopLink {
     float: left;
     width: 120px;
     height: 120px;
