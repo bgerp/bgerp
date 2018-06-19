@@ -411,7 +411,7 @@ class eshop_Products extends core_Master
                 $url = self::getUrl($rec);
 
                 $row->name = ht::createLink($row->name, $url);
-                $row->image = ht::createLink($row->image, $url);
+                $row->image = ht::createLink($row->image, $url, FALSE, 'class=eshopLink');
 
                 $pTpl->placeObject($row);
                 $pTpl->removePlaces();

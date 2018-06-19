@@ -4473,10 +4473,11 @@ div.location.public {
   .eshop-product-list .richtext {
     line-height: 1.35em; }
   .eshop-product-list .eshopLink {
-    float: left;
+    display: block;
     width: 120px;
     height: 120px;
-    margin: 0 12px 0 0; }
+    margin: 0 12px 0 0;
+    text-align: center; }
   .eshop-product-list .eshop-product-list-name {
     font-weight: bold;
     padding: 0 5px 8px 5px;

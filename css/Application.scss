@@ -5023,10 +5023,11 @@ div.location.public {
         line-height: 1.35em;
     }
 	.eshopLink {
-	    float: left;
+		display: block;
 	    width: 120px;
 	    height: 120px;
 	    margin: 0 12px 0 0;
+		text-align: center;
 	}
 	.eshop-product-list-name {
 		font-weight: bold;
