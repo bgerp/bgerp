@@ -343,9 +343,10 @@ class eshop_Products extends core_Master
             if($dQuery->count() == 1){
             	$dRec = $dQuery->fetch();
             	$measureId = cat_Products::fetchField($dRec->productId, 'measureId');
+            	$pcsId = cat_UoM::fetchBySinonim('pcs')->id;
             	
-            	// Ако е избрана основната мярка 
-            	if(keylist::isIn($measureId, $dRec->packagings)){
+            	// Ако мярката е брой и е показано да се показва
+            	if($measureId == $pcsId && keylist::isIn($measureId, $dRec->packagings)){
             		
             		// Ако има цена показва се в реда
             		if($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $measureId, 1)){
