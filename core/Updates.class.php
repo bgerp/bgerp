@@ -238,9 +238,9 @@ class core_Updates extends core_Manager
         // Вземаме текущата версия на DB
         $dbVer = self::parseVersion(self::parseVersion($lastDbVersion));
         
-        $pastVers = explode(',', core_Setup::PAST_VERSIONS);
+        $pastVers = self::getReleaseTags();
         
-        $newVer = core_Setup::CURRENT_VERSION;
+        $newVer = NULL;
         
         foreach($pastVers as $v) {
             if(self::parseVersion($v) == $dbVer) {
@@ -286,6 +286,9 @@ class core_Updates extends core_Manager
                 }
             }
         }
+        
+        // Подреждаме версиите от най-новата към по-старите
+        krsort($res);
 
         return $res;
     }

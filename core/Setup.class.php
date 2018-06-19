@@ -225,12 +225,6 @@ class core_Setup extends core_ProtoSetup {
     
 
     /**
-     * Предишни версии
-     */
-    const PAST_VERSIONS = 'v16.44 (Pascal),v16.24 (Ком)';
-
-
-    /**
      * Версия на пакета
      */
     var $version = '0.1';
