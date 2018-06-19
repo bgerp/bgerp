@@ -430,7 +430,7 @@ class acc_Balances extends core_Master
     	$pQuery->where("#state != 'closed'");
     	$pQuery->where("#state != 'draft'");
         
-        $rc;
+        $rc = TRUE;
         
     	while($pRec = $pQuery->fetch()) {
  
@@ -445,8 +445,8 @@ class acc_Balances extends core_Master
 	        do {
     		    self::forceCalc($rec);
       		    self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
-            	} while($rec->lastCalculateChange == 'yes' && $j++ < 10 && $rc);
-		$rc == FALSE;
+            	} while($rec->lastCalculateChange != 'no' && $j++ < 10 && $rc);
+		$rc = FALSE;
     	}
     	
     	// Освобождаваме заключването на процеса
