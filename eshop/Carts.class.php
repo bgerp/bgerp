@@ -398,7 +398,10 @@ class eshop_Carts extends core_Master
     	$cartName = self::getCartDisplayName();
     	$tpl->replace($cartName, 'text');
     	$tpl->replace($count, 'count');
-    	$tpl = ht::createLink($tpl, $url, FALSE, "title={$hint}, ef_icon=img/16/cart-black.png");
+    	
+    	$currentTab = Mode::get('currentExternalTab');
+    	$selectedClass = ($currentTab == 'eshop_Carts') ? 'class=selected-external-tab' : '';
+    	$tpl = ht::createLink($tpl, $url, FALSE, "title={$hint}, ef_icon=img/16/cart-black.png,{$selectedClass}");
 
 		$tpl->removeBlocks();
     	$tpl->removePlaces();
@@ -668,6 +671,7 @@ class eshop_Carts extends core_Master
     	}
     	
     	$this->requireRightFor('viewexternal', $rec);
+    	Mode::set('currentExternalTab', 'eshop_Carts');
     	
     	$tpl = self::renderView($rec);
     	$tpl->prepend("<div id = 'cart-view-single'>");
@@ -1244,6 +1248,8 @@ class eshop_Carts extends core_Master
     private static function setDefaultsFromFolder(&$form, $folderId)
     {
     	$rec = &$form->rec;
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	$isColab = isset($cu) && core_Users::isContractor($cu);
     	
     	// Ако има избрана папка се записват контрагент данните
     	if(isset($folderId)){
@@ -1257,8 +1263,7 @@ class eshop_Carts extends core_Master
     		}
     		$locations = crm_Locations::getContragentOptions('crm_Companies', $contragentData->companyId);
     	} else {
-    		$cu = core_Users::getCurrent('id', FALSE);
-    		if(isset($cu) && core_Users::isContractor($cu)){
+    		if($isColab === TRUE){
     			$locations = crm_Locations::getContragentOptions('crm_Persons', crm_Profiles::getProfile($cu)->id);
     		}
     	}
@@ -1276,6 +1281,28 @@ class eshop_Carts extends core_Master
     		foreach (array('deliveryCountry' => 'countryId', 'deliveryPCode' => 'pCode', 'deliveryPlace' => 'place', 'deliveryAddress' => 'address') as $delField => $locField){
     			if(!empty($locationRec->{$locField})){
     				$form->setDefault($delField, $locationRec->{$locField});
+    			}
+    		}
+    	}
+    	
+    	// Ако е колаборатор
+    	if($isColab === TRUE){
+    		
+    		// Адреса за доставка е този от последната количка
+    		if($lastCart = eshop_Carts::fetch("#userId = {$cu} AND #state = 'active'", 'termId,deliveryCountry,deliveryPCode,deliveryPlace,deliveryAddress')){
+    			foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress') as $field){
+    				$form->setDefault($field, $lastCart->{$field});
+    			}
+    		} else {
+    			
+    			// Ако няма е като този на избраната папка
+    			if(isset($folderId)){
+    				if($contragentData = doc_Folders::getContragentData($folderId)){
+    					$form->setDefault('deliveryCountry', $contragentData->countryId);
+    					$form->setDefault('deliveryPCode', $contragentData->pCode);
+    					$form->setDefault('deliveryPlace', $contragentData->place);
+    					$form->setDefault('deliveryAddress', $contragentData->address);
+    				}
     			}
     		}
     	}

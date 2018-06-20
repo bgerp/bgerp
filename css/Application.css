@@ -2729,6 +2729,10 @@ span.sharing-history-title {
     .logoutBlock a:hover,
     .logoutBlock span.linkWithIcon:hover {
       opacity: 0.7; }
+    .logoutBlock a.selected-external-tab,
+    .logoutBlock span.linkWithIcon.selected-external-tab {
+      color: black !important;
+      text-shadow: 0 0px 0 black; }
 
 .narrow .logoutBlock {
   background: #babacb;
@@ -2910,8 +2914,7 @@ table .eshop-btn {
   color: #333333 !important;
   border-radius: 3px;
   box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
-  background-color: #f6f6f6 !important;
-  float: right; }
+  background-color: #f6f6f6 !important; }
   .eshop-btn:hover {
     background-color: #eeeeee !important; }
   .eshop-btn:disabled {
@@ -2919,7 +2922,6 @@ table .eshop-btn {
     color: #666666 !important; }
 
 .productBtn {
-  float: left;
   padding: 4px 8px 5px 25px !important;
   font-size: 0.8em;
   font-family: Arial, sans-serif;
@@ -4416,21 +4418,20 @@ div.location.public {
 .eshop-product-list:hover .eshop-product-labels {
   color: #444444; }
 
-.eshop-product-labels > span {
+.eshop-product-labels span {
   margin-right: 10px;
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
   -ms-border-radius: 3px;
   border-radius: 3px;
   padding: 4px;
-  float: left;
   font-size: 0.8em;
   background-color: #e6e6e6;
   border: solid 1px #d8d8d8;
   text-shadow: 1px 1px 1px #cccccc;
   display: inline-block;
   margin-bottom: 5px; }
-  .eshop-product-labels > span:last-child {
+  .eshop-product-labels span:last-child {
     margin-right: 0 !important; }
 
 .eshop-product-images {
@@ -4471,14 +4472,15 @@ div.location.public {
   _height: 1%; }
   .eshop-product-list .richtext {
     line-height: 1.35em; }
-  .eshop-product-list .eshop-product-image {
-    float: left;
+  .eshop-product-list .eshopLink {
+    display: block;
     width: 120px;
     height: 120px;
-    margin: 0 12px 0 0; }
+    margin: 0 12px 0 0;
+    text-align: center; }
   .eshop-product-list .eshop-product-list-name {
     font-weight: bold;
-    padding: 0 5px 8px 5px;
+    padding: 0 5px 8px 0px;
     height: 1%; }
   .eshop-product-list:hover {
     border: solid 1px #bbbbbb; }

@@ -3445,8 +3445,9 @@ class doc_Containers extends core_Manager
      * @param int $containerId        - ид на контейнер на документ
      * @param boolean $ignorePartners - да се игнорират ли потребителите с роля партньор или не
      * @return array $subscribed      - масив с абонираните потребители
+     * @return boolean $ignoreCurrent
      */
-    public static function getSubscribedUsers($containerId, $ignorePartners = TRUE)
+    public static function getSubscribedUsers($containerId, $ignorePartners = TRUE, $ignoreCurrent = FALSE)
     {
     	// Кои са абонираните потребители
     	$subscribed = array();
@@ -3485,6 +3486,11 @@ class doc_Containers extends core_Manager
     		}
     	}
     	
+    	if ($ignoreCurrent) {
+    	    $cu = core_Users::getCurrent();
+    	    unset($subscribed[$cu]);
+    	}
+    	
     	// Връщане на абонираните потребители
     	return $subscribed;
     }
@@ -3495,24 +3501,36 @@ class doc_Containers extends core_Manager
      * 
      * @param int $containerId - ид на контейнера
      * @param string $msg      - съобщение за нотифициране
-     * @param array|NULL $url  - съобщение за нотифициране
-     * @return void
+     * @param boolean $removeOldNotify
+     * @param boolean $notifyToThread
+     * @param NULL|array $sharedUsers
      */
-    public static function notifyToSubscribedUsers($containerId, $msg, $url = NULL)
+    public static function notifyToSubscribedUsers($containerId, $msg, $removeOldNotify = FALSE, $notifyToThread = TRUE, $sharedUsers = NULL)
     {
-    	// Намиране на споделените потребители в документа
-    	$sharedUsers = doc_Containers::getSubscribedUsers($containerId);
-    	if(!count($sharedUsers)) return;
+        if (!isset($sharedUsers)) {
+            // Намиране на споделените потребители в документа
+            $sharedUsers = doc_Containers::getSubscribedUsers($containerId, TRUE, TRUE);
+        }
+        
+    	if (!count($sharedUsers)) return;
     	
-    	if(!isset($url)){
-    		$doc = doc_Containers::getDocument($containerId);
-    		$url = array($doc->getInstance(), 'single', $doc->that);
-    		unset($url['ret_url']);
-    	}
+		$doc = doc_Containers::getDocument($containerId);
+		$dRec = $doc->fetch();
+		
+		$customUrl = array($doc->getInstance(), 'single',  $doc->that);
+		if ($dRec->threadId && $notifyToThread) {
+		    $url = array('doc_Containers', 'list', 'threadId' => $dRec->threadId);
+		} else {
+		    $url = $customUrl;
+		}
     	
+		if ($removeOldNotify) {
+		    bgerp_Notifications::clear($url);
+		}
+		
     	// На всеки от абонираните потребители се изпраща нотификацията
-    	foreach ($sharedUsers as $userId){
-    		bgerp_Notifications::add($msg, $url, $userId);
+		foreach ($sharedUsers as $userId) {
+    	    bgerp_Notifications::add($msg, $url, $userId, 'normal', $customUrl);
     	}
     }
 }

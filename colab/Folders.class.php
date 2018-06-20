@@ -90,9 +90,7 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
-	 * 
-	 * 
-	 * @see core_Manager::act_List()
+	 * Лист на папките на колабораторите
 	 */
 	function act_List()
 	{
@@ -103,6 +101,8 @@ class colab_Folders extends core_Manager
 	        }
 	    }
 	    
+	    Mode::set('currentExternalTab', 'cms_Profiles');
+	   
 	    return parent::act_List();
 	}
 	

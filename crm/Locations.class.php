@@ -313,6 +313,13 @@ class crm_Locations extends core_Master {
     			$rec->title = $mvc->getVerbal($rec, 'type') . " ({$count})";
     		}
     	}
+    	
+    	// Записване в лога
+    	if(isset($rec->exState) && isset($rec->state) && $rec->exState != $rec->state){
+    		$rec->_logMsg = (($rec->state == 'rejected') ? 'Оттегляне' : 'Възстановяване') . ' на локация';
+    	} else {
+    		$rec->_logMsg = (isset($rec->id) ? 'Редактиране' : 'Добавяне') . ' на локация';
+    	}
     }
     
     
@@ -373,6 +380,10 @@ class crm_Locations extends core_Master {
     	
     	// Трябва да е тук, за да може да сработят on_ShutDown процесите
     	$mvc->updateNumbers($rec);
+    	
+    	if(isset($rec->contragentCls) && isset($rec->contragentId)){
+    		cls::get($rec->contragentCls)->logWrite($rec->_logMsg, $rec->contragentId);
+    	}
     }
     
     

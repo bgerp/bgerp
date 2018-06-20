@@ -254,6 +254,9 @@ class embed_Manager extends core_Master
 			}
 		}
 		
+		$me = cls::get(get_called_class());
+		$row->{$me->driverClassField} = tr($row->{$me->driverClassField});
+		
         return $row;
     }
 

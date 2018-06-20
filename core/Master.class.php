@@ -725,7 +725,7 @@ class core_Master extends core_Manager
         } else {
             
             // Генерираме име
-            $name = $me->singleTitle . " #" . $id;
+            $name = tr($me->singleTitle) . " #" . $id;
         }
         
         // Масива за URL, ако няма права за сингъла е празен

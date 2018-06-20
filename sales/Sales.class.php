@@ -1450,4 +1450,9 @@ class sales_Sales extends deals_DealMaster
     	
     	return $costs;
     }
+    
+    function act_Test()
+    {
+    	bp(5 % 1);
+    }
 }

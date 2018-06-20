@@ -118,8 +118,11 @@ class cms_page_External extends core_page_Active
      */
     private function placeExternalUserData()
     {
+    	$currentTab = Mode::get('currentExternalTab');
+    	$selectedClass = ($currentTab == 'cms_Profiles') ? 'class=selected-external-tab' : '';
+    	
     	$nick = core_Users::getNick(core_Users::getCurrent());
-        $user = ht::createLink($nick, array('cms_Profiles', 'single'), FALSE, 'ef_icon=img/16/user-black.png,title=Към профила');
+        $user = ht::createLink($nick, array('cms_Profiles', 'single'), FALSE, "ef_icon=img/16/user-black.png,title=Към профила,{$selectedClass}");
         $logout = ht::createLink(tr('Изход'), array('core_Users', 'logout'), FALSE, 'ef_icon=img/16/logout.png,title=Изход от системата');
 
         $this->replace($user, 'USERLINK');
