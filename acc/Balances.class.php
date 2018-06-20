@@ -440,12 +440,12 @@ class acc_Balances extends core_Master
     		$rec->toDate = $pRec->end;
     		$rec->periodId = $pRec->id;
             
-            	$j = 0;
+            $j = 0;
 	        do {
     		    self::forceCalc($rec);
-      		    self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
-            	} while($rec->lastCalculateChange != 'no' && $j++ < 10 && $rc == 0);
-		$rc++;
+                self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
+            } while($rec->lastCalculateChange != 'no' && $j++ < 10 && $rc == 0);
+			$rc++
     	}
     	
     	// Освобождаваме заключването на процеса
