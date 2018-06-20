@@ -440,7 +440,8 @@ class acc_Balances extends core_Master
     		$rec->toDate = $pRec->end;
     		$rec->periodId = $pRec->id;
             
-            	$j = 0;
+            	$rec->lastCalculateChange = $pRec->lastCalculateChange;
+		$j = 0;
 	        do {
     		    self::forceCalc($rec);
       		    self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
