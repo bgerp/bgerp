@@ -723,7 +723,7 @@ class core_Debug
                 $contex['PRIVATE_GIT_BRANCH'] = PRIVATE_GIT_BRANCH;
             }
             
-            $contex['BGERP_LAST_STABLE_VERSION'] = '17.43-Orelyak';
+            $contex['BGERP_LAST_STABLE_VERSION'] = core_Setup::CURRENT_VERSION; 
         }
         
         $state = array( 'errType'   => $errType, 

@@ -342,21 +342,22 @@ class eshop_Products extends core_Master
             // Ако има само един артикул
             if($dQuery->count() == 1){
             	$dRec = $dQuery->fetch();
-            	$productRec = cat_Products::fetch($dRec->productId, 'measureId');
+            	$measureId = cat_Products::fetchField($dRec->productId, 'measureId');
+            	$pcsId = cat_UoM::fetchBySinonim('pcs')->id;
             	
-            	// Ако е избрана основната мярка 
-            	if(keylist::isIn($productRec->measureId, $dRec->packagings)){
+            	// Ако мярката е брой и е показано да се показва
+            	if($measureId == $pcsId && keylist::isIn($measureId, $dRec->packagings)){
             		
             		// Ако има цена показва се в реда
-            		if($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $productRec->measureId, 1)){
+            		if($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $measureId, 1)){
             			$singlePrice = core_Type::getByName('double(decimals=2)')->toVerbal($singlePrice->price);
             			$settings = cms_Domains::getSettings();
             			$pRow->singlePrice = $singlePrice;
             			$pRow->singleCurrencyId = $settings->currencyId;
-            			$pRow->measureId = cat_UoM::getVerbal($productRec->measureId, 'name');
+            			$pRow->measureId = cat_UoM::getShortName($measureId);
             			
             			$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-            			$pRow->addBtn = ht::createFnBtn('Купи', NULL, FALSE, array('ef_icon' => "img/16/cart_go.png", 'title'=> 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $productRec->measureId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
+            			$pRow->addBtn = ht::createFnBtn('Купи', NULL, FALSE, array('ef_icon' => "img/16/cart_go.png", 'title'=> 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $measureId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
 					}
             	}
             }
@@ -411,7 +412,7 @@ class eshop_Products extends core_Master
                 $url = self::getUrl($rec);
 
                 $row->name = ht::createLink($row->name, $url);
-                $row->image = ht::createLink($row->image, $url);
+                $row->image = ht::createLink($row->image, $url, FALSE, 'class=eshopLink');
 
                 $pTpl->placeObject($row);
                 $pTpl->removePlaces();
@@ -422,7 +423,7 @@ class eshop_Products extends core_Master
         }
 
         if($data->addUrl) {
-            $layout->append(ht::createBtn('Нов продукт', $data->addUrl,  NULL, NULL, array('style' => 'margin-top:15px;')));
+            $layout->append(ht::createBtn('Нов продукт', $data->addUrl,  NULL, NULL, array('style' => 'margin-top:15px;', 'ef_icon' => 'img/16/star_2.png')));
         }
 
         return $layout;

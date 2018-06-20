@@ -61,6 +61,31 @@ class git_Lib
     }
 
 
+
+    /**
+     * Връща текущият бранч на репозитори
+     * 
+     * @param string    $repoPath - път до git репозитори
+     * @param array     $log - масив с логове
+     * @return array    масив със всички тагове
+     */
+    public static function getTags($repoPath, &$log)
+    {
+        $command = "tag 2>&1";
+
+        // Първият ред съдържа резултата
+        if (self::cmdExec($command, $res, $repoPath)) {
+
+            return $res;
+        }
+
+        $repoName = basename($repoPath);
+        $log[] = "[{$repoName}]: Неуспешно извличане на таговете";
+        
+        return FALSE;
+    }
+
+
     /**
      * Връща отдалеченото git URL на репозиторито 
      * 

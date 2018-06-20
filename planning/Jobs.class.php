@@ -161,6 +161,26 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * Масив със състояниет, за които да се праща нотификация
+     * 
+     * @see planning_plg_StateManager
+     */
+    public $notifyActionNamesArr = array('active' => 'Активиране',
+                                         'closed' => 'Приключване',
+                                         'wakeup' => 'Събуждане',
+                                         'stopped' => 'Спиране',
+                                         'rejected' => 'Оттегляне');
+    
+    
+    /**
+     * Дали ключа на нотификацията да сочи към нишката или документа - за уникалност на нотификацията
+     * 
+     * @see planning_plg_StateManager
+     */
+    public $notifyToThread = FALSE;
+    
+    
+    /**
      * Да се забрани ли кеширането на документа
      */
     public $preventCache = TRUE;
@@ -1015,14 +1035,6 @@ class planning_Jobs extends core_Master
     	}
     	
     	doc_Containers::touchDocumentsByOrigin($rec->containerId);
-    	
-    	// Нотификация на абонираните потребители
-    	if(in_array($action, array('active', 'closed', 'wakeup', 'stopped', 'rejected'))){
-    		$caption = self::$actionNames[$action];
-    		$jobName = $mvc->getRecTitle($rec);
-    		$msg = "{$caption} на|* \"{$jobName}\"";
-    		doc_Containers::notifyToSubscribedUsers($rec->containerId, $msg);
-    	}
     }
     
     

@@ -554,7 +554,7 @@ function getTplFromFile($file)
  *
  * @return string
  */
-function setupKey($efSalt = null)
+function setupKey($efSalt = null, $i = 0)
 {
 	// Сетъп ключ, ако не е зададен
 	$salt = ($efSalt)?($efSalt):(EF_SALT);
@@ -564,6 +564,6 @@ function setupKey($efSalt = null)
 	defIfNot('BGERP_SETUP_KEY', $key);
 	
 	// Валидност средно 250 сек.
-	return md5($key . round(time()/10000));
+	return md5($key . round($i + time()/10000));
 }
  

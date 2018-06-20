@@ -51,7 +51,8 @@ function eshopActions() {
 		//this.value = this.value.replace(/[^0-9\.]/g,'');
 		$(this).removeClass('inputError');
 		var packQuantity = $(this).val();
-		if(!$.isNumeric(packQuantity) || packQuantity < 1){
+		
+		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1)){
 			$(this).addClass('inputError');
 		} else {
 			
@@ -76,7 +77,8 @@ function eshopActions() {
 		$(this).removeClass('inputError');
 		
 		var packQuantity = $(this).val();
-		if(!$.isNumeric(packQuantity) || packQuantity < 1){
+		
+		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1)){
 			$(this).addClass('inputError');
 		}
 	});

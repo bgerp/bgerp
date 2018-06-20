@@ -1322,6 +1322,7 @@ en,Офис,Office
 en,Оценка на сигнал,Issue Evaluation
 en,Оценки,Ratings
 en,Очаквано начало,Estimated start
+en,Очакван край,Estimated end
 en,Очаквано,Expected
 en,Още...,More...
 en,П - почивка,R - rest
@@ -2713,3 +2714,6 @@ en,Завършване на поръчката,Finish order
 en,"Сигурни ли сте, че искате да направите поръчката", "Are you sure you want to place the order"
 en,Поръчката е направена,The order was placed
 en,Премахване на артикул,Remove item
+en,Възложено,Assigned
+en,коментар към,comment to
+en,прогрес към,progress to

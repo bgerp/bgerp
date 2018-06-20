@@ -329,7 +329,8 @@ class eshop_CartDetails extends core_Detail
 				$row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => "img/16/delete.png", 'title' => "Премахване на артикул", 'data-cart' => $rec->cartId, "data-url" => $removeUrl, "class" => 'remove-from-cart'));
 			}
 			
-			$row->productId = cat_Products::getVerbal($rec->productId, 'name');
+			$productTitle = eshop_ProductDetails::fetchField("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'title');
+			$row->productId = !empty($productTitle) ? core_Type::getByName('varchar')->toVerbal($productTitle) : cat_Products::getVerbal($rec->productId, 'name');
 			$row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
 			
 			$quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
