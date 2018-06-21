@@ -252,7 +252,11 @@ class marketing_Inquiries2 extends embed_Manager
     
     	// Добавяме полета за количество според параметрите на продукта
     	$quantityCount = &$form->rec->quantityCount;
-    	if(!isset($quantityCount) || $quantityCount > 3 || $quantityCount < 0){
+    	if(!isset($quantityCount)){
+    		$quantityCount = 0;
+    		$form->setDefault('quantity1', 1);
+    		$form->setField('quantity1', "input=hidden");
+    	} elseif($quantityCount > 3){
     		$quantityCount = 3;
     	}
     	
@@ -1169,5 +1173,14 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         return $contrData;
+    }
+    
+    
+    function act_Test()
+    {
+    	$name = 'BABA ag';
+    	$r = marketing_Router::normalizeCompanyName($name);
+    	
+    	bp($r);
     }
 }
