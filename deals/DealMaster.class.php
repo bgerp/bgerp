@@ -219,7 +219,7 @@ abstract class deals_DealMaster extends deals_DealBase
 				'caption=Статус, input=none'
 		);
 		
-		$mvc->FLD('paymentState', 'enum(pending=Има,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=paid');
+		$mvc->FLD('paymentState', 'enum(pending=Има||Yes,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=paid');
 		$mvc->FLD('productIdWithBiggestAmount', 'varchar', 'caption=Артикул с най-голяма стойност, input=none');
 		
 		$mvc->setDbIndex('valior');
@@ -1958,7 +1958,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		unset($url['export']);
     		
     		$url['dealTab'] = 'DealReport';
-    		$data->tabs->TAB('DealReport', 'Поръчано / Доставено' , $url);
+    		$data->tabs->TAB('DealReport', '|Поръчано|* / |Доставено|*' , $url);
     	}
     }
     
