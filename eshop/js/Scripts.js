@@ -118,4 +118,37 @@ function eshopActions() {
 		var deliveryPCode = $("input[name=deliveryPCode]").val();
 		$("input[name=invoicePCode]").attr("placeholder", deliveryPCode);
 	});
+
+	$('.eshop-product .eshop-btn').on('click', function () {
+		var cart = $('.logoutBlock #cart-external-status');
+		var imgtodrag = $('.eshop-product-images').find("img").eq(0);
+		if (imgtodrag) {
+			var imgclone = imgtodrag.clone()
+				.offset({
+					top: imgtodrag.offset().top,
+					left: imgtodrag.offset().left
+				})
+				.css({
+					'opacity': '0.5',
+					'position': 'absolute',
+					'height': '150px',
+					'width': '150px',
+					'z-index': '100'
+				})
+				.appendTo($('body'))
+				.animate({
+					'top': cart.offset().top,
+					'left': cart.offset().left,
+					'width': 75,
+					'height': 75
+				}, 1000, 'easeInOutExpo');
+
+			imgclone.animate({
+				'width': 0,
+				'height': 0
+			}, function () {
+				$(this).detach()
+			});
+		}
+	});
 };
