@@ -84,6 +84,8 @@ class purchase_Vops extends core_Manager
 	{
 		$this->FLD('vodNumber', 'int', 'caption=Номер,mandatory,smartCenter');
 		$this->FLD('vodDate', 'date', 'caption=Дата,mandatory');
+		$this->FLD('vodIssueReason', 'varchar(255)', 'caption=Основания->Издаване,mandatory');
+		$this->FLD('vodVatReason', 'varchar(255)', 'caption=Основания->Начисляване на ДДС,mandatory');
 		$this->FLD('invoiceId', 'key(mvc=purchase_Invoices,select=id)', 'caption=Вх. фактура,silent,input=hidden,tdClass=rightCol');
 		
 		$this->setDbUnique('invoiceId');
@@ -185,12 +187,21 @@ class purchase_Vops extends core_Manager
 		Mode::push('inlineDocument', TRUE);
 		$sudoUser = core_Users::sudo($invoiceRec->createdBy);
 		$Invoices = cls::get('purchase_Invoices');
-		$data = $Invoices->prepareDocument($invoiceRec->id);
+		
+		// Да се рендира като с отделно ДДС
+		$invoiceRec->vatRate = 'separate';
+		
+		// Подготовка на документа
+		Mode::push('preventChangeTemplateOnPrint', TRUE);
+		$data = $Invoices->prepareDocument($invoiceRec, (object)array('rec' => $invoiceRec));
+		Mode::pop('preventChangeTemplateOnPrint');
+		
 		$data->singleLayout = getTplFromFile('purchase/tpl/VatProtocol.shtml');
 		
 		// Добавяне на допълнителните полета
-		$data->row->vodDate = $row->vodDate;
-		$data->row->vodNumber = $row->vodNumber;
+		foreach (array('vodDate', 'vodNumber', 'vodIssueReason', 'vodVatReason') as $fld){
+			$data->row->{$fld} = $row->{$fld};
+		}
 		
 		// Рендиране на вх. ф-ра в шаблона за ВОП-а
 		Mode::push("singleLayout-purchase_Invoices{$invoiceRec->id}", getTplFromFile('purchase/tpl/VatProtocol.shtml'));
