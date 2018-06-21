@@ -86,10 +86,16 @@ function eshopActions() {
 	// Бутоните за +/- да променят количеството
 	$(document.body).on('click tap', ".btnUp, .btnDown",  function(){
 		var input = $(this).siblings('.option-quantity-input');
+		
+		var max = input.attr("data-maxquantity");
+		
 		var val = parseFloat($(input).val());
 		var step = $(this).hasClass('btnUp') ? 1 : -1;
-		if (val + step > 0) {
+		
+		if (val + step > 0 && (!max || (max && val + step <= max))) {
 			$(input).val(val + step);
+			
+			if(max && val >= max) return;
 		}
 
 		// Ръчно инвоукване на ивент на инпут полето

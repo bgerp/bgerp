@@ -336,9 +336,18 @@ class eshop_CartDetails extends core_Detail
 			$quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
 			$dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
 
+			// Колко е максималното допустимо количество
+			$maxQuantity = '';
+			$canStore = cat_Products::fetchField($rec->productId, 'canStore');
+			$settings = cms_Domains::getSettings();
+			if(isset($settings->storeId) && $canStore == 'yes'){
+				$quantityInStore = store_Products::getQuantity($rec->productId, $settings->storeId, TRUE);
+				$maxQuantity = round($quantityInStore / $rec->quantityInPack);
+			}
+			
 			$minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намaляване на количеството'), "-");
 			$plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), "+");
-			$row->quantity = "<span>" . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}'") . $plus . "</span>";
+			$row->quantity = "<span>" . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity}") . $plus . "</span>";
 		
 			self::updatePriceInfo($rec, NULL, TRUE);
 			
