@@ -29,7 +29,7 @@ class sens2_ServMon  extends sens2_ProtoDriver
     var $interfaces = 'sens2_DriverIntf';
 
     
-    function getInputPorts()
+    function getInputPorts($config = NULL)
     {
         return array(
                 'freeRam' => (object) array('caption' => 'Свободна RAM', 'uom' => '%'),
@@ -128,12 +128,32 @@ class sens2_ServMon  extends sens2_ProtoDriver
         }
         
         // Проверка натовареността на процесора
-        $cpuLoad = sys_getloadavg();
-        if($inputs['cpuLoad']) {
-            $res['cpuLoad'] = $cpuLoad[0];
-        }
+        $res['cpuLoad'] = self::getServerLoad();
         
         return $res;
+    }
+
+
+    /**
+     * Връща натоварването на сървъра
+     */
+    public static function getServerLoad()
+    {
+   
+        if (stristr(PHP_OS, 'win')) {
+            exec('wmic cpu get LoadPercentage', $p);
+      
+            return $p[2];           
+        } else {
+       
+            $sysLoad = sys_getloadavg();
+
+            if($inputs['cpuLoad']) {
+                $load = $sysLoad[0];
+            }       
+        }
+       
+        return (int) $load;
     }
 
 
