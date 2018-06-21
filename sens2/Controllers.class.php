@@ -45,6 +45,12 @@ class sens2_Controllers extends core_Master
      * Икона за единичния изглед
      */
     var $singleIcon = 'img/16/network-ethernet-icon.png';
+    
+
+    /**
+     * Единичен изглед за контролера
+     */
+    public $singleLayoutFile = 'sens2/tpl/SingleLayout.shtml';
 
 
     /**
@@ -77,13 +83,29 @@ class sens2_Controllers extends core_Master
 	var $canSingle = 'ceo,admin,sens';
     
 
+    /**
+     * Кой може да обновява състоянието на дайвера
+     */
     var $canUpdate = 'ceo,admin,sens';
+    
+    
+    /**
+     * Кой може да променя състоянието на Условията на доставка
+     */
+    public $canChangestate = 'sens,admin';
+
 
     /**
      * Масиви за кеширане пер хит на инсталираните портове
      */
     static $inputs, $outputs;
     
+
+    /**
+     * Детайл за входно-изходните портове
+     */
+    public $details = 'sens2_IOPorts';
+
 
     /**
      * Описание на модела
@@ -160,7 +182,7 @@ class sens2_Controllers extends core_Master
 
 
     /**
-     * Връща обекта драйвер за посочения контролер
+     * Връща активните портове на посочения контролер
      */
     static function getActivePorts($controllerId, $type = 'all')
     {   
@@ -174,11 +196,11 @@ class sens2_Controllers extends core_Master
             $ports = array();
 
             if($type != 'outputs') {
-                $ports = $drv->getInputPorts();
+                $ports = $drv->getInputPorts($rec->config);
             }
             
             if($type != 'inputs') {
-                $ports += $drv->getOutputPorts();
+                $ports += $drv->getOutputPorts($rec->config);
             }
  
             $config = $rec->config;
@@ -291,7 +313,7 @@ class sens2_Controllers extends core_Master
             }
          }
     }
-
+    
 
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
@@ -314,7 +336,7 @@ class sens2_Controllers extends core_Master
  
         $drv = self::getDriver($id);
     
-        $ports = $drv->getInputPorts();
+        $ports = $drv->getInputPorts($rec->config);
  
         foreach($ports as $name => $def) {
             $part = "{$name}_update";
@@ -343,9 +365,9 @@ class sens2_Controllers extends core_Master
 
         $config = (array) $rec->config;
 
-        $drv = self::getDriver($id);
+        $Driver = self::getDriver($id);
 
-        $ports = $drv->getInputPorts();
+        $ports = $Driver->getInputPorts($rec->config);
 
         $nowMinutes = round(time()/60);
         
@@ -376,8 +398,11 @@ class sens2_Controllers extends core_Master
             if($rec->persistentState) {
                 $hash = md5(serialize($rec->persistentState));
             }
-            $values = $drv->readInputs($inputs, $rec->config, $rec->persistentState);
-            if($rec->persistentState && $hash != md5(serialize($rec->persistentState))) {
+
+            // Извличане на входовете
+            $values = $Driver->readInputs($inputs, $rec->config, $rec->persistentState);
+            
+            if($rec->persistentState && ($hash != md5(serialize($rec->persistentState)))) {
                 self::save($rec, 'persistentState');
             }
 
@@ -394,6 +419,7 @@ class sens2_Controllers extends core_Master
                     $value = $values;
                 }
                 
+                // Скалиране на стойността
                 if(($expr = $config[$port . '_scale']) && is_numeric($value)) {  
                     $expr = str_replace('X', $value, $expr);
                     $value = str::calcMathExpr($expr);
@@ -405,6 +431,7 @@ class sens2_Controllers extends core_Master
                 if($indicatorId) {
                     $updatedCnt++;
                 }
+
                 // Ако е необходимо, записваме стойноста на входа в дата-лог-а
                 if($log[$port] && $indicatorId && $save) {
                     sens2_DataLogs::addValue($indicatorId, $value, $time);
@@ -421,7 +448,9 @@ class sens2_Controllers extends core_Master
      */
     public static function setOutput($output, $value)
     {
+        // Парсраме входа и получаваме името на контролера и изхода
         list($ctrName, $name) = explode('->', ltrim($output, '$'));
+        
         // Вземаме записа на контролера
         $rec = self::fetch(array("#name = '[#1#]'", $ctrName));
         
@@ -430,7 +459,7 @@ class sens2_Controllers extends core_Master
             $drv = self::getDriver($rec->id);
             
             // Вземаме му всички изходни портове
-            $ports = $drv->getOutputPorts();
+            $ports = $drv->getOutputPorts($rec->config);
 
             foreach($ports as $p => $pObj) {
                 $part = $p . '_name';
@@ -474,8 +503,18 @@ class sens2_Controllers extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
+    { 
+        if($fields['-single']) {
+            $Driver = cls::get($rec->driver);
+            $path = $Driver->getPicture($rec->config);
+            if(!$path ) {
+                $path = 'sens2/img/generic-plc.png';
+            }
+            $path = getFullPath($path); 
+            $pic = new thumb_Img($path, 600, 360, 'path');
+            $row->picture = $pic->createImg();
+        }
     }
     
 
@@ -590,4 +629,5 @@ class sens2_Controllers extends core_Master
 
         core_App::shutdown(FALSE);
     }
+
 }

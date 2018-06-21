@@ -52,7 +52,7 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
      *
      * @return  array
      */
-    function getInputPorts()
+    function getInputPorts($config = NULL)
     {
         foreach($this->inputs as $name => $params) {
             $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);

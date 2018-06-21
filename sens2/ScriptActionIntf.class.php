@@ -20,18 +20,18 @@ class sens2_ScriptActionIntf
     public $oldClassName = 'sens2_LogicActionIntf';
 
     /**
-     * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
+     * Подготвя форма с настройки на екшъна, като добавя полета с $form->FLD(....)
      *
      * @param core_Form форма на която трябва да се поставят полетата с конфигурацията на контролера (IP, port, pass, ...)
      */
     function prepareActionForm($form)
     {
-        return $this->class->prepareConfigForm($form);
+        return $this->class->prepareActionForm($form);
     }
    
     
     /**
-     * Проверява след  субмитване формата с настройки на контролера
+     * Проверява след  субмитване формата с настройки на екшъна
      * Тук контролера може да зададе грешки и предупреждения, в случай на 
      * некоректни конфигурационни данни използвайки $form->setError() и $form->setWarning()
      *
@@ -39,7 +39,7 @@ class sens2_ScriptActionIntf
      */
     function checkActionForm($form)
     {
-        return $this->class->checkConfigForm($form);
+        return $this->class->checkActionForm($form);
     }
 
     
@@ -48,7 +48,7 @@ class sens2_ScriptActionIntf
      */
     function toVerbal($rec)
     {
-        return $this->class->process($rec);
+        return $this->class->toVerbal($rec);
     }
 
 
