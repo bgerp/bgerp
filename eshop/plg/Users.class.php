@@ -5,7 +5,7 @@
 /**
  * Клас 'eshop_plg_Users'
  *
- * Разширяващ функциононалноста на core_Users свързана с ешопа
+ * Разширяващ функциононалността на core_Users свързана с ешопа
  *
  *
  * @category  bgerp
@@ -24,19 +24,19 @@ class eshop_plg_Users extends core_Plugin
 	 */
 	public static function on_AfterLogin($mvc, $userRec, $inputs, $refresh)
 	{
-		if(!core_Packs::isInstalled('colab')) return;
-		if(!core_Users::isContractor($userRec)) return;
-		
 		// За всеки домейн
 		$brid = log_Browsers::getBrid();
 		$dQuery = cms_Domains::getQuery();
 		while($dRec = $dQuery->fetch()){
 			
-			// Ако потребителя има количка, домейна се пропуска
-			if(eshop_Carts::force($dRec->id, $userRec->id, FALSE)) continue;
-			
 			// Проверка има ли чернова на количка без потребител от същия брид, ако има присвоява се на логнатия потребител
 			if($dCart = eshop_Carts::fetch("#domainId = {$dRec->id} AND #state = 'draft' AND #brid = '{$brid}' AND #userId IS NULL")){
+				
+				// Ако потребителя има количка, домейна се пропуска
+				if($exId = eshop_Carts::force($dRec->id, $userRec->id, FALSE)){
+					eshop_Carts::delete($exId);
+				}
+				
 				$dCart->userId = $userRec->id;
 				eshop_Carts::save($dCart, 'userId');
 			}
