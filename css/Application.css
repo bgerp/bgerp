@@ -2725,7 +2725,7 @@ span.sharing-history-title {
   .logoutBlock a,
   .logoutBlock span.linkWithIcon {
     color: #333333 !important;
-    padding: 3px 5px;
+    padding: 1px 5px 3px;
     display: inline-block;
     border-top: 3px solid rgba(0, 0, 0, 0); }
     .logoutBlock a:hover,
