@@ -1215,6 +1215,15 @@ class eshop_Carts extends core_Master
     		if($defaultPaymentId && !array_key_exists($defaultPaymentId, $paymentMethods)){
     			$paymentMethods[$defaultPaymentId] = tr(cond_PaymentMethods::getVerbal($paymentId, 'name'));
     		}
+    	} else {
+    		// Шаблон за информацията
+    		
+    		$info = new ET("<div id='editStatus'><span class='warningMsg'>[#1#] [#link#]</span></div>", tr('Ако имате потребител в системата'));
+    		$js = "w=window.open(\"" . toUrl(array('core_Users', 'login', 'popup' => 1)) . "\",\"Login\",\"width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0\"); if(w) w.focus();";
+    		$loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}'><b>" . tr("Логнете се сега...||Login now...") . "</b></a>";
+    		$info->append($loginHtml, 'link');
+    		
+    		$form->info = new core_ET('[#1#][#2#]', $data->form->info, $info);
     	}
     	 
     	if(count($deliveryTerms) == 1){
