@@ -2723,3 +2723,6 @@ en,Ако вече имате потребител,If you already have a user
 en,Поръчано / Доставено,Ordered / Delivered
 en,Разполагаемо,Available
 en,Разполагаемо в,Available in
+en,приходен,debit
+en,разходен,credit
+en,касов ордер,cash order
