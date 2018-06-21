@@ -1429,6 +1429,11 @@ class core_Users extends core_Manager
             self::save($userRec, 'lastActivityTime');
         }
 
+        // Ако потребителя е партньор се записва в сесията първата му споделена папка като активна
+        if(core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)){
+        	colab_Folders::setLastActiveContragentFolder(NULL, $userRec->id);
+        }
+        
         $Users->invoke('afterLogin', array(&$userRec, $inputs, $refresh));
 
         if(!isDebug() && haveRole('debug')) {
@@ -1569,11 +1574,6 @@ class core_Users extends core_Manager
                     core_Statuses::newStatus($statusText, 'notice');
                 }
             }
-        }
-        
-        // Ако потребителя е партньор се записва в сесията първата му споделена папка като активна
-        if(core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)){
-        	colab_Folders::setLastActiveContragentFolder(NULL, $userRec->id);
         }
         
         // Записваме в лога успешното логване
