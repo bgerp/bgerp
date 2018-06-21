@@ -92,7 +92,7 @@ function eshopActions() {
 		var val = parseFloat($(input).val());
 		var step = $(this).hasClass('btnUp') ? 1 : -1;
 		
-		if (val + step > 0 && (!max || (max && val + step <= max))) {
+		if (val + step > 0 && (!max || step == -1 || (max && val + step <= max))) {
 			$(input).val(val + step);
 			
 			if(max && val >= max) return;
