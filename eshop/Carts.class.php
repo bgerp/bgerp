@@ -1096,8 +1096,13 @@ class eshop_Carts extends core_Master
     	
     	if($form->isSubmitted()){
     		$rec = $form->rec;
-    		$arr = array('invoiceCountry' => 'deliveryCountry', 'invoicePCode' => 'deliveryPCode', 'invoicePlace' => 'deliveryPlace', 'invoiceAddress' => 'deliveryAddress');
     		
+    		// Ако има потребител с този имейл той трябва да е логнат
+    		if(empty($cu) && core_Users::fetchField(array("#email='[#1#]' AND #state = 'active'", $rec->email))){
+    			 $form->setError('email', 'Има потребител с този имейл. Трябва да се логнете за да продължите|*!');
+    		}
+    		
+    		$arr = array('invoiceCountry' => 'deliveryCountry', 'invoicePCode' => 'deliveryPCode', 'invoicePlace' => 'deliveryPlace', 'invoiceAddress' => 'deliveryAddress');
     		$emptyFields = array();
     		foreach ($arr as $invField => $delField){
     			$rec->{$invField} = !empty($rec->{$invField}) ? $rec->{$invField} : $rec->{$delField};
@@ -1107,7 +1112,7 @@ class eshop_Carts extends core_Master
     		}
     		
     		if(count($emptyFields)){
-    			$form->setError($emptyFields, 'Липсващи данни');
+    			$form->setError($emptyFields, 'Липсват данни за фактура');
     		}
     		
     		if(!$form->gotErrors()){
