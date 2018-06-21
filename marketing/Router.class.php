@@ -328,6 +328,9 @@ class marketing_Router
 		if(!count(self::$companyTypes)){
 			$companyTypes = getFileContent('drdata/data/companyTypes.txt');
 			self::$companyTypes = explode("\n", $companyTypes);
+			
+			// Сортиране от дългите към късите символи
+			usort(self::$companyTypes, function ($a, $b) {return strlen($a) < strlen($b);});
 		}
 		
 		// За всяка дума ако е в началото или края на името се маха
