@@ -252,12 +252,14 @@ class marketing_Inquiries2 extends embed_Manager
     
     	// Добавяме полета за количество според параметрите на продукта
     	$quantityCount = &$form->rec->quantityCount;
+    
     	if(!isset($quantityCount)){
-    		$quantityCount = 0;
-    		$form->setDefault('quantity1', 1);
-    		$form->setField('quantity1', "input=hidden");
+    		$quantityCount = 3;
     	} elseif($quantityCount > 3){
     		$quantityCount = 3;
+    	} elseif($quantityCount == 0){
+    		$form->setReadOnly('quantity1', $form->rec->moq);
+    		$form->setField("quantity1", "input,caption={$caption}->Количество|1");
     	}
     	
     	for($i = 1; $i <= $quantityCount; $i++){
@@ -796,8 +798,8 @@ class marketing_Inquiries2 extends embed_Manager
     {
     	$cu = core_Users::getCurrent('id', FALSE);
     	Mode::set('showBulletin', FALSE);
-        Request::setProtected('drvId,protos,moq,quantityCount,lg,measureId');
-        
+        Request::setProtected('drvId,protos,moq,lg,measureId');
+       
     	$this->requireRightFor('new');
     	expect($drvId = Request::get('drvId', 'int'));
     	$proto = Request::get('protos', 'varchar(10000)');
