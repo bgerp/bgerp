@@ -1021,7 +1021,7 @@ class eshop_Carts extends core_Master
     	$data->form->setAction($this, 'order');
     	
     	$form = &$data->form;
-    	$form->title = 'Данни за поръчката';
+    	$form->title = 'Данни за поръчка';
     	
     	self::prepareOrderForm($form);
     	
@@ -1241,11 +1241,10 @@ class eshop_Carts extends core_Master
     			$paymentMethods[$defaultPaymentId] = tr(cond_PaymentMethods::getVerbal($paymentId, 'name'));
     		}
     	} else {
-    		// Шаблон за информацията
-    		
-    		$info = new ET("<div id='editStatus'><span class='warningMsg'>[#1#] [#link#]</span></div>", tr('Ако имате потребител в системата'));
+    		// Ако потребителя не е логнат да се показва статус, подканващ към логване
+    		$info = new ET("<div id='editStatus'><span class='warningMsg'>[#1#] [#link#]</span></div>", tr('Ако имате регистриран потребител|*.'));
     		$js = "w=window.open(\"" . toUrl(array('core_Users', 'login', 'popup' => 1)) . "\",\"Login\",\"width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0\"); if(w) w.focus();";
-    		$loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}'><b>" . tr("Логнете се сега...||Login now...") . "</b></a>";
+    		$loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}'>" . tr("Вход...||Login now...") . "</a>";
     		$info->append($loginHtml, 'link');
     		
     		$form->info = new core_ET('[#1#][#2#]', $data->form->info, $info);
