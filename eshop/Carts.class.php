@@ -180,14 +180,12 @@ class eshop_Carts extends core_Master
     	
     	// Ако има избран склад, проверка дали к-то е допустимо
     	$msg = '|Проблем при добавянето на артикула|*!';
-    	$settings = cms_Domains::getSettings();
-    	if(isset($settings->storeId) &&  $canStore == 'yes'){
-    		$quantity = store_Products::getQuantity($productId, $settings->storeId, TRUE);
-    		if($quantity < $quantityInPack * $packQuantity){
-    			$msg = '|Избраното количество не е налично|*';
-    			$success = FALSE;
-    			$skip = TRUE;
-    		}
+    	
+    	$maxQuantity = eshop_CartDetails::getMaxQuantity($productId, $quantityInPack);
+    	if(isset($maxQuantity) && $maxQuantity < $packQuantity){
+    		$msg = '|Избраното количество не е налично|*';
+    		$success = FALSE;
+    		$skip = TRUE;
     	}
     	
     	$success = FALSE;

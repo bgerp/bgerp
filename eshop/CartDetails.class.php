@@ -214,6 +214,12 @@ class eshop_CartDetails extends core_Detail
     			$form->setError('packQuantity', $warning);
     		}
     		
+    		// Проверка достигнато ли е максималното количество
+    		$maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
+    		if(isset($maxQuantity) && $maxQuantity < $rec->packQuantity){
+    			$form->setError('packQuantity', 'Количеството в момента не е налично в склада');
+    		}
+    		
     		if(!$form->gotErrors()){
     			if($id = eshop_CartDetails::fetchField("#cartId = {$rec->cartId} AND #eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId} AND #packagingId = {$rec->packagingId}")){
     				$exRec = self::fetch($id);
@@ -311,6 +317,29 @@ class eshop_CartDetails extends core_Detail
 	
 	
 	/**
+	 * Колко е максималното допустимо количество. Ако не е избран склад
+	 * или артикула не е складируем то няма максимално количество
+	 * 
+	 * @param int $productId            - ид на артикул
+	 * @param double $quantityInPack    - кво в опаковка
+	 * @return NULL|double $maxQuantity - максималното к-во, NULL за без ограничение
+	 */
+	public static function getMaxQuantity($productId, $quantityInPack)
+	{
+		$maxQuantity = NULL;
+		
+		$canStore = cat_Products::fetchField($productId, 'canStore');
+		$settings = cms_Domains::getSettings();
+		if(isset($settings->storeId) && $canStore == 'yes'){
+			$quantityInStore = store_Products::getQuantity($productId, $settings->storeId, TRUE);
+			$maxQuantity = round($quantityInStore / $quantityInPack, 2);
+		}
+		
+		return $maxQuantity;
+	}
+	
+	
+	/**
 	 * След преобразуване на записа в четим за хора вид.
 	 *
 	 * @param core_Mvc $mvc
@@ -337,13 +366,7 @@ class eshop_CartDetails extends core_Detail
 			$dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
 
 			// Колко е максималното допустимо количество
-			$maxQuantity = '';
-			$canStore = cat_Products::fetchField($rec->productId, 'canStore');
-			$settings = cms_Domains::getSettings();
-			if(isset($settings->storeId) && $canStore == 'yes'){
-				$quantityInStore = store_Products::getQuantity($rec->productId, $settings->storeId, TRUE);
-				$maxQuantity = round($quantityInStore / $rec->quantityInPack);
-			}
+			$maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
 			
 			$minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намaляване на количеството'), "-");
 			$plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), "+");
