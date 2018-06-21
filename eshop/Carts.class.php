@@ -980,12 +980,6 @@ class eshop_Carts extends core_Master
     		}
     	}
     	
-    	if($action == 'checkout' && isset($rec)){
-    		if(empty($rec->productCount)){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
-    	
     	if($action == 'finalize' && isset($rec)){
     		if(empty($rec->personNames)){
     			$requiredRoles = 'no_one';
@@ -1169,7 +1163,33 @@ class eshop_Carts extends core_Master
     	core_Form::preventDoubleSubmission($tpl, $form);
     	core_Lg::pop();
     	
+    	// Ако няма потребител да се добавя рефреш на формата
+    	if(!$cu){
+    		core_Ajax::subscribe($tpl, array('eshop_Carts', 'refreshOrderForm'), 'refreshOrderForm', 500);
+    	}
+    	
     	return $tpl;
+    }
+    
+    
+    /**
+     * Рефреш на формата
+     */
+    function act_RefreshOrderForm()
+    {
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	
+    	if($cu){
+    		if (Request::get('ajax_mode')) {
+    			$res = array();
+    			$obj = new stdClass();
+    			$obj->func = 'reload';
+    			
+    			$res[] = $obj;
+    			
+    			return $res;
+    		}
+    	}
     }
     
     
@@ -1193,7 +1213,7 @@ class eshop_Carts extends core_Master
     		$form->setDefault('personNames', $profileRec->name);
     		$form->setDefault('email', $profileRec->email);
     		$form->setDefault('tel', $profileRec->tel);
-    	
+    		
     		// Задаване като опции
     		if(count($options)){
     			$form->setDefault('makeInvoice', 'company');
@@ -1263,7 +1283,7 @@ class eshop_Carts extends core_Master
     {
     	$rec = &$form->rec;
     	$cu = core_Users::getCurrent('id', FALSE);
-    	$isColab = isset($cu) && core_Users::isContractor($cu);
+    	$isColab = isset($cu);
     	
     	// Ако има избрана папка се записват контрагент данните
     	if(isset($folderId)){
