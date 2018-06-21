@@ -357,14 +357,12 @@ class email_Incomings extends core_Master
                 $deleteTime = dt::addSecs($accRec->deleteAfterPeriod, $fRec->downloadedOn);
 
                 if($deleteTime < $now) {
-                    email_Accounts::logDebug("Подготовка за изтриване на {$msgNo} от {$maxMsgNo}", $accRec->id);
                     $imapConn->delete($msgNo);
                     email_Accounts::logInfo("Изтриване {$msgNo} от {$maxMsgNo}", $accRec->id);
                     $statusSum['delete']++;
                     $doExpunge = TRUE;
                 } else {
                     $nextDeleteTime = min($deleteTime, $nextDeleteTime);
-                    email_Incomings::logDebug("Не е дошло времето за изтриване на {$msgNo}");
                 }
             }
             
