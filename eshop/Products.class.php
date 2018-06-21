@@ -238,9 +238,9 @@ class eshop_Products extends core_Master
         if($rec->coDriver) {
             if(marketing_Inquiries2::haveRightFor('new')){
             	$title = 'Изпратете запитване за|* ' . tr($rec->name);
-            	Request::setProtected('drvId,protos,moq,quantityCount,lg,measureId');
             	$lg = cms_Content::getLang();
             	if(cls::load($rec->coDriver, TRUE)){
+            		Request::setProtected('drvId,protos,moq,lg,measureId');
             		$url = array('marketing_Inquiries2', 'new', 'title' => $rec->name, 'drvId' => $rec->coDriver, 'Lg' => $lg, 'protos' => $rec->proto, 'quantityCount' => $rec->quantityCount, 'moq' => $rec->coMoq, 'ret_url' => TRUE);
             		$uomId = NULL;
             		$defUom = cat_Setup::get('DEFAULT_MEASURE_ID');
@@ -254,6 +254,7 @@ class eshop_Products extends core_Master
             		}
             		$url['measureId'] = $uomId;
             		$row->coInquiry = ht::createLink(tr('Запитване'), $url, NULL, "ef_icon=img/16/button-question-icon.png,title={$title},class=productBtn");
+            		Request::removeProtected('drvId,protos,moq,lg,measureId');
             	}
             }
         }
