@@ -59,10 +59,12 @@
                                                     <td><span class="bigData" style='padding-left:5px;'>[#contragentVatNo#]</span></td>
                                                 </tr>
                                                 <!--ET_END contragentVatNo-->
+                                                <!--ET_BEGIN uicNo-->
                                                 <tr>
                                                     <td class="aright"><small>|ЕИК|*:</small></td>
                                                     <td> <span class="bigData" style='padding-left:5px;'>[#uicNo#]</span></td>
                                                 </tr>
+                                                <!--ET_END uicNo-->
                                             </tbody>
                                         </table>
                                     </td>
