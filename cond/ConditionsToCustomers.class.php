@@ -32,7 +32,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, crm_Wrapper, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, cond_Wrapper, plg_SaveAndNew';
     
     
     /**
@@ -94,9 +94,6 @@ class cond_ConditionsToCustomers extends core_Manager
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	
-    	$tab = ($rec->cClass == crm_Companies::getClassId()) ? 'Фирми' : 'Лица';
-    	$mvc->currentTab = $tab;
     	
     	if(!$form->rec->id){
     		$options = static::getRemainingOptions($rec->cClass, $rec->cId);

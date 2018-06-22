@@ -287,8 +287,8 @@ class core_Updates extends core_Manager
             }
         }
         
-        // Подреждаме версиите от най-новата към по-старите
-        krsort($res);
+        // Подреждаме версиите от най-старата към по-новата
+        ksort($res);
 
         return $res;
     }

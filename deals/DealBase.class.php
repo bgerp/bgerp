@@ -619,7 +619,7 @@ abstract class deals_DealBase extends core_Master
 				);
 				
 				$row = (object)array('code'      => core_Type::getByName('varchar')->toVerbal($expRec->code),
-									 'measureId'   => cat_UoM::getShortName($expRec->measureId),
+									 'measureId'   => tr(cat_UoM::getShortName($expRec->measureId)),
 									 'productId' => cat_Products::getShortHyperLink($productId),
 				);
 				

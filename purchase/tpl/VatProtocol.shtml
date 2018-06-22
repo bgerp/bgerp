@@ -59,10 +59,12 @@
                                                     <td><span class="bigData" style='padding-left:5px;'>[#contragentVatNo#]</span></td>
                                                 </tr>
                                                 <!--ET_END contragentVatNo-->
+                                                <!--ET_BEGIN uicNo-->
                                                 <tr>
                                                     <td class="aright"><small>|ЕИК|*:</small></td>
                                                     <td> <span class="bigData" style='padding-left:5px;'>[#uicNo#]</span></td>
                                                 </tr>
+                                                <!--ET_END uicNo-->
                                             </tbody>
                                         </table>
                                     </td>
@@ -101,6 +103,12 @@
                                         <!--ET_BEGIN vatReason-->
                                         <div><span class='quiet'>|Основание|*:</span> [#vatReason#]</div>
                                         <!--ET_END vatReason-->
+                                        <!--ET_BEGIN vodIssueReason-->
+                                        <div><span class='quiet'>|Основание за издаване|*:</span> [#vodIssueReason#]</div>
+                                        <!--ET_END vodIssueReason-->
+                                        <!--ET_BEGIN vodVatReason-->
+                                        <div><span class='quiet'>|Основание за начисляване на ДДС|*:</span> [#vodVatReason#]</div>
+                                        <!--ET_END vodVatReason-->
                                         <!--ET_BEGIN vatDate-->  
                                         <div><span class='quiet'>|Данъчно събитие|*:</span> [#vatDate#]</div>
                                         <!--ET_END vatDate-->

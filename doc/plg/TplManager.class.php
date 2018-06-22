@@ -269,8 +269,7 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, &$data)
     {
         // Показваме форма за избор на шаблон в екрана за отпечатване
-        if (Mode::is('printing') && Request::get('Printing') && haveRole('powerUser')) {
-            
+        if (Mode::is('printing') && Request::get('Printing') && haveRole('powerUser') && !Mode::is('preventChangeTemplateOnPrint')) {
             $form = cls::get('core_Form');
             
             $form->class .= ' simpleForm';

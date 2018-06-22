@@ -159,6 +159,7 @@ class colab_Threads extends core_Manager
 		$data->query->where("#threadId = {$id}");
 		$data->query->where("#visibleForPartners = 'yes'");
 		$data->query->where("#state != 'draft' || (#state = 'draft' AND #createdBy  IN ({$sharedUsers}))");
+ 		$data->query->where("#state != 'rejected' || (#state = 'rejected' AND #createdBy  IN ({$sharedUsers}))");
 		$data->query->orderBy('createdOn,id', 'ASC');
 		
 		$this->prepareTitle($data);
