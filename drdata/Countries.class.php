@@ -140,6 +140,26 @@ class drdata_Countries extends core_Manager {
     }
 
 
+
+    /**
+     * Връща най-подходящия език от системните, за съответната страна
+     */
+    public static function getLang($countryId)
+    {
+        $rec = self::fetch($countryId);
+        
+        cls::load('core_Lg');
+        
+        $langArr = arr::make(EF_LANGUAGES);
+        
+        foreach($langArr as $lg => $name) {
+            if(strpos($rec->languages, $lg) !== FALSE) return $lg;
+        }
+
+        return 'en';
+    }
+
+
     /**
      * Попълва езиците, които се говорят в дадена страна
      */
@@ -319,7 +339,7 @@ class drdata_Countries extends core_Manager {
                 'o.a.e.' => 'united arab emirates',
                 'oesterreich' => 'austria',
                 'osterreich' => 'austria',
-                'palestinian territory' => 'palestinа',
+                'palestinian territory' => 'palestina',
                 'polska' => 'poland',
                 'protugal' => 'portugal',
                 'rbulgaria' => 'bulgaria',
@@ -367,10 +387,40 @@ class drdata_Countries extends core_Manager {
                 'ελλαδα' => 'greece',
                 'usa' => 'united states',
                 'bahamas' => 'bahamas, the',
+                'alger' => 'algeria',
+                'begium' => 'belgium',
+                'bosna and herzegovina' => 'bosnia and herzegovina',
+                'bosna i hercegovina' => 'bosnia and herzegovina',
+                'chech republik' => 'czech republic',
+                'columbia' => 'colombia',
+                'cypros' => 'cyprus',
+                'czeh republik' => 'czech republic',
+                'finnland' => 'finland',
+                'korea' => 'south korea',
+                'korea, republic of' => 'south korea',
+                'lietuva' => 'lithuania',
+                'luxenbourg' => 'luxembourg',
+                'maroco' => 'morocco',
+                'natherlands' => 'netherlands',
+                'netherlans' => 'netherlands',
+                'new zealend' => 'new zealand',
+                'polland' => 'poland',
+                'porugal' => 'portugal',
+                'quatar' => 'qatar',
+                'salvador' => 'el salvador',
+                'sint maarten' => 'netherlands',
+                'south afrika' => 'south africa',
+                'swtzerland' => 'switzerland',
+                'the nehterlands' => 'netherlands',
+                'tunise' => 'tunisia',
+                'unted kingdom' => 'united kingdom',
+            	'great britain' => 'united kingdom',
+            	'great britan' => 'united kingdom',
+            	'britan' => 'united kingdom',
             );
 
             foreach($mis as $w => $c) {
-                expect($id = $commonNamesArr[$c], $c, $commonNamesArr);
+                expect($id = $commonNamesArr[$c], $c, $commonNamesArr, $mis);
                 expect(!$commonNamesArr[$w], $w, $commonNamesArr);
                 $commonNamesArr[$w] = $id;
             }

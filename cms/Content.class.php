@@ -329,7 +329,8 @@ class cms_Content extends core_Manager
      */
     static function getContentUrl($rec, $absolute = FALSE) 
     {
-        if($rec->source && cls::load($rec->source, TRUE) && cls::haveInterface('cms_SourceIntf', $rec->source)) {
+    	$rec = self::fetchRec($rec);
+    	if($rec->source && cls::load($rec->source, TRUE) && cls::haveInterface('cms_SourceIntf', $rec->source)) {
             $source = cls::get($rec->source);
             $url = $source->getUrlByMenuId($rec->id);
         } elseif($rec->url) {
@@ -339,7 +340,6 @@ class cms_Content extends core_Manager
                 $url = core_App::parseLocalUrl('/' . ltrim($rec->url, '/'));
             }
         } else {
-            // expect(FALSE);
             $url = '';
         }
         

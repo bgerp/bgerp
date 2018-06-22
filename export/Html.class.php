@@ -2,7 +2,7 @@
 
 
 /**
- * Експортиране на документи като PDF
+ * Експортиране на документи като HTML
  * 
  * @category  bgerp
  * @package   export
@@ -100,9 +100,9 @@ class export_Html extends core_Mvc
         $CssToInlineInst = cls::get(csstoinline_Setup::get('CONVERTER_CLASS'));
         $html = $CssToInlineInst->convert($html, $css);
         
-        $fileHnd = fileman::absorbStr($html, 'exportCsv', $fileName);
+        $fileHnd = fileman::absorbStr($html, 'exportFiles', $fileName);
         
-        $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/html.png, title=" . tr('Сваляне на документа'));
+        $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/html.png, title=Сваляне на документа");
         
         // Ако линка ще сочи към частна мрежа, показваме предупреждение
         if (core_App::checkCurrentHostIsPrivate()) {

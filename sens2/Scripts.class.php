@@ -135,55 +135,6 @@ class sens2_Scripts extends core_Master
 
 
     /**
-     * Подготвя конфигурационната форма на посочения драйвер
-     */
-    static function prepareConfigForm($form, $driver)
-    {
-        $drv = cls::get($driver);
-        $drv->prepareConfigForm($form);
-
-        $ports = $drv->getInputPorts();
-
-        if(!$ports) {
-            $ports = array();
-        }
-
-        expect(is_array($ports));
-
-        foreach($ports as $port => $params) {
-            
-            $prefix = $params->caption . " ({$port})";
-
-            $form->FLD($port . '_name', 'varchar(32)', "caption={$prefix}->Наименование");
-            $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа");
-            $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
-            $form->FLD($port . '_update', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Четене през");
-            $form->FLD($port . '_log', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Логване през");
-            if(trim($params->uom)) {
-                $form->setSuggestions($port . '_uom', arr::combine(array('' => ''), arr::make($params->uom, TRUE)));
-            }
-        }
-
-        $ports = $drv->getOutputPorts();
-
-        if(!$ports) {
-            $ports = array();
-        }
-        
-        foreach($ports as $port => $params) {
-
-            $prefix = $params->caption . " ({$port})";
-
-            $form->FLD($port . '_name', 'varchar(32)', "caption={$prefix}->Наименование");
-            $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
-            if(trim($params->uom)) {
-                $form->setSuggestions($port . '_uom', arr::combine(array('' => ''), arr::make($params->uom, TRUE)));
-            }
-        }
-    }
-
-
-    /**
      * Стартира всички скриптове
      */
     function cron_RunAll()
@@ -197,7 +148,6 @@ class sens2_Scripts extends core_Master
         }
     }
     
-
     
     /**
      * Изчислкяване на числов израз. Могат да участват индикаторите и променливите от даден скрипт

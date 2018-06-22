@@ -1,31 +1,44 @@
-.document .line-header{
+.document .group-by-field-row{
 	padding: 5px !important;
-	color: #fff;
-	background-color: #777;
-	border: 1px solid #777;
+	color: #fff !important;
+	background-color: #777 !important;
+	border: 1px solid #777 !important;
 	font-weight:bold;
 }
 
-.document .details .shipment-th{
+.document .details .shipment-th {
 	background-color:#eee;
 	padding:4px;
 	text-align:center;
 }
 
-.document .details td.padding-td{
+.document .details td.padding-td {
 	padding:6px;
 }
 
-.document .line-detail .listTable td, .document .line-detail  .listTable th{
-	border:1px solid rgb(187,187,187) !important;
+
+.document table.listTable tbody tr td.status-cell {
+	padding-left:10px !important;
 }
 
-.document .line-detail .listTable td {
-	padding:6px;
+.document table.listTable tbody tr td.row-notes {
+	font-size: 0.8em;
+}
+
+.line-detail-address {
+	font-size: 0.8em;
 }
 
 .printing .document .line-header {
 	color: #333;
     background: none;
     padding: 5px 0;
+}
+
+.lu {
+	font-size: 0.9em;
+}
+.lu-light {
+	color: #777;
+	text-decoration: line-through;
 }

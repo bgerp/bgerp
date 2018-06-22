@@ -245,7 +245,7 @@ class core_Form extends core_FieldSet
                 
                 // Вдигаме грешка, ако стойността от Request 
                 // не може да се конвертира към вътрешния тип
-                if ($type->error) {
+                if (strlen($type->error)) {
                     
                     $result = array('error' => $type->error);
                     
@@ -381,7 +381,7 @@ class core_Form extends core_FieldSet
         
                 // Вдигаме грешка, ако стойността от Request
                 // не може да се конвертира към вътрешния тип
-                if ($type->error) {
+                if (strlen($type->error)) {
         
                     $result = array('error' => $type->error);
         
@@ -496,7 +496,9 @@ class core_Form extends core_FieldSet
                     "<!--ET_BEGIN FORM_INFO-->\n<div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
                     "<!--ET_BEGIN FORM_FIELDS-->\n<div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->" .
                     "<!--ET_BEGIN FORM_HIDDEN-->\n[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
-                    "\n</td></tr><!--ET_BEGIN FORM_TOOLBAR-->\n<tr><td style='padding:0px;'><div class=\"formToolbar\">[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
+                    "\n</td></tr><!--ET_BEGIN FORM_TOOLBAR-->\n<tr><td style='padding:0px;'><div class=\"formToolbar\">" .
+                    "\n<!--ET_BEGIN FORM_FOOTER--><div class=\"formFooter\">[#FORM_FOOTER#]</div><!--ET_END FORM_FOOTER-->".
+                    "[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
                     "[#AFTER_MAIN_TABLE#]" .
                     "\n</div>" .
                     "\n</form>\n");
@@ -692,9 +694,9 @@ class core_Form extends core_FieldSet
            
             // Създаваме input - елементите
             foreach($fields as $name => $field) {
-                
+               
                 expect($field->kind, $name, 'Липсващо поле');
-
+                
                 if(Mode::is('staticFormView')) {
                     $value = $field->type->toVerbal($vars[$name]);
                     $attr = array('class' => 'formFieldValue');
@@ -711,7 +713,7 @@ class core_Form extends core_FieldSet
                 $attr = $field->attr ? $field->attr : array();
                 
                 if ($field->hint) {
-                    $attr['title'] = tr($field->hint);
+                    $attr['title'] = $field->hint;
                 }
 
                 if ($field->class) {
@@ -764,8 +766,6 @@ class core_Form extends core_FieldSet
                 }  
                     
                 
-                
-                
                 // Стойността на полето
                 $value = $vars[$name];
                 
@@ -806,13 +806,19 @@ class core_Form extends core_FieldSet
 
                 // Рендиране на select или input полето
                 if ((count($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
-                    
+                	
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                     
                     // Гупиране по часта преди посочения разделител
                     if($div = $field->groupByDiv) {
                         $options = ht::groupOptions($options, $div);
+                    }
+  
+                    if(is_a($type, 'type_Enum') && $type->params['isReadOnly']) {
+                        foreach($options as &$title) {
+                            $title = tr($title);
+                        }
                     }
 
                     $input = ht::createSmartSelect($options, $name, $value, $attr,
@@ -824,7 +830,11 @@ class core_Form extends core_FieldSet
                     $input = $type->renderInput($name, $value, $attr);
                 }
                 
-                $fieldsLayout->replace($input, $name);
+                if(!empty($field->displayInToolbar)){
+                	$fieldsLayout->append($input, 'FORM_FOOTER');
+                } else {
+                	$fieldsLayout->replace($input, $name);
+                }
             }
 
             if(Mode::is('staticFormView')) {
@@ -854,6 +864,8 @@ class core_Form extends core_FieldSet
         $fields = $res = array();
 
         foreach($fields1 as $name => $field) {
+			if(!empty($field->displayInToolbar)) continue;
+        	
             list($group, $caption) = explode('->', $field->caption);
             if(!$caption) {
                 $group = 'autoGroup' . $i++;
@@ -1327,7 +1339,7 @@ class core_Form extends core_FieldSet
             $errRec->msg = $msg;
             $errRec->ignorable = $ignorable;
             
-            if(!$this->errors[$f] || ($this->errors[$f]->ignorable && !$ignorable)) {
+            if(!($this->errors[$f] && $oncePerField) || ($this->errors[$f]->ignorable && !$ignorable)) {
                 $this->errors[$f] = $errRec;
                 $msg = FALSE;
             }
@@ -1338,9 +1350,9 @@ class core_Form extends core_FieldSet
     /**
      * Вдига флаг за предупреждение на посоченото поле
      */
-    function setWarning($field, $msg)
+    function setWarning($field, $msg, $oncePerField = TRUE)
     {
-        $this->setError($field, $msg, 'ignorable');
+        $this->setError($field, $msg, 'ignorable', $oncePerField);
     }
     
     

@@ -96,7 +96,10 @@ class core_Locks extends core_Manager
         $objectId = str::convertToFixedKey($objectId, 32, 4);
         
         $lockExpire = time() + $maxDuration;
-        
+
+        // Увеличаваме времето за изпълнение (евентуално) за времето до изтичане на лок-а
+        core_App::setTimeLimit($maxDuration);
+
         $rec = $Locks->locks[$objectId];
         
         // Ако този обект е заключен от текущия хит, връщаме TRUE
@@ -167,6 +170,7 @@ class core_Locks extends core_Manager
         $objectId = str::convertToFixedKey($objectId, 32, 4);
         
         $Locks = cls::get('core_Locks');
+	unset($Locks->locks[$objectId]);
         $Locks->delete(array("#objectId = '[#1#]'", $objectId));
     }
     

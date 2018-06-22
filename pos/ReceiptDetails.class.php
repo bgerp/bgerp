@@ -451,7 +451,7 @@ class pos_ReceiptDetails extends core_Detail {
     		$delUrl = toUrl(array($mvc->className, 'deleteRec'), 'local');
     		$row->DEL_BTN = ht::createElement('img', array('src' => sbf('img/16/deletered.png', ''), 
     													   'class' => 'pos-del-btn', 'data-recId' => $rec->id, 
-    													   'title' => tr('Изтриване на реда'),
+    													   'title' => 'Изтриване на реда',
     													   'data-warning' => tr('|Наистина ли искате да изтриете записа|*?'), 
     													   'data-url' => $delUrl));
     	}
@@ -695,5 +695,14 @@ class pos_ReceiptDetails extends core_Detail {
     	}
     	
     	return $result;
+    }
+    
+    
+    /**
+     * След подготовка на лист тулбара
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, $data)
+    {
+    	unset($data->toolbar->buttons['btnAdd']);
     }
 }

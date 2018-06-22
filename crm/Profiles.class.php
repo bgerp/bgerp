@@ -300,12 +300,13 @@ class crm_Profiles extends core_Master
                 }
 
         		$data->ColabFolders->rowsArr = array();
-        		$sharedFolders = colab_Folders::getSharedFolders($data->rec->userId);
+        		$sharedFolders = colab_Folders::getSharedFolders($data->rec->userId, FALSE, NULL, FALSE);
         	
         		$params = array('Ctr' => 'doc_Folders', 'Act' => 'list');
         		foreach ($sharedFolders as $folderId) {
         			$params['folderId'] = $folderId;
-        			$data->ColabFolders->rowsArr[] = (object) (array('folderName' => doc_Folders::getLink($folderId)));
+                    $fRow = doc_Folders::recToVerbal(doc_Folders::fetch($folderId));
+        			$data->ColabFolders->rowsArr[] = (object) (array('folderName' =>  $fRow->title . ' (' . $fRow->type . ')'));
         		}
         	}
         }
@@ -504,11 +505,11 @@ class crm_Profiles extends core_Master
             list($tomorrow, $hoursTomorrow) = explode(" ", dt::addDays(1));
 
             if ($dateFrom == $dateTo && ($dateFrom == $yesterday || $dateFrom == $today || $dateFrom == $tomorrow)) {
-                $state = static::$map[$data->rec->stateInfo] . "  ". $mvc->getVerbal($data->rec, 'stateDateFrom');
+                $state = tr(static::$map[$data->rec->stateInfo]) . "  ". $mvc->getVerbal($data->rec, 'stateDateFrom');
             } elseif($dateFrom == $dateTo) {
-                $state = static::$map[$data->rec->stateInfo] . " на ". $mvc->getVerbal($data->rec, 'stateDateFrom');
+                $state = tr(static::$map[$data->rec->stateInfo]) . " " . tr('на') . " ". $mvc->getVerbal($data->rec, 'stateDateFrom');
             } else { 
-                $state = static::$map[$data->rec->stateInfo] . " от ". $mvc->getVerbal($data->rec, 'stateDateFrom') . " до ". $mvc->getVerbal($data->rec, 'stateDateTo');
+                $state = tr(static::$map[$data->rec->stateInfo]) . " " . tr('от') . " ". $mvc->getVerbal($data->rec, 'stateDateFrom') . " " . tr('до') . " ". $mvc->getVerbal($data->rec, 'stateDateTo');
             }
 
             $tpl->append($state, 'userStatus');  
@@ -672,7 +673,7 @@ class crm_Profiles extends core_Master
         $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола (пак),input,hint={$passReHint},width=15em");
     
         // Подготвяме лентата с инструменти на формата
-        $form->toolbar->addSbBtn('Смяна', 'change_password', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addSbBtn('Запис', 'change_password', 'ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
         
         // Потготвяме заглавието на формата
@@ -929,6 +930,15 @@ class crm_Profiles extends core_Master
         if($mustSave) {
             crm_Persons::save($person);
           
+            Mode::push('preventNotifications', TRUE);
+            if(core_Packs::isInstalled('colab') && core_Users::isContractor($user)){
+            	$privateFolderId = crm_Persons::forceCoverAndFolder($person->id);
+            	if(!colab_FolderToPartners::fetch("#folderId = {$privateFolderId} AND #contractorId = {$user->id}")){
+            		colab_FolderToPartners::save((object)array('folderId' => $privateFolderId, 'contractorId' => $user->id));
+            	}
+            }
+            Mode::pop('preventNotifications');
+            
             return $person->id;
         }
     }
@@ -1059,25 +1069,19 @@ class crm_Profiles extends core_Master
             $url  = array();
 
             $profRec = self::fetch("#userId = {$userId}");
-            if ($profRec) {
-                $date = $profRec->stateDateFrom;
-                $dateTo = $profRec->stateDateTo;
-                $dayBeforeNow = dt::addDays(-1, $date);
-            }
-
-
-            if($profRec && $profRec->stateInfo) {
-                if(strstr(dt::now(), " ", TRUE) >= strstr($dayBeforeNow, " ", TRUE) &&
-                    strstr(dt::now(), " ", TRUE) < strstr($date, " ", TRUE )) {
-                    $attr['class'] .= ' profile profile-state-tomorrow';
-                } else if( strstr(dt::now(), " ", TRUE) >= strstr($date, " ", TRUE) &&
-                    strstr(dt::now(), " ", TRUE) <= strstr($dateTo, " ", TRUE)) {
-                    $attr['class'] .= ' profile profile-state';
-                } else {
-                    $attr['class'] .= ' profile';
+            
+            $attr['class'] .= ' profile';
+            if ($profRec && $profRec->stateDateFrom) {
+                $dateFrom = strstr($profRec->stateDateFrom, ' ', TRUE);
+                $dateTo = strstr($profRec->stateDateTo, ' ', TRUE);
+                $nextWorkingDay = strstr(cal_Calendar::nextWorkingDay(), ' ', TRUE);
+                $today  = dt::now(FALSE);
+ 
+                if($dateFrom <= $today && $today <= $dateTo) {
+                    $attr['class'] .= ' profile-state';
+                } elseif($dateFrom <= $nextWorkingDay && $nextWorkingDay <= $dateTo) {
+                    $attr['class'] .= ' profile-state-tomorrow';
                 }
-            } else {
-                $attr['class'] .= ' profile';
             }
 
     		$profileId = self::getProfileId($userId);
@@ -1229,38 +1233,43 @@ class crm_Profiles extends core_Master
                         list($dateFrom, $hoursFrom) = explode(" ", $rec->stateDateFrom);
                         list($dateTo, $hoursTo) = explode(" ", $rec->stateDateTo);
                         
+                        $stateInfo = tr(static::$map[$rec->stateInfo]);
+                        $on = tr('на');
+                        $from = tr('от');
+                        $to = tr('до');
+                        
                         if ($dateFrom == $dateTo) {
-                            $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateFrom, 'd M') . "</span>";
+                            $stateData = "<span class='small'>" . $stateInfo . " {$on} ". dt::mysql2verbal($rec->stateDateFrom, 'd M') . "</span>";
                             
                             if($hoursFrom != "00:00:00") {
-                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " от ". dt::mysql2verbal($rec->stateDateFrom, 'H:i') . "</span>";
+                                $stateData = "<span class='small'>" . $stateInfo . " {$on} ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'H:i') . "</span>";
                             }
                             
                             if($hoursTo != "23:59:59") {
-                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateTo, 'd M')  . " до ". dt::mysql2verbal($rec->stateDateTo, 'H:i') . "</span>";
+                                $stateData = "<span class='small'>" . $stateInfo . " {$on} ". dt::mysql2verbal($rec->stateDateTo, 'd M')  . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'H:i') . "</span>";
                             }
                             
                             if($hoursFrom != "00:00:00" && $hoursTo != "23:59:59") { 
-                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " от ". dt::mysql2verbal($rec->stateDateFrom, 'H:i') . " до ". dt::mysql2verbal($rec->stateDateTo, 'H:i') . "</span>";
+                                $stateData = "<span class='small'>" . $stateInfo . " {$on} ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'H:i') . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'H:i') . "</span>";
                             }
                         } else { 
-                            $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
+                            $stateData = "<span class='small'>" . $stateInfo . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
                         
                             if($hoursFrom == "00:00:00") {
-                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'd M') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
+                                $stateData = "<span class='small'>" . $stateInfo . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'd M') . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
                             }
                             
                             if($hoursTo == "23:59:59") {
-                                 $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'd M'). "</span>";
+                                $stateData = "<span class='small'>" . $stateInfo . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'd M'). "</span>";
                             }
                             
                             if($hoursFrom == "00:00:00" && $hoursTo == "23:59:59") {
-                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  .  " до ". dt::mysql2verbal($rec->stateDateTo, 'd M') . "</span>";
+                                $stateData = "<span class='small'>" . $stateInfo . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  .  " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'd M') . "</span>";
                             }
                         }
                         
                         $link  = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
-                        $row->userId = ht::createHint($link, $stateData,'notice');
+                        $row->userId = ht::createHint($link, '|*' . $stateData,'notice');
                     } else {
                         $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
                     }
@@ -1342,7 +1351,7 @@ class crm_Profiles extends core_Master
      * @param string $requiredRoles
      * @param string $action
      * @param object $rec
-     * @param id $userId
+     * @param integer $userId
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {

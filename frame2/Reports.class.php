@@ -32,7 +32,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone';
+    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close';
                       
     
     /**
@@ -197,6 +197,12 @@ class frame2_Reports extends embed_Manager
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'title,driverClass';
+    
+    
+    /**
+     * Бутона за затваряне на кой ред да е
+     */
+    public $closeBtnRow = 1;
     
     
     /**
@@ -456,7 +462,7 @@ class frame2_Reports extends embed_Manager
     	
     	$vCount = frame2_ReportVersions::count("#reportId = {$rec->id}");
     	if($vCount > 1){
-    		$data->toolbar->addBtn("Версии ({$vCount})", $url, NULL, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
+    		$data->toolbar->addBtn("Версии|* ({$vCount})", $url, NULL, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
     	}
     }
     
@@ -544,8 +550,26 @@ class frame2_Reports extends embed_Manager
     			}
     		}
     		
-    		// Mаркиране че отчера реяжва да се обнови
     		$me->setNewUpdateTimes[$rec->id] = $rec;
+    		
+    		// Ако справката сега е създадена да не се обновява
+    		if($rec->__isCreated === TRUE) return;
+    		
+    		// Кога последно е видяна от потребител справката
+    		$lastSeen = self::getLastSeenByUser(__CLASS__, $rec);
+    		$months = frame2_Setup::get('CLOSE_LAST_SEEN_BEFORE_MONTHS');
+    		$seenBefore = dt::addMonths(-1 * $months);
+    		
+    		if($lastSeen <= $seenBefore){
+    			
+    			// Ако е последно видяна преди зададеното време да се затваря и да не се обновява повече
+    			$rec->state = 'closed';
+    			$rec->refreshData = FALSE;
+    			$me->invoke('BeforeChangeState', array($rec, $rec->state));
+    			$me->save($rec, 'state');
+    			$me->logWrite('Затваряне на остаряла справка', $rec->id);
+    			unset($me->setNewUpdateTimes[$rec->id]);
+    		}
     	}
     }
     
@@ -597,7 +621,7 @@ class frame2_Reports extends embed_Manager
     		frame2_ReportVersions::keepInCheck($rec->id);
     	}
     	
-    	// Айи ще се махнат зададените времена за обновяване, махат се
+    	// Ако ще се махнат зададените времена за обновяване, махат се
     	if($rec->removeSetUpdateTimes === TRUE){
     		self::removeAllSetUpdateTimes($rec->id);
     	}
@@ -619,10 +643,14 @@ class frame2_Reports extends embed_Manager
     {
     	if($rec->state == 'draft'){
     		$rec->state = 'active';
-    	} elseif($rec->state == 'rejected'){
+    	} elseif($rec->state == 'rejected' || $rec->state == 'closed'){
     		$rec->removeSetUpdateTimes = TRUE;
-    	} elseif($rec->state == 'active' && $rec->brState == 'rejected'){
+    	} elseif($rec->state == 'active' && in_array($rec->brState, array('rejected', 'closed'))){
     		$rec->updateRefreshTimes = TRUE;
+    	}
+    	
+    	if(empty($rec->id)){
+    		$rec->__isCreated = TRUE;
     	}
     }
     
@@ -640,7 +668,7 @@ class frame2_Reports extends embed_Manager
     			}
     		}
     		
-    		if($rec->state == 'rejected'){
+    		if(in_array($rec->state, array('rejected', 'closed'))){
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -665,11 +693,10 @@ class frame2_Reports extends embed_Manager
     	if(($action == 'edit' || $action == 'clonerec') && isset($rec->driverClass) && isset($rec->id)){
     		if($Driver = $mvc->getDriver($rec)){
     			$fRec = $mvc->fetch($rec->id, 'createdBy,sharedUsers,changeFields');
+    			
+    			// Взимат се стойностите от записа в БД, защото може да е подменен ако се разглежда по стара версия
     			foreach (array('createdBy', 'sharedUsers', 'changeFields') as $exFld){
-                    ${$exFld} = $rec->{$exFld};
-                    if (empty(${$exFld})) {
-                    	${$exFld} = $fRec->{$exFld};
-                    }
+                    ${$exFld} = $fRec->{$exFld};
                 }
 			
                 // Кои са избраните полета за промяна (ако има)
@@ -698,9 +725,17 @@ class frame2_Reports extends embed_Manager
     {
     	$resArr = arr::make($resArr);
     	$resArr['title'] = array('name' => tr('Заглавие'), 'val' => $row->title);
+    	$updateHeaderName = tr('Актуализиране');
+    	
+    	if($rec->state == 'closed'){
+    		$nextUpdates = self::getNextRefreshDates($rec);
+    		if(count($nextUpdates)){
+    			$updateHeaderName = ht::createHint($updateHeaderName, 'Справката няма да се актуализира докато е затворена', 'warning', TRUE, 'height=12px;width=12px');
+    		}
+    	}
     	
     	if(!empty($rec->updateDays) || !empty($rec->updateTime) || !empty($row->nextUpdate)){
-    		$resArr['update'] = array('name' => tr('Актуализиране'), 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
+    		$resArr['update'] = array('name' => $updateHeaderName, 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
         																		 <!--ET_BEGIN updateTime--><span style='font-weight:normal'>|Часове|*</span>: [#updateTime#]<!--ET_END updateTime--><!--ET_BEGIN nextUpdate--><div><span style='font-weight:normal'>|Следващо|*</span> [#nextUpdate#]</div><!--ET_END nextUpdate-->"));										 
     	}
     	
@@ -737,6 +772,7 @@ class frame2_Reports extends embed_Manager
     	if($versionId = self::getSelectedVersionId($data->rec->id)){
     		if($versionRec = frame2_ReportVersions::fetchField($versionId, 'oldRec')){
     			$data->originalRec = clone $data->rec;
+    			$versionRec->state = $data->originalRec->state;
     			$data->rec = $versionRec;
     		}
     	}
@@ -802,7 +838,7 @@ class frame2_Reports extends embed_Manager
      * @param int $id
      * @return void
      */
-    public static function setAutoRefresh($id)
+    private static function setAutoRefresh($id)
     {
     	$rec = self::fetchRec($id);
     	$dates = NULL;
@@ -952,5 +988,33 @@ class frame2_Reports extends embed_Manager
     			doc_ThreadUsers::addShared($nRec->threadId, $nRec->containerId, $cu);
     		}
     	}
+    }
+    
+    
+    /**
+     * Помощна ф-я кога дадения обект е последно видян от потребител
+     * 
+     * @param mixed $classId  - клас
+     * @param mixed $objectId - ид на запис или обект
+     * @return datetime|NULL  - на коя дата
+     */
+    private static function getLastSeenByUser($classId, $objectId)
+    {
+    	$Class = cls::get($classId);
+    	$objectRec = $Class->fetchRec($objectId, 'id,threadId');
+    	
+    	// Нишката посещавана ли е
+    	$oRecs = log_Data::getObjectRecs('doc_Threads', $objectRec->threadId, 'read', NULL, 1, 'DESC');
+    	$lastDate1 = $oRecs[key($oRecs)]->time;
+    	
+    	// Сингъла посещаван ли е
+    	$oRecs1 = log_Data::getObjectRecs($Class->className, $objectRec->id, 'read', NULL, 1, 'DESC');
+    	$lastDate2 = $oRecs[key($oRecs1)]->time;
+    	
+    	// По-голямата дата от двете
+    	$maxDate = max($lastDate1, $lastDate2);
+    	$lastUsedDate = !empty($maxDate) ? dt::timestamp2Mysql($maxDate) : NULL;
+    	
+    	return $lastUsedDate;
     }
 }

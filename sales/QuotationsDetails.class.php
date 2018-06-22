@@ -104,7 +104,7 @@ class sales_QuotationsDetails extends doc_Detail {
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'price,packPrice,tolerance,term,weight';
+    public $fieldsNotToClone = 'price,packPrice,tolerance,term,weight,quantityInPack';
     
     
   	/**
@@ -179,7 +179,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		$rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $rec->date), $masterRec->currencyRate, $masterRec->chargeVat);
     		
     		// Добавяне на транспортните разходи, ако има
-    		$fee = tcost_Calcs::get('sales_Quotations', $rec->quotationId, $rec->id)->fee;
+    		$fee = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id)->fee;
     		
     		if(isset($fee) && $fee > 0){
     			$rec->price += $fee / $rec->quantity;
@@ -565,7 +565,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		    }
     		  
     		    if($rec->productId){
-    		    	tcost_Calcs::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId', 'countryId' => 'contragentCountryId'));
+    		    	sales_TransportValues::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId', 'countryId' => 'contragentCountryId'));
     		    }
     		}
 	    }
@@ -941,9 +941,9 @@ class sales_QuotationsDetails extends doc_Detail {
     		deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		
     		// Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
-    		$fee = tcost_Calcs::get($mvc->Master, $rec->quotationId, $rec->id)->fee;
+    		$fee = sales_TransportValues::get($mvc->Master, $rec->quotationId, $rec->id)->fee;
     		$vat = cat_Products::getVat($rec->productId, $masterRec->date);
-    		$row->amount = tcost_Calcs::getAmountHint($row->amount, $fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    		$row->amount = sales_TransportValues::getAmountHint($row->amount, $fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
     	}
     	
     	core_Lg::pop();
@@ -980,7 +980,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	if(!isset($term)){
     		if($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)){
     			$hintTerm = TRUE;
-    			if($deliveryTime = tcost_Calcs::get('sales_Quotations', $rec->quotationId, $rec->id)->deliveryTime){
+    			if($deliveryTime = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id)->deliveryTime){
     				$term += $deliveryTime;
     			}
     		}
@@ -1060,7 +1060,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	$res = (object)array('price' => NULL);
     	if($rec = $query->fetch()){
     		$res->price = $rec->price;
-    		$fee = tcost_Calcs::get('sales_Quotations', $rec->quotationId, $rec->id);
+    		$fee = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id);
     		
     		if($fee && $fee->fee > 0){
     			$res->price -= round($fee->fee / $rec->quantity, 4);
@@ -1082,7 +1082,7 @@ class sales_QuotationsDetails extends doc_Detail {
     {
     	// Синхронизиране на сумата на транспорта
     	if($rec->syncFee === TRUE){
-    		tcost_Calcs::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee, $rec->deliveryTimeFromFee);
+    		sales_TransportValues::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee, $rec->deliveryTimeFromFee);
     	}
     }
     
@@ -1094,7 +1094,7 @@ class sales_QuotationsDetails extends doc_Detail {
     {
     	// Инвалидиране на изчисления транспорт, ако има
     	foreach ($query->getDeletedRecs() as $id => $rec) {
-    		tcost_Calcs::sync($mvc->Master, $rec->quotationId, $rec->id, NULL);
+    		sales_TransportValues::sync($mvc->Master, $rec->quotationId, $rec->id, NULL);
     	}
     }
     
@@ -1105,11 +1105,14 @@ class sales_QuotationsDetails extends doc_Detail {
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
     	// Преди клониране клонира се и сумата на цената на транспорта
-    	$cRec = tcost_Calcs::get($mvc->Master, $oldRec->quotationId, $oldRec->id);
+    	$cRec = sales_TransportValues::get($mvc->Master, $oldRec->quotationId, $oldRec->id);
     	if(isset($cRec)){
     		$rec->fee = $cRec->fee;
     		$rec->deliveryTimeFromFee = $cRec->deliveryTime;
     		$rec->syncFee = TRUE;
     	}
+    	
+    	$packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+    	$rec->quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
     }
 }

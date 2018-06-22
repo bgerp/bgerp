@@ -277,7 +277,7 @@ class doc_Setup extends core_ProtoSetup
                     'controller' => 'doc_Threads',
                     'action' => 'DeleteThread',
                     'period' => 5,
-                    'timeLimit' => 120,
+                    'timeLimit' => 200,
             ),
             array(
                     'systemId' => 'deleteOldObject',
@@ -303,7 +303,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
     */
-    var $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder,doc_reports_DocsByRols';
+    var $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder,doc_reports_DocsByRols, doc_ExpandComments';
         
     
     /**
@@ -819,6 +819,7 @@ class doc_Setup extends core_ProtoSetup
         $res .= $this->callMigrate('addDefaultNotifyOptions', 'doc');
         $res .= $this->callMigrate('showDocumentsAsButtonsFrame', 'doc');
         $res .= $this->callMigrate('repairAssignField', 'doc');
+        $res .= $this->callMigrate('addCommentsDriver', 'doc');
         
         return $res;
     }
@@ -1125,5 +1126,22 @@ class doc_Setup extends core_ProtoSetup
                 reportException($e);
             }
         }
+    }
+    
+    
+    /**
+     * Миграция за добавяне на драйвер към коментарите
+     */
+    public function addCommentsDriver()
+    {
+        $Comments = cls::get('doc_Comments');
+        
+        $driverClassField = str::phpToMysqlName('driverClass');
+        
+        $clsId = doc_ExpandComments::getClassId();
+        
+        expect($clsId);
+        
+        $Comments->db->query("UPDATE `{$Comments->dbTableName}` SET `{$driverClassField}` = '{$clsId}' WHERE `{$driverClassField}` IS NULL");
     }
 }

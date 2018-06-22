@@ -55,7 +55,7 @@ try {
         
         $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/' . rand(1000, 9999) . date('_H_i_s') . '.txt';
         
-        $data = json_encode(array('GET' => $_GET, 'POST' => $_POST));
+        $data = @json_encode(array('GET' => $_GET, 'POST' => $_POST));
         
         if (!$data) {
             $data = json_last_error();
@@ -76,17 +76,6 @@ try {
     // Зарежда конфигурационните константи
     core_App::loadConfig();
     
-    if (core_App::isLocked()) {
-        if (Request::get('ajax_mode')) {
-            $resObj = new stdClass();
-        
-            return array($resObj);
-        } else {
-            // не е ajax - връщаме културно съобщение, че системата е временно недостъпна
-            // TODO: връщаме културно съобщение, че системата е временно недостъпна
-        }
-    }
-    
     // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
     ob_clean();
 
@@ -97,7 +86,7 @@ try {
     require_once(EF_APP_PATH . "/setup/Controller.class.php");
 
     // Файл за лога на сетъп процеса
-    define(EF_SETUP_LOG_PATH, EF_TEMP_PATH . '/setupLog_' . md5(__FILE__) . '.html');
+    define('EF_SETUP_LOG_PATH', EF_TEMP_PATH . '/setupLog_' . md5(__FILE__) . '.html');
 
     // Стартира Setup, ако в заявката присъства верен SetupKey
     if (isset($_GET['SetupKey'])) {
@@ -392,6 +381,8 @@ function bp()
  */
 function wp()
 {   
+    return;
+
     try {
         $dump = func_get_args();
     
@@ -563,7 +554,7 @@ function getTplFromFile($file)
  *
  * @return string
  */
-function setupKey($efSalt = null)
+function setupKey($efSalt = null, $i = 0)
 {
 	// Сетъп ключ, ако не е зададен
 	$salt = ($efSalt)?($efSalt):(EF_SALT);
@@ -573,6 +564,6 @@ function setupKey($efSalt = null)
 	defIfNot('BGERP_SETUP_KEY', $key);
 	
 	// Валидност средно 250 сек.
-	return md5($key . round(time()/10000));
+	return md5($key . round($i + time()/10000));
 }
  

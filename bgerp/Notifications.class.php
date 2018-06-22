@@ -35,7 +35,7 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * Името на полито, по което плъгина GroupByDate ще групира редовете
+     * Името на полето, по което плъгина GroupByDate ще групира редовете
      */
     var $groupByDateField = 'modifiedOn';
     
@@ -89,7 +89,7 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * Офсет преди текущото време при липса на 'Затворено на' в нотификциите
+     * Офсет преди текущото време при липса на 'Затворено на' в нотификациите
      */
     const NOTIFICATIONS_LAST_CLOSED_BEFORE = 60;
     
@@ -139,11 +139,11 @@ class bgerp_Notifications extends core_Manager
             $priority = 'normal';
         }
 
-        // Потребителя не може да си прави нотификации сам на себе си
+        // Потребителят не може да си прави нотификации сам на себе си
         // Режима 'preventNotifications' спира задаването на всякакви нотификации
         if (($userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return ;
         
-        // Да не се нотифицира контрактора
+        // Да не се нотифицира контракторът
         if (core_Users::haveRole('partner', $userId)) return ;
         
         $rec = new stdClass();
@@ -380,7 +380,7 @@ class bgerp_Notifications extends core_Manager
      *
      * @param core_Manager $mvc
      * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param stdClass $rec Това е записът в машинно представяне
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
@@ -418,7 +418,7 @@ class bgerp_Notifications extends core_Manager
         }
         
         // Превеждаме съобщението
-        // Спираме преовада и въте, ако има за превеждане, тогава се превежда
+        // Спираме превода и вътре, ако има за превеждане, тогава се превежда
         $row->msg = tr("|*{$row->msg}");
         $row->msg = str::limitLen($row->msg, self::maxLenTitle, 20, " ... ", TRUE);
         
@@ -427,7 +427,7 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * Екшън връщащ бутоните за контектстното меню
+     * Екшън връщащ бутоните за контекстното меню
      */
     function act_getContextMenu()
     {
@@ -578,6 +578,29 @@ class bgerp_Notifications extends core_Manager
                     $stopNotifyArr['newThread'] = 'doc_Folders';
                 }
             }
+        } elseif (strpos($msg, '|създаде заявка за|') !== FALSE) {
+            $stopNotifyArr['newPending'] = 'doc_Folders';
+        } else {
+            // Ако нотификацията е за смяна на състоянието
+            if ($containerId) {
+                $doc = doc_Containers::getDocument($containerId);
+                
+                $plugins = arr::make($doc->instance->loadList, TRUE);
+                
+                if ($plugins['planning_plg_StateManager']) {
+                    if ($nActArr = $doc->instance->notifyActionNamesArr) {
+                        foreach ($nActArr as $actName) {
+                            $actName = mb_strtolower($actName);
+                            
+                            if (strpos($msg, "|{$actName} на|* ") !== FALSE) {
+                                $stopNotifyArr['stateChange'] = 'doc_Folders';
+                                
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
         
         $stoppedArr = $valsArr = array();
@@ -619,7 +642,7 @@ class bgerp_Notifications extends core_Manager
                 $key = $tKey;
             }
             
-            // Ако преди това не е била забранане стойност
+            // Ако преди това не е била забранена стойност
             if (!$valsArr[$key][$kVal] || ($valsArr[$key][$kVal] != 'no')) {
                 $stoppedArr[$kClass][$kVal] = $valsArr[$key][$kVal];
                 $valsArr[$key][$kVal] = 'no';
@@ -634,7 +657,7 @@ class bgerp_Notifications extends core_Manager
         
         // В зависимост от състоянието връщаме/спираме настройките за бъдещите нотификации
         if (is_array($stoppedArr) && $update) {
-            $notifyVerbMap = array('notify' => 'Нов документ', 'personalEmailIncoming' => 'Личен имейл', 'folOpenings' => 'Отворени теми', 'newThread' => 'Нова тема', 'newDoc' => 'Нов документ');
+            $notifyVerbMap = array('notify' => 'Нов документ', 'personalEmailIncoming' => 'Личен имейл', 'folOpenings' => 'Отворени теми', 'newPending' => 'Създадена заявка', 'stateChange' => 'Променено състояние на документ', 'newThread' => 'Нова тема', 'newDoc' => 'Нов документ');
             
             $notifyMsg = '';
             
@@ -767,7 +790,7 @@ class bgerp_Notifications extends core_Manager
         
         self::save($rec, 'state, lastTime');
         
-        // Ако сме активирали нотификацията, връщаме автоматично нилираните настройки за нотифициране
+        // Ако сме активирали нотификацията, връщаме автоматично нулираните настройки за нотифициране
         if ($rec->state == 'active') {
             $valsArr = self::getAutoNotifyArr($rec, 'revert');
         }
@@ -780,12 +803,12 @@ class bgerp_Notifications extends core_Manager
             
             $notifyMsg = $notifyMsg ? "<br>" . $notifyMsg : '';
             
-            return new Redirect(array('Portal', 'show'), "|Успепшно {$msg} нотификацията|*{$notifyMsg}");
+            return new Redirect(array('Portal', 'show'), "|Успешно {$msg} нотификацията|*{$notifyMsg}");
         }
         
         $res = $this->action('render');
 
-        // Добавяме резултата и броя на нотифиакциите
+        // Добавяме резултата и броя на нотификациите
         if (is_array($res)) {
             
             $notifCnt = static::getOpenCnt();
@@ -863,7 +886,7 @@ class bgerp_Notifications extends core_Manager
         
         $valsArr = array();
         
-        // Настройки за папк
+        // Настройки за папка
         if ($folderId) {
             $fKey = doc_Folders::getSettingsKey($folderId);
             
@@ -880,16 +903,24 @@ class bgerp_Notifications extends core_Manager
             $enumTypeArr['caption'] = $fCaption . '->Отворени теми';
             $form->FNC('folOpenings', $enumChoice, $enumTypeArr);
             
+            $enumTypeArr['caption'] = $fCaption . '->Създадени заявки';
+            $form->FNC('newPending', $enumChoice, $enumTypeArr);
+            
+            $enumTypeArr['caption'] = $fCaption . '->Промяна на състоянието на документ';
+            $form->FNC('stateChange', $enumChoice, $enumTypeArr);
+            
             $enumTypeArr['caption'] = $fCaption . '->Личен имейл';
             $form->FNC('personalEmailIncoming', $enumChoice, $enumTypeArr);
             
-            $sArr[$fKey] = array('newDoc', 'newThread', 'folOpenings', 'personalEmailIncoming');
+            $sArr[$fKey] = array('newDoc', 'newThread', 'newPending', 'stateChange', 'folOpenings', 'personalEmailIncoming');
             
             // Добавяме стойностите по подразбиране
             $valsArr[$fKey] = core_Settings::fetchKeyNoMerge($fKey);
             setIfNot($valsArr[$fKey]['newDoc'], 'default');
             setIfNot($valsArr[$fKey]['newThread'], 'default');
             setIfNot($valsArr[$fKey]['folOpenings'], 'default');
+            setIfNot($valsArr[$fKey]['newPending'], 'default');
+            setIfNot($valsArr[$fKey]['stateChange'], 'default');
         }
         
         // Настройки за нишка
@@ -956,7 +987,7 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * Помощна фунцкия за парсирана не URL-то
+     * Помощна фунцкия за парсиране на URL-то
      * 
      * @param mixed $rec
      * @return array
@@ -1021,7 +1052,7 @@ class bgerp_Notifications extends core_Manager
         
         $modifiedBefore = dt::subtractSecs(180);
         
-        // Инвалиидиране на кеша след запазване на подредбата -  да не стои запазено до следващото инвалидиране
+        // Инвалидиране на кеша след запазване на подредбата - да не стои запазено до следващото инвалидиране
         $cQuery->where(array("#modifiedOn > '[#1#]'", $modifiedBefore));
         $cQuery->orWhere(array("#lastTime > '[#1#]'", $modifiedBefore));
         $cQuery->limit(1);
@@ -1345,7 +1376,7 @@ class bgerp_Notifications extends core_Manager
         // Ако заявката е по ajax
         if (Request::get('ajax_mode')) {
             
-            // Броя на нотифиакциите
+            // Броя на нотификациите
             $notifCnt = static::getOpenCnt();
             
             $res = array();
@@ -1400,7 +1431,7 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * Колко нови за потребителя нотификации има, след позледното разглеждане на портала?
+     * Колко нови за потребителя нотификации има, след последното разглеждане на портала?
      */
     public static function getNewCntFromLastOpen($userId = NULL, $arg = NULL)
     {
@@ -1456,7 +1487,7 @@ class bgerp_Notifications extends core_Manager
     {
         // Премахваме всички тагове без 'a'
         // Това е необходимо за да определим когато има промяна в състоянието на някоя нотификация
-        // Трябва да се премахват другите тагове, защото цвета се промяне през няколко секунди
+        // Трябва да се премахват другите тагове, защото цвета се променя през няколко секунди
         // и това би накарало всеки път да се обновяват нотификациите.
         
         $status = strip_tags($status, '<a>');
@@ -1476,21 +1507,29 @@ class bgerp_Notifications extends core_Manager
     {
         $lastRecently = dt::addDays(-bgerp_Setup::get('RECENTLY_KEEP_DAYS')/(24*3600));
 
-        // $res = self::delete("(#closedOn IS NOT NULL) AND (#closedOn < '{$lastRecently}')");
+        $res = self::delete("(#closedOn IS NOT NULL) AND (#closedOn < '{$lastRecently}')");
 
         if($res) {
-
+            
+            $this->logNotice("Бяха изтрити {$res} записа");
+            
             return "Бяха изтрити {$res} записа от " . $this->className;
         }
     }
     
     
     /**
-     * Изтриваме недостъпните нотификации, към съответните потребители
+     * Изтриваме недостъпните нотификации към съответните потребители
      */
     function cron_HideInaccesable()
     {
         $query = self::getQuery();
+        
+        $before = dt::subtractSecs(180000); // преди 50 часа
+        $query->where(array("#modifiedOn >= '[#1#]'", $before));
+        $query->orWhere(array("#closedOn >= '[#1#]'", $before));
+        $query->orWhere(array("#lastTime >= '[#1#]'", $before));
+        $query->orWhere(array("#activatedOn >= '[#1#]'", $before));
         
         $query->orderBy('modifiedOn', 'DESC');
         

@@ -88,7 +88,7 @@ class type_Users extends type_Keylist
             } else {
                 
                 $uQuery = core_Users::getQuery();
-                $uQuery->orderBy("#names", 'ASC');
+                $uQuery->orderBy('nick', 'ASC');
                 
                 // Потребителите, които ще покажем, трябва да имат посочените роли
                 $roles = core_Roles::getRolesAsKeylist($this->params['roles']);

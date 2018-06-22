@@ -195,7 +195,7 @@ class export_Csv extends core_Mvc
             
             $fileName = $clsInst->getHandle($cRec->id) . '_Export.csv';
             
-            $fileHnd = fileman::absorbStr($csv, 'exportCsv', $fileName);
+            $fileHnd = fileman::absorbStr($csv, 'exportFiles', $fileName);
         }
         
         if ($lg) {
@@ -203,7 +203,7 @@ class export_Csv extends core_Mvc
         }
         
         if ($fileHnd) {
-            $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/csv.png, title=" . tr('Сваляне на документа'));
+            $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/csv.png, title=Сваляне на документа");
             
             $form->info .= "<b>" . tr('Файл|*: ') . "</b>" . fileman::getLink($fileHnd);
         } else {

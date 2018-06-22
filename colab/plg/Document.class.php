@@ -22,7 +22,7 @@ class colab_plg_Document extends core_Plugin
     public static  function on_AfterPrepareSingle($mvc, $res, $data)
     {
         // Ако е контрактор, маркираме документа като видян
-        if (core_Users::haveRole('partner')) {
+        if (core_Users::haveRole('partner') && !Mode::get('eshopFinalize') && !Mode::get('getLinkedFiles')) {
             colab_DocumentLog::markAsViewed($data->rec->containerId);
         }
     }

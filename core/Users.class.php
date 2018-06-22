@@ -58,13 +58,13 @@ defIfNot('BGERP_OWN_IPS', '');
 defIfNot('USERS_UNBLOCK_EMAIL',
                 "\n|Уважаеми|* [#names#]." .
                 "\n" .
-                "\n|Потребителят Ви в|* [#EF_APP_TITLE#] |е блокиран|*." .
+                "\n|Потребителят|*[#nick#]|в|* [#EF_APP_TITLE#] |е блокиран|*." .
                 "\n" .
-                "\n|За да се отблокирате, моля отворете следния линк|*: " .
+                "\n|За да се отблокирате, моля последвайте този линк|*: " .
                 "\n" .
                 "\n[#url#]" .
                 "\n" .
-                "\n|Линка ще изтече в|* [#regLifetime#]." .
+                "\n|Линка ще изтече на|* [#regLifetime#]." .
                 "\n" .
                 "\n|Поздрави|*," .
                 "\n[#senderName#]");
@@ -188,6 +188,13 @@ class core_Users extends core_Manager
      * Кой има право да изтрива потребителите, създадени от системата?
      */
     public $canDeletesysdata = 'admin';
+    
+    
+    /**
+     * Масив със съответствие на mime типове към разширения
+     */
+    static $forbiddenNicksArr = array();
+    
 
     
     /**
@@ -281,7 +288,7 @@ class core_Users extends core_Manager
         }
  
         $uQuery = core_Users::getQuery();
-        $uQuery->orderBy('#nick');
+        $uQuery->orderBy('nick', 'ASC');
         
         $usersRolesArr = array();
         
@@ -382,6 +389,8 @@ class core_Users extends core_Manager
         
         $newName = $firstName . ' ' . $lastName;
         
+        $newName = trim($newName);
+        
         return $newName;
     }
     
@@ -467,6 +476,48 @@ class core_Users extends core_Manager
         
         return !(boolean) $cnt;
     }
+    
+    
+    /**
+     * Връща масив със списъка със забраненените имейли
+     */
+    public static function getForbiddenNicksArr()
+    {
+        if(empty(self::$forbiddenNicksArr)) {
+            // Вземаме цялото име на файла
+            $inc = getFullPath('core/data/forbiddenNicks.inc.php');
+            
+            // Инклудваме го, за да можем да му използваме променливите
+            include($inc);
+            
+            // Зареждаме масива в статична променлива
+            self::$forbiddenNicksArr = $forbiddenNicksArr;
+        }
+        
+        return self::$forbiddenNicksArr;
+    }
+    
+    
+    /**
+     * Проверява дали подададения ник е в списъка със забранените
+     *
+     * @param string $nick
+     *
+     * @return boolean
+     */
+    public static function isForbiddenNick($nick)
+    {
+        $fNicksArr = self::getForbiddenNicksArr();
+        
+        $nick = trim($nick);
+        $nick = mb_strtolower($nick);
+        
+        if ($fNicksArr[$nick]) return TRUE;
+        
+        return FALSE;
+    }
+    
+    
     
     
     /**
@@ -1159,12 +1210,13 @@ class core_Users extends core_Manager
                                 'names' => core_Setup::get('SYSTEM_NAME')
                             );
         } elseif(($cond == self::ANONYMOUS_USER) && is_numeric($cond)) {
+            cls::load('core_Setup');
             $res = (object) array(
                                 'id' => self::ANONYMOUS_USER,
                                 'nick' => '@anonym',
                                 'state' => 'active',
-                                'names' => tr('Анонимен')
-                            );
+                    'names' => tr('Анонимен', 0, EF_DEFAULT_LANGUAGE)
+            );
         } else {
             $res = parent::fetch($cond, $fields, $cache);
         }
@@ -1183,12 +1235,18 @@ class core_Users extends core_Manager
         expect($part);
 
         $cRec = Mode::get('currentUserRec');
+        
+        if (is_null($cRec) && $part == 'nick') {
+
+            return '@anonymous';
+        }
+        
         if ($escaped) {
             $res = core_Users::getVerbal($cRec, $part);
         } elseif(is_object($cRec)) {
             $res = $cRec->$part;
         }
-
+        
         return $res;
     }
     
@@ -1499,6 +1557,11 @@ class core_Users extends core_Manager
             }
         }
         
+        // Ако потребителя е партньор се записва в сесията първата му споделена папка като активна
+        if(core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)){
+        	colab_Folders::setLastActiveContragentFolder(NULL, $userRec->id);
+        }
+        
         // Записваме в лога успешното логване
         core_LoginLog::add('success', $userRec->id, $inputs->time);
     }
@@ -1564,7 +1627,7 @@ class core_Users extends core_Manager
     {
         $state = Users::getCurrent('state');
         
-        if (!$state == 'active') {
+        if (!Users::getCurrent() || !$state == 'active') {
             
             // Опитваме да получим адрес за връщане от заявката
             $retUrl = $retUrl ? $retUrl :  getCurrentUrl();
@@ -2392,6 +2455,10 @@ class core_Users extends core_Manager
     public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
         $query = self::getQuery();
+        
+        if ($params['excludeArr']) {
+            $query->notIn('id', $params['excludeArr']);
+        }
         
         if (is_array($onlyIds)) {
             if(!count($onlyIds)) {

@@ -116,6 +116,15 @@ class log_System extends core_Manager
         $this->setDbIndex('type, createdOn, className');
         
         $this->dbEngine = 'InnoDB';
+        
+        if (defined('LOG_DB_NAME') && defined('LOG_DB_USER') && defined('LOG_DB_PASS') && defined('LOG_DB_HOST')) {
+            $this->db = cls::get('core_Db',
+                array(  'dbName' => LOG_DB_NAME,
+                    'dbUser' => LOG_DB_USER,
+                    'dbPass' => LOG_DB_PASS,
+                    'dbHost' => LOG_DB_HOST,
+                ));
+        }
     }
     
     
@@ -194,9 +203,13 @@ class log_System extends core_Manager
         
         // Заявка за филтриране
         $fRec = $data->listFilter->rec;
-
-        if($fRec->date) {
-            $query->where("#createdOn >= '{$fRec->date}' AND #createdOn <= '{$fRec->date} 23:59:59'");
+        
+        if ($fRec->date) {
+            if ($fRec->date == dt::now(FALSE)) {
+                $query->where("#createdOn >= '{$fRec->date}'");
+            } else {
+                $query->where("#createdOn >= '{$fRec->date}' AND #createdOn <= '{$fRec->date} 23:59:59'");
+            }
         }
         
         if($fRec->class) {
@@ -355,8 +368,12 @@ class log_System extends core_Manager
             
             foreach ($adminsArr as $userId) {
                 if (!$this->haveRightFor('list', NULL, $userId)) continue;
-                $urlArr = array($this, 'list', 'type' => $rec->type);
-                bgerp_Notifications::add($msg, $urlArr, $userId, 'warning');
+                $cUrlArr = array($this, 'list', 'type' => $rec->type);
+                $urlArr = $cUrlArr;
+                
+                $cUrlArr['date'] = dt::now(FALSE);
+                
+                bgerp_Notifications::add($msg, $urlArr, $userId, 'warning', $cUrlArr);
             }
         }
     }

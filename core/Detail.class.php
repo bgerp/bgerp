@@ -162,6 +162,7 @@ class core_Detail extends core_Manager
         
         // Попълваме таблицата с редовете
         setIfNot($data->listTableMvc, clone $this);
+        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, TRUE);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме таблицата с редовете
@@ -286,11 +287,11 @@ class core_Detail extends core_Manager
     	if(!$preposition){
     		$preposition = 'към';
     	}
-    	 
+    	
     	if ($singleTitle) {
-    		$single = ' на| ' . mb_strtolower($singleTitle);
+    		$single = ' на|* |' . mb_strtolower($singleTitle);
     	}
-    	 
+    	
     	$title = ($recId) ? "Редактиране{$single} {$preposition}" : "Добавяне{$single} {$preposition}";
     	$title .= "|* " . cls::get($master)->getFormTitleLink($masterId);
     	

@@ -88,14 +88,14 @@ class fileman_Buckets extends core_Manager {
      * 
      * @return boolean
      */
-    public static function canAddFileToBucket($bucketId)
+    public static function canAddFileToBucket($bucketId, $userId = NULL)
     {
         $bRec = self::fetch((int)$bucketId);
         expect($bRec);
         
         if (!$bRec->rolesForAdding) return TRUE;
         
-        if (haveRole($bRec->rolesForAdding)) return TRUE;
+        if (haveRole($bRec->rolesForAdding, $userId)) return TRUE;
         
         return FALSE;
     }

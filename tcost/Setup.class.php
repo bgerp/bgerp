@@ -2,20 +2,16 @@
 
 
 /**
- * Начален номер на фактурите
- */
-defIfNot('TCOST_TRANSPORT_PRODUCTS_ID', '');
-
-
-/**
  * Надценка за транспорт - твърда
  */
 defIfNot('TCOST_ADD_TAX', 0);
+
 
 /**
  * Надценка за транспорт - твърда
  */
 defIfNot('TCOST_ADD_PER_KG', 0);
+
 
 /**
  * Калкулиране на транспорт
@@ -24,7 +20,7 @@ defIfNot('TCOST_ADD_PER_KG', 0);
  * @category  bgerp
  * @package   tcost
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -69,7 +65,6 @@ class tcost_Setup extends core_ProtoSetup
             'tcost_FeeZones',
             'tcost_Zones',
             'tcost_Fees',
-    		'tcost_Calcs',
         );
 
         
@@ -91,7 +86,6 @@ class tcost_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-    		'TCOST_TRANSPORT_PRODUCTS_ID' => array("keylist(mvc=cat_Products,select=name)", 'mandatory,caption=Артикули за транспорт,optionsFunc=tcost_Setup::getPossibleTransportProducts'),
             'TCOST_ADD_TAX' => array("double(smartRound=2)", 'caption=Надценки за транспорт->Твърда,unit=BGN'),
             'TCOST_ADD_PER_KG' => array("double(smartRound=2)", 'caption=Надценки за транспорт->За 1 кг,unit=BGN'),
 
@@ -107,49 +101,6 @@ class tcost_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    
-    /**
-     * Кои артикули могат да се избират като транспорт
-     * 
-     * @return array $suggestions - списък с артикули
-     */
-    public static function getPossibleTransportProducts()
-    {
-    	$suggestions = array();
-    	$pQuery = cat_Products::getQuery();
-    	$pQuery->where("#canStore = 'no'");
-    	$pQuery->show('name');
-    	
-    	while($pRec = $pQuery->fetch()){
-    		$suggestions[$pRec->id] = $pRec->name;
-    	}
-    	
-    	return $suggestions;
-    }
-    
-    
-    /**
-     * След първоначално зареждане на данните
-     */
-    function loadSetupData($itr = '')
-    {
-    	$res = parent::loadSetupData($itr);
-    	
-    	// Ако няма посочени от потребителя сметки за синхронизация
-    	$config = core_Packs::getConfig('tcost');
-    	if(strlen($config->TCOST_TRANSPORT_PRODUCTS_ID) === 0){
-    		$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-    		if($transportId){
-    			$products = array($transportId => $transportId);
-    			
-    			core_Packs::setConfig('tcost', array('TCOST_TRANSPORT_PRODUCTS_ID' => keylist::fromArray($products)));
-    			$res .= "<li style='color:green'>Добавени са дефолтни артикули за транспорт</b></li>";
-    		}
-    	}
-    
-    	return $res;
     }
     
     

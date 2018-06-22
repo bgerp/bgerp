@@ -142,8 +142,15 @@ class colab_DocumentLog extends core_Manager
     public static function renderViewedLink($containerId)
     {
         if (self::haveRightFor('renderview')) {
+            $title = 'Документът е видим за партньори';
+            if ($containerId) {
+                $cRec = doc_Containers::fetch($containerId);
+                if ($cRec->state == 'draft' && !haveRole('partner', $cRec->createdBy)) {
+                    $title = 'След активиране, документът ще е видим за партньори';
+                }
+            }
             
-            $attr = array('title' => tr('Документът е видим за партньори'), 'class' => 'eyeIcon');
+            $attr = array('title' => $title, 'class' => 'eyeIcon');
     		$attr = ht::addBackgroundIcon($attr, 'img/16/eye-open.png');
 
             $viewLink = ht::createElement('span', $attr, '', TRUE);
@@ -159,7 +166,7 @@ class colab_DocumentLog extends core_Manager
                 if ($viewCnt) {
                     $attr = array();
                     $attr['class'] = 'showViewed docSettingsCnt tooltip-arrow-link';
-                    $attr['title'] = tr('Виждания от колаборатори');
+                    $attr['title'] = 'Виждания от колаборатори';
                     $attr['data-url'] = toUrl(array(get_called_class(), 'showViewed', 'containerId' => $containerId), 'local');
                     $attr['data-useHover'] = '1';
                     $attr['data-useCache'] = '1';

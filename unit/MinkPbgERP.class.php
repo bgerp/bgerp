@@ -37,11 +37,12 @@ class unit_MinkPbgERP extends core_Manager {
      * Стартира последователно всички тестове от Unit 
      */
     //http://localhost/unit_MinkPbgERP/All/
-    //http://127.0.0.1:8080/unit_MinkPbgERP/All/
     
     public function act_All()
     {
-        set_time_limit(600);
+//         set_time_limit(600);
+       // core_App::setTimeLimit(600);
+        
         $res = '';
         $res .= $this->act_Run();
         $inst = cls::get('unit_MinkPSales');
@@ -71,7 +72,6 @@ class unit_MinkPbgERP extends core_Manager {
      * Стартира последователно тестовете от MinkPbgERP 
      */
     //http://localhost/unit_MinkPbgERP/Run/
-    //http://127.0.0.1:8080/unit_MinkPbgERP/Run/
     public function act_Run()
     {
 //         try {
@@ -168,7 +168,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
-        //return $browser->getHtml();
+        sleep(2);
+        set_time_limit(600);
         return $browser;
     }
      
@@ -185,7 +186,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Филтрирай');
         $browser->open($host.'/core_Packs/deinstall/?pack=select2');
         //$browser->open('http://localhost/core_Packs/deinstall/?pack=select2');
-        //return $browser->getHtml();
+       
     }
     
     /**
@@ -200,9 +201,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Лица');
         $browser->click('T');
         //$browser->click('Тестов потребител');
-        //return $browser->getHtml();
         $browser->click('Редактиране на лице');
-        //return $browser->getHtml();
         $browser->setValue('pCode', '5140');
         $browser->setValue('place', 'Лясковец');
         $browser->setValue('address', 'ул.Янтра, №12');
@@ -271,7 +270,7 @@ class unit_MinkPbgERP extends core_Manager {
         }
         // Създаване на папка на Моята фирма
         $browser->press('Папка');
-        //return $browser->getHtml();
+        
     }
     
     /**
@@ -292,7 +291,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('names', 'Потребител 1');
         $browser->setValue('email', 'u1@abv.bg');
         $browser->setValue('roleRank', 'officer');
-        //$browser->refresh('Запис');
         $browser->press('Refresh');
         $browser->setValue('purchase', True);
         $browser->setValue('seePrice', True);
@@ -327,7 +325,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('names', 'Потребител 2');
         $browser->setValue('email', 'u2@abv.bg');
         $browser->setValue('roleRank', 'officer');
-        //$browser->refresh('Запис');
         $browser->press('Refresh');
         //$browser->setValue('roleTeams[13]', '13');
         $browser->setValue('Дилър', True);
@@ -358,7 +355,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Складове"');
         $browser->setValue('name', 'Склад 1');
-        $browser->setValue('chiefs_13_1', '13_1');
+        $browser->setValue('Bgerp', True);
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -386,7 +383,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->hasText('Добавяне на запис в "Банкови сметки на фирмата"');
         $browser->setValue('iban', '#BG11CREX92603114548401');
         $browser->setValue('currencyId', '1');
-        $browser->setValue('operators_13_1', '13_1');
+        $browser->setValue('Bgerp', True);
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -419,7 +416,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('iban', '#BG22UNCR70001519562302');
         $browser->setValue('currencyId', 'EUR');
         $browser->setValue('Bgerp', True);
-        //$browser->setValue('operators_13_1', '13_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -446,7 +442,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Фирмени каси"');
         $browser->setValue('name', 'КАСА 1');
-        $browser->setValue('cashiers_13_1', '13_1');
+        $browser->setValue('Bgerp', True);
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -547,7 +543,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Параметри');
         $browser->press('Нов запис');
         $browser->setValue('driverClass', 'Символи');
-        //$browser->refresh('Запис');
         $browser->press('Refresh');
         $browser->setValue('group', 'Състояние');
         $browser->setValue('name', 'Външен вид');
@@ -561,7 +556,7 @@ class unit_MinkPbgERP extends core_Manager {
         }   else {
             return $this->reportErr('Неуспешно добавяне на параметър', 'info');
         }
-        //return $browser->getHtml();
+       
     }
     /**
      * 15. Създаване на мярка.
@@ -585,7 +580,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Отказ');
             return $this->reportErr('Дублиране на мярка', 'info');
         }
-        //return $browser->getHtml();
+       
     }
     
     /**
@@ -613,7 +608,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Отказ');
             return $this->reportErr('Дублиране на опаковка', 'info');
         }
-        //return $browser->getHtml();
+        
     }
     
     /**
@@ -636,7 +631,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Отказ');
             return $this->reportErr('Дублиране на група', 'info');
         }
-        //return $browser->getHtml();
+       
     }
     
     /**
@@ -659,7 +654,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Отказ');
             return $this->reportErr('Дублиране на проект', 'info');
         }
-        //return $browser->getHtml();
+        
     }
     /**
      * 19. Създаване на цикъл
@@ -686,7 +681,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Отказ');
             return $this->reportErr('Дублиране на запис', 'info');
         }
-        //return $browser->getHtml();
+        
     }
     /**
      * 20. Създаване на първо звено
@@ -798,12 +793,10 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис');
         $browser->click('Добавяне на нов параметър');
         $browser->setValue('paramId', 'Дължина');
-        //$browser->refresh('Запис');
         $browser->press('Refresh');
         $browser->setValue('paramValue', '50');
         $browser->press('Запис и Нов');
         $browser->setValue('paramId', 'Широчина');
-        //$browser->refresh('Запис');
         $browser->press('Refresh');
         $browser->setValue('paramValue', '26');
         $browser->press('Запис');
@@ -836,7 +829,6 @@ class unit_MinkPbgERP extends core_Manager {
             // Създаване на лице
             $browser->press('Ново лице');
             $browser->setValue('name', $person);
-            //$browser->setValue('groups[5]', '5');
             $browser->setValue('Служители', '5');
             $browser->press('Запис');
             if (strpos($browser->getText(),"Предупреждение:")){
@@ -1058,7 +1050,7 @@ class unit_MinkPbgERP extends core_Manager {
     }
     
     /**
-     * 30.Нова оферта в лева на съществуваща фирма с папка
+     * 30.Нова оферта в лева на съществуваща фирма с папка и продажба от нея
      */
     ///http://localhost/unit_MinkPbgERP/CreateQuotation/
     function act_CreateQuotation()
@@ -1074,14 +1066,13 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Папка');
         // нова оферта
         $browser->press('Нов...');
-        $browser->press('Оферта');
+        $browser->press('Изходяща оферта');
         //$browser->setValue('others', 'MinkPTestCreateQuotation');
         //$browser->hasText('Създаване на оферта в');
         $browser->press('Чернова');
         // Добавяне на артикул 
         $browser->press('Добавяне');
         $browser->setValue('productId', 'Чувал голям 50 L');
-        //$browser->refresh('Запис');
         $browser->press('Refresh');
         $browser->setValue('packQuantity', 100);
         $browser->setValue('packPrice', '0,06');
@@ -1090,7 +1081,6 @@ class unit_MinkPbgERP extends core_Manager {
         // Записване на артикула и добавяне на опционален - услуга
         $browser->press('Опционален артикул');
         $browser->setValue('productId', 'Други услуги');
-        //$browser->refresh('Запис');
         $browser->press('Refresh');
         $browser->setValue('packQuantity', 1);
         $browser->setValue('packPrice', 100);
@@ -1101,9 +1091,24 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Активиране');
         $browser->press('Продажба');
         ////Опционален артикул - не сработва
-        //return $browser->getHtml();
         //$browser->setValue('autoElement7018_2',1);
         $browser->press('Създай');
+        $browser->press('Активиране');
+        
+        //Създаване на връзка
+        $browser->press('Връзка');
+        $browser->setValue('act', 'Отложена задача');
+        //$browser->setValue('act', 'Нов документ');
+        $browser->press('Refresh');
+        //$browser->setValue('linkDocType', 'Задачи');
+        //$browser->press('Refresh');
+        //$browser->setValue('linkFolderId', 'Документите на Bgerp'); //не зарежда папките за избор
+        $browser->press('Запис');
+        //$browser->setValue('assign[]', 'User1');
+        //$valior=strtotime("+1 Day");
+        //$browser->setValue('timeStart[d]', date('d-m-Y', $valior));
+        //$valior=strtotime("+3 Days");
+        //$browser->setValue('timeEnd[d]', date('d-m-Y', $valior));
         $browser->press('Активиране');
         //return $browser->getHtml();
     }
@@ -1244,7 +1249,7 @@ class unit_MinkPbgERP extends core_Manager {
      
     //http://localhost/unit_MinkPbgERP/CreatePurchaseC/
     function act_CreatePurchaseC()
-    {set_time_limit(55);
+    {
         // Логваме се
         $browser = $this->SetUp();
     
@@ -1279,7 +1284,6 @@ class unit_MinkPbgERP extends core_Manager {
         //wp(getCurrentUrl());
         $browser->press('Артикул');
         $browser->setValue('productId', 'Други стоки');
-        //$browser->refresh('Запис');
         $browser->press('Refresh');
         $browser->setValue('packQuantity', '15');
         $browser->setValue('packPrice', '1,66');
@@ -1288,7 +1292,6 @@ class unit_MinkPbgERP extends core_Manager {
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
         $browser->setValue('productId', 'Други външни услуги');
-        //$browser->refresh('Запис');
         $browser->press('Refresh');
         $browser->setValue('packQuantity', 1);
         $browser->setValue('packPrice', '6');
@@ -1502,7 +1505,7 @@ class unit_MinkPbgERP extends core_Manager {
         } else {
             return $this->reportErr('Грешни суми в мастера', 'warning');
         }
-        //return $browser->getHtml();
+               
     }  
     
     /**
@@ -1548,7 +1551,6 @@ class unit_MinkPbgERP extends core_Manager {
         // Добавяне на артикул
         $browser->press('Артикул');
         $browser->setValue('productId', 'Други стоки');
-        //$browser->refresh('Запис');
         $browser->press('Refresh');
         $browser->setValue('packQuantity', '47');
         $browser->setValue('packPrice', '1,12');
@@ -1557,7 +1559,6 @@ class unit_MinkPbgERP extends core_Manager {
         // Записване артикула и добавяне нов - услуга
         $browser->press('Запис и Нов');
         $browser->setValue('productId', 'Други услуги');
-        //$browser->refresh('Запис');
         $browser->press('Refresh');
         $browser->setValue('packQuantity', '010');
         $browser->setValue('packPrice', '1,0202');
@@ -1817,4 +1818,5 @@ class unit_MinkPbgERP extends core_Manager {
         //return $browser->getHtml();
     
     }
+   
 }

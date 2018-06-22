@@ -393,6 +393,8 @@ class doc_FolderPlg extends core_Plugin
             	expect(count((array)$rec), 'Опит за създаване на празна корица');
             	
                 $rec->folderId = doc_Folders::createNew($mvc);
+
+                $rec->__mustNotify = 'created';  
                 $mvc->save($rec);
             }
 
@@ -496,6 +498,11 @@ class doc_FolderPlg extends core_Plugin
         
         if((!$fields || $fArr['state']) && !$rec->state) {
             $rec->state = 'active';
+        }
+        
+        // Партньорите да не са собственици на папки
+        if (haveRole('partner', $rec->inCharge)) {
+            $rec->inCharge = NULL;
         }
         
         // Подсигуряване да не се създава корица с отговорник @system или @anonym
@@ -604,6 +611,8 @@ class doc_FolderPlg extends core_Plugin
                 }
             }
             
+            $shareVrb = $rec->__mustNotify === 'created' ? 'създаде и сподели' : 'сподели';
+
             // Нотифицираме новите споделени потребители
             if ($notifyArr) {
                 foreach ($notifyArr as $notifyUserId) {
@@ -618,17 +627,19 @@ class doc_FolderPlg extends core_Plugin
                         if(doc_Folders::haveRightFor('single', $rec->folderId, $notifyUserId)){
                             $url = array('doc_Threads', 'list', 'folderId' => $rec->folderId, 'share' => TRUE);
                         }
+
+
             
-                        $msg = $currUserNick . ' |сподели папка|* "' . $folderTitle . '"';
+                        $msg = $currUserNick . " |{$shareVrb} папка|* \"" . $folderTitle . '"';
                     }
             
                     if (empty($url)) {
                         if (($mvc instanceof core_Master) && $mvc->haveRightFor('single', $rec, $notifyUserId)) {
                             $url = array($mvc, 'single', $rec->id, 'share' => TRUE);
-                            $msg = $currUserNick . ' |сподели|* "|' . $mvc->singleTitle . '|*"';
+                            $msg = $currUserNick . " |{$shareVrb}|* \"|" . $mvc->singleTitle . '|*"';
                         } else {
                             $url = array($mvc, 'list', 'share' => TRUE);
-                            $msg = $currUserNick . ' |сподели|* "|' . $mvc->title . '|*"';
+                            $msg = $currUserNick . " |{$shareVrb}|* \"|" . $mvc->title . '|*"';
                         }
                     }
                     

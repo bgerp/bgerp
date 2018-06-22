@@ -354,9 +354,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     		foreach (array("contragentName", "contragentClassId", "contragentId", "contragentCountryId", "contragentVatNo", "uicNo", "contragentPCode", "contragentPlace", "contragentAddress")  as $fld){
     			unset($rec->{$fld});
     		}
-    		
-    		$ownCountryId = crm_Setup::get('BGERP_OWN_COMPANY_COUNTRY', TRUE);
-    		$rec->contragentCountryId = drdata_Countries::fetchField("#commonName = '{$ownCountryId}'", 'id');
+    		$rec->contragentCountryId = crm_Companies::fetchOurCompany()->country;
     	}
     	
     	if($rec->type != 'dc_note'){
@@ -578,6 +576,17 @@ class purchase_Invoices extends deals_InvoiceMaster
     			
     			if(bank_SpendingDocuments::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
     				$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => TRUE), 'ef_icon=img/16/bank_rem.png,title=Създаване на нов разходен банков документ');
+    			}
+    		}
+    		
+    		if(purchase_Vops::haveRightFor('add', (object)array('invoiceId' => $rec->id))){
+    			$rowNumber = (drdata_Countries::isEu($rec->contragentCountryId)) ? 1 : 2;
+    			$data->toolbar->addBtn("ВОП", array('purchase_Vops', 'add', 'invoiceId' => $rec->id), "ef_icon=img/16/page_2.png,title=Създаване на нов протокол за вътреобщностно придобиване, row={$rowNumber}");
+    		}
+    		
+    		if($vopId = purchase_Vops::fetchField("#invoiceId = {$rec->id}")){
+    			if(purchase_Vops::haveRightFor('print', $vopId)){
+    				$data->toolbar->addBtn("ВОП", array('purchase_Vops', 'print', $vopId, 'Printing' => 'yes'), 'ef_icon=img/16/print_go.png,title=Разпечатване на нов протокол за вътреобщностно придобиване,target=_blank');
     			}
     		}
     	}

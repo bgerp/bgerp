@@ -127,7 +127,7 @@ class iban_Type extends type_Varchar
     {
         setIfNot($attr['size'], intval($this->dbFieldLen * 1.3));
         setIfNot($attr['maxlength'], $this->dbFieldLen);
-        setIfNot($attr['title'], tr('За номер извън IBAN стандарта започнете със знака "#"'));
+        setIfNot($attr['title'], 'За номер извън IBAN стандарта започнете със знака "#"');
       
         return parent::renderInput_($name, $value, $attr);
     }

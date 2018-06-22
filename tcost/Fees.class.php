@@ -181,13 +181,14 @@ class tcost_Fees extends core_Detail
     	
         // Определяне на зоната на транспорт, за зададеното условие на доставка
         $zone = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $countryId, $pCode);
-       
+ 
+
         // Ако не се намери зона се връща 0
-        if(is_null($zone)) return tcost_CostCalcIntf::ZONE_FIND_ERROR;
+        if(is_null($zone)) return cond_TransportCalc::ZONE_FIND_ERROR;
 
         // Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();
-
+ 
         $weightsLeft = NULL;
         $weightsRight = INF;
         $smallestWeight = NULL;

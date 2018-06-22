@@ -1,10 +1,18 @@
+<!--ET_BEGIN cookies-->
+[#cookies#]
+<div class = 'cookies'>
+        [#COOKIE_TEXT#]
+        <span class="agree">Съгласен съм</span>
+</div>
+<!--ET_END cookies-->
 <div class='background-holder'>
+
     <div class='clearfix21' id='all'>
         <div id="cmsTop" [#TOP_CLASS#]>
             [#HEADER_IMG#]
             [#PAGE_HEADER#]
             <!--ET_BEGIN CORE_APP_NAME-->
-                <div class='app-name'>[#CORE_APP_NAME#]</div> 
+                <div class='app-name'>[#CORE_APP_NAME#]</div>
             <!--ET_END CORE_APP_NAME-->
         </div>
         <div id="cmsMenu" class='menuRow'>
@@ -16,15 +24,24 @@
             </div>
             <!--ET_BEGIN USERLINK-->
             <div class="logoutBlock">
-                [#USERLINK#] [#LOGOUT#]
+                [#USERLINK#] <span id='cart-external-status'>[#USERCART#]</span> [#LOGOUT#]
             </div>
             <!--ET_END USERLINK-->
             [#CMS_LAYOUT#]
         </div>
+
         <div id="cmsBottom">
-            [#cms_Feeds::generateFeedLink#]
-            [#social_Followers::getButtons#]
+            <div class="socialBtns">
+                [#cms_Feeds::generateFeedLink#]
+                [#social_Followers::getButtons#]
+            </div>
             [#cms_Content::getFooter#]
+            [#FOOTER_LINKS_WIDE#]
         </div>
+        <!--ET_BEGIN FOOTER_LINKS_NARROW-->
+        <div class="additionalFooter">
+            [#FOOTER_LINKS_NARROW#]
+        </div>
+        <!--ET_END FOOTER_LINKS_NARROW-->
     </div>
 </div>

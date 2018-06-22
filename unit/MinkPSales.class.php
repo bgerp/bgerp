@@ -74,6 +74,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
+        sleep(2);
         return $browser;
     }
     
@@ -419,7 +420,7 @@ class unit_MinkPSales extends core_Manager {
             $browser->press('Продажба');
         }
     
-        $browser->setValue('reff', 'DiscountMinus');
+        $browser->setValue('reff', 'Discount101');
         $browser->setValue('note', 'MinkPSaleDiscount101');
         $browser->setValue('paymentMethodId', "В брой при получаване");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
@@ -468,7 +469,7 @@ class unit_MinkPSales extends core_Manager {
             $browser->press('Нов...');
             $browser->press('Продажба');
         }
-         
+        
         //$browser->hasText('Създаване на продажба');
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('shipmentStoreId', '1');
@@ -514,9 +515,9 @@ class unit_MinkPSales extends core_Manager {
             return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - фактура със стара дата', 'warning');
         }
         $browser->press('Отказ');
-        
+       
         // Оттегляне на фактурата с днешна дата
-        $browser->press('btnDelete53');
+        $browser->press('btnDelete54');
         
         // Фактура с вчерашна дата - контиране
         $browser->press('Фактура');
@@ -2262,6 +2263,10 @@ class unit_MinkPSales extends core_Manager {
             //$browser->setValue('Ignore', 1);
             $browser->press('Чернова');
         }
+        if(strpos($browser->gettext(), 'Датата е в бъдещ счетоводен период')) {
+                $browser->setValue('Игнорирай предупреждениeто', True);
+                $browser->press('Чернова');
+        }
         
         // Добавяме нов артикул - 20% ДДС
         $browser->press('Артикул');
@@ -2287,23 +2292,26 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('discount', 9);
         // Записваме артикула
         $browser->press('Запис');
+        
         // активираме продажбата
         $browser->press('Активиране');
-        $browser->press('Активиране/Контиране');
-         
-        if(strpos($browser->gettext(), 'ДДС 20%: BGN 12,96')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешно ДДС 20%', 'warning');
+        // Контиране, ако не е в бъдещ период
+        if(strpos($browser->gettext(), 'Активиране/Контиране')) {
+            $browser->press('Активиране/Контиране');
+            if(strpos($browser->gettext(), 'ДДС 20%: BGN 12,96')) {
+            } else {
+                return unit_MinkPbgERP::reportErr('Грешно ДДС 20%', 'warning');
+            }
+            if(strpos($browser->gettext(), 'ДДС 9%: BGN 6,63')) {
+            } else {
+                return unit_MinkPbgERP::reportErr('Грешно ДДС 9%', 'warning');
+            }
+            if(strpos($browser->gettext(), 'Сто петдесет и осем BGN и 0,10')) {
+            } else {
+                return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
+            }
         }
-        if(strpos($browser->gettext(), 'ДДС 9%: BGN 6,63')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешно ДДС 9%', 'warning');
-        }
-        if(strpos($browser->gettext(), 'Сто петдесет и осем BGN и 0,10')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
-        }
-        
+       
     }
      
     /**

@@ -589,7 +589,10 @@ class acc_BalanceDetails extends core_Detail
         }
         
         $data->listFields = array();
-        $data->listFields['history'] = ' ';
+        
+        if(!Mode::isReadOnly()){
+        	$data->listFields['history'] = ' ';
+        }
         
         /**
          * Указва дали редом с паричните стойности да се покажат и колони с количества.
@@ -852,7 +855,7 @@ class acc_BalanceDetails extends core_Detail
                             // Ако има сума закръгляме я до втория знак преди запис
                             foreach (array('blAmount', 'baseAmount') as $fld){
                             	if(!is_null($rec[$fld])){
-                            		$rec[$fld] = round($rec[$fld], 2);
+                            		$rec[$fld] = round($rec[$fld], 8);
                             	}
                             }
                             
@@ -1315,7 +1318,7 @@ class acc_BalanceDetails extends core_Detail
             $v += $add;
             
             // Машинно закръгляне
-            $v = round($v, 9);
+            $v = round($v, 8);
         }
     }
     

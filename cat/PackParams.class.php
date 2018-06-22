@@ -83,8 +83,7 @@ class cat_PackParams extends core_Manager
     	$this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Широчина');
     	$this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Параметри->Височина');
     	$this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Параметри->Тара');
-    	
-    	$this->setDbIndex('packagingId');
+		$this->setDbIndex('packagingId');
     	$this->setDbIndex('title');
     }
     

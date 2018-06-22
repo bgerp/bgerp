@@ -218,7 +218,9 @@ class label_Prints extends core_Master
         
         $labelDataArr = array();
         
-        if(isset($classId) && isset($objId)){
+        $oLang = core_Lg::getCurrent();
+        
+        if (isset($classId) && isset($objId)) {
         	$intfInst = cls::getInterface('label_SequenceIntf', $classId);
         	
         	$lang = '';
@@ -228,6 +230,7 @@ class label_Prints extends core_Master
         	core_Mode::push('prepareLabel', TRUE);
         	if ($lang) {
         	    core_Lg::push($lang);
+        	    $oLang = $lang;
         	}
             $labelDataArr = $intfInst->getLabelPlaceholders($objId);
             if ($lang) {
@@ -311,6 +314,13 @@ class label_Prints extends core_Master
             
             core_Lg::push($lang);
             
+			// Ако е променен езика, вземаме данните пак
+            if ($lang != $oLang) {
+                if ($classId && $objId) {
+                    $labelDataArr = $intfInst->getLabelPlaceholders($objId);
+                }
+            }
+            
 			// При редакция да се попълват стойностите
             if ($rec->id) {
                 foreach ((array)$rec->params as $fieldName => $val) {
@@ -328,8 +338,6 @@ class label_Prints extends core_Master
             
             // Добавяме полетата от детайла на шаблона
             label_TemplateFormats::addFieldForTemplate($form, $rec->templateId);
-            
-            $form->input(NULL, TRUE);
             
             // Обхождаме масива
             foreach ((array)$labelDataArr as $fieldName => $v) {
@@ -350,6 +358,8 @@ class label_Prints extends core_Master
                     $form->setReadonly($fieldName);
                 }
             }
+            
+            $form->input(NULL, TRUE);
         }
         
         if ($rec->templateId) {
@@ -369,8 +379,6 @@ class label_Prints extends core_Master
         
         if ($classId && $objId) {
             $mvc->requireRightFor('add', (object)array('classId' => $classId, 'objectId' => $objId));
-            
-            $intfInst = cls::getInterface('label_SequenceIntf', $classId);
             
             $lName = $intfInst->getLabelName($objId);
             if ($lName) {
@@ -829,8 +837,11 @@ class label_Prints extends core_Master
                 }
                 
                 if($clsInst instanceof core_Detail){
-                	$oMasterId = $clsInst->fetchField($rec->objectId, $clsInst->masterKey);
-                	$row->source = $clsInst->Master->getHyperlink($oMasterId);
+                	if($oMasterId = $clsInst->fetchField($rec->objectId, $clsInst->masterKey)){
+                		$row->source = $clsInst->Master->getHyperlink($oMasterId);
+                	} else {
+                		$row->source = "<span class='red'>" . tr("Проблем с показването") . "</span>";
+                	}
                 } elseif(cls::haveInterface('doc_DocumentIntf', $clsInst)){
                 	$row->source = $clsInst->getLink($rec->objectId, 0);
                 } else {

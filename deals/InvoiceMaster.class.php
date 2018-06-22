@@ -327,8 +327,8 @@ abstract class deals_InvoiceMaster extends core_Master
     				$form->rec->changeAmountVat = key($cache->vats);
     				
     				$min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
-    				$min = round($min, 4);
-    				 
+    				$min = round($min, 2);
+    				
     				$form->setFieldTypeParams('changeAmount', array('min' => -1 * $min));
     				 
     				if($invArr['dpOperation'] == 'accrued'){
@@ -699,7 +699,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		 
     		foreach (array('contragentVatNo', 'uicNo') as $numFld){
     			if(!empty($rec->{$numFld})){
-    				if(!preg_match("/^[a-zA-Z0-9_]*$/iu", $rec->{$numFld})){
+    				if(!preg_match("/^[a-zA-Zа-яА-Я0-9_]*$/iu", $rec->{$numFld})){
     					$form->setError($numFld, 'Лоши символи в номера');
     				}
     			}
@@ -752,7 +752,15 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     		
     		if($rec->paymentType == 'cash' && isset($rec->accountId)){
-    			$form->setWarning('accountId', "Избрана е банкова сметка при начин на плащане в брой|*?");
+    			$form->setWarning('accountId', "Избрана е банкова сметка при начин на плащане в брой");
+    		}
+    		
+    		if(!empty($rec->vatReason)){
+    			if(mb_strlen($rec->vatReason) < 15){
+    				$form->setError('vatReason', "Основанието за ДДС трябва да е поне|* <b>15</b> |символа|*");
+    			} elseif(!preg_match("/[a-zA-Zа-яА-Я]/i", $rec->vatReason)){
+    				$form->setError('vatReason', "Основанието за ДДС трябва да съдържа букви");
+    			}
     		}
     	}
     	
@@ -988,13 +996,14 @@ abstract class deals_InvoiceMaster extends core_Master
     			$row->paymentType = tr("Плащане " . $arr[$rec->paymentType]);
     		}
     		
-    		if(isset($rec->autoPaymentType) && isset($rec->paymentType) && ($rec->paymentType != $rec->autoPaymentType && !($rec->paymentType == 'card' && $rec->autoPaymentType == 'cash'))){
-    			$row->paymentType = ht::createHint($row->paymentType, 'Избрания начин на плащане не отговаря на реалния', 'warning');
-    		}
-    		
     		if(haveRole('debug')){
+    			if(isset($rec->autoPaymentType) && isset($rec->paymentType) && ($rec->paymentType != $rec->autoPaymentType && !($rec->paymentType == 'card' && $rec->autoPaymentType == 'cash'))){
+    				$row->paymentType = ht::createHint($row->paymentType, 'Избрания начин на плащане не отговаря на реалния', 'warning');
+    			}
+    		
     			$row->paymentType = ht::createHint($row->paymentType, "Автоматично '{$rec->autoPaymentType}'", 'img/16/bug.png');
     		}
+    		
     		core_Lg::pop();
     	}
     }

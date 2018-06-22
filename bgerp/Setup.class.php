@@ -64,6 +64,12 @@ defIfNot('BGERP_START_OF_WORKING_DAY', '08:00');
 
 
 /**
+ * Кое поле да е задължително при изпращане на запитване или поръчка във външната част
+ */
+defIfNot('BGERP_MANDATORY_CONTACT_FIELDS', 'company');
+
+
+/**
  * Допустим % "Недоставено" за автоматично приключване на сделка
  */
 defIfNot('BGERP_CLOSE_UNDELIVERED_OVER', '1');
@@ -179,6 +185,8 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_BLOCK_WARNING' =>  array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Спешни, customizeBy=powerUser'),
 
         'BGERP_BLOCK_NORMAL' =>  array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Нормални, customizeBy=powerUser'),
+        
+        'BGERP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни във външната част->Поле'),
     );
     
     
@@ -200,6 +208,7 @@ class bgerp_Setup extends core_ProtoSetup {
     var $managers = array(
             'migrate::addThreadIdToRecently',
             'migrate::migrateBookmarks2',
+            'migrate::fixTreeObjectName',
         );
     
     
@@ -358,7 +367,10 @@ class bgerp_Setup extends core_ProtoSetup {
             
         } while (!empty($haveError) && ($loop<5));
         
+        // Записваме в конфигурацията, че базата е мигрирана към текущата версия
+        core_Packs::setConfig('core', array('CORE_LAST_DB_VERSION' => core_Setup::CURRENT_VERSION)); 
 
+        // Започваме пак да записваме дебъг съобщенията
         core_Debug::$isLogging = TRUE;
         
         
@@ -428,6 +440,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $html .= parent::install();
 
         core_SystemLock::remove();
+
         return $html;
     }
 
@@ -559,5 +572,37 @@ class bgerp_Setup extends core_ProtoSetup {
  
   
         return "<li>Мигрирани букмарки: " . $cnt;    
+    }
+    
+    
+    /**
+     * 
+     */
+    public static function fixTreeObjectName()
+    {
+        foreach (array('cat_Groups', 'crm_Groups', 'hr_Departments') as $clsName) {
+            if (!cls::load($clsName, TRUE)) continue ;
+            
+            $clsInst = cls::get($clsName);
+            
+            if (!$clsInst->hasPlugin('plg_TreeObject')) continue ;
+            
+            $clsQuery = $clsInst->getQuery();
+            $clsQuery->where("#{$clsInst->nameField} = '' OR #{$clsInst->nameField} IS NULL");
+            
+            while ($cRec = $clsQuery->fetch()) {
+                $pQuery = $clsInst->getQuery();
+                $pQuery->where(array("#parentId = '[#1#]'", $cRec->id));
+                
+                while ($pRec = $pQuery->fetch()) {
+                    $pRec->parentId = NULL;
+                    $clsInst->logDebug('Нулиран parentId', $pRec);
+                    $clsInst->save_($pRec, 'parentId');
+                }
+                
+                $clsInst->logDebug('Изтрит запис с празна стойност', $cRec);
+                $clsInst->delete($cRec->id);
+            }
+        }
     }
 }

@@ -153,7 +153,7 @@ class label_Templates extends core_Master
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('sizes', 'varchar(128)', 'caption=Размери, mandatory, width=100%');
         $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Източник');
-        $this->FLD('template', 'html', 'caption=Шаблон->HTML');
+        $this->FLD('template', 'html(tinyEditor=no)', 'caption=Шаблон->HTML');
         $this->FLD('css', 'text', 'caption=Шаблон->CSS');
         $this->FLD('sysId', 'varchar', 'input=none');
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
@@ -382,7 +382,7 @@ class label_Templates extends core_Master
         }
         
         // Подреждане по състояние
-        $data->query->orderBy('#state=ASC, #modifiedOn=DESC');
+        $data->query->orderBy('createdOn', 'DESC');
 
         if($state = $data->listFilter->rec->fState) {
             $data->query->where(array("#state = '[#1#]'", $state));
@@ -672,8 +672,6 @@ class label_Templates extends core_Master
     	if($onlyIds === TRUE){
     		$tQuery->show('id');
     	}
-    	
-    	$intfInst = cls::getInterface('label_SequenceIntf', $class);
     	
     	$res = array();
     	while($tRec = $tQuery->fetch()){

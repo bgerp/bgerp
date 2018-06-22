@@ -112,7 +112,7 @@ class accda_Da extends core_Master
     /**
      * Полета за показване в списъчния изглед
      */
-    public $listFields = 'valior,handler=Документ,title,num,serial,createdOn,createdBy';
+    public $listFields = 'valior,handler=Документ,title,num,serial,location,createdOn,createdBy';
 
     
     /**
@@ -252,6 +252,31 @@ class accda_Da extends core_Master
             if($gps = exif_Reader::getGps($rec->image)){
                 // Ако има GPS коодинати в снимката ги извличаме
                 $rec->gpsCoords = $gps['lat'] . ", " . $gps['lon'];
+            }
+        }
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $ownCompany = crm_Companies::fetchOurCompany();
+        $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id);
+        if (count($ourLocations)) {
+            $data->listFilter->addAttr('location', array('formOrder' => 11));
+            
+            $data->listFilter->fields['location']->formOrder = 11;
+            
+            $data->listFilter->setOptions('location', array('' => '') + $ourLocations);
+            
+            $data->listFilter->showFields .= ',location';
+            
+            $data->listFilter->input('location');
+            
+            if ($data->listFilter->rec->location) {
+                $data->query->where(array("#location = '[#1#]'", $data->listFilter->rec->location));
             }
         }
     }

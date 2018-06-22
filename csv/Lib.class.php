@@ -52,22 +52,34 @@ class csv_Lib
         expect(($handle = fopen($path, "r")) !== FALSE);
         
         $closeOnce = FALSE;
-
-        while (($data = fgetcsv($handle, $format['length'], $format['delimiter'], $format['enclosure'], $format['escape'])) !== FALSE) {
- 
+        
+        $pRowCnt = NULL;
+        
+        while (($data = fgetcsv($handle, $format['length'], $format['delimiter'], $format['enclosure'], $format['escape'])) !== FALSE)
+        {
+            $cRowCnt = count($data);
+            
             // Пропускаме празните линии
-            if(!count($data) || (count($data) == 1 && trim($data[0]) == '')) continue;
+            if(!$cRowCnt || ($cRowCnt == 1 && trim($data[0]) == '')) continue;
 
             // Пропускаме редовете със знака указан в $skip
             if($data[0]{0} == $format['skip']) {
-
                 if(strtolower(trim($data[0], ' ' . $format['skip'])) == 'closeonce') {
                     $closeOnce = TRUE;
                 }
 
                 continue;
             }
-
+            
+            // Ако броя на колоните не са коректни
+            if (!isset($pRowCnt)) {
+                $pRowCnt = $cRowCnt;
+            } else {
+                if ($cRowCnt != $pRowCnt) {
+                    wp($data, $cRowCnt, $pRowCnt, $fields);
+                }
+            }
+            
             // Ако не са указани полетата, вземаме ги от първия ред
             if($firstRow && !count($fields)) {
                 foreach($data as $f) {
@@ -84,6 +96,9 @@ class csv_Lib
                 }
                 
                 foreach($fields as $i => $f) {
+                    
+                    $data[$i] = str_replace($format['escape'], '', $data[$i]);
+                    
                     $rec->{$f} = $data[$i];
                 }
 
@@ -91,8 +106,8 @@ class csv_Lib
                     $rec->state = 'closed';
                     $closeOnce = FALSE;
                 }
-          
-                if ($mvc->invoke('BeforeImportRec', array(&$rec)) === FALSE) continue ;
+                
+                if ($mvc->invoke('BeforeImportRec', array(&$rec, $data, $fields, $defaults)) === FALSE) continue ;
                 
                 // Ако таблицата се попълва от нулата, само се добавят редове
                 if($fromZero && $isLarge) {
@@ -110,8 +125,10 @@ class csv_Lib
                 
                 $conflictFields = array();
 
-                if(!$mvc->isUnique($rec, $conflictFields, $exRec)) {
-                    $rec->id = $exRec->id;
+                if($rec->id || !$mvc->isUnique($rec, $conflictFields, $exRec)) {
+                    if(!$rec->id) {
+                        $rec->id = $exRec->id;
+                    }
                     $flagUpdate = TRUE;
                 } else {
                     $res->created++;
@@ -140,7 +157,7 @@ class csv_Lib
                 }
             }
         }
-
+		
         if(count($recs)) {
             $mvc->saveArray($recs, NULL, TRUE);
         }
@@ -179,7 +196,7 @@ class csv_Lib
         } catch (core_exception_Expect $e) {
             $confHash = NULL;
         }
-        
+		
         if(($confHash != $hash) || ($delete === 'everytime')) {
  
             // Изтриваме предишното съдържание на модела, ако е сетнат $delete
@@ -460,8 +477,12 @@ class csv_Lib
             
             return array();
         }
-        
-        $resArr = (array) $rowsArr['firstRow'];
+
+        if($rowsArr['firstRow']) {
+            $resArr = (array) $rowsArr['firstRow'];
+        } else {
+            $resArr = $rowsArr['data'][0];
+        }
         
         if ($firstEmpty) {
             $resArr = arr::combine(array(NULL => ''), $resArr);
@@ -482,7 +503,7 @@ class csv_Lib
     public static function getCsvRowsFromFile($csvData, $params = array())
     {  
         list($handle, $params['delimiter'], $params['enclosure'], $params['firstRow']) = self::analyze($csvData, $params['delimiter'], $params['enclosure']);
- 
+  
         if($params['delimiter'] === NULL) {
             $params['delimiter'] = chr(0);
         }
@@ -529,12 +550,14 @@ class csv_Lib
             
             if (($params['firstRow'] == 'columnNames') && $isFirst) {
                 $isFirst = FALSE;
-                $resArr['firstRow'] = $data;
+                $resArr['firstRow'] = $data;  
             } else {
                 $resArr['data'][] = $data;
             }
         }
-        
+
+        $resArr['params'] = $params;
+       
         return $resArr;
     }
 
@@ -659,7 +682,7 @@ class csv_Lib
         $csv = i18n_Charset::convertToUtf8($csv, array('UTF-8', 'WIN1251'));
         
         $csv = str_replace(chr(194).chr(160), '', $csv);
- 
+        
         // Определяне на формата
         if(strlen($delimiter)) {
             $delimiter = str_replace('tab', "\t", $delimiter);
@@ -667,7 +690,7 @@ class csv_Lib
         } else {
             $dArr = array("|", "\t", ",", ";", ' ', ':');
         }
-
+        
         if(strlen($enclosure)) {
             $eArr = array($enclosure);
         } else {
@@ -682,7 +705,7 @@ class csv_Lib
         $fp = fopen('php://memory','r+');
         fputs($fp, $csv);
         $best = NULL;
-
+        
         foreach($dArr as $d) {
             foreach($eArr as $e) {
                 if(strpos($csv, $d) === FALSE) continue;
@@ -719,11 +742,13 @@ class csv_Lib
                         $points -= 1;
                     }
                 }
- 
+                
                 // Добавка за срещанията на ображдащия символ до разделител или нов ред
                 $deCntL = substr_count($csv, $d . $e) + substr_count($csv, $nl . $e);
                 $deCntR = substr_count($csv, $e . $d) + substr_count($csv, $e . $nl);
-                $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * count($res) + min($deCntL , $deCntR) / $nlCnt;
+                if ($nlCnt) {
+                    $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * count($res) + min($deCntL , $deCntR) / $nlCnt;
+                }
                 $points -= ($deCntL > 0) && ($deCntL != $deCntR) * count($res) ;
        
                 // Среща ли се $е самостоятелно
@@ -740,7 +765,15 @@ class csv_Lib
                 }
             }
         }
- 
+        
+        if ($delimiter === '') {
+            $delimiter = NULL;
+        }
+        
+        if ($enclosure === '') {
+            $enclosure = NULL;
+        }
+        
         rewind($fp);
         
         $fr = 0;
@@ -769,7 +802,7 @@ class csv_Lib
                 }
             }
         }
- 
+  
         return array($fp, $delimiter, $enclosure, $fr > 0 ? 'columnNames' : 'data');
     }
 

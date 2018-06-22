@@ -26,6 +26,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	/**
 	 * Връща свойствата на артикула според драйвера
 	 * 
+	 * @param mixed $metas - текущи мета данни
 	 * @return array $metas - кои са дефолтните мета данни
 	 */
 	public function getDefaultMetas()
@@ -289,7 +290,18 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 		return $this->class->getMoq($id);
 	}
 	
-	
+    
+    /**
+     * Връща броя на количествата, които ще се показват в запитването
+     *
+     * @return int|NULL - броя на количествата в запитването
+     */
+    public function getInquiryQuantities()
+    {
+    	return $this->class->getInquiryQuantities();
+    }
+
+
 	/**
 	 * Връща дефолтните опаковки за артикула
 	 *
@@ -386,7 +398,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      */
 	public function getTransportWeight($rec, $quantity)
 	{
-		return $this->class->canCalcTransportFee($rec, $quantity);
+		return $this->class->getTransportWeight($rec, $quantity);
 	}
 	
 	

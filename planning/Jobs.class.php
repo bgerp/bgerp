@@ -161,6 +161,26 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * Масив със състояниет, за които да се праща нотификация
+     * 
+     * @see planning_plg_StateManager
+     */
+    public $notifyActionNamesArr = array('active' => 'Активиране',
+                                         'closed' => 'Приключване',
+                                         'wakeup' => 'Събуждане',
+                                         'stopped' => 'Спиране',
+                                         'rejected' => 'Оттегляне');
+    
+    
+    /**
+     * Дали ключа на нотификацията да сочи към нишката или документа - за уникалност на нотификацията
+     * 
+     * @see planning_plg_StateManager
+     */
+    public $notifyToThread = FALSE;
+    
+    
+    /**
      * Да се забрани ли кеширането на документа
      */
     public $preventCache = TRUE;
@@ -221,11 +241,21 @@ class planning_Jobs extends core_Master
      * @param int $id        - ид на текущото задание
      * @return array $res    - масив с предишните задания
      */
-    private static function getOldJobs($productId, $id)
+    private static function getOldJobs($productId, $id, $folderId)
     {
     	$res = array();
+    	
+    	// Старите задания към артикула или към артикулите в неговата папка
+    	$pQuery = cat_Products::getQuery();
+    	$pQuery->where("#folderId = {$folderId}");
+    	$pQuery->show('id');
+    	$products = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+    	$products[$productId] = $productId;
+    	
     	$query = self::getQuery();
-    	$query->where("#id != '{$id}' AND #productId = {$productId} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed')");
+    	$query->in('productId', $products);
+    	$query->where("#id != '{$id}' AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed')");
+    	
     	$query->orderBy('id', 'DESC');
     	$query->show('id,productId,state');
     	
@@ -249,7 +279,7 @@ class planning_Jobs extends core_Master
     	$rec = &$form->rec;
     	
     	// Ако има предишни задания зареждат се за избор
-    	$oldJobs = self::getOldJobs($rec->productId, $rec->id);
+    	$oldJobs = self::getOldJobs($rec->productId, $rec->id, $rec->folderId);
     	
     	if(count($oldJobs)){
     		$form->setField('oldJobId', 'input');
@@ -277,7 +307,7 @@ class planning_Jobs extends core_Master
     	}
     	
     	if(isset($rec->saleId)){
-    		$form->setDefault('dueDate', $mvc->getDefaultDueDate($rec->productId, $rec->saleId));
+    		$form->setDefault('dueDate', $mvc->getDefaultDueDate($rec->productId, $rec->saleId, $deliveryDate));
     		
     		$saleRec = sales_Sales::fetch($rec->saleId);
     		$dRec = sales_SalesDetails::fetch("#saleId = {$rec->saleId} AND #productId = {$rec->productId}");
@@ -287,7 +317,7 @@ class planning_Jobs extends core_Master
     		// Ако има данни от продажба, попълваме ги
     		$form->setDefault('storeId', $saleRec->shipmentStoreId);
     		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
-    		$form->setDefault('deliveryDate', $saleRec->deliveryTime);
+    		$form->setDefault('deliveryDate', $deliveryDate);
     		$form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
     		$locations = crm_Locations::getContragentOptions($saleRec->contragentClassId, $saleRec->contragentId);
     		$form->setOptions('deliveryPlace', $locations);
@@ -327,18 +357,28 @@ class planning_Jobs extends core_Master
      * @param int $saleId    - ид на сделка
      * @return NULL|date     - дефолтния падеж
      */
-    private static function getDefaultDueDate($productId, $saleId)
+    private static function getDefaultDueDate($productId, $saleId, &$deliveryDate)
     {
+    	$saleRec = sales_Sales::fetch($saleId);
     	if(empty($saleId)) return NULL;
-    	$sQuery = sales_SalesDetails::getQuery();
-    	$sQuery->where("#productId = {$productId} AND #saleId = {$saleId}");
-    	$sQuery->XPR('max', 'double', 'MAX(#term)');
-    	$sQuery->show('max');
-    	$max = $sQuery->fetch()->max;
     	
-    	if(empty($max)) return NULL;
+    	if(!empty($saleRec->deliveryTime)){
+    		$deliveryDate = $saleRec->deliveryTime;
+    	} elseif(!empty($saleRec->deliveryTermTime)){
+    	    $deliveryDate = dt::addSecs($saleRec->deliveryTermTime, $saleRec->activatedOn);
+    	}
     	
-    	return dt::addSecs($max, dt::today(), FALSE);
+    	if(empty($deliveryDate)) return NULL;
+    	$deliveryDate = dt::verbal2mysql($deliveryDate, FALSE);
+    	
+    	$saleClassId = sales_Sales::getClassId();
+    	$transRec = sales_TransportValues::fetch("#docClassId = {$saleClassId} AND #docId = {$saleId}", 'deliveryTime');
+    	$subtractTime = 3 * 24 * 60 * 60 +  $transRec->deliveryTime;
+    	$dueDate = dt::addSecs(-1 * $subtractTime, $deliveryDate);
+    	$dueDate = dt::nextWorkingDay($dueDate, -1);
+    	$dueDate = dt::verbal2mysql($dueDate, FALSE);
+    	
+    	return $dueDate;
     }
     
     
@@ -995,14 +1035,6 @@ class planning_Jobs extends core_Master
     	}
     	
     	doc_Containers::touchDocumentsByOrigin($rec->containerId);
-    	
-    	// Нотификация на абонираните потребители
-    	if(in_array($action, array('active', 'closed', 'wakeup', 'stopped', 'rejected'))){
-    		$caption = self::$actionNames[$action];
-    		$jobName = $mvc->getRecTitle($rec);
-    		$msg = "{$caption} на|* \"{$jobName}\"";
-    		doc_Containers::notifyToSubscribedUsers($rec->containerId, $msg);
-    	}
     }
     
     

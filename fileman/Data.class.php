@@ -517,7 +517,7 @@ class fileman_Data extends core_Manager {
         $rec->period = 3;
         $rec->offset = rand(0, 2);
         $rec->delay = 0;
-        $rec->timeLimit = 60;
+        $rec->timeLimit = 100;
         
         $res .= core_Cron::addOnce($rec);
     }

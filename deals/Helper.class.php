@@ -1211,9 +1211,9 @@ abstract class deals_Helper
 	
 	
 	/**
-	 * Връща масив с фактурите в треда
+	 * Връща масив с фактурите в треда (тредовете)
 	 * 
-	 * @param int $threadId            - ид на нишка
+	 * @param mixed $threadId          - ид на нишка или масив от ид-та на нишки
 	 * @param date|NULL $valior        - ф-рите до дата, или NULL за всички
 	 * @param boolean $showInvoices    - да се показват само обикновените ф-ри
 	 * @param boolean $showDebitNotes  - да се показват и ДИ
@@ -1223,11 +1223,13 @@ abstract class deals_Helper
 	public static function getInvoicesInThread($threadId, $valior = NULL, $showInvoices = TRUE, $showDebitNotes = TRUE, $showCreditNotes = TRUE)
 	{
 		$invoices = array();
+		$threads = is_array($threadId) ? $threadId : array($threadId => $threadId);
 		
 		foreach (array('sales_Invoices', 'purchase_Invoices') as $class){
 			$Cls = cls::get($class);
 			$iQuery = $Cls->getQuery();
-			$iQuery->where("#threadId = {$threadId} AND #state = 'active'");
+			$iQuery->in("threadId", $threads);
+			$iQuery->where("#state = 'active'");
 			$iQuery->orderBy('date,number,type,dealValue', 'ASC');
 			$iQuery->show('number,containerId');
 			
@@ -1273,8 +1275,35 @@ abstract class deals_Helper
 	public static function getInvoicePayments($threadId, $valior = NULL)
 	{
 		expect($threadId);
-		$invoicesArr = self::getInvoicesInThread($threadId, $valior, TRUE, TRUE, TRUE);
+		$firstDoc = doc_Threads::getFirstDocument($threadId);
+		if(!$firstDoc->isInstanceOf('deals_DealBase')) return array();
 		
+		// Ако сделката е приключена, проверява се дали не е приключена с друга сделка
+		if($firstDoc->fetchField('state') == 'closed'){
+			$dQuery = $firstDoc->getInstance()->getQuery();
+			$dQuery->where("LOCATE('|{$firstDoc->that}|', #closedDocuments)");
+			
+			// Ако е подменя се треда с този на обединяващата сделка, защото тя ще се използва за основа
+			if($combinedThread = $dQuery->fetch()->threadId){
+				$firstDoc = doc_Threads::getFirstDocument($combinedThread);
+				$threadId = $combinedThread;
+			}
+		}
+		
+		// Ако сделката е обединяваща взимат се всички нишки, които обединява
+		$threads = array($threadId => $threadId);
+		$closedDocs = $firstDoc->fetchField('closedDocuments');
+		$closedDocs = keylist::toArray($closedDocs);
+		if(is_array($closedDocs) && count($closedDocs)){
+			foreach ($closedDocs as $docId){
+				if($dThreadId = $firstDoc->getInstance()->fetchField($docId, 'threadId')){
+					$threads[$dThreadId] = $dThreadId;
+				}
+			}
+		}
+		
+		// Всички ф-ри в посочената нишка/нишки
+		$invoicesArr = self::getInvoicesInThread($threads, $valior, TRUE, TRUE, TRUE);
 		if(!count($invoicesArr)) return array();
 		
 		$newInvoiceArr = $invMap = $payArr = array();
@@ -1296,7 +1325,8 @@ abstract class deals_Helper
 		foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_CreditDocuments', 'findeals_DebitDocuments') as $Pay){
 			$Pdoc = cls::get($Pay);
 			$pQuery = $Pdoc->getQuery();
-			$pQuery->where("#threadId = {$threadId} AND #state = 'active'");
+			$pQuery->in('threadId', $threads);
+			$pQuery->where("#state = 'active'");
 			$pQuery->show('containerId,amountDeal,amount,fromContainerId,isReverse,activatedOn,valior');
 			if(isset($valior)){
 				$pQuery->where("#valior <= '{$valior}'");
@@ -1318,7 +1348,6 @@ abstract class deals_Helper
 		}
 		
 		self::allocationOfPayments($newInvoiceArr, $payArr);
-		self::allocationOfPayments($newInvoiceArr, $payArr, TRUE);
 		
 		return $newInvoiceArr;
 	}
@@ -1385,96 +1414,164 @@ abstract class deals_Helper
 	
 	
 	/**
-	 * Разпределяне на плащанията според приоритетите
-	 */
-	public static function allocationOfPayments(&$invArr, &$payArr, $force = FALSE)
+     * Разпределяне на плащанията според приоритетите
+     */
+    public static function allocationOfPayments(&$invArr, &$payArr)
+    {
+    	// Разпределяне на свързаните приходни документи
+    	foreach($payArr as $i => $pay) {
+    		if($pay->to) {
+    			$invArr[$pay->to]->payout += $pay->available;
+    			$pay->available = 0;
+    			$invArr[$pay->to]->used[$pay->containerId] = $pay;
+    			self::pushPaymentType($invArr[$pay->to]->payments, $pay);
+    		}
+    	}
+    	 
+    	$revInvArr = array_reverse($invArr, TRUE);
+    	
+    	// Разпределяме всички остатъци от плащания
+    	foreach($payArr as $i => $pay) {
+    		if($pay->available > 0) {
+    			// Обикаляме по фактурите от начало към край и попълваме само дупките
+    			foreach($invArr as $inv) {
+    				if($inv->amount > $inv->payout) {
+    					$sum = min($inv->amount - $inv->payout, $pay->available);
+    					$inv->payout += $sum;
+    					$pay->available -= $sum;
+    						
+    					$inv->used[$pay->containerId] = $pay;
+    					self::pushPaymentType($inv->payments, $pay);
+    				}
+    			}
+    		} elseif($pay->available < 0) {
+    			// Обикаляме по фактурите от края към началото и връщаме пари само на надплатените
+    			foreach($revInvArr as $inv) {
+    				// Пропускаме фактурите, които са след плащането
+    				// Предполагаме, че пари можем да връщаме само по минали фактури
+    				if($inv->number > $pay->number) continue;
+    				if($inv->payout  > $inv->amount) {
+    					$sum = min($inv->payout - $inv->amount, -$pay->available);
+    					$inv->payout -= $sum;
+    					$pay->available += $sum;
+    						
+    					$inv->used[$pay->containerId] = $pay;
+    					self::pushPaymentType($inv->payments, $pay);
+    				}
+    			}
+    		}
+    	}
+    	 
+    	// Събираме остатъците от всички платежни документи и ги нанасяме от зад напред
+    	$rest = 0;
+    	$used = $payments = array();
+    	foreach($payArr as $i => $pay) {
+    		if($pay->available != 0) {
+    			$rest += $pay->available;
+    			$pay->available = 0;
+    			$used[$pay->containerId] = $pay->number;
+    			self::pushPaymentType($payments, $pay);
+    		}
+    	}
+    	 
+    	foreach($invArr as $inv) {
+    		$first = $inv;
+    		break;
+    	}
+    	 
+    	foreach($revInvArr as $inv) {
+    		if(!is_array($inv->used)) {
+    			$inv->used = array();
+    		}
+    		 
+    		if($rest > 0) {
+    			$inv->payout += $rest;
+    			$rest = 0;
+    			$inv->used += $used;
+    			$inv->payments += $payments;
+    		}
+    		 
+    		if($rest < 0) {
+    			if($inv->number == $first->number) {
+    				$sum = -$rest;
+    			} else {
+    				$sum = min(-$rest, $inv->payout);
+    			}
+    			$inv->payout -= $sum;
+    			$rest += $sum;
+    			$inv->used += $used;
+    			$inv->payments += $payments;
+    		}
+    		 
+    		if($rest == 0) break;
+    	}
+    	 
+    	// Обикаляме по фактурите и надплатените ги разнасяме към следващите
+    	$cInvArr = $invArr;
+    	foreach($invArr as $inv) {
+    		$overPaid = $inv->payout - $inv->amount;
+    		if($overPaid > 0) {
+    			foreach($cInvArr as $cInv) {
+    				$underPaid = $cInv->amount - $cInv->payout;
+    				if($underPaid > 0 && is_array($inv->used) && count($inv->used)) {
+    					$payDoc = $inv->used[count($inv->used) - 1];
+    					$transfer = min($underPaid, $overPaid);
+    					$inv->payout -= $transfer;
+    					$cInv->payout += $transfer;
+    					if(is_array($cInv->used) && !in_array($payDoc, $cInv->used)) {
+    						$cInv->used[$payDoc->containerId] = $payDoc;
+    						self::pushPaymentType($cInv->payments, $payDoc);
+    					}
+    				}
+    			}
+    		}
+    	}
+    }
+	
+    
+    /**
+     * Помощна ф-я за добавяне на платежния метод
+     */
+	private static function pushPaymentType(&$payments, $pay)
 	{
-		// Разпределяне на свързаните приходни документи
-		foreach($payArr as $i => $pay) {
-			if($pay->to && $pay->available >0) {
-				self::repayment($invArr[$pay->to], $pay, $force);
-			}
-		}
-	
-		// Разпределяне на приходните документи
-		foreach($payArr as $i => $pay) {
-			if($pay->available > 0) {
-				if($force) {
-					foreach($invArr as $inv) {
-						if($inv->payout < $inv->amount) {
-							self::repayment($inv, $pay, $force);
-						}
-					}
-				}
-				foreach($invArr as $inv) {
-					self::repayment($inv, $pay, $force);
-				}
-			}
-		}
-	
-		// Разпределяне на свързаните разходни документи
-		foreach($payArr as $i => $pay) {
-			if($pay->to && $pay->available < 0) {
-				self::repayment($invArr[$pay->to], $pay, $force);
-			}
-		}
-	
-		// Вземаме масива обратно подреден
-		$revInvArr = array_reverse($invArr, TRUE);
-	
-		// Разпределяне на разходните документи
-		foreach($payArr as $i => $pay) {
-			if($pay->available < 0) {
-				if($force) {
-					foreach($revInvArr as $inv) {
-						if($inv->payout > $inv->amount) {
-							self::repayment($inv, $pay, $force);
-						}
-					}
-				}
-				foreach($revInvArr as $inv) {
-					self::repayment($inv, $pay, $force);
-				}
-			}
+		if($pay->paymentType == 'cash' && $pay->isReverse !== TRUE) {
+			$payments['cash'] = 'cash';
+		} elseif($pay->paymentType == 'intercept' && $pay->isReverse !== TRUE){
+			$payments['intercept'] = 'intercept';
+		} elseif($pay->paymentType == 'bank' && $pay->isReverse !== TRUE){
+			$payments['bank'] = 'bank';
 		}
 	}
 	
 	
 	/**
-     * Опитва се да удовлетвори фактурата с плащането
-     * Ако $force == TURE, тогава плащането ще се разнесе във фактурата,
-     * дори и да избива като напрлатено или под-нулата
-     */
-    private static function repayment($inv, $pay, $force = FALSE)
-    {
-        $begin = $pay->available;
-        $inv->payout += $pay->available;
-        $pay->available = 0;
-
-        if(!$force) {
-            if($inv->payout > $inv->amount) {
-                $pay->available = $inv->payout - $inv->amount;
-                $inv->payout = $inv->amount;
-            } elseif($inv->payout < 0) {
-                $pay->available = $inv->payout;
-                $inv->payout = 0;
-            }
-        }
-
-        if($begin != $pay->available) {
-            $inv->used[$pay->containerId] = $pay;
-            
-            if($pay->paymentType == 'cash' && $pay->isReverse !== TRUE) {
-            	$inv->payments['cash'] = 'cash';
-            } elseif($pay->paymentType == 'intercept' && $pay->isReverse !== TRUE){
-            	$inv->payments['intercept'] = 'intercept';
-            } elseif($pay->paymentType == 'bank' && $pay->isReverse !== TRUE){
-            	$inv->payments['bank'] = 'bank';
-            }
-            
-            return TRUE;
-        }
-
-        return FALSE;
-    }
+	 * Дефолтния режим на ДДС за папката
+	 * 
+	 * @param int $folderId
+	 * @return string
+	 */
+	public static function getDefaultChargeVat($folderId)
+	{
+		$coverId = doc_Folders::fetchCoverId($folderId);
+		$Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
+		 
+		return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+	}
+	
+	
+	/**
+	 * Предупреждение ако избраната валута се различава от очакваната
+	 * 
+	 * @param string $defaultVat
+	 * @param string $selectedVatType
+	 * @return string
+	 */
+	public static function getVatWarning($defaultVat, $selectedVatType)
+	{
+		if($defaultVat == 'yes' && in_array($selectedVatType, array('exempt', 'no'))){
+			return 'Избран е режим за неначисляване на ДДС, при очакван с ДДС';
+		} elseif($defaultVat == 'no' && in_array($selectedVatType, array('yes', 'separate'))){
+			return 'Избран е режим за начисляване на ДДС, при очакван без ДДС';
+		}
+	}
 }

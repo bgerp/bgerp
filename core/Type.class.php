@@ -317,9 +317,9 @@ class core_Type extends core_BaseClass
             }
             
             if($res['error']) {
-            	$this->error = TRUE;
+            	$this->error = $res['error'];
             }
-           
+         
             return $res;
         }
     }

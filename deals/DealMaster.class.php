@@ -233,7 +233,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	{
 		$form = &$data->form;
 		$form->setDefault('valior', dt::now());
-		$form->setField('deliveryAdress', array('placeholder' => 'Държава, Пощенски код'));
+		$form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
 		$rec = $form->rec;
 		
 		if(empty($form->rec->id)){
@@ -268,10 +268,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 */
 	public function getDefaultChargeVat($rec)
 	{
-		$coverId = doc_Folders::fetchCoverId($rec->folderId);
-		$Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
-		
-		return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+		return deals_Helper::getDefaultChargeVat($rec->folderId);
 	}
 	
 	
@@ -372,17 +369,16 @@ abstract class deals_DealMaster extends deals_DealBase
     		$form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
     	}
     	
-    	// Предупреждение, ако има разминаване в очаквания и избрания режим на ДДС
+    	// Избрания ДДС режим съответства ли на дефолтния
     	$defVat = $mvc->getDefaultChargeVat($rec);
-    	if($defVat == 'yes' && in_array($rec->chargeVat, array('exempt', 'no'))){
-    		$form->setWarning('chargeVat', 'Избран е режим за неначисляване на ДДС, при очакван с ДДС');
-    	} elseif($defVat == 'no' && in_array($rec->chargeVat, array('yes', 'separate'))){
-    		$form->setWarning('chargeVat', 'Избран е режим за начисляване на ДДС, при очакван без ДДС');
+    	if($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)){
+    		$form->setWarning('chargeVat', $vatWarning);
     	}
     	
+    	// Избраната валута съответства ли на дефолтната
     	$defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
     	if($defCurrency != $rec->currencyId){
-    		$form->setWarning('currencyId', "Избрана e различна валута от очакваната|* {$defCurrency}");
+    		$form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
     	}
     	
     	if($rec->reff === ''){
@@ -396,6 +392,14 @@ abstract class deals_DealMaster extends deals_DealBase
     		if($form->getFieldTypeParam('deliveryAdress', 'isReadOnly') !== TRUE){
     			if(!drdata_Address::parsePlace($rec->deliveryAdress)){
     				$form->setError('deliveryAdress', 'Мястото трябва да съдържа държава и пощенски код');
+    			}
+    		}
+    	}
+    	
+    	if($mvc instanceof sales_Sales){
+    		if(isset($rec->deliveryTermId)){
+    			if($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $rec->deliveryLocationId)){
+    				$form->setError('deliveryTermId,deliveryAdress,deliveryLocationId', $error);
     			}
     		}
     	}
@@ -807,13 +811,18 @@ abstract class deals_DealMaster extends deals_DealBase
     	$Detail = cls::get($mvc->mainDetail);
     	$dQuery = $Detail->getQuery();
     	$dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-    	$dQuery->where("#tolerance IS NULL || #term IS NULL");
+    	$dQuery->where("#tolerance IS NULL");
     	
     	while($dRec = $dQuery->fetch()){
     		$save = FALSE;
     		
     		if(!isset($dRec->term)){
     			if($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)){
+    				$cRec = sales_TransportValues::get($mvc, $rec->id, $dRec->id);
+    				if(isset($cRec->deliveryTime)){
+    					$term = $cRec->deliveryTime + $term;
+    				}
+    				
     				$dRec->term = $term;
     				$save = TRUE;
     			}
@@ -898,11 +907,11 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 	    
     	if(isset($rec->dealerId)){
-    		$row->dealerId = crm_Profiles::createLink($rec->dealerId, $row->dealerId);
+    		$row->dealerId = crm_Profiles::createLink($rec->dealerId);
     	}
     	
     	if(isset($rec->initiatorId)){
-    		$row->initiatorId = crm_Profiles::createLink($rec->initiatorId, $row->initiatorId);
+    		$row->initiatorId = crm_Profiles::createLink($rec->initiatorId);
     	}
     	
 	    if($fields['-single']){
@@ -992,7 +1001,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			
 			if(!empty($deliveryAdress)){
-				$deliveryAdress1 = (isset($rec->deliveryTermId)) ? (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName') . ": ") : "";
+				$deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ", ") : "";
 				$deliveryAdress = $deliveryAdress1 . $deliveryAdress;
 				$row->deliveryTermId = $deliveryAdress;
 			}
@@ -1059,11 +1068,11 @@ abstract class deals_DealMaster extends deals_DealBase
     	while($rec = $query->fetch()){
     		$term = $rec->term;
     		if(!isset($term)){
-    			if($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)){
-    				$cRec = tcost_Calcs::get($this, $rec->{$Detail->masterKey}, $rec->id);
-    				if(isset($cRec->deliveryTime)){
-    					$term = $cRec->deliveryTime + $term;
-    				}
+    			$term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity);
+    		
+    			$cRec = sales_TransportValues::get($this, $rec->{$Detail->masterKey}, $rec->id);
+    			if(isset($cRec->deliveryTime)){
+    				$term = $cRec->deliveryTime + $term;
     			}
     		}
     		
@@ -1602,9 +1611,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Ако няма търговец, това е текущия потребител
     	$fields['dealerId'] = (empty($fields['dealerId'])) ? core_Users::getCurrent() : $fields['dealerId'];
-    	 
-    	// Ако няма инициатор, това е отговорника на контрагента
-    	$fields['initiatorId'] = (empty($fields['initiatorId'])) ? $contragentClass::fetchField($contragentId, 'inCharge') : $fields['initiatorId'];
     	 
     	// Ако не е подадено да се начислявали ддс, определяме от контрагента
     	if(empty($fields['chargeVat'])){

@@ -14,6 +14,18 @@ defIfNot('ESHOP_MIN_GROUPS_FOR_NAVIGATION', 4);
 
 
 /**
+ * Име на кошницата във външната част
+ */
+defIfNot('ESHOP_CART_EXTERNAL_NAME', 'Количка');
+
+
+/**
+ * Текст в магазина ако артикулът не е наличен
+ */
+defIfNot('ESHOP_NOT_IN_STOCK_TEXT', 'Няма наличност');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -61,10 +73,7 @@ class eshop_Setup extends core_ProtoSetup
     var $managers = array(
             'eshop_Groups',
             'eshop_Products',
-    		'eshop_Payments',
     		'eshop_Settings',
-    		'eshop_DeliveryTimes',
-    		'eshop_DeliveryTerms',
     		'eshop_ProductDetails',
     		'eshop_Carts',
     		'eshop_CartDetails',
@@ -86,21 +95,34 @@ class eshop_Setup extends core_ProtoSetup
             array(3.55, 'Сайт', 'Е-маг', 'eshop_Groups', 'default', "ceo, eshop"),
         );
     
+    
     /**
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-            'ESHOP_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
-            'ESHOP_MIN_GROUPS_FOR_NAVIGATION' => array ('int', 'caption=Минимален брой групи за навигация->Брой'),
+         'ESHOP_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
+         'ESHOP_MIN_GROUPS_FOR_NAVIGATION' => array ('int', 'caption=Минимален брой групи за навигация->Брой'),
+	     'ESHOP_CART_EXTERNAL_NAME' => array ('varchar', 'caption=Стрингове във външната част->Кошница'),
+		 'ESHOP_NOT_IN_STOCK_TEXT' => array ('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
+	);
+	
+	
+	/**
+	 * Настройки за Cron
+	 */
+	public $cronSettings = array(
+			array(
+					'systemId' => "Delete Carts",
+					'description' => "Изтриване на старите колички",
+					'controller' => "eshop_Carts",
+					'action' => "DeleteDraftCarts",
+					'period' => 1440,
+					'offset' => 60,
+					'timeLimit' => 100
+			),
 	);
 
-    
-	/**
-	 * Дефинирани класове, които имат интерфейси
-	 */
-	public $defClasses = "eshop_interfaces_Cod,eshop_interfaces_FreeDelivery";
-	
-	
+
     /**
      * Инсталиране на пакета
      */
@@ -110,7 +132,11 @@ class eshop_Setup extends core_ProtoSetup
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('eshopImages', 'Илюстрации в емаг', 'jpg,jpeg,png,bmp,gif,image/*', '3MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('eshopImages', 'Илюстрации в емаг', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'user', 'every_one');
+        
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Разширяване на външната част за онлайн магазина', 'eshop_plg_External', 'cms_page_External', 'private');
+        $html .= $Plugins->installPlugin('Разширяване на потребителите свързана с външната част', 'eshop_plg_Users', 'core_Users', 'private');
         
         return $html;
     }

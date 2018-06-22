@@ -53,7 +53,7 @@ class blast_BlockedEmails extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'blast_Wrapper, plg_RowTools2, plg_Sorting';
+    public $loadList = 'blast_Wrapper, plg_RowTools2, plg_Sorting, bgerp_plg_Import';
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
@@ -73,6 +73,58 @@ class blast_BlockedEmails extends core_Manager
         $this->FLD('checkPoint', 'int', 'caption=Проверка->Точки, input=none');
         
         $this->setDbUnique('email');
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param blast_BlockedEmails $mvc
+     * @param array $fields
+     * 
+     * @see bgerp_plg_Import
+     */
+    function on_AfterPrepareImportFields($mvc, &$fields)
+    {
+        $fields['state'] = array('caption' => 'Състояние', 'mandatory' => 'mandatory');
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param blast_BlockedEmails $mvc
+     * @param stdClass $rec
+     * 
+     * @return boolean
+     * 
+     * @see bgerp_plg_Import
+     */
+    function on_BeforeImportRec($mvc, &$rec)
+    {
+        if (!trim($rec->email)) return FALSE;
+        
+        if (!$rec->state) {
+            $rec->state = 'ok';
+        }
+        
+        // Опитваме се да определим състоянието
+        if (!$rec->state) {
+            $rec->state = 'ok';
+        }
+        
+        if (!$mvc->fields['state']->type->options[$rec->state]) {
+            $state = mb_strtolower($rec->state);
+            if ($mvc->fields['state']->type->options[$state]) {
+                $rec->state = $state;
+            } else {
+                $state = str::mbUcfirst($state);
+                
+                $rec->state = array_search($state, $mvc->fields['state']->type->options);
+            }
+        }
+        
+        if (!$rec->state) return FALSE;
     }
     
     
@@ -139,8 +191,8 @@ class blast_BlockedEmails extends core_Manager
      * Добавя подадения имейл в списъка
      * 
      * @param string $email
-     * @param boolean $update - ok, blocked, error
-     * @param string $state
+     * @param boolean|string $update 
+     * @param string $state- ok, blocked, error
      * 
      * @return integer|NULL
      */
@@ -163,7 +215,7 @@ class blast_BlockedEmails extends core_Manager
         $rec->email = $email;
         $rec->lastSent = dt::now();
         
-        if ($rec->state != 'blocked') {
+        if ($rec->state != 'blocked' || ($update === 'force')) {
             $rec->state = $state;
             if (is_array($saveFields)) {
                 $saveFields['state'] = 'state';
@@ -171,6 +223,55 @@ class blast_BlockedEmails extends core_Manager
         }
         
         return self::save($rec, $saveFields);
+    }
+    
+    
+    /**
+     * Добавя имейла в списъка, като го извлича от текстовата част
+     * 
+     * @param string $mid
+     * @param email_Mime $mime
+     * @param string $state
+     */
+    public static function addSentEmailFromText($mid, $mime, $state = 'ok')
+    {
+        $text = $mime->textPart;
+        $fromEml = $mime->getFromEmail();
+        
+        if (!$mid || (!$text && !$fromEml)) return ;
+        
+        $tSoup = $text . ' ' . $fromEml;
+        
+        $eArr = type_Email::extractEmails($tSoup);
+        
+        if (!empty($eArr)) {
+            $hArr = array();
+            
+            $sRec = doclog_Documents::fetchByMid($mid);
+            
+            if ($sRec) {
+                $sentEArr = type_Emails::toArray(strtolower($sRec->data->to));
+                
+                $sentEArr = arr::make($sentEArr, TRUE);
+                
+                if (!empty($sentEArr)) {
+                    foreach ($eArr as $email) {
+                        $email = strtolower($email);
+                        
+                        if ($hArr[$email]) continue;
+                        
+                        $hArr[$email] = $email;
+                        
+                        if ($sentEArr[$email]) {
+                            
+                            self::addEmail($email, TRUE, $state);
+                            
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
     
     

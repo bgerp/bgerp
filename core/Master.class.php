@@ -279,6 +279,11 @@ class core_Master extends core_Manager
     {
         $title = $this->getTitleById($data->rec->id);
         
+        // Ако в името има '||' се предполага че трябва да се преведе
+        if(strpos($title, '||') !== FALSE){
+        	$title = tr($title);
+        }
+        
         $data->title = $this->singleTitle . "|* <b style='color:green;'>{$title}</b>";
         
         return $data;
@@ -475,6 +480,13 @@ class core_Master extends core_Manager
      */
     function renderSingleLayout_(&$data)
     {
+    	// Ако има кустом зададен изглед за в сесията да се взима той
+    	if($singleLayout = Mode::get("singleLayout-{$this->className}{$data->rec->id}")){
+    		if($singleLayout instanceof core_ET){
+    			$data->singleLayout = $singleLayout;
+    		}
+    	}
+    	
         if (isset($data->singleLayout)) {
             if (!($data->singleLayout instanceof core_ET)) {
                 $data->singleLayout = new ET($data->singleLayout);
@@ -713,7 +725,7 @@ class core_Master extends core_Manager
         } else {
             
             // Генерираме име
-            $name = $me->singleTitle . " #" . $id;
+            $name = tr($me->singleTitle) . " #" . $id;
         }
         
         // Масива за URL, ако няма права за сингъла е празен

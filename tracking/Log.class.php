@@ -128,7 +128,7 @@ class tracking_Log extends core_Master {
         // Ако получаваме данни от неоторизирано IP ги игнорираме
         if ($_SERVER['REMOTE_ADDR'] != $conf->DATA_SENDER) {
             // file_put_contents('tracking.log', "\n неоторизирано IP. Данните идват от: {$_SERVER['REMOTE_ADDR']} а ги очакваме от: {$conf->DATA_SENDER} ". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
-            exit;
+            shutdown();
         }
         // file_put_contents('tracking.log', "\n accepted", FILE_APPEND);
         
@@ -144,7 +144,7 @@ class tracking_Log extends core_Master {
             /* @TODO Логваме съобщение, че нямаме въведена кола за този тракер */
             //file_put_contents("tracking.log", "\n Липсваща кола с тракер No: {$trackerId} ". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
             
-            exit;
+            shutdown();
         }
         
         $trackerDataArr = self::parseTrackingData($trackerData);
@@ -165,7 +165,7 @@ class tracking_Log extends core_Master {
                 // file_put_contents('tracking.log', "\n NEZAPISAN - sprial". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
                 
                 // Не го записваме
-                exit;
+                shutdown();
             }
         }
         

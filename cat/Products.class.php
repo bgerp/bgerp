@@ -344,6 +344,7 @@ class cat_Products extends embed_Manager {
         $this->FLD('canManifacture', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
         
+        $this->setDbIndex('isPublic');
         $this->setDbIndex('canSell');
         $this->setDbIndex('canBuy');
         $this->setDbIndex('canStore');
@@ -413,7 +414,7 @@ class cat_Products extends embed_Manager {
     			$defMetas = type_Set::toArray($defMetas);
     		} else {
                 if($Driver = $mvc->getDriver($rec)){
-                    $defMetas = $Driver->getDefaultMetas();
+                    $defMetas = $Driver->getDefaultMetas($rec->meta);
                     if(count($defMetas)) {
                         $form->setField('meta', 'autohide=any');
                     }
@@ -1015,7 +1016,8 @@ class cat_Products extends embed_Manager {
     		$rec->code = "Art{$rec->id}";
     	} else {
     		if(empty($rec->code)){
-    			$rec->code = ($rec->id) ? static::fetchField($rec->id, 'code') : NULL;
+    			$code = ($rec->id) ? static::fetchField($rec->id, 'code') : NULL;
+    			$rec->code = ($code) ? $code : "Art{$rec->id}";
     		}
     	}
     }
@@ -1441,7 +1443,7 @@ class cat_Products extends embed_Manager {
     	// За всяка опаковка, извличаме опциите и намираме имали основна такава
     	if(count($pInfo->packagings) && isset($pInfo->meta['canStore'])){
     		foreach ($pInfo->packagings as $packRec){
-    			$options[$packRec->packagingId] = cat_UoM::getTitleById($packRec->packagingId);
+    			$options[$packRec->packagingId] = tr(cat_UoM::getTitleById($packRec->packagingId));
     			if($packRec->isBase == 'yes'){
     				$baseId = $packRec->packagingId;
     			}
@@ -1449,7 +1451,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	// Подготвяме опциите
-    	$options = array($measureId => cat_UoM::getTitleById($measureId)) + $options;
+    	$options = array($measureId => tr(cat_UoM::getTitleById($measureId))) + $options;
     	$firstVal = $options[$baseId];
     	
     	// Подсигуряваме се че основната опаковка/мярка е първа в списъка
@@ -1661,11 +1663,14 @@ class cat_Products extends embed_Manager {
     		if($mvc->haveRightFor('edit', $rec)){
     			if(!Mode::isReadOnly()){
     				$row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit-icon.png,title=Промяна на групите на артикула');
+                    if(haveRole('catEdit,ceo,admin')) {
+                        $row->editMetaBtn = ht::createLink('', array($mvc, 'EditMeta', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit-icon.png,title=Промяна на мета-свойствата на артикула');
+                    }
     			}
     		}
-    		
+ 		
     		$groupLinks = cat_Groups::getLinks($rec->groupsInput);
-    		$row->groupsInput = (count($groupLinks)) ? implode(' ', $groupLinks) : "<i>" . tr("Няма") . "</i>";
+    		$row->groupsInput = (count($groupLinks)) ? implode(' ', $groupLinks) : (haveRole('partner') ? NULL : "<i>" . tr("Няма") . "</i>");
     	}
         
         if($fields['-list']){
@@ -2039,6 +2044,21 @@ class cat_Products extends embed_Manager {
     	if(sales_Sales::haveRightFor('createsaleforproduct', (object)array('folderId' => $data->rec->folderId, 'productId' => $data->rec->id))){
     		$data->toolbar->addBtn("Продажба", array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба');
     	}
+    	
+    	if(core_Packs::isInstalled('eshop')){
+    		if(eshop_Products::haveRightFor('linktoeshop', (object)array('productId' => $data->rec->id))){
+    			$data->toolbar->addBtn("E-маг", array('eshop_Products', 'linktoeshop', 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/cart_go.png,title=Свързване в Е-маг');
+    		}
+    		
+    		if($domainId = cms_Domains::getCurrent('id', FALSE)){
+    			if($eshopProductId = eshop_Products::getByProductId($data->rec->id, $domainId)){
+    				
+    				if(eshop_Products::haveRightFor('single', $eshopProductId)){
+    					$data->toolbar->addBtn("E-артикул", array('eshop_Products', 'single', $eshopProductId, 'ret_url' => TRUE), 'ef_icon = img/16/cart_go.png,title=Към е-артикула');
+    				}
+    			}
+    		}
+    	}
     }
     
     
@@ -2088,21 +2108,70 @@ class cat_Products extends embed_Manager {
      */
     public function cron_closePrivateProducts()
     {
+    	$now = dt::now();
+    	$stProductsToClose = array();
+    	$before = dt::addMonths(-3);
+    	$iStQuery = acc_Items::getQuery();
+    	$iStQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=objectId');
+    	$iStQuery->EXT('pState', 'cat_Products', 'externalName=state,externalKey=objectId');
+    	$iStQuery->where("#state = 'active' AND #lastUseOn IS NULL AND #isPublic = 'yes' AND #classId = " . cat_Products::getClassId());
+    	$iStQuery->where("#createdOn <= '{$before}' AND #pState = 'active'");
+    	$iStQuery->show('objectId');
+    	while($iStRec = $iStQuery->fetch()){
+    		$pRec1 = cat_Products::fetch($iStRec->objectId, 'id,state');
+    		$pRec1->state = 'closed';
+    		$pRec1->modifiedOn = $now;
+    		$pRec1->modifiedBy = core_Users::SYSTEM_USER;
+    		$stProductsToClose[$iStRec->objectId] = $pRec1;
+    	}
+    	$this->closeItems = $stProductsToClose;
+    	
+    	$this->saveArray($stProductsToClose, 'id,state,modifiedBy,modifiedOn');
+    	log_System::add('cat_Products', "ST close items:" . count($stProductsToClose));
+    	
+    	// Намираме всички нестандартни артикули
+    	$before1 = dt::addMonths(-5);
+    	$productQuery1 = cat_Products::getQuery();
+    	$productQuery1->where("#isPublic != 'yes'");
+    	$productQuery1->where("#createdOn <= '{$before1}'");
+    	$productQuery1->where("#state != 'closed' AND #state != 'rejected'");
+    	$productQuery1->show('id,state');
+    	$products1 = array_keys($productQuery1->fetchAll());
+    	
+    	$iQuery2 = acc_Items::getQuery();
+    	$iQuery2->where("#classId = {$this->getClassId()}");
+    	$iQuery2->show('objectId');
+    	$iTems = arr::extractValuesFromArray($iQuery2->fetchAll(), 'objectId');
+    	
+    	$diff = array_diff($products1, $iTems);
+    	$saveDiff = array();
+    	foreach ($diff as $p1){
+    		$pr1 = cat_Products::fetch($p1, 'id,state');
+    		$pr1->state = 'closed';
+    		$pr1->modifiedOn = $now;
+    		$pr1->modifiedBy = core_Users::SYSTEM_USER;
+    		$saveDiff[$p1] = $pr1;
+    	}
+    	
+    	$this->saveArray($saveDiff, 'id,state,modifiedOn,modifiedBy');
+    	foreach ($saveDiff as $sd){
+    		$this->logWrite('Приключване', $sd);
+    	}
+    	
+    	log_System::add('cat_Products', "Products Without Items Closed:" . count($diff));
+    	
+    	$productQuery = cat_Products::getQuery();
+    	$productQuery->where("#isPublic != 'yes'");
+    	$productQuery->where("#state != 'closed' AND #state != 'rejected'");
+    	$productQuery->show('id');
+    	$products = array_keys($productQuery->fetchAll());
+    	if(!count($products))  return;
+    	
     	// Последните изчислени периода
     	$periods = acc_Periods::getCalcedPeriods(TRUE, 3);
     	if(!count($periods)) return;
     	
     	$oldestPeriod = acc_Periods::fetch(min(array_keys($periods)));
-    	
-    	// Намираме всички нестандартни артикули
-    	$productQuery = cat_Products::getQuery();
-    	$productQuery->where("#isPublic != 'yes'");
-    	$productQuery->show('id');
-    	$products = array_keys($productQuery->fetchAll());
-    	
-    	// Ако няма, не правим нищо
-    	if(!count($products)) return;
-    	log_System::add('cat_Products', "Private products count:" . count($products));
     	
     	// Намират се отворените пера, създадени преди посочената дата, които са на нестандартни артикули
     	$iQuery = acc_Items::getQuery();
@@ -2168,7 +2237,8 @@ class cat_Products extends embed_Manager {
     	}
     	
     	$this->saveArray($toSave, 'id,state');
-    	$this->closeItems = $toSave;
+    	$this->closeItems = (is_array($this->closeItems)) ? $this->closeItems : array();
+    	$this->closeItems += $toSave;
     	
     	log_System::add('cat_Products', "END close items:" . count($toSave));
     }
@@ -2435,6 +2505,10 @@ class cat_Products extends embed_Manager {
     {
     	$data->components = array();
     	cat_Products::prepareComponents($data->rec->id, $data->components, 'internal', 1);
+        
+        if(haveRole('partner')) {
+            unset($data->row->originId);
+        }
     }
     
     
@@ -2657,7 +2731,11 @@ class cat_Products extends embed_Manager {
     	$form->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
     	
     	if(isset($id)){
-    		$Driver = self::getDriver($id);
+            if($driverId) {
+                $Driver = cls::get($driverId);
+            } else {
+    		    $Driver = self::getDriver($id);
+            }
     		
     		// Добавяне на стойностите от записа в $rec-a на формата
     		$rec = self::fetch($id);
@@ -2711,6 +2789,40 @@ class cat_Products extends embed_Manager {
     	return $this->renderWrapping($form->renderHtml());
     }
     
+
+    /**
+     * Екшън за редактиране на мета-свойствата на артикула
+     */
+    function act_EditMeta()
+    {
+        requireRole('catEdit,ceo,admin');
+    	$this->requireRightFor('edit');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('edit', $rec);
+ 
+    	$form = cls::get('core_Form');
+    	$form->title = "Промяна на мета-свойствата на|* <b>" . cat_Products::getHyperlink($id, TRUE) . "</b>";
+    	$form->FNC('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,input,mandatory');
+    	$form->setDefault('meta', $rec->meta);
+    	$form->input();
+    	if($form->isSubmitted()){
+    		$fRec = $form->rec;
+    		
+    		if($fRec->meta != $rec->meta){
+    			$this->save((object)array('id' => $id, 'meta' => $fRec->meta), 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
+    			$this->logInAct('Редактиране', $rec);
+    		}
+    		
+    		return followRetUrl();
+    	}
+    	
+    	$form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+    	
+    	return $this->renderWrapping($form->renderHtml());
+    }
+
     
     /**
      * Метод позволяващ на артикула да добавя бутони към rowtools-а на документ

@@ -364,7 +364,7 @@ class remote_Authorizations extends embed_Manager
                 // Ако вече сме изпращали този тип известие и след това потребителят
                 // все-още не е влизал в системата, пропускаме го  
                 if($alreadySent[$priority]) {
-                    log_System::add('remote_Authorizations', "За нотификацията {$userId} {$time} {$priority} вече е изпращано съобщение", NULL, 'info');
+                    // log_System::add('remote_Authorizations', "За нотификацията {$userId} {$time} {$priority} вече е изпращано съобщение", NULL, 'info');
 
                     continue;
                 }

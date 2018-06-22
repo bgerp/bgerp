@@ -80,6 +80,7 @@ class type_Set extends core_Type {
         
         // Определяме броя на колоните, ако не са зададени.
         $maxChars = $this->params['maxChars'];
+        $displayHtml = $this->params['displayHtml'];
         $col = type_Keylist::getCol($this->suggestions, $maxChars);
 
         if(count($this->suggestions) < 4) {
@@ -91,7 +92,7 @@ class type_Set extends core_Type {
         $i = 0; $html = ''; $trOpen = TRUE;
         
         if(count($this->suggestions)) {
-            if(count($this->suggestions) == 1 && $value === NULL && $this->params['mandatory']) {
+            if(count($this->suggestions) == 1 && $value === NULL && $this->params['mandatory'] && empty($displayHtml)) {
                 $key = key($this->suggestions);
                 $values[$key] = $key;
             }
@@ -135,8 +136,12 @@ class type_Set extends core_Type {
                     	$title = "";
                     }
                     
-                    $v = type_Varchar::escape($v);
-
+                    if($displayHtml){
+                    	$v = core_Type::getByName('type_Html')->toVerbal($v);
+                    } else {
+                    	$v = type_Varchar::escape($v);
+                    }
+					
                     $cb = ht::createElement('input', $attr);
                     $cb->append("<label {$title} data-colsInRow='" . $col . "' for=\"" . $attr['id'] . "\">" . tr($v) . "</label>");
                     

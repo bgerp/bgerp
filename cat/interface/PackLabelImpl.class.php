@@ -102,8 +102,9 @@ class cat_interface_PackLabelImpl
 	public function getLabelData($id, $cnt, $onlyPreview = FALSE)
 	{
 	    static $resArr = array();
+	    $lg = core_Lg::getCurrent();
 	    
-	    $key = $id . '|' . $cnt . '|' . $onlyPreview;
+	    $key = $id . '|' . $cnt . '|' . $onlyPreview . '|' . $lg;
 	    
 	    if (isset($resArr[$key])) return $resArr[$key];
 	    
@@ -113,31 +114,50 @@ class cat_interface_PackLabelImpl
 		
 		// Каква е мярката и количеството
 		$measureId = $pRec->measureId;
-		$quantity = cat_UoM::round($measureId, $quantity);
 		
 		// Кое е последното задание към артикула
 		$jQuery = planning_Jobs::getQuery();
 		$jQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 2 WHEN 'stopped' THEN 3 END)");
 		$jQuery->where("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
-		$jQuery->orderBy('order', 'ASC');
+		$jQuery->orderBy("#order=ASC,#id=DESC");
+		$jQuery->show('id,saleId');
 		if($jRec = $jQuery->fetch()){
 			$jobCode = mb_strtoupper(planning_Jobs::getHandle($jRec->id));
+			if($lg != 'bg' && isset($jRec->saleId)){
+				$lData = cls::get('sales_Sales')->getLogisticData($jRec->saleId);
+				$countryCode = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $lData['toCountry']), 'letterCode2');
+				$countryCode .= " " . date("m/y");
+			}
 		}
 		
 		$code = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
 		$name = trim(cat_Products::getVerbal($rec->productId, 'name'));
 		$date = date("m/y");
 		
-		// Цена по каталог
+		// Цена по каталог с ДДС
 		if($catalogPrice = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $rec->productId, $rec->packagingId)){
+			$catalogPrice *= 1 + cat_Products::getVat($rec->productId);
+			
 			$catalogPrice = round($catalogPrice * $quantity, 2);
 			$currencyCode = acc_Periods::getBaseCurrencyCode();
+			
+			Mode::push('text', 'plain');
+			$catalogPrice = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPrice);
+			Mode::pop('text', 'plain');
 		}
+		
+		$quantity = cat_UoM::round($measureId, $quantity);
 		$measureId = tr(cat_UoM::getShortName($measureId));
 		
 		// Продуктови параметри
 		$params = cat_Products::getParams($rec->productId, NULL, TRUE);
 		$params = cat_Params::getParamNameArr($params, TRUE);
+		
+		$additionalFields = array();
+		$Driver = cat_Products::getDriver($rec->productId);
+		if(is_object($Driver)){
+			$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
+		}
 		
 		$arr = array();
 		for($i = 1; $i <= $cnt; $i++){
@@ -159,18 +179,21 @@ class cat_interface_PackLabelImpl
 				$res['EAN'] = $rec->eanCode;
 			}
 			
-			if($Driver = cat_Products::getDriver($rec->productId)){
-				$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
+			if(is_object($Driver)){
 				if(count($additionalFields)){
 					$res = $additionalFields + $res;
 				}
 				
 				$res['SERIAL'] = 'EXAMPLE';
- 				if($onlyPreview === FALSE){
+				if($onlyPreview === FALSE){
 					$res['SERIAL'] = $Driver->generateSerial($rec->productId, 'cat_products_Packagings', $rec->id);
 				}
 			}
-				
+
+			if(isset($countryCode) && empty($res['OTHER'])){
+				$res['OTHER'] = $countryCode;
+			}
+			
 			$arr[] = $res;
 		}
 		

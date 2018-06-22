@@ -1048,10 +1048,31 @@ class crm_Companies extends core_Master
             $tpl->append(66, 'smallFontSize');
         }
         $tpl->append($fAddres, 'address');
-        $tpl->append($tel, 'tel');
-        $tpl->append($fax, 'fax');
-        $tpl->append($cRec->website, 'site');
-        $tpl->append($email, 'email');
+        
+        if (trim($tel)) {
+            $tpl->append($tel, 'tel');
+        } else {
+            $tpl->removeBlock('tel');
+        }
+        
+        if (trim($fax)) {
+            $tpl->append($fax, 'fax');
+        } else {
+            $tpl->removeBlock('fax');
+        }
+        
+        if (trim($cRec->website)) {
+            $tpl->append($cRec->website, 'site');
+        } else {
+            $tpl->removeBlock('site');
+        }
+        
+        if (trim($email)) {
+            $tpl->append($email, 'email');
+        } else {
+            $tpl->removeBlock('email');
+        }
+        
         $tpl->append($baseColor, 'baseColor');
         $tpl->append($activeColor, 'activeColor');
         
@@ -1731,8 +1752,8 @@ class crm_Companies extends core_Master
     /**
      * Създава папка на фирма по указаните данни
      */
-    public static function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId)
-    {
+    public static function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId, $inCharge, $access, $shared)
+    { 
         $rec = new stdClass();
         $rec->name = $company;
         
@@ -1746,7 +1767,13 @@ class crm_Companies extends core_Master
         $rec->email = $email;
         $rec->tel   = $tel;
         $rec->fax   = $fax;
-        $rec->website = $website;
+        $rec->website = $website;        
+            
+        // Достъп/права
+        $rec->inCharge = $inCharge;
+        $rec->access   = $access;
+        $rec->shared = $shared;
+
         
         if($vatId){
         	// Данъчен номер на фирмата
@@ -1755,7 +1782,7 @@ class crm_Companies extends core_Master
         }
         
         $Companies = cls::get('crm_Companies');
-        
+   
         $folderId = $Companies->forceCoverAndFolder($rec);
          
         return $folderId;
@@ -2359,7 +2386,8 @@ class crm_Companies extends core_Master
      * Дали артикулът създаден в папката трябва да е публичен (стандартен) или не
      *
      * @param mixed $id - ид или запис
-     * @return public|private|template - Стандартен / Нестандартен / Шаблон
+     * 
+     * @return string public|private|template - Стандартен / Нестандартен / Шаблон
      */
     public function getProductType($id)
     {
@@ -2385,10 +2413,10 @@ class crm_Companies extends core_Master
      */
     public static function on_AfterGetSingleIcon($mvc, &$res, $id)
     {
-    	if(core_Users::isContractor()) return;
+    	if (core_Users::isContractor() || !haveRole('user')) return ;
     	
-    	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
-    		if($extRec->overdueSales == 'yes'){
+    	if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+    		if ($extRec->overdueSales == 'yes'){
     			$res = 'img/16/stop-sign.png';
     		}
     	}
@@ -2410,5 +2438,38 @@ class crm_Companies extends core_Master
                 $res = "<span class='dangerTitle'>{$res}</span>";
             }
         }
+    }
+    
+    
+    /**
+     * Обновяване на адресните данни на фирмата
+     * 
+     * @param int $folderId         - ид на папка
+     * @param string $name          - име на папката
+     * @param string $vatId         - ват номер
+     * @param int $countryId        - ид на държава
+     * @param string|NULL $pCode    - п. код
+     * @param string|NULL $place    - населено място
+     * @param string|NULL $address  - адрес
+     * @return void
+     */
+    public static function updateContactDataByFolderId($folderId, $name, $vatId, $countryId, $pCode, $place, $address)
+    {
+    	$saveFields = array();
+    	$rec = self::fetch("#folderId = {$folderId}");
+    	$arr = array('name' => $name, 'vatId' => $vatId, 'country' => $countryId, 'pCode' => $pCode, 'place' => $place, 'address' => $address);
+    	
+    	// Обновяване на зададените полета
+    	foreach ($arr as $name => $value){
+    		if(!empty($value) && $rec->{$name} != $value){
+    			$rec->{$name} = $value;
+    			$saveFields[] = $name;
+    		}
+    	}
+    	
+    	// Ако има полета за обновяване
+    	if(count($saveFields)){
+    		self::save($rec, $saveFields);
+    	}
     }
 }

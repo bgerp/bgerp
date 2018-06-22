@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_webdrv_Shtml extends fileman_webdrv_ImageT
+class fileman_webdrv_Shtml extends fileman_webdrv_Webpage
 {
     
 }

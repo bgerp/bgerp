@@ -21,7 +21,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, acc, rep_acc,rep_store, store';
+    public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal, store';
     
     
     /**

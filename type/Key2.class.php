@@ -213,17 +213,17 @@ class type_Key2 extends type_Int
         $this->setFieldWidth($attr, NULL, $options);
 
         if (core_Packs::isInstalled('select2') && !Mode::is('javascript', 'no')) {
-            
+           
             // Показваме Select2
             ht::setUniqId($attr);
             $tpl = ht::createSelect($name, $options, $value, $attr);
             
             $ajaxUrl = '';
             $handler = $this->getHandler();
-            if ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions)) {
-                $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute');
+            if ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions-1)) {
+                $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute-force');
             }
-            
+          
             $allowClear = FALSE;
             if ($this->params['allowEmpty'] || isset($options[''])) {
                 $allowClear = TRUE;

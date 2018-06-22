@@ -59,7 +59,7 @@ class fancybox_Fancybox extends core_Manager {
             return $imgTpl;
         }
 
-        $attr = array('title' => tr('Кликни за увеличение')) + $imgAttr;
+        $attr = array('title' => 'Кликни за увеличение') + $imgAttr;
      
         $imgTpl = $thumb->createImg($attr);
 

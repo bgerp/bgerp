@@ -23,7 +23,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
     public static function on_AfterDescription($mvc)
     {
         if (!$mvc->fields['visibleForPartners']) {
-            $mvc->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори,input=none');
+            $mvc->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори,input=none,before=sharedUsers');
         }
     }
     
@@ -42,21 +42,23 @@ class colab_plg_VisibleForPartners extends core_Plugin
             // Полето се показва ако е в папката, споделена до колаборатор
             // Ако няма originId или ако originId е към документ, който е видим от колаборатор
             if (colab_FolderToPartners::fetch(array("#folderId = '[#1#]'", $rec->folderId))) {
-                if (!$rec->originId || ($doc = doc_Containers::getDocument($rec->originId)) && ($doc->isVisibleForPartners())) {
+                if (!$rec->originId || ($doc = doc_Containers::getDocument($rec->originId)) && ($dIsVisible = $doc->isVisibleForPartners())) {
                     if (core_Users::haveRole('partner')) {
                         // Ако текущия потребител е контрактор, полето да е скрито
                         $data->form->setField('visibleForPartners', 'input=hidden');
                         $data->form->setDefault('visibleForPartners', 'yes');
                     } else {
-                        $data->form->setField('visibleForPartners', 'input=input,before=sharedUsers');
+                        $data->form->setField('visibleForPartners', 'input=input');
                     }
                     
                     if ($rec->originId) {
                         $dRec = $doc->fetch();
                         
-                        // Ако документа е създаден от контрактор, тогава да е споделен по-подразбиране
-                        if (!$rec->id && core_Users::haveRole('partner', $dRec->createdBy)) {
-                            $data->form->setDefault('visibleForPartners', 'yes');
+                        // Ако документа е създаден от контрактор или предишния документ е видим, тогава да е споделен по-подразбиране
+                        if (!$rec->id) {
+                            if (core_Users::haveRole('partner', $dRec->createdBy) || $dIsVisible) {
+                                $data->form->setDefault('visibleForPartners', 'yes');
+                            }
                         }
                     }
                     

@@ -18,6 +18,12 @@ class pwa_Plugin extends core_Plugin
         $manifestUrl = toUrl(array('pwa_Plugin'));
 
         $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"$manifestUrl\">", "HEAD");
+
+        $invoker->push(('pwa/js/app.js'), 'JS');
+        $src = sbf('pwa/js/sw.js', '');
+        jquery_Jquery::run($invoker, "sendSrc('{$src}');");
+
+
     }
 
 

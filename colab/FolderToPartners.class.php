@@ -101,26 +101,108 @@ class colab_FolderToPartners extends core_Manager
     
     
     /**
-     * Коя е първата споделена папка на фирма на партньор
+     * Форсира папката като споделена към потребител-партньор
+     * 
+     * @param int $folderId
+     * @param int|NULL $userId
+     * @return int|FALSE
+     */
+    public static function force($folderId, $userId = NULL)
+    {
+    	$userId = isset($userId) ? $userId : core_Users::getCurrent('id', FALSE);
+    	if(empty($userId) || !core_Users::isContractor($userId)) return FALSE;
+    	
+    	$rec = self::fetchField("#folderId = {$folderId} AND #contractorId = {$userId}");
+    	if(!$rec) {
+    		$rec = (object)array('folderId' => $folderId, 'contractorId' => $userId);
+    		self::save($rec);
+    	}
+    	
+    	return $rec->id;
+    }
+    
+    
+    /**
+     * Коя е първата споделена папка на контрагент на партньор
      * 
      * @param int|NULL $userId - ид на партньор
      * @return NULL|int $folderId - първата споделена папка
      */
-    public static function getLastSharedCompanyFolder($userId = NULL)
+    public static function getLastSharedContragentFolder($cu = NULL)
     {
     	$cu = isset($cu) ? $cu : core_Users::getCurrent('id', FALSE);
     	if(empty($cu) || !core_Users::isContractor($cu)) return NULL;
     	
+    	// Коя е последно активната му папка на Фирма
+    	$folderId = self::getLastSharedFolder($cu, 'crm_Companies');
+    	
+    	// Ако няма тогава е последно активната му папка на Лице
+    	if(empty($folderId)){
+    		$folderId = self::getLastSharedFolder($cu, 'crm_Persons');
+    	}
+    	
+    	return (!empty($folderId)) ? $folderId : NULL;
+    }
+    
+    
+    /**
+     * Последната активна папка на потребителя
+     * 
+     * @param int $cu              - потребител
+     * @param mixed $class         - Клас на корицата
+     * @return NULL|int $folderId  - Ид на папка
+     */
+    private static function getLastSharedFolder($cu, $class)
+    {
+    	$Class = cls::get($class);
     	$query = self::getQuery();
     	$query->where("#contractorId = {$cu}");
     	$query->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
-    	$query->where("#coverClass =" . crm_Companies::getClassId());
+    	$query->where("#coverClass =" . $Class->getClassId());
     	
-    	$query->orderBy("#createdOn", 'ASC');
     	$query->show('folderId');
-    	$folderId = $query->fetch()->folderId;
+    	$fIds = arr::extractValuesFromArray($query->fetchAll(), 'folderId');
     	
-    	return (!empty($folderId)) ? $folderId : NULL;
+    	if(count($fIds)) {
+    	
+    		if(count($fIds) == 1) {
+    			$folderId = key($fIds);
+    		} else {
+    	
+    			if(!$folderId) {
+    				// Първа е папката в която този потребител последно е писал
+    				$cQuery = doc_Containers::getQuery();
+    				$cQuery->limit(1);
+    				$cQuery->orderBy('#modifiedOn', 'DESC');
+    				$cQuery->where("#createdBy = {$cu}");
+    				$cQuery->where('#folderId IN (' . implode(',', $fIds) . ')');
+    				$cQuery->where("#state != 'rejected'");
+    				$cRec = $cQuery->fetch();
+    				if($cRec) {
+    					$folderId = $cRec->folderId;
+    				}
+    			}
+    	
+    			if(!$folderId) {
+    				// След това е папката, в която има последно движение
+    				$fQuery = doc_Folders::getQuery();
+    				$fQuery->limit(1);
+    				$fQuery->orderBy('#last', 'DESC');
+    				$fQuery->where('#id IN (' . implode(',', $fIds) . ')');
+    				$fQuery->where("#state != 'rejected'");
+    				$fRec = $fQuery->fetch();
+    				if($fRec) {
+    					$folderId = $rec->id;
+    				}
+    			}
+    		}
+    	}
+    	 
+    	if (!empty($folderId) && !colab_Threads::haveRightFor('list', (object)array('folderId' => $folderId), $cu)) {
+    		$folderId = NULL;
+    	}
+    	
+    	return $folderId;
     }
     
     
@@ -137,11 +219,9 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function getFolderOptions($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
-        $resArr = doc_Folders::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
-        
-        if (!empty($resArr) && ($params['removeDuplicate'] || $params['exludeContractors'])) {
+        $excludeArr = array();
+        if ($params['removeDuplicate'] || $params['exludeContractors']) {
             $query = self::getQuery();
-            $fArr = array_keys($resArr);
             
             $query->in('folderId', $fArr);
             
@@ -153,34 +233,28 @@ class colab_FolderToPartners extends core_Manager
             }
             
             while ($rec = $query->fetch()) {
-                unset($resArr[$rec->folderId]);
+                $excludeArr[$rec->folderId] = $rec->folderId;
             }
         }
+        
+        if (!empty($excludeArr)) {
+            $params['excludeArr'] = $excludeArr;
+        }
+        
+        $resArr = doc_Folders::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
         
         return $resArr;
     }
     
     
     /**
-     * 
-     * 
-     * @param array $params
-     * @param NULL|integer $limit
-     * @param string $q
-     * @param NULL|integer|array $onlyIds
-     * @param boolean $includeHiddens
-     * 
-     * @return array
+     * Опции за партньори
      */
     public static function getContractorOptions($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
-        $resArr = core_Users::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
-        
-        if (!empty($resArr) && ($params['removeDuplicate'] || $params['excludeFolders'])) {
+        $excludeArr = array();
+        if ($params['removeDuplicate'] || $params['excludeFolders']) {
             $query = self::getQuery();
-            $uArr = array_keys($resArr);
-            
-            $query->in('contractorId', $uArr);
             
             $query->show('contractorId');
             
@@ -190,9 +264,15 @@ class colab_FolderToPartners extends core_Manager
             }
             
             while ($rec = $query->fetch()) {
-                unset($resArr[$rec->contractorId]);
+                $excludeArr[$rec->contractorId] = $rec->contractorId;
             }
         }
+        
+        if (!empty($excludeArr)) {
+            $params['excludeArr'] = $excludeArr;
+        }
+        
+        $resArr = core_Users::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
         
         return $resArr;
     }
@@ -328,7 +408,7 @@ class colab_FolderToPartners extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->names = core_Users::getVerbal($rec->contractorId, 'names');
     	$row->names .= " (" . crm_Profiles::createLink($rec->contractorId) . ") ";
@@ -378,9 +458,11 @@ class colab_FolderToPartners extends core_Manager
 		if($data->masterMvc instanceof crm_Companies){
 			Request::setProtected(array('companyId'));
 			
-			// Добавяме бутон за създаването на нов партньор, визитка и профил
-			$ht = ht::createBtn('Нов партньор', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Създаване на нов партньор');
-			$btns->append($ht);
+			if (haveRole('admin')) {
+			    // Добавяме бутон за създаването на нов партньор, визитка и профил
+			    $ht = ht::createBtn('Нов партньор', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Създаване на нов партньор');
+			    $btns->append($ht);
+			}
 			
 			// Ако фирмата има имейли и имаме имейл кутия, слагаме бутон за изпращане на имейл за регистрация
 			if($me->haveRightFor('sendemail', $data->masterData->rec)){
@@ -404,9 +486,9 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function callback_Createnewcontractor($data)
     {
-    	Request::setProtected(array('companyId', 'rand', 'fromEmail'));
-    	
-    	redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'rand' => $data['rand'], 'fromEmail' => TRUE));
+    	Request::setProtected(array('companyId', 'rand', 'email', 'fromEmail'));
+ 
+    	redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'email' => $data['email'], 'rand' => $data['rand'], 'fromEmail' => TRUE));
     }
     
     
@@ -429,7 +511,7 @@ class colab_FolderToPartners extends core_Manager
     	$form = cls::get('core_Form');
     	$form->title = "Изпращане на имейл за регистрация на партньори в|* <b>{$companyName}</b>";
     	
-    	$form->FNC('to', 'emails', 'caption=До имейл, width=100%, mandatory, input');
+    	$form->FNC('to', 'email', 'caption=До имейл, width=100%, mandatory, input');
     	$form->FNC('from', 'key(mvc=email_Inboxes,select=email)', 'caption=От имейл, width=100%, mandatory, optionsFunc=email_Inboxes::getAllowedFromEmailOptions, input');
     	$form->FNC('subject', 'varchar', 'caption=Относно,mandatory,width=100%, input');
     	$form->FNC('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory, input');
@@ -444,30 +526,45 @@ class colab_FolderToPartners extends core_Manager
     	
     	$form->setDefault('from', email_Outgoings::getDefaultInboxId());
     	
-    	$subject = "Регистрация в " . EF_APP_NAME; 
+    	core_Lg::push(drdata_Countries::getLang($companyRec->country));
+    	
+    	$subject = tr("Създайте нов акаунт в") . " " . core_Setup::get('EF_APP_TITLE', TRUE);
+
     	$form->setDefault('subject', $subject);
     	
-    	$url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => $companyId, 'rand' => str::getRand()), 604800);
+    	$placeHolder = '{{' . tr('линк||link') . '}}';
     	
     	$body = new ET(
             tr("Уважаеми потребителю||Dear User") . ",\n\n" . 
             tr("За да се регистрираш като служител на фирма||To have registration as a member of company") .
             " \"[#company#]\", " . 
             tr("моля последвай този||please follow this") .
-            " [link=[#link#]]" . tr("линк||link") . "[/link] - " . 
+            " {$placeHolder} - " . 
             tr("изтича след 7 дена||it expired after 7 days"));
 		
     	$companyName = str_replace(array('&lt;', '&amp;'), array("<", "&"), $companyName);
     	$body->replace($companyName, 'company');
-		$body->replace($url, 'link');
 		
 		$footer = cls::get('email_Outgoings')->getFooter($companyRec->country);
 		$body = $body->getContent() . "\n\n" . $footer;
 		
     	$form->setDefault('body', $body);
     	
+    	core_Lg::pop();
+    	
     	$form->input();
+
+        // Проверка за грешки
+        if($form->isSubmitted()) {
+            if(!strpos($form->rec->body, $placeHolder)) {
+                $form->setError('body', 'Липсва плейсхолдера на линка за регистриране|* - ' . $placeHolder);
+            }
+        }
+
     	if($form->isSubmitted()){
+           
+            $form->rec->companyId = $companyId;
+            $form->rec->placeHolder = $placeHolder;
     		$res = $this->sendRegistrationEmail($form->rec);
     		$msg = ($res) ? 'Успешно изпратен имейл' : 'Проблем при изпращането на имейл';
     		
@@ -479,7 +576,7 @@ class colab_FolderToPartners extends core_Manager
     	 
     	$tpl = $this->renderWrapping($form->renderHtml());
     	core_Form::preventDoubleSubmission($tpl, $form);
-    	
+        
     	return $tpl;
     }
     
@@ -499,19 +596,26 @@ class colab_FolderToPartners extends core_Manager
     		$toArr = type_Emails::toArray($rec->to);
     		foreach ($toArr as $to) {
     			$PML->AddAddress($to);
+                if(!core_Users::fetch(array("#email = '[#1#]'", $to))) {
+                    $userEmail = $to;
+                }
     		}
     	}
-    	
+        
     	$PML->Encoding = "quoted-printable";
+       
+        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand()), 604800);
     	
+        $rec->body = str_replace($rec->placeHolder, "[link=$url]link[/link]", $rec->body);
+
     	Mode::push('text', 'plain');
     	$bodyAlt = cls::get('type_Richtext')->toVerbal($rec->body);
     	Mode::pop('text');
-    	
+ 
     	Mode::push('text', 'xhtml');
     	$bodyTpl = cls::get('type_Richtext')->toVerbal($rec->body);
     	email_Sent::embedSbfImg($PML);
-    	
+   
     	Mode::pop('text');
     	
     	$PML->AltBody = $bodyAlt;
@@ -556,16 +660,22 @@ class colab_FolderToPartners extends core_Manager
      */
     function act_Createnewcontractor()
     {
-    	Request::setProtected(array('companyId', 'rand', 'fromEmail'));
+    	Request::setProtected(array('companyId', 'rand', 'fromEmail', 'email'));
+    	
+    	if (!$email = Request::get('email', 'email')) {
+    	    Request::removeProtected(array('email'));
+    	}
     	
     	expect($companyId = Request::get('companyId', 'key(mvc=crm_Companies)'));
     	$Users = cls::get('core_Users');
     	$companyRec = crm_Companies::fetch($companyId);
     	
+        core_Lg::push(drdata_Countries::getLang($companyRec->country));
+
     	$rand = Request::get('rand');
     	
     	// Ако не сме дошли от имейл, трябва потребителя да има достъп до обекта
-    	$fromEmail = Request::get('fromEmail');
+    	$fromEmail = Request::get('fromEmail');  
     	if(!$fromEmail){
             requireRole('powerUser');
     		expect(doc_Folders::haveRightToObject($companyRec));
@@ -593,29 +703,46 @@ class colab_FolderToPartners extends core_Manager
                 $form->setOptions('personId', $pOpt);
             }
         }
-
-    	
-    	// Задаваме дефолтните роли
-    	$defRoles = array();
-    	foreach (array('partner') as $role){
-    		$id = core_Roles::fetchByName($role);
-    		$defRoles[$id] = $id;
-    	}
     	
     	$form->setDefault('roleRank', core_Roles::fetchByName('partner'));
     	$Users->invoke('AfterPrepareEditForm', array((object)array('form' => $form), (object)array('form' => $form)));
     	$form->setDefault('state', 'active');
-    	$form->setField('roleRank', 'input=hidden');
+        
+    	if ($email) {
+    	    $form->setDefault('email', $email);
+    	    $form->setReadonly('email');
+    	}
+        
+    	$form->setField('roleRank', 'input=none');
     	$form->setField('roleOthers', "caption=Достъп за външен потребител->Роли");
     	
     	if(!$Users->haveRightFor('add')){
-    		$form->setField('rolesInput', 'input=hidden');
-    		$form->setField('roleOthers', 'input=hidden');
-    		$form->setField('state', 'input=hidden');
+    		$form->setField('rolesInput', 'input=none');
+    		$form->setField('roleOthers', 'input=none');
+    		$form->setField('state', 'input=none');
+    	}
+    	
+    	// Задаваме дефолтните роли
+    	$dRolesArr = array('partner');
+    	try {
+    	    $autoCreateQuote = cond_Parameters::getParameter(crm_Companies::getClassId(), $companyId, 'autoCreateQuote');
+    	    
+    	    if ($autoCreateQuote == 'yes') {
+    	        $dRolesArr[] = 'agent';
+    	    }
+    	} catch (core_exception_Expect $e) {
+    	    reportException($e);
+    	}
+    	$defRoles = array();
+    	foreach ($dRolesArr as $role){
+    	    $id = core_Roles::fetchByName($role);
+    	    $defRoles[$id] = $id;
+    	}
+    	if (!empty($defRoles)) {
+    	    $form->setDefault('roleOthers', $defRoles);
     	}
     	
     	$form->input();
-    	$form->rec->rolesInput = keylist::fromArray($defRoles);
     	
     	if($form->isSubmitted()){
     		if(!$Users->isUnique($form->rec, $fields)){
@@ -623,11 +750,35 @@ class colab_FolderToPartners extends core_Manager
     		}
     	}
     	
+    	if($form->isSubmitted()){
+    	    if (core_Users::isForbiddenNick($form->rec->nick)) {
+    	        $form->setError('nick', "Вече съществува запис със същите данни");
+    	    }
+    	}
+    	
     	$Users->invoke('AfterInputEditForm', array(&$form));
     	
+    	if ($form->isSubmitted() && haveRole('powerUser')) {
+    	    $cRec = clone $form->rec;
+    	    $cRec->name = $form->rec->names;
+    	    $wStr = crm_Persons::getSimilarWarningStr($cRec, $fields);
+    	    
+    	    if ($fields) {
+    	        $fieldsArr = arr::make($fields, TRUE);
+    	        if ($fieldsArr['name']) {
+    	            $fieldsArr['names'] = 'names';
+    	            unset($fieldsArr['name']);
+    	            $fields = implode(',', $fieldsArr);
+    	        }
+    	    }
+    	    
+    	    if ($wStr) {
+    	        $form->setWarning($fields, $wStr);
+    	    }
+    	}
+    	
     	// След събмит ако всичко е наред създаваме потребител, лице и профил
-    	if($form->isSubmitted()){
-    		
+    	if ($form->isSubmitted()) {
     		$uId = $Users->save($form->rec);
     		$personId = crm_Profiles::fetchField("#userId = {$uId}", 'personId');
     		$personRec = crm_Persons::fetch($personId);
@@ -636,15 +787,22 @@ class colab_FolderToPartners extends core_Manager
     		$personRec->buzCompanyId = $companyId;
     		$personRec->country = $form->rec->country;
     		$personRec->inCharge = $companyRec->inCharge;
+    		
+    		// Имейлът да е бизнес имейла му
+    		$buzEmailsArr = type_Emails::toArray($personRec->buzEmail);
+    		$buzEmailsArr[] = $personRec->email;
+    		$personRec->buzEmail = type_Emails::fromArray($buzEmailsArr);
+    		$personRec->email = '';
+    		
     		crm_Persons::save($personRec);
     		
     		$folderId = crm_Companies::forceCoverAndFolder($companyId);
     		static::save((object)array('contractorId' => $uId, 'folderId' => $folderId));
     		
     		// Изтриваме линка, да не може друг да се регистрира с него
-    		core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => $companyId, 'rand' => $rand), 604800);
-    
-    		return followRetUrl(array('core_Users', 'login'), '|Успешно са създадени потребител и визитка на нов партньор');
+    		core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => $companyId, 'email' => $email, 'rand' => $rand), 604800);
+    		
+    		return followRetUrl(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
     	}
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис');
@@ -661,7 +819,8 @@ class colab_FolderToPartners extends core_Manager
     	}
     	core_Form::preventDoubleSubmission($tpl, $form);
     	
-    	
+    	core_Lg::pop();
+
     	return $tpl;
     }
     

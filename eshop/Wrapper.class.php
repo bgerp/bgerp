@@ -30,8 +30,5 @@ class eshop_Wrapper extends plg_ProtoWrapper
         $this->TAB('eshop_ProductDetails', 'Опции', 'ceo,eshop');
         $this->TAB('eshop_Carts', 'Кошници', 'eshop,ceo,admin');
         $this->TAB('eshop_Settings', 'Настройки->Общи', 'ceo,eshop,admin');
-        $this->TAB('eshop_Payments', 'Настройки->Плащане', 'ceo,eshop,admin');
-        $this->TAB('eshop_DeliveryTerms', 'Настройки->Доставка', 'ceo,eshop,admin');
-        $this->TAB('eshop_DeliveryTimes', 'Настройки->Времена', 'ceo,eshop,admin');
     }
 }

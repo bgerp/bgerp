@@ -53,7 +53,8 @@ class doc_plg_Close extends core_Plugin
     			$data->toolbar->setWarning('btnActivate', $activeMsg);
     		
     		} elseif($data->rec->state == 'active' || $data->rec->state == 'template'){
-    			$data->toolbar->addBtn($closeBtn, array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "order=39,id=btnClose,row=2,ef_icon = img/16/gray-close.png,title=Закриване на {$singleTitle}");
+    			$closeBtnRow = isset($mvc->closeBtnRow) ? $mvc->closeBtnRow : 2;
+    			$data->toolbar->addBtn($closeBtn, array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "order=39,id=btnClose,row={$closeBtnRow},ef_icon = img/16/gray-close.png,title=Закриване на {$singleTitle}");
     			$data->toolbar->setWarning('btnClose', $closeMsg);
     		}
     	}

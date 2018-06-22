@@ -132,6 +132,7 @@ class acc_Setup extends core_ProtoSetup
         'migrate::removeUnusedRole',
         'migrate::recalcAllGlobalRole'
     );
+    
 
     /**
      * Описание на конфигурационните константи
@@ -256,11 +257,15 @@ class acc_Setup extends core_ProtoSetup
             'acc, invoiceAllGlobal, storeAllGlobal, bankAllGlobal, cashAllGlobal, saleAllGlobal, purchaseAllGlobal, planningAllGlobal'
         ),
         array(
-            'rep_acc'
+            'repAll'
+        ),
+        array(
+            'repAllGlobal',
+            'repAll'
         )
-    )
-    ;
-
+    );
+    
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
@@ -337,7 +342,7 @@ class acc_Setup extends core_ProtoSetup
             'action' => "SyncFeatures",
             'period' => 1440,
             'offset' => 60,
-            'timeLimit' => 600
+            'timeLimit' => 900
         ),
         array(
             'systemId' => "CheckAccLimits",
@@ -357,7 +362,8 @@ class acc_Setup extends core_ProtoSetup
     					acc_reports_CorespondingImpl,acc_reports_SaleArticles,acc_reports_SaleContractors,acc_reports_OweProviders,
     					acc_reports_ProfitArticles,acc_reports_ProfitContractors,acc_reports_MovementContractors,acc_reports_TakingCustomers,
     					acc_reports_ManufacturedProducts,acc_reports_PurchasedProducts,acc_reports_BalancePeriodImpl, acc_reports_ProfitSales,
-                        acc_reports_MovementsBetweenAccounts,acc_reports_MovementArtRep,acc_reports_TotalRep,acc_reports_UnpaidInvoices";
+                        acc_reports_MovementsBetweenAccounts,acc_reports_MovementArtRep,acc_reports_TotalRep,acc_reports_UnpaidInvoices,
+                        acc_reports_UnactiveContableDocs";
 
     /**
      * Де-инсталиране на пакета
@@ -383,6 +389,8 @@ class acc_Setup extends core_ProtoSetup
             $this->getCostObjectDocuments();
             $res .= "<li style='color:green'>Добавени са дефолт документи за разходни пера</li>";
         }
+        
+        $res .= $this->callMigrate('fixRepRoles', 'acc');
         
         return $res;
     }
@@ -466,5 +474,39 @@ class acc_Setup extends core_ProtoSetup
         core_Users::rebuildRoles();
         
         core_Roles::addOnce('allGlobal');
+    }
+    
+    
+    /**
+     * Миграция за заместване на старите роли "rep_" на потребителите
+     */
+    public static function fixRepRoles()
+    {
+        foreach (array('rep_cat' => 'repAllGlobal', 'rep_acc' => 'repAll') as $oRole => $nRole) {
+            $rRec = core_Roles::fetch("#role = '{$oRole}'");
+            $nRec = core_Roles::fetch("#role = '{$nRole}'");
+            
+            expect($nRec);
+            
+            if ($rRec) {
+                $uQuery = core_Users::getQuery();
+                $uQuery->likeKeylist('rolesInput', $rRec->id);
+                $uQuery->likeKeylist('roles', $rRec->id);
+                
+                while ($uRec = $uQuery->fetch()) {
+                    $uRec->roles = type_Keylist::removeKey($uRec->roles, $rRec->id);
+                    $uRec->rolesInput = type_Keylist::removeKey($uRec->rolesInput, $rRec->id);
+                    
+                    $uRec->roles = type_Keylist::addKey($uRec->roles, $nRec->id);
+                    $uRec->rolesInput = type_Keylist::addKey($uRec->rolesInput, $nRec->id);
+                    
+                    core_Users::save($uRec, 'roles, rolesInput');
+                }
+                
+                // Затваряме ролите
+                $rRec->state = 'closed';
+                core_Roles::save($rRec, 'state');
+            }
+        }
     }
 }

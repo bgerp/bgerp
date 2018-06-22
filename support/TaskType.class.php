@@ -172,14 +172,16 @@ class support_TaskType extends core_Mvc
     /**
      * Връща състоянието на нишката
      *
-     * @param stdClass $rec
+     * @param support_TaskType $Driver
+     * @param cal_Tasks $mvc
+     * @param string|NULL $res
+     * @param integer $id
      *
-     * @return NULL|string
+     * @return string
      */
-    public function getThreadState($rec)
+    static function on_AfterGetThreadState($Driver, $mvc, &$res, $id)
     {
-        
-        return 'opened';
+        $res = 'opened';
     }
     
     

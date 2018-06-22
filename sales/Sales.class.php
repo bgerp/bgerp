@@ -309,27 +309,30 @@ class sales_Sales extends deals_DealMaster
     	$rec = $form->rec;
     	
     	if(empty($rec->id)){
-    		
-    		// Ако има локация, питаме търговските маршрути, кой да е дефолтния търговец
-    		if(isset($rec->deliveryLocationId)){
-    			$dealerId = sales_Routes::getSalesmanId($rec->deliveryLocationId);
-    		}
-    		
-    		// Ако няма, но отговорника на папката е търговец - него
-    		if(empty($dealerId)){
-    			$inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
-    			if(core_Users::haveRole('sales', $inCharge)){
-    				$dealerId = $inCharge;
-    			}
-    		}
-    		
-    		// В краен случай от последната продажба на същия потребител
-    		if(empty($dealerId)){
-    			$dealerId = cond_plg_DefaultValues::getFromLastDocument($mvc, $rec->folderId, 'dealerId', TRUE);
-    		}
-    		
+    		$dealerId = self::getDefaultDealerId($rec->folderId, $rec->deliveryLocationId);
     		$form->setDefault('dealerId', $dealerId);
     	}
+    }
+    
+    
+    /**
+     * Кой е дефолтния търговец по продажбата
+     * 
+     * @param int $folderId       - папка
+     * @param int $locationId     - локация
+     * @return int|NULL $dealerId - ид на търговец
+     */
+    public static function getDefaultDealerId($folderId, $locationId)
+    {
+    	$dealerId = sales_Routes::getSalesmanId($locationId);
+    	if(isset($dealerId)) return $dealerId;
+    	
+    	$dealerId = doc_Folders::fetchField($folderId, 'inCharge');
+    	if(core_Users::haveRole('sales', $dealerId)) return $dealerId;
+    	
+    	$dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $folderId, 'dealerId', TRUE);
+    	
+    	return $dealerId;
     }
     
     
@@ -641,7 +644,7 @@ class sales_Sales extends deals_DealMaster
             	$p->batches = $bQuery->fetchAll();
             }
             
-            if($tRec = tcost_Calcs::get(sales_Sales::getClassId(), $rec->id, $dRec->id)){
+            if($tRec = sales_TransportValues::get(sales_Sales::getClassId(), $rec->id, $dRec->id)){
             	if($tRec->fee > 0){
             		$p->fee = $tRec->fee;
             		$p->deliveryTimeFromFee = $tRec->deliveryTime;
@@ -746,7 +749,7 @@ class sales_Sales extends deals_DealMaster
         $rec2->period = 60;
         $rec2->offset = mt_rand(0,30);
         $rec2->delay = 0;
-        $rec2->timeLimit = 100;
+        $rec2->timeLimit = 200;
         $res .= core_Cron::addOnce($rec2);
     }
     
@@ -1100,6 +1103,13 @@ class sales_Sales extends deals_DealMaster
     		if(!Mode::isReadOnly()){
     			$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
     		}
+    		
+    		if($bic = bank_Accounts::getVerbal($rec->bankAccountId, 'bic')){
+    			$row->bic = $bic;
+    		}
+    		if($bank = bank_Accounts::getVerbal($rec->bankAccountId, 'bank')){
+    			$row->bank = $bank;
+    		}
     	}
     	
     	if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
@@ -1130,12 +1140,12 @@ class sales_Sales extends deals_DealMaster
     		
     		if ($rec->currencyRate) {
     		    $row->transportCurrencyId = $row->currencyId;
-    		    $rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
+    		    $rec->hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
     		    $rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
     		    $rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
     		}
     		
-    		tcost_Calcs::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
+    		sales_TransportValues::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
     		
     		// Ако има транспорт за начисляване
     		if($leftTransportCost > 0){
@@ -1168,7 +1178,7 @@ class sales_Sales extends deals_DealMaster
     	$query = sales_SalesDetails::getQuery();
     	$query->where("#saleId = {$rec->id}");
     	
-    	return tcost_Calcs::getVisibleTransportCost($query);
+    	return sales_TransportValues::getVisibleTransportCost($query);
     }
     
     
@@ -1183,7 +1193,7 @@ class sales_Sales extends deals_DealMaster
     	$expectedTransport = 0;
     	
     	// Ако няма калкулатор в условието на доставка, не се изчислява нищо
-    	$TransportCalc = cond_DeliveryTerms::getCostDriver($rec->deliveryTermId);
+    	$TransportCalc = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
     	if(!is_object($TransportCalc)) return $expectedTransport;
     	
     	// Подготовка на заявката, взимат се само складируеми артикули
@@ -1194,12 +1204,15 @@ class sales_Sales extends deals_DealMaster
     	$products = $query->fetchAll();
     	
     	// Изчисляване на общото тегло на офертата
-    	$totalWeight = tcost_Calcs::getTotalWeight($products, $TransportCalc);
-    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, NULL, NULL, $rec->deliveryLocationId);
+    	$total = sales_TransportValues::getTotalWeightAndVolume($products);
+    	$codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, NULL, NULL, $rec->deliveryLocationId ? $rec->deliveryLocationId : $rec->deliveryAdress);
+    	
+    	$ourCompany = crm_Companies::fetchOurCompany();
+    	$params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' =>  $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
     	
     	// За всеки артикул се изчислява очаквания му транспорт
     	foreach ($products as $p2){
-    		$fee = tcost_Calcs::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
+    		$fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total['weight'], $total['volume'], $params);
     		
     		// Сумира се, ако е изчислен
     		if(is_array($fee) && $fee['totalFee'] > 0){
@@ -1422,7 +1435,7 @@ class sales_Sales extends deals_DealMaster
     	if(!$Doc->isInstanceOf('sales_Sales')) return $res;
     	
     	$saleClassId = sales_Sales::getClassId();
-    	$tCostQuery = tcost_Calcs::getQuery();
+    	$tCostQuery = sales_TransportValues::getQuery();
     	$tCostQuery->where("#docClassId = {$saleClassId} AND #docId = {$Doc->that}");
     	$tCostQuery->where("#fee > 0");
     	while($tRec = $tCostQuery->fetch()){
@@ -1436,5 +1449,10 @@ class sales_Sales extends deals_DealMaster
     	}
     	
     	return $costs;
+    }
+    
+    function act_Test()
+    {
+    	bp(5 % 1);
     }
 }

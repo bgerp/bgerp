@@ -24,6 +24,10 @@ class core_Html
     {   
         $attrStr = '';
 
+        if($attributes['title']) {
+        	$attributes['title'] = tr($attributes['title']);
+        }
+        
         if($name == 'img') {
             if(!is_array($attributes)) {
                 $attributes = array();
@@ -607,7 +611,7 @@ class core_Html
                 $hint = '[Alt]+' . $c;
             }
 
-            $attr['title'] .= ($attr['title'] ? ' ' : '') . $hint;
+            $attr['title'] .= ($attr['title'] ? '|* ' : '') . $hint;
         }
     }
 
@@ -1362,11 +1366,11 @@ class core_Html
     /**
      * Подготвя атрибутите на бутон или хипервръзка
      */
-    private static function prepareLinkAndBtnAttr($attr, $warning = '')
+    private static function prepareLinkAndBtnAttr($attr, $warning = '', $trTitle = FALSE)
     {
         $attr = arr::make($attr);
         
-        if($attr['title']) {
+        if ($attr['title'] && $trTitle) {
             $attr['title'] = tr($attr['title']);
         }
 

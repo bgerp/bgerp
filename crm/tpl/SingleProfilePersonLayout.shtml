@@ -1,6 +1,14 @@
 
 <div class="user-title [#userClass#]" >
-    <div class="user-name">[#name#]</div>
+    
+    <div class="user-name">
+        [#name#]
+        <!--ET_BEGIN editLink-->
+        <span class="profile-editLink" style="display: inline-block">
+            [#editLink#]
+        </span>
+        <!--ET_END editLink-->
+    </div>
 
     <!--ET_BEGIN image-->
     <div class="profile-image">

@@ -36,5 +36,19 @@ class export_Setup extends core_ProtoSetup
             'export_Html',
             'export_Csv',
             'export_Xls',
+            'export_Doc',
     );
+    
+    
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+        $html = parent::install();
+        
+        $html .= fileman_Buckets::createBucket('exportFiles', 'Експортирани файлове', '', '50MB', 'user', 'user');
+        
+        return $html;
+    }
 }

@@ -265,15 +265,10 @@ class fileman_Files extends core_Master
         
         // Абсорбираме файла
         $data = fileman_Data::absorb($path, $type);
-        $dataId = $data->id;
-        
-        // Ако данните са същите, като на оригиналния файл
-        if ($fRec->dataId == $dataId) {
-            // TODO?
-        }
+        $newDataId = $data->id;
         
         // Създаваме версия на файла
-        $versionId = fileman_Versions::createNew($fh, $dataId);
+        $versionId = fileman_Versions::createNew($fh, $newDataId);
         
         return $versionId;
     }
@@ -601,7 +596,7 @@ class fileman_Files extends core_Master
     /**
      * Връща всички мета-характеристики на файла
      * 
-     * @param strign $fh - Манипулатор на файла
+     * @param string $fh - Манипулатор на файла
      * 
      * @param return array(
      *      'name' => '...',
@@ -833,7 +828,7 @@ class fileman_Files extends core_Master
      * 
      * @param string $path - Пътя до файла
      * 
-     * @return timeStamp - Времето на последна промяна на файла
+     * @return int - Времето на последна промяна на файла
      */
     public static function getModificationTimeFromFilePath($path)
     {
@@ -849,7 +844,7 @@ class fileman_Files extends core_Master
      * 
      * @param string $path - Пътя до файла
      * 
-     * @return timeStamp - Времето на създаване на файла
+     * @return int - Времето на създаване на файла
      */
     public static function getCreationTimeFromFilePath($path)
     {
@@ -865,7 +860,7 @@ class fileman_Files extends core_Master
      * 
      * @param string $path - Пътя до файла
      * 
-     * @return timeStamp - Времето на последен достъп до файла
+     * @return int - Времето на последен достъп до файла
      */
     public static function getAccessTimeFromFilePath($path)
     {
@@ -970,7 +965,7 @@ class fileman_Files extends core_Master
     /**
      * Връща линк към сингъла на файла
      * 
-     * @param fileHnd $fh - Манипулатор на файла
+     * @param string $fh - Манипулатор на файла
      * @param boolean $absolute - Дали линка да е абсолютен
      * @param array $attr - Други параметри
      * @param string|NULL $name - Името, което да се използва
@@ -1038,7 +1033,7 @@ class fileman_Files extends core_Master
     /**
      * Връща URL към сингъла на файла
      * 
-     * @param fileHnd $fh - Манипулатор на файла
+     * @param string $fh - Манипулатор на файла
      * @param boolean $absolute - Дали URL-то да е абсолютен
      * 
      * @return string - URL към сингъла
@@ -1578,6 +1573,71 @@ class fileman_Files extends core_Master
         $fh = static::fetchField($id, 'fileHnd');
         
         return static::getLink($fh);
+    }
+    
+    
+    /**
+     * Екшън за обновяване на съдържанието на файла
+     * 
+     * @return NULL|array
+     */
+    function act_UpdateFile()
+    {
+        $fh = Request::get('fileHnd');
+        $data = Request::get('data');
+        $dataType = Request::get('dataType');
+        
+        $fRec = $this->fetchByFh($fh);
+        expect($fRec);
+        
+        expect(fileman_Buckets::canAddFileToBucket($fRec->bucketId));
+        
+        $verId = $this->updateFile($fh, $data, $dataType);
+        
+        if (Request::get('ajax_mode')) {
+            $hitId = rand();
+            
+            $msg = '|Успешно записахте промените във файла';
+            $type = 'notice';
+            
+            if (!$verId) {
+                $msg = '|Грешка при добавяне на нова версия';
+                $type = 'warning';
+            }
+            
+            status_Messages::newStatus($msg, $type, NULL, 60, $hitId);
+            $res = status_Messages::getStatusesData(Request::get('hitTime', 'int'), 0, $hitId);
+            
+            $this->logWrite('Нова версия', $fRec->id);
+            
+            return $res;
+        }
+    }
+    
+    
+    /**
+     * Обновява съдържаните на файла - добавя нова версия на файла
+     * 
+     * @param string $fileHnd
+     * @param string $data
+     * @param string $dataType
+     * @param NULL|integer $userId
+     * 
+     * @return NULL|integer
+     */
+    public static function updateFile($fileHnd, $data, $dataType = 'fileman_import_Base64', $userId = NULL)
+    {
+        $fRec = self::fetchByFh($fileHnd);
+        
+        if (!$fRec) return ;
+        
+        if (!fileman_Buckets::canAddFileToBucket($fRec->bucketId, $userId)) return ;
+        
+        $inftCls = cls::getInterface('fileman_ConvertDataIntf', $dataType);
+        
+        $nData = $inftCls->convertData($data);
+        
+        return fileman::addVersionStr($fileHnd, $data);
     }
     
     
@@ -2855,12 +2915,12 @@ class fileman_Files extends core_Master
             // Ако не може да се създаде
             if(!mkdir($tempPath, 0777, TRUE)) {
                 
-                $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') . ': "' . $tempPath . '"</li>';
+                $res .= '<li class="debug-error">Не може да се създаде директорията: "' . $tempPath . '"</li>';
             } else {
-                $res .= '<li class="debug-new">' . tr('Създадена е директорията') . ': "' . $tempPath . '"</li>';
+                $res .= '<li class="debug-new">Създадена е директорията: "' . $tempPath . '"</li>';
             }
         } else {
-            $res .= '<li>' . tr('Директорията съществува') . ': "' . $tempPath . '"</li>';
+            $res .= '<li>Директорията съществува: "' . $tempPath . '"</li>';
         }
         
         return $res;

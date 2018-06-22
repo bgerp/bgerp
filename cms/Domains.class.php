@@ -15,6 +15,8 @@
  */
 class cms_Domains extends core_Embedder
 {
+	
+	
     /**
      * Име под което записваме в сесията текущия език на CMS изгледа
      */
@@ -58,17 +60,11 @@ class cms_Domains extends core_Embedder
     
     
     /**
-     * Права за запис
-     */
-    public $canRead = 'ceo, cms, admin';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo, cms, admin';
     
-    public $canSelect = 'ceo, admin, cms';
+    public $canSelect = 'powerUser';
     
     // Админа може да редактира и изтрива създадените от системата записи
     public $canEditsysdata = 'admin';
@@ -164,7 +160,6 @@ class cms_Domains extends core_Embedder
         
         // SEO Ключови думи
         $this->FLD('seoKeywords', 'text(255,rows=3)', 'caption=SEO->Keywords,autohide');
-
     }
 
 
@@ -588,5 +583,21 @@ class cms_Domains extends core_Embedder
     	}
     	
     	return $options;
+    }
+    
+    
+    /**
+     * Какви са настройките на домейна
+     * 
+     * @param int $domainId
+     * @param datetime|NULL $date - към коя дата
+     * @return array
+     */
+    public static function getSettings($domainId = NULL, $date = NULL)
+    {
+    	if(!core_Packs::isInstalled('eshop')) return array();
+    	$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
+    	
+    	return eshop_Settings::getSettings('cms_Domains', $domainId, $date);
     }
 }

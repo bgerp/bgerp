@@ -95,6 +95,9 @@ class doc_DocumentPlg extends core_Plugin
         	$mvc->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активиране||Activated->От||By,input=none');
         }
         
+        // Вербализирането на ид-то да е без интервали за улеснение
+        $mvc->setFieldTypeParams('id', array('noWhitespace' => TRUE));
+        
         // Ако има cid и Tab, показваме детайлите
         if (Request::get('Cid') && Request::get('Tab')) {
             
@@ -460,6 +463,13 @@ class doc_DocumentPlg extends core_Plugin
                 $data->toolbar->addBtn('Изглед', array('doc_View', 'add', 'clsId' => $classId, 'dataId' => $data->rec->id, 'originId' => $data->rec->containerId), 'ef_icon=img/16/ui_saccordion.png, title=Друг изглед на документа, order=18, row=3');
             }
         }
+        
+        // Бутона за редакция да е на втори ред за другите потребители, при чернова документи
+        if ($data->toolbar->buttons['btnEdit']) {
+            if ($data->rec->createdBy > 0 && $data->rec->createdBy != core_Users::getCurrent() && $data->rec->state == 'draft') {
+                $data->toolbar->buttons['btnEdit']->attr['row'] = 2;
+            }
+        }
     }
     
     
@@ -729,15 +739,13 @@ class doc_DocumentPlg extends core_Plugin
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
         if (!Mode::is('MassImporting') && (($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected') || $rec->state != 'draft')) {
             $usedDocuments = $mvc->getUsedDocs($rec->id);
-            foreach((array)$usedDocuments as $usedCid){
+            foreach ((array)$usedDocuments as $usedCid) {
                 $msg = '';
-                
                 if (($rec->state == 'rejected') || ($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected')) {
                     doclog_Used::remove($containerId, $usedCid);
                     $msg = 'Премахнато използване';
                 } elseif (($rec->state != 'draft') && ($rec->state != 'rejected')) {
                     doclog_Used::add($containerId, $usedCid);
-                    $msg = 'Използване на документа';
                 }
 
                 if ($msg) {
@@ -810,6 +818,20 @@ class doc_DocumentPlg extends core_Plugin
         							}
         						}
         					}
+        				}
+        				
+        				// Възможност за спиране/пускане на нотификациите за заявка в папка
+        				$fKey = doc_Folders::getSettingsKey($rec->folderId);
+        				$newPendingNotifications = core_Settings::fetchUsers($fKey, 'newPending');
+        				foreach ((array)$newPendingNotifications as $userId => $newPending) {
+        				    if ($newPending['newPending'] == 'no') {
+        				        unset($notifyArr[$userId]);
+        				    } else if ($newPending['newPending'] == 'yes') {
+        				        // Може да е абониран, но да няма права
+        				        if ($mvc->haveRightFor('single', $rec, $userId)) {
+        				            $notifyArr[$userId] = $userId;
+        				        }
+        				    }
         				}
         			}
         			
@@ -1613,20 +1635,6 @@ class doc_DocumentPlg extends core_Plugin
                     if ($fType == 'doc') {
                         $document = doc_Containers::getDocument($fId);
                         $document->instance->requireRightFor('single', $document->that);
-                        
-                        $titleFld = '';
-                        if ($mvc->fields['title']) {
-                            $titleFld = 'title';
-                        } elseif ($mvc->fields['subject']) {
-                            $titleFld = 'subject';
-                        }
-                        
-                        if ($titleFld) {
-                            $oRow = $document->getDocumentRow();
-                            $for = tr('За|*: ');
-                            $title = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
-                            $data->form->setDefault($titleFld, $title);
-                        }
                     }
                 }
             }
@@ -1812,24 +1820,15 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if ($rec->originId) {
+        if (!$data->form->rec->id && !$data->form->rec->clonedFromId) {
             
-            $cid = $rec->originId;
-        } elseif ($rec->threadId) {
+            $detId = Request::get('detId', 'int');
             
-            // Ако добавяме коментар в нишката
-            $cid = doc_Threads::fetch($rec->threadId)->firstContainerId;
-        }
-        
-        if (!$data->form->rec->id) {
-            // Споделените потребители по подразбиране
-            $defaultShared = $mvc->getDefaultShared($rec, $cid);
+            $dData = $mvc->getDefaultData($rec, array('detId' => $detId, 'fType' => $fType));
             
-            if (core_Users::isPowerUser()) {
-                if ($defaultShared) {
-                    unset($defaultShared[-1]);
-                    unset($defaultShared[0]);
-                    $data->form->setDefault('sharedUsers', $defaultShared);
+            if (!empty($dData)) {
+                foreach ($dData as $key => $val) {
+                    $data->form->setDefault($key, $val);
                 }
             }
         }
@@ -1844,6 +1843,51 @@ class doc_DocumentPlg extends core_Plugin
             
             doc_Linked::showLinkedInForm($data->form, $cId);
         }
+    }
+    
+    
+    /**
+     *
+     * @param core_Mvc $mvc
+     * @param NULL|array $res
+     * @param stdClass $rec
+     * @param array $otherParams
+     */
+    function on_AfterGetDefaultData($mvc, &$res, $rec, $otherParams = array())
+    {
+        $res = array();
+        
+        if ($rec->foreignId && $otherParams['fType'] == 'doc') {
+            $document = doc_Containers::getDocument($rec->foreignId);
+            
+            $titleFld = '';
+            if ($mvc->fields['title']) {
+                $titleFld = 'title';
+            } elseif ($mvc->fields['subject']) {
+                $titleFld = 'subject';
+            }
+            
+            if ($titleFld) {
+                $oRow = $document->getDocumentRow();
+                $for = tr('За|*: ');
+                $title = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+                $res[$titleFld] = $title;
+            }
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|array $res
+     * @param stdClass $rec
+     * @param NULL|integer $detId
+     */
+    function on_AfterGetDefaultDataForComment($mvc, &$res, $rec, $detId = NULL)
+    {
+        $res = arr::make($res);
     }
     
     
@@ -3744,11 +3788,11 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
-    	$rec = $mvc->fetchRec($id);
     	if(!$res){
+            $rec = $mvc->fetchRec($id); 
     		if(is_object($rec)){
     			$rec->modifiedOn = dt::now();
-    			$mvc->save_($rec, 'modifiedOn');
+    			$mvc->save_($rec, 'modifiedOn', 'LOW_PRIORITY');
     		}
     	}
     }
@@ -4087,40 +4131,6 @@ class doc_DocumentPlg extends core_Plugin
         
         if (!$haveVal) {
             $res = NULL;
-        }
-    }
-    
-    
-    /**
-     * Връща споделените потребители по подразбиране.
-     * 
-     * @param core_Master $mvc
-     * @param NULL|array $res
-     * @param integer $cid
-     */
-    function on_AfterGetDefaultShared($mvc, &$res, $rec, $originId = NULL)
-    {
-        $res = arr::make($res, TRUE);
-        
-        if (!$originId) return ;
-        
-        if (!$mvc->autoShareOriginCreator) return ;
-        
-        $document = doc_Containers::getDocument($originId);
-        $dRec = $document->fetch();
-        
-        $createdBy = NULL;
-        
-        if ($dRec->createdBy > 0) {
-            $createdBy = $dRec->createdBy;
-        } elseif ($dRec->modifiedBy > 0) {
-            $createdBy = $dRec->modifiedBy;
-        }
-        
-        if (isset($createdBy)) {
-            if ($createdBy != core_Users::getCurrent()) {
-                $res[$createdBy] = $createdBy;
-            }
         }
     }
     

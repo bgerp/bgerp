@@ -599,7 +599,7 @@ class distro_Files extends core_Detail
         $sBetween = dt::secsBetween(dt::now(), $date);
         if ($sBetween >= 0) {
             if ($sBetween > 300) {
-                $this->logWarning('Разминаване във времето - файлът е създаден много отдавна: ' . dt::mysql2verbal($date));
+                $this->logNotice('Разминаване във времето - файлът е създаден много отдавна: ' . dt::mysql2verbal($date));
                 
                 return FALSE;
             }

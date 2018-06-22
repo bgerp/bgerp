@@ -117,8 +117,8 @@ class doc_TplManager extends core_Master
         $this->FLD('name', 'varchar', 'caption=Име, mandatory, width=100%');
         $this->FLD('docClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', "caption=Документ, width=100%,mandatory,silent");
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
-        $this->FLD('content', 'text', "caption=Текст->Широк,column=none, width=100%,mandatory");
-        $this->FLD('narrowContent', 'text', "caption=Текст->Мобилен,column=none, width=100%");
+        $this->FLD('content', 'html', "caption=Текст->Широк,column=none, width=100%,mandatory");
+        $this->FLD('narrowContent', 'html', "caption=Текст->Мобилен,column=none, width=100%");
         $this->FLD('path', 'varchar', "caption=Файл,column=none, width=100%");
         $this->FLD('originId', 'key(mvc=doc_TplManager)', "input=hidden,silent");
         $this->FLD('hash', 'varchar', "input=none");
@@ -214,7 +214,7 @@ class doc_TplManager extends core_Master
     		// Създаване на FNC поле със стойности идващи от 'toggleFields'
     		$fldName = ($DocClass instanceof core_Master) ? 'masterFld' : $DocClass->className;
     		$fields = array_keys(arr::make($DocClass->toggleFields));
-    		$form->FNC($fldName, "set({$DocClass->toggleFields})", "caption=Полета за показване->{$DocClass->title},input,columns=3,tempFld,silent");
+    		$form->FNC($fldName, "set({$DocClass->toggleFields})", "caption=Полета за показване->Колони,input,columns=3,tempFld,silent");
     		
     		// Стойност по подразбиране
     		if(isset($form->rec->$fldName)){

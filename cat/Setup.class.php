@@ -155,7 +155,6 @@ class cat_Setup extends core_ProtoSetup
     		array('packEdit'),
     		array('catEdit', 'packEdit'),
     		array('cat', 'catEdit'),
-            array('rep_cat'),
             array('catImpEx'),
     );
     
@@ -199,12 +198,12 @@ class cat_Setup extends core_ProtoSetup
     var $cronSettings = array(
     		array(
     				'systemId' => "Close Old Private Products",
-    				'description' => "Затваряне на частните артикули, по които няма движения",
+    				'description' => "Затваряне на неизползваните артикули",
     				'controller' => "cat_Products",
     				'action' => "closePrivateProducts",
     				'period' => 21600,
     				'offset' => 60,
-    				'timeLimit' => 200
+    				'timeLimit' => 900
     		),
     		
     		array(

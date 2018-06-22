@@ -3,6 +3,12 @@
 
 
 /**
+ * Как да е форматирана датата
+ */
+defIfNot('FRAME2_CLOSE_LAST_SEEN_BEFORE_MONTHS', '4');
+
+
+/**
  * class frame2_Setup
  *
  * Инсталиране/Деинсталиране на пакета frame2
@@ -63,6 +69,14 @@ class frame2_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = 'report';
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+    	'FRAME2_CLOSE_LAST_SEEN_BEFORE_MONTHS' => array ('int', 'caption=Затваряне на последно видяни справки преди->Месеца'),
+    );
     
     
     /**

@@ -1236,7 +1236,7 @@ class crm_Persons extends core_Master
        	while($rec = $query->fetch()){
        		$data->recs[$rec->id] = $rec;
        		$row = self::recToVerbal($rec, 'name,tel,buzEmail,email');
-       		$row->name = crm_Persons::getHyperlink($rec, TRUE);
+       		$row->name = crm_Persons::getHyperlink($rec->id, TRUE);
        		$row->buzTel = (!empty($rec->buzTel)) ? $row->buzTel : ((!empty($rec->tel)) ? $row->tel : NULL);
        		$row->buzEmail = (!empty($rec->buzEmail)) ? $row->buzEmail : ((!empty($rec->email)) ? $row->email : NULL);
        		
@@ -2518,7 +2518,7 @@ class crm_Persons extends core_Master
     /**
      * Създава папка на лице по указаните данни
      */
-    static function getPersonFolder($salutation, $name, $country, $pCode, $place, $address, $email, $tel, $website)
+    static function getPersonFolder($salutation, $name, $country, $pCode, $place, $address, $email, $tel, $website, $inCharge, $access, $shared)
     {
         $rec = new stdClass();
         $rec->salutation = $salutation;
@@ -2535,7 +2535,11 @@ class crm_Persons extends core_Master
         $rec->tel   = $tel;
         $rec->website = $website;
         
-         
+        // Достъп/права
+        $rec->inCharge = $inCharge;
+        $rec->access   = $access;
+        $rec->shared = $shared;
+
         $Persons = cls::get('crm_Persons');
         
         $folderId = $Persons->forceCoverAndFolder($rec);
@@ -3107,5 +3111,38 @@ class crm_Persons extends core_Master
                 $res = "<span class='dangerTitle'>{$res}</span>";
             }
         }
+    }
+    
+    
+    /**
+     * Обновяване на адресните данни на фирмата
+     *
+     * @param int $folderId         - ид на папка
+     * @param string $name          - име на папката
+     * @param string $egn           - ЕГН
+     * @param int $countryId        - ид на държава
+     * @param string|NULL $pCode    - п. код
+     * @param string|NULL $place    - населено място
+     * @param string|NULL $address  - адрес
+     * @return void
+     */
+    public static function updateContactDataByFolderId($folderId, $name, $egn, $countryId, $pCode, $place, $address)
+    {
+    	$saveFields = array();
+    	$rec = self::fetch("#folderId = {$folderId}");
+    	$arr = array('name' => $name, 'vatId' => $vatId, 'country' => $countryId, 'pCode' => $pCode, 'place' => $place, 'address' => $address);
+    	 
+    	// Обновяване на зададените полета
+    	foreach ($arr as $name => $value){
+    		if(!empty($value) && $rec->{$name} != $value){
+    			$rec->{$name} = $value;
+    			$saveFields[] = $name;
+    		}
+    	}
+    	 
+    	// Ако има полета за обновяване
+    	if(count($saveFields)){
+    		self::save($rec, $saveFields);
+    	}
     }
 }

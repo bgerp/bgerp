@@ -44,7 +44,7 @@ class eshop_ProductDetails extends core_Detail
 	/**
 	 * Кои полета да се показват в листовия изглед
 	 */
-	public $listFields = 'eshopProductId=Артикул в е-мага,productId,packagingId,packQuantity,createdOn,createdBy,modifiedOn,modifiedBy';
+	public $listFields = 'productId,title,packagings=Опаковки/Мерки,modifiedOn,modifiedBy';
 	
 	
 	/**
@@ -76,41 +76,85 @@ class eshop_ProductDetails extends core_Detail
 	 */
 	function description()
 	{
-		$this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,input=hidden,silent');
-		$this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=eshop_ProductDetails::getSellableProducts)', 'caption=Артикул,silent,removeAndRefreshForm=packagingId,mandatory');
-		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack');
-		$this->FLD('quantity', 'double', 'caption=Количество,input=none');
-    	$this->FLD('quantityInPack', 'double', 'input=none');
-    	$this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
-    	
-		$this->setDbUnique('eshopProductId,productId,packagingId,quantity');
+		$this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,silent');
+		$this->FLD('productId', "key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=eshop_ProductDetails::getSellableProducts)", 'caption=Артикул,silent,removeAndRefreshForm=packagings');
+		$this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
+		$this->FLD('title', 'varchar', 'caption=Заглавие');
+		
+		$this->setDbUnique('eshopProductId,title');
+	}
+		
+     
+	/**
+	 * Преди показване на форма за добавяне/промяна.
+	 *
+	 * @param core_Manager $mvc
+	 * @param stdClass $data
+	 */
+	protected static function on_AfterPrepareEditForm($mvc, &$data)
+	{
+		$form = &$data->form;
+		$rec = $form->rec;
+	
+		if(isset($rec->productId)){
+			$productRec = cat_Products::fetch($rec->productId, 'canStore,measureId');
+			if($productRec->canStore == 'yes'){
+				$packs = cat_Products::getPacks($rec->productId);
+				$form->setSuggestions('packagings', $packs);
+				$form->setDefault('packagings', keylist::addKey('', key($packs)));
+			} else {
+				$form->setDefault('packagings', keylist::addKey('', $productRec->measureId));
+				$form->setReadOnly('packagings');
+			}
+		}  else {
+			$form->setField('packagings', 'input=none');
+		}
 	}
 	
 	
 	/**
-	 * Изчисляване на количеството на реда в брой опаковки
+	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
 	 *
 	 * @param core_Mvc $mvc
-	 * @param stdClass $rec
+	 * @param core_Form $form
 	 */
-	protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+	protected static function on_AfterInputEditForm($mvc, &$form)
 	{
-		if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
-	
-		$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
+		$rec = $form->rec;
+		if($form->isSubmitted()){
+			$thisDomainId = eshop_Products::getDomainId($rec->eshopProductId);
+			if(self::isTheProductAlreadyInTheSameDomain($rec->productId, $thisDomainId, $rec->id)){
+				$form->setError('productId', 'Артикулът е вече добавен в същия домейн');
+			}
+		}
 	}
+	
+	
+	/**
+	 * Артикулът наличен ли е в подадения домейн
+	 * 
+	 * @param int $productId - артикул
+	 * @param int $domainId  - домейн
+	 * @param int|NULL $id   - запис който да се игнорира
+	 * @return boolean       - среща ли се артикулът в същия домейн?
+	 */
+	public static function isTheProductAlreadyInTheSameDomain($productId, $domainId, $id = NULL)
+	{
+		$domainIds = array();
+		$query = self::getQuery();
+		$query->where("#productId = {$productId} AND #id != '{$id}'");
+		while($eRec = $query->fetch()){
+			$eproductDomainId = eshop_Products::getDomainId($eRec->eshopProductId);
+			$domainIds[$eproductDomainId] = $eproductDomainId;
+		}
+		
+		return array_key_exists($domainId, $domainIds);
+	}
+	
 	
 	
 	/**
      * Връща достъпните продаваеми артикули
-     *
-     * @param array $params
-     * @param NULL|integer $limit
-     * @param string $q
-     * @param NULL|integer|array $onlyIds
-     * @param boolean $includeHiddens
-     *
-     * @return array
      */
     public static function getSellableProducts($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
@@ -158,51 +202,48 @@ class eshop_ProductDetails extends core_Detail
 	
 	
 	/**
-	 * Преди показване на форма за добавяне/промяна.
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $data
+	 * Каква е цената във външната част
+	 * 
+	 * @param int $productId
+	 * @param int $packagingId
+	 * @param double $quantityInPack
+	 * @param int|NULL $domainId
+	 * @return NULL|double
 	 */
-	protected static function on_AfterPrepareEditForm($mvc, &$data)
+	public static function getPublicDisplayPrice($productId, $packagingId = NULL, $quantityInPack = 1, $domainId = NULL)
 	{
-		$form = &$data->form;
-		$rec = $form->rec;
+		$res = (object)array('price' => NULL, 'discount' => NULL);
+		$domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
+		$settings = cms_Domains::getSettings($domainId);
 		
-		if(isset($rec->productId)){
-			$form->setField('packagingId', 'input');
-			$form->setField('packQuantity', 'input');
-			$packs = cat_Products::getPacks($rec->productId);
-			$form->setOptions('packagingId', $packs);
-			$form->setDefault('packagingId', key($packs));
-			$form->setDefault('packQuantity', 1);
+		// Ценовата политика е от активната папка
+		$listId = $settings->listId;
+		if($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')){
+			$Cover = doc_Folders::getCover($lastActiveFolder);
+			$listId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
 		}
-	}
-	
-	
-	/**
-	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-	 *
-	 * @param core_Mvc $mvc
-	 * @param core_Form $form
-	 */
-	protected static function on_AfterInputEditForm($mvc, &$form)
-	{
-		$rec = $form->rec;
 		
-		if($form->isSubmitted()){
+		// Ако има ценоразпис
+		if(isset($listId)){
+			if($price = price_ListRules::getPrice($listId, $productId, $packagingId)){
+				$priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $productId, $packagingId, $quantityInPack);
+				
+				$price *= $quantityInPack;
+				if($settings->chargeVat == 'yes'){
+					$price *= 1 + cat_Products::getVat($productId);
+				}
+				$price = currency_CurrencyRates::convertAmount($price, NULL, NULL, $settings->currencyId);
 			
-			// Проверка на к-то
-			if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
-				$form->setError('packQuantity', $warning);
-			}
-			
-			// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
-			if(!$form->gotErrors()){
-				$productInfo = cat_Products::getProductInfo($rec->productId);
-				$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-				$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+				$res->price = $price;
+				if(!empty($priceObject->discount)){
+					$res->discount = $priceObject->discount;
+				}
+				
+				return $res;
 			}
 		}
+		
+		return NULL;
 	}
 	
 	
@@ -216,21 +257,199 @@ class eshop_ProductDetails extends core_Detail
 	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if(isset($fields['-list'])){
-			$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-			$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
-			
-			deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+			$row->productId = cat_Products::getShortHyperlink($rec->productId, TRUE);
+			if(!$price = self::getPublicDisplayPrice($rec->productId)){
+				$row->productId = ht::createHint($row->productId, 'Артикулът няма цена и няма да се показва във външната част', 'warning');
+			}
 		}
 	}
 	
 	
 	/**
-	 * Преди подготовката на полетата за листовия изглед
+	 * Подготовка на опциите във външната част
+	 * 
+	 * @param stdClass $data
+	 * @return void
 	 */
-	protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
+	public static function prepareExternal(&$data)
 	{
-		if(isset($data->masterMvc)){
-			unset($data->listFields['eshopProductId']);
+		$data->rows = $data->recs = array();
+		$fields = cls::get(get_called_class())->selectFields();
+		$fields['-external'] = $fields;
+		
+		$splitProducts = array();
+		$query = self::getQuery();
+		$query->where("#eshopProductId = {$data->rec->id}");
+		$query->orderBy('productId');
+		$data->optionsProductsCount = $query->count();
+		
+		while($rec = $query->fetch()){
+			$newRec = (object)array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title);
+			if(!self::getPublicDisplayPrice($rec->productId)) continue;
+			$packagins = keylist::toArray($rec->packagings);
+			
+			// Всяка от посочените опаковки се разбива във отделни редове
+			$i = 1;
+			foreach($packagins as $packagingId){
+				$clone = clone $newRec;
+				$clone->first = ($i == 1) ? TRUE : FALSE;
+				$clone->packagingId = $packagingId;
+				$packRec = cat_products_Packagings::getPack($rec->productId, $packagingId);
+				$clone->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
+				
+				$data->recs[] = $clone;
+				$data->rows[] = self::getExternalRow($clone);
+				$i++;
+			}
 		}
+		
+		if(count($data->rows)){
+			
+			uasort($data->rows, function($obj1, $obj2) {
+				if($obj1->orderCode == $obj2->orderCode){
+					return $obj1->orderPrice > $obj2->orderPrice;
+				}
+				
+				return strnatcmp($obj1->orderCode, $obj2->orderCode);
+			});
+			
+			$prev = NULL;
+			foreach ($data->rows as &$row1){
+				if(isset($prev) && $prev == $row1->productId){
+					$row1->productId = "<span class='quiet'>{$row1->productId}</span>";
+				}
+				$prev = strip_tags($row1->productId);
+			}
+		}
+	}
+	
+	
+	/**
+	 * Външното представяне на артикула
+	 * 
+	 * @param stdClass $rec
+	 * @return stdClass $row
+	 */
+	private static function getExternalRow($rec)
+	{
+		$row = new stdClass();
+		$row->productId = (empty($rec->title)) ? cat_Products::getVerbal($rec->productId, 'name') : core_Type::getByName('varchar')->toVerbal($rec->title);
+		$fullCode = cat_products::getVerbal($rec->productId, 'code');
+		$row->code = substr($fullCode, 0, 10);
+		$row->code = "<span title={$fullCode}>{$row->code}</span>";
+		
+		$row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
+		$row->quantity = ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", NULL, "size=4,class=eshop-product-option,placeholder=1");
+		
+		$catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
+		$row->catalogPrice = core_Type::getByName('double(smartRound)')->toVerbal($catalogPriceInfo->price);
+		$row->catalogPrice = "<b>{$row->catalogPrice}</b>";
+		$row->orderPrice = $catalogPriceInfo->price;
+		$row->orderCode = $fullCode;
+		$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
+		$row->btn = ht::createFnBtn('Купи||Buy', NULL, FALSE, array('title'=> "Добавяне в|* " . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn'));
+		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+		
+		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
+		$settings = cms_Domains::getSettings();
+		if(isset($settings->storeId) && $canStore == 'yes'){
+			$quantity = store_Products::getQuantity($rec->productId, $settings->storeId, TRUE);
+			if($quantity < $rec->quantityInPack){
+				$notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
+				$row->btn = "<span class='option-not-in-stock'>" . $notInStock . " </span>";
+			}
+		}
+		
+		if(!empty($catalogPriceInfo->discount)){
+			$discountType = type_Set::toArray($settings->discountType);
+			$row->catalogPrice .= "<div class='external-discount'>";
+			if(isset($discountType['amount'])){
+				$amountWithoutDiscount = $catalogPriceInfo->price / (1 - $catalogPriceInfo->discount);
+				$discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
+				$row->catalogPrice .= "<div class='external-discount-amount'> {$discountAmount}</div>";
+			}
+
+			if(isset($discountType['amount']) && isset($discountType['percent'])) {
+				$row->catalogPrice .= " / ";
+			}
+
+			if(isset($discountType['percent'])){
+				$discountPercent = core_Type::getByName('percent(smartRound)')->toVerbal($catalogPriceInfo->discount);
+				$discountPercent = str_replace('&nbsp;', '', $discountPercent);
+				$row->catalogPrice .= "<div class='external-discount-percent'> (-{$discountPercent})</div>";
+			}
+			$row->catalogPrice .= "</div>";
+		}
+		
+		return $row;
+	}
+	
+	
+	/**
+	 * Рендиране на опциите във външната част
+	 *
+	 * @param stdClass $data
+	 * @return core_ET $tpl
+	 */
+	public static function renderExternal($data)
+	{
+		$tpl = new core_ET("");
+		$count = count($data->rows);
+		
+		$fieldset = cls::get(get_called_class());
+		$fieldset->FNC('code', 'varchar', 'smartCenter');
+		$fieldset->FNC('catalogPrice', 'double');
+		$fieldset->FNC('btn', 'varchar', 'tdClass=small-field');
+		$fieldset->FNC('packagingId', 'varchar', 'tdClass=nowrap');
+		$fieldset->FLD('quantity', 'varchar');
+		$fieldset->setField('quantity', 'tdClass=quantity-input-column');
+		
+		$table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
+		$listFields = arr::make("code=Код,productId=Опция,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;");
+		if($data->optionsProductsCount == 1){
+			unset($listFields['code']);
+			unset($listFields['productId']);
+		}
+		
+		$settings = cms_Domains::getSettings();
+		if(empty($settings)){
+			unset($listFields['btn']);
+		}
+		
+		$tpl->append($table->get($data->rows, $listFields));
+		
+		$cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
+		$cartInfo = "<tr><td colspan='6' class='option-table-info'>{$cartInfo}</td></tr>";
+		$tpl->replace($cartInfo, 'ROW_AFTER');
+		
+		return $tpl;
+	}
+	
+	
+	/**
+	 * Връща достъпните артикули за избор от домейна
+	 * 
+	 * @param int|NULL $domainId - домейн или текущия ако не е подаден
+	 * @return array $options    - възможните артикули
+	 */
+	public static function getAvailableProducts($domainId = NULL)
+	{
+		$options = array();
+		$groups = eshop_Groups::getByDomain($domainId);
+		$groups = array_keys($groups);
+		
+		$query = self::getQuery();
+		$query->show('productId');
+		$query->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
+		$query->in('groupId', $groups);
+		while($rec = $query->fetch()){
+			
+			// Трябва да имат цени по избраната политика
+			if(self::getPublicDisplayPrice($rec->productId, $rec->packagingId)){
+				$options[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+			}
+		}
+		
+		return $options;
 	}
 }

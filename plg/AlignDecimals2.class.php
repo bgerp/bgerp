@@ -48,16 +48,14 @@ class plg_AlignDecimals2 extends core_Plugin
 		
 		// Закръгляме сумата и я обръщаме във вербален вид
 		foreach ($recs as $id => &$rec){
-			
-			foreach ($decFields as $col => $fName){
-				
-				if(isset($rows[$id]->{$fName})){
-					$Type = clone $mvc->fields[$fName]->type;
+			foreach ($decFields as $fName){
+			    if (isset($recs[$id]->{$fName}) && !is_object($rows[$id]->{$fName}) && !is_null($rows[$id]->{$fName})) {
+			    	$Type = clone $mvc->fields[$fName]->type;
 					$max = (${"{$fName}FracLen"} > 5) ? 5 : ${"{$fName}FracLen"};
 					$Type->params['decimals'] = max($max, $Type->params['minDecimals']);
 					
 					$rows[$id]->{$fName} = $Type->toVerbal($rec->{$fName});
-				}
+			    }
 			}
 		}
 	}

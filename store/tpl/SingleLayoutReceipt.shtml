@@ -89,6 +89,14 @@
                         </div>
                      </td>
                   </tr>
+                  <!--ET_BEGIN logisticInfo-->
+                  <tr>
+                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span></td>
+                  </tr>
+                  <tr>
+                  	<td colspan="2" >[#logisticInfo#]</td>
+                  </tr>
+                  <!--ET_END logisticInfo-->
                </table>
             </td>
             <td>

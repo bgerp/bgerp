@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -130,7 +130,6 @@ class cond_PaymentMethods extends core_Master
                                                invEndOfMonth=след края на месеца на фактурата||after the end of invoice\'s month)', 'caption=Балансово плащане->Събитие');
         $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=незабавно|15 дни|30 дни|60 дни)', 'caption=Балансово плащане->Срок,hint=дни,oldFieldName=payBeforeInvTerm');
         
-
         // Отстъпка за предсрочно плащане
         $this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка за предсрочно плащане->Процент,hint=Процент');
         $this->FLD('discountPeriod', 'time(uom=days,suggestions=незабавно|5 дни|10 дни|15 дни)', 'caption=Отстъпка за предсрочно плащане->Срок,hint=Дни');
@@ -140,7 +139,14 @@ class cond_PaymentMethods extends core_Master
     }
 
 
-    function on_CalcTitle($mvc, $rec)
+    /**
+     * Изчисляване на заглавието
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @return void
+     */
+    protected static function on_CalcTitle($mvc, $rec)
     {
         if($rec->name) {
             $rec->title = tr($rec->name);
@@ -399,5 +405,30 @@ class cond_PaymentMethods extends core_Master
     	if($action == 'delete' && isset($rec->lastUsedOn)){
     		$res = 'no_one';
     	}
+    }
+    
+    
+    /**
+     * Има ли възможност за онлайн плаюане
+     *
+     * @param int $id
+     * @return boolean
+     */
+    public static function doRequireOnlinePayment($id)
+    {
+    	//@todo
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Какво е урл-то за онлайн плащане
+     * 
+     * @param int $id
+     * @return array
+     */
+    public static function getOnlinePaymentUrl($id)
+    {
+    	return array();
     }
 }
