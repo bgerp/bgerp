@@ -52,10 +52,14 @@ function eshopActions() {
 		$(this).removeClass('inputError');
 		var packQuantity = $(this).val();
 		
-		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1)){
+		var max = $(this).attr("data-maxquantity");
+		
+		$aboveMax = max && parseFloat(packQuantity) > parseFloat(max);
+		
+		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1 || $aboveMax)){
 			$(this).addClass('inputError');
 		} else {
-			
+			$(this).removeClass('inputError');
 			var url = $(this).attr("data-url");
 		    if(!url) return;
 		    var data = {packQuantity:packQuantity};
