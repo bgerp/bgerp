@@ -191,6 +191,8 @@ class cms_DefaultTheme extends core_ProtoInner {
 
         $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover, .cookies .agree {background-color:#{$activeColor};}";
 
+        $css .= "\n    .selected-external-tab  {border-top: 3px solid #{$activeColor} !important;}";
+
         // стилове за меню и футър
         $css .= "\n    #cmsMenu {background-color:#{$baseColor};}";
         $css .= "\n    .cookies {background-color:#{$baseColor};}";

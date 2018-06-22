@@ -180,14 +180,12 @@ class eshop_Carts extends core_Master
     	
     	// Ако има избран склад, проверка дали к-то е допустимо
     	$msg = '|Проблем при добавянето на артикула|*!';
-    	$settings = cms_Domains::getSettings();
-    	if(isset($settings->storeId) &&  $canStore == 'yes'){
-    		$quantity = store_Products::getQuantity($productId, $settings->storeId, TRUE);
-    		if($quantity < $quantityInPack * $packQuantity){
-    			$msg = '|Избраното количество не е налично|* ' . $quantity . " > $quantityInPack > $packQuantity" ;
-    			$success = FALSE;
-    			$skip = TRUE;
-    		}
+    	
+    	$maxQuantity = eshop_CartDetails::getMaxQuantity($productId, $quantityInPack);
+    	if(isset($maxQuantity) && $maxQuantity < $packQuantity){
+    		$msg = '|Избраното количество не е налично|*';
+    		$success = FALSE;
+    		$skip = TRUE;
     	}
     	
     	$success = FALSE;
@@ -980,12 +978,6 @@ class eshop_Carts extends core_Master
     		}
     	}
     	
-    	if($action == 'checkout' && isset($rec)){
-    		if(empty($rec->productCount)){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
-    	
     	if($action == 'finalize' && isset($rec)){
     		if(empty($rec->personNames)){
     			$requiredRoles = 'no_one';
@@ -1027,7 +1019,7 @@ class eshop_Carts extends core_Master
     	$data->form->setAction($this, 'order');
     	
     	$form = &$data->form;
-    	$form->title = 'Данни за поръчката';
+    	$form->title = 'Данни за поръчка';
     	
     	self::prepareOrderForm($form);
     	
@@ -1096,8 +1088,13 @@ class eshop_Carts extends core_Master
     	
     	if($form->isSubmitted()){
     		$rec = $form->rec;
-    		$arr = array('invoiceCountry' => 'deliveryCountry', 'invoicePCode' => 'deliveryPCode', 'invoicePlace' => 'deliveryPlace', 'invoiceAddress' => 'deliveryAddress');
     		
+    		// Ако има потребител с този имейл той трябва да е логнат
+    		if(empty($cu) && core_Users::fetchField(array("#email='[#1#]' AND #state = 'active'", $rec->email))){
+    			 $form->setError('email', 'Има потребител с този имейл. Трябва да се логнете за да продължите|*!');
+    		}
+    		
+    		$arr = array('invoiceCountry' => 'deliveryCountry', 'invoicePCode' => 'deliveryPCode', 'invoicePlace' => 'deliveryPlace', 'invoiceAddress' => 'deliveryAddress');
     		$emptyFields = array();
     		foreach ($arr as $invField => $delField){
     			$rec->{$invField} = !empty($rec->{$invField}) ? $rec->{$invField} : $rec->{$delField};
@@ -1107,7 +1104,7 @@ class eshop_Carts extends core_Master
     		}
     		
     		if(count($emptyFields)){
-    			$form->setError($emptyFields, 'Липсващи данни');
+    			$form->setError($emptyFields, 'Липсват данни за фактура');
     		}
     		
     		if(!$form->gotErrors()){
@@ -1164,7 +1161,33 @@ class eshop_Carts extends core_Master
     	core_Form::preventDoubleSubmission($tpl, $form);
     	core_Lg::pop();
     	
+    	// Ако няма потребител да се добавя рефреш на формата
+    	if(!$cu){
+    		core_Ajax::subscribe($tpl, array('eshop_Carts', 'refreshOrderForm'), 'refreshOrderForm', 500);
+    	}
+    	
     	return $tpl;
+    }
+    
+    
+    /**
+     * Рефреш на формата
+     */
+    function act_RefreshOrderForm()
+    {
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	
+    	if($cu){
+    		if (Request::get('ajax_mode')) {
+    			$res = array();
+    			$obj = new stdClass();
+    			$obj->func = 'reload';
+    			
+    			$res[] = $obj;
+    			
+    			return $res;
+    		}
+    	}
     }
     
     
@@ -1188,7 +1211,7 @@ class eshop_Carts extends core_Master
     		$form->setDefault('personNames', $profileRec->name);
     		$form->setDefault('email', $profileRec->email);
     		$form->setDefault('tel', $profileRec->tel);
-    	
+    		
     		// Задаване като опции
     		if(count($options)){
     			$form->setDefault('makeInvoice', 'company');
@@ -1215,6 +1238,14 @@ class eshop_Carts extends core_Master
     		if($defaultPaymentId && !array_key_exists($defaultPaymentId, $paymentMethods)){
     			$paymentMethods[$defaultPaymentId] = tr(cond_PaymentMethods::getVerbal($paymentId, 'name'));
     		}
+    	} else {
+    		// Ако потребителя не е логнат да се показва статус, подканващ към логване
+    		$info = new ET("<div id='editStatus'><span class='warningMsg'>[#1#] [#link#]</span></div>", tr('Ако имате регистриран потребител|*.'));
+    		$js = "w=window.open(\"" . toUrl(array('core_Users', 'login', 'popup' => 1)) . "\",\"Login\",\"width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0\"); if(w) w.focus();";
+    		$loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}'>" . tr("Вход...||Login now...") . "</a>";
+    		$info->append($loginHtml, 'link');
+    		
+    		$form->info = new core_ET('[#1#][#2#]', $data->form->info, $info);
     	}
     	 
     	if(count($deliveryTerms) == 1){
@@ -1249,7 +1280,7 @@ class eshop_Carts extends core_Master
     {
     	$rec = &$form->rec;
     	$cu = core_Users::getCurrent('id', FALSE);
-    	$isColab = isset($cu) && core_Users::isContractor($cu);
+    	$isColab = isset($cu);
     	
     	// Ако има избрана папка се записват контрагент данните
     	if(isset($folderId)){

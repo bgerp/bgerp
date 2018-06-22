@@ -4848,6 +4848,14 @@ function reloadOnPageShow() {
 
 
 /**
+* Презареждане на страницата
+*/
+function render_reload()
+{
+	location.reload();
+}
+
+/**
  * Намаляващ брояч на време
  */
 Experta.prototype.doCountdown = function(l1, l2, l3) {

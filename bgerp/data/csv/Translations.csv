@@ -2699,7 +2699,7 @@ en,Грешна стара парола,Wrong current password
 en,Инструкции,Instructions
 en,Онлайн поръчка,Online order
 en,Данни за фактура,Invoice details
-en,Данни за поръчката,Order details
+en,Данни за поръчка,Order details
 en,Активна папка,Active folder
 en,Към магазина,To the eshop
 en,Връщане в онлайн магазина,Return to the eshop
@@ -2718,3 +2718,15 @@ en,Възложено,Assigned
 en,коментар към,comment to
 en,прогрес към,progress to
 en,Купи,Buy
+en,"Има потребител с този имейл. Трябва да се логнете за да продължите","User with this email, already exists. You must login to continue",
+en,Ако вече имате потребител,If you already have a user
+en,Поръчано / Доставено,Ordered / Delivered
+en,Разполагаемо,Available
+en,Разполагаемо в,Available in
+en,приходен,debit
+en,разходен,credit
+en,касов ордер,cash order
+en,Към профила,Visit profile
+en,До локация,To location
+en,От локация,From location
+en,представител,representative

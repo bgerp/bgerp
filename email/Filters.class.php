@@ -353,6 +353,24 @@ class email_Filters extends core_Manager
         return $systemId;
     }
     
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) {
+            $systemId = $mvc->getSystemId($form->rec);
+            
+            if ($mvc->fetch(array("#systemId = '[#1#]'", $systemId))) {
+                $form->setError('email, subject, body', 'Вече съществува запис със същите данни');
+            }
+        }
+    }
+    
 	
 	/**
      * Преди запис на документ, изчислява стойността на полето `isContable`
