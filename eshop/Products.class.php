@@ -408,7 +408,7 @@ class eshop_Products extends core_Master
             foreach($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
 
-                $pTpl = getTplFromFile('eshop/tpl/ProductListGroup.shtml');
+                $pTpl = getTplFromFile(Mode::is('screenMode', 'narrow') ? 'eshop/tpl/ProductListGroupNarrow.shtml' : 'eshop/tpl/ProductListGroup.shtml');
 				if($rec->editUrl) {
                     $row->editLink = ht::createLink($editImg, $rec->editUrl);
                 }
