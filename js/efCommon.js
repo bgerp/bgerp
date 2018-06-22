@@ -5273,6 +5273,21 @@ JSON.parse = JSON.parse || function (str) {
 	return p;
 };
 
+
+
+/**
+ * Фокусира еднократно върху посоченото id пи зададения rand
+ */
+function focusOnce(id, rand) {
+    if (typeof(Storage) !== "undefined") {
+        if(localStorage.getItem(rand) !== null) {
+            return;
+        }
+        localStorage.setItem(rand, 1);
+    }
+    $(id).focus();
+}
+
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
