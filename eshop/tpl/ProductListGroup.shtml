@@ -7,7 +7,7 @@
             <td class="vtop">
                 <div class='eshop-product-list-name'>[#name#] [#editLink#]</div>
                 <div class='eshop-product-labels'>
-                    <!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code--> <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#] <!--ET_BEGIN singlePrice--><span>|Цена|*: <b>[#singlePrice#]</b> [#singleCurrencyId#] |за|* [#measureId#]</span> [#addBtn#]<!--ET_END singlePrice-->
+                    <!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code--> <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#] <!--ET_BEGIN singlePrice--><span>|Цена|*: <b>[#singlePrice#]</b> [#singleCurrencyId#] [#chargeVat#] |за|* [#measureId#]</span> [#addBtn#]<!--ET_END singlePrice-->
                 </div>
                 [#info#]
             </td>
