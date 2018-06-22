@@ -4848,6 +4848,14 @@ function reloadOnPageShow() {
 
 
 /**
+* Презареждане на страницата
+*/
+function render_reload()
+{
+	location.reload();
+}
+
+/**
  * Намаляващ брояч на време
  */
 Experta.prototype.doCountdown = function(l1, l2, l3) {
@@ -5272,6 +5280,21 @@ JSON.parse = JSON.parse || function (str) {
 	eval("var p=" + str + ";");
 	return p;
 };
+
+
+
+/**
+ * Фокусира еднократно върху посоченото id пи зададения rand
+ */
+function focusOnce(id, rand) {
+    if (typeof(Storage) !== "undefined") {
+        if(localStorage.getItem(rand) !== null) {
+            return;
+        }
+        localStorage.setItem(rand, 1);
+    }
+    $(id).focus();
+}
 
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);

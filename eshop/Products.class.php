@@ -356,6 +356,8 @@ class eshop_Products extends core_Master
             			$pRow->singlePrice = $singlePrice;
             			$pRow->singleCurrencyId = $settings->currencyId;
             			$pRow->measureId = cat_UoM::getShortName($measureId);
+            			$pRow->singleCurrencyId = $settings->currencyId;
+            			$pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
             			
             			$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
             			$pRow->addBtn = ht::createFnBtn('Купи', NULL, FALSE, array('ef_icon' => "img/16/cart_go.png", 'title'=> 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $measureId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));

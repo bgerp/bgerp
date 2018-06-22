@@ -857,8 +857,10 @@ class core_Users extends core_Manager
         	static::redirectToEnableHttps();
         }
     	
+        $isPopup = FALSE;
         if (Request::get('popup')) {
             Mode::set('wrapper', 'page_Empty');
+            $isPopup = TRUE;
         }
         
         // Ако нямаме регистриран нито един потребител
@@ -1032,6 +1034,18 @@ class core_Users extends core_Manager
                                  EF_USERS_HASH_FACTOR . "', '" . 
                                  (EF_USSERS_EMAIL_AS_NICK ? 'email' : 'nick') .
                                  "');", 'ON_SUBMIT');
+                
+                // Ако логина е в попъп прозорец да се добавят нужните класове
+                if($isPopup === TRUE){
+                	$skin = cms_Domains::getCmsSkin();
+                	if ($skin) {
+                		$skin->prepareWrapper($layout);
+                	}
+                	$layout->push('css/common.css','CSS');
+                	$layout->push('css/Application.css','CSS');
+                }
+                
+                
                 
                 return $layout;
             }
@@ -1415,6 +1429,11 @@ class core_Users extends core_Manager
             self::save($userRec, 'lastActivityTime');
         }
 
+        // Ако потребителя е партньор се записва в сесията първата му споделена папка като активна
+        if(core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)){
+        	colab_Folders::setLastActiveContragentFolder(NULL, $userRec->id);
+        }
+        
         $Users->invoke('afterLogin', array(&$userRec, $inputs, $refresh));
 
         if(!isDebug() && haveRole('debug')) {
@@ -1555,11 +1574,6 @@ class core_Users extends core_Manager
                     core_Statuses::newStatus($statusText, 'notice');
                 }
             }
-        }
-        
-        // Ако потребителя е партньор се записва в сесията първата му споделена папка като активна
-        if(core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)){
-        	colab_Folders::setLastActiveContragentFolder(NULL, $userRec->id);
         }
         
         // Записваме в лога успешното логване

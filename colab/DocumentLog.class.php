@@ -145,8 +145,26 @@ class colab_DocumentLog extends core_Manager
             $title = 'Документът е видим за партньори';
             if ($containerId) {
                 $cRec = doc_Containers::fetch($containerId);
-                if ($cRec->state == 'draft' && !haveRole('partner', $cRec->createdBy)) {
-                    $title = 'След активиране, документът ще е видим за партньори';
+                if ((($cRec->state == 'draft') || ($cRec->state == 'rejected')) && !haveRole('partner', $cRec->createdBy)) {
+                    
+                    $isHiddenNow = TRUE;
+//                     if ($cRec->state == 'rejected') {
+//                         try {
+//                             $doc = doc_Containers::getDocument($cRec->id);
+//                             $dRec = $doc->fetch();
+//                             if ($dRec->brState == 'draft') {
+//                                 $isHiddenNow = TRUE;
+//                             } else {
+//                                 $isHiddenNow = FALSE;
+//                             }
+//                         } catch (core_exception_Expect $e) {
+//                             reportException($e);
+//                         }
+//                     }
+                    
+                    if ($isHiddenNow) {
+                        $title = 'След активиране, документът ще е видим за партньори';
+                    }
                 }
             }
             

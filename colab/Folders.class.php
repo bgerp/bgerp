@@ -289,7 +289,7 @@ class colab_Folders extends core_Manager
 		$names = core_Users::getVerbal($cuRec, 'names');
 		$nick = core_Users::getVerbal($cuRec, 'nick');
 		
-		$data->title = "|Папките на|* <span style='color:green'>{$names} ({$nick})</span>";
+		$data->title = "|Папките на |* <span style='color:green'>{$names} ({$nick})</span>";
 	}
     
     

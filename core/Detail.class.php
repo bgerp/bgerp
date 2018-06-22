@@ -285,7 +285,7 @@ class core_Detail extends core_Manager
     public static function getEditTitle($master, $masterId, $singleTitle, $recId, $preposition = NULL, $len = NULL)
     {
     	if(!$preposition){
-    		$preposition = 'към';
+    		$preposition = tr('към');
     	}
     	
     	if ($singleTitle) {
