@@ -44,7 +44,6 @@ class unipi_Setup extends core_ProtoSetup
         // Добавяме наличните драйвери
         $drivers = array(
             'unipi_Neuron',
-            'unipi_Synapses',
         );
         
         foreach ($drivers as $drvClass) {
