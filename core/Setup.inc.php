@@ -1686,7 +1686,7 @@ function gitSetTag($repoPath, &$log, $tag)
         
         if (gitExec($commandCheckOut, $arrRes)) {
             // Ако и двете команди са успешни значи всичко е ОК
-            $log[] = "info: [<b>$repoName</b>] превключен {$tag} таг.";
+            $log[] = "new: [<b>$repoName</b>] превключен {$tag} таг.";
             
             return TRUE;
         }
