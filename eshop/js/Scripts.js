@@ -52,10 +52,14 @@ function eshopActions() {
 		$(this).removeClass('inputError');
 		var packQuantity = $(this).val();
 		
-		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1)){
+		var max = $(this).attr("data-maxquantity");
+		
+		$aboveMax = max && parseFloat(packQuantity) > parseFloat(max);
+		
+		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1 || $aboveMax)){
 			$(this).addClass('inputError');
 		} else {
-			
+			$(this).removeClass('inputError');
 			var url = $(this).attr("data-url");
 		    if(!url) return;
 		    var data = {packQuantity:packQuantity};
@@ -86,10 +90,16 @@ function eshopActions() {
 	// Бутоните за +/- да променят количеството
 	$(document.body).on('click tap', ".btnUp, .btnDown",  function(){
 		var input = $(this).siblings('.option-quantity-input');
+		
+		var max = input.attr("data-maxquantity");
+		
 		var val = parseFloat($(input).val());
 		var step = $(this).hasClass('btnUp') ? 1 : -1;
-		if (val + step > 0) {
+		
+		if (val + step > 0 && (!max || step == -1 || (max && val + step <= max))) {
 			$(input).val(val + step);
+			
+			if(max && val >= max) return;
 		}
 
 		// Ръчно инвоукване на ивент на инпут полето
@@ -117,5 +127,38 @@ function eshopActions() {
 	$(document.body).on('keyup', "input[name=deliveryPCode], input[name=invoicePCode]",  function(){
 		var deliveryPCode = $("input[name=deliveryPCode]").val();
 		$("input[name=invoicePCode]").attr("placeholder", deliveryPCode);
+	});
+
+	$('.eshop-product .eshop-btn').on('click', function () {
+		var cart = $('.logoutBlock #cart-external-status');
+		var imgtodrag = $('.eshop-product-images').find("img").eq(0);
+		if (imgtodrag) {
+			var imgclone = imgtodrag.clone()
+				.offset({
+					top: imgtodrag.offset().top,
+					left: imgtodrag.offset().left
+				})
+				.css({
+					'opacity': '0.5',
+					'position': 'absolute',
+					'height': '150px',
+					'width': '150px',
+					'z-index': '100'
+				})
+				.appendTo($('body'))
+				.animate({
+					'top': cart.offset().top,
+					'left': cart.offset().left,
+					'width': 75,
+					'height': 75
+				}, 1000, 'easeInOutExpo');
+
+			imgclone.animate({
+				'width': 0,
+				'height': 0
+			}, function () {
+				$(this).detach()
+			});
+		}
 	});
 };

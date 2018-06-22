@@ -1286,7 +1286,7 @@ function gitSetBranch($repoPath, &$log, $branch = NULL)
             return FALSE;
         } else {
             // Ако и двете команди са успешни значи всичко е ОК
-            $log[] = "info: [<b>$repoName</b>] превключен {$requiredBranch} бранч.";
+            $log[] = "new: [<b>$repoName</b>] превключен {$requiredBranch} бранч.";
             
             return TRUE;
         }
@@ -1658,6 +1658,11 @@ function checkoutMaxVersion(&$log)
     if($verTag) {
         // Ако има такава - чекаутваме до тага й
         gitSetTag(EF_APP_PATH, $log, $verTag);
+    } else {
+        $currBranch = gitCurrentBranch(EF_APP_PATH, $log);
+        if ($currBranch != BGERP_GIT_BRANCH) {
+            gitSetBranch(EF_APP_PATH, $log, BGERP_GIT_BRANCH);
+        }
     }
 }
 
@@ -1681,7 +1686,7 @@ function gitSetTag($repoPath, &$log, $tag)
         
         if (gitExec($commandCheckOut, $arrRes)) {
             // Ако и двете команди са успешни значи всичко е ОК
-            $log[] = "info: [<b>$repoName</b>] превключен {$tag} таг.";
+            $log[] = "new: [<b>$repoName</b>] превключен {$tag} таг.";
             
             return TRUE;
         }

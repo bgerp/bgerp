@@ -1176,13 +1176,4 @@ class marketing_Inquiries2 extends embed_Manager
         
         return $contrData;
     }
-    
-    
-    function act_Test()
-    {
-    	$name = 'BABA ag';
-    	$r = marketing_Router::normalizeCompanyName($name);
-    	
-    	bp($r);
-    }
 }

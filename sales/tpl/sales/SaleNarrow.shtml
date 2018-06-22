@@ -41,7 +41,7 @@
                     <!--ET_BEGIN deliveryLocationId-->
                     <hr style="margin: 3px 0 1px;">
                     <div>
-                        |До обект|*: [#deliveryLocationId#]
+                        |До локация|*: [#deliveryLocationId#]
                     </div>
                     <!--ET_END deliveryLocationId-->
                 </td>

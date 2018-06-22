@@ -192,7 +192,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		// Доставка
 		$mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,notChangeableByContractor');
-		$mvc->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->Обект до,silent,class=contactData'); // обект, където да бъде доставено (allowEmpty)
+		$mvc->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->До,silent,class=contactData'); // обект, където да бъде доставено (allowEmpty)
 		$mvc->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Място,notChangeableByContractor');
 		$mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до,notChangeableByContractor'); // до кога трябва да бъде доставено
 		$mvc->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
@@ -219,7 +219,7 @@ abstract class deals_DealMaster extends deals_DealBase
 				'caption=Статус, input=none'
 		);
 		
-		$mvc->FLD('paymentState', 'enum(pending=Има,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=paid');
+		$mvc->FLD('paymentState', 'enum(pending=Има||Yes,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=paid');
 		$mvc->FLD('productIdWithBiggestAmount', 'varchar', 'caption=Артикул с най-голяма стойност, input=none');
 		
 		$mvc->setDbIndex('valior');
@@ -1959,7 +1959,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		unset($url['export']);
     		
     		$url['dealTab'] = 'DealReport';
-    		$data->tabs->TAB('DealReport', 'Поръчано / Доставено' , $url);
+    		$data->tabs->TAB('DealReport', '|Поръчано|* / |Доставено|*' , $url);
     	}
     }
     
