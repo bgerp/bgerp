@@ -12,7 +12,7 @@
             </td>
         </tr>
         <tr>
-            <td style='padding-top:10px;'>[#info#]</td>
+            <td style="padding-top:10px;" colspan="2">[#info#]</td>
         </tr>
     </table>
 </div>
