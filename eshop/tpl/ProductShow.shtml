@@ -4,7 +4,7 @@
 	<td colspan=2><h1 style='font-size:1.5em'>[#name#] &nbsp;<!--ET_BEGIN singleLink-->[#singleLink#]<!--ET_END singleLink--><!--ET_BEGIN editLink-->[#editLink#]<!--ET_END editLink--></h1></td>
 </tr>
 <tr>
-	<td class='eshop-product-images vtop' style='width:120px'>
+	<td class='eshop-product-images vtop' style='min-width:120px'>
 		[#image#]
 		[#image2#]
 		[#image3#]
