@@ -1376,7 +1376,7 @@ class core_Html
 
         // Вкарваме предупреждението
         if ($warning) {
-            $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) return false; ";
+            $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) {event.stopPropagation(); return false; }";
         }
 
         return $attr;

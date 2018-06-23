@@ -3156,7 +3156,7 @@ fieldset.sharing-history {
     box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
     a, span.linkWithIcon  {
         color: #333 !important;
-        padding: 1px 5px 3px;
+        padding: 5px 5px 3px;
         display:inline-block;
 		border-top: 3px solid transparent;
         &:hover {
@@ -3240,6 +3240,9 @@ fieldset.sharing-history {
 	position: relative;
 	margin-left: 2px;
 	top: -6px;
+    a {
+        padding-top: 5px;
+    }
 }
 
 .eshop-product>table {
