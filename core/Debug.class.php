@@ -708,12 +708,12 @@ class core_Debug
             $contex['EF_SBF_PATH'] = EF_SBF_PATH;
             $contex['EF_TEMP_PATH'] = EF_TEMP_PATH;
             $contex['EF_CONF_PATH'] = EF_CONF_PATH;
-            $contex['EF_UPLOADS_BASE_PATH'] = (defined('EF_UPLOADS_BASE_PATH')?EF_UPLOADS_BASE_PATH:'NULL');
-            $contex['EF_UPLOADS_PATH'] = (defined('EF_UPLOADS_PATH')?EF_UPLOADS_PATH:'NULL');
-            $contex['FILEMAN_UPLOADS_PATH'] = (defined('FILEMAN_UPLOADS_PATH')?FILEMAN_UPLOADS_PATH:'NULL');
-            $contex['EF_DOWNLOAD_DIR'] = (defined('EF_DOWNLOAD_DIR')?EF_DOWNLOAD_DIR:'NULL');
-            $contex['FILEMAN_TEMP_PATH'] = (defined('FILEMAN_TEMP_PATH')?FILEMAN_TEMP_PATH:'NULL');
-            $contex['THUMB_IMG_PATH'] = (defined('THUMB_IMG_PATH')?THUMB_IMG_PATH:'NULL');
+            $contex['EF_UPLOADS_BASE_PATH'] = EF_UPLOADS_BASE_PATH;
+            $contex['EF_UPLOADS_PATH'] = EF_UPLOADS_PATH;
+            $contex['FILEMAN_UPLOADS_PATH'] = FILEMAN_UPLOADS_PATH;
+            $contex['EF_DOWNLOAD_DIR'] = EF_DOWNLOAD_DIR;
+            $contex['FILEMAN_TEMP_PATH'] = FILEMAN_TEMP_PATH;
+            $contex['THUMB_IMG_PATH'] = THUMB_IMG_PATH;
             
             $contex['EF_TIMEZONE'] = EF_TIMEZONE;
             

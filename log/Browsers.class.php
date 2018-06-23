@@ -4,9 +4,8 @@
 /**
  * "Подправка" за кодиране на BRID
  */
-if (defined('EF_SALT')) defIfNot('BRID_SALT', md5(EF_SALT . '_BRID'));
+defIfNot('BRID_SALT', md5(EF_SALT . '_BRID'));
 
-defIfNot('BRID_SALT', '_BRID');
 
 /**
  * 

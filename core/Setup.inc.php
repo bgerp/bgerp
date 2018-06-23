@@ -28,27 +28,27 @@ DEFINE ('SETUP_LOCK_PERIOD', 240);
 
 defIfNot('BGERP_GIT_PATH', strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? '"C:/Program Files (x86)/Git/bin/git.exe"' : 'git');
 
-// if (setupKeyValid() && !setupProcess()) {
-//     // Опит за стартиране на сетъп
-//     if (!setupLock()) {
-//         halt("Грешка при стартиране на Setup.");
-//     }
-//     setcookie("setup", setupKey(), time() + SETUP_LOCK_PERIOD);
-// } elseif (!setupKeyValid() && !setupProcess()) {
-//     // Ако не сме в setup режим и няма изискване за такъв връщаме в нормалното изпълнение на приложението
-//     // Ако има останало cookie го чистим
-//     if (isset($_COOKIE['setup'])) {
-//         setcookie("setup", "", time()-3600);    
-//     }
+if (setupKeyValid() && !setupProcess()) {
+    // Опит за стартиране на сетъп
+    if (!setupLock()) {
+        halt("Грешка при стартиране на Setup.");
+    }
+    setcookie("setup", setupKey(), time() + SETUP_LOCK_PERIOD);
+} elseif (!setupKeyValid() && !setupProcess()) {
+    // Ако не сме в setup режим и няма изискване за такъв връщаме в нормалното изпълнение на приложението
+    // Ако има останало cookie го чистим
+    if (isset($_COOKIE['setup'])) {
+        setcookie("setup", "", time()-3600);    
+    }
     
-//     return;
-// } elseif (!setupKeyValid() && setupProcess() && !isset($_COOKIE['setup'])) {
-//     // Стартиран setup режим - неоторизиран потребител - връща подходящо съобщение и излиза
-//     // Не спираме bgERP-a на потребителите по време на сетъп процес
+    return;
+} elseif (!setupKeyValid() && setupProcess() && !isset($_COOKIE['setup'])) {
+    // Стартиран setup режим - неоторизиран потребител - връща подходящо съобщение и излиза
+    // Не спираме bgERP-a на потребителите по време на сетъп процес
     
-//     return;
-//     // halt("Процес на обновяване - опитайте по късно.");
-// }
+    return;
+    // halt("Процес на обновяване - опитайте по късно.");
+}
 
 
 // На коя стъпка се намираме в момента?
@@ -102,7 +102,7 @@ if(defined('BGERP_ABSOLUTE_HTTP_HOST')) {
 
 // URL на следващата стъпка
 $selfUrl = addParams($selfUri, array('step' => $step));
-$nextUrl = addParams($selfUri, array('step' => (int)$step+1));
+$nextUrl = addParams($selfUri, array('step' => $step+1));
  
 // Определяме линка към приложението
 $appUri = $selfUrl; 
@@ -535,8 +535,8 @@ if($step == 2) {
     $log = array();
     $checkUpdate = isset($_GET['update']) || isset($_GET['revert']);
 
-    if(!defined('PRIVATE_GIT_BRANCH')) {
-        define('PRIVATE_GIT_BRANCH', BGERP_GIT_BRANCH);
+    if(!defined(PRIVATE_GIT_BRANCH)) {
+        define(PRIVATE_GIT_BRANCH, BGERP_GIT_BRANCH);
     }
 
     if(defined('EF_PRIVATE_PATH')) {

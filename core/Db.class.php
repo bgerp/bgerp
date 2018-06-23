@@ -130,14 +130,14 @@ class core_Db extends core_BaseClass
      */
     function init($params = array())
     {
-        if (defined('EF_DB_NAME')) $this->dbName = EF_DB_NAME;
-        if (defined('EF_DB_USER')) $this->dbUser = EF_DB_USER;
-        if (defined('EF_DB_PASS')) $this->dbPass = EF_DB_PASS;
-        if (defined('EF_DB_HOST')) $this->dbHost = EF_DB_HOST;
-        if (defined('EF_DB_CHARSET')) $this->dbCharset = EF_DB_CHARSET;
-        if (defined('EF_DB_COLLATION')) $this->dbCollation = EF_DB_COLLATION;
-        if (defined('EF_DB_CHARSET_CLIENT')) $this->dbCharsetClient = EF_DB_CHARSET_CLIENT;
-        if (defined('EF_DB_VARCHAR_INDEX_PREFIX')) $this->varcharIndexPrefix = EF_DB_VARCHAR_INDEX_PREFIX;
+        $this->dbName = EF_DB_NAME;
+        $this->dbUser = EF_DB_USER;
+        $this->dbPass = EF_DB_PASS;
+        $this->dbHost = EF_DB_HOST;
+        $this->dbCharset = EF_DB_CHARSET;
+        $this->dbCollation = EF_DB_COLLATION;
+        $this->dbCharsetClient = EF_DB_CHARSET_CLIENT;
+        $this->varcharIndexPrefix = EF_DB_VARCHAR_INDEX_PREFIX;
         
         parent::init($params);
     }
