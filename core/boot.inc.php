@@ -557,7 +557,7 @@ function getTplFromFile($file)
 function setupKey($efSalt = null)
 {
 	// Сетъп ключ, ако не е зададен
-	$salt = ($efSalt)?($efSalt):(EF_SALT);
+    $salt = ($efSalt)?($efSalt):(defined('EF_SALT')?EF_SALT:'');
 	
 	$key = md5($salt . '*9fbaknc');
 	
