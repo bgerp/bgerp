@@ -1240,7 +1240,7 @@ class eshop_Carts extends core_Master
     		}
     	} else {
     		// Ако потребителя не е логнат да се показва статус, подканващ към логване
-    		$info = new ET("<div id='editStatus'><span class='warningMsg'>[#1#] [#link#]</span></div>", tr('Ако имате регистриран потребител|*.'));
+    		$info = new ET("<div id='editStatus'><div class='warningMsg'>[#1#] [#link#]</div></div>", tr('Ако имате регистрация|*, '));
     		$js = "w=window.open(\"" . toUrl(array('core_Users', 'login', 'popup' => 1)) . "\",\"Login\",\"width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0\"); if(w) w.focus();";
     		$loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}'>" . tr("Вход...||Login now...") . "</a>";
     		$info->append($loginHtml, 'link');

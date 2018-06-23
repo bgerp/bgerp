@@ -3259,10 +3259,10 @@ fieldset.sharing-history {
 		border-top: 1px solid #ccc;
 	}
 	td {
-		padding: 5px 10px;
+		padding: 3px 5px;
 	}
-	tbody tr:nth-child(even){
-		background-color: #F1F1F1;
+	tbody tr {
+		background: linear-gradient(#eeeeee, #f8f8f8, white, #f8f8f8, #eeeeee);
 	}
   	thead tr:first-child {
 		background-color: #F1F1F1;
