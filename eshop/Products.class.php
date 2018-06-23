@@ -517,7 +517,7 @@ class eshop_Products extends core_Master
             $data->row->image = new thumb_Img(getFullPath("eshop/img/noimage" . 
                     (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . 
                     ".png"), 120, 120, 'path'); 
-            $data->row->image = $data->row->image->createImg(array('width' => 120, 'height' => 120));
+            $data->row->image = $data->row->image->createImg(array('width' => 160, 'height' => 160));
         }
 
         if($data->rec->image2) {

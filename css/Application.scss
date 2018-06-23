@@ -3242,20 +3242,29 @@ fieldset.sharing-history {
 	top: -6px;
 }
 
+.eshop-product>table {
+   width:100%;
+}
+
 .optionsTable {
 	color: #222;
-	min-width: 600px;
+	min-width: 320px;
 	width: 100%;
 	margin-bottom: 10px;
+    		font-size: 0.9em;
+
 	th {
 		text-align: center;
 		padding: 5px;
-		border-bottom: 1px solid #ccc;
+		border-top: 1px solid #ccc;
 	}
 	td {
 		padding: 5px 10px;
 	}
 	tbody tr:nth-child(even){
+		background-color: #F1F1F1;
+	}
+  	thead tr:first-child {
 		background-color: #F1F1F1;
 	}
 	tbody tr:last-child td {
@@ -4982,8 +4991,12 @@ div.location.public {
 
 .eshop-product-images {
 	padding:5px;
+    width:30%;
 	background-color:#e6e6e6;
 	height:100%;
+    img {
+        width:100%;
+    }
     @include border-radius(3px);
 }
 
