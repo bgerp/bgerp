@@ -252,7 +252,7 @@ class core_FieldSet extends core_BaseClass
                 $this->lastFroGroup[$group] = $name;
             }
         
-            if((count($params['before']) || count($params['after'])) && $mustOrder) { 
+            if ((is_array($params['before']) && count($params['before'])) || (is_array($params['before']) && count($params['after'])) && $mustOrder) { 
                 $newFields = array();
                 $isSet = FALSE;
                 foreach($this->fields as $exName => $exFld) {
