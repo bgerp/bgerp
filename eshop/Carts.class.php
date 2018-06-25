@@ -586,7 +586,7 @@ class eshop_Carts extends core_Master
     	
     	// Линка за регистрация
     	$Cover = doc_Folders::getCover($saleRec->folderId);
-    	$url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => $Cover->that, 'email' => $rec->email, 'rand' => str::getRand()), 604800);
+    	$url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => (int)$Cover->that, 'email' => $rec->email, 'rand' => str::getRand()), 604800);
     	$url = "[link={$url}]" . tr('връзка||link') . "[/link]";
     	$body->replace($url, "link");
     	$body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
