@@ -1180,18 +1180,19 @@ class eshop_Carts extends core_Master
      */
     function act_RefreshOrderForm()
     {
-    	$cu = core_Users::getCurrent('id', FALSE);
-    	
-    	if($cu){
-    		if (Request::get('ajax_mode')) {
-    			$res = array();
-    			$obj = new stdClass();
-    			$obj->func = 'reload';
-    			
-    			$res[] = $obj;
-    			
-    			return $res;
-    		}
+    	if (Request::get('ajax_mode')) {
+    	    $res = array();
+    	    
+    	    $cu = core_Users::getCurrent('id', FALSE);
+    	    
+            if($cu){
+            	$obj = new stdClass();
+            	$obj->func = 'reload';
+            	
+            	$res[] = $obj;
+            }
+            
+            return $res;
     	}
     }
     
