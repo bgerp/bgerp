@@ -514,19 +514,27 @@ class eshop_Carts extends core_Master
    		doc_Threads::doUpdateThread($saleRec->threadId);
    		
    		// Ако е партньор и има достъп до нишката, директно се реидректва към нея
+   		$colabUrl = NULL;
    		if(core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu)){
    			$threadRec = doc_Threads::fetch($saleRec->threadId);
    			if(colab_Threads::haveRightFor('single', $threadRec)){
-   				return new Redirect(array('colab_Threads', 'single', 'threadId' => $saleRec->threadId), 'Успешно създадена заявка за продажба');
+   				$colabUrl = array('colab_Threads', 'single', 'threadId' => $saleRec->threadId);
    			}
    		} else {
    			self::sendEmail($rec, $saleRec);
    		}
    		
    		Mode::pop('eshopFinalize');
+   		$threadRec = doc_Threads::fetch($saleRec->threadId);
+   		$threadRec->state = 'opened';
+   		doc_Threads::save($threadRec, 'state');
+   		doc_Threads::updateThread($threadRec->id);
+   		
+   		if(is_array($colabUrl) && count($colabUrl)) return new Redirect($colabUrl, 'Успешно създадена заявка за продажба|*!');
    		
    		return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(NULL), 'Поръчката е направена|*!');
     }
+    
     
     
     /**
