@@ -454,6 +454,13 @@ class eshop_Carts extends core_Master
     	
     	core_Lg::push($templateLang);
     	
+    	// Форсиране на потребителя, ако има или системния потребител за създател на документа
+    	if($cu){
+    		core_Users::sudo($cu);
+    	} else {
+    		core_Users::forceSystemUser();
+    	}
+    	
     	// Дефолтни данни на продажбата
     	$fields = array('valior'             => dt::today(), 
     			        'deliveryTermId'     => $rec->termId, 
@@ -473,6 +480,13 @@ class eshop_Carts extends core_Master
     	
     	// Създаване на продажба по количката
    		$saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
+   		
+   		if($cu){
+   			core_Users::exitSudo($cu);
+   		} else {
+   			core_Users::cancelSystemUser();
+   		}
+   		
    		core_Lg::pop();
    		sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId);
    		
