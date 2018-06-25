@@ -522,9 +522,12 @@ class eshop_Carts extends core_Master
    			}
    		} else {
    			self::sendEmail($rec, $saleRec);
+   			doc_Threads::doUpdateThread($saleRec->threadId);
    		}
    		
    		Mode::pop('eshopFinalize');
+   		
+   		// Нишката да остане отворена накрая
    		$threadRec = doc_Threads::fetch($saleRec->threadId);
    		$threadRec->state = 'opened';
    		doc_Threads::save($threadRec, 'state');
