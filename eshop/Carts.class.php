@@ -38,7 +38,7 @@ class eshop_Carts extends core_Master
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Кошница на онлайн магазина";
+    public $singleTitle = "Онлайн поръчка";
     
     
     /**
@@ -454,6 +454,13 @@ class eshop_Carts extends core_Master
     	
     	core_Lg::push($templateLang);
     	
+    	// Форсиране на потребителя, ако има или системния потребител за създател на документа
+    	if($cu && $cu != core_Users::SYSTEM_USER){
+    		core_Users::sudo($cu);
+    	} else {
+    		core_Users::forceSystemUser();
+    	}
+    	
     	// Дефолтни данни на продажбата
     	$fields = array('valior'             => dt::today(), 
     			        'deliveryTermId'     => $rec->termId, 
@@ -463,16 +470,20 @@ class eshop_Carts extends core_Master
     					'chargeVat'          => $settings->chargeVat,
     					'currencyId'         => $settings->currencyId,
     					'shipmentStoreId'    => $settings->storeId,
-    					'note'               => tr('Онлайн поръчка') . " №{$rec->id}",
     					'deliveryLocationId' => $rec->locationId,
     	);
     	
-    	if($dealerId = sales_Sales::getDefaultDealerId($folderId, $fields['deliveryLocationId'])){
-    		$fields['dealerId'] = $dealerId;
-    	}
+    	$fields['dealerId'] = sales_Sales::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
     	
     	// Създаване на продажба по количката
    		$saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
+   		
+   		if($cu && $cu != core_Users::SYSTEM_USER){
+   			core_Users::exitSudo($cu);
+   		} else {
+   			core_Users::cancelSystemUser();
+   		}
+   		
    		core_Lg::pop();
    		sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId);
    		
@@ -572,7 +583,8 @@ class eshop_Carts extends core_Master
     	
     	// Линка за регистрация
     	$Cover = doc_Folders::getCover($saleRec->folderId);
-    	$url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => $Cover->that, 'email' => $rec->email, 'rand' => str::getRand()), 604800);
+		$url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => $Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'userNames' => $rec->personNames), 604800);
+
     	$url = "[link={$url}]" . tr('връзка||link') . "[/link]";
     	$body->replace($url, "link");
     	$body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
@@ -587,6 +599,7 @@ class eshop_Carts extends core_Master
     	                          'email'    => $rec->email, 'tel' => $rec->tel, 'recipient' => $rec->personNames);
     	
     	// Активиране на изходящия имейл
+    	core_Users::forceSystemUser();
     	email_Outgoings::save($emailRec);
     	email_Outgoings::logWrite('Създаване от онлайн поръчка', $emailRec->id);
     	cls::get('email_Outgoings')->invoke('AfterActivation', array(&$emailRec));
@@ -594,6 +607,7 @@ class eshop_Carts extends core_Master
     	// Изпращане на имейла
     	$options = (object)array('encoding' => 'utf-8', 'boxFrom' => $settings->inboxId, 'emailsTo' => $emailRec->email);
     	email_Outgoings::send($emailRec, $options, $lang);
+    	core_Users::cancelSystemUser();
     	
     	core_Lg::pop($lang);
     }

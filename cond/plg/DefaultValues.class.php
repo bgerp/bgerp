@@ -185,7 +185,7 @@ class cond_plg_DefaultValues extends core_Plugin
     	
     	$query->where("#folderId = {$folderId}");
     	if($fromUser){
-    		$query->where("#createdBy = {$cu}");
+    		$query->where("#createdBy = '{$cu}'");
     	}
     	
     	$query->orderBy('createdOn', 'DESC');
