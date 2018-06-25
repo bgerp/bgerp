@@ -455,7 +455,7 @@ class eshop_Carts extends core_Master
     	core_Lg::push($templateLang);
     	
     	// Форсиране на потребителя, ако има или системния потребител за създател на документа
-    	if($cu){
+    	if($cu && $cu != core_Users::SYSTEM_USER){
     		core_Users::sudo($cu);
     	} else {
     		core_Users::forceSystemUser();
@@ -480,7 +480,7 @@ class eshop_Carts extends core_Master
     	// Създаване на продажба по количката
    		$saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
    		
-   		if($cu){
+   		if($cu && $cu != core_Users::SYSTEM_USER){
    			core_Users::exitSudo($cu);
    		} else {
    			core_Users::cancelSystemUser();
@@ -601,6 +601,7 @@ class eshop_Carts extends core_Master
     	                          'email'    => $rec->email, 'tel' => $rec->tel, 'recipient' => $rec->personNames);
     	
     	// Активиране на изходящия имейл
+    	core_Users::forceSystemUser();
     	email_Outgoings::save($emailRec);
     	email_Outgoings::logWrite('Създаване от онлайн поръчка', $emailRec->id);
     	cls::get('email_Outgoings')->invoke('AfterActivation', array(&$emailRec));
@@ -608,6 +609,7 @@ class eshop_Carts extends core_Master
     	// Изпращане на имейла
     	$options = (object)array('encoding' => 'utf-8', 'boxFrom' => $settings->inboxId, 'emailsTo' => $emailRec->email);
     	email_Outgoings::send($emailRec, $options, $lang);
+    	core_Users::cancelSystemUser();
     	
     	core_Lg::pop($lang);
     }
