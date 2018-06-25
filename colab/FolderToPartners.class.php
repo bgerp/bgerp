@@ -486,9 +486,9 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function callback_Createnewcontractor($data)
     {
-    	Request::setProtected(array('companyId', 'rand', 'email', 'fromEmail'));
+    	Request::setProtected(array('companyId', 'rand', 'email', 'fromEmail', 'userNames'));
  
-    	redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'email' => $data['email'], 'rand' => $data['rand'], 'fromEmail' => TRUE));
+    	redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'email' => $data['email'], 'rand' => $data['rand'], 'userNames' => $data['userNames'], 'fromEmail' => TRUE));
     }
     
     
@@ -604,7 +604,7 @@ class colab_FolderToPartners extends core_Manager
         
     	$PML->Encoding = "quoted-printable";
        
-        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand()), 604800);
+    	$url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => (int)$rec->companyId, 'email' => $userEmail, 'rand' => str::getRand()), 604800);
     	
         $rec->body = str_replace($rec->placeHolder, "[link=$url]link[/link]", $rec->body);
 
@@ -660,7 +660,7 @@ class colab_FolderToPartners extends core_Manager
      */
     function act_Createnewcontractor()
     {
-    	Request::setProtected(array('companyId', 'rand', 'fromEmail', 'email'));
+    	Request::setProtected(array('companyId', 'rand', 'fromEmail', 'email', 'userNames'));
     	
     	if (!$email = Request::get('email', 'email')) {
     	    Request::removeProtected(array('email'));
@@ -671,8 +671,7 @@ class colab_FolderToPartners extends core_Manager
     	$companyRec = crm_Companies::fetch($companyId);
     	
         core_Lg::push(drdata_Countries::getLang($companyRec->country));
-
-    	$rand = Request::get('rand');
+      	$rand = Request::get('rand');
     	
     	// Ако не сме дошли от имейл, трябва потребителя да има достъп до обекта
     	$fromEmail = Request::get('fromEmail');  
@@ -684,9 +683,13 @@ class colab_FolderToPartners extends core_Manager
     	$form = $Users->getForm();
     	$companyName = crm_Companies::getHyperlink($companyId, TRUE);
     	$form->title = "Нов партньор от|* <b>{$companyName}</b>";
-    	
     	$form->setDefault('country', $companyRec->country);
-
+		
+        // Ако има готово име, попълва се
+		if($userNames = Request::get('userNames', 'varchar')){
+			$form->setDefault('names', $userNames);
+		}
+    	
         // Ако имаме хора от crm_Persons, които принадлежат на тази компания, и нямат свързани профили,
         // добавяме поле, преди nick, за избор на такъв човек. Ако той се подаде, данните за потребителя се вземат частично
         // от визитката, а новосъздадения профил се свързва със визитката
@@ -800,7 +803,7 @@ class colab_FolderToPartners extends core_Manager
     		static::save((object)array('contractorId' => $uId, 'folderId' => $folderId));
     		
     		// Изтриваме линка, да не може друг да се регистрира с него
-    		core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => $companyId, 'email' => $email, 'rand' => $rand), 604800);
+    		core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int)$companyId, 'email' => $email, 'rand' => $rand), 604800);
     		
     		return followRetUrl(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
     	}
