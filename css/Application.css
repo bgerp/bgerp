@@ -2725,7 +2725,7 @@ span.sharing-history-title {
   .logoutBlock a,
   .logoutBlock span.linkWithIcon {
     color: #333333 !important;
-    padding: 1px 5px 3px;
+    padding: 5px 5px 3px;
     display: inline-block;
     border-top: 3px solid rgba(0, 0, 0, 0); }
     .logoutBlock a:hover,
@@ -2797,19 +2797,27 @@ span.sharing-history-title {
   position: relative;
   margin-left: 2px;
   top: -6px; }
+  #cart-external-status .count a {
+    padding-top: 5px; }
+
+.eshop-product>table {
+  width: 100%; }
 
 .optionsTable {
   color: #222222;
-  min-width: 600px;
+  min-width: 320px;
   width: 100%;
-  margin-bottom: 10px; }
+  margin-bottom: 10px;
+  font-size: 0.9em; }
   .optionsTable th {
     text-align: center;
     padding: 5px;
-    border-bottom: 1px solid #cccccc; }
+    border-top: 1px solid #cccccc; }
   .optionsTable td {
-    padding: 5px 10px; }
-  .optionsTable tbody tr:nth-child(even) {
+    padding: 4px 7px; }
+  .optionsTable tbody tr {
+    background: linear-gradient(#eeeeee, #f8f8f8, white, #f8f8f8, #eeeeee); }
+  .optionsTable thead tr:first-child {
     background-color: #f1f1f1; }
   .optionsTable tbody tr:last-child td {
     border-bottom: 1px solid #cccccc; }
@@ -2904,7 +2912,7 @@ span.sharing-history-title {
       border-color: red; }
 
 .narrow .optionsTable {
-  min-width: 860px; }
+  min-width: 320px; }
 
 table .eshop-btn {
   margin-right: 0 !important; }
@@ -4437,12 +4445,15 @@ div.location.public {
 
 .eshop-product-images {
   padding: 5px;
+  width: 30%;
   background-color: #e6e6e6;
   height: 100%;
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
   -ms-border-radius: 3px;
   border-radius: 3px; }
+  .eshop-product-images img {
+    width: 100%; }
 
 .eshop-product-labels > a {
   font-weight: bold; }
