@@ -2323,7 +2323,7 @@ en,на ден,per day
 en,на момента,in time
 en,на сървъра,on the server
 en,на,on
-en,Намяляване на количеството,Decrease quantity
+en,Намаляване на количеството,Decrease quantity
 en,Увеличаване на количеството,Increase quantity
 en,намиращи се в,located in
 en,напомняне,reminder
@@ -2704,7 +2704,7 @@ en,Данни за поръчката,Order details
 en,Активна папка,Active folder
 en,Към магазина,To the eshop
 en,Връщане в онлайн магазина,Return to the eshop
-en,"Сигурни ли сте, че искате да изчистите артикулите","Are you sure, that you want to clear all items"
+en,"Сигурни ли сте, че искате да изчистите артикулите?","Are you sure, that you want to clear all items?"
 en,Изчисти,Clear
 en,"Имате предишна активна поръчка, моля проверете си имейла","You have active order, please check your email"
 en,Прекратяване на действията,Cancel all actions
@@ -2727,7 +2727,11 @@ en,Разполагаемо в,Available in
 en,приходен,debit
 en,разходен,credit
 en,касов ордер,cash order
-en,Към профила,Visit profile
+en,Към профила,View profile
 en,До локация,To location
 en,От локация,From location
 en,представител,representative
+en,Изход от системата,Exit system
+en,Назад към магазина,Return to store
+en,Наистина ли желаете да премахнете артикула?,Do you really like to remove this product?
+en,Ако имате регистрация,If you have an account
