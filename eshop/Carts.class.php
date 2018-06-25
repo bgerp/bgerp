@@ -121,7 +121,7 @@ class eshop_Carts extends core_Master
     	$this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Контактни данни->Тел,hint=Вашият телефон,mandatory');
     	
     	$this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Начин,removeAndRefreshForm=deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|deliveryData,silent,mandatory');
-    	$this->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,hint=Държава на доставка');
+    	$this->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,hint=Страна за доставка');
     	$this->FLD('deliveryPCode', 'varchar(16)', 'caption=Доставка->П. код,hint=Пощенски код за доставка');
     	$this->FLD('deliveryPlace', 'varchar(64)', 'caption=Доставка->Място,hint=Населено място: град или село и община');
     	$this->FLD('deliveryAddress', 'varchar(255)', 'caption=Доставка->Адрес,hint=Вашият адрес');
@@ -134,7 +134,7 @@ class eshop_Carts extends core_Master
     	$this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактура->Папка,input=none,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
     	$this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
     	$this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактура->VAT/EIC,input=hidden,mandatory,invoiceData');
-    	$this->FLD('invoiceCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за фактура->Държава,hint=Фирма на държавата,input=none,invoiceData');
+    	$this->FLD('invoiceCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за фактура->Държава,hint=Държава по регистрация,input=none,invoiceData');
     	$this->FLD('invoicePCode', 'varchar(16)', 'caption=Данни за фактура->П. код,invoiceData,hint=Пощенски код на фирмата,input=none');
     	$this->FLD('invoicePlace', 'varchar(64)', 'caption=Данни за фактура->Град,invoiceData,hint=Населено място: град или село и община,input=none');
     	$this->FLD('invoiceAddress', 'varchar(255)', 'caption=Данни за фактура->Адрес,invoiceData,hint=Адрес на регистрация на фирмата,input=none');
@@ -203,7 +203,8 @@ class eshop_Carts extends core_Master
     			$msg = '|Артикулът не е добавен|*!';
     		}
     	}
-    	
+        
+
     	// Ако режимът е за AJAX
     	if (Request::get('ajax_mode')) {
     		
@@ -432,7 +433,9 @@ class eshop_Carts extends core_Master
     	$this->requireRightFor('finalize', $rec);
     	Mode::push('eshopFinalize', TRUE);
     	$cu = core_Users::getCurrent('id', FALSE);
-    	
+        
+        Mode::set('currentExternalTab', 'eshop_Carts');
+
     	$company = NULL;
     	$personNames = $rec->personNames;
     	if($rec->makeInvoice == 'company'){
@@ -809,7 +812,7 @@ class eshop_Carts extends core_Master
     	
     	if(!empty($rec->productCount) && eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
     		$emptyUrl = array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => $shopUrl);
-    		$btn = ht::createLink(tr('Изчисти'), $emptyUrl, 'Сигурни ли сте, че искате да изчистите артикулите', 'title=Изчистване на всички артикули,class=eshop-link,ef_icon=img/16/deletered.png');
+    		$btn = ht::createLink(tr('Изчисти'), $emptyUrl, 'Сигурни ли сте, че искате да изчистите артикулите?', 'title=Изчистване на всички артикули,class=eshop-link,ef_icon=img/16/deletered.png');
     		$tpl->append($btn, 'EMPTY_CART');
     	}
     	
@@ -824,7 +827,7 @@ class eshop_Carts extends core_Master
     	
     	$checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE) : array();
     	if(empty($rec->personNames) && count($checkoutUrl)){
-    		$btn = ht::createBtn(tr('Данни за поръчката'), $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=order-btn eshop-btn {$disabledClass}");
+    		$btn = ht::createBtn(tr('Данни за поръчката') . ' »', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=order-btn eshop-btn {$disabledClass}");
     		$tpl->append($btn, 'CART_TOOLBAR_RIGHT');
     	}
     	
@@ -1004,7 +1007,9 @@ class eshop_Carts extends core_Master
      * Екшън за показване на външния изглед на кошницата
      */
     public function act_Order()
-    {
+    {   
+        Mode::set('currentExternalTab', 'eshop_Carts');
+
     	$lang = cms_Domains::getPublicDomain('lang');
     	core_Lg::push($lang);
     	
@@ -1240,9 +1245,9 @@ class eshop_Carts extends core_Master
     		}
     	} else {
     		// Ако потребителя не е логнат да се показва статус, подканващ към логване
-    		$info = new ET("<div id='editStatus'><span class='warningMsg'>[#1#] [#link#]</span></div>", tr('Ако имате регистриран потребител|*.'));
+    		$info = new ET("<div id='editStatus'><div class='warningMsg'>[#1#] [#link#]</div></div>", tr('Ако имате регистрация|*, '));
     		$js = "w=window.open(\"" . toUrl(array('core_Users', 'login', 'popup' => 1)) . "\",\"Login\",\"width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0\"); if(w) w.focus();";
-    		$loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}'>" . tr("Вход...||Login now...") . "</a>";
+    		$loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}' style='text-decoration:underline'>" . tr("моля логнете се...||please login...") . "</a>";
     		$info->append($loginHtml, 'link');
     		
     		$form->info = new core_ET('[#1#][#2#]', $data->form->info, $info);
