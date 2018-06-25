@@ -565,7 +565,6 @@ class distro_Repositories extends core_Master
                 $repoConnectArr[$rec->id] = new ssh_Actions($rec->hostId);
             } catch (core_exception_Expect $e) {
                 self::logWarning('Грешка при свързване към хост: ' . $e->getMessage(), $rec->id);
-                reportException($e);
                 
                 $repoConnectArr[$rec->id] = FALSE;
             }
