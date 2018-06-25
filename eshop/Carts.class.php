@@ -38,7 +38,7 @@ class eshop_Carts extends core_Master
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Кошница на онлайн магазина";
+    public $singleTitle = "Онлайн поръчка";
     
     
     /**

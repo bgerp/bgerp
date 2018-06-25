@@ -123,6 +123,9 @@
                             <!--ET_BEGIN notes-->
                             [#notes#]
                             <!--ET_END notes-->
+                            <!--ET_BEGIN cartId-->
+                            <li>[#cartId#]</li>
+                            <!--ET_END cartId-->
                             <!--ET_BEGIN deliveryBlock-->
                             [#deliveryBlock#]
                             <li>
