@@ -510,7 +510,7 @@ class eshop_Carts extends core_Master
    		
    		// Продажбата става на заявка, кошницата се активира
    		$saleRec = self::makeSalePending($saleId);
-   		self::activate($rec, $saleId);
+   		//self::activate($rec, $saleId);
    		doc_Threads::doUpdateThread($saleRec->threadId);
    		
    		// Ако е партньор и има достъп до нишката, директно се реидректва към нея
@@ -1101,6 +1101,11 @@ class eshop_Carts extends core_Master
     		}
     	}
     	
+    	$form->setFieldAttr('deliveryCountry', 'data-updateonchange=invoiceCountry,class=updateselectonchange');
+    	$form->setFieldAttr('deliveryPCode', 'data-updateonchange=invoicePCode,class=updateonchange');
+    	$form->setFieldAttr('deliveryPlace', 'data-updateonchange=invoicePlace,class=updateonchange');
+    	$form->setFieldAttr('deliveryAddress', 'data-updateonchange=invoiceAddress,class=updateonchange');
+    	
     	$form->input();
     	if($Driver){
     		$Driver->checkForm($form);
@@ -1192,6 +1197,8 @@ class eshop_Carts extends core_Master
     	if(!$cu){
     		core_Ajax::subscribe($tpl, array('eshop_Carts', 'refreshOrderForm'), 'refreshOrderForm', 500);
     	}
+    	
+    	jquery_Jquery::run($tpl, "runOnLoad(copyValToPlaceholder);");
     	
     	return $tpl;
     }
