@@ -331,8 +331,9 @@ class sales_Sales extends deals_DealMaster
     	if(core_Users::haveRole('sales', $dealerId)) return $dealerId;
     	
     	$dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $folderId, 'dealerId', TRUE);
+    	if(core_Users::haveRole('sales', $dealerId)) return $dealerId;
     	
-    	return $dealerId;
+    	return NULL;
     }
     
     
@@ -1099,6 +1100,12 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	if(!Mode::isReadOnly() && core_Packs::isInstalled('eshop')){
+    		if($cartId = eshop_Carts::fetchField("#saleId = {$rec->id}")){
+    			$row->cartId = eshop_Carts::getHyperlink($cartId, TRUE);
+    		}
+    	}
+    	
     	if(isset($rec->bankAccountId)){
     		if(!Mode::isReadOnly()){
     			$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
