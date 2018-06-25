@@ -119,19 +119,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 	}
 	
-	// Action for test //
-	public static function act_test()
-	{
-	    requireRole('powerUser');
-	    
-	    $rec = unserialize(file_get_contents('debug.txt'));
-	    
-	    self::prepareRecs($rec);
-	    
-	    bp($rec); // $rec->count - брой документи //
-	}
-	
-	////////////////////////////////////////////////////////////////
 	
 	/**
 	 * Кои записи ще се показват в таблицата

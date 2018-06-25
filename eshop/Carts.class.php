@@ -514,19 +514,30 @@ class eshop_Carts extends core_Master
    		doc_Threads::doUpdateThread($saleRec->threadId);
    		
    		// Ако е партньор и има достъп до нишката, директно се реидректва към нея
+   		$colabUrl = NULL;
    		if(core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu)){
    			$threadRec = doc_Threads::fetch($saleRec->threadId);
    			if(colab_Threads::haveRightFor('single', $threadRec)){
-   				return new Redirect(array('colab_Threads', 'single', 'threadId' => $saleRec->threadId), 'Успешно създадена заявка за продажба');
+   				$colabUrl = array('colab_Threads', 'single', 'threadId' => $saleRec->threadId);
    			}
    		} else {
    			self::sendEmail($rec, $saleRec);
+   			doc_Threads::doUpdateThread($saleRec->threadId);
    		}
    		
    		Mode::pop('eshopFinalize');
    		
+   		// Нишката да остане отворена накрая
+   		$threadRec = doc_Threads::fetch($saleRec->threadId);
+   		$threadRec->state = 'opened';
+   		doc_Threads::save($threadRec, 'state');
+   		doc_Threads::updateThread($threadRec->id);
+   		
+   		if(is_array($colabUrl) && count($colabUrl)) return new Redirect($colabUrl, 'Успешно създадена заявка за продажба|*!');
+   		
    		return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(NULL), 'Поръчката е направена|*!');
     }
+    
     
     
     /**
@@ -577,13 +588,15 @@ class eshop_Carts extends core_Master
     	core_Lg::push($lang);
     	
     	// Подготовка на тялото на имейла
-    	$body = new core_ET($settings->emailBody);
+    	$threadCount = doc_Threads::count("#folderId = {$saleRec->folderId}");
+    	$body = ($threadCount == 1) ? $settings->emailBodyWithReg : $settings->emailBodyWithoutReg;
+    	$body = new core_ET($body);
     	$body->replace($rec->personNames, "NAME");
     	$body->replace("#Sal{$saleRec->id}", "SALE_HANDLER");
     	
     	// Линка за регистрация
     	$Cover = doc_Folders::getCover($saleRec->folderId);
-		$url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => $Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'userNames' => $rec->personNames), 604800);
+    	$url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => (int)$Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'userNames' => $rec->personNames), 604800);
 
     	$url = "[link={$url}]" . tr('връзка||link') . "[/link]";
     	$body->replace($url, "link");
@@ -1093,6 +1106,11 @@ class eshop_Carts extends core_Master
     		}
     	}
     	
+    	$form->setFieldAttr('deliveryCountry', 'data-updateonchange=invoiceCountry,class=updateselectonchange');
+    	$form->setFieldAttr('deliveryPCode', 'data-updateonchange=invoicePCode,class=updateonchange');
+    	$form->setFieldAttr('deliveryPlace', 'data-updateonchange=invoicePlace,class=updateonchange');
+    	$form->setFieldAttr('deliveryAddress', 'data-updateonchange=invoiceAddress,class=updateonchange');
+    	
     	$form->input();
     	if($Driver){
     		$Driver->checkForm($form);
@@ -1184,6 +1202,8 @@ class eshop_Carts extends core_Master
     	if(!$cu){
     		core_Ajax::subscribe($tpl, array('eshop_Carts', 'refreshOrderForm'), 'refreshOrderForm', 500);
     	}
+    	
+    	jquery_Jquery::run($tpl, "runOnLoad(copyValToPlaceholder);");
     	
     	return $tpl;
     }
