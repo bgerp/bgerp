@@ -510,7 +510,7 @@ class eshop_Carts extends core_Master
    		
    		// Продажбата става на заявка, кошницата се активира
    		$saleRec = self::makeSalePending($saleId);
-   		//self::activate($rec, $saleId);
+   		self::activate($rec, $saleId);
    		doc_Threads::doUpdateThread($saleRec->threadId);
    		
    		// Ако е партньор и има достъп до нишката, директно се реидректва към нея
@@ -585,7 +585,9 @@ class eshop_Carts extends core_Master
     	core_Lg::push($lang);
     	
     	// Подготовка на тялото на имейла
-    	$body = new core_ET($settings->emailBody);
+    	$threadCount = doc_Threads::count("#folderId = {$saleRec->folderId}");
+    	$body = ($threadCount == 1) ? $settings->emailBodyWithReg : $settings->emailBodyWithoutReg;
+    	$body = new core_ET($body);
     	$body->replace($rec->personNames, "NAME");
     	$body->replace("#Sal{$saleRec->id}", "SALE_HANDLER");
     	
