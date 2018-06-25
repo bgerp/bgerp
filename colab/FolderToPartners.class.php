@@ -604,7 +604,7 @@ class colab_FolderToPartners extends core_Manager
         
     	$PML->Encoding = "quoted-printable";
        
-        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand()), 604800);
+    	$url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => (int)$rec->companyId, 'email' => $userEmail, 'rand' => str::getRand()), 604800);
     	
         $rec->body = str_replace($rec->placeHolder, "[link=$url]link[/link]", $rec->body);
 
@@ -803,7 +803,7 @@ class colab_FolderToPartners extends core_Manager
     		static::save((object)array('contractorId' => $uId, 'folderId' => $folderId));
     		
     		// Изтриваме линка, да не може друг да се регистрира с него
-    		core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => $companyId, 'email' => $email, 'rand' => $rand), 604800);
+    		core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int)$companyId, 'email' => $email, 'rand' => $rand), 604800);
     		
     		return followRetUrl(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
     	}
