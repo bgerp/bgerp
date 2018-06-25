@@ -331,8 +331,9 @@ class sales_Sales extends deals_DealMaster
     	if(core_Users::haveRole('sales', $dealerId)) return $dealerId;
     	
     	$dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $folderId, 'dealerId', TRUE);
+    	if(core_Users::haveRole('sales', $dealerId)) return $dealerId;
     	
-    	return $dealerId;
+    	return NULL;
     }
     
     
