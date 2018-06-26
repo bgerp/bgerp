@@ -47,7 +47,7 @@ class cms_Helper extends core_BaseClass
 		if(!isset($userId)) return;
 		
 		// Ако потребителя не е логнат да се показва статус, подканващ към логване
-    	$info = new ET("<div id='editStatus'><div class='warningMsg'>[#1#] [#link#]</div></div>", tr('Ако имате акаунт, моля логнете се от|*, '));
+    	$info = new ET("<div id='editStatus'><div class='warningMsg'>[#1#] [#link#]</div></div>", tr('Ако имате акаунт, моля логнете се от|* '));
     	$js = "w=window.open(\"" . toUrl(array('core_Users', 'login', 'popup' => 1)) . "\",\"Login\",\"width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0\"); if(w) w.focus();";
     	$loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}' style='text-decoration:underline'>" . tr("тук||here") . "</a>";
     	$info->append($loginHtml, 'link');
