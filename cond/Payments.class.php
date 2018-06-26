@@ -54,7 +54,7 @@ class cond_Payments extends core_Manager {
     /**
      * Кой може да променя?
      */
-    public $canWrite = 'no_one';
+    public $canWrite = 'ceo,admin';
     
     
     /**

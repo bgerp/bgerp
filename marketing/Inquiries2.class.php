@@ -832,6 +832,10 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	$form = $this->prepareForm($drvId);
+    	
+    	// Рефрешване на формата ако потребителя се логне докато е в нея
+    	cms_Helper::setLoginInfoIfNeeded($form);
+    	
     	$form->formAttr['id'] = 'newEnquiryForm';
     	$form->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'input=hidden,silent');
     	$form->FLD('moq', 'double', 'input=hidden,silent');
@@ -896,40 +900,48 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	// След събмит на формата
     	if($form->isSubmitted()){
-    		
     		$rec = &$form->rec;
-    		$rec->state = 'active';
-    		$rec->ip = core_Users::getRealIpAddr();
-    		$rec->brid = log_Browsers::getBrid();
     		
-    		// Винаги се рутира към правилната папка
-    		$rec->folderId = marketing_InquiryRouter::route($rec->company, $rec->personNames, $rec->email, $rec->tel, $rec->country, $rec->pCode, $rec->place, $rec->address, $rec->brid);
+    		// Ако има регистриран потребител с този имейл. Изисква се да се логне
+    		if($error = cms_Helper::getErrorIfThereIsUserWithEmail($rec->email)){
+    			$form->setError('email', $error);
+    		}
     		
-    		// Запис и редирект
-    		if($this->haveRightFor('new')){
-    		    
-    		    vislog_History::add('Ново маркетингово запитване');
-    		    
-    			// Ако няма потребител
-    			if(!$cu){
-        		    $contactFields = $this->selectFields("#class == 'contactData'");
-                    $fieldNamesArr = array_keys($contactFields);
-                    $userData = array();
-                    foreach ((array)$fieldNamesArr as $fName) {
-                        if (!trim($form->rec->{$fName})) continue;
-                        $userData[$fName] = $form->rec->{$fName};
-                    }
-                    log_Browsers::setVars($userData);
+    		if(!$form->gotErrors()){
+    			
+    			$rec->state = 'active';
+    			$rec->ip = core_Users::getRealIpAddr();
+    			$rec->brid = log_Browsers::getBrid();
+    			
+    			// Винаги се рутира към правилната папка
+    			$rec->folderId = marketing_InquiryRouter::route($rec->company, $rec->personNames, $rec->email, $rec->tel, $rec->country, $rec->pCode, $rec->place, $rec->address, $rec->brid);
+    			
+    			// Запис и редирект
+    			if($this->haveRightFor('new')){
+    			
+    				vislog_History::add('Ново маркетингово запитване');
+    			
+    				// Ако няма потребител
+    				if(!$cu){
+    					$contactFields = $this->selectFields("#class == 'contactData'");
+    					$fieldNamesArr = array_keys($contactFields);
+    					$userData = array();
+    					foreach ((array)$fieldNamesArr as $fName) {
+    						if (!trim($form->rec->{$fName})) continue;
+    						$userData[$fName] = $form->rec->{$fName};
+    					}
+    					log_Browsers::setVars($userData);
+    				}
+    			
+    				$id = $this->save($rec);
+    				doc_Threads::doUpdateThread($rec->threadId);
+    				$this->logWrite("Създаване от е-артикул", $id);
+    				 
+    				$singleUrl = self::getSingleUrlArray($id);
+    				if(count($singleUrl)) return redirect($singleUrl, FALSE, '|Благодарим Ви за запитването', 'success');
+    				 
+    				return followRetUrl(NULL, '|Благодарим Ви за запитването', 'success');
     			}
-
-    			$id = $this->save($rec);
-    			doc_Threads::doUpdateThread($rec->threadId);
-    			$this->logWrite("Създаване от е-артикул", $id);
-    			
-    			$singleUrl = self::getSingleUrlArray($id);
-    			if(count($singleUrl)) return redirect($singleUrl, FALSE, '|Благодарим Ви за запитването', 'success');
-    			
-    			return followRetUrl(NULL, '|Благодарим Ви за запитването', 'success');
     		}
     	}
     	
@@ -937,6 +949,9 @@ class marketing_Inquiries2 extends embed_Manager
     	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png,title=Oтказ');
     	$tpl = $form->renderHtml();
     	core_Form::preventDoubleSubmission($tpl, $form);
+    	
+    	// Рефрешване на формата ако потребителя се логне докато е в нея
+    	cms_Helper::setRefreshFormIfNeeded($tpl);
     	
     	// Поставяме шаблона за външен изглед
     	Mode::set('wrapper', 'cms_page_External');
