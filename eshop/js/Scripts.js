@@ -4,7 +4,6 @@ function copyValToPlaceholder()
 		var changeVal = $(this).attr("data-updateonchange");
 		
 		$placeholder = $(this).val();
-		console.log($placeholder);
 		if(!$placeholder) return;
 		
 		var element = $("input[name="+ changeVal +"]");
