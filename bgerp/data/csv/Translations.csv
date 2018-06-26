@@ -2719,7 +2719,7 @@ en,Възложено,Assigned
 en,коментар към,comment to
 en,прогрес към,progress to
 en,Купи,Buy
-en,"Има потребител с този имейл. Трябва да се логнете за да продължите","User with this email, already exists. You must login to continue",
+en,"Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се логнете","There seems to be a user with this email. Please login before you continue",
 en,Ако вече имате потребител,If you already have a user
 en,Поръчано / Доставено,Ordered / Delivered
 en,Разполагаемо,Available
@@ -2734,5 +2734,5 @@ en,представител,representative
 en,Изход от системата,Exit system
 en,Назад към магазина,Return to store
 en,Наистина ли желаете да премахнете артикула?,Do you really like to remove this product?
-en,Ако имате регистрация,If you have an account
+en,"Ако имате акаунт, моля логнете се от","If you have an account, please login from"
 en,Времето за разпознаване е изтекло. Пробвайте с друг код,Recognition time has expired. Try another code
