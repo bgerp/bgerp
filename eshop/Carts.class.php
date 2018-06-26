@@ -1188,6 +1188,11 @@ class eshop_Carts extends core_Master
     				}
     			}
     			
+    			if(!$cu){
+    				$userData = array('email' => $rec->email, 'personNames' => $rec->personNames, 'tel' => $rec->tel);
+    				log_Browsers::setVars($userData);
+    			}
+    			
     			$this->save($rec);
     			$this->updateMaster($rec);
     			core_Lg::pop();
