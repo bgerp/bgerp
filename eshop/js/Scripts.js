@@ -4,7 +4,6 @@ function copyValToPlaceholder()
 		var changeVal = $(this).attr("data-updateonchange");
 		
 		$placeholder = $(this).val();
-		if(!$placeholder) return;
 		
 		var element = $("input[name="+ changeVal +"]");
 		if (element.length <= 0) return;
@@ -16,7 +15,6 @@ function copyValToPlaceholder()
 		var changeVal = $(this).attr("data-updateonchange");
 		
 		var $placeholder = $('select[name=deliveryCountry] option:selected').text();
-		if(!$placeholder) return;
 		
 		var element = $("select[name="+ changeVal +"");
 		if (element.length <= 0) return;
