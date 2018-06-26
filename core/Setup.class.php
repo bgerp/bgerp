@@ -4,7 +4,7 @@
 /**
  * Вербално заглавие на приложението
  */
-DEFINE('EF_APP_TITLE', 'This Application Title');
+DEFINE('EF_APP_TITLE', 'Application Title');
 
 
 /**
@@ -193,7 +193,7 @@ defIfNot('CORE_MAX_ROWS_FOR_PRINTING', 1000);
  * която носи всички миграции. Тази константа не трябва да се
  * променя при по-нови версии
  */
-define('CORE_LAST_DB_VERSION', '17.43-Orelyak');
+define('CORE_LAST_DB_VERSION', '18.25-Shabran');
 
 
 /**
@@ -201,7 +201,7 @@ define('CORE_LAST_DB_VERSION', '17.43-Orelyak');
  * Тази константа не трябва да се ползва с core_Setup::getConfig(),
  * а само с: core_setup::CURRENT_VERSION
  */
-define('CORE_CODE_VERSION', '17.43-Orelyak');
+define('CORE_CODE_VERSION', '18.25-Shabran');
 
 
 /**

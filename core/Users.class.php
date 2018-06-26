@@ -2542,4 +2542,19 @@ class core_Users extends core_Manager
         
         return $res;
     }
+    
+    
+    /**
+     * Връща потребител с посочения имейл
+     * 
+     * @param string $email       - имейл
+     * @param boolean $onlyActive - само активни потребители, или всички
+     * @return int
+     */
+    public static function getUserByEmail($email, $onlyActive = TRUE)
+    {
+    	$where = ($onlyActive === TRUE) ? " AND #state = 'active'" : "";
+    	
+    	return core_Users::fetch(array("#email = '[#1#]'{$where}", $email));
+    }
 }

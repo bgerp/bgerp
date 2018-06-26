@@ -1172,8 +1172,9 @@ class doc_Folders extends core_Master
      * @param datetime|NULL $from
      * @param datetime|NULL $to
      * @param integer $delay
+     * @param string $dateField
      */
-    public static function prepareRepairDateQuery(&$query, $from, $to, $delay, $dateField='modifiedOn')
+    public static function prepareRepairDateQuery(&$query, $from, $to, $delay, $dateField = 'modifiedOn')
     {
         if (isset($from)) {
             
