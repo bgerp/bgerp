@@ -510,7 +510,7 @@ class eshop_Carts extends core_Master
    		
    		// Продажбата става на заявка, кошницата се активира
    		$saleRec = self::makeSalePending($saleId);
-   		self::activate($rec, $saleId);
+   		//self::activate($rec, $saleId);
    		doc_Threads::doUpdateThread($saleRec->threadId);
    		
    		// Ако е партньор и има достъп до нишката, директно се реидректва към нея
@@ -592,7 +592,13 @@ class eshop_Carts extends core_Master
     	$body = ($threadCount == 1) ? $settings->emailBodyWithReg : $settings->emailBodyWithoutReg;
     	$body = new core_ET($body);
     	$body->replace($rec->personNames, "NAME");
-    	$body->replace("#Sal{$saleRec->id}", "SALE_HANDLER");
+    	
+    	$actionData = array('action' => doclog_Documents::ACTION_SEND, 'containerId' => $saleRec->containerId, 'threadId' => $saleRec->threadId);
+    	$mid = doclog_Documents::saveAction($actionData);
+    	doclog_Documents::flushActions();
+    	$link = bgerp_plg_Blank::getUrlForShow($saleRec->containerId, $mid);
+    	
+    	$body->replace("[link={$link}]" . "#Sal{$saleRec->id}" . "[/link]", "SALE_HANDLER");
     	
     	// Линка за регистрация
     	$Cover = doc_Folders::getCover($saleRec->folderId);
@@ -1052,8 +1058,10 @@ class eshop_Carts extends core_Master
     	
     	$form = &$data->form;
     	$form->title = 'Данни за поръчка';
-    	
     	self::prepareOrderForm($form);
+    	
+    	// Добавяне на линк за логване, ако от преди се е логвам потребителя
+    	cms_Helper::setLoginInfoIfNeeded($form);
     	
     	$form->input(NULL, 'silent');
     	self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
@@ -1126,9 +1134,9 @@ class eshop_Carts extends core_Master
     	if($form->isSubmitted()){
     		$rec = $form->rec;
     		
-    		// Ако има потребител с този имейл той трябва да е логнат
-    		if(empty($cu) && core_Users::fetchField(array("#email='[#1#]' AND #state = 'active'", $rec->email))){
-    			 $form->setError('email', 'Има потребител с този имейл. Трябва да се логнете за да продължите|*!');
+    		// Ако има регистриран потребител с този имейл. Изисква се да се логне
+    		if($error = cms_Helper::getErrorIfThereIsUserWithEmail($rec->email)){
+    			$form->setError('email', $error);
     		}
     		
     		$arr = array('invoiceCountry' => 'deliveryCountry', 'invoicePCode' => 'deliveryPCode', 'invoicePlace' => 'deliveryPlace', 'invoiceAddress' => 'deliveryAddress');
@@ -1198,38 +1206,12 @@ class eshop_Carts extends core_Master
     	core_Form::preventDoubleSubmission($tpl, $form);
     	core_Lg::pop();
     	
-    	// Ако няма потребител да се добавя рефреш на формата
-    	if(!$cu){
-    		core_Ajax::subscribe($tpl, array('eshop_Carts', 'refreshOrderForm'), 'refreshOrderForm', 500);
-    	}
-    	
+    	// Рефрешване на формата ако потребителя се логне докато е в нея
+    	cms_Helper::setRefreshFormIfNeeded($tpl);
     	jquery_Jquery::run($tpl, "runOnLoad(copyValToPlaceholder);");
     	
     	return $tpl;
     }
-    
-    
-    /**
-     * Рефреш на формата
-     */
-    function act_RefreshOrderForm()
-    {
-    	if (Request::get('ajax_mode')) {
-    	    $res = array();
-    	    
-    	    $cu = core_Users::getCurrent('id', FALSE);
-    	    
-            if($cu){
-            	$obj = new stdClass();
-            	$obj->func = 'reload';
-            	
-            	$res[] = $obj;
-            }
-            
-            return $res;
-    	}
-    }
-    
     
     /**
      * Подготвя формата за поръчка
@@ -1278,14 +1260,6 @@ class eshop_Carts extends core_Master
     		if($defaultPaymentId && !array_key_exists($defaultPaymentId, $paymentMethods)){
     			$paymentMethods[$defaultPaymentId] = tr(cond_PaymentMethods::getVerbal($paymentId, 'name'));
     		}
-    	} else {
-    		// Ако потребителя не е логнат да се показва статус, подканващ към логване
-    		$info = new ET("<div id='editStatus'><div class='warningMsg'>[#1#] [#link#]</div></div>", tr('Ако имате регистрация|*, '));
-    		$js = "w=window.open(\"" . toUrl(array('core_Users', 'login', 'popup' => 1)) . "\",\"Login\",\"width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0\"); if(w) w.focus();";
-    		$loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}' style='text-decoration:underline'>" . tr("моля логнете се...||please login...") . "</a>";
-    		$info->append($loginHtml, 'link');
-    		
-    		$form->info = new core_ET('[#1#][#2#]', $data->form->info, $info);
     	}
     	 
     	if(count($deliveryTerms) == 1){

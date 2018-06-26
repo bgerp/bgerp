@@ -27,7 +27,7 @@ function copyValToPlaceholder()
 	});
 	
 	$('select[name=deliveryCountry]').trigger('change');
-	$('.updateonchange').trigger('change');
+	$('.updateonchange').trigger('keyup');
 }
 
 
