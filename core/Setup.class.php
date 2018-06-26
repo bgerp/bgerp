@@ -4,7 +4,7 @@
 /**
  * Вербално заглавие на приложението
  */
-DEFINE('EF_APP_TITLE', 'This Application Title');
+DEFINE('EF_APP_TITLE', 'Application Title');
 
 
 /**
