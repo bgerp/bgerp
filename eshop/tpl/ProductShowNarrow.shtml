@@ -1,0 +1,26 @@
+<div class='eshop-product'>
+
+	<h1 style='font-size:1.5em'>[#name#] &nbsp;<!--ET_BEGIN singleLink-->[#singleLink#]<!--ET_END singleLink--><!--ET_BEGIN editLink-->[#editLink#]<!--ET_END editLink--></h1>
+	<div class='eshop-product-labels' style="margin-bottom: 10px;">
+		<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code-->
+		<!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]
+	</div>
+	<div>
+		[#image#]
+		[#image2#]
+		[#image3#]
+		[#image4#]
+		[#image5#]
+	</div>
+	<!--ET_BEGIN PRODUCT_OPT-->
+	<div class="scrolling-holder" style="margin: 15px 0;">
+		[#PRODUCT_OPT#]
+	</div>
+	<!--ET_END PRODUCT_OPT-->
+	<div class="vtop" style='padding-left:8px;'>
+		[#info#]
+		<br>
+		[#longInfo#]
+
+	</div>
+</div>

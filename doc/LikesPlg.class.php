@@ -49,7 +49,7 @@ class doc_LikesPlg extends core_Plugin
             if ($action == 'like') {
                 if (($rec->state == 'draft') || 
                     ($rec->state == 'rejected') || 
-                    !$mvc->haveRightFor('single', $rec->id) || 
+                    !$mvc->haveRightFor('single', $rec->id, $userId) || 
                     doc_Likes::isLiked($rec->containerId, $rec->threadId, $userId)) {
                     
                         $requiredRoles = 'no_one';
@@ -142,7 +142,9 @@ class doc_LikesPlg extends core_Plugin
                 
                 doc_DocumentCache::cacheInvalidation($rec->containerId);
                 
+                // Изчистваме нотификацията за харесване
                 bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id, 'like' => TRUE));
+                bgerp_Notifications::setHidden(array('doc_Threads', 'list', 'threadId' => $rec->threadId, 'like' => 1));
             }
         } elseif ($action == 'showlikes') {
             
@@ -241,8 +243,8 @@ class doc_LikesPlg extends core_Plugin
      * 
      * @param string $notifyStr
      * @param string $className
-     * @param stdObject $lRec
-     * @param stdObject $rec
+     * @param stdClass $lRec
+     * @param stdClass $rec
      */
     protected static function notifyUsers($notifyStr, $className, $userId, $rec)
     {
@@ -475,7 +477,7 @@ class doc_LikesPlg extends core_Plugin
     /**
      * Връща id за html елемент
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return string
      */

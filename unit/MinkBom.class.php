@@ -7,8 +7,8 @@
  *
  * @category  bgerp
  * @package   tests
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Pavlinka Dainovska <pdainovska@gmail.com>
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -408,7 +408,7 @@ class unit_MinkBom extends core_Manager
         $browser->press('Артикул');
         $browser->setValue('name', 'Заготовка 1');
         $browser->setValue('code', 'Stage1');
-        $browser->setValue('measureId', 'килограм');
+        $browser->setValue('measureId', 'брой');
         $browser->press('Запис');
      
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){

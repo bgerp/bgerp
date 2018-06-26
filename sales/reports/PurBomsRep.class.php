@@ -45,7 +45,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
-     * @var varchar
+     * @var string
      */
     protected $hashField = 'containerId';
     
@@ -53,7 +53,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
-     * @var varchar
+     * @var string
      */
     protected $newFieldToCheck = 'containerId';
     
@@ -112,7 +112,17 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 			$form->setDefault('dealers', keylist::addKey('', core_Users::getCurrent()));
 		}
 		
-		$form->setDefault('precision', "0.95");
+		// Опит за намиране на точноста от последната създадена съща тасправка от потребителя
+		$cu = core_Users::getCurrent();
+		$lQuery = $Embedder->getQuery();
+		$lQuery->where("#{$Embedder->driverClassField} = {$Driver->getClassId()} AND #createdBy = {$cu} AND #state = 'active'");
+		$lQuery->orderBy('id', 'DESC');
+		$lQuery->limit(1);
+		$lastReportRec = $lQuery->fetch();
+		
+		// Дефолтната точност е от предишния отчет или глобален дефолт
+		$defaultPrecision = (!empty($lastReportRec->precision)) ? $lastReportRec->precision : 0.95;
+		$form->setDefault('precision', $defaultPrecision);
 	}
     
 	
@@ -172,10 +182,8 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 			    if($dPayment < $downPayment * 0.95)  continue;
 			}
 			
-			// артикулите
+			// Артикулите
 			$agreedProducts = $dealInfo->get('products');
-
-			$d = NULL;
 	
 			// За всеки договорен артикул
 			foreach ($agreedProducts as $pId => $pRec){ 
@@ -183,9 +191,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 				$productRec = cat_Products::fetch($pId, 'canManifacture,isPublic');
 
 				if($sRec->closedDocuments != NULL) {
-				
 				    $newKeylist = keylist::addKey($sRec->closedDocuments, $sRec->id);
-				
 				    $salesArr = keylist::toArray($newKeylist);
 				    $salesSrt = implode(',', $salesArr);
 				}		
@@ -225,16 +231,11 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 								              "dealerId" => $dealerId,
 								              "quantity"=>$pRec->quantity);
 						
-						$count++;
+						if($pId == $d->article) {
+							$recs[$index] = $d;
+						}
 						
-					}
-					
-					if($d != NULL) {
-					    $index = $sRec->id . "|" . $pId;
-					    if($pId == $d->article) {
-    					    
-    					    $recs[$index] = $d;
-					    } 
+						$count++;
 					}
 				}
 			}
@@ -256,13 +257,33 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 		$fld = cls::get('core_FieldSet');
 	
 		$fld->FLD('pur', 'varchar','caption=Договор->№');
-       	$fld->FLD('purDate', 'varchar','caption=Договор->Дата');
-        $fld->FLD('dealerId', 'varchar','caption=Търговец');
-        $fld->FLD('article', 'varchar','caption=Артикул');
+       	$fld->FLD('purDate', 'date','caption=Договор->Дата');
+        $fld->FLD('dealerId', 'key(mvc=core_Users,select=nick)','caption=Търговец,smartCenter');
+        if($export === TRUE){
+        	$fld->FLD('code', 'varchar','caption=Код');
+        }
+        $fld->FLD('article', 'key(mvc=cat_Products,select=name)','caption=Артикул');
        	$fld->FLD('quantity', 'double','caption=Количество');
-        $fld->FLD('deliveryTime', 'varchar','caption=Доставка');
+        $fld->FLD('deliveryTime', 'datetime','caption=Доставка');
 	
 		return $fld;
+	}
+	
+	
+	/**
+	 * След подготовка на реда за експорт
+	 * 
+	 * @param frame2_driver_Proto $Driver - драйвер
+	 * @param stdClass $res               - резултатен запис
+	 * @param stdClass $rec               - запис на справката
+	 * @param stdClass $dRec              - запис на реда
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+	 */
+	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
+	{
+		$res->code = cat_Products::fetchField($dRec->article, 'code');
+		$res->code = ($res->code) ? $res->code : "Art{$dRec->article}";
+		$res->pur = "#" . sales_Sales::getHandle($dRec->pur);
 	}
 	
 	
@@ -275,7 +296,6 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
 	{
-		$isPlain = Mode::is('text', 'plain');
 		$Int = cls::get('type_Int');
 		$Double = core_Type::getByName('double(smartRound)');
 		$Date = cls::get('type_Date');
@@ -290,20 +310,16 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 		    $row->dealerId = self::$dealers[$dRec->dealerId];
 		}
 		
-		if($isPlain){
-			$row->dealerId = strip_tags(($row->dealerId instanceof core_ET) ? $row->dealerId->getContent() : $row->dealerId);
-		}
-
 		if(isset($dRec->num)) {
 		    $row->num = $Int->toVerbal($dRec->num);
 		}
 
 		if(isset($dRec->deliveryTime)) {
-		    $row->deliveryTime = ($isPlain) ? frame_CsvLib::toCsvFormatData($dRec->deliveryTime) : dt::mysql2verbal($dRec->deliveryTime);
+		    $row->deliveryTime = dt::mysql2verbal($dRec->deliveryTime);
 		}
 		
 		if(isset($dRec->pur)) {
-			$row->pur = ($isPlain) ? sales_Sales::getTitleById($dRec->pur) : sales_Sales::getLink($dRec->pur, 0);
+			$row->pur = sales_Sales::getLink($dRec->pur, 0);
 		}
 		
 		if(isset($dRec->purDate)) {
@@ -311,11 +327,11 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 		}
 		
 		if(isset($dRec->article)) {
-			$row->article = ($isPlain) ? cat_Products::getTitleById($dRec->article, FALSE) : cat_Products::getShortHyperlink($dRec->article);
+			$row->article = cat_Products::getShortHyperlink($dRec->article);
 		}
 		
 		if(isset($dRec->quantity)) {
-			$row->quantity = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->quantity) : $Double->toVerbal($dRec->quantity);
+			$row->quantity = $Double->toVerbal($dRec->quantity);
 		}
 
 		return $row;

@@ -471,9 +471,8 @@ class acc_Lists extends core_Manager {
             
             foreach ($addedToLists as $listId) {
                 $listIfaceId = static::fetchField($listId, 'regInterfaceId');
-                expect(
-                    empty($listIfaceId) || !empty($itemInterfaceIds[$listIfaceId]),
-                    "Класът '" . core_Classes::fetchField($itemRec->classId, 'name') . "' не поддържа нужния интерфейс '" . core_Interfaces::fetchField($listIfaceId, 'name') . "'"
+                expect(empty($listIfaceId) || !empty($itemInterfaceIds[$listIfaceId]),
+                        "Класът '" . core_Classes::fetchField((int)$itemRec->classId, 'name') . "' не поддържа нужния интерфейс '" . core_Interfaces::fetchField((int)$listIfaceId, 'name') . "'"
                 );
             }
         }
@@ -558,7 +557,7 @@ class acc_Lists extends core_Manager {
     /**
      * Намира дали дадена номенклатура се намира в някоя от групуте на сметката
      * и на коя позиция
-     * @param varchar $accSysId - systemId на сметката
+     * @param string $accSysId - systemId на сметката
      * @param mixed $iface - Име или Ид на Интефейса, който искаме да поддържа номенклатурата
      * @return mixed 1/2/3/NULL - Позицията на която е номенклатурата или
      * NULL ако не се среща

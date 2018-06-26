@@ -44,7 +44,7 @@ abstract class deals_Helper
 	{
 	    $p = 0;
 	    if ($price) {
-	        $p = round(log10($price));
+	        $p = round(log10(abs($price)));
 	    }
 	    
 	    // Плаваща прецизност
@@ -197,7 +197,7 @@ abstract class deals_Helper
 	 * @param array $values - масив с стойности на сумата на всеки ред, ддс-то и отстъпката 
 	 * @param date $date - дата
 	 * @param doublr $currencyRate - курс
-	 * @param varchar(3) $currencyId - код на валута
+	 * @param string(3) $currencyId - код на валута
 	 * @param enum $chargeVat - ддс режима
 	 * @param boolean $invoice - дали документа е фактура
 	 * 
@@ -389,7 +389,7 @@ abstract class deals_Helper
 	 * 				->formInfo - информация за формата
 	 * 				->warning - предупреждението
 	 */
-	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId)
+	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId, &$foundQuantity = NULL)
 	{
 		if(empty($packQuantity)){
 			$packQuantity = 1;
@@ -406,7 +406,8 @@ abstract class deals_Helper
 		$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
 		$storeName = store_Stores::getTitleById($storeId);
 		$verbalQuantity = $Double->toVerbal($quantity);
-		$verbalQuantity = ht::styleIfNegative($verbalQuantity, $quantity);
+		$verbalQuantity = ht::styleNumber($verbalQuantity, $quantity);
+		$foundQuantity = $quantity;
 		
 		$text = "|Разполагаемо в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";
 		if(!empty($stRec->reservedQuantity)){
@@ -457,10 +458,10 @@ abstract class deals_Helper
 	 */
 	public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack)
 	{
-		if(cat_products_Packagings::getPack($productId, $packagingId)){
+		if($packRec = cat_products_Packagings::getPack($productId, $packagingId)){
 			if(cat_UoM::fetchField($packagingId, 'showContents') !== 'no'){
 				$measureId = cat_Products::fetchField($productId, 'measureId');
-                $packagingRow .= ' ' . self::getPackMeasure($measureId, $quantityInPack);
+                $packagingRow .= ' ' . self::getPackMeasure($measureId, $quantityInPack, $packRec);
 			}
 		}
 	}
@@ -469,27 +470,32 @@ abstract class deals_Helper
     /**
      * Връща описание на опаковка, заедно с количеството в нея
      */
-    public static function getPackMeasure($measureId, $quantityInPack)
+    public static function getPackMeasure($measureId, $quantityInPack, $packRec = NULL)
     {
-        if($quantityInPack < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 0.001))){
-			$quantityInPack *= 1000;
-			$measureId = $downMeasureId;
-		} elseif($quantityInPack > 1000 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 1000))){
-			$quantityInPack /= 1000;
-			$measureId = $downMeasureId;
+        $qP = $quantityInPack;
+        $quantityInPack = cat_UoM::round($measureId, $quantityInPack);
+		
+		$hint = FALSE;
+		
+		if(is_object($packRec)){
+			$originalQuantityInPack = $packRec->quantity;
+			$difference = round(abs($qP - $originalQuantityInPack) / $originalQuantityInPack, 2);
+			if($difference > 0.1){
+				$hint = TRUE;
+			}
 		}
 		
-        if($quantityInPack == 1) {
-		    $quantityInPack = '';
-        } else {
-		    $quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInPack) . ' ';
+		$quantityInPack = ($quantityInPack == 1) ? '' : core_Type::getByName('double(smartRound)')->toVerbal($quantityInPack) . ' ';
+        if($hint === TRUE){
+        	$quantityInPack = ht::createHint($quantityInPack, 'Има отклонение спрямо очакваното', 'warning', TRUE, 'width=12px,height=12px');
         }
+        
+        $tpl = new core_ET("<span class='nowrap'>&nbsp;<small class='quiet'>[#quantityInPack#] [#shortUomName#]</small></span>");
+		$tpl->append(tr(cat_UoM::getShortName($measureId)), 'shortUomName');
+		$tpl->append($quantityInPack, 'quantityInPack');
+		$tpl->removeBlocks();
 		
-		$shortUomName = cat_UoM::getShortName($measureId);
-		$res = ' <small class="quiet">' . $quantityInPack . tr($shortUomName) . '</small>';
-		$res = "<span class='nowrap'>{$res}</span>";
-
-        return $res;
+        return $tpl;
     }
 	
 	
@@ -599,7 +605,6 @@ abstract class deals_Helper
 	public static function normalizeProducts($arrays, $subtractArrs = array())
 	{
 		$combined = array();
-		$indexArr = arr::make($indexArr);
 		
 		foreach (array('arrays', 'subtractArrs') as $parameter){
 			$var = ${$parameter};
@@ -628,6 +633,18 @@ abstract class deals_Helper
 								$d->discount = max($d->discount, $p->discount);
 							}
 			
+							if(isset($p->fee) && $p->fee > 0){
+								$d->fee += $p->fee;
+							}
+							
+							if(isset($p->deliveryTimeFromFee)){
+								$d->deliveryTimeFromFee = min($d->deliveryTimeFromFee, $p->deliveryTimeFromFee);
+							}
+							
+							if($p->syncFee === TRUE){
+								$d->syncFee = TRUE;
+							}
+							
 							$sign = ($parameter == 'arrays') ? 1 : -1;
 							
 							//@TODO да може да е -
@@ -700,7 +717,7 @@ abstract class deals_Helper
 	 * 
 	 * @see acc_Balances::getBlQuantities
 	 * @param array $array - масив от обекти с ключ ид на перо на валута и полета amount и quantity
-	 * @param varchar $currencyCode - към коя валута да се конвертират
+	 * @param string $currencyCode - към коя валута да се конвертират
 	 * @param date $date - дата
 	 * @return array $res
 	 * 					->quantity - Количество във подадената валута
@@ -984,10 +1001,11 @@ abstract class deals_Helper
 	 * 
 	 * @param core_Detail $Detail
 	 * @param int $masterId
-	 * @param string $productFieldName
+	 * @param core_Master $Master
+	 * @param string|NULL $lg
 	 * @return array $res
 	 */
-	public static function getConditionsFromProducts($Detail, $masterId, $productFieldName = 'productId')
+	public static function getConditionsFromProducts($Detail, $Master, $masterId, $lg)
 	{
 		$res = array();
 		
@@ -995,23 +1013,63 @@ abstract class deals_Helper
 		$Detail = cls::get($Detail);
 		$dQuery = $Detail->getQuery();
 		$dQuery->where("#{$Detail->masterKey} = {$masterId}");
-		$dQuery->show("{$productFieldName},quantity");
+		$dQuery->show("productId,quantity");
+		$type = ($Master instanceof purchase_Purchases) ? 'purchase' : (($Master instanceof sales_Quotations) ? 'quotation' : 'sale');
+		$allProducts = $productConditions = array();
+		
+		if(!empty($lg)){
+			core_Lg::push($lg);
+		}
 		
 		while($dRec = $dQuery->fetch()){
 			
 			// Опит за намиране на условията
-			$conditions = cat_Products::getConditions($dRec->{$productFieldName}, $dRec->quantity);
+			$conditions = cat_Products::getConditions($dRec->productId, $type, $lg);
+			$allProducts[$dRec->productId] = $dRec->productId;
 			
-			// Извличат се
-			if(count($conditions)){
-				foreach ($conditions as $t){
-					$value = preg_replace('!\s+!', ' ', str::mbUcfirst($t));
-					$key = mb_strtolower($value);
-					if(!array_key_exists($key, $res)){
-						$res[$key] = $value;
+            if(is_array($conditions)) {
+                foreach ($conditions as $t){
+                    
+                    // Нормализиране на условието
+                    $key = md5(strtolower(str::utf2ascii(trim($t))));
+                    $value = preg_replace('!\s+!', ' ', str::mbUcfirst($t));
+                    $res[$key] = $value;
+                    
+                    $productConditions[$key] = is_array($productConditions[$key]) ? $productConditions[$key] : array();
+                    
+                    // Запомня се кои артикули подават същото условие
+                    if(!array_key_exists($dRec->productId, $productConditions[$key])){
+                          $code = cat_Products::fetchField($dRec->productId, 'code');
+                          $code = (!empty($code)) ? $code : "Art{$dRec->productId}";
+                          $productConditions[$key][$dRec->productId] = $code;
+                    }
+                }
+            }
+		}
+		
+		foreach ($res as $key => &$val){
+			if(is_array($productConditions[$key]) && count($productConditions[$key]) != count($allProducts)){
+				$valSuffix = new core_ET(tr("За|* [#Articles#]"));
+				$valSuffix->replace(implode(',', $productConditions[$key]), 'Articles');
+				$valSuffix = " <i>(" . $valSuffix->getContent() . ")</i>";
+				
+				$bold = FALSE;
+				foreach (array('strong', 'b') as $tag){
+					if(preg_match("/<{$tag}>(.*)<\/{$tag}>/", $val, $m)){
+						$bold = $tag;
+						break;
 					}
 				}
+				
+				if($bold !== FALSE){
+					$valSuffix = "<{$bold}>{$valSuffix}</{$bold}>";
+				}
+				$val .= $valSuffix; 
 			}
+		}
+		
+		if(!empty($lg)){
+			core_Lg::pop();
 		}
 		
 		return $res;
@@ -1095,21 +1153,21 @@ abstract class deals_Helper
 		// Ако няма тегло взима се 'live'
 		if(!isset($value)){
 			if($type == 'weight'){
-				$value = cat_Products::getWeight($productId, $packagingId, $quantity);
+				$value = cat_Products::getTransportWeight($productId, $quantity);
 			} else {
-				$value = cat_Products::getVolume($productId, $packagingId, $quantity);
+				$value = cat_Products::getTransportVolume($productId, $quantity);
 			}
-				
-			if(!empty($value)){
+			
+			if(isset($value)){
 				$hint = TRUE;
-				$value = round($value, 2);
 			}
 		}
 		
 		// Ако няма тегло не се прави нищо
-		if(empty($value)) return NULL;
+		if(!isset($value)) return NULL;
 		
-		$valueType = ($type == 'weight') ? 'cat_type_Weight' : 'cat_type_Volume';
+		$valueType = ($type == 'weight') ? 'cat_type_Weight(decimals=2)' : 'cat_type_Volume';
+		$value = round($value, 2);
 		
 		// Вербализиране на теглото
 		$valueRow = core_Type::getByName($valueType)->toVerbal($value);
@@ -1153,26 +1211,47 @@ abstract class deals_Helper
 	
 	
 	/**
-	 * Връща масив с фактурите в треда
+	 * Връща масив с фактурите в треда (тредовете)
 	 * 
-	 * @param int $threadId           - ид на нишка
-	 * @param boolean $onlyCreditNote - дали да са само КИ
-	 * @return array $invoices    - масив с ф-ри или броя намерени фактури
+	 * @param mixed $threadId          - ид на нишка или масив от ид-та на нишки
+	 * @param date|NULL $valior        - ф-рите до дата, или NULL за всички
+	 * @param boolean $showInvoices    - да се показват само обикновените ф-ри
+	 * @param boolean $showDebitNotes  - да се показват и ДИ
+	 * @param boolean $showCreditNotes - да се показват и КИ
+	 * @return array $invoices         - масив с ф-ри или броя намерени фактури
 	 */
-	public static function getInvoicesInThread($threadId, $onlyCreditNote = FALSE)
+	public static function getInvoicesInThread($threadId, $valior = NULL, $showInvoices = TRUE, $showDebitNotes = TRUE, $showCreditNotes = TRUE)
 	{
 		$invoices = array();
+		$threads = is_array($threadId) ? $threadId : array($threadId => $threadId);
+		
 		foreach (array('sales_Invoices', 'purchase_Invoices') as $class){
 			$Cls = cls::get($class);
 			$iQuery = $Cls->getQuery();
-			$iQuery->where("#threadId = {$threadId} AND #state = 'active'");
+			$iQuery->in("threadId", $threads);
+			$iQuery->where("#state = 'active'");
 			$iQuery->orderBy('date,number,type,dealValue', 'ASC');
 			$iQuery->show('number,containerId');
 			
-			if($onlyCreditNote === TRUE){
-				$iQuery->where("#type = 'dc_note' && #dealValue < 0");
-			} else {
-				$iQuery->where("#type = 'invoice' || (#type = 'dc_note' && #dealValue >= 0)");
+			if(isset($valior)){
+				$iQuery->where("#date <= '{$valior}'");
+			}
+			
+			$whereArr = array();
+			if($showInvoices === TRUE){
+				$whereArr[] = "#type = 'invoice'";
+			}
+			
+			if($showDebitNotes === TRUE){
+				$whereArr[] = "#type = 'dc_note' && #dealValue > 0";
+			}
+			
+			if($showCreditNotes === TRUE){
+				$whereArr[] = "#type = 'dc_note' && #dealValue <= 0";
+			}
+			
+			if(count($whereArr)){
+				$iQuery->where(implode(' || ', $whereArr));
 			}
 			
 			while($iRec = $iQuery->fetch()){
@@ -1189,86 +1268,88 @@ abstract class deals_Helper
 	/**
 	 * Помощен метод връщащ разпределението на плащанията по фактури
 	 * 
-	 * @param int $threadId - ид на тред
-	 * @return array $paid  - масив с разпределените плащания
+	 * @param int $threadId     - ид на тред
+	 * @param date|NULL $valior - към коя дата
+	 * @return array $paid      - масив с разпределените плащания
 	 */
-	public static function getInvoicePayments($threadId)
+	public static function getInvoicePayments($threadId, $valior = NULL)
 	{
 		expect($threadId);
+		$firstDoc = doc_Threads::getFirstDocument($threadId);
+		if(!$firstDoc->isInstanceOf('deals_DealBase')) return array();
 		
-		$invoicesArr = self::getInvoicesInThread($threadId);
-		if(!count($invoicesArr)) return array();
-	
-		$paid = $invoices = $payDocuments = array();
-		foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments') as $Pay){
-			$Pdoc = cls::get($Pay);
-			$pQuery = $Pdoc->getQuery();
-			$pQuery->where("#threadId = {$threadId} AND #state = 'active'");
-			$pQuery->show('containerId,amountDeal,fromContainerId,isReverse,activatedOn,valior');
+		// Ако сделката е приключена, проверява се дали не е приключена с друга сделка
+		if($firstDoc->fetchField('state') == 'closed'){
+			$dQuery = $firstDoc->getInstance()->getQuery();
+			$dQuery->where("LOCATE('|{$firstDoc->that}|', #closedDocuments)");
 			
-			while($pRec = $pQuery->fetch()){
-				$type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
-				$sign = ($pRec->isReverse == 'yes') ? -1 : 1;
-				$payDocuments[$pRec->containerId] = (object)array('valior' => $pRec->valior, 'activatedOn' => $pRec->activatedOn, 'amount' => $sign * round($pRec->amountDeal, 2), 'type' => $type, 'toInvoice' => $pRec->fromContainerId, 'isReverse' => ($pRec->isReverse == 'yes'));
+			// Ако е подменя се треда с този на обединяващата сделка, защото тя ще се използва за основа
+			if($combinedThread = $dQuery->fetch()->threadId){
+				$firstDoc = doc_Threads::getFirstDocument($combinedThread);
+				$threadId = $combinedThread;
 			}
 		}
-	
-		uasort($payDocuments, function($a, $b){ if($a->valior == $b->valior) {return ($a->activatedOn < $b->activatedOn) ? -1 : 1;} return ($a->valior < $b->valior) ? -1 : 1;});
-		$notAllocated = array_filter($payDocuments, function($a){return empty($a->toInvoice);});
 		
-		$cache = array();
-		$newInvoiceArr = array();
-		foreach ($invoicesArr as $containerId => $hnd){
+		// Ако сделката е обединяваща взимат се всички нишки, които обединява
+		$threads = array($threadId => $threadId);
+		$closedDocs = $firstDoc->fetchField('closedDocuments');
+		$closedDocs = keylist::toArray($closedDocs);
+		if(is_array($closedDocs) && count($closedDocs)){
+			foreach ($closedDocs as $docId){
+				if($dThreadId = $firstDoc->getInstance()->fetchField($docId, 'threadId')){
+					$threads[$dThreadId] = $dThreadId;
+				}
+			}
+		}
+		
+		// Всички ф-ри в посочената нишка/нишки
+		$invoicesArr = self::getInvoicesInThread($threads, $valior, TRUE, TRUE, TRUE);
+		if(!count($invoicesArr)) return array();
+		
+		$newInvoiceArr = $invMap = $payArr = array();
+		foreach ($invoicesArr as $containerId => $handler){
 			$Document = doc_Containers::getDocument($containerId);
 			$iRec = $Document->fetch('dealValue,discountAmount,vatAmount,rate,type,originId,containerId');
-			$cache[$containerId] = $iRec;
+			
 			$amount = round((($iRec->dealValue - $iRec->discountAmount) + $iRec->vatAmount) / $iRec->rate, 2);
-			
 			$key = ($iRec->type != 'dc_note') ? $containerId : $iRec->originId;
-			$newInvoiceArr[$key]['total'] += $amount;
-			$newInvoiceArr[$key]['current'] += $amount;
+			$invMap[$containerId] = $key;
+			
+			if(!array_key_exists($key, $newInvoiceArr)){
+				$newInvoiceArr[$key] = (object) array('containerId' => $key, 'amount' => $amount, 'payout' => 0, 'payments' => array());
+			} else {
+				$newInvoiceArr[$key]->amount += $amount;
+			}
 		}
 		
-		foreach ($newInvoiceArr as $k => $o){
-			$found = array_filter($payDocuments, function($a) use ($k, $cache){return $a->toInvoice == $k || $cache[$a->toInvoice]->originId == $k;});
-			$totalPercent = 1;
-			
-			if(count($found)){
-				foreach ($found as $fId => $o){
-					$newInvoiceArr[$k]['current'] -= $o->amount;
-					$percent = min(round($o->amount / $newInvoiceArr[$k]['total'], 2), 1);
-					$totalPercent -= $percent;
+		foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_CreditDocuments', 'findeals_DebitDocuments') as $Pay){
+			$Pdoc = cls::get($Pay);
+			$pQuery = $Pdoc->getQuery();
+			$pQuery->in('threadId', $threads);
+			$pQuery->where("#state = 'active'");
+			$pQuery->show('containerId,amountDeal,amount,fromContainerId,isReverse,activatedOn,valior');
+			if(isset($valior)){
+				$pQuery->where("#valior <= '{$valior}'");
+			}
 				
-					$paid[$k][$fId] = (object)array('containerId' => $fId, 'percent' => $percent, 'type' => $o->type, 'isReverse' => $o->isReverse);
+			while($pRec = $pQuery->fetch()){
+				$sign = ($pRec->isReverse == 'yes') ? -1 : 1;
+				if(in_array($Pay, array('findeals_CreditDocuments', 'findeals_DebitDocuments'))){
+					$type = 'intercept';
+					$amount = round($pRec->amount, 2);
+				} else {
+					$amount = round($pRec->amountDeal, 2);
+					$type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
 				}
-			}
-			
-			if($newInvoiceArr[$k]['current'] <= 0) continue;
-			
-			if(count($notAllocated)){
-				foreach ($notAllocated as $nId => &$o1){
-					
-					$unset = FALSE;
-					if($o1->amount > $newInvoiceArr[$k]['current']){
-						$percent = $totalPercent;
-						$o1->amount -= $newInvoiceArr[$k]['current'];
-						$newInvoiceArr[$k]['current'] = 0;
-					} else {
-						$percent = min(round($o1->amount / $newInvoiceArr[$k]['total'], 2), 1);
-						$totalPercent -= $percent;
-						$newInvoiceArr[$k]['current'] -= $o1->amount;
-						$unset = TRUE;
-					}
-						
-					$paid[$k][$nId] = (object)array('containerId' => $nId, 'percent' => $percent, 'type' => $o1->type, 'isReverse' => $o1->isReverse);
-					if($unset === TRUE){
-						unset($notAllocated[$nId]);
-					}
-				}
+		
+				$amount = $sign * $amount;
+				$payArr[$pRec->containerId] = (object) array('containerId' => $pRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => $invMap[$pRec->fromContainerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
 			}
 		}
 		
-		return $paid;
+		self::allocationOfPayments($newInvoiceArr, $payArr);
+		
+		return $newInvoiceArr;
 	}
 	
 	
@@ -1281,9 +1362,9 @@ abstract class deals_Helper
 	public static function updateAutoPaymentTypeInThread($threadId)
 	{
 		// Разпределените начини на плащане
-		core_Cache::remove('threadInvoices', "t{$threadId}");
+		core_Cache::remove('threadInvoices1', "t{$threadId}");
 		$invoicePayments = deals_Helper::getInvoicePayments($threadId);
-		core_Cache::set('threadInvoices', "t{$threadId}", $invoicePayments, 1440);
+		core_Cache::set('threadInvoices1', "t{$threadId}", $invoicePayments, 1440);
 	
 		// Всички ф-ри в нишката
 		$invoices = self::getInvoicesInThread($threadId);
@@ -1296,6 +1377,201 @@ abstract class deals_Helper
 			
 			$Doc->getInstance()->save_($rec, 'autoPaymentType');
 			doc_DocumentCache::cacheInvalidation($rec->containerId);
+		}
+	}
+	
+	
+	/**
+	 * Помощен метод дали в даден тред на сделка да се показва бутона за фактура
+	 * 
+	 * @param int $threadId
+	 * @return boolean
+	 */
+	public static function showInvoiceBtn($threadId)
+	{
+		expect($firstDoc = doc_Threads::getFirstDocument($threadId));
+		if(!$firstDoc->isInstanceOf('deals_DealMaster')) return FALSE;
+		
+		$makeInvoice = $firstDoc->fetchField('makeInvoice');
+		$res = ($makeInvoice == 'yes') ? TRUE : FALSE;
+		
+		return $res;
+	}
+	
+	
+	/**
+	 * Дефолтното име на платежната операция
+	 * 
+	 * @param string $operationSysId
+	 * @return string
+	 */
+	public static function getPaymentOperationText($operationSysId)
+	{
+		$payments = cls::get('sales_Sales')->allowedPaymentOperations + cls::get('purchase_Purchases')->allowedPaymentOperations;
+		
+		return array_key_exists($operationSysId, $payments) ? $payments[$operationSysId]['title'] : '';
+	}
+	
+	
+	/**
+     * Разпределяне на плащанията според приоритетите
+     */
+    public static function allocationOfPayments(&$invArr, &$payArr)
+    {
+    	// Разпределяне на свързаните приходни документи
+    	foreach($payArr as $i => $pay) {
+    		if($pay->to) {
+    			$invArr[$pay->to]->payout += $pay->available;
+    			$pay->available = 0;
+    			$invArr[$pay->to]->used[$pay->containerId] = $pay;
+    			self::pushPaymentType($invArr[$pay->to]->payments, $pay);
+    		}
+    	}
+    	 
+    	$revInvArr = array_reverse($invArr, TRUE);
+    	
+    	// Разпределяме всички остатъци от плащания
+    	foreach($payArr as $i => $pay) {
+    		if($pay->available > 0) {
+    			// Обикаляме по фактурите от начало към край и попълваме само дупките
+    			foreach($invArr as $inv) {
+    				if($inv->amount > $inv->payout) {
+    					$sum = min($inv->amount - $inv->payout, $pay->available);
+    					$inv->payout += $sum;
+    					$pay->available -= $sum;
+    						
+    					$inv->used[$pay->containerId] = $pay;
+    					self::pushPaymentType($inv->payments, $pay);
+    				}
+    			}
+    		} elseif($pay->available < 0) {
+    			// Обикаляме по фактурите от края към началото и връщаме пари само на надплатените
+    			foreach($revInvArr as $inv) {
+    				// Пропускаме фактурите, които са след плащането
+    				// Предполагаме, че пари можем да връщаме само по минали фактури
+    				if($inv->number > $pay->number) continue;
+    				if($inv->payout  > $inv->amount) {
+    					$sum = min($inv->payout - $inv->amount, -$pay->available);
+    					$inv->payout -= $sum;
+    					$pay->available += $sum;
+    						
+    					$inv->used[$pay->containerId] = $pay;
+    					self::pushPaymentType($inv->payments, $pay);
+    				}
+    			}
+    		}
+    	}
+    	 
+    	// Събираме остатъците от всички платежни документи и ги нанасяме от зад напред
+    	$rest = 0;
+    	$used = $payments = array();
+    	foreach($payArr as $i => $pay) {
+    		if($pay->available != 0) {
+    			$rest += $pay->available;
+    			$pay->available = 0;
+    			$used[$pay->containerId] = $pay->number;
+    			self::pushPaymentType($payments, $pay);
+    		}
+    	}
+    	 
+    	foreach($invArr as $inv) {
+    		$first = $inv;
+    		break;
+    	}
+    	 
+    	foreach($revInvArr as $inv) {
+    		if(!is_array($inv->used)) {
+    			$inv->used = array();
+    		}
+    		 
+    		if($rest > 0) {
+    			$inv->payout += $rest;
+    			$rest = 0;
+    			$inv->used += $used;
+    			$inv->payments += $payments;
+    		}
+    		 
+    		if($rest < 0) {
+    			if($inv->number == $first->number) {
+    				$sum = -$rest;
+    			} else {
+    				$sum = min(-$rest, $inv->payout);
+    			}
+    			$inv->payout -= $sum;
+    			$rest += $sum;
+    			$inv->used += $used;
+    			$inv->payments += $payments;
+    		}
+    		 
+    		if($rest == 0) break;
+    	}
+    	 
+    	// Обикаляме по фактурите и надплатените ги разнасяме към следващите
+    	$cInvArr = $invArr;
+    	foreach($invArr as $inv) {
+    		$overPaid = $inv->payout - $inv->amount;
+    		if($overPaid > 0) {
+    			foreach($cInvArr as $cInv) {
+    				$underPaid = $cInv->amount - $cInv->payout;
+    				if($underPaid > 0 && is_array($inv->used) && count($inv->used)) {
+    					$payDoc = $inv->used[count($inv->used) - 1];
+    					$transfer = min($underPaid, $overPaid);
+    					$inv->payout -= $transfer;
+    					$cInv->payout += $transfer;
+    					if(is_array($cInv->used) && !in_array($payDoc, $cInv->used)) {
+    						$cInv->used[$payDoc->containerId] = $payDoc;
+    						self::pushPaymentType($cInv->payments, $payDoc);
+    					}
+    				}
+    			}
+    		}
+    	}
+    }
+	
+    
+    /**
+     * Помощна ф-я за добавяне на платежния метод
+     */
+	private static function pushPaymentType(&$payments, $pay)
+	{
+		if($pay->paymentType == 'cash' && $pay->isReverse !== TRUE) {
+			$payments['cash'] = 'cash';
+		} elseif($pay->paymentType == 'intercept' && $pay->isReverse !== TRUE){
+			$payments['intercept'] = 'intercept';
+		} elseif($pay->paymentType == 'bank' && $pay->isReverse !== TRUE){
+			$payments['bank'] = 'bank';
+		}
+	}
+	
+	
+	/**
+	 * Дефолтния режим на ДДС за папката
+	 * 
+	 * @param int $folderId
+	 * @return string
+	 */
+	public static function getDefaultChargeVat($folderId)
+	{
+		$coverId = doc_Folders::fetchCoverId($folderId);
+		$Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
+		 
+		return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+	}
+	
+	
+	/**
+	 * Предупреждение ако избраната валута се различава от очакваната
+	 * 
+	 * @param string $defaultVat
+	 * @param string $selectedVatType
+	 * @return string
+	 */
+	public static function getVatWarning($defaultVat, $selectedVatType)
+	{
+		if($defaultVat == 'yes' && in_array($selectedVatType, array('exempt', 'no'))){
+			return 'Избран е режим за неначисляване на ДДС, при очакван с ДДС';
+		} elseif($defaultVat == 'no' && in_array($selectedVatType, array('yes', 'separate'))){
+			return 'Избран е режим за начисляване на ДДС, при очакван без ДДС';
 		}
 	}
 }

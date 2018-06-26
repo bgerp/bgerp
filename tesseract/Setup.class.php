@@ -16,7 +16,7 @@ defIfNot('TESSERACT_LANGUAGES', 'bul+eng');
 /**
  * Стойността на -psm
  */
-defIfNot('TESSERACT_PAGES_MODE', '4');
+defIfNot('TESSERACT_PAGES_MODE', '1');
 
 
 

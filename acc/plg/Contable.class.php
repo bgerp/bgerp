@@ -18,38 +18,6 @@ class acc_plg_Contable extends core_Plugin
     
     
     /**
-     * Масив с класове и съответните роли, които се изискват за private single на документа
-     */
-    protected static $rolesAllMap = array(
-            'purchase_Invoices' => 'invoiceAll',
-            'sales_Invoices' => 'invoiceAll',
-            'sales_Proformas' => 'invoiceAll',
-            'store_ShipmentOrders' => 'storeAll',
-            'store_Receipts' => 'storeAll',
-            'store_Transfers' => 'storeAll',
-            'store_ConsignmentProtocols' => 'storeAll',
-            'store_InventoryNotes' => 'storeAll',
-            'purchase_Services' => 'storeAll',
-            'sales_Services' => 'storeAll',
-            'bank_IncomeDocuments' => 'bankAll',
-            'bank_SpendingDocuments' => 'bankAll',
-            'bank_ExchangeDocument' => 'bankAll',
-            'bank_InternalMoneyTransfer' => 'bankAll',
-            'cash_Pko' => 'cashAll',
-            'cash_Rko' => 'cashAll',
-            'cash_InternalMoneyTransfer' => 'cashAll',
-            'cash_ExchangeDocument' => 'cashAll',
-            'sales_Sales' => 'saleAll',
-            'purchase_Purchases' => 'purchaseAll',
-            'planning_DirectProductionNote' => 'planningAll',
-            'planning_ConsumptionNotes' => 'planningAll',
-            'planning_ReturnNotes' => 'planningAll',
-            'planning_Jobs' => 'planningAll',
-            'planning_Tasks' => 'planningAll',
-    );
-    
-    
-    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -87,6 +55,7 @@ class acc_plg_Contable extends core_Plugin
         if (!empty($mvc->fields[$mvc->valiorFld]) && !isset($mvc->dbIndexes[$mvc->valiorFld])) {
             $mvc->setDbIndex($mvc->valiorFld);
         }
+        setIfNot($mvc->createView, TRUE);
     }
     
     
@@ -100,7 +69,8 @@ class acc_plg_Contable extends core_Plugin
     public static function on_BeforeAction(core_Manager $mvc, &$res, $action)
     {
         if(strtolower($action) == strtolower('getTransaction')) {
-            $id = Request::get('id', 'int');
+            requireRole('debug');
+        	$id = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
             $transaction       = $transactionSource->getTransaction($rec);
@@ -214,7 +184,7 @@ class acc_plg_Contable extends core_Plugin
                 'docType' => $mvc->getClassId(),
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Сторно', $rejectUrl, "id=revert,warning=Наистина ли желаете документът да бъде сторниран?{$error}", 'ef_icon = img/16/red-back.png,title=Сторниране на документа, row=2');
+            $data->toolbar->addBtn('Сторно', $rejectUrl, "id=revert,warning=Наистина ли желаете документът да бъде сторниран|*?", 'ef_icon = img/16/red-back.png,title=Сторниране на документа, row=2');
         } else {
         	
         	// Ако потребителя може да създава коригиращ документ, слагаме бутон
@@ -445,8 +415,8 @@ class acc_plg_Contable extends core_Plugin
         
         // Проверка за права за частния сингъл
         if ($action == 'viewpsingle') {
-            $rolesAll = self::$rolesAllMap[$mvc->className];
-            if (!haveRole($rolesAll, $userId)) {
+            $rolesAll = acc_plg_DocumentSummary::$rolesAllMap[$mvc->className];
+            if (!$rolesAll || !haveRole($rolesAll, $userId)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -511,7 +481,6 @@ class acc_plg_Contable extends core_Plugin
     	try{
     		self::conto($mvc, $rec);
     	} catch (acc_journal_RejectRedirect $e){
-    		 
     		$url = $mvc->getSingleUrlArray($rec->id);
     		redirect($url, FALSE, '|' . $e->getMessage(), 'error');
     	}
@@ -794,7 +763,7 @@ class acc_plg_Contable extends core_Plugin
     	$message = "{$currUserNick} |контира|* \"|{$docTitle}|*\" |в нишка|* \"{$folderTitle}\"";
     	foreach ($userArr as $uId) {
     	    
-    	    if (!$mvc->haveRightFor('single', $rec->id)) continue;
+//     	    if (!$mvc->haveRightFor('single', $rec->id, $uId)) continue;
     	    
     		bgerp_Notifications::add($message, array($mvc, 'single', $rec->id), $uId);
     	}
@@ -820,5 +789,25 @@ class acc_plg_Contable extends core_Plugin
     	foreach ($userArr as $uId) {
     		bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id), 'yes', $uId);
     	}
+    }
+    
+    
+    /**
+     * Има ли контиращи документи в състояние заявка в нишката
+     * 
+     * @param int $threadId
+     * @return boolean
+     */
+    public static function havePendingDocuments($threadId)
+    {
+    	$contoClasses = core_Classes::getOptionsByInterface('acc_TransactionSourceIntf');
+    	$contoClasses = array_keys($contoClasses);
+    	
+    	$cQuery = doc_Containers::getQuery();
+    	$cQuery->where("#state = 'pending'");
+    	$cQuery->in('docClass', $contoClasses);
+    	$cQuery->where("#threadId = {$threadId}");
+    	
+    	return ($cQuery->fetch()) ? TRUE : FALSE;
     }
 }

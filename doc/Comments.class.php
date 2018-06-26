@@ -12,8 +12,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class doc_Comments extends core_Master
+class doc_Comments extends embed_Manager
 {
+    
+    
+    /**
+     * Интерфейс на драйверите
+     */
+    public $driverInterface = 'doc_ExpandCommentsIntf';
     
     
     /**
@@ -96,7 +102,7 @@ class doc_Comments extends core_Master
     
 	/**
      * Кой може да променя активирани записи
-     * @see plg_Change
+     * @see change_Plugin
      */
     var $canChangerec = 'powerUser';
     
@@ -186,45 +192,87 @@ class doc_Comments extends core_Master
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param stdClass $data
+     */
+    public function prepareEditForm_($data)
+    {
+        if (!Request::get($this->driverClassField) && !Request::get('id')) {
+            $dClsId = doc_ExpandComments::getClassId();
+            
+			Request::push(array($this->driverClassField => $dClsId));
+        }
+        
+        return parent::prepareEditForm_($data);
+    }
+    
+    
+    /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        $data->form->setField($mvc->driverClassField, 'input=hidden');
+        
         // Да се цитират документа, ако не се редактира
         if (!$data->form->rec->id) { 
             $data->form->fields['body']->type->params['appendQuote'] = 'appendQuote';
         }
         
-        $rec = $data->form->rec;
-        
-        //Ако добавяме нови данни
-        if (!$rec->id) {
+        if (!$data->form->rec->id && !$data->form->rec->clonedFromId) {
             
-            $haveOrigin = FALSE;
+            $detId = Request::get('detId', 'int');
             
-            //Ако имаме originId
-            if ($rec->originId) {
-                
-                $cid = $rec->originId;
-                $haveOrigin = TRUE;
-            } elseif ($rec->threadId) {
-                
-                // Ако добавяме коментар в нишката
-                $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
-            }
+            $originId = $data->form->rec->originId;
             
-            if ($cid && $data->action != 'clone') {
+            if ($originId) {
+                $doc = doc_Containers::getDocument($originId);
                 
-                //Добавяме в полето Относно отговор на съобщението
-                $oDoc = doc_Containers::getDocument($cid);
-                $oRow = $oDoc->getDocumentRow();
-                $for = tr('|За|*: ');
-                $rec->subject = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+                $dRec = $doc->fetch();
                 
-                if ($haveOrigin) {
-                    $rec->body = $for . '#' .$oDoc->getHandle() . "\n" . $rec->body;
+                $doc->instance->requireRightFor('single', $dRec);
+                
+                $dData = $doc->instance->getDefaultDataForComment($dRec, $detId);
+                
+                if (!empty($dData)) {
+                    foreach ($dData as $key => $val) {
+                        
+                        if (!isset($val)) continue;
+                        
+                        $data->form->rec->{$key} = $val;
+                    }
                 }
             }
+        }
+    }
+    
+    
+    /**
+     *
+     * @param core_Mvc $mvc
+     * @param NULL|array $res
+     * @param stdClass $rec
+     * @param array $otherParams
+     */
+    function on_AfterGetDefaultData($mvc, &$res, $rec, $otherParams = array())
+    {
+        $res = arr::make($res);
+        
+        //Ако имаме originId
+        if ($rec->originId) {
+            $cid = $rec->originId;
+        } elseif ($rec->threadId) {
+            // Ако добавяме коментар в нишката
+            $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+        }
+        
+        if ($cid) {
+            //Добавяме в полето Относно отговор на съобщението
+            $oDoc = doc_Containers::getDocument($cid);
+            $oRow = $oDoc->getDocumentRow();
+            $for = tr('|За|*: ');
+            $res['subject'] = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
         }
     }
     
@@ -280,30 +328,6 @@ class doc_Comments extends core_Master
         $row->recTitle = $rec->subject;
         
         return $row;
-    }
-    
-    
-    /**
-     * Реализация  на интерфейсния метод ::getThreadState()
-     * 
-     * @param integer $id
-     * 
-     * @return NULL|string
-     */
-    static function getThreadState($id)
-    {
-	    $res = NULL;
-	    
-	    if (core_Packs::isInstalled('colab')) {
-	        $rec = self::fetch($id);
-	        if (core_Users::haveRole('partner', $rec->createdB)) {
-	            $res = 'opened';
-	        } elseif (core_Users::isPowerUser($rec->createdBy) && self::isVisibleForPartners($rec)) {
-	            $res = 'closed';
-	        }
-	    }
-	    
-	    return $res;
     }
     
     

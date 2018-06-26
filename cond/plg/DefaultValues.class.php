@@ -185,7 +185,7 @@ class cond_plg_DefaultValues extends core_Plugin
     	
     	$query->where("#folderId = {$folderId}");
     	if($fromUser){
-    		$query->where("#createdBy = {$cu}");
+    		$query->where("#createdBy = '{$cu}'");
     	}
     	
     	$query->orderBy('createdOn', 'DESC');
@@ -271,12 +271,13 @@ class cond_plg_DefaultValues extends core_Plugin
 	    	$data = self::getCoverMethod($rec->folderId, 'getContragentData');
 	    	if(empty($data)) return;
 	    	
-	    	$conf = core_Packs::getConfig('crm');
+	    	$ownCountryId = crm_Companies::fetchOurCompany()->country;
 	    	if(!$data->country){
-		    	$data->country = $conf->BGERP_OWN_COMPANY_COUNTRY;
+		    	$data->country = $ownCountryId;
 	    	}
+	    	
 	    	if(!$data->countryId){
-	    		$data->countryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'", 'id');
+	    		$data->countryId = $ownCountryId;
 	    	}
 	    	
     		$mvc->_cachedContragentData = $data;

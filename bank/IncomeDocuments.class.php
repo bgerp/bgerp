@@ -82,6 +82,10 @@ class bank_IncomeDocuments extends bank_Document
      */
     public $filterDateField = 'createdOn, termDate,valior,modifiedOn';
     
+    /**
+     * Права за плъгин-а bgerp_plg_Export
+     */
+   public $canExport = 'ceo, invoicer';
     
     /**
      * Описание на модела
@@ -105,7 +109,7 @@ class bank_IncomeDocuments extends bank_Document
         $form->setDefault('contragentId', $contragentId);
         $form->setDefault('contragentClassId', $contragentClassId);
         
-        expect($origin = $mvc->getOrigin($form->rec));
+        expect($origin = $mvc->getOrigin($form->rec), $form->rec);
         $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(FALSE));
         
         $mvc->setDefaultsFromOrigin($origin, $form, $options);

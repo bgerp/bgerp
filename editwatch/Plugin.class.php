@@ -32,8 +32,7 @@ class editwatch_Plugin extends core_Plugin
      */
     function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-        // id на записа
-        if (!($recId = $data->form->rec->id)) return TRUE;
+        $recId = $data->form->rec->id;
         
         // Съобщението
         $status = static::renderStatus($data->editedBy);
@@ -66,7 +65,7 @@ class editwatch_Plugin extends core_Plugin
         
         // Шаблон за информацията
         $info = new ET("<div id='editStatus'>[#1#]</div>", $status);
-        
+   
         // Абонираме процеса
         core_Ajax::subscribe($info, array($mvc, 'showEditwatchStatus', $recId, 'refreshUrl' => $refreshUrlLocal), 'editwatch', $time);
         
@@ -78,7 +77,7 @@ class editwatch_Plugin extends core_Plugin
     /**
      * HTML стринг с хората, които редактират записа, освен текущия потребител
      * 
-     * @param array $editedBy
+     * @param NULL|array $editedBy
      * 
      * @return string
      */
@@ -86,7 +85,7 @@ class editwatch_Plugin extends core_Plugin
     {
         $info = '<span></span>';
         
-        if (count($editedBy)) {
+        if (isset($editedBy) && count($editedBy)) {
             $info = tr("Този запис се редактира също и от|*: ");
             $sign = '';
             
@@ -99,7 +98,7 @@ class editwatch_Plugin extends core_Plugin
                 $sign = ', ';
             }
             
-            $info = "<span class='warningMsg'>$info</span>";
+            $info = "<span class='warningMsg'>{$info}</span>";
         }
         
         return $info;
@@ -123,12 +122,16 @@ class editwatch_Plugin extends core_Plugin
         
         $recId = Request::get('id', 'int');
         
+        $forceLogin = FALSE;
+        
         // Ако не е логнат потребител
         // Понякога и every_one може да редактира запис
-        if (!haveRole('user') && !$mvc->haveRightFor('edit', $recId)) {
+        if (isset($recId) && !haveRole('user') && !$mvc->haveRightFor('edit', $recId)) {
             $status = tr('Трябва да сте логнати, за да редактирате този запис') . '.';
             $js = "w=window.open(\"" . toUrl(array('core_Users', 'login', 'popup' => 1)) . "\",\"Login\",\"width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0\"); if(w) w.focus();";
             $status = "<div class='formError'>$status <a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}'>" . tr("Логнете се сега...||Login now...") . "</a></div>";
+            
+            $forceLogin = TRUE;
         } else {
             
             $editedBy = array();
@@ -144,7 +147,7 @@ class editwatch_Plugin extends core_Plugin
         $statusHash = static::getStatusHash($status);
         
         // Хеша на името
-        $nameHash    = static::getNameHash($refreshUrl, $hitTime);
+        $nameHash = static::getNameHash($refreshUrl, $hitTime);
         
         // Вземаме съдържанието от предишния запис
         $savedHash = Mode::get($nameHash);
@@ -162,7 +165,11 @@ class editwatch_Plugin extends core_Plugin
             $resObj->func = 'html';
             $resObj->arg = array('id'=>'editStatus', 'html' => $status, 'replace' => TRUE);
             
-            $res = array($resObj);
+            $resObj2 = new stdClass();
+            $resObj2->func = 'forceLoginToSubmit';
+            $resObj2->arg = array('force' => $forceLogin);
+            
+            $res = array($resObj, $resObj2);
         }
         
         return FALSE;

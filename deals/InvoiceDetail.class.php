@@ -100,17 +100,15 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		}
 		
 		if($masterRec->type === 'dc_note'){
-			$data->form->info = tr('|*<div style="color:#333;margin-top:3px;margin-bottom:12px">|Моля въведете крайното количество|* <b>|или|*</b> |сума след промяната|* <br><small>( |системата автоматично ще изчисли и попълни разликата в известието|* )</small></div>');
+			$data->form->info = tr('|*<div style="color:#333;margin-top:3px;margin-bottom:12px">|Моля, въведете крайното количество|* <b>|или|*</b> |цена след промяната|* <br><small>( |системата автоматично ще изчисли и попълни разликата в известието|* )</small></div>');
 			$data->form->setField('quantity', 'caption=|Крайни|* (|след известието|*)->К-во');
 			$data->form->setField('packPrice', 'caption=|Крайни|* (|след известието|*)->Цена');
 			
 			foreach (array('packagingId', 'notes', 'discount') as $fld){
 				$data->form->setField($fld, 'input=none');
 			}
-			$data->form->setFieldTypeParams('quantity', array('min' => 0));
-		} else {
-			$data->form->setFieldTypeParams('quantity', array('Min' => 0));
-		}
+		} 
+		$data->form->setFieldTypeParams('quantity', array('min' => 0));
 		$data->form->setFieldTypeParams('packPrice', array('min' => 0));
 		
 		if (!empty($rec->packPrice)) {
@@ -356,7 +354,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				core_Lg::push($masterRec->tplLang);
 				$data->rows['advance'] = (object) array('RowNumb' => 1, 'reason' => tr($reason), 'amount' => $amount);
 				core_Lg::pop();
-			} 
+			}
 		}
 	}
 	
@@ -391,6 +389,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		
 		// Показваме подробната информация за опаковката при нужда
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+		
+		if($masterRec->type == 'invoice'){
+			if(empty($rec->quantity) && !Mode::isReadOnly()){
+				$row->ROW_ATTR['style'] = " background-color:#f1f1f1;color:#777";
+			}
+		}
 		
 		return $row;
 	}
@@ -586,8 +590,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			// При редакция, ако е променена опаковката слагаме преудпреждение
 			if($rec->id){
 				$oldRec = $mvc->fetch($rec->id);
-				if($oldRec && $rec->packagingId != $oldRec->packagingId && trim($rec->packPrice) == trim($oldRec->packPrice)){
-					$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте, че зададената цена отговаря на  новата опаковка!");
+				if($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && trim($rec->packPrice) == trim($oldRec->packPrice)){
+					$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената|*.<br />|Сигурни ли сте, че зададената цена отговаря на новата опаковка|*?");
 				}
 			}
 			

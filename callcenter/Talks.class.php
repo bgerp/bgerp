@@ -344,9 +344,9 @@ class callcenter_Talks extends core_Master
         }
         
         // Добавяме бутон за създаване на сигнал
-        if (support_Issues::haveRightFor('add')) {
-            Request::setProtected('srcId, srcClass');
-            $row->_rowTools->addLink('Сигнал', array('support_Issues', 'add', 'srcId' => $rec->id, 'srcClass' => $mvc->className, 'ret_url' => TRUE), 'ef_icon=img/16/support.png, title=Създаване на сигнал от обаждане');
+        if ($rec->id && cal_Tasks::haveRightFor('add')) {
+            $urlArr = cal_Tasks::getUrlForCreate($rec->id, $mvc->className);
+            $row->_rowTools->addLink('Сигнал', $urlArr, 'ef_icon=img/16/support.png, title=Създаване на сигнал от обаждане');
         }
         
         if ($mvc->haveRightFor('archivetalk', $rec)) {
@@ -395,7 +395,7 @@ class callcenter_Talks extends core_Master
     /**
      * Връща масив с данни, които ще се използват за определяне на файла при архивиране
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return array
      */
@@ -1709,7 +1709,7 @@ class callcenter_Talks extends core_Master
      * @param callcenter_Talks $mvc
      * @param string $requiredRoles
      * @param string $action
-     * @param NULL|stdObject $rec
+     * @param NULL|stdClass $rec
      * @param NULL|integer $userId
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
@@ -1757,6 +1757,39 @@ class callcenter_Talks extends core_Master
                     } else {
                         if (!callcenter_Numbers::canUseHostForNum($rec->internalNum)) {
                             $requiredRoles = 'no_one';
+                        }
+                    }
+                }
+                
+                if ($requiredRoles != 'no_one' && $rec) {
+                    
+                    // Да може да се архивират разговорите на своите номера + подчинените си
+                    if ($rec->internalNum) {
+                        $uArr = callcenter_Numbers::getUserForNum($rec->internalNum);
+                        
+                        if (!$userId) {
+                            $requiredRoles = 'no_one';
+                        } else {
+                            if (!$uArr[$userId]) {
+                                
+                                $userIsCeo = haveRole('ceo', $userId);
+                                
+                                foreach ($uArr as $uId) {
+                                    if (haveRole('ceo', $uId)) {
+                                        $requiredRoles = 'no_one';
+                                        
+                                        break;
+                                    }
+                                    
+                                    if (haveRole('manager', $uId)) {
+                                        if (!$userIsCeo) {
+                                            $requiredRoles = 'no_one';
+                                            
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -2265,7 +2298,7 @@ class callcenter_Talks extends core_Master
 	 * 
 	 * @param integer $id Кой е пораждащия комит
 	 * 
-	 * @return stdObject за support_Issues
+	 * @return stdClass за cal_Tasks
 	 * 
 	 * @see support_IssueCreateIntf
 	 */
@@ -2315,15 +2348,9 @@ class callcenter_Talks extends core_Master
 	 */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if ($data->rec->id && support_Issues::haveRightFor('add')) {
-            Request::setProtected('srcId, srcClass');
-            $data->toolbar->addBtn('Сигнал', array(
-                    'support_Issues',
-                    'add',
-                    'srcId' => $data->rec->id,
-                    'srcClass' => $mvc->className,
-                    'ret_url'=> TRUE
-                ),'ef_icon = img/16/support.png,title=Създаване на сигнал');
+        if ($data->rec->id && cal_Tasks::haveRightFor('add')) {
+            $urlArr = cal_Tasks::getUrlForCreate($data->rec->id, $mvc->className);
+            $data->toolbar->addBtn('Сигнал', $urlArr,'ef_icon = img/16/support.png,title=Създаване на сигнал');
         }
     }
     

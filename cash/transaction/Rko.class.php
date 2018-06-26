@@ -49,7 +49,7 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
     	
     	// Подготвяме информацията която ще записваме в Журнала
     	$result = (object)array(
-    			'reason'  => $rec->reason,   // основанието за ордера
+    			'reason'  => (!empty($rec->reason)) ? $rec->reason : deals_Helper::getPaymentOperationText($rec->operationSysId),   // основанието за ордера
     			'valior'  => $rec->valior,   // датата на ордера
     			'entries' => $entry,
     	);
@@ -81,7 +81,7 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
     		$amount = $rec->amount * $rec->rate;
     	}
     	
-    	$entry = array('amount' => $sign * $amount, 
+    	$entry[] = array('amount' => $sign * $amount, 
     			
     				   'debit' => array($rec->debitAccount, 
     				   					array($rec->contragentClassId, $rec->contragentId), 
@@ -93,7 +93,21 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
     									array('cash_Cases', $rec->peroCase), 
     									array('currency_Currencies', $rec->currencyId),
     									'quantity' => $sign * $rec->amount));
-    	$entry = array($entry);
+    	
+    	if($reverse === TRUE && $rec->operationSysId == 'supplier2caseRet' || $rec->operationSysId == 'supplierAdvance2caseRet'){
+    		$entry2 = $entry[0];
+    		$entry2['amount'] = abs($entry2['amount']);
+    		$debitArr = $entry2['credit'];
+    		$creditArr = $entry2['debit'];
+    		$entry[0]['credit'] = $creditArr;
+    		$entry[0]['credit'][0] = '482';
+    		
+    		$entry2['debit'] = $debitArr;
+    		$entry2['debit']['quantity'] = abs($entry2['debit']['quantity']);
+    		$entry2['credit'] = $entry[0]['credit'];
+    		$entry2['credit']['quantity'] = abs($entry2['credit']['quantity']);
+    		$entry[] = $entry2;
+    	}
     	
     	return $entry;
     }

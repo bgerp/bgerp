@@ -97,7 +97,7 @@ class core_Detail extends core_Manager
                 $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
             }
         }
-
+        
         // Подготвяме редовете от таблицата
         $this->prepareListRecs($data);
         
@@ -106,7 +106,7 @@ class core_Detail extends core_Manager
      
         // Подготвяме лентата с инструменти
         $this->prepareListToolbar($data);
-
+        
         return $data;
     }
     
@@ -162,6 +162,7 @@ class core_Detail extends core_Manager
         
         // Попълваме таблицата с редовете
         setIfNot($data->listTableMvc, clone $this);
+        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, TRUE);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме таблицата с редовете
@@ -284,13 +285,13 @@ class core_Detail extends core_Manager
     public static function getEditTitle($master, $masterId, $singleTitle, $recId, $preposition = NULL, $len = NULL)
     {
     	if(!$preposition){
-    		$preposition = 'към';
+    		$preposition = tr('към');
     	}
-    	 
+    	
     	if ($singleTitle) {
-    		$single = ' на| ' . mb_strtolower($singleTitle);
+    		$single = ' на|* |' . mb_strtolower($singleTitle);
     	}
-    	 
+    	
     	$title = ($recId) ? "Редактиране{$single} {$preposition}" : "Добавяне{$single} {$preposition}";
     	$title .= "|* " . cls::get($master)->getFormTitleLink($masterId);
     	
@@ -403,7 +404,7 @@ class core_Detail extends core_Manager
             }
         }
         
-        parent::logInAct($msg, $rec, $type);
+        parent::logInAct($newMsg, $rec, $type);
     }
     
     

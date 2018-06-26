@@ -32,7 +32,13 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, change_Plugin';
+    
+    
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'showInProduct';
     
     
     /**
@@ -169,7 +175,7 @@ class cat_Boms extends core_Master
     	$this->FLD('expenses', 'percent(Мin=0)', 'caption=Общи режийни');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
-    	$this->FLD('showInProduct', 'enum(,auto=Автоматично,yes=Да,no=Не)', 'caption=Показване в артикула');
+    	$this->FLD('showInProduct', 'enum(,auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)', 'caption=Показване в артикула,changeable');
     	$this->FLD('quantityForPrice', 'double(smartRound,min=0)', 'caption=Изчисляване на себестойност->При тираж,silent');
     	$this->FLD('hash', 'varchar', 'input=none');
     	
@@ -179,18 +185,34 @@ class cat_Boms extends core_Master
     
     /**
      * Показване на рецептата в артикула
-     * 
+     *
      * @param int $bomId
+     * @param core_Mvc $mvc
      * @return boolean
      */
-    public static function showInProduct($id)
+    public static function showIn($id, $className)
     {
     	$rec = self::fetchRec($id);
     	$showInProduct = !empty($rec->showInProduct) ? $rec->showInProduct : cat_Setup::get('SHOW_BOM_IN_PRODUCT');
     	
-    	if($showInProduct == 'auto') return (cat_Products::fetchField($rec->productId, 'fixedAsset') == 'yes'); 
-    		
-    	return ($showInProduct == 'yes') ? TRUE : FALSE;
+    	switch($showInProduct){
+    		case 'auto':
+    			$res = (cat_Products::fetchField($rec->productId, 'fixedAsset') == 'yes');
+    			break;
+    		case 'yes':
+    			$res = TRUE;
+    			break;
+    		case 'product':
+    			$res = ($className == 'cat_Products');
+    			break;
+    		case 'job':
+    			$res = ($className == 'planning_Jobs');
+    			break;
+    		default:
+    			$res = FALSE;
+    	}
+    	
+    	return $res;
     }
     
     
@@ -464,17 +486,6 @@ class cat_Boms extends core_Master
     	$row->recTitle = $rec->title;
     	
     	return $row;
-    }
-    
-    
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(get_called_class());
-    	 
-    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     
@@ -1004,6 +1015,10 @@ class cat_Boms extends core_Master
     			} else {
     				$price = planning_ObjectResources::getWacAmountInProduction(1, $productId, $date);
     			}
+    			
+    			if(isset($price) && $price < 0){
+    				$price = NULL;
+    			}
     		}
     	} else {
     		$pInfo = cat_Products::getProductInfo($productId);
@@ -1217,6 +1232,10 @@ class cat_Boms extends core_Master
     		$savePrimeCost = TRUE;
     	}
     	
+        if(!$rec->quantity) {
+            $rec->quantity = 1;
+        }
+
     	$quantity /= $rec->quantity;
     	
     	// Количеството за което изчисляваме е 1-ца
@@ -1342,8 +1361,7 @@ class cat_Boms extends core_Master
     	
     	// За основния артикул подготвяме задача
     	// В която самия той е за произвеждане
-    	$tasks = array(1 => (object)array('driver'          => planning_drivers_ProductionTask::getClassId(),
-    									  'title'           => $pName,
+    	$tasks = array(1 => (object)array('title'           => $pName,
     									  'plannedQuantity' => $quantity,
     									  'quantityInPack'  => 1,
     									  'packagingId'     => cat_Products::fetchField($rec->productId, 'measureId'),
@@ -1395,8 +1413,7 @@ class cat_Boms extends core_Master
     		$quantityP = ($quantityP / $rec->quantity) * $quantity;
     		
     		// Подготвяме задачата за етапа, с него за производим
-    		$arr = (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
-    							 'title'    => $pName . " / " . cat_Products::getTitleById($dRec->resourceId, FALSE),
+    		$arr = (object)array('title'    => $pName . " / " . cat_Products::getTitleById($dRec->resourceId, FALSE),
     							 'plannedQuantity' => $quantityP,
     							 'productId' => $dRec->resourceId,
     							 'packagingId' => $dRec->packagingId,

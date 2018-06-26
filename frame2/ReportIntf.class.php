@@ -23,6 +23,12 @@ class frame2_ReportIntf extends embed_DriverIntf
 	
 	
 	/**
+	 * Кои полета, може да се променят от poweruser
+	 */
+	protected $changeableFields;
+	
+	
+	/**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
 	 * @param core_Fieldset $fieldset
@@ -105,12 +111,13 @@ class frame2_ReportIntf extends embed_DriverIntf
 	/**
 	 * Връща редовете на CSV файл-а
 	 *
-	 * @param stdClass $rec
-	 * @return array
+	 * @param stdClass $rec               - запис
+	 * @param core_BaseClass $ExportClass - клас за експорт
+	 * @return array $recs                - записите за експорт
 	 */
-	public function getCsvExportRows($rec)
+	public function getExportRecs($rec, $ExportClass)
 	{
-		return $this->class->getCsvExportRows($rec);
+		return $this->class->getExportRecs($rec, $ExportClass);
 	}
 	
 	
@@ -135,5 +142,17 @@ class frame2_ReportIntf extends embed_DriverIntf
 	public function getNextRefreshDates($rec)
 	{
 		return $this->class->getNextRefreshDates($rec);
+	}
+	
+	
+	/**
+	 * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
+	 * 
+	 * @param stdClass $rec
+	 * @return array
+	 */
+	public function getChangeableFields($rec)
+	{
+		return $this->class->getChangeableFields($rec);
 	}
 }

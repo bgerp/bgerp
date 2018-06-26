@@ -417,7 +417,7 @@ class doc_Files extends core_Manager
      * 
      * 
      * @param doc_Files $mvc
-     * @param stdObject $data
+     * @param stdClass $data
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
@@ -515,8 +515,8 @@ class doc_Files extends core_Manager
     /**
      * 
      * @param doc_Files $mvc
-     * @param stdObject $row
-     * @param stdObject $rec
+     * @param stdClass $row
+     * @param stdClass $rec
      */
     static function on_BeforeRecToVerbal($mvc, $row, $rec)
     {
@@ -606,7 +606,7 @@ class doc_Files extends core_Manager
             
                 // Атрибутеите на линка
                 $attr = array();
-                $attr['title'] = $docRow->title;
+                $attr['title'] = '|*' . $docRow->title;
                 
                 // Документа да е линк към single' а на документа
                 $row->threadId = $doc->getLink(35, $attr);

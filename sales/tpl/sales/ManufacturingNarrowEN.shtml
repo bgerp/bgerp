@@ -95,7 +95,8 @@
             <!--ET_BEGIN bankAccountId-->
             <hr>
             <div class='cellRow'>
-                <span class='quiet'>Bank account: </span>[#bankAccountId#]
+                <span class='quiet'>Bank account: </span>[#bankAccountId#]<!--ET_BEGIN bank-->,<div>
+                [#bank#]<!--ET_END bank--><!--ET_BEGIN bic-->, <span class="nowrap">BIC: [#bic#]</span><!--ET_END bic--></div>
             </div>
             <!--ET_END bankAccountId-->
             <!--ET_BEGIN caseId-->
@@ -121,6 +122,9 @@
                 <!--ET_BEGIN notes-->
                 [#notes#]
                 <!--ET_END notes-->
+                <!--ET_BEGIN cartId-->
+                <li>[#cartId#]</li>
+                <!--ET_END cartId-->
                 <!--ET_BEGIN closedDocuments-->
                 <li>Combines: [#closedDocuments#]</li>
                 <!--ET_END closedDocuments-->

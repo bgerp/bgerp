@@ -143,7 +143,7 @@ class type_Int extends core_Type {
     {
         setIfNot($this->params[0], $this->params['size'], 11);
         
-        setIfNot($attr['maxlength'], 16);
+        setIfNot($attr['maxlength'], max(16, $this->params[0]));
         
         // В мобилен режим слагаме тип = number, за да форсираме цифрова клавиатура
         if(Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
@@ -168,6 +168,11 @@ class type_Int extends core_Type {
         if(strlen($value) > 4) {
             $ts = Mode::is('forSearch') ? '' : $conf->EF_NUMBER_THOUSANDS_SEP;
             $value = number_format($value, 0, html_entity_decode($conf->EF_NUMBER_DEC_POINT), html_entity_decode($ts));
+        
+            // Ако е сетнат флаг да няма интервали в номера да няма
+            if(isset($this->params['noWhitespace'])){
+            	$value = str::removeWhitespaces($value);
+            }
         }
         
     	if(!Mode::is('text', 'plain')) {

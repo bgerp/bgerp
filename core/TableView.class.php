@@ -229,8 +229,14 @@ class core_TableView extends core_BaseClass
                    
                     $colspan++;
                 } else {
+                	$tdClass = $attr = '';
+                	if($this->mvc->fields[$place]->tdClass) {
+                		$tdClass = $this->mvc->fields[$place]->tdClass;
+                		$attr = " class=\"{$tdClass}\"";
+                	}
+                	
                     // Допълнителни цели редове, ако колоната няма заглавие
-                    $addRows .= "<tr [#ROW_ATTR#]><td colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
+                    $addRows .= "<tr [#ROW_ATTR#]><td {$attr} colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
                 }
             }
         }
@@ -285,7 +291,12 @@ class core_TableView extends core_BaseClass
             $this->tableClass = 'listTable';
         }
         
-        $tpl = new ET("\n<table [#TABLE_ATTR#] class=\"{$this->tableClass}\"><thead>{$tableHeader}</thead>[#ROW_BEFORE#]{$row}[#ROW_AFTER#]</table>\n");
+        $tableId = '';
+        if (isset($this->tableId)) {
+        	$tableId = " id = \"{$this->tableId}\"";
+        }
+        
+        $tpl = new ET("\n<table [#TABLE_ATTR#] {$tableId} class=\"{$this->tableClass}\"><thead>{$tableHeader}</thead>[#ROW_BEFORE#]{$row}[#ROW_AFTER#]</table>\n");
         
         if (count($rows)) {
             foreach ($rows as $r) {

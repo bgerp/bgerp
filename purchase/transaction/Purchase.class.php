@@ -20,7 +20,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	
     /**
      * 
-     * @var puchase_Purchases
      */
     public $class;
     
@@ -359,7 +358,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     public static function getPaidAmount($jRecs, $rec)
     {
     	// Взимаме количествата по валути
-    	$quantities = acc_Balances::getBlQuantities($jRecs, '401,402', 'debit', '501,503');
+    	$quantities = acc_Balances::getBlQuantities($jRecs, '401,402', 'debit', '501,503,482');
     	$res = deals_Helper::convertJournalCurrencies($quantities, $rec->currencyId, $rec->valior);
     	
     	// К-то платено във валутата на сделката го обръщаме в основна валута за изравнявания
@@ -443,10 +442,13 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     					
     				if($groupByStore === TRUE){
     					$storePositionId = acc_Lists::getPosition(acc_Accounts::fetchField($p->debitAccId, 'systemId'), 'store_AccRegIntf');
-    					$storeItem = acc_Items::fetch($p->{"debitItem{$storePositionId}"});
     					
-    					$res[$index]->inStores[$storeItem->objectId]['amount'] += $p->amount;
-    					$res[$index]->inStores[$storeItem->objectId]['quantity'] += $p->debitQuantity;
+    					if ($p->{"debitItem{$storePositionId}"}) {
+    					    $storeItem = acc_Items::fetch($p->{"debitItem{$storePositionId}"});
+    					    
+    					    $res[$index]->inStores[$storeItem->objectId]['amount'] += $p->amount;
+    					    $res[$index]->inStores[$storeItem->objectId]['quantity'] += $p->debitQuantity;
+    					}
     				}
     			}
     		}

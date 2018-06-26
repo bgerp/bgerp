@@ -19,7 +19,7 @@ class tcost_FeeZones extends core_Master
 	/**
 	 * Поддържани интерфейси
 	 */
-	public $interfaces = 'tcost_CostCalcIntf';
+	public $interfaces = 'cond_TransportCalc';
 	
 	
 	/**
@@ -162,36 +162,31 @@ class tcost_FeeZones extends core_Master
     /**
      * Определяне цената за транспорт при посочените параметри
      *
-     * @param int $deliveryTermId    -условие на доставка
-     * @param int $productId         - ид на артикул
-     * @param int $packagingId       - ид на опаковка/мярка
-     * @param int $quantity          - количество
+     * @param int $deliveryTermId    - условие на доставка
+     * @param double $singleWeight   - тегло
+     * @param double $singleVolume   - обем
      * @param int $totalWeight       - Общо тегло на товара
-     * @param int $toCountry         - id на страната на мястото за получаване
-     * @param string $toPostalCode   - пощенски код на мястото за получаване
-     * @param int $fromCountry       - id на страната на мястото за изпращане
-     * @param string $fromPostalCode - пощенски код на мястото за изпращане
+     * @param int $totalVolume       - Общ обем на товара
+     * @param array $params          - Други параметри
      *
      * @return array
      * 			['fee']              - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
      * 			['deliveryTime']     - срока на доставка в секунди ако го има
      */
-    public function getTransportFee($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
+    public function getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $totalVolume, $params = array())
     {
-    	// Колко е еденичното транспортно тегло на артикула
-    	$weightRow = cat_Products::getWeight($productId, $packagingId, $quantity);
-    	$volumeRow = cat_Products::getVolume($productId, $packagingId, $quantity);
-    	
-    	// Ако теглото е 0 и няма обем, да не се изчислява транспорт
-    	if(empty($weightRow) && isset($weightRow) && empty($volumeRow)) return;
-    	
-    	$weightRow = $this->getVolumicWeight($weightRow, $volumeRow);
+    	$toCountry = $params['deliveryCountry'];
+    	$toPostalCode = $params['deliveryPCode'];
+    	$fromCountry = $params['fromCountry'];
+    	$fromPostalCode = $params['fromPostalCode'];
+    	$singleWeight = $this->getVolumicWeight($singleWeight, $singleVolume);
     	
     	// Ако няма, цената няма да може да се изчисли
-    	if(empty($weightRow)) return array('fee' => tcost_CostCalcIntf::EMPTY_WEIGHT_ERROR);
+    	if(empty($singleWeight)) return array('fee' => cond_TransportCalc::EMPTY_WEIGHT_ERROR);
+    	$totalWeight = $this->getVolumicWeight($totalWeight, $totalVolume);
     	
     	// Опит за калкулиране на цена по посочените данни
-    	$fee = tcost_Fees::calcFee($deliveryTermId, $toCountry, $toPostalCode, $totalWeight, $weightRow);
+    	$fee = tcost_Fees::calcFee($deliveryTermId, $toCountry, $toPostalCode, $totalWeight, $singleWeight);
     	
     	$deliveryTime = ($fee[3]) ? $fee[3] : NULL;
     	
@@ -199,7 +194,13 @@ class tcost_FeeZones extends core_Master
     	if(!($fee < 0)){
     		$fee = (isset($fee[1])) ? $fee[1] : 0;
     	} 
-    	
+        
+        if($fee > 0) {
+            $tax = tcost_Setup::get('ADD_TAX');
+            $inc = tcost_Setup::get('ADD_PER_KG') * $singleWeight;
+            $fee = $tax + $inc + $fee;
+        }
+
         $res = array('fee' => $fee, 'deliveryTime' => $deliveryTime);
  
     	// Връщане на изчислената цена
@@ -260,5 +261,57 @@ class tcost_FeeZones extends core_Master
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	
     	return $this->renderWrapping($form->renderHTML());
+    }
+    
+    
+    /**
+     * Добавя полета за доставка към форма
+     * 
+     * @param core_FieldSet $form
+     * @param string|NULL $userId
+     * @return void
+     */
+    public function addFields(core_FieldSet &$form, $userId = NULL)
+    {
+    	$form->setField('deliveryCountry', 'mandatory');
+    	$form->setField('deliveryPCode', 'mandatory');
+    	$form->setField('deliveryPlace', 'mandatory');
+    	$form->setField('deliveryAddress', 'mandatory');
+    }
+    
+    
+    /**
+     * Проверява форма
+     *
+     * @param core_FieldSet $form
+     * @return void
+     */
+    public function checkForm(core_FieldSet &$form)
+    {
+    }
+    
+    
+    /**
+     * Добавя масив с полетата за доставка
+     *
+     * @return array
+     */
+    public function getFields()
+    {
+    	return array();
+    }
+    
+    
+    /**
+     * Рендира информацията
+     *
+     * @param stdClass rec
+     * @return core_ET $tpl
+     */
+    public function renderDeliveryInfo($rec)
+    {
+    	$tpl = new core_ET("");
+    	
+    	return $tpl;
     }
 }

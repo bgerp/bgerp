@@ -668,7 +668,7 @@ class unit_MinkPPayment extends core_Manager {
     
     /**
      * 3.
-     * Проверка състояние плащане - чакащо, метод - на момента, падежът е днес
+     * Проверка състояние плащане - просрочено, метод - В брой при получаване, падежът е преди два дни
      * Нова продажба на съществуваща фирма с папка
      */
     //http://localhost/unit_MinkPPayment/CreateSaleMomentWait3/
@@ -748,7 +748,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Чернова');
         $browser->press('Контиране');
         
-        if(strpos($browser->gettext(), 'Чакащо плащане: Има')) {
+        if(strpos($browser->gettext(), 'Чакащо плащане: Просрочено')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
         }    

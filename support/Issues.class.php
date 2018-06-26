@@ -10,6 +10,7 @@
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @deprecated
  */
 class support_Issues extends core_Master
 {
@@ -54,13 +55,13 @@ class support_Issues extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'powerUser';
+    var $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    var $canAdd = 'no_one';
     
     
     /**
@@ -197,9 +198,6 @@ class support_Issues extends core_Master
         $this->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, input=hidden, silent');
         
         $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
-
-        // Възлагане на задача (за doc_AssignPlg)
-        $this->FLD('assign', 'user(roles=powerUser, allowEmpty)', 'caption=Възложено на,input=none');
         
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=support)', 'caption=Споделяне->Потребители');
@@ -213,6 +211,18 @@ class support_Issues extends core_Master
         $this->FLD('ip', 'ip', 'caption=Ип,input=none');
     	$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
     }
+    
+    
+    /**
+     * При добавяне на нов сигнал, да форвърдне към създаване на задача
+     * 
+     * @see core_Manager::act_Add()
+     */
+    function act_Add()
+    {
+        
+        return Request::forward(array('cal_Tasks', 'add'));
+    }
 
 
     /**
@@ -220,6 +230,9 @@ class support_Issues extends core_Master
      */
     function act_New()
     {
+        
+        return Request::forward(array('cal_Tasks', 'new'));
+        
     	$this->requireRightFor('new');
 
         if($lg = Request::get('Lg')){
@@ -359,7 +372,7 @@ class support_Issues extends core_Master
     /**
      * 
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     public static function prepareBodyAndSubject($rec)
     {
@@ -820,7 +833,7 @@ class support_Issues extends core_Master
                 $maintainersArr = type_Keylist::toArray($maintainers);
                 
                 // Търсим по възложените потребители
-                $data->query->orWhereArr("assign", $maintainersArr, TRUE);
+                $data->query->likeKeylist("assign", $maintainersArr, TRUE);
             }        
         }
         

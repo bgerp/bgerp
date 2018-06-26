@@ -112,6 +112,12 @@ class purchase_Purchases extends deals_DealMaster
 
 
     /**
+     * Икона за единичния изглед на обединяващите договори
+     */
+    public $singleIconFocCombinedDeals = 'img/16/shopping_carts_blue.png';
+    
+    
+    /**
      * Лейаут на единичния изглед 
      */
     public $singleLayoutFile = 'purchase/tpl/SingleLayoutPurchase.shtml';
@@ -127,13 +133,19 @@ class purchase_Purchases extends deals_DealMaster
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'deliveryTermId, deliveryLocationId, deliveryTime, shipmentStoreId, paymentMethodId,
-    					 currencyId, bankAccountId, caseId, dealerId, folderId, note';
+    					 currencyId, bankAccountId, caseId, dealerId, folderId, note, reff';
     
     
     /**
      * Полета свързани с цени
      */
     public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
+    
+    
+    /**
+     * Кой може да превалутира документите в нишката
+     */
+    public $canChangerate = 'ceo, purchaseMaster';
     
     
     /**
@@ -183,16 +195,20 @@ class purchase_Purchases extends deals_DealMaster
      * Позволени операции на последващите платежни документи
      */
     public $allowedPaymentOperations = array(
-    		'case2supplierAdvance' => array('title' => 'Авансово плащане към Доставчик', 'debit' => '402', 'credit' => '501'),
-    		'bank2supplierAdvance' => array('title' => 'Авансово плащане към Доставчик', 'debit' => '402', 'credit' => '503'),
-    		'case2supplier'        => array('title' => 'Плащане към Доставчик', 'debit' => '401', 'credit' => '501'),
-    		'bank2supplier'        => array('title' => 'Плащане към Доставчик', 'debit' => '401', 'credit' => '503'),
-    		'supplier2case'        => array('title' => 'Връщане от Доставчик', 'debit' => '501', 'credit' => '401', 'reverse' => TRUE),
-    		'supplier2bank'        => array('title' => 'Връщане от Доставчик', 'debit' => '503', 'credit' => '401', 'reverse' => TRUE),
-    		'supplierAdvance2case' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '501', 'credit' => '402', 'reverse' => TRUE),
-    		'supplierAdvance2bank' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '503', 'credit' => '402', 'reverse' => TRUE),
-    		'debitDeals'           => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '401', 'reverse' => TRUE),
-    		'creditDeals'          => array('title' => 'Прихващане на задължение', 'debit' => '401', 'credit' => '*'),
+    		'case2supplierAdvance'    => array('title' => 'Авансово плащане към Доставчик', 'debit' => '402', 'credit' => '501'),
+    		'bank2supplierAdvance'    => array('title' => 'Авансово плащане към Доставчик', 'debit' => '402', 'credit' => '503'),
+    		'case2supplier'           => array('title' => 'Плащане към Доставчик', 'debit' => '401', 'credit' => '501'),
+    		'bank2supplier'           => array('title' => 'Плащане към Доставчик', 'debit' => '401', 'credit' => '503'),
+    		'supplier2case'           => array('title' => 'Прихващане на плащане', 'debit' => '501', 'credit' => '401', 'reverse' => TRUE),
+    		'supplier2bank'           => array('title' => 'Прихващане на плащане', 'debit' => '503', 'credit' => '401', 'reverse' => TRUE),
+    		'supplier2caseRet'        => array('title' => 'Връщане от Доставчик', 'debit' => '501', 'credit' => '401', 'reverse' => TRUE),
+    		'supplier2bankRet'        => array('title' => 'Връщане от Доставчик', 'debit' => '503', 'credit' => '401', 'reverse' => TRUE),
+    		'supplierAdvance2case'    => array('title' => 'Прихванат аванс от Доставчик', 'debit' => '501', 'credit' => '402', 'reverse' => TRUE),
+    		'supplierAdvance2bank'    => array('title' => 'Прихванат аванс от Доставчик', 'debit' => '503', 'credit' => '402', 'reverse' => TRUE),
+    		'supplierAdvance2caseRet' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '501', 'credit' => '402', 'reverse' => TRUE),
+    		'supplierAdvance2bankRet' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '503', 'credit' => '402', 'reverse' => TRUE),
+    		'debitDeals'              => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '401', 'reverse' => TRUE),
+    		'creditDeals'             => array('title' => 'Прихващане на задължение', 'debit' => '401', 'credit' => '*'),
     );
     
     
@@ -222,6 +238,12 @@ class purchase_Purchases extends deals_DealMaster
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, valior,modifiedOn';
+    
+    
+    /**
+     * Кои които трябва да имат потребителите да се изберат като дилъри
+     */
+    public $dealerRolesList = 'purchase,ceo';
     
     
     /**
@@ -346,7 +368,7 @@ class purchase_Purchases extends deals_DealMaster
     		// Ако експедирането е на момента се добавя бутон за нова фактура
 	        $actions = type_Set::toArray($rec->contoActions);
 	    	
-	        if(purchase_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+	        if(deals_Helper::showInvoiceBtn($rec->threadId) && purchase_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    		$data->toolbar->addBtn("Вх. фактура", array('purchase_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на входяща фактура,order=9.9993');
 		    }
 		}
@@ -392,7 +414,10 @@ class purchase_Purchases extends deals_DealMaster
     			unset($allowedPaymentOperations['case2supplierAdvance'],
     				$allowedPaymentOperations['bank2supplierAdvance'],
     				$allowedPaymentOperations['supplierAdvance2case'],
-    				$allowedPaymentOperations['supplierAdvance2bank']);
+    				$allowedPaymentOperations['supplierAdvance2bank'],
+    				$allowedPaymentOperations['supplierAdvance2caseRet'],
+    				$allowedPaymentOperations['supplierAdvance2bankRet']
+	    		);
     		}
     	}
     	
@@ -704,11 +729,11 @@ class purchase_Purchases extends deals_DealMaster
 				unset($ship->price);
 				$ship->name = cat_Products::getTitleById($ship->productId, FALSE);
 				
-				if($transportWeight = cat_Products::getParams($ship->productId, 'transportWeight')){
+				if($transportWeight = cat_Products::getTransportWeight($ship->productId, 1)){
 					$ship->transportWeight = $transportWeight;
 				}
 				
-				if($transportVolume = cat_Products::getParams($ship->productId, 'transportVolume')){
+				if($transportVolume = cat_Products::getTransportVolume($ship->productId, 1)){
 					$ship->transportVolume = $transportVolume;
 				}
 				

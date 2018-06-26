@@ -3,13 +3,13 @@
 
 
 /**
- * Партиди
+ * Партидни наличности
  *
  *
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -37,7 +37,7 @@ class batch_Items extends core_Master {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'batch, productId, storeId, quantity, state';
+    public $listFields = 'batch, productId, storeId, measureId=Мярка, quantity, state';
     
     
     /**
@@ -49,7 +49,7 @@ class batch_Items extends core_Master {
     /**
      * Кой може да променя състоянието на валутата
      */
-    public $canChangestate = 'batch,ceo';
+    public $canChangestate = 'batchMaster,ceo';
     
     
     /**
@@ -162,10 +162,8 @@ class batch_Items extends core_Master {
     	$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     	
     	$measureId = cat_Products::fetchField($rec->productId, 'measureId');
-    	$measureShort = cat_UoM::getShortName($measureId);
-    	$row->quantity .= " {$measureShort}";
+    	$row->measureId = cat_UoM::getShortName($measureId);
     	
-    	$row->quantity = "<span class='red'>{$row->quantity}</span>";
     	if($Definition = batch_Defs::getBatchDef($rec->productId)){
     		$row->batch = $Definition->toVerbal($rec->batch);
     	}
@@ -327,9 +325,7 @@ class batch_Items extends core_Master {
     	if(!count($data->rows)) return;
     	
     	foreach ($data->rows as $id => &$row){
-    		if($data->recs[$id]->quantity < 0){
-    			$row->quantity = "<span class='red'>{$row->quantity}</span>";
-    		}
+    		$row->quantity = ht::styleNumber($row->quantity, $data->recs[$id]->quantity);
     	}
     }
     
@@ -409,7 +405,8 @@ class batch_Items extends core_Master {
     	$data->definition = $definition;
     	$defIf = batch_Defs::fetch("#productId = '{$data->masterId}'");
     	if(batch_Defs::haveRightFor('delete', $defIf)){
-    		$data->deleteBatchUrl = array('batch_Defs', 'delete', $defIf->id, 'ret_url' => TRUE);
+    		$retUrl = array($data->masterMvc, 'single', $data->masterId);
+    		$data->deleteBatchUrl = array('batch_Defs', 'delete', $defIf->id, 'ret_url' => $retUrl);
     	}
     	
     	$data->TabCaption = 'Партиди';
@@ -452,7 +449,7 @@ class batch_Items extends core_Master {
     	// Обръщаме записите във вербален вид
     	foreach ($data->recs as $id => $rec){
     		
-    		// Пропускаме записите, които не трябва да са на тази страница
+    		// Пропускане на записите, които не трябва да са на тази страница
     		if(!$pager->isOnPage()) continue;
     		
     		// Вербално представяне на записа
@@ -508,7 +505,7 @@ class batch_Items extends core_Master {
     	
     	// Подготвяме таблицата за рендиране
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet));
-    	$fields = arr::make("batch=Партида,storeId=Склад,quantity=Количество", TRUE);
+    	$fields = arr::make("batch=Партида,storeId=Склад,measureId=Мярка,quantity=Количество", TRUE);
     	if(count($data->rows)){
     		$fields = array('icon' => ' ') + $fields;
     	}

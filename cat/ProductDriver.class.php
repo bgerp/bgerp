@@ -1,5 +1,7 @@
 <?php
 
+
+
 /**
  * Базов драйвер за драйвер на артикул
  *
@@ -7,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Базов драйвер за драйвер на артикул
@@ -131,16 +133,17 @@ abstract class cat_ProductDriver extends core_BaseClass
 
 	
 	/**
-	 * Кои опаковки поддържа продукта
-	 *
+	 * Връща свойствата на артикула според драйвера
+	 * 
+	 * @param mixed $metas - текущи мета данни
 	 * @return array $metas - кои са дефолтните мета данни
 	 */
-	public function getDefaultMetas()
+	public function getDefaultMetas($metas = NULL)
 	{
-		// Взимаме дефолтните мета данни от ембедъра
-		$metas = array();
-	
+		if(isset($metas)) return arr::make($metas, TRUE);
+		
 		// Ако за драйвера има дефолтни мета данни, добавяме ги към тези от ембедъра
+		$metas = array();
 		if(!empty($this->defaultMetaData)){
 			$metas = $metas + arr::make($this->defaultMetaData, TRUE);
 		}
@@ -320,15 +323,35 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Връща информация за какви дефолт задачи могат да се задават към заданието за производство
-	 * 
-	 * @param double $quantity - к-во
-	 * @return array $drivers - масив с информация за драйверите, с ключ името на масива
-	 * 				    -> title        - дефолт име на задачата
-	 * 					-> driverClass  - драйвър на задача
-	 * 					-> priority     - приоритет (low=Нисък, normal=Нормален, high=Висок, critical)
-	 */
-	public function getDefaultProductionTasks($quantity = 1)
+     * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
+     *
+     * @param mixed $id - ид или запис на артикул
+     * @param double $quantity - к-во за произвеждане
+     *
+     * @return array $drivers - масив с информация за драйверите, с ключ името на масива
+     * 				    o title           - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
+     * 					o plannedQuantity - планирано к-во в основна опаковка
+     * 					o productId       - ид на артикул
+     *  				o packagingId     - ид на опаковка
+     *   				o quantityInPack  - к-во в 1 опаковка
+     * 					o products        - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     * 						 - array input           - материали за влагане
+     * 								o productId      - ид на материал
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     * 						 - array production      - артикули за произвеждане
+     * * 							o productId      - ид на заготовка
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     * 						 - array waste           - отпадъци
+     * * 							o productId      - ид на отпадък
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     */
+    public function getDefaultProductionTasks($id, $quantity = 1)
 	{
 		return array();
 	}
@@ -489,7 +512,18 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return NULL;
 	}
-	
+    
+    
+    /**
+     * Връща броя на количествата, които ще се показват в запитването
+     *
+     * @return int|NULL - броя на количествата в запитването
+     */
+    public function getInquiryQuantities()
+    {
+    	return NULL;
+    }
+
 	
 	/**
 	 * Връща дефолтните опаковки за артикула
@@ -515,12 +549,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
      * Допълнителните условия за дадения продукт,
      * които автоматично се добавят към условията на договора
-     *
-     * @param mixed $rec       - ид или запис на артикул
-     * @param double $quantity - к-во
-     * @return array           - Допълнителните условия за дадения продукт
+     * 
+     * @param stdClass $rec   - ид/запис на артикул
+     * @param string $docType - тип на документа sale/purchase/quotation
+     * @param string|NULL $lg - език
      */
-	public function getConditions($rec, $quantity)
+    public function getConditions($rec, $docType, $lg = NULL)
 	{
 		return array();
 	}
@@ -576,4 +610,129 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return TRUE;
 	}
+	
+	
+	/**
+     * Връща транспортното тегло за подаденото количество
+     * 
+     * @param mixed $rec    - ид или запис на продукт
+     * @param int $quantity - общо количество
+     * @return double|NULL  - транспортното тегло на общото количество
+     */
+    public function getTransportWeight($rec, $quantity)
+    {
+    	return NULL;
+    }
+    
+    
+    /**
+     * Връща транспортния обем за подаденото количество
+     *
+     * @param mixed $rec     - ид или запис на артикул
+     * @param int $quantity  - общо количество
+     * @return double        - транспортния обем на общото количество
+     */
+    public function getTransportVolume($rec, $quantity)
+    {
+    	return NULL;
+    }
+    
+    
+    /**
+	 * Връща сериен номер според източника
+	 * 
+	 * @param mixed $id             - ид или запис на артикул
+	 * @param mixed $sourceClassId  - клас
+	 * @param mixed $sourceObjectId - ид на обект
+	 * @return string $serial       - генериран сериен номер
+	 */
+	public function generateSerial($id, $sourceClassId = NULL, $sourceObjectId = NULL)
+    {
+    	return cat_Serials::generateSerial($sourceClassId, $sourceObjectId);
+    }
+    
+    
+    /**
+     * Регистрира дадения сериен номер, към обекта (ако има)
+     *
+     * @param mixed $id                - ид или запис на артикул
+     * @param mixed $serial            - сериен номер
+     * @param mixed $sourceClassId     - клас на обекта
+     * @param int|NULL $sourceObjectId - ид на обекта
+     */
+    public function assignSerial($id, $serial, $sourceClassId = NULL, $sourceObjectId = NULL)
+    {
+    	return cat_Serials::assignSerial($serial, $sourceClassId, $sourceObjectId);
+    }
+    
+    
+    /**
+     * Записа на артикула отговарящ на серийния номер
+     *
+     * @param int $serial
+     * @return stdClass|NULL
+     */
+    public function getRecBySerial($serial)
+    {
+    	if($sRec = cat_Serials::getRecBySerial($serial)){
+    		if(cls::load($sRec->sourceClassId, TRUE)){
+    			$Source = cls::get($sRec->sourceClassId);
+    			if($Source->getField('productId', FALSE)){
+    				if($productId = $Source->fetchField($sRec->sourceObjectId, 'productId')){
+    					return cat_Products::fetch($productId);
+    				}
+    			}
+    		}
+    	}
+    	
+    	return NULL;
+    }
+    
+    
+    /**
+     * Канонизиране генерирания номер
+     *
+     * @param string $serial
+     * @return string
+     */
+    public function canonizeSerial($id, $serial)
+    {
+    	return cat_Serials::canonize($serial);
+    }
+    
+    
+    /**
+     * Проверяване на серийния номер
+     *
+     * @param string $serial
+     * @return string
+     */
+    public function checkSerial($id, $serial, &$error)
+    {
+    	return cat_Serials::check($serial, $error);
+    }
+    
+    
+    /**
+     * Връща сложността на артикула
+     * 
+     * @param mixed $rec
+     * @return int
+     */
+    public function getDifficulty($rec)
+    {
+    	return 1;
+    }
+    
+    
+    /**
+     * Надценка на делтата
+     *
+     * @param mixed $rec
+     * @return int
+     */
+    public function getDeltaSurcharge($rec)
+    {
+    	return 1;
+    }
 }

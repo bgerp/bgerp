@@ -115,24 +115,25 @@ abstract class deals_ServiceMaster extends core_Master
 	
 	
 	/**
-	 * След създаване на запис в модела
+	 * Извиква се след успешен запис в модела
+	 *
+	 * @param core_Mvc $mvc
+	 * @param int $id първичния ключ на направения запис
+	 * @param stdClass $rec всички полета, които току-що са били записани
 	 */
-	protected static function on_AfterCreate($mvc, $rec)
+	protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
-		// Ако документа е клониран пропуска се
+		if($rec->_isCreated !== TRUE) return;
 		if($rec->_isClone === TRUE) return;
-		
 		$origin = $mvc->getOrigin($rec);
-	
+		
 		// Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
 		// използваме го за автоматично попълване на детайлите на протокола
 		expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
-	
+		
 		$aggregatedDealInfo = $origin->getAggregateDealInfo();
 		$agreedProducts = $aggregatedDealInfo->get('products');
-		
 		$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
-		
 		
 		if(count($shippedProducts)){
 			$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
@@ -143,19 +144,19 @@ abstract class deals_ServiceMaster extends core_Master
 		if(count($agreedProducts)){
 			foreach ($agreedProducts as $index => $product) {
 				$info = cat_Products::getProductInfo($product->productId);
-				
+		
 				if(isset($normalizedProducts[$index])){
 					$toShip = $normalizedProducts[$index]->quantity;
 				} else {
 					$toShip = $product->quantity;
 				}
-				
+		
 				$price = ($agreedProducts[$index]->price) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
 				$discount = ($agreedProducts[$index]->discount) ? $agreedProducts[$index]->discount : $normalizedProducts[$index]->discount;
-    			
+				 
 				// Пропускат се експедираните и складируемите артикули
 				if (isset($info->meta['canStore']) || ($toShip <= 0)) continue;
-				 
+					
 				$shipProduct = new stdClass();
 				$shipProduct->shipmentId  = $rec->id;
 				$shipProduct->productId   = $product->productId;
@@ -165,14 +166,14 @@ abstract class deals_ServiceMaster extends core_Master
 				$shipProduct->discount    = $discount;
 				$shipProduct->notes       = $product->notes;
 				$shipProduct->quantityInPack = $product->quantityInPack;
-				
+		
 				if(isset($product->expenseItemId)){
 					$shipProduct->expenseItemId = $product->expenseItemId;
 				}
-				
+		
 				$Detail = $mvc->mainDetail;
 				$dId = $mvc->{$Detail}->save($shipProduct);
-				
+		
 				// Копиране на разпределените разходи
 				if(!empty($product->expenseRecId)){
 					$aRec = acc_CostAllocations::fetch($product->expenseRecId);
@@ -180,23 +181,20 @@ abstract class deals_ServiceMaster extends core_Master
 					$aRec->detailRecId = $dId;
 					$aRec->detailClassId = $Detail::getClassId();
 					$aRec->containerId = $rec->containerId;
-					
+						
 					acc_CostAllocations::save($aRec);
-					core_Statuses::newStatus($aRec->id);
 				}
 			}
 		}
 	}
-    
-    
+	
+	
 	/**
-	 * Връща разбираемо за човека заглавие, отговарящо на записа
+	 * След създаване на запис в модела
 	 */
-	public static function getRecTitle($rec, $escaped = TRUE)
+	protected static function on_AfterCreate($mvc, $rec)
 	{
-		$self = cls::get(get_called_class());
-    	 
-    	return tr("|{$self->singleTitle}|* №") . $rec->id;
+		$rec->_isCreated = TRUE;
 	}
 	
 	

@@ -79,7 +79,7 @@ class cms_page_External extends core_page_Active
         if ($skin) {
             $skin->prepareWrapper($this);
         }
-    	
+
         // Скрипт за генериране на min-height, според устройството
         jquery_Jquery::run($this, "setMinHeightExt();");
         
@@ -92,11 +92,24 @@ class cms_page_External extends core_page_Active
         
         // Добавяме лейаута
         $this->replace(cms_Content::getLayout(), 'CMS_LAYOUT');
-        
+
+        // Добавяме лейаута
+        $domainRec = cms_Domains::getPublicDomain();
+
+        // Къде да добавим линковете
+        $footerLinks = cms_Articles::addFooterLinks();
+        if(Mode::is('screenMode', 'narrow')) {
+            $this->replace($footerLinks, 'FOOTER_LINKS_NARROW');
+        } else {
+            $this->replace($footerLinks, 'FOOTER_LINKS_WIDE');
+        }
+
         // Ако е логнат потребител, който не е powerUser
         if(core_Users::haveRole('partner')){
         	$this->placeExternalUserData();
         }
+        
+        $this->invoke("AfterPrepareExternalPage", array(&$this));
     }
 
     
@@ -105,13 +118,17 @@ class cms_page_External extends core_page_Active
      */
     private function placeExternalUserData()
     {
+    	$currentTab = Mode::get('currentExternalTab');
+    	$selectedClass = ($currentTab == 'cms_Profiles') ? 'class=selected-external-tab' : '';
+    	
     	$nick = core_Users::getNick(core_Users::getCurrent());
-        $user = ht::createLink($nick, array('cms_Profiles', 'single'), FALSE, 'ef_icon=img/16/user-black.png,title=Към профила');
-        $logout = ht::createLink('Изход', array('core_Users', 'logout'), FALSE, 'ef_icon=img/16/logout.png,title=Изход от системата');
+        $user = ht::createLink($nick, array('cms_Profiles', 'single'), FALSE, "ef_icon=img/16/user-black.png,title=Към профила,{$selectedClass}");
+        $logout = ht::createLink(tr('Изход'), array('core_Users', 'logout'), FALSE, 'ef_icon=img/16/logout.png,title=Изход от системата');
 
         $this->replace($user, 'USERLINK');
         $this->replace($logout, 'LOGOUT');
         $this->replace("class='cmsTopContractor'", 'TOP_CLASS');
+        $this->replace("class='cmsContentContractor'", 'CONTENT_CLASS');
     }
     
     

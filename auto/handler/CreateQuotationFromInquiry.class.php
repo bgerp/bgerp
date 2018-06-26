@@ -49,7 +49,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	// Проверка на корицата
     	$Cover = doc_Folders::getCover($marketingRec->folderId);
     	expect($Cover->haveInterface('crm_ContragentAccRegIntf'));
-    	
+ 
     	// Ако има артикул към запитването не се прави нищо
     	if(cat_Products::fetchField("#originId = {$marketingRec->containerId}")) {
     		marketing_Inquiries2::logDebug("Не може да се създаде автоматично артикул към запитването защото има вече такъв", $marketingRec->id);
@@ -57,7 +57,13 @@ class auto_handler_CreateQuotationFromInquiry {
     	}
     	
     	// Опит за създаване на артикул от запитване
-    	$productId = $this->createProduct($marketingRec, $Cover, $document);
+    	try{
+    		$productId = $this->createProduct($marketingRec, $Cover, $document);
+    	} catch(core_exception_Expect $e){
+    		$productId = NULL;
+    		reportException($e);
+    	}
+    	
     	if(!$productId){
     		marketing_Inquiries2::logDebug("Проблем при опит за създаване на автоматичен артикул към запитване", $marketingRec->id);
     		return;
@@ -79,7 +85,27 @@ class auto_handler_CreateQuotationFromInquiry {
     		// Създаване на оферта към артикула
     		core_Users::forceSystemUser();
     		$fields = array('originId' => cat_Products::fetchField($productId, 'containerId'));
+    		
+    		if(haveRole('partner', $marketingRec->createdBy)){
+    			$profileRec = crm_Profiles::getProfile($marketingRec->createdBy);
+    			if(!empty($profileRec->buzEmail)){
+    				$emails = type_Emails::toArray($profileRec->buzEmail);
+    				$fields['email'] = $emails[0];
+    			}
+    			
+    			if(!empty($profileRec->buzTel)){
+    				$tels = drdata_PhoneType::toArray($profileRec->buzTel);
+    				$fields['tel'] = $tels[0]->number;
+    			}
+    		}
+    		
+    		if(!empty($marketingRec->deliveryAdress)){
+    			$fields['deliveryAdress'] = $marketingRec->deliveryAdress;
+    		}
+    		
     		$quoteId = sales_Quotations::createNewDraft($Cover->getInstance()->getClassId(), $Cover->that, NULL, $fields);
+    		sales_Quotations::logWrite("Създаване от запитване", $quoteId);
+    		
     		if(empty($quoteId)){
     			cat_Products::logDebug("Проблем при опит за създаване на автоматичен оферта към артикул", $productId);
     			return;
@@ -95,14 +121,19 @@ class auto_handler_CreateQuotationFromInquiry {
     			}
     			
     			// Активиране на офертата
-    			$qRec = (object)array('id' => $quoteId, 'state' => 'active');
-    			cls::get('sales_Quotations')->invoke('BeforeActivation', array($qRec));
-    			sales_Quotations::save($qRec, 'state');
-    			sales_Quotations::logInfo("Активиране на автоматично създадена оферта към запитване", $quoteId);
+                if(haveRole('partner', $marketingRec->createdBy)) {
+                    $qRec = (object)array('id' => $quoteId, 'state' => 'active');
+                    cls::get('sales_Quotations')->invoke('BeforeActivation', array($qRec));
+                    $qRec->_isActivated = TRUE;
+                    sales_Quotations::save($qRec, 'state,modifiedOn,modifiedBy,activatedOn,date');
+                    sales_Quotations::logWrite("Активиране на автоматично създадена оферта към запитване", $quoteId);
+                }
     		}
     		
     		core_Users::cancelSystemUser();
     	}
+    	
+    	doc_Threads::doUpdateThread($marketingRec->threadId);
     }
     
     
@@ -127,62 +158,36 @@ class auto_handler_CreateQuotationFromInquiry {
     	
     	$Products = cls::get('cat_Products');
     	$form = $Products->getForm();
-    	$form->method = 'POST';
     	$form->rec->innerClass = $Driver->getClassId();
-    	$form->rec->proto = $marketingRec->proto;
-    	$form->rec->originId = $marketingRec->containerId;
-    	$form->rec->name =  $marketingRec->title;
+        
+        $iForm = marketing_Inquiries2::getForm();
+
+    	$form->rec->originId  = $marketingRec->containerId;
+        $form->rec->threadId  = $marketingRec->threadId;
+        $form->rec->proto     = $marketingRec->proto;
+    	$form->rec->name      = $marketingRec->title;
+    	$form->rec->driverRec = $marketingRec->title;
+
     	$Driver->addFields($form);
-    	
-    	// Полето за ид не е тихо за да не се обърка и да инпутва ид-то на крон процеса
-    	$idField = $form->getField('id');
-    	unset($idField->silent);
-    	
-    	$sudoUser = core_Users::sudo($marketingRec->createdBy);
-    	
-    	$data = (object)array('form' => &$form);
-    	$Products->invoke('AfterPrepareEditForm', array($data, $data));
-    	$clone = clone $form->rec;
-    	
-    	$arr = $popArray = array();
-    	foreach ((array)$clone as $k => $v){
-    		if($k == 'groups'){
-    			$v = type_Keylist::toArray($v);
+        foreach($form->fields as $name => $fld) {
+            if(isset($marketingRec->{$name}) && !$iForm->fields[$name]) {
+                $form->rec->{$name} = $marketingRec->{$name};
+            }
+        }
+        
+        // Определяме мярката за продукта, ако липсва
+        if(!$form->rec->measureId) {
+            // Ако има дефолтна мярка, избираме я
+    	    if(is_object($Driver) && $Driver->getDefaultUomId()){
+    		    $form->rec->measureId = $Driver->getDefaultUomId();
+    	    } elseif($defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID')){
+    			$form->rec->measureId = $defMeasure;
     		}
-    		
-    		$arr[$k] = $v;
-    		$popArray[$k] = $k;
-    	}
-    	
-    	// За всеки случай не се пушват допълнителните параметри, защото са много големи
-    	unset($arr['_params']);
-    	unset($popArray['_params']);
-    	
-    	$arr['Ignore'] = 1;
-    	Request::push($arr);
-    	$form->cmd = 'save';
-    	
-    	// Ид-то не трябва да се инпутва, защото ще вземе ид-то на крон процеса и ще се обърка
-    	$fields = $form->selectFields();
-    	unset($fields['id']);
-    	unset($fields['driverRec']);
-    	$form->input(implode(',', array_keys($fields)));
-    	
-    	$Products->invoke('AfterInputEditForm', array($form));
-    	
-        core_Users::exitSudo($sudoUser);
-    	
-    	// Попване на пушнатите стойности, за да няма объркване при следваща автоматизация
-    	if(is_array($popArray)){
-    		foreach ($popArray as $popVar){
-    			core_Request::pop($popVar);
-    		}
-    	}
-    	
-    	if(!($form->isSubmitted() && !$form->gotErrors())) return;
-    	
-    	$rec = $form->rec;
+        }
+
+    	$rec = $form->rec; 
     	$productId = $Products->save($rec);
+    	$Products->logWrite("Създаване от запитване", $productId);
     	doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE, FALSE, $marketingRec->createdBy);
     	
     	return $productId;

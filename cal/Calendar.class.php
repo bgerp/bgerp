@@ -253,7 +253,7 @@ class cal_Calendar extends core_Master
     	
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px,autoFilter');
-        $data->listFilter->FNC('selectedUsers', 'users(rolesForAll = ceo|hrMaster, rolesForTeams = manager|hr, showClosedGroups)', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('selectedUsers', 'users(rolesForAll = ceo|hrMaster, rolesForTeams = manager|hrSickdays|hrLeaves|hrTrips, showClosedGroups)', 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->setdefault('from', date('Y-m-d'));
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -402,14 +402,22 @@ class cal_Calendar extends core_Master
             }
         // или ако нямаме достъп, правим елемент
         } else {
-            if($url['Ctr'] == 'crm_Persons' && ($url['id'])) {
+            $addEnd = FALSE;
+            if ($url['Ctr'] == 'crm_Persons' || $url['Ctr'] == 'hr_Leaves' || $url['Ctr'] == 'hr_Sickdays' || $url['Ctr'] == 'hr_Trips') {
                 $row->event = ht::createElement("span", $attr, $row->title);
+                $addEnd = TRUE;
+            }
+            
+            if($url['Ctr'] == 'crm_Persons' && ($url['id'])) {
                 
                 $pRec = crm_Persons::fetch($url['id']);
                 
                 if ($pRec->inCharge) {
                     $row->event .= ' (' . crm_Profiles::createLink($pRec->inCharge) . ')';
                 }
+            }
+            
+            if ($addEnd) {
                 $row->event = "<div title='{$row->title}' style='margin-bottom: 5px;font-style=normal;'>" . $row->event . "</div>";
             }
         }
@@ -2445,8 +2453,12 @@ class cal_Calendar extends core_Master
         if($isLink){
             $event = ht::createLink($rec->title, $url, NULL, $attr);
         } else {
-            if($url['Ctr'] == 'crm_Persons' && ($url['id'])) {
+            
+            if ($url['Ctr'] == 'crm_Persons' || $url['Ctr'] == 'hr_Leaves' || $url['Ctr'] == 'hr_Sickdays' || $url['Ctr'] == 'hr_Trips') {
                 $event = ht::createElement("span", $attr, $rec->title);
+            }
+            
+            if($url['Ctr'] == 'crm_Persons' && ($url['id'])) {
                 $pRec = crm_Persons::fetch($url['id']);
         
                 if ($pRec->inCharge) {

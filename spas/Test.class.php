@@ -23,6 +23,8 @@ class spas_Test extends core_Mvc
      */
     public function act_Default()
     {
+        requireRole('admin, debug');
+        
         $html = "<div style=''><strong>" . tr("Интеграция със SpamAssassin") . "</strong></div>";
         
         foreach($this->systemActions as $a) {
@@ -39,8 +41,10 @@ class spas_Test extends core_Mvc
 
     function act_Test()
     {  
+        requireRole('admin, debug');
+        
         $form = cls::get('core_Form');
-        $form->FLD('message', 'text(1000000)', 'caption=MIME съобщение,mandatory');
+        $form->FLD('message', 'text(26777216)', 'caption=MIME съобщение,mandatory');
         $form->toolbar->addSbBtn('Тест');
         $form->title = 'Тестване на имейл за спам';
 
@@ -80,7 +84,8 @@ class spas_Test extends core_Mvc
     
     
     function act_Learn()
-    {  
+    {
+        requireRole('admin, debug');
 
         $form = cls::get('core_Form');
         $form->FLD('message', 'text(1000000)', 'caption=MIME съобщение,mandatory');
@@ -139,7 +144,9 @@ class spas_Test extends core_Mvc
      * Пингва връзката със SA
      */
     function act_Ping() 
-     {
+    {
+        requireRole('admin, debug');
+        
         $sa = $this->getSa();
         
         $redirectUrl = getRetUrl();

@@ -173,7 +173,7 @@ class sales_SalesDetails extends deals_DealDetail
     	if($form->isSubmitted()){
     		
     		// Подготовка на сумата на транспорта, ако има
-    		tcost_Calcs::prepareFee($rec, $form, $masterRec);
+    		sales_TransportValues::prepareFee($rec, $form, $masterRec);
     	}
     }
     
@@ -202,51 +202,16 @@ class sales_SalesDetails extends deals_DealDetail
     		}
     		
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			if(!core_Users::haveRole('partner')){
+    			if(!core_Users::haveRole('partner') && isset($row->packPrice)){
     				$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
     			}
     		}
     		
     		// Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
-    		$fee = tcost_Calcs::get($mvc->Master, $rec->saleId, $rec->id)->fee;
+    		$fee = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id)->fee;
     		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
-    		$row->amount = tcost_Calcs::getAmountHint($row->amount, $fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    		$row->amount = sales_TransportValues::getAmountHint($row->amount, $fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
     	}
-    }
-    
-    
-    /**
-     * Приготвя информация за нестандартните артикули и техните задания
-     * 
-     * @param stdClass $rec
-     * @param stdClass $masterRec
-     * @return void|stdClass
-     */
-    public static function prepareJobInfo($rec, $masterRec)
-    {
-    	$res = array();
-    	$jQuery = planning_Jobs::getQuery();
-    	$jQuery->where("#productId = {$rec->productId}");
-    	$jQuery->where("#saleId IS NULL OR #saleId = {$masterRec->id}");
-    	$jQuery->XPR('order', 'int', "(CASE #state WHEN 'draft' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'wakeup' THEN 4 WHEN 'closed' THEN 5 ELSE 3 END)");
-		$jQuery->orderBy('order', 'ASC');
-    	
-    	while($jRec = $jQuery->fetch()){
-    		$row = (object)array('quantity' => 0, 'quantityFromTasks' => 0, 'quantityProduced' => 0);
-    		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-    		$row->ROW_ATTR['class'] = "state-{$jRec->state}";
-    		
-    		$Double = cls::get('type_Double', (object)array('params' => array('smartRound' => TRUE)));
-    		$row->quantity = $Double->toVerbal($jRec->quantity);
-    		//$row->quantityFromTasks = $Double->toVerbal(planning_TaskActions::getQuantityForJob($jRec->id, 'product'));
-    		$row->quantityProduced = $Double->toVerbal($jRec->quantityProduced);
-    		$row->dueDate = cls::get('type_Date')->toVerbal($jRec->dueDate);
-    		$row->jobId = planning_Jobs::getLink($jRec->id, 0);
-    		
-    		$res[] = $row;
-    	}
-    	
-    	return $res;
     }
     
     
@@ -256,7 +221,7 @@ class sales_SalesDetails extends deals_DealDetail
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
     	// Преди клониране клонира се и сумата на цената на транспорта
-    	$cRec = tcost_Calcs::get($mvc->Master, $oldRec->saleId, $oldRec->id);
+    	$cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
     	if(isset($cRec)){
     		$rec->fee = $cRec->fee;
     		$rec->deliveryTimeFromFee = $cRec->deliveryTime;
@@ -272,7 +237,7 @@ class sales_SalesDetails extends deals_DealDetail
     {
     	// Синхронизиране на сумата на транспорта
     	if($rec->syncFee === TRUE){
-    		tcost_Calcs::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee);
+    		sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee);
     	}
     }
     
@@ -284,7 +249,7 @@ class sales_SalesDetails extends deals_DealDetail
     {
     	// Инвалидиране на изчисления транспорт, ако има
     	foreach ($query->getDeletedRecs() as $id => $rec) {
-    		tcost_Calcs::sync($mvc->Master, $rec->saleId, $rec->id, NULL);
+    		sales_TransportValues::sync($mvc->Master, $rec->saleId, $rec->id, NULL);
     	}
     }
     

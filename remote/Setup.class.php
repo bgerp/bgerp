@@ -107,6 +107,15 @@ class remote_Setup extends core_ProtoSetup
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
 
+        $rec = new stdClass();
+        $rec->systemId = "AlertForNotifications";
+        $rec->description = "Изтриване на изтеклите tokens";
+        $rec->controller = "remote_Authorizations";
+        $rec->action = "AlertForNotifications";
+        $rec->period = 1;
+        $rec->timeLimit = 50;
+        $html .= core_Cron::addOnce($rec);
+
         return $html;
     }
     

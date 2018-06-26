@@ -189,7 +189,7 @@ class pos_Reports extends core_Master {
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id, 0);
     	$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
@@ -208,7 +208,7 @@ class pos_Reports extends core_Master {
     /**
      * Извиква се след въвеждането на данните
      */
-    public static function on_AfterInputEditForm($mvc,core_Form &$form)
+    protected static function on_AfterInputEditForm($mvc,core_Form &$form)
     {
     	if($form->isSubmitted()) {
     		
@@ -510,14 +510,11 @@ class pos_Reports extends core_Master {
      * @param core_Manager $mvc
      * @param stdClass $rec
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-    	if($rec->state == 'active'){
-    		
+    	if($rec->state == 'active' && $rec->brState != 'closed'){
     		// Ако няма записани детайли извличаме актуалните
-    		//if(!$rec->details){
-    			$mvc->extractData($rec);
-    		//}
+    		$mvc->extractData($rec);
     	}
     	
     	if(empty($rec->id)){
@@ -529,7 +526,7 @@ class pos_Reports extends core_Master {
     /**
      * След създаване автоматично да се контира
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	// Контираме документа
     	$mvc->conto($rec);
@@ -558,14 +555,16 @@ class pos_Reports extends core_Master {
     		pos_Receipts::reject($rRec);
     	}
     	
-    	core_Statuses::newStatus("|Оттеглени са|* {$count} |празни бележки|*");
+    	if($count){
+    		core_Statuses::newStatus("|Оттеглени са|* {$count} |празни бележки|*");
+    	}
     }
     
     
     /**
      * След промяна в журнала със свързаното перо
      */
-    public static function on_AfterJournalItemAffect($mvc, $rec, $item)
+    protected static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
     	if($rec->state != 'draft' && $rec->state != 'closed'){
     		if($rec->state == 'active'){
@@ -637,7 +636,7 @@ class pos_Reports extends core_Master {
      * Метод по подразбиране
      * Връща иконата на документа
      */
-    public static function on_AfterGetIcon($mvc, &$res, $id = NULL)
+    protected static function on_AfterGetIcon($mvc, &$res, $id = NULL)
     {
         if(!$res) { 
             $res = $mvc->singleIcon;
@@ -683,17 +682,6 @@ class pos_Reports extends core_Master {
     
     
     /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(get_called_class());
-    	 
-    	return tr("|{$self->singleTitle}|* №") . $rec->id;
-    }
-    
-    
-    /**
      * Проверява може ли да се създаде отчет за този клиент. За създаване трябва
      * да е изпълнено:
      * 	1. Да има поне една активна (приключена) бележка за касиера и точката
@@ -728,7 +716,7 @@ class pos_Reports extends core_Master {
      * @param mixed $res
      * @param string $action
      */
-    public static function on_BeforeAction($mvc, &$res, $action)
+    protected static function on_BeforeAction($mvc, &$res, $action)
     {
     	if($action == 'add'){
     		if($pointId = Request::get('pointId', 'key(mvc=pos_Points)')){

@@ -31,6 +31,18 @@ defIfNot('POS_CLOSE_REPORTS_OLDER_THAN', 60 * 60 * 24 * 2);
 
 
 /**
+ *  Показване на бутона за отстъпка в терминала
+ */
+defIfNot('POS_SHOW_DISCOUNT_BTN', 'yes');
+
+
+/**
+ *  Продаване на неналични артикули през ПОС-а
+ */
+defIfNot('POS_ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK', 'yes');
+
+
+/**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
  *
  *
@@ -73,12 +85,14 @@ class pos_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     var $configDescription = array(
-    		'POS_PRODUCTS_DEFAULT_THEME'   => array ('class(interface=pos_ThemeIntf,select=title)', 'caption=Tемата по-подразбиране за пос терминала->Тема'),
-        	'POS_RESULT_PRODUCT_PARAMS'    => array("keylist(mvc=cat_Params,select=name)", 'caption=Параметри за показване търсене на продукт->Параметри,columns=2'),
-    		'POS_SHOW_RECEIPT_DIGITS'      => array('double', 'caption=Цифри показващи се цифри от кода на бележката->Брой'),
-    		'POS_CLOSE_REPORTS_PER_TRY'    => array("int", 'caption=По колко отчета да се приключват автоматично на опит->Брой,columns=2'),
-    		'POS_CLOSE_REPORTS_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Автоматично приключване на отчети по стари от->Дни'),
-    );
+    		'POS_PRODUCTS_DEFAULT_THEME'              => array ('class(interface=pos_ThemeIntf,select=title)', 'caption=Tемата по-подразбиране за пос терминала->Тема'),
+        	'POS_RESULT_PRODUCT_PARAMS'               => array("keylist(mvc=cat_Params,select=name)", 'caption=Параметри за показване търсене на продукт->Параметри,columns=2'),
+    		'POS_SHOW_RECEIPT_DIGITS'                 => array('double', 'caption=Цифри показващи се цифри от кода на бележката->Брой'),
+    		'POS_CLOSE_REPORTS_PER_TRY'               => array("int", 'caption=По колко отчета да се приключват автоматично на опит->Брой,columns=2'),
+    		'POS_CLOSE_REPORTS_OLDER_THAN'            => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Автоматично приключване на отчети по стари от->Дни'),
+    		'POS_SHOW_DISCOUNT_BTN'                   => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на бутони в терминала->Отстъпка'),
+    		'POS_ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK' => array('enum(yes=Включено,no=Изключено)', 'caption=Продажба на неналични артикули->Избор'),
+    ); 
     
 
     /**
@@ -93,7 +107,7 @@ class pos_Setup extends core_ProtoSetup
         	'pos_Reports',
     		'pos_Stocks',
     		'pos_Cards',
-    		'migrate::truncateStocks',
+    		'migrate::updateReceipts',
         );
     
 
@@ -157,15 +171,6 @@ class pos_Setup extends core_ProtoSetup
     
     
     /**
-     * Зануляваме кешираните складови наличностти
-     */
-    public function truncateStocks()
-    {
-    	pos_Stocks::truncate();
-    }
-    
-    
-    /**
      * Настройки за Cron
      */
     var $cronSettings = array(
@@ -188,4 +193,13 @@ class pos_Setup extends core_ProtoSetup
     				'timeLimit' => 100,
     		),
     );
+    
+    
+    /**
+     * Миграция
+     */
+    public static function updateReceipts()
+    {
+    	pos_ReceiptDetails::delete("#action IS NULL OR (#action NOT LIKE 'sale|%' AND #action NOT LIKE 'payment|%' AND #action NOT LIKE 'discount|%') ");
+    }
 }

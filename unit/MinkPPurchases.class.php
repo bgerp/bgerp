@@ -1266,7 +1266,17 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записване черновата на Покупката
         $browser->press('Чернова');
-    
+        
+        if(strpos($browser->gettext(), 'Датата е в несъществуващ счетоводен период')) {
+            $browser->setValue('Игнорирай предупреждениeто', True);
+            //$browser->setValue('Ignore', 1);
+            $browser->press('Чернова');
+        }
+        if(strpos($browser->gettext(), 'Датата е в бъдещ счетоводен период')) {
+            $browser->setValue('Игнорирай предупреждениeто', True);
+            $browser->press('Чернова');
+        }
+        
         // Добавяме нов артикул - 20% ДДС
         $browser->press('Артикул');
         $browser->setValue('productId', 'Чувал голям 50 L');
@@ -1281,11 +1291,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('packPrice', '9');
         // Записваме артикула
         $browser->press('Запис');
-    
-        // активиране на Покупката
-        $browser->press('Активиране');
-        $browser->press('Активиране/Контиране');
-         
+                  
         if(strpos($browser->gettext(), 'ДДС 20%: BGN 80,00')) {
         } else {
             return "Грешно ДДС 20%";
@@ -1298,7 +1304,10 @@ class unit_MinkPPurchases extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
-       
+        
+        // активиране на Покупката
+        $browser->press('Активиране');
+        $browser->press('Активиране/Контиране');
         // Складова разписка
         // Когато няма автом. избиране
                
@@ -1451,10 +1460,10 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('search', 'Доставчик');
         $browser->press('Филтрирай');
         $browser->click('Информация за перото');
-        
+       
         // ID на покупка 1, за да се избере при разпр. на разход 
-        $purId = "68";
-        $purId = $purId .'.17';
+        //$purId = "69";
+        //$purId = $purId .'.16';
         
         //Покупка 2 - услуги
         //Отваряне папката на фирмата
@@ -1482,10 +1491,12 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('packQuantity', '1');
         $browser->setValue('packPrice', '100');
         //избор на разходно перо и разпределение
-        $browser->setValue('expenseItemId', $purId);
+        //$browser->setValue('expenseItemId', $purId);
+        $browser->setValue('expenseItemId', 'Pur16/Фирма доставчик/Други стоки (goods) (16 pur)');
         $browser->refresh('Запис');
         $browser->setValue('allocationBy', 'value');
         $browser->refresh('Запис');
+        
         // Записване на артикула
         $browser->press('Запис');
         // активиране на Покупката

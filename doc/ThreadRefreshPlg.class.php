@@ -74,8 +74,8 @@ class doc_ThreadRefreshPlg extends core_Plugin
      * 
      * 
      * @param core_Manager $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     public static function on_AfterPrepareListRecs($mvc, &$res, $data)
     {

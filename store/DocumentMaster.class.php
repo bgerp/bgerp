@@ -84,6 +84,20 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,lineId';
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)
@@ -113,7 +127,7 @@ abstract class store_DocumentMaster extends core_Master
     	
     	$mvc->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
     	$mvc->FLD('state',
-    			'enum(draft=Чернова, active=Контиран, rejected=Сторниран,stopped=Спряно, pending=Заявка)',
+    			'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
     			'caption=Статус, input=none'
     	);
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -180,16 +194,6 @@ abstract class store_DocumentMaster extends core_Master
     			$agreedLocation = crm_Locations::getTitleById($form->dealInfo->get('deliveryLocation'));
     			$form->setWarning('locationId', "Избраната локация е различна от договорената \"{$agreedLocation}\"");
     		}
-    		
-			if($rec->lineId){
-				
-    			// Ако има избрана линия и метод на плащане, линията трябва да има подочетно лице
-    			if($pMethods = $form->dealInfo->get('paymentMethodId')){
-    				if(cond_PaymentMethods::isCOD($pMethods) && !trans_Lines::hasForwarderPersonId($rec->lineId)){
-    					$form->setError('lineId', 'При наложен платеж, избраната линия трябва да има материално отговорно лице!');
-    				}
-    			}
-    		}
     	}
     }
 
@@ -206,7 +210,7 @@ abstract class store_DocumentMaster extends core_Master
     	 
     	$Detail = $this->mainDetail;
     	$query = $this->{$Detail}->getQuery();
-    	$query->where("#{$this->{$Detail}->masterKey} = '{$id}'");
+    	$query->where("#{$this->{$Detail}->masterKey} = '{$rec->id}'");
     
     	$recs = $query->fetchAll();
     
@@ -329,6 +333,14 @@ abstract class store_DocumentMaster extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
+    	
+    	if(store_DocumentPackagingDetail::haveRightFor('add', (object)array('documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id))){
+    		
+    		$btnIn = ht::createBtn("Отг.пазене: ПРЕДАВАНЕ", array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'type' => 'out','ret_url' => TRUE), FALSE, FALSE, 'title=Отговорно пазене: предаване КЪМ Контрагент,ef_icon=img/16/lorry_add.png');
+    		$btnOut = ht::createBtn("Отг.пазене: ПРИЕМАНЕ", array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'type' => 'in','ret_url' => TRUE), FALSE, FALSE, 'title=Отговорно пазене: приемане ОТ Контрагент,ef_icon=img/16/lorry_add.png');
+    		$tpl->append($btnIn, 'PACKAGING_BTNS');
+    		$tpl->append($btnOut, 'PACKAGING_BTNS');
+    	}
    }
 
 
@@ -409,10 +421,6 @@ abstract class store_DocumentMaster extends core_Master
 	   		}
 	   		
 	   		$row->storeId = store_Stores::getHyperlink($rec->storeId);
-	   		if(isset($rec->lineId)){
-	   			$row->lineId = trans_Lines::getHyperlink($rec->lineId);
-	   		}
-	   		
 	   		core_Lg::pop();
 	   		
 	   		if($rec->isReverse == 'yes'){
@@ -493,105 +501,17 @@ abstract class store_DocumentMaster extends core_Master
 
 
     /**
-     * Помощен метод за показване на документа в транспортните линии
-     * 
-     * @param stdClass $rec - запис на документа
-     * @return stdClass $row - вербалния запис
+     * Променяме шаблона в зависимост от мода
      */
-    private function prepareLineRows(&$rec)
+    protected static function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
     {
-    	$row = new stdClass();
-    	$fields = $this->selectFields();
-    	$fields['-single'] = TRUE;
-    	
-    	$oldRow = $this->recToVerbal($rec, $fields);
-    	
-    	$amount = NULL;
-    	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-    	if($firstDoc->getInstance()->getField("#paymentMethodId", FALSE)){
-    		$paymentMethodId = $firstDoc->fetchField('paymentMethodId');
-    		if(cond_PaymentMethods::isCOD($paymentMethodId)){
-    			$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
-    		}
+    	if(Mode::is('renderHtmlInLine') && isset($mvc->layoutFileInLine)){
+    		$data->singleLayout = getTplFromFile($mvc->layoutFileInLine);
+    		unset($data->_selectTplForm);
     	}
-    	
-    	$rec->palletCount = ($rec->palletCountInput) ? $rec->palletCountInput : $rec->palletCount;
-    	
-    	if($rec->palletCount){
-    		$row->palletCount = $this->getFieldType('palletCount')->toVerbal($rec->palletCount);
-    	}
-    	
-    	if(!empty($rec->weight)){
-    		$row->weight = $oldRow->weight;
-    	}
-    	
-    	if(!empty($rec->volume)){
-    		$row->volume = $oldRow->volume;
-    	}
-    	
-    	if($amount){
-    		$row->collection = "<span style='float:right'><span class='cCode'>{$rec->currencyId}</span> " . $this->getFieldType('amountDelivered')->toVerbal($amount) . "</span>";
-    	} else {
-    		unset($rec->amountDelivered);
-    		unset($rec->amountDeliveredVat);
-    	}
-    	
-    	$row->rowNumb = $rec->rowNumb;
-        
-        $contragentClass = cls::get($rec->contragentClassId);
-        $contragentRec = $contragentClass->fetch($rec->contragentId);
-        $contragentTitle = $contragentClass->getVerbal($contragentRec, 'name');
-
-    	$row->address = ($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress;
-    	$row->address = str_replace('<br>', ',', $row->address);
-    	$row->address = "<span style='font-size:0.8em'>{$contragentTitle}, {$row->address}</span>";
-    	 
-    	$row->storeId = store_Stores::getHyperlink($rec->storeId);
-    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
-    	$row->docId = $this->getLink($rec->id, 0);
-    	
-    	return $row;
     }
     
     
-    /**
-     * Помощен метод за показване на документа в транспортните линии
-     */
-    protected function prepareLineDetail(&$masterData)
-    {
-    	$arr = array();
-    	
-    	$query = $this->getQuery();
-    	$query->where("#lineId = {$masterData->rec->id}");
-    	$query->where("#state != 'rejected'");
-    	$query->orderBy("#createdOn", 'DESC');
-    	
-    	$i = 1;
-    	while($dRec = $query->fetch()){
-    		$dRec->rowNumb = $i;
-    		$arr[$dRec->id] = $this->prepareLineRows($dRec);
-    		$i++;
-    		
-    		if(!empty($dRec->weight) && $masterData->weight !== FALSE){
-    			$masterData->weight += $dRec->weight;
-    		} else {
-    			$masterData->weight = FALSE;
-    		}
-    		
-    		if(!empty($dRec->volume) && $masterData->volume !== FALSE){
-    			$masterData->volume += $dRec->volume;
-    		} else {
-    			$masterData->volume = FALSE;
-    		}
-    		
-    		$masterData->palletCount += $dRec->palletCount;
-    		$masterData->totalAmount += $dRec->amountDelivered;
-    	}
-    	
-    	return $arr;
-    }
-
-
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
@@ -651,17 +571,6 @@ abstract class store_DocumentMaster extends core_Master
     		
     		$aggregator->pushToArray('productVatPrices', $dRec->packPrice, $index);
     	}
-    }
-    
-    
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(get_called_class());
-    	 
-    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     
@@ -798,5 +707,60 @@ abstract class store_DocumentMaster extends core_Master
     	}
     	 
     	return $details;
+    }
+    
+    
+    /**
+     * Информацията на документа, за показване в транспортната линия
+     *
+     * @param mixed $id
+     * @return array
+     * 		['baseAmount'] double|NULL - сумата за инкасиране във базова валута
+     * 		['amount']     double|NULL - сумата за инкасиране във валутата на документа
+     * 		['currencyId'] string|NULL - валутата на документа
+     * 		['notes']      string|NULL - забележки за транспортната линия
+     *  	['stores']     array       - склад(ове) в документа
+     *   	['weight']     double|NULL - общо тегло на стоките в документа
+     *     	['volume']     double|NULL - oбщ обем на стоките в документа
+     *      ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+     *      	[transUnitId] => quantity
+     */
+    public function getTransportLineInfo_($rec)
+    {
+    	$rec = static::fetchRec($rec);
+    	$res = array('baseAmount' => NULL, 'amount' => NULL, 'currencyId' => NULL, 'notes' => $rec->lineNotes);
+    	$res['stores'] = array($rec->storeId);
+    	
+    	$contragentClass = cls::get($rec->contragentClassId);
+    	$contragentRec = $contragentClass->fetch($rec->contragentId);
+    	$contragentTitle = $contragentClass->getVerbal($contragentRec, 'name');
+    	
+    	$oldRow = $this->recToVerbal($rec, 'contragentAddress,-list');
+    	
+    	$contragentClass = cls::get($rec->contragentClassId);
+    	$contragentRec = $contragentClass->fetch($rec->contragentId);
+    	$contragentTitle = $contragentClass->getVerbal($contragentRec, 'name');
+    	
+    	$address = ($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress;
+    	$address = str_replace('<br>', ',', $address);
+    	$address = "{$contragentTitle}, {$address}";
+    	$res['address'] = $address;
+    	
+    	$amount = NULL;
+    	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    	if($firstDoc->getInstance()->getField("#paymentMethodId", FALSE)){
+    		$paymentMethodId = $firstDoc->fetchField('paymentMethodId');
+    		if(cond_PaymentMethods::isCOD($paymentMethodId)){
+    			$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
+    		}
+    	}
+    	
+    	if($amount){
+    		$res['baseAmount'] = currency_Currencies::round($rec->amountDelivered, $rec->currencyId);
+    		$res['amount'] = $amount;
+    		$res['currencyId'] = $rec->currencyId;
+    	}
+    	
+    	return $res;
     }
 }

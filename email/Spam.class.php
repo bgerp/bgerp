@@ -92,9 +92,9 @@ class email_Spam extends email_ServiceEmails
         // само през bgERP, то проверява се дали изходящото писмо има валиден mid
         
         // TODO
-
+        
         // Гледаме спам рейтинга
-        $score = self::getSpamScore($mime->parts[1]->headersArr);
+        $score = self::getSpamScore($mime->parts[1]->headersArr, TRUE, $mime, $rec);
         if (isset($score) && ($score >= email_Setup::get('HARD_SPAM_SCORE'))) {
             $isSpam = TRUE;
         }
@@ -108,8 +108,10 @@ class email_Spam extends email_ServiceEmails
      *
      * @param array $headerArr
      * @param boolean $notNull
+     * @param NULL|email_Mime $mime
+     * @param NULL|stdClass $rec
      */
-    public static function getSpamScore($headerArr, $notNull = TRUE)
+    public static function getSpamScore($headerArr, $notNull = TRUE, $mime = NULL, $rec = NULL)
     {
         $headersNames = email_Setup::get('CHECK_SPAM_SCORE_HEADERS');
         
@@ -155,6 +157,14 @@ class email_Spam extends email_ServiceEmails
         
         if (!isset($score) && $notNull) {
             $score = 0;
+        }
+        
+        if (isset($mime) || isset($rec)) {
+            $aScore = email_SpamRules::getSpamScore($mime, $rec);
+            
+            if ($aScore) {
+                $score += $aScore;
+            }
         }
         
         return $score;

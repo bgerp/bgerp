@@ -47,7 +47,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper, sales_plg_CalcPriceDelta,store_plg_Request, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
 
@@ -59,12 +59,6 @@ class store_Receipts extends store_DocumentMaster
      * @see doc_SharablePlg
      */
     public $shareUserRoles = 'ceo, store';
-    
-    
-    /**
-     * Кой може да сторнира
-     */
-    public $canRevert = 'storeMaster, ceo';
     
     
     /**
@@ -112,7 +106,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'deliveryTime,valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
+    public $listFields = 'deliveryTime,valior, title=Документ, folderId, amountDelivered, weight, volume,lineId, createdOn, createdBy';
 
 
     /**
@@ -124,7 +118,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Детайла, на модела
      */
-    public $details = 'store_ReceiptDetails' ;
+    public $details = 'store_ReceiptDetails,store_DocumentPackagingDetail' ;
     
 
     /**
@@ -172,20 +166,6 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
-     * Полета, които при клониране да не са попълнени
-     *
-     * @see plg_Clone
-     */
-    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,palletCount';
-    
-    
-    /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -203,7 +183,8 @@ class store_Receipts extends store_DocumentMaster
     {
         if ($form->isSubmitted()) {
         	$rec = &$form->rec;
-        	$dealInfo = static::getOrigin($rec)->getAggregateDealInfo();
+        	expect($origin = static::getOrigin($rec), $rec);
+        	$dealInfo = $origin->getAggregateDealInfo();
         	
         	$operations = $dealInfo->get('allowedShipmentOperations');
         	$operation = $operations['stowage'];
@@ -292,7 +273,7 @@ class store_Receipts extends store_DocumentMaster
     	$rec = $data->rec;
     	 
     	if($rec->isReverse == 'no'){
-    		if($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending'){
+    		if(deals_Helper::showInvoiceBtn($rec->threadId) && in_array($rec->state, array('active', 'pending', 'draft'))){
     			 
     			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
     			if($iRec = purchase_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
@@ -307,5 +288,17 @@ class store_Receipts extends store_DocumentMaster
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Трябва ли ръчно да се подготвя документа в Транспортната линия
+     *
+     * @param mixed $id     - ид или запис на документа
+     * @return boolean      - TRUE или FALSE
+     */
+    public function requireManualCheckInTransportLine($id)
+    {
+    	return FALSE;
     }
 }

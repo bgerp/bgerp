@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -27,7 +27,7 @@ class store_Products extends core_Detail
     /**
      * Заглавие
      */
-    public $title = 'Продукти';
+    public $title = 'Наличности';
     
     
     /**
@@ -73,6 +73,12 @@ class store_Products extends core_Detail
     
     
     /**
+     * Задължително филтър по склад
+     */
+    protected $mandatoryStoreFilter = FALSE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -93,7 +99,7 @@ class store_Products extends core_Detail
     /**
      * Преди подготовката на записите
      */
-    public static function on_BeforePrepareListPager($mvc, &$res, $data)
+    protected static function on_BeforePrepareListPager($mvc, &$res, $data)
     {
     	$mvc->listItemsPerPage = (isset($data->masterMvc)) ? 100 : 20;
     }
@@ -118,6 +124,8 @@ class store_Products extends core_Detail
 	       $row->code = cat_Products::getVerbal($pRec, 'code');
 	       
 	       if($isDetail){
+	       		
+	       		// Показване на запазеното количество
 	       		$basePack = key(cat_Products::getPacks($rec->productId));
 	       		if($pRec = cat_products_Packagings::getPack($rec->productId, $basePack)){
 	       			$rec->quantity /= $pRec->quantity;
@@ -127,6 +135,17 @@ class store_Products extends core_Detail
 	       			}
 	       		}
 	       		$rec->measureId = $basePack;
+	       		
+	       		// Линк към хронологията
+	       		if(acc_BalanceDetails::haveRightFor('history')){
+	       			$to = dt::today();
+	       			$from = dt::mysql2verbal($to, "Y-m-1", NULL, FALSE);
+	       			$histUrl = array('acc_BalanceHistory', 'History', 'fromDate' => $from, 'toDate' => $to, 'accNum' => 321);
+	       			$histUrl['ent1Id'] = acc_Items::fetchItem('store_Stores', $rec->storeId)->id;
+	       			$histUrl['ent2Id'] = acc_Items::fetchItem('cat_Products', $rec->productId)->id;
+	       			$histUrl['ent3Id'] = NULL;
+	       			$row->history = ht::createLink('', $histUrl, NULL, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
+	       		}
 	       } else {
 	       		$rec->measureId = cat_Products::fetchField($rec->productId, 'measureId');
 	       }
@@ -157,8 +176,19 @@ class store_Products extends core_Detail
     	$stores = cls::get('store_Stores')->makeArray4Select('name', "#state != 'rejected'");
     	$data->listFilter->setOptions('storeId', array('' => '') + $stores);
     	$data->listFilter->setField('storeId', 'autoFilter');
-    	if(count($stores) == 1){
-    		$data->listFilter->setDefault('storeId', key($stores));
+    	
+    	if($mvc->mandatoryStoreFilter === TRUE){
+    		$storeId = store_Stores::getCurrent();
+    		$data->listFilter->setDefault('storeId', $storeId);
+    		$data->listFilter->setReadonly('storeId');
+    	} else {
+    		if(count($stores) == 1){
+    			$data->listFilter->setDefault('storeId', key($stores));
+    		}
+    		
+    		if($storeId = store_Stores::getCurrent('id', FALSE)) {
+    			$data->listFilter->setDefault('storeId', $storeId);
+    		}
     	}
     	
     	// Подготвяме в заявката да може да се търси по полета от друга таблица
@@ -169,7 +199,6 @@ class store_Products extends core_Detail
     	$data->query->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
     	$data->query->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=productId');
     	
-    	$data->query->orderBy('code,id', ASC);
     	if(isset($data->masterMvc)){
     		$data->listFilter->setDefault('order', 'all');
     		$data->listFilter->showFields = 'search,groupId';
@@ -184,16 +213,18 @@ class store_Products extends core_Detail
         if($rec = $data->listFilter->rec){
         	
         	// И е избран склад, търсим склад
-        	if(isset($rec->storeId)){
-        		$selectedStoreName = store_Stores::getHyperlink($rec->storeId, TRUE);
-        		$data->title = "|Наличности в склад|* <b style='color:green'>{$selectedStoreName}</b>";
-        		$data->query->where("#storeId = {$rec->storeId}");
-        	} elseif(count($stores)){
-        		// Под всички складове се разбира само наличните за избор от потребителя
-        		$data->query->in("storeId", array_keys($stores));
-        	} else {
-        		// Ако няма налични складове за избор не вижда нищо
-        		$data->query->where("1 = 2");
+        	if(!isset($data->masterMvc)){
+        		if(isset($rec->storeId)){
+        			$selectedStoreName = store_Stores::getHyperlink($rec->storeId, TRUE);
+        			$data->title = "|Наличности в склад|* <b style='color:green'>{$selectedStoreName}</b>";
+        			$data->query->where("#storeId = {$rec->storeId}");
+        		} elseif(count($stores)){
+        			// Под всички складове се разбира само наличните за избор от потребителя
+        			$data->query->in("storeId", array_keys($stores));
+        		} else {
+        			// Ако няма налични складове за избор не вижда нищо
+        			$data->query->where("1 = 2");
+        		}
         	}
         	
         	// Ако се търси по ключови думи, търсим по тези от външното поле
@@ -210,11 +241,9 @@ class store_Products extends core_Detail
         	if(isset($rec->order)){
         		switch($data->listFilter->rec->order){
         			case 'all':
-        				$data->query->orderBy('#state,#name');
 						break;
 		        	case 'private':
         				$data->query->where("#isPublic = 'no'");
-        				$data->query->orderBy('#state,#name');
 						break;
 					case 'last':
 			      		$data->query->orderBy('#createdOn=DESC');
@@ -227,10 +256,11 @@ class store_Products extends core_Detail
         				break;
         			default :
         				$data->query->where("#isPublic = 'yes'");
-        				$data->query->orderBy('#state,#name');
         				break;
         		}
         	}
+        	
+        	$data->query->orderBy('#state,#code');
         	
         	// Филтър по групи на артикула
         	if (!empty($rec->groupId)) {
@@ -257,7 +287,7 @@ class store_Products extends core_Detail
     	$arrRes = arr::syncArrays($all, $oldRecs, "productId,storeId", "quantity");
     	
     	if(!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
-    		$this->logWarning("Синхронизирането на складовите наличности е заключено от друг процес");
+    		$self->logWarning("Синхронизирането на складовите наличности е заключено от друг процес");
     		return;
     	}
     	
@@ -322,60 +352,41 @@ class store_Products extends core_Detail
     /**
      * Колко е количеството на артикула в складовете
      * 
-     * @param int $productId    - ид на артикул
-     * @param int|NULL $storeId - конкретен склад, NULL ако е във всички
-     * @param boolean $onlyFree - само наличните
-     * @return double $sum      - наличното количество
+     * @param int $productId        - ид на артикул
+     * @param int|NULL $storeId     - конкретен склад, NULL ако е във всички
+     * @param boolean $freeQuantity - FALSE за общото количество, TRUE само за разполагаемото (общо - запазено)
+     * @return double $sum          - сумата на количеството, общо или разполагаемо
      */
-    public static function getQuantity($productId, $storeId = NULL, $onlyFree = FALSE)
+    public static function getQuantity($productId, $storeId = NULL, $freeQuantity = FALSE)
     {
     	$query = self::getQuery();
     	$query->where("#productId = {$productId}");
+    	$query->show('sum');
     	
     	if(isset($storeId)){
     		$query->where("#storeId = {$storeId}");
     	}
     	
-    	$sum = 0;
-    	while($r = $query->fetch()){
-    		if($onlyFree !== TRUE){
-    			$sum += $r->quantity;
-    		} else {
-    			$sum += $r->quantity - $r->reservedQuantity;
-    		}
+    	if($freeQuantity === TRUE){
+    		$query->XPR('sum', 'double', 'SUM(#quantity - COALESCE(#reservedQuantity, 0))');
+    	} else {
+    		$query->XPR('sum', 'double', 'SUM(#quantity)');
     	}
+    	
+    	$calcedSum = $query->fetch()->sum;
+    	$sum = (!empty($calcedSum)) ? $calcedSum : 0;
     	
     	return $sum;
     }
     
     
     /**
-     * Всички налични к-ва на артикулите в склад-а
-     * 
-     * @param int $storeId
-     * @return array $res
-     */
-    public static function getQuantitiesInStore($storeId)
-    {
-    	$res = array();
-    	$query = self::getQuery();
-    	$query->where("#storeId = {$storeId}");
-    	$query->show('productId,quantity');
-    	while($rec = $query->fetch()){
-    		$res[$rec->productId] = $rec->quantity;
-    	}
-    	
-    	return $res;
-    }
-
-
-    /**
      * След подготовка на тулбара на списъчния изглед
      *
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(haveRole('debug')){
     		if(isset($data->masterMvc)) return;
@@ -387,10 +398,13 @@ class store_Products extends core_Detail
     /**
      * Преди подготовката на полетата за листовия изглед
      */
-    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
     	if(isset($data->masterMvc)){
     		unset($data->listFields['storeId']);
+    		if(acc_BalanceDetails::haveRightFor('history')){
+    			arr::placeInAssocArray($data->listFields, array('history' => ' '), 'code');
+    		}
     	}
     }
     
@@ -412,7 +426,7 @@ class store_Products extends core_Detail
     /**
      * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
      */
-    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
     	$data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
     	$data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
@@ -436,7 +450,7 @@ class store_Products extends core_Detail
 	/**
 	 * Преди подготовката на ключовете за избор
 	 */
-    public static function on_BeforePrepareKeyOptions($mvc, &$options, $typeKey, $where = '')
+    protected static function on_BeforePrepareKeyOptions($mvc, &$options, $typeKey, $where = '')
     {
         $storeId = store_Stores::getCurrent();
         $query = self::getQuery();
@@ -548,10 +562,7 @@ class store_Products extends core_Detail
     	// Намиране на тези записи, от старите които са имали резервирано к-во, но вече нямат
     	$unsetArr = array_filter($old, function (&$r) use ($result) {
     		if(!isset($r->reservedQuantity)) return FALSE;
-    		if(array_key_exists("{$r->storeId}|{$r->productId}", $result)){
-    			return FALSE;
-    		}
-    		 
+    		if(array_key_exists("{$r->storeId}|{$r->productId}", $result)) return FALSE;
     		return TRUE;
     	});
     	
@@ -581,13 +592,15 @@ class store_Products extends core_Detail
     	$docs = array();
     	foreach (array('store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId') as $Detail => $storeField){
     		$Detail = cls::get($Detail);
+    		expect($Detail->productFld, $Detail);
+    		
     		$Master = $Detail->Master;
     		$dQuery = $Detail->getQuery();
     		$dQuery->EXT('containerId', $Master->className, "externalName=containerId,externalKey={$Detail->masterKey}");
     		$dQuery->EXT('storeId', $Master->className, "externalName={$storeField},externalKey={$Detail->masterKey}");
     		$dQuery->EXT('state', $Master->className, "externalName=state,externalKey={$Detail->masterKey}");
     		$dQuery->where("#state = 'pending'");
-    		$dQuery->where("#{$Detail->productFieldName} = {$rec->productId}");
+    		$dQuery->where("#{$Detail->productFld} = {$rec->productId}");
     		$dQuery->where("#storeId = {$rec->storeId}");
     		$dQuery->groupBy('containerId');
     		$dQuery->show('containerId');

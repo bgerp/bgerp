@@ -389,7 +389,7 @@ class doc_RichTextPlg extends core_Plugin
             } else {
                 
                 // Автора и датата
-                $authorInfo = "<div class='quote-title'>{$authorInfo}</div>";
+                $authorInfo = "<span class='quote-title'>{$authorInfo}</span>";
                 
                 // Добавяме информация за автора
                 $quote = $authorInfo . $quote;

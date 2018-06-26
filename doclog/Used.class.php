@@ -105,10 +105,15 @@ class doclog_Used extends core_Manager
      */
     public static function remove($cid, $usedCid)
     {
+        if (!$cid || !$usedCid) return ;
+        
         self::delete("#containerId = {$cid} AND #usedContainerId = {$usedCid}");
         
         $threadId = doc_Containers::fetchField($usedCid, 'threadId');
-        doclog_Documents::removeHistoryFromCache($threadId);
+        
+        if ($threadId) {
+            doclog_Documents::removeHistoryFromCache($threadId);
+        }
     }
     
     
@@ -204,6 +209,13 @@ class doclog_Used extends core_Manager
             $rec->usedContainerId = $usedArr['usedCid'];
             
             if (!self::save($rec, NULL, 'IGNORE')) continue;
+            
+            // Добавяме използване на документа
+            if ($usedArr['usedCid']) {
+                $uDoc = doc_Containers::getDocument($usedArr['usedCid']);
+                $uDoc->instance->logRead('Използване на документа', $uDoc->that);
+                log_Data::flush();
+            }
             
             try {
                 $threadId = doc_Containers::fetchField($rec->usedContainerId, 'threadId');

@@ -282,7 +282,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      * 
      * 
      * @param purchase_Invoices $mvc
-     * @param stdObject $data
+     * @param stdClass $data
      */
     function on_BeforePrepareEditForm($mvc, &$data)
     {
@@ -354,9 +354,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     		foreach (array("contragentName", "contragentClassId", "contragentId", "contragentCountryId", "contragentVatNo", "uicNo", "contragentPCode", "contragentPlace", "contragentAddress")  as $fld){
     			unset($rec->{$fld});
     		}
-    		
-    		$ownCountryId = crm_Setup::get('BGERP_OWN_COMPANY_COUNTRY', TRUE);
-    		$rec->contragentCountryId = drdata_Countries::fetchField("#commonName = '{$ownCountryId}'", 'id');
+    		$rec->contragentCountryId = crm_Companies::fetchOurCompany()->country;
     	}
     	
     	if($rec->type != 'dc_note'){
@@ -580,6 +578,17 @@ class purchase_Invoices extends deals_InvoiceMaster
     				$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => TRUE), 'ef_icon=img/16/bank_rem.png,title=Създаване на нов разходен банков документ');
     			}
     		}
+    		
+    		if(purchase_Vops::haveRightFor('add', (object)array('invoiceId' => $rec->id))){
+    			$rowNumber = (drdata_Countries::isEu($rec->contragentCountryId)) ? 1 : 2;
+    			$data->toolbar->addBtn("ВОП", array('purchase_Vops', 'add', 'invoiceId' => $rec->id), "ef_icon=img/16/page_2.png,title=Създаване на нов протокол за вътреобщностно придобиване, row={$rowNumber}");
+    		}
+    		
+    		if($vopId = purchase_Vops::fetchField("#invoiceId = {$rec->id}")){
+    			if(purchase_Vops::haveRightFor('print', $vopId)){
+    				$data->toolbar->addBtn("ВОП", array('purchase_Vops', 'print', $vopId, 'Printing' => 'yes'), 'ef_icon=img/16/print_go.png,title=Разпечатване на нов протокол за вътреобщностно придобиване,target=_blank');
+    			}
+    		}
     	}
     }
 	
@@ -589,7 +598,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      * 
      * Връща масив с действия, които могат да се извършат с дадения файл
      * 
-     * @param stdObject $fRec - Обект са данни от модела
+     * @param stdClass $fRec - Обект са данни от модела
      * 
      * @return array $arr - Масив с данните
      * $arr['url'] - array URL на действието

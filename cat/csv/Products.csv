@@ -1,12 +1,12 @@
-"Други суровини и материали",materials,брой,materials,materials
-"Друг труд",labor,час,labor,labor
-"Други външни услуги",exServices,брой,externalServices,externalServices
-"Други консумативи",consumables,брой,consumables,consumables
-"Други резервни части",replacements,брой,replacements,replacements
-"Други стоки",goods,брой,goods,goods
-"Други продукти",products,брой,products,products
-"Други заготовки",prefabrications,брой,prefabrications,prefabrications
-"Други услуги",services,брой,services,services
-"Други ДА (LTA)",fixedAssets,брой,fixedAssets,fixedAssets
+"Други суровини и материали",materials,брой,materials,materials,
+"Друг труд",labor,час,labor,labor,
+"Други външни услуги",exServices,брой,externalServices,externalServices,
+"Други консумативи",consumables,брой,consumables,consumables,
+"Други резервни части",replacements,брой,replacements,replacements,
+"Други стоки",goods,брой,goods,goods,
+"Други продукти",products,брой,products,products,
+"Други заготовки",prefabrications,брой,prefabrications,prefabrications,
+"Други услуги",services,брой,services,services,
+"Други ДА (LTA)",fixedAssets,брой,fixedAssets,fixedAssets,
 "Транспорт",transport,брой,services,services,"canBuy,canSell"
 "Надценка",surcharge,брой,surcharge,surcharge,"canBuy,canSell"

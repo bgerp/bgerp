@@ -58,13 +58,13 @@ defIfNot('BGERP_OWN_IPS', '');
 defIfNot('USERS_UNBLOCK_EMAIL',
                 "\n|Уважаеми|* [#names#]." .
                 "\n" .
-                "\n|Потребителят Ви в|* [#EF_APP_TITLE#] |е блокиран|*." .
+                "\n|Потребителят|*[#nick#]|в|* [#EF_APP_TITLE#] |е блокиран|*." .
                 "\n" .
-                "\n|За да се отблокирате, моля отворете следния линк|*: " .
+                "\n|За да се отблокирате, моля последвайте този линк|*: " .
                 "\n" .
                 "\n[#url#]" .
                 "\n" .
-                "\n|Линка ще изтече в|* [#regLifetime#]." .
+                "\n|Линка ще изтече на|* [#regLifetime#]." .
                 "\n" .
                 "\n|Поздрави|*," .
                 "\n[#senderName#]");
@@ -188,6 +188,13 @@ class core_Users extends core_Manager
      * Кой има право да изтрива потребителите, създадени от системата?
      */
     public $canDeletesysdata = 'admin';
+    
+    
+    /**
+     * Масив със съответствие на mime типове към разширения
+     */
+    static $forbiddenNicksArr = array();
+    
 
     
     /**
@@ -281,7 +288,7 @@ class core_Users extends core_Manager
         }
  
         $uQuery = core_Users::getQuery();
-        $uQuery->orderBy('#nick');
+        $uQuery->orderBy('nick', 'ASC');
         
         $usersRolesArr = array();
         
@@ -382,6 +389,8 @@ class core_Users extends core_Manager
         
         $newName = $firstName . ' ' . $lastName;
         
+        $newName = trim($newName);
+        
         return $newName;
     }
     
@@ -467,6 +476,48 @@ class core_Users extends core_Manager
         
         return !(boolean) $cnt;
     }
+    
+    
+    /**
+     * Връща масив със списъка със забраненените имейли
+     */
+    public static function getForbiddenNicksArr()
+    {
+        if(empty(self::$forbiddenNicksArr)) {
+            // Вземаме цялото име на файла
+            $inc = getFullPath('core/data/forbiddenNicks.inc.php');
+            
+            // Инклудваме го, за да можем да му използваме променливите
+            include($inc);
+            
+            // Зареждаме масива в статична променлива
+            self::$forbiddenNicksArr = $forbiddenNicksArr;
+        }
+        
+        return self::$forbiddenNicksArr;
+    }
+    
+    
+    /**
+     * Проверява дали подададения ник е в списъка със забранените
+     *
+     * @param string $nick
+     *
+     * @return boolean
+     */
+    public static function isForbiddenNick($nick)
+    {
+        $fNicksArr = self::getForbiddenNicksArr();
+        
+        $nick = trim($nick);
+        $nick = mb_strtolower($nick);
+        
+        if ($fNicksArr[$nick]) return TRUE;
+        
+        return FALSE;
+    }
+    
+    
     
     
     /**
@@ -806,8 +857,10 @@ class core_Users extends core_Manager
         	static::redirectToEnableHttps();
         }
     	
+        $isPopup = FALSE;
         if (Request::get('popup')) {
             Mode::set('wrapper', 'page_Empty');
+            $isPopup = TRUE;
         }
         
         // Ако нямаме регистриран нито един потребител
@@ -981,6 +1034,18 @@ class core_Users extends core_Manager
                                  EF_USERS_HASH_FACTOR . "', '" . 
                                  (EF_USSERS_EMAIL_AS_NICK ? 'email' : 'nick') .
                                  "');", 'ON_SUBMIT');
+                
+                // Ако логина е в попъп прозорец да се добавят нужните класове
+                if($isPopup === TRUE){
+                	$skin = cms_Domains::getCmsSkin();
+                	if ($skin) {
+                		$skin->prepareWrapper($layout);
+                	}
+                	$layout->push('css/common.css','CSS');
+                	$layout->push('css/Application.css','CSS');
+                }
+                
+                
                 
                 return $layout;
             }
@@ -1156,15 +1221,16 @@ class core_Users extends core_Manager
                                 'id' => self::SYSTEM_USER,
                                 'nick' => core_Setup::get('SYSTEM_NICK'),
                                 'state' => 'active',
-                                'names' => tr('Системата')
+                                'names' => core_Setup::get('SYSTEM_NAME')
                             );
         } elseif(($cond == self::ANONYMOUS_USER) && is_numeric($cond)) {
+            cls::load('core_Setup');
             $res = (object) array(
                                 'id' => self::ANONYMOUS_USER,
                                 'nick' => '@anonym',
                                 'state' => 'active',
-                                'names' => tr('Анонимен')
-                            );
+                    'names' => tr('Анонимен', 0, EF_DEFAULT_LANGUAGE)
+            );
         } else {
             $res = parent::fetch($cond, $fields, $cache);
         }
@@ -1183,12 +1249,18 @@ class core_Users extends core_Manager
         expect($part);
 
         $cRec = Mode::get('currentUserRec');
+        
+        if (is_null($cRec) && $part == 'nick') {
+
+            return '@anonymous';
+        }
+        
         if ($escaped) {
             $res = core_Users::getVerbal($cRec, $part);
         } elseif(is_object($cRec)) {
             $res = $cRec->$part;
         }
-
+        
         return $res;
     }
     
@@ -1352,11 +1424,16 @@ class core_Users extends core_Manager
 
         Mode::setPermanent('currentUserRec', $userRec);
         
-        if(!Request::get('ajax_mode') && dt::mysql2timestamp($userRec->lastActivityTime) < (time() - 3*60)) {
+        if(!Request::get('ajax_mode') && dt::mysql2timestamp($userRec->lastActivityTime) < (time() - 2*60)) {
             $userRec->lastActivityTime = $now;
             self::save($userRec, 'lastActivityTime');
         }
 
+        // Ако потребителя е партньор се записва в сесията първата му споделена папка като активна
+        if(core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)){
+        	colab_Folders::setLastActiveContragentFolder(NULL, $userRec->id);
+        }
+        
         $Users->invoke('afterLogin', array(&$userRec, $inputs, $refresh));
 
         if(!isDebug() && haveRole('debug')) {
@@ -1370,7 +1447,7 @@ class core_Users extends core_Manager
     /**
      * 
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $tpl
      * @param string $subject
      * @param string $act
@@ -1564,7 +1641,7 @@ class core_Users extends core_Manager
     {
         $state = Users::getCurrent('state');
         
-        if (!$state == 'active') {
+        if (!Users::getCurrent() || !$state == 'active') {
             
             // Опитваме да получим адрес за връщане от заявката
             $retUrl = $retUrl ? $retUrl :  getCurrentUrl();
@@ -1656,7 +1733,7 @@ class core_Users extends core_Manager
     /**
      * Връща масив от роли, които са от посочения тип, за посочения потребител
      */
-    static function getUserRolesByType($userId = NULL, $type = NULL, $result = 'keylist')
+    static function getUserRolesByType($userId = NULL, $type = NULL, $result = 'keylist', $removeClosed = TRUE)
     {
         $roles = core_Users::getRoles($userId);
         
@@ -1665,11 +1742,17 @@ class core_Users extends core_Manager
         $roleQuery = core_Roles::getQuery();
 
         $roleQuery->orderBy("#role", 'ASC');
-
+        
+        $cond = '';
         if($type) {
-            $cond = "#type = '{$type}' AND #state != 'closed'";
+            $cond = "#type = '{$type}'";
+            if ($removeClosed) {
+                $cond .= " AND #state != 'closed'";
+            }
         } else {
-            $cond = "#state != 'closed'";
+            if ($removeClosed) {
+                $cond = "#state != 'closed'";
+            }
         }
         
         while($roleRec = $roleQuery->fetch($cond)) {
@@ -1804,6 +1887,7 @@ class core_Users extends core_Manager
      * @param mixed $roleId ид на роля или масив от ид на роли
      * @param bool $strict     TRUE - само потребителите, имащи точно тази роля;
      * FALSE - потребителите имащи тази и/или някоя от наследените й роли
+     *
      * @return array
      */
     static function getByRole($roleId)
@@ -1817,7 +1901,9 @@ class core_Users extends core_Manager
         }
 
         if(!$users[$roleId]) {
-        
+            
+            $users[$roleId] = array();
+
             $query = static::getQuery();
             $query->where("#state = 'active'");
             $query->like('roles', "|{$roleId}|");
@@ -2258,7 +2344,9 @@ class core_Users extends core_Manager
     {
         if ($this->runCron) {
             
-            fopen(toUrl(array('core_Cron', 'cron'), 'absolute'), 'r');
+            if (!@fopen(toUrl(array('core_Cron', 'cron'), 'absolute'), 'r')) {
+                self::logWarning('Не може да се пусне крон ръчно');
+            }
             
             $this->runCron = FALSE;
         }
@@ -2366,5 +2454,92 @@ class core_Users extends core_Manager
 		
         return $me->getRecTitle($rec, $escaped);
     }
-
+    
+    
+    /**
+     * 
+     * @param array $params
+     * @param NULL|integer $limit
+     * @param string $q
+     * @param NULL|integer|array $onlyIds
+     * @param boolean $includeHiddens
+     * 
+     * @return array
+     */
+    public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+        $query = self::getQuery();
+        
+        if ($params['excludeArr']) {
+            $query->notIn('id', $params['excludeArr']);
+        }
+        
+        if (is_array($onlyIds)) {
+            if(!count($onlyIds)) {
+                return array();
+            }
+            
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            
+            $query->where("#id IN ($ids)");
+        } elseif(ctype_digit("{$onlyIds}")) {
+            $query->where("#id = $onlyIds");
+        }
+        
+        if ($params['rolesArr']) {
+            $rolesArr = explode('|', $params['rolesArr']);
+            $rolesIdArr = array();
+            foreach ($rolesArr as $role) {
+                $cId = core_Roles::fetchByName($role);
+                $rolesIdArr[$cId] = $cId;
+            }
+            
+            if (!empty($rolesIdArr)) {
+                $query->likekeylist('roles', $rolesIdArr);
+            }
+        }
+        
+        setIfNot($params['showStates'], 'active');
+        
+        $showStatesArr = explode('|', $params['showStates']);
+        
+        $query->orWhereArr('state', $showStatesArr);
+        
+        $titleFld = $params['titleFld'];
+        $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
+        
+        if ($q) {
+            if ($q{0} == '"') $strict = TRUE;
+            
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            
+            $q = mb_strtolower($q);
+            
+            if($strict) {
+                $qArr = array(str_replace(' ', '.*', $q));
+            } else {
+                $qArr = explode(' ', $q);
+            }
+            
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
+            foreach ($qArr as $w) {
+                $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+            }
+        }
+        
+        if ($limit) {
+            $query->limit($limit);
+        }
+        
+        $query->show('id,' . $titleFld);
+        
+        $res = array();
+        
+        while ($rec = $query->fetch()) {
+            $res[$rec->id] = $rec->{$titleFld};
+        }
+        
+        return $res;
+    }
 }

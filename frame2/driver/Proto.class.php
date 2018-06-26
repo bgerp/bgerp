@@ -24,12 +24,19 @@ abstract class frame2_driver_Proto extends core_BaseClass
 	
 	
 	/**
+	 * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
+	 */
+	protected $changeableFields = '*';
+	
+	
+	/**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
 	 * @param core_Fieldset $fieldset
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
+		
 	}
 	
 	
@@ -162,5 +169,26 @@ abstract class frame2_driver_Proto extends core_BaseClass
 	public function getNextRefreshDates($rec)
 	{
 		return array();
+	}
+	
+	
+	/**
+	 * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
+	 * 
+	 * @param stdClass $rec
+	 * @return array
+	 */
+	public function getChangeableFields($rec)
+	{
+		$changeableFields = $this->changeableFields;
+		
+		// Ако е зададено '*', значи са всички полета от драйвера
+		if($changeableFields === '*'){
+			$fs = new core_FieldSet();
+			$this->addFields($fs);
+			$changeableFields = array_keys($fs->selectFields());
+		}
+		
+		return arr::make($changeableFields, TRUE);
 	}
 }

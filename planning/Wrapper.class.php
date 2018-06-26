@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -26,7 +26,16 @@ class planning_Wrapper extends plg_ProtoWrapper
     	$this->TAB('planning_ConsumptionNotes', 'Протоколи->Влагане', 'ceo,planning,store');
     	$this->TAB('planning_ReturnNotes', 'Протоколи->Връщане', 'ceo,planning,store');
     	$this->TAB('planning_Jobs', 'Задания', 'ceo,planning,job');
-    	$this->TAB('planning_AssetResources', 'Оборудване', 'ceo,planning');
+    	$this->TAB('planning_Tasks', 'Операции->Списък', 'ceo,taskWorker');
+    	$this->TAB('planning_ProductionTaskDetails', 'Операции->Прогрес', 'ceo,taskWorker');
+    	$this->TAB('planning_Centers', 'Центрове', 'ceo, planning');
+    	
+    	$this->TAB('planning_AssetResources', 'Ресурси->Оборудване', 'ceo,planning');
+    	$this->TAB('planning_Hr', 'Ресурси->Служители', 'ceo,planning');
+    	$this->TAB('planning_AssetResourcesNorms', 'Ресурси->Норми', 'ceo,planning');
+    	
+    	$this->TAB('planning_AssetGroups', 'Настройки->Видове оборудване', 'ceo,planning');
+    	$this->TAB('planning_FoldersWithResources', 'Настройки->Папки с ресурси', 'ceo,planning');
     	
         $this->title = 'Планиране';
     }

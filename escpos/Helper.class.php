@@ -289,7 +289,7 @@ class escpos_Helper
             $tpl = '<?xml version="1.0" encoding="utf-8"?>
                 <btpDriver Command="DirectIO">
                     <title>[#title#]</title>
-                    <data>b</data>
+                    <data>b$#ю</data>
                 </btpDriver>';
         } elseif (Request::get('nx')) {
             $tpl = '';

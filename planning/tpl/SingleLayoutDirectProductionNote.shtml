@@ -45,7 +45,7 @@
                                             <table class='no-border'>
                                                 <!--ET_BEGIN storeId-->
                                                 <tr>
-                                                    <td class='quiet nowrap'>|Засклаждане в|*:</td>
+                                                    <td class='quiet nowrap'>|В склад|*:</td>
                                                     <td>[#storeId#]</td>
                                                 </tr>
                                                 <!--ET_END storeId-->
@@ -64,7 +64,7 @@
                                                 <!--ET_END deadline-->
                                                 <!--ET_BEGIN debitAmount-->
                                                 <tr>
-                                                    <td class='quiet'>|Себестойност|*:</td>
+                                                    <td class='quiet'>|Стойност|*:</td>
                                                     <td>[#debitAmount#]</td>
                                                 </tr>
                                                 <!--ET_END debitAmount-->

@@ -20,7 +20,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
 	
     /**
      * 
-     * @var acc_ClosePeriod
+     * @var acc_transaction_ClosePeriod
      */
     public $class;
     
@@ -263,7 +263,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	$accIds = array();
     	$dealPosition = array();
     	
-    	foreach (arr::make('701,706,703,700,7911,6911') as $systemId){
+    	foreach (arr::make('701,706,703,700,7911,7913,6911,6913') as $systemId){
     		$accId = acc_Accounts::getRecBySystemId($systemId)->id;
     		$accIds[$accId] = $systemId;
     		$dealPosition[$accId] = acc_Lists::getPosition($systemId, 'deals_DealsAccRegIntf');
@@ -326,7 +326,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	
     	// Прехвърляме извънредните приходи/разходи в сметка 700
     	$bQuery1 = acc_BalanceDetails::getQuery();
-    	acc_BalanceDetails::filterQuery($bQuery1, $this->balanceId, '7911,6911');
+    	acc_BalanceDetails::filterQuery($bQuery1, $this->balanceId, '7911,6911,6913,7913');
     	$bQuery1->XPR('roundBlAmount', 'double', 'ROUND(#blAmount, 2)');
     	$bQuery1->where("#roundBlAmount != 0");
     	$bQuery1->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
@@ -338,7 +338,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     		$dealItemRec = acc_Items::fetch($bRec1->{$dealPosition[$bRec1->accountId]});
     		if($dealItemRec->state == 'active' || (strtotime($dealItemRec->closedOn) > strtotime($this->periodRec->end))) continue;
     		
-    		if($accIds[$bRec1->accountId] == '7911'){
+    		if($accIds[$bRec1->accountId] == '7911' || $accIds[$bRec1->accountId] == '7913'){
     			$debitArr = $arr2;
     			$creditArr = $arr1;
     			$reason = 'Извънредни приходи - надплатени';
@@ -625,7 +625,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	$entries = array();
     	 
     	// Подготвяме предварително нужните ни данни
-    	$baseDepartment = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
+    	$baseDepartment = planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID;
     	$resource604 = $resource605 = cat_Products::fetchField("#code = 'labor'", 'id');
     	$resource603 = cat_Products::fetchField("#code = 'fixedAssets'", 'id');
     	$resource602 = cat_Products::fetchField("#code = 'services'", 'id');
@@ -658,7 +658,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     		}
     		
     		if($accs[$dRec->accountId] == '60020'){
-    			$creditArr = array($accs[$dRec->accountId], array('hr_Departments', $baseDepartment), $dRec->ent2Id, 'quantity' => $dRec->blQuantity);
+    			$creditArr = array($accs[$dRec->accountId], array('planning_Centers', $baseDepartment), $dRec->ent2Id, 'quantity' => $dRec->blQuantity);
     		} else {
     			$creditArr = array($accs[$dRec->accountId], $dRec->ent1Id, 'quantity' => $dRec->blQuantity);
     		}

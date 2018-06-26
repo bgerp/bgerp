@@ -112,15 +112,15 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща теглото на единица от продукта, ако е в опаковка връща нейното тегло
+     * Връща транспортното тегло за подаденото количество и опаковка
      * 
-     * @param int $productId - ид на продукт
-     * @param int $packagingId - ид на опаковка
-     * @return double - теглото на единица от продукта
+     * @param int $productId        - ид на продукт
+     * @param int $quantity         - общо количество
+     * @return double|NULL          - транспортното тегло за к-то на артикула
      */
-	public function getWeight($productId, $packagingId = NULL)
+	public function getTransportWeight($productId, $quantity)
     {
-    	return $this->class->getWeight($productId, $packagingId);
+    	return $this->class->getTransportWeight($productId, $quantity);
     }
     
     
@@ -140,15 +140,15 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща обема на единица от продукта, ако е в опаковка връща нейния обем
+     * Връща транспортния обем за подаденото количество и опаковка
      * 
-     * @param int $productId - ид на продукт
-     * @param int $packagingId - ид на опаковка
-     * @return double - теглото на единица от продукта
+     * @param int $productId        - ид на продукт
+     * @param int $quantity         - общо количество
+     * @return double               - теглото на единица от продукта
      */
-	public function getVolume($productId, $packagingId = NULL)
+	public function getTransportVolume($productId, $quantity)
     {
-    	return $this->class->getVolume($productId, $packagingId);
+    	return $this->class->getTransportVolume($productId, $quantity);
     }
     
     
@@ -172,12 +172,27 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * @param double $quantity - к-во за произвеждане
      *
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
-     * 				    -> title        - дефолт име на задачата
-     * 					-> driverClass  - драйвър на задача
-     * 					-> products     - масив от масиви с продуктите за влагане/произвеждане/отпадане
-     * 						 - array input      - материали за влагане
-     * 						 - array production - артикули за произвеждане
-     * 						 - array waste      - отпадъци
+     * 				    o title           - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
+     * 					o plannedQuantity - планирано к-во в основна опаковка
+     * 					o productId       - ид на артикул
+     *  				o packagingId     - ид на опаковка
+     *   				o quantityInPack  - к-во в 1 опаковка
+     * 					o products        - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     * 						 - array input           - материали за влагане
+     * 								o productId      - ид на материал
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     * 						 - array production      - артикули за произвеждане
+     *  							o productId      - ид на заготовка
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     * 						 - array waste           - отпадъци
+     *  							o productId      - ид на отпадък
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
      */
     public function getDefaultProductionTasks($id, $quantity = 1)
     {
@@ -232,23 +247,34 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * @param int|NULL $id - ид на артикул
      * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public function getMoq($id)
+    public function getMoq($id = NULL)
     {
-    	return $this->class->getMoq($id);
+    	return $this->class->getMoq($id = NULL);
     }
     
-    
+
+    /**
+     * Връща броя на количествата, които ще се показват в запитването
+     *
+     * @return int|NULL - броя на количествата в запитването
+     */
+    public function getInquiryQuantities()
+    {
+    	return $this->class->getInquiryQuantities();
+    }
+
+
     /**
      * Допълнителните условия за дадения продукт,
      * които автоматично се добавят към условията на договора
-     *
-     * @param mixed $rec       - ид или запис на артикул
-     * @param double $quantity - к-во
-     * @return array           - Допълнителните условия за дадения продукт
+     * 
+     * @param stdClass $rec   - ид/запис на артикул
+     * @param string $docType - тип на документа sale/purchase/quotation
+     * @param string|NULL $lg - език
      */
-    public function getConditions($rec, $quantity)
+    public function getConditions($rec, $docType, $lg = NULL)
     {
-    	return $this->class->getConditions($rec, $quantity);
+    	return $this->class->getConditions($rec, $docType, $lg);
     }
     
     
@@ -258,7 +284,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * @param mixed $rec     - ид или запис на артикул
      * @return NULL|varchar  - Допълнителните условия за дадения продукт
      */
-    public static function getHash($rec)
+    public function getHash($rec)
     {
     	return $this->class->getHash($rec);
     }

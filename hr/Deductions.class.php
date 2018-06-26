@@ -16,10 +16,7 @@
  */
 class hr_Deductions extends core_Master
 {
-    /**
-     * Старо име на класа
-     */
-    public $oldClassName = 'trz_Fines';
+    
     
     /**
      * Поддържани интерфейси
@@ -127,7 +124,7 @@ class hr_Deductions extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    public $singleLayoutFile = 'trz/tpl/SingleLayoutDeductions.shtml';
+    public $singleLayoutFile = 'hr/tpl/SingleLayoutDeductions.shtml';
     
     
     /**
@@ -214,13 +211,6 @@ class hr_Deductions extends core_Master
     }
     
     
-    public static function act_Test()
-    {
-        $date = '2016-03-01';
-        self::getSalaryIndicators($date);
-    }
-    
-    
     /**
 	 * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал 
@@ -233,7 +223,7 @@ class hr_Deductions extends core_Master
 	 *          o docId       - ид на документа
 	 *          o docClass    - клас ид на документа
 	 *          o indicatorId - ид на индикатора
-	 *          o value       - стойноста на инфикатора
+	 *          o value       - стойноста на индикатора
 	 *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
 	 */
     public static function getIndicatorValues($timeline)

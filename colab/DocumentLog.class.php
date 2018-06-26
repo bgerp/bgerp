@@ -142,8 +142,33 @@ class colab_DocumentLog extends core_Manager
     public static function renderViewedLink($containerId)
     {
         if (self::haveRightFor('renderview')) {
+            $title = 'Документът е видим за партньори';
+            if ($containerId) {
+                $cRec = doc_Containers::fetch($containerId);
+                if ((($cRec->state == 'draft') || ($cRec->state == 'rejected')) && !haveRole('partner', $cRec->createdBy)) {
+                    
+                    $isHiddenNow = TRUE;
+//                     if ($cRec->state == 'rejected') {
+//                         try {
+//                             $doc = doc_Containers::getDocument($cRec->id);
+//                             $dRec = $doc->fetch();
+//                             if ($dRec->brState == 'draft') {
+//                                 $isHiddenNow = TRUE;
+//                             } else {
+//                                 $isHiddenNow = FALSE;
+//                             }
+//                         } catch (core_exception_Expect $e) {
+//                             reportException($e);
+//                         }
+//                     }
+                    
+                    if ($isHiddenNow) {
+                        $title = 'След активиране, документът ще е видим за партньори';
+                    }
+                }
+            }
             
-            $attr = array('title' => tr('Документът е видим за партньори'), 'class' => 'eyeIcon');
+            $attr = array('title' => $title, 'class' => 'eyeIcon');
     		$attr = ht::addBackgroundIcon($attr, 'img/16/eye-open.png');
 
             $viewLink = ht::createElement('span', $attr, '', TRUE);
@@ -159,14 +184,14 @@ class colab_DocumentLog extends core_Manager
                 if ($viewCnt) {
                     $attr = array();
                     $attr['class'] = 'showViewed docSettingsCnt tooltip-arrow-link';
-                    $attr['title'] = tr('Виждания от колаборатори');
+                    $attr['title'] = 'Виждания от колаборатори';
                     $attr['data-url'] = toUrl(array(get_called_class(), 'showViewed', 'containerId' => $containerId), 'local');
                     $attr['data-useHover'] = '1';
                     $attr['data-useCache'] = '1';
                     
                     $viewCntLink = ht::createElement('span', $attr, "<span>" . $viewCnt . "</span>", TRUE);
                     
-                    $viewCntLink = '<div class="pluginCountButtonNub"><s></s><i></i></div>' . $viewCntLink;
+                    $viewCntLink = '<div class="pluginCountButtonNub"></div>' . $viewCntLink;
                     
                     $elemId = self::getElemId($containerId);
                     
@@ -248,7 +273,7 @@ class colab_DocumentLog extends core_Manager
     /**
      * Връща id за html елемент
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return string
      */

@@ -14,6 +14,18 @@ defIfNot('ESHOP_MIN_GROUPS_FOR_NAVIGATION', 4);
 
 
 /**
+ * Име на кошницата във външната част
+ */
+defIfNot('ESHOP_CART_EXTERNAL_NAME', 'Количка');
+
+
+/**
+ * Текст в магазина ако артикулът не е наличен
+ */
+defIfNot('ESHOP_NOT_IN_STOCK_TEXT', 'Няма наличност');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -61,8 +73,12 @@ class eshop_Setup extends core_ProtoSetup
     var $managers = array(
             'eshop_Groups',
             'eshop_Products',
-    		'migrate::migrateDrivers1',
-            'migrate::migrateOrder',
+    		'eshop_Settings',
+    		'eshop_ProductDetails',
+    		'eshop_Carts',
+    		'eshop_CartDetails',
+            'migrate::migrateProductOrdering',
+            'migrate::migrateGroupOrdering',
         );
 
         
@@ -79,15 +95,34 @@ class eshop_Setup extends core_ProtoSetup
             array(3.55, 'Сайт', 'Е-маг', 'eshop_Groups', 'default', "ceo, eshop"),
         );
     
+    
     /**
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-            'ESHOP_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
-            'ESHOP_MIN_GROUPS_FOR_NAVIGATION' => array ('int', 'caption=Минимален брой групи за навигация->Брой'),
+         'ESHOP_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
+         'ESHOP_MIN_GROUPS_FOR_NAVIGATION' => array ('int', 'caption=Минимален брой групи за навигация->Брой'),
+	     'ESHOP_CART_EXTERNAL_NAME' => array ('varchar', 'caption=Стрингове във външната част->Кошница'),
+		 'ESHOP_NOT_IN_STOCK_TEXT' => array ('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
+	);
+	
+	
+	/**
+	 * Настройки за Cron
+	 */
+	public $cronSettings = array(
+			array(
+					'systemId' => "Delete Carts",
+					'description' => "Изтриване на старите колички",
+					'controller' => "eshop_Carts",
+					'action' => "DeleteDraftCarts",
+					'period' => 1440,
+					'offset' => 60,
+					'timeLimit' => 100
+			),
 	);
 
-    
+
     /**
      * Инсталиране на пакета
      */
@@ -97,7 +132,11 @@ class eshop_Setup extends core_ProtoSetup
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('eshopImages', 'Илюстрации в емаг', 'jpg,jpeg,png,bmp,gif,image/*', '3MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('eshopImages', 'Илюстрации в емаг', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'user', 'every_one');
+        
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Разширяване на външната част за онлайн магазина', 'eshop_plg_External', 'cms_page_External', 'private');
+        $html .= $Plugins->installPlugin('Разширяване на потребителите свързана с външната част', 'eshop_plg_Users', 'core_Users', 'private');
         
         return $html;
     }
@@ -113,38 +152,56 @@ class eshop_Setup extends core_ProtoSetup
         
         return $res;
     }
-    
-    
-    /**
-     * Миграция от старите към новите драйвери
-     */
-    public function migrateDrivers1()
-    {
-    	$dId = cat_GeneralProductDriver::getClassId();
-    	 
-    	$pQuery = eshop_Products::getQuery();
-    	$pQuery->where("#coDriver IS NOT NULL");
-    	while($pRec = $pQuery->fetch()){
-    		$pRec->coDriver = $dId;
-    		eshop_Products::save($pRec, 'coDriver');
-    	}
-    }
-
 
     /**
-     * Миграция на кода към полето за подредба
+     * Миграция за подредбата на продуктите
      */
-    public function migrateOrder()
+    public static function migrateProductOrdering()
     {
-    	$pQuery = eshop_Products::getQuery();
-        
-        while($rec = $pQuery->fetch()) {
-            if(preg_match("/[0-9]+/", $rec->code, $matches)) {
-                $rec->order = $matches[0] . '00';
-                eshop_Products::save($rec, 'order');
+        $mvc = cls::get('eshop_Products');
+
+        $query = $mvc->getQuery();
+        $query->FLD('order', 'int', 'caption=Подредба');
+
+        $query->orderBy("#order,#code");
+         
+        $i = array();
+        $cnt = 0;
+        while($rec = $query->fetch()) {
+            if(!isset($i[$rec->groupId])) {
+                $i[$rec->groupId] = 1;
             }
+            $rec->saoOrder = $i[$rec->groupId]++;
+            $rec->saoLevel = 1;
+            $mvc->save_($rec, 'saoOrder, saoLevel');
+            $cnt++;
         }
+ 
+        return "<li>Мигрирана подредбата на eshop продукти: " . $cnt;    
     }
 
+    /**
+     * Миграция за подредбата на продуктите
+     */
+    public static function migrateGroupOrdering()
+    {
+        $mvc = cls::get('eshop_Groups');
+
+        $query = $mvc->getQuery();
+        
+        $i = array();
+        $cnt = 0;
+        while($rec = $query->fetch()) {
+            if(!isset($i[$rec->menuId])) {
+                $i[$rec->menuId] = 1;
+            }
+            $rec->saoOrder = $i[$rec->menuId]++;
+            $rec->saoLevel = 1;
+            $mvc->save_($rec, 'saoOrder, saoLevel');
+            $cnt++;
+        }
+ 
+        return "<li>Мигрирана подредбата на eshop групи: " . $cnt;
+    }
 
 }

@@ -62,7 +62,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
         $this->setAttr('stroke', 'black');
         $this->setAttr('stroke-width', 0.2);
         $this->setAttr('fill', 'none');
-        $this->setAttr('font-size', 40); 
+        $this->setAttr('font-size', 40);
         $this->setAttr('font-family', 'Courier');
 	}
 
@@ -559,7 +559,18 @@ class cad2_SvgCanvas extends cad2_Canvas {
     }
 
 
+    /**
+     * Връща добавката за X и Y
+     */
+    public function getAddXY()
+    {
+        $addX = (-$this->minX + $this->paddingLeft) / $this->pixPerMm;
+        $addY = (-$this->minY + $this->paddingTop) / $this->pixPerMm;
+
+        return array($addX, $addY);
+    }
  	
+
     /**
      * Връща XML текста на SVG чертежа
      */
@@ -695,7 +706,9 @@ class cad2_SvgCanvas extends cad2_Canvas {
                     $x1 = $x + cos(deg2rad($rotation+90))*$height;
                     $y1 = $y + sin(deg2rad($rotation+90))*$height;
                     
-                    $alpha = atan($height/$width);
+                    if($width != 0) {
+                        $alpha = atan($height/$width);
+                    }
                     $l = sqrt($width*$width + $height*$height);
 
                     $x2 = $x + cos(deg2rad($rotation)+$alpha)*$l;

@@ -69,6 +69,20 @@ class core_Toolbar extends core_BaseClass
     
     
     /**
+     * Добавя бутон, който задейства js функция
+     */
+    function addSelectBtn($options , $selected = '', $maxRadio = 0, $params = array(), $moreParams = array())
+    {
+        $btn = new stdClass();
+        $btn->type = 'select';
+        $btn->options = $options;
+        $btn->selected = $selected;
+        $btn->maxRadio = $maxRadio;
+        $this->add($btn, $params, $moreParams);
+    }
+    
+    
+    /**
      * @todo Чака за документация...
      */
     function add(&$btn, &$params, &$moreParams)
@@ -288,6 +302,8 @@ class core_Toolbar extends core_BaseClass
                     $layout->append(ht::createSbBtn($btn->title, $btn->cmd, $btn->warning, $btn->newWindow, $attr), $place);
                 } elseif ($btn->type == 'function') {
                     $layout->append(ht::createFnBtn($btn->title, $btn->fn, $btn->warning, $attr), $place);
+                } elseif ($btn->type == 'select') {
+                    $layout->append(ht::createSelectMenu($btn->options, $btn->selected, $btn->maxRadio, $params), $place);
                 } else {
                     $layout->append(ht::createBtn($btn->title, $btn->url, $btn->warning, $btn->newWindow, $attr), $place);
                 }

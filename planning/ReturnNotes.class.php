@@ -5,9 +5,6 @@
 /**
  * Клас 'planning_ReturnNotes' - Документ за Протокол за връщане
  *
- * 
- *
- *
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
@@ -150,7 +147,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	function description()
 	{
 		parent::setDocumentFields($this);
-		$this->FLD('departmentId', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Департамент,before=note');
+		$this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р на дейност,before=note');
 		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно връщане->Избор,notNull,default=yes,maxRadio=2,before=note');
 	}
 	
@@ -215,7 +212,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 		$form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
 		
 		$folderCover = doc_Folders::getCover($rec->folderId);
-		if($folderCover->isInstanceOf('hr_Departments')){
+		if($folderCover->isInstanceOf('planning_Centers')){
 			$form->setReadOnly('departmentId', $folderCover->that);
 		}
 	}
@@ -228,13 +225,13 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	 * @param stdClass $row Това ще се покаже
 	 * @param stdClass $rec Това е записа в машинно представяне
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$row->useResourceAccounts = ($rec->useResourceAccounts == 'yes') ? 'Артикулите ще бъдат изписани от незавършеното производство един по един' : 'Артикулите ще бъдат изписани от незавършеното производството сумарно';
 		$row->useResourceAccounts = tr($row->useResourceAccounts);
 		
 		if(isset($rec->departmentId)){
-			$row->departmentId = hr_Departments::getHyperlink($rec->departmentId, TRUE);
+			$row->departmentId = planning_Centers::getHyperlink($rec->departmentId, TRUE);
 		}
 	}
 }

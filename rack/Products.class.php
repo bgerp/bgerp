@@ -25,7 +25,7 @@ class rack_Products extends store_Products
     /**
      * Плъгини за зареждане
      */
-   // var $loadList = 'plg_Created, rack_Wrapper, plg_RowTools2';
+     //var $loadList = 'plg_Created, rack_Wrapper, plg_RowTools2';
     
     
     /**
@@ -67,6 +67,12 @@ class rack_Products extends store_Products
     public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity=Количество->Общо,quantityNotOnPallets,quantityOnPallets,storeId=Склад';
 
 
+    /**
+     * Задължително филтър по склад
+     */
+    protected $mandatoryStoreFilter = TRUE;
+    
+    
      /**
      * Описание на модела (таблицата)
      */
@@ -129,4 +135,15 @@ class rack_Products extends store_Products
         }
     }
 
+
+    /**
+     * Избягване скриването на бутоните в rowTools2
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareListTitle($mvc, $data)
+    {
+    	$data->masterMvc = TRUE;
+    }
 }

@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -43,7 +43,7 @@ class sales_Sales extends deals_DealMaster
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
                           bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, 
-                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,store_iface_ReserveStockSourceIntf,hr_IndicatorsSourceIntf';
+                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,hr_IndicatorsSourceIntf';
     
     
     /**
@@ -51,13 +51,13 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin';
     
     
     /**
-     * Активен таб на менюто
+     * Полетата, които могат да се променят с change_Plugin
      */
-    public $menuPage = 'Търговия:Продажби';
+    public $changableFields = 'dealerId,initiatorId';
     
     
     /**
@@ -165,9 +165,21 @@ class sales_Sales extends deals_DealMaster
 
     
     /**
+     * Икона за единичния изглед на обединяващите договори
+     */
+    public $singleIconFocCombinedDeals = 'img/16/shopping_carts.png';
+    
+    
+    /**
      * Поле в което се замества шаблона от doc_TplManager
      */
     public $templateFld = 'SINGLE_CONTENT';
+    
+    
+    /**
+     * Кой може да превалутира документите в нишката
+     */
+    public $canChangerate = 'ceo, salesMaster';
     
     
     /**
@@ -198,16 +210,20 @@ class sales_Sales extends deals_DealMaster
      * Позволени операции на последващите платежни документи
      */
     public $allowedPaymentOperations = array(
-    		'customer2caseAdvance' => array('title' => 'Авансово плащане от Клиент', 'debit' => '501', 'credit' => '412'),
-    		'customer2bankAdvance' => array('title' => 'Авансово плащане от Клиент', 'debit' => '503', 'credit' => '412'),
-    		'customer2case'        => array('title' => 'Плащане от Клиент', 'debit' => '501', 'credit' => '411'),
-    		'customer2bank'        => array('title' => 'Плащане от Клиент', 'debit' => '503', 'credit' => '411'),
-    		'case2customer'        => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '501', 'reverse' => TRUE),
-    		'bank2customer'        => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '503', 'reverse' => TRUE),
-    		'caseAdvance2customer' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '501', 'reverse' => TRUE),
-    		'bankAdvance2customer' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '503', 'reverse' => TRUE),
-    		'debitDeals'           => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '411'),
-    		'creditDeals'          => array('title' => 'Прихващане на задължение', 'debit' => '411', 'credit' => '*', 'reverse' => TRUE), 
+    		'customer2caseAdvance'    => array('title' => 'Авансово плащане от Клиент', 'debit' => '501', 'credit' => '412'),
+    		'customer2bankAdvance'    => array('title' => 'Авансово плащане от Клиент', 'debit' => '503', 'credit' => '412'),
+    		'customer2case'           => array('title' => 'Плащане от Клиент', 'debit' => '501', 'credit' => '411'),
+    		'customer2bank'           => array('title' => 'Плащане от Клиент', 'debit' => '503', 'credit' => '411'),
+    		'case2customer'           => array('title' => 'Прихващане на плащане', 'debit' => '411', 'credit' => '501', 'reverse' => TRUE),
+    		'bank2customer'           => array('title' => 'Прихващане на плащане', 'debit' => '411', 'credit' => '503', 'reverse' => TRUE),
+    		'case2customerRet'        => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '501', 'reverse' => TRUE),
+    		'bank2customerRet'        => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '503', 'reverse' => TRUE),
+    		'caseAdvance2customer'    => array('title' => 'Прихванат аванс на Клиент', 'debit' => '412', 'credit' => '501', 'reverse' => TRUE),
+    		'bankAdvance2customer'    => array('title' => 'Прихванат аванс на Клиент', 'debit' => '412', 'credit' => '503', 'reverse' => TRUE),
+    		'caseAdvance2customerRet' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '501', 'reverse' => TRUE),
+    		'bankAdvance2customerRet' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '503', 'reverse' => TRUE),
+    		'debitDeals'              => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '411'),
+    		'creditDeals'             => array('title' => 'Прихващане на задължение', 'debit' => '411', 'credit' => '*', 'reverse' => TRUE), 
     		);
 
     
@@ -260,12 +276,23 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Кои които трябва да имат потребителите да се изберат като дилъри
+     */
+    public $dealerRolesList = 'sales,ceo';
+    
+    
+    /**
+     * Кои роли може да променят активна продажбата
+     */
+    public $canChangerec = 'ceo,salesMaster';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         parent::setDealFields($this);
-        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
         $this->setField('shipmentStoreId', "salecondSysId=defaultStoreSale");
@@ -282,27 +309,31 @@ class sales_Sales extends deals_DealMaster
     	$rec = $form->rec;
     	
     	if(empty($rec->id)){
-    		
-    		// Ако има локация, питаме търговските маршрути, кой да е дефолтния търговец
-    		if(isset($rec->deliveryLocationId)){
-    			$dealerId = sales_Routes::getSalesmanId($rec->deliveryLocationId);
-    		}
-    		
-    		// Ако няма, но отговорника на папката е търговец - него
-    		if(empty($dealerId)){
-    			$inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
-    			if(core_Users::haveRole('sales', $inCharge)){
-    				$dealerId = $inCharge;
-    			}
-    		}
-    		
-    		// В краен случай от последната продажба на същия потребител
-    		if(empty($dealerId)){
-    			$dealerId = cond_plg_DefaultValues::getFromLastDocument($mvc, $rec->folderId, 'dealerId', TRUE);
-    		}
-    		
+    		$dealerId = self::getDefaultDealerId($rec->folderId, $rec->deliveryLocationId);
     		$form->setDefault('dealerId', $dealerId);
     	}
+    }
+    
+    
+    /**
+     * Кой е дефолтния търговец по продажбата
+     * 
+     * @param int $folderId       - папка
+     * @param int $locationId     - локация
+     * @return int|NULL $dealerId - ид на търговец
+     */
+    public static function getDefaultDealerId($folderId, $locationId)
+    {
+    	$dealerId = sales_Routes::getSalesmanId($locationId);
+    	if(isset($dealerId)) return $dealerId;
+    	
+    	$dealerId = doc_Folders::fetchField($folderId, 'inCharge');
+    	if(core_Users::haveRole('sales', $dealerId)) return $dealerId;
+    	
+    	$dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $folderId, 'dealerId', TRUE);
+    	if(core_Users::haveRole('sales', $dealerId)) return $dealerId;
+    	
+    	return NULL;
     }
     
     
@@ -311,11 +342,7 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
-    	if($rec->reff === ''){
-    		$rec->reff = NULL;
-    	}
-    	
-		// Ако има б. сметка се нотифицират операторите и
+    	// Ако има б. сметка се нотифицират операторите и
     	if($rec->bankAccountId){
     		$operators = bank_OwnAccounts::fetchField("#bankAccountId = '{$rec->bankAccountId}'",'operators');
     		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $operators);
@@ -333,18 +360,6 @@ class sales_Sales extends deals_DealMaster
     {
         $form = &$data->form;
         $rec = $form->rec;
-       
-        // При клониране
-        if($data->action == 'clone'){
-        	
-        	// Ако няма reff взимаме хендлъра на оригиналния документ
-        	if(empty($rec->reff)){
-        		$rec->reff = $mvc->getHandle($rec->id);
-        	}
-        	
-        	// Инкрементираме reff-а на оригинална
-        	$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
-        }
         
         $myCompany = crm_Companies::fetchOwnCompany();
         
@@ -428,7 +443,7 @@ class sales_Sales extends deals_DealMaster
 	    		$data->toolbar->addBtn("Проформа", array('sales_Proformas', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'row=2,ef_icon=img/16/proforma.png,title=Създаване на нова проформа фактура,order=9.9992');
 		    }
 	    	
-	        if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+	        if(deals_Helper::showInvoiceBtn($rec->threadId) && sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на нова фактура,order=9.9993');
 		    }
 		    
@@ -630,6 +645,14 @@ class sales_Sales extends deals_DealMaster
             	$p->batches = $bQuery->fetchAll();
             }
             
+            if($tRec = sales_TransportValues::get(sales_Sales::getClassId(), $rec->id, $dRec->id)){
+            	if($tRec->fee > 0){
+            		$p->fee = $tRec->fee;
+            		$p->deliveryTimeFromFee = $tRec->deliveryTime;
+            		$p->syncFee = TRUE;
+            	}
+            }
+             
             $agreed[] = $p;
             
             $p1 = clone $p;
@@ -677,7 +700,9 @@ class sales_Sales extends deals_DealMaster
     			unset($allowedPaymentOperations['customer2caseAdvance'], 
     					$allowedPaymentOperations['customer2bankAdvance'], 
     					$allowedPaymentOperations['caseAdvance2customer'],
-    					$allowedPaymentOperations['bankAdvance2customer']);
+    					$allowedPaymentOperations['bankAdvance2customer'],
+    					$allowedPaymentOperations['caseAdvance2customerRet'],
+    					$allowedPaymentOperations['bankAdvance2customerRet']);
     		}
     	}
     	 
@@ -725,7 +750,7 @@ class sales_Sales extends deals_DealMaster
         $rec2->period = 60;
         $rec2->offset = mt_rand(0,30);
         $rec2->delay = 0;
-        $rec2->timeLimit = 100;
+        $rec2->timeLimit = 200;
         $res .= core_Cron::addOnce($rec2);
     }
     
@@ -794,6 +819,10 @@ class sales_Sales extends deals_DealMaster
     	// Проверка на екшъна за създаване на артикул към продажба
     	if($action == 'createsaleforproduct'){
     		$res = $mvc->getRequiredRoles('add', $rec, $userId);
+    		if(core_Users::isContractor($userId)){
+    			$res = 'no_one';
+    		}
+    		
     		if(isset($rec) && $res != 'no_one'){
     			if(empty($rec->productId) || empty($rec->folderId)){
     				$res = 'no_one';
@@ -836,8 +865,12 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	// Слагаме iframe заради касовата бележка, ако не принтираме
-    	if(!Mode::is('printing')){
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
     		$tpl->append("<iframe name='iframe_a' style='display:none'></iframe>");
+    		
+    		if(is_array($data->jobs) === TRUE){
+    			$mvc->renderJobsInfo($tpl, $data);
+    		}
     	}
     }
     
@@ -953,23 +986,19 @@ class sales_Sales extends deals_DealMaster
     	return $def;
     }
     
-    
     /**
-     * След подготовка на информацията за наличните табове
+     * След подготовка на сингъла
      */
-    public static function on_AfterPrepareDealTabs($mvc, &$res, &$data)
+    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-    	if(!isset($data->tabs)) return;
-    	$url = getCurrentUrl();
-    	
     	if(haveRole('ceo,planning,sales,store,job')){
-    		$manifacturable = static::getManifacurableProducts($data->rec);
-    		if(count($manifacturable)){
-    			$url['dealTab'] = 'JobsInfo';
-    			$data->tabs->TAB('JobsInfo', 'Задания' , $url);
+    		$dealTab = Request::get('dealTab');
+    		if(empty($dealTab) || $dealTab == 'Statistic'){
+    			$mvc->prepareJobsInfo($data);
     		}
     	}
     }
+    
     
     
     /**
@@ -981,23 +1010,25 @@ class sales_Sales extends deals_DealMaster
     protected function prepareJobsInfo($data)
     {
     	$rec = $data->rec;
-    	$data->JobsInfo = array();
+    	$manifacturableProducts = static::getManifacurableProducts($data->rec);
+    	if(!count($manifacturableProducts)) return;
     	
-    	// Подготвяме информацията за наличните задания към нестандартните (частните) артикули в продажбата
-    	$dQuery = sales_SalesDetails::getQuery();
-    	$dQuery->where("#saleId = {$rec->id}");
-    	$dQuery->show('productId,packagingId,quantity,tolerance');
+    	$jQuery = planning_Jobs::getQuery();
+    	$jQuery->in("productId", array_keys($manifacturableProducts));
+    	$jQuery->where("#saleId = {$rec->id}");
+    	$jQuery->XPR('order', 'int', "(CASE #state WHEN 'draft' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'wakeup' THEN 4 WHEN 'closed' THEN 5 ELSE 3 END)");
+    	$jQuery->orderBy('order', 'ASC');
+    	
+    	$fields = cls::get('planning_Jobs')->selectFields();
+    	$fields['-list'] = TRUE;
     	
     	$data->jobs = array();
-    	while($dRec = $dQuery->fetch()){
-    		$jobRows = sales_SalesDetails::prepareJobInfo($dRec, $rec);
-    		if(count($jobRows)){
-    			$data->jobs = array_merge($data->jobs, $jobRows);
-    		}
+    	while($jRec = $jQuery->fetch()){
+    		$data->jobs[$jRec->id] = planning_Jobs::recToVerbal($jRec, $fields);
     	}
     	
     	if(planning_Jobs::haveRightFor('Createjobfromsale', (object)array('saleId' => $rec->id))){
-    		$data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'ret_url' => TRUE);
+    		$data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'foreignId' => $rec->containerId,'ret_url' => TRUE);
     	}
     }
     
@@ -1010,30 +1041,19 @@ class sales_Sales extends deals_DealMaster
      */
     protected function renderJobsInfo(&$tpl, $data)
     {
-    	// Ако има подготвена информация за наличните задания, рендираме я
-    	if($data->tabs->hasTab('JobsInfo') && haveRole('ceo,planning,sales,store,job')){
+    	$table = cls::get('core_TableView', array('mvc' => cls::get('planning_Jobs')));
     		
-    		$Jobs = cls::get('planning_Jobs');
-    		$table = cls::get('core_TableView', array('mvc' => $Jobs));
+    	foreach ($data->jobs as &$row){
+    		$jobsTable = $table->get($data->jobs, 'title=Задание,dueDate=Падеж,packQuantity=Планирано,quantityFromTasks=Произведено,quantityProduced=Заскладено,packagingId=Мярка');
+    		$jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
+    		$jobTpl->replace($jobsTable, 'table');
+    		$tpl->replace($jobTpl, 'JOB_INFO');
+    	}
     		
-    		foreach ($data->jobs as &$row){
-    			foreach (array('quantity', 'quantityFromTasks', 'quantityProduced') as $var){
-    				if($row->{$var} == 0){
-    						$row->{$var} = "<span class='quiet'>{$row->{$var}}</span>";
-    					}
-    				}
-    			}
-    	
-    			$jobsTable = $table->get($data->jobs, 'jobId=Задание,productId=Артикул,dueDate=Падеж,quantity=Количество->Планирано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
-    			$jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
-    			$jobTpl->replace($jobsTable, 'table');
-    			$tpl->replace($jobTpl, 'JOB_INFO');
-    		}
-    		
-    		if(isset($data->addJobUrl)){
-    			$addLink = ht::createLink('', $data->addJobUrl, FALSE, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство към артикул');
-    			$tpl->replace($addLink, 'JOB_ADD_BTN');
-    		}
+    	if(isset($data->addJobUrl)){
+    		$addLink = ht::createLink('', $data->addJobUrl, FALSE, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство към артикул');
+    		$tpl->replace($addLink, 'JOB_ADD_BTN');
+    	}
     }
     
     
@@ -1080,9 +1100,22 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	if(!Mode::isReadOnly() && core_Packs::isInstalled('eshop')){
+    		if($cartId = eshop_Carts::fetchField("#saleId = {$rec->id}")){
+    			$row->cartId = eshop_Carts::getHyperlink($cartId, TRUE);
+    		}
+    	}
+    	
     	if(isset($rec->bankAccountId)){
     		if(!Mode::isReadOnly()){
     			$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
+    		}
+    		
+    		if($bic = bank_Accounts::getVerbal($rec->bankAccountId, 'bic')){
+    			$row->bic = $bic;
+    		}
+    		if($bank = bank_Accounts::getVerbal($rec->bankAccountId, 'bank')){
+    			$row->bank = $bank;
     		}
     	}
     	
@@ -1106,10 +1139,6 @@ class sales_Sales extends deals_DealMaster
     		$row->priceListId = price_Lists::getHyperlink($rec->priceListId, TRUE);
     	}
 
-        if(isset($fields['-list'])){  
-            $row->title .= "<div>{$row->folderId}</div>";
-        }
-
     	if(isset($fields['-single'])){
     		
     		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, "commonConditionSale")){
@@ -1118,12 +1147,12 @@ class sales_Sales extends deals_DealMaster
     		
     		if ($rec->currencyRate) {
     		    $row->transportCurrencyId = $row->currencyId;
-    		    $rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
+    		    $rec->hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
     		    $rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
     		    $rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
     		}
     		
-    		tcost_Calcs::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
+    		sales_TransportValues::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
     		
     		// Ако има транспорт за начисляване
     		if($leftTransportCost > 0){
@@ -1156,7 +1185,7 @@ class sales_Sales extends deals_DealMaster
     	$query = sales_SalesDetails::getQuery();
     	$query->where("#saleId = {$rec->id}");
     	
-    	return tcost_Calcs::getVisibleTransportCost($query);
+    	return sales_TransportValues::getVisibleTransportCost($query);
     }
     
     
@@ -1171,7 +1200,7 @@ class sales_Sales extends deals_DealMaster
     	$expectedTransport = 0;
     	
     	// Ако няма калкулатор в условието на доставка, не се изчислява нищо
-    	$TransportCalc = cond_DeliveryTerms::getCostDriver($rec->deliveryTermId);
+    	$TransportCalc = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
     	if(!is_object($TransportCalc)) return $expectedTransport;
     	
     	// Подготовка на заявката, взимат се само складируеми артикули
@@ -1182,12 +1211,15 @@ class sales_Sales extends deals_DealMaster
     	$products = $query->fetchAll();
     	
     	// Изчисляване на общото тегло на офертата
-    	$totalWeight = tcost_Calcs::getTotalWeight($products, $TransportCalc);
-    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, NULL, NULL, $rec->deliveryLocationId);
+    	$total = sales_TransportValues::getTotalWeightAndVolume($products);
+    	$codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, NULL, NULL, $rec->deliveryLocationId ? $rec->deliveryLocationId : $rec->deliveryAdress);
+    	
+    	$ourCompany = crm_Companies::fetchOurCompany();
+    	$params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' =>  $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
     	
     	// За всеки артикул се изчислява очаквания му транспорт
     	foreach ($products as $p2){
-    		$fee = tcost_Calcs::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
+    		$fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total['weight'], $total['volume'], $params);
     		
     		// Сумира се, ако е изчислен
     		if(is_array($fee) && $fee['totalFee'] > 0){
@@ -1228,11 +1260,11 @@ class sales_Sales extends deals_DealMaster
     			unset($ship->price);
     			$ship->name = cat_Products::getTitleById($ship->productId, FALSE);
     	
-    			if($transportWeight = cat_Products::getParams($ship->productId, 'transportWeight')){
+    			if($transportWeight = cat_Products::getTransportWeight($ship->productId, 1)){
     				$ship->transportWeight = $transportWeight;
     			}
     	
-    			if($transportVolume = cat_Products::getParams($ship->productId, 'transportVolume')){
+    			if($transportVolume = cat_Products::getTransportVolume($ship->productId, 1)){
     				$ship->transportVolume = $transportVolume;
     			}
     	
@@ -1334,7 +1366,7 @@ class sales_Sales extends deals_DealMaster
      *          o docId       - ид на документа
      *          o docClass    - клас ид на документа
      *          o indicatorId - ид на индикатора
-     *          o value       - стойноста на инфикатора
+     *          o value       - стойноста на индикатора
      *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
      */
     public static function getIndicatorValues($timeline)
@@ -1344,14 +1376,16 @@ class sales_Sales extends deals_DealMaster
     	 
     	$query = self::getQuery();
     	$query->where("#state = 'active' || #state = 'closed' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
-    	$query->where("#activatedOn >= '{$timeline}'");
-    	$query->show('activatedBy,activatedOn,state');
+    	$query->where("#modifiedOn >= '{$timeline}'");
+    	$query->show('valior,activatedOn,activatedBy,state,createdBy');
     	 
     	while($rec = $query->fetch()){
-    		$personId = crm_Profiles::fetchField("#userId = {$rec->activatedBy}", 'personId');
+    		$activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
+    		if(empty($activatedBy)) continue;
+    		$personId = crm_Profiles::fetchField("#userId = {$activatedBy}", 'personId');
     		if(empty($personId)) continue;
     		
-    		$result[] = (object)array('date'        => dt::verbal2mysql($rec->activatedOn, FALSE),
+    		$result[] = (object)array('date'        => dt::verbal2mysql($rec->valior, FALSE),
     								  'personId'    => $personId,
     								  'docId'       => $rec->id,
     								  'docClass'    => sales_Sales::getClassId(),
@@ -1362,5 +1396,65 @@ class sales_Sales extends deals_DealMaster
     	}
     
     	return $result;
+    }
+    
+    
+    /**
+     * Прихваща извикването на AfterSaveLogChange в change_Plugin
+     * Добавя нотификация след промяна на документа
+     *
+     * @param $mvc $mvc
+     * @param array $recsArr - Масив със записаните данни
+     */
+    protected static function on_AfterSaveLogChange($mvc, $recsArr)
+    {
+    	if(is_array($recsArr)){
+    		if($fRec = $recsArr[0]){
+    			if($fRec->docClass && $fRec->docId){
+    				$rec = cls::get($fRec->docClass)->fetch($fRec->docId, 'threadId,containerId');
+    				
+    				// Кои са контейнерите в нишката
+    				$tRec = doc_Containers::getQuery();
+    				$tRec->where("#threadId = {$rec->threadId}");
+    				$tRec->show('id');
+    				$containerIds = arr::extractValuesFromArray($tRec->fetchAll(), 'id');
+    				$containerIds[$fRec->containerId] = $rec->containerId;
+    				
+    				// Ще им се преизчисляват делтите
+    				sales_PrimeCostByDocument::updatePersons($containerIds);
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Връща разпределените разходи по сделката
+     * 
+     * @param int $threadId
+     * @return array $res
+     */
+    public static function getCalcedTransports($threadId)
+    {
+    	$res = array();
+    	$Doc = doc_Threads::getFirstDocument($threadId);
+    	if(empty($Doc)) return $res;
+    	if(!$Doc->isInstanceOf('sales_Sales')) return $res;
+    	
+    	$saleClassId = sales_Sales::getClassId();
+    	$tCostQuery = sales_TransportValues::getQuery();
+    	$tCostQuery->where("#docClassId = {$saleClassId} AND #docId = {$Doc->that}");
+    	$tCostQuery->where("#fee > 0");
+    	while($tRec = $tCostQuery->fetch()){
+    		$dRec = sales_SalesDetails::fetch($tRec->recId, 'productId,quantity');
+    		if(!array_key_exists($dRec->productId, $res)){
+    			$costs[$dRec->productId] = new stdClass();
+    		}
+    			
+    		$costs[$dRec->productId]->fee += $tRec->fee;
+    		$costs[$dRec->productId]->quantity += $dRec->quantity;
+    	}
+    	
+    	return $costs;
     }
 }

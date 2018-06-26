@@ -1,3 +1,6 @@
+.cms-row {
+  padding-top: 30px; }
+
 .blog-browse-header {
   font-size: 1.2em;
   margin-bottom: 1em;
@@ -101,9 +104,10 @@
 .blogm-comment-form div {
   margin-top: 8px; }
 
-.blogm-comment-form input {
-  padding: 3px;
-  width: 300px; }
+  .blogm-comment-form input[type="text"],
+  .blogm-comment-form input[type="submit"] {
+    padding: 3px;
+    width: 300px; }
 
 .blogm-comment-form textarea {
   padding: 3px;

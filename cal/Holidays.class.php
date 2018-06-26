@@ -268,7 +268,7 @@ class cal_Holidays extends core_Master
 										JP=Япония)', 'caption=Празник->Тип,placeholder=Тип на празника,export');
         $this->FLD('info', 'richtext(bucket=calTasks)', 'caption=Празник->Данни,export');
         
-        $this->FLD('nameday', 'richtext(bucket=calTasks)', 'caption=Именници,export');
+        $this->FLD('nameday', 'richtext(bucket=calTasks)', 'caption=Именици,export');
         
         $this->setDbUnique('key');
     }
@@ -432,13 +432,9 @@ class cal_Holidays extends core_Master
             $pData = new stdClass();
 
             $pData->namesArr = self::getLatinNames($rec->nameday);
-
             crm_Persons::prepareNamedays($pData);
-            
             $tpl = crm_Persons::renderNamedays($pData);
-
             $row->nameday = new ET($row->nameday);
-
             $row->nameday->append($tpl);
         }
         
@@ -451,16 +447,14 @@ class cal_Holidays extends core_Master
 
 
     /**
-     * Връща масив с имена на латиница от описание на именници
+     * Връща масив с имена на латиница от описание на Именици
      */
     static function getLatinNames($names)
     {   
-        // Това долното е недопустимо
-	    // $needle = array('<div class="richtext">', "<br></div>");
-	
         $names = str_replace(array('и др', '.'), array('', ''), $names);
+        $names = trim($names, ', ');
         $namesArr = explode(',', str::utf2ascii($names));
-
+		
         foreach($namesArr as $n) {
             $n = strtolower(trim($n));
             $res[$n] = $n;

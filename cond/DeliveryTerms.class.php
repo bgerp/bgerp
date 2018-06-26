@@ -28,7 +28,7 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'codeName, term, costCalc=Транспорт->Калкулатор, calcCost=Транспорт->Скрито, lastUsedOn=Последно, state, createdBy,createdOn';
+    public $listFields = 'codeName, term, costCalc=Транспорт->Калкулатор, calcCost=Транспорт->Скрито,allowCmr, lastUsedOn=Последно, state, createdBy,createdOn';
     
     
     /**
@@ -119,10 +119,11 @@ class cond_DeliveryTerms extends core_Master
         $this->FLD('forSeller', 'text', 'caption=За продавача');
         $this->FLD('forBuyer', 'text', 'caption=За купувача');
         $this->FLD('transport', 'text', 'caption=Транспорт');
-        $this->FLD('costCalc', 'class(interface=tcost_CostCalcIntf,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
+        $this->FLD('costCalc', 'class(interface=cond_TransportCalc,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
         $this->FLD('calcCost', 'enum(yes=Включено,no=Изключено)', 'caption=Изчисляване на транспортна себестойност->Скрито,notNull,value=no');
         $this->FLD('address', 'enum(none=Без,receiver=Локацията на получателя,supplier=Локацията на доставчика)', 'caption=Показване на мястото на доставка->Избор,notNull,value=none,default=none');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
+        $this->FLD('allowCmr', 'enum(yes=Да,no=Не)', 'caption=Документи->ЧМР', 'notNull,value=yes');
         
         $this->setDbUnique('codeName');
     }
@@ -169,15 +170,13 @@ class cond_DeliveryTerms extends core_Master
      * Връща имплементация на драйвера за изчисляване на транспортната себестойност
      * 
      * @param mixed $id - ид, запис или NULL
-     * @return tcost_CostCalcIntf|NULL
+     * @return cond_TransportCalc|NULL
      */
-    public static function getCostDriver($id)
+    public static function getTransportCalculator($id)
     {
     	if(!empty($id)){
     		$rec = self::fetchRec($id);
-    		if(cls::load($rec->costCalc, TRUE)){
-    			return cls::getInterface('tcost_CostCalcIntf', $rec->costCalc);
-    		}
+    		if(cls::load($rec->costCalc, TRUE)) return cls::getInterface('cond_TransportCalc', $rec->costCalc);
     	}
     	
     	return NULL;
@@ -223,6 +222,7 @@ class cond_DeliveryTerms extends core_Master
 	    	3 => "forBuyer", 
 	    	4 => "transport",
     		5 => "address",
+    		6 => "allowCmr",
     	);
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
@@ -284,13 +284,13 @@ class cond_DeliveryTerms extends core_Master
     		
     		if(empty($adress)){
     			$ownCompany = crm_Companies::fetchOurCompany();
-    			$adress = cls::get('crm_Companies')->getFullAdress($ownCompany->id, TRUE)->getContent();
+    			$adress = cls::get('crm_Companies')->getFullAdress($ownCompany->id, TRUE, NULL, FALSE)->getContent();
     		}
     	} elseif(($rec->address == 'receiver' && $isSale === TRUE) || ($rec->address == 'supplier' && $isSale === FALSE)){
-    		if(isset($locationId)){
+    		if(!empty($locationId)){
     			$adress = crm_Locations::getAddress($locationId, TRUE);
     		} else {
-    			$adress = cls::get($contragentClassId)->getFullAdress($contragentId, TRUE)->getContent();
+    			$adress = cls::get($contragentClassId)->getFullAdress($contragentId, TRUE, NULL, FALSE)->getContent();
     		}
     	}
     	

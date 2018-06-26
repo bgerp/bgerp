@@ -60,7 +60,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime';
+	public $fieldsNotToClone = 'reff,valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime';
 	
 	
 	/**
@@ -79,8 +79,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		if(empty($mvc->fields['contoActions'])){
 			$mvc->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
 		}
-		
-		setIfNot($mvc->canChangerate, 'ceo,salesMaster,purchaseMaster');
 	}
 	
 	
@@ -170,7 +168,13 @@ abstract class deals_DealMaster extends deals_DealBase
 	 */
 	protected static function setDealFields($mvc)
 	{
+		setIfNot($mvc->dealerRolesList, 'powerUser');
+		setIfNot($mvc->dealerRolesForAll, $mvc->dealerRolesList);
+		$dealerRolesList = implode('|', arr::make($mvc->dealerRolesList, TRUE));
+		$dealerRolesForAll = implode('|', arr::make($mvc->dealerRolesForAll, TRUE));
+		
 		$mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date,notChangeableByContractor');
+		$mvc->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
 		
 		// Стойности
 		$mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none,summary=amount'); // Сумата на договорената стока
@@ -188,8 +192,8 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		// Доставка
 		$mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,notChangeableByContractor');
-		$mvc->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->Обект до,silent,class=contactData'); // обект, където да бъде доставено (allowEmpty)
-		$mvc->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Адрес,notChangeableByContractor,placeholder=Ако е празно се взима според условието на доставка');
+		$mvc->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->До,silent,class=contactData'); // обект, където да бъде доставено (allowEmpty)
+		$mvc->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Място,notChangeableByContractor');
 		$mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до,notChangeableByContractor'); // до кога трябва да бъде доставено
 		$mvc->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
 		
@@ -203,7 +207,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		// Наш персонал
 		$mvc->FLD('initiatorId', 'user(roles=user,allowEmpty,rolesForAll=sales|ceo)', 'caption=Наш персонал->Инициатор,notChangeableByContractor');
-		$mvc->FLD('dealerId', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Наш персонал->Търговец,notChangeableByContractor');
+		$mvc->FLD('dealerId', "user(rolesForAll={$dealerRolesForAll},allowEmpty,roles={$dealerRolesList})", 'caption=Наш персонал->Търговец,notChangeableByContractor');
 		
 		// Допълнително
 		$mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor');
@@ -215,7 +219,7 @@ abstract class deals_DealMaster extends deals_DealBase
 				'caption=Статус, input=none'
 		);
 		
-		$mvc->FLD('paymentState', 'enum(pending=Има,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=paid');
+		$mvc->FLD('paymentState', 'enum(pending=Има||Yes,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=paid');
 		$mvc->FLD('productIdWithBiggestAmount', 'varchar', 'caption=Артикул с най-голяма стойност, input=none');
 		
 		$mvc->setDbIndex('valior');
@@ -229,10 +233,13 @@ abstract class deals_DealMaster extends deals_DealBase
 	{
 		$form = &$data->form;
 		$form->setDefault('valior', dt::now());
+		$form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
+		$rec = $form->rec;
 		
 		if(empty($form->rec->id)){
 			$form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
 		}
+		
 		$form->setDefault('makeInvoice', 'yes');
 		
 		// Поле за избор на локация - само локациите на контрагента по сделката
@@ -261,10 +268,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 */
 	public function getDefaultChargeVat($rec)
 	{
-		$coverId = doc_Folders::fetchCoverId($rec->folderId);
-		$Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
-		
-		return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+		return deals_Helper::getDefaultChargeVat($rec->folderId);
 	}
 	
 	
@@ -327,8 +331,11 @@ abstract class deals_DealMaster extends deals_DealBase
         $title = "{$abbr}{$rec->id}/{$contragent}";
         
         // Показване и на артикула с най-голяма стойност в продажбата
-        if(isset($rec->productIdWithBiggestAmount)){
-        	$pName = mb_substr($rec->productIdWithBiggestAmount, 0, 20);
+        if(!empty($rec->reff)){
+        	$title .= "/{$rec->reff}";
+        } elseif(isset($rec->productIdWithBiggestAmount)){
+        	$length = sales_Setup::get('PROD_NAME_LENGTH');
+        	$pName = mb_substr($rec->productIdWithBiggestAmount, 0, $length);
         	$title .= "/{$pName}";
         }
         
@@ -362,17 +369,39 @@ abstract class deals_DealMaster extends deals_DealBase
     		$form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
     	}
     	
-    	// Предупреждение, ако има разминаване в очаквания и избрания режим на ДДС
+    	// Избрания ДДС режим съответства ли на дефолтния
     	$defVat = $mvc->getDefaultChargeVat($rec);
-    	if($defVat == 'yes' && in_array($rec->chargeVat, array('exempt', 'no'))){
-    		$form->setWarning('chargeVat', 'Избран е режим за неначисляване на ДДС, при очакван с ДДС');
-    	} elseif($defVat == 'no' && in_array($rec->chargeVat, array('yes', 'separate'))){
-    		$form->setWarning('chargeVat', 'Избран е режим за начисляване на ДДС, при очакван без ДДС');
+    	if($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)){
+    		$form->setWarning('chargeVat', $vatWarning);
     	}
     	
+    	// Избраната валута съответства ли на дефолтната
     	$defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
     	if($defCurrency != $rec->currencyId){
-    		$form->setWarning('currencyId', "Избрана e различна валута от очакваната|* {$defCurrency}");
+    		$form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
+    	}
+    	
+    	if($rec->reff === ''){
+    		$rec->reff = NULL;
+    	}
+    	
+    	// Проверка за валидност на адресите
+    	if(!empty($rec->deliveryLocationId) && !empty($rec->deliveryAdress)){
+    		$form->setError('deliveryLocationId,deliveryAdress', 'Не може двете полета да са едновременно попълнени');
+    	} elseif(!empty($rec->deliveryAdress)){
+    		if($form->getFieldTypeParam('deliveryAdress', 'isReadOnly') !== TRUE){
+    			if(!drdata_Address::parsePlace($rec->deliveryAdress)){
+    				$form->setError('deliveryAdress', 'Мястото трябва да съдържа държава и пощенски код');
+    			}
+    		}
+    	}
+    	
+    	if($mvc instanceof sales_Sales){
+    		if(isset($rec->deliveryTermId)){
+    			if($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $rec->deliveryLocationId)){
+    				$form->setError('deliveryTermId,deliveryAdress,deliveryLocationId', $error);
+    			}
+    		}
     	}
     }
 
@@ -383,7 +412,7 @@ abstract class deals_DealMaster extends deals_DealBase
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
         if(!Request::get('Rejected', 'int')){
-        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,notInvoiced=Нефактурирани,closedWith=Приключени с други сделки)', 'caption=Състояние');
+        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки)', 'caption=Състояние');
 	        $data->listFilter->setDefault('type', 'active');
 			$data->listFilter->showFields .= ',type';
 		}
@@ -399,9 +428,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			if($filter->type) {
 				switch($filter->type){
 					case "clAndAct":
-						$closedDealsArr = $mvc->getDealsClosedWithOtherDeals();
-						$closedDealsArr = implode(',', $closedDealsArr);
-						$data->query->where("#state = 'active' OR (#state = 'closed' AND #id NOT IN ($closedDealsArr))");
+						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case "all":
 						break;
@@ -416,8 +443,6 @@ abstract class deals_DealMaster extends deals_DealBase
 						break;
 					case "closed":
 						$data->query->where("#state = 'closed'");
-						$closedDealsArr = $mvc->getDealsClosedWithOtherDeals();
-						$data->query->notIn("id", $closedDealsArr);
 						break;
 					case 'paid':
 						$data->query->where("#paymentState = 'paid' OR #paymentState = 'repaid'");
@@ -430,6 +455,9 @@ abstract class deals_DealMaster extends deals_DealBase
 					case 'notInvoiced':
 						$data->query->where("(#deliveredRound - #invRound) > 0.05");
 						$data->query->where("#state = 'active' OR #state = 'closed'");
+						break;
+					case 'notInvoicedActive':
+						$data->query->where("(#deliveredRound - #invRound) > 0.05 AND #state = 'active'");
 						break;
 					case 'overdue':
 						$data->query->where("#paymentState = 'overdue'");
@@ -449,7 +477,19 @@ abstract class deals_DealMaster extends deals_DealBase
 					case 'closedWith':
 						$closedDealsArr = $mvc->getDealsClosedWithOtherDeals();
 						$data->query->where("#state = 'closed'");
-						$data->query->in('id', $closedDealsArr);
+						if(count($closedDealsArr)){
+							$data->query->in('id', $closedDealsArr);
+						} else {
+							$data->query->where("1=2");
+						}
+						break;
+					case 'unionDeals':
+						$data->query->where("#state = 'active' OR #state = 'closed'");
+						$data->query->where("#closedDocuments != '' AND #closedDocuments IS NOT NULL");
+						break;
+					case 'notUnionDeals':
+						$data->query->where("#state = 'active' OR #state = 'closed'");
+						$data->query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
 						break;
 				}
 			}
@@ -529,11 +569,6 @@ abstract class deals_DealMaster extends deals_DealBase
 	
         if($rec->makeInvoice != 'no' && !empty($rec->amountInvoiced)){
         	$subTitle .= ", " . tr('Факт:') . " {$row->amountInvoiced} ({$row->amountToInvoice})";
-        }
-        
-        if(!empty($rec->reff)){
-        	$reff = cls::get('type_Varchar')->toVerbal($rec->reff);
-        	$subTitle .= ", " . tr('Реф:') . " {$reff}";
         }
         
         return $subTitle;
@@ -776,13 +811,18 @@ abstract class deals_DealMaster extends deals_DealBase
     	$Detail = cls::get($mvc->mainDetail);
     	$dQuery = $Detail->getQuery();
     	$dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-    	$dQuery->where("#tolerance IS NULL || #term IS NULL");
+    	$dQuery->where("#tolerance IS NULL");
     	
     	while($dRec = $dQuery->fetch()){
     		$save = FALSE;
     		
     		if(!isset($dRec->term)){
     			if($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)){
+    				$cRec = sales_TransportValues::get($mvc, $rec->id, $dRec->id);
+    				if(isset($cRec->deliveryTime)){
+    					$term = $cRec->deliveryTime + $term;
+    				}
+    				
     				$dRec->term = $term;
     				$save = TRUE;
     			}
@@ -806,15 +846,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
     	$update = FALSE;
-    	
-    	// Запис на адреса
-    	if(empty($rec->deliveryAdress) && isset($rec->deliveryTermId)){
-    		$update = TRUE;
-    		
-    		$rec->tplLang = $mvc->pushTemplateLg($rec->template);
-    		$rec->deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
-    		core_Lg::pop($rec->tplLang);
-    	}
     	
     	// Записване на най-големия срок на доставка
     	if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
@@ -876,11 +907,11 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 	    
     	if(isset($rec->dealerId)){
-    		$row->dealerId = crm_Profiles::createLink($rec->dealerId, $row->dealerId);
+    		$row->dealerId = crm_Profiles::createLink($rec->dealerId);
     	}
     	
     	if(isset($rec->initiatorId)){
-    		$row->initiatorId = crm_Profiles::createLink($rec->initiatorId, $row->initiatorId);
+    		$row->initiatorId = crm_Profiles::createLink($rec->initiatorId);
     	}
     	
 	    if($fields['-single']){
@@ -921,7 +952,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			
 			// Показване на допълнителните условия от артикулите
-			$additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $rec->id);
+			$additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
 			if(is_array($additionalConditions)){
 				foreach ($additionalConditions as $cond){
 					$row->notes .= "<li>{$cond}</li>";
@@ -944,7 +975,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			
 			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
 				if($rec->shipmentStoreId){
-					$storeVerbal = store_Stores::getHyperlink($rec->shipmentStoreId);
+					$storeVerbal = store_Stores::getHyperlink($rec->shipmentStoreId, TRUE);
 					if($rec->state == 'active' && isset($actions['ship'])){
 						$row->shipmentStoreId = $storeVerbal;
 					} else {
@@ -966,12 +997,11 @@ abstract class deals_DealMaster extends deals_DealBase
 			} else {
 				if(isset($rec->deliveryTermId)){
 					$deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
-					$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще бъде записан при активиране');
 				}
 			}
 			
 			if(!empty($deliveryAdress)){
-				$deliveryAdress1 = (isset($rec->deliveryTermId)) ? (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName') . ": ") : "";
+				$deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ", ") : "";
 				$deliveryAdress = $deliveryAdress1 . $deliveryAdress;
 				$row->deliveryTermId = $deliveryAdress;
 			}
@@ -1038,11 +1068,11 @@ abstract class deals_DealMaster extends deals_DealBase
     	while($rec = $query->fetch()){
     		$term = $rec->term;
     		if(!isset($term)){
-    			if($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)){
-    				$cRec = tcost_Calcs::get($this, $rec->{$Detail->masterKey}, $rec->id);
-    				if(isset($cRec->deliveryTime)){
-    					$term = $cRec->deliveryTime + $term;
-    				}
+    			$term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity);
+    		
+    			$cRec = sales_TransportValues::get($this, $rec->{$Detail->masterKey}, $rec->id);
+    			if(isset($cRec->deliveryTime)){
+    				$term = $cRec->deliveryTime + $term;
     			}
     		}
     		
@@ -1132,7 +1162,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Изтриваме досегашните детайли на сделката
     	$Detail = $mvc->mainDetail;
     	$Detail::delete("#{$mvc->{$Detail}->masterKey} = {$rec->id}");
-    	
     	$details = deals_Helper::normalizeProducts($details);
     	
     	if(count($details)){
@@ -1580,12 +1609,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	$termSysId = (get_called_class() == 'sales_Sales') ? 'deliveryTermSale' : 'deliveryTermPurchase';
     	$fields['deliveryTermId'] = (empty($fields['deliveryTermId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $termSysId) : $fields['deliveryTermId'];
     	
-    	// Ако няма търговец, това е текущия потребител
-    	$fields['dealerId'] = (empty($fields['dealerId'])) ? core_Users::getCurrent() : $fields['dealerId'];
-    	 
-    	// Ако няма инициатор, това е отговорника на контрагента
-    	$fields['initiatorId'] = (empty($fields['initiatorId'])) ? $contragentClass::fetchField($contragentId, 'inCharge') : $fields['initiatorId'];
-    	 
     	// Ако не е подадено да се начислявали ддс, определяме от контрагента
     	if(empty($fields['chargeVat'])){
     		$fields['chargeVat'] = ($contragentClass::shouldChargeVat($contragentId)) ? 'yes' : 'no';
@@ -1765,14 +1788,6 @@ abstract class deals_DealMaster extends deals_DealBase
     			}
     		}
     	}
-    	
-    	if($action == 'changerate' && isset($rec)){
-    		if($rec->currencyId == 'BGN' || $rec->currencyId == 'EUR'){
-    			$res = 'no_one';
-    		} elseif($rec->state == 'closed' || $rec->state == 'rejected'){
-    			$res = 'no_one';
-    		}
-    	}
     }
     
     
@@ -1782,6 +1797,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public function act_ChooseDraft()
     {
     	$this->requireRightFor('edit');
+    	expect(core_Users::isPowerUser());
     	$contragentClassId = Request::get('contragentClassId', 'int');
     	$contragentId = Request::get('contragentId', 'int');
     	
@@ -1807,7 +1823,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Подготвяме и показваме формата за избор на чернова оферта, ако има чернови
     	$me = get_called_class();
     	$form = cls::get('core_Form');
-    	$form->title = "|Прехвърляне в|* " . mb_strtolower($this->singleTitle);
+    	
     	$form->FLD('dealId', "key(mvc={$me},select=id,allowEmpty)", "caption={$this->singleTitle},mandatory");
     	$form->setOptions('dealId', $options);
     	
@@ -1821,6 +1837,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$quotationId = Request::get('quotationId', 'int');
     	$rejectUrl = toUrl(array('sales_Quotations', 'single', $quotationId));
+    	$form->title = "|Прехвърляне в|* " . mb_strtolower($this->singleTitle) . " " . tr('на') . " " . cls::get('sales_Quotations')->getFormTitleLink($quotationId);
     	
     	$forceUrl = $retUrl;
     	$forceUrl['force'] = TRUE;
@@ -1939,7 +1956,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		unset($url['export']);
     		
     		$url['dealTab'] = 'DealReport';
-    		$data->tabs->TAB('DealReport', 'Поръчано / Доставено' , $url);
+    		$data->tabs->TAB('DealReport', '|Поръчано|* / |Доставено|*' , $url);
     	}
     }
     
@@ -2059,58 +2076,27 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * След подготовка на тулбара на единичен изглед.
+     * След взимане на полетата, които да не се клонират
      *
      * @param core_Mvc $mvc
-     * @param stdClass $data
+     * @param stdClass $res
+     * @param stdClass $rec
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
     {
-    	$rec = &$data->rec;
-    	 
-    	if($mvc->haveRightFor('changerate', $rec)) {
-    		$data->toolbar->addBtn('Промяна на курса', array($mvc, 'changeRate', $rec->id, 'ret_url' => TRUE), "id=changeRateBtn,row=2", 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на курса на документите в нишката');
+    	if(!empty($rec->deliveryLocationId)){
+    		$res['deliveryAdress'] = 'deliveryAdress';
     	}
     }
     
     
     /**
-     * Рекалкулиране на курса на документите в сделката
+     * Връща иконата за сметката
      */
-    function act_Changerate()
+    public function getIcon($id)
     {
-    	$this->requireRightFor('changerate');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetchRec($id));
-    	$this->requireRightFor('changerate', $rec);
-    	
-    	$form = cls::get('core_Form');
-    	$form->title = "|Преизчисляване на курса на документите в|* " . $this->getHyperlink($rec, TRUE);
-    	$form->info = tr("Стар курс|*: <b>{$rec->currencyRate}</b>");
-    	$form->FLD('newRate', 'double', 'caption=Нов курс,mandatory');
-    	$form->input();
-    	
-    	if($form->isSubmitted()){
-    		$fRec = $form->rec;
-    		
-    		// Рекалкулиране на сделката
-    		deals_Helper::recalcRate($this, $rec->id, $fRec->newRate);
-    		
-    		// Рекалкулиране на определени документи в нишката и
-    		$dealDocuments = $this->getDescendants($rec->id);
-    		$arr = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Services::getClassId(), purchase_Services::getClassId(), sales_Invoices::getClassId(), purchase_Invoices::getClassId());
-    		foreach ($dealDocuments as $d) {
-    			if(!in_array($d->getClassId(), $arr)) continue;
-    			deals_Helper::recalcRate($d->getInstance(), $d->fetch(), $fRec->newRate);
-    		}
-    		
-    		followRetUrl(NULL, 'Документите са преизчислени успешно');
-    	}
-    	
-    	$form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/tick-circle-frame.png,warning=Ще преизчислите всички документи в нишката по новия курс');
-    	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close-red.png');
-    	 
-    	// Рендиране на формата
-    	return $this->renderWrapping($form->renderHtml());
+    	$closedDocuments = $this->fetchField($id, 'closedDocuments');
+    
+    	return (empty($closedDocuments)) ? $this->singleIcon : $this->singleIconFocCombinedDeals;
     }
 }

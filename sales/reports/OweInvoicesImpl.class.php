@@ -20,7 +20,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 	/**
 	 * Кой може да избира драйвъра
 	 */
-	public $canSelectSource = 'ceo,sales';
+	public $canSelectSource = 'no_one';
 	
 	
 	/**

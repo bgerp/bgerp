@@ -213,17 +213,17 @@ class type_Key2 extends type_Int
         $this->setFieldWidth($attr, NULL, $options);
 
         if (core_Packs::isInstalled('select2') && !Mode::is('javascript', 'no')) {
-            
+           
             // Показваме Select2
             ht::setUniqId($attr);
             $tpl = ht::createSelect($name, $options, $value, $attr);
             
             $ajaxUrl = '';
             $handler = $this->getHandler();
-            if ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions)) {
-                $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute');
+            if ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions-1)) {
+                $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute-force');
             }
-            
+          
             $allowClear = FALSE;
             if ($this->params['allowEmpty'] || isset($options[''])) {
                 $allowClear = TRUE;
@@ -336,7 +336,43 @@ class type_Key2 extends type_Int
         }
                            
 
-        core_App::getJson($res);
+        core_App::outputJson($res);
     }
     
+    
+    /**
+     * Връща шаблон за прескачане на най-често използваните символи в преди думите
+     * 
+     * @param boolean $addEmpty
+     * 
+     * @return string
+     */
+    public static function getRegexPatterForSQLBegin($addEmpty = TRUE)
+    {
+        $key = 'sqlBeginQuery' . '_' . $addEmpty;
+        
+        $rStr = core_Cache::get(key2, $key);
+        
+        if ($rStr) return $rStr;
+        
+        $rOrdStr = '31|33|34|35|37|38|39|40|41|42|43|44|45|46|47|58|59|64|91|93|95|96|124';
+        
+        $rArr = explode('|', $rOrdStr);
+        
+        $rStr = '';
+        foreach ($rArr as $ord) {
+            if ($ord > 127) continue;
+            $rStr .= '\\\\\\' . chr($ord) . '|';
+        }
+        
+        if ($addEmpty) {
+            $rStr .= ' ';
+        } else {
+            $rStr = rtrim($rStr, '|');
+        }
+        
+        core_Cache::set('key2', $key, $rStr, 100000);
+        
+        return $rStr;
+    }
 }

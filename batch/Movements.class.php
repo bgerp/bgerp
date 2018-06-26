@@ -206,7 +206,7 @@ class batch_Movements extends core_Detail {
     		}
     		
     		if(!empty($fRec->batch)){
-    			$data->query->where("#batch = '{$fRec->batch}'");
+    			$data->query->where("#batch LIKE '{$fRec->batch}%'");
     		}
     		
     		if(isset($fRec->action) && $fRec->action != 'all'){
@@ -374,7 +374,7 @@ class batch_Movements extends core_Detail {
      * Връща масив с линкове към движенията на партидите
      * 
      * @param int $productId
-     * @param varchar $batch
+     * @param string $batch
      * @return array $batch
      */
     public static function getLinkArr($productId, $batch)

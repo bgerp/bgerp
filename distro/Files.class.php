@@ -177,7 +177,7 @@ class distro_Files extends core_Detail
     /**
      * Връща пълния път до файла в хранилището
      * 
-     * @param stdObject|integer $id
+     * @param stdClass|integer $id
      * @param NULL|integer $repoId
      * @param NULL|integer $groupId
      * @param NULL|string $name
@@ -429,7 +429,7 @@ class distro_Files extends core_Detail
             }
             
             foreach ($repoActArr as $groupId => $actArr) {
-                    
+                
                 foreach ((array)$actArr['create'] as $name => $date) {
                     $addRes = $this->addFileToDB($groupId, $name, $repoId, $date);
                     
@@ -442,7 +442,7 @@ class distro_Files extends core_Detail
                     $fRec = $this->getRecForFile($groupId, $name, $repoId);
                     
                     if ($fRec === FALSE) {
-                        $this->logWarning('Няма запис за файл, който да се редактира.');
+                        $this->logNotice('Няма запис за файл, който да се редактира');
                         
                         continue;
                     }
@@ -578,7 +578,7 @@ class distro_Files extends core_Detail
      * @param integer $repoId
      * @param boolean $cache
      * 
-     * @return stdObject|FALSE
+     * @return stdClass|FALSE
      */
     protected function getRecForFile($groupId, $name, $repoId, $cache = FALSE)
     {
@@ -599,7 +599,7 @@ class distro_Files extends core_Detail
         $sBetween = dt::secsBetween(dt::now(), $date);
         if ($sBetween >= 0) {
             if ($sBetween > 300) {
-                $this->logWarning('Разминаване във времето - файлът е създаден много отдавна: ' . dt::mysql2verbal($date));
+                $this->logNotice('Разминаване във времето - файлът е създаден много отдавна: ' . dt::mysql2verbal($date));
                 
                 return FALSE;
             }
@@ -700,8 +700,8 @@ class distro_Files extends core_Detail
      * 
      * 
      * @param distro_Files $mvc
-     * @param stdObject $res
-     * @param stdObject $rec
+     * @param stdClass $res
+     * @param stdClass $rec
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
@@ -758,8 +758,8 @@ class distro_Files extends core_Detail
      * 
      * 
      * @param distro_Files $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     function on_AfterPrepareListRecs($mvc, &$res, $data)
     {
@@ -802,8 +802,8 @@ class distro_Files extends core_Detail
      * 
      * 
      * @param distro_Files $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
@@ -871,8 +871,8 @@ class distro_Files extends core_Detail
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
-     * @param stdObject $row Това ще се покаже
-     * @param stdObject $rec Това е записа в машинно представяне
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
@@ -890,7 +890,7 @@ class distro_Files extends core_Detail
      * 
      * @param distro_Files $mvc
      * @param core_ET $tpl
-     * @param stdObject $data
+     * @param stdClass $data
      */
     function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {

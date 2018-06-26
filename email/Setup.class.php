@@ -26,12 +26,6 @@ defIfNot('EMAIL_ALLOWED_EXT_FOR_BARCOCE', "pdf,tif,tiff,jpg,jpeg");
 
 
 /**
- * Период за сваляне на имейли
- */
-defIfNot('EMAIL_DOWNLOAD_PERIOD', 120);
-
-
-/**
  * Максималната разрешена памет за използване
  */
 defIfNot('EMAIL_MAX_ALLOWED_MEMORY', '838860800');
@@ -263,15 +257,13 @@ class email_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-    
-            'EMAIL_DOWNLOAD_PERIOD' => array ('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Период за сваляне на имейлите->Време'),
-            
+                
             // Максимално време за еднократно фетчване на писма
             'EMAIL_MAX_FETCHING_TIME' => array ('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Максимално време за получаване на имейли в една сесия->Време'),
     
             // Максималното време за изчакване на буфера
             'EMAIL_POP3_TIMEOUT'  => array ('time(suggestions=1 сек.|2 сек.|3 сек.)', 'mandatory, caption=Таймаут на POP3 сокета->Време'),
-            
+
             // Максималната разрешена памет за използване
             'EMAIL_MAX_ALLOWED_MEMORY' => array ('fileman_FileSize', 'mandatory, caption=Максималната разрешена памет за използване при парсиране на имейли->Размер, suggestions=100 MB|200 MB|400 MB|800 MB|1200 MB'),
 
@@ -359,6 +351,7 @@ class email_Setup extends core_ProtoSetup
             'email_Salutations',
             'email_ThreadHandles',
             'email_SendOnTime',
+            'email_SpamRules',
             'migrate::transferThreadHandles',
             'migrate::fixEmailSalutations',
             'migrate::repairRecsInFilters',
@@ -366,8 +359,17 @@ class email_Setup extends core_ProtoSetup
             'migrate::updateUserInboxesD',
             'migrate::repairSalutations',
             'migrate::repairDelayTime',
+            'migrate::fieldDeleteAfterRetrieval',
+            'migrate::checkMailBox',
+            'migrate::removeDearSirs',
+            'migrate::spamFilter',
         );
     
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "email_reports_Spam";
 
     /**
      * Роли за достъп до модула
@@ -648,6 +650,27 @@ class email_Setup extends core_ProtoSetup
             $cls->save($eRec, 'delaySendOn');
         }
     }
+
+
+    /**
+     * Миграция за полето deleteAfterPeriod
+     */
+    function fieldDeleteAfterRetrieval()
+    {
+        $accMvc = cls::get('email_Accounts');
+
+        if(!$accMvc->db->isFieldExists($accMvc->dbTableName, 'delete_after_retrieval')) return;
+
+        $query = $accMvc->getQuery();
+        $query->FLD('deleteAfterRetrieval', 'enum(no=Не,yes=Да)', 'caption=Изтриване?,hint=Дали писмото да бъде изтрито от IMAP кутията след получаване в системата?');
+
+        while($rec = $query->fetch()) {
+            if($rec->deleteAfterRetrieval == 'yes' && empty($rec->deleteAfterPeriod)) {
+                $rec->deleteAfterPeriod = 7 * 24 * 60 * 60;
+                $accMvc->save_($rec, 'deleteAfterPeriod');
+            }
+        }
+    }
     
     
     /**
@@ -675,5 +698,193 @@ class email_Setup extends core_ProtoSetup
         $now = dt::now();
         
         $Fingerprints->db->query("UPDATE `{$Fingerprints->dbTableName}` SET `{$downOnFiled}` = '{$now}'");
+    }
+    
+    
+    /**
+     * Форсира проверка на свалените имейли
+     */
+    public static function checkMailBox()
+    {
+        // Вземаме последователно сметките, подредени по случаен начин
+        $accQuery = email_Accounts::getQuery();
+        $accQuery->XPR('order', 'double', 'RAND()');
+        $accQuery->orderBy('#order');
+        
+        while (($accRec = $accQuery->fetch("#state = 'active'"))) {
+            
+            $pKey = 'checkMailBox|' . $accRec->id;
+            
+            $emlStatus = core_Permanent::get($pKey);
+            
+            if ($emlStatus) continue;
+            
+            $lockKey = 'Inbox:' . $accRec->id;
+            
+            expect(core_Locks::get($lockKey, 50, 30));
+            
+            // Връзка по IMAP към сървъра на посочената сметка
+            $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
+            
+            expect($imapConn->connect() !== FALSE);
+            
+            // Получаваме броя на писмата в INBOX папката
+            $numMsg = $imapConn->getStatistic('messages');
+            
+            // Махаме заключването от кутията
+            core_Locks::release($lockKey);
+            
+            if (!$numMsg) continue;
+            
+            $emlStatus = $accRec->id . '|0|' . $numMsg;
+            
+            $mp = $accRec->id;
+            if ($mp > 10) {
+                $mp = rand(1, 10);
+            }
+            
+            $callOn = dt::addSecs(60 * $mp++);
+            core_CallOnTime::setCall('email_Setup', 'checkMailBox', $emlStatus, $callOn);
+            
+            core_Permanent::set($pKey, $emlStatus, 100000);
+        }
+    }
+    
+    
+    /**
+     * Функция за проверка на свалените имейли
+     * Ако хеша го няма - предизвиква сваляне
+     * 
+     * @param string $emlStatus
+     */
+    public static function callback_checkMailBox($emlStatus)
+    {
+        $tLimit = ini_get('max_execution_time') + 70;
+        core_App::setTimeLimit($tLimit);
+        
+        list($accId, $begin, $end) = explode('|', $emlStatus);
+        
+        if (!$accId) return ;
+        
+        if (!$begin) {
+            $begin = 1;
+        }
+        
+        $pKey = 'checkMailBox|' . $accId;
+        
+        if ($begin >= $end) {
+            
+            email_Accounts::logNotice('Приключи проверката на имейл кутията', $accId);
+            
+            core_Permanent::remove($pKey);
+            
+            return ;
+        }
+        
+        $accRec = email_Accounts::fetch($accId);
+        
+        if ($accRec->state != 'active') return ;
+        
+        sleep(7);
+        
+        $deadline = time() + 40;
+        
+        $lockKey = 'Inbox:' . $accRec->id;
+        
+        if (core_Locks::get($lockKey, 55, 30)) {
+            
+            $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
+            
+            if ($imapConn->connect() !== FALSE) {
+                
+				// За да не гърми с warning при надвишаване на броя имейли
+                $numMsg = $imapConn->getStatistic('messages');
+                if (isset($numMsg) && $end != $numMsg) {
+                    
+                    email_Accounts::logDebug("Променен брой имейли за проверка от {$end} на {$numMsg}", $accId);
+                    
+                    $end = $numMsg;
+                }
+                if ($begin >= $end) {
+                    
+                    email_Accounts::logNotice('Приключи проверката на имейл кутията', $accId);
+                    
+                    core_Permanent::remove($pKey);
+                    
+                    core_Locks::release($lockKey);
+                    
+                    return ;
+                }
+                
+                $Incomings = cls::get('email_Incomings');
+                
+                for ($i = $begin; $i < $end && ($deadline > time()); $i++) {
+                    try {
+                        $status = $Incomings->fetchEmail($imapConn, $i);
+                        
+                        if ($status != 'duplicated') {
+                            email_Incomings::logNotice('Свален имейл, който е бил пропуснат');
+                        }
+                    } catch (Exception $e) {
+                        reportException($e);
+                    }
+                }
+                
+                $begin = $i;
+            }
+        }
+        
+        email_Accounts::logNotice("Проверени {$begin} от общо {$end} имейли", $accId);
+        
+        core_Locks::release($lockKey);
+        
+        $emlStatus = $accRec->id . '|' . $begin . '|' . $end;
+        
+        core_Permanent::set($pKey, $emlStatus, 100000);
+        
+        $mp = $accId;
+        if ($mp == 1 || $mp > 10) {
+            $mp = rand(1, 10);
+        }
+        
+        $callOn = dt::addSecs(60 * $mp);
+        core_CallOnTime::setCall('email_Setup', 'checkMailBox', $emlStatus, $callOn);
+    }
+    
+    
+    /**
+     * Премахва "Dear Sirs," от поздравите
+     */
+    public static function removeDearSirs()
+    {
+        email_Salutations::delete("LOWER(#salutation) LIKE 'dear sirs%'");
+    }
+    
+    
+    /**
+     * Преместване на филтриранията по СПАМ от email_Filter
+     */
+    public static function spamFilter()
+    {
+        $fQuery = email_Filters::getQuery();
+        $fQuery->where("#action = 'spam'");
+        
+        while ($fRec = $fQuery->fetch()) {
+            $nRec = new stdClass();
+            $nRec->systemId = $fRec->systemId;
+            $nRec->email = $fRec->email;
+            $nRec->subject = $fRec->subject;
+            $nRec->body = $fRec->body;
+            $nRec->systemId = $fRec->systemId;
+            $nRec->note = $fRec->note;
+            $nRec->state = $fRec->state;
+            $nRec->createdOn = $fRec->createdOn;
+            $nRec->createdBy = $fRec->createdBy;
+            $nRec->points = email_Setup::get('HARD_SPAM_SCORE') + 1;
+            
+            email_SpamRules::save($nRec, NULL, 'IGNORE');
+            
+            email_Filters::delete($fRec->id);
+        }
     }
 }

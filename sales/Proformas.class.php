@@ -145,16 +145,16 @@ class sales_Proformas extends deals_InvoiceMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'place'               => 'lastDocUser|lastDoc',
-    	'responsible'         => 'lastDocUser|lastDoc',
-    	'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
-    	'contragentVatNo'     => 'lastDocUser|lastDoc|clientData',
-    	'uicNo' 			  => 'lastDocUser|lastDoc|clientData',
-    	'contragentPCode'     => 'lastDocUser|lastDoc|clientData',
-    	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
-    	'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
-    	'accountId' 		  => 'lastDocUser|lastDoc',
-    	'template' 		      => 'lastDocUser|lastDoc|defMethod',
+    		'place'               => 'lastDocUser|lastDoc',
+    		'responsible'         => 'lastDocUser|lastDoc',
+    		'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
+    		'contragentVatNo'     => 'clientData|lastDocUser|lastDoc',
+    		'uicNo'     		  => 'clientData|lastDocUser|lastDoc',
+    		'contragentPCode'     => 'clientData|lastDocUser|lastDoc',
+    		'contragentPlace'     => 'clientData|lastDocUser|lastDoc',
+    		'contragentAddress'   => 'clientData|lastDocUser|lastDoc',
+    		'accountId'           => 'lastDocUser|lastDoc',
+    		'template' 		      => 'lastDocUser|lastDoc|defMethod',
     );
     
     
@@ -344,14 +344,10 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function canAddToThread($threadId)
     {
     	$firstDocument = doc_Threads::getFirstDocument($threadId);
-    	
     	if(!$firstDocument) return FALSE;
     	
     	// Може да се добавя само към активна продажба
-    	if($firstDocument->isInstanceOf('sales_Sales') && $firstDocument->fetchField('state') == 'active'){
-    		
-    		return TRUE;
-    	}
+    	if($firstDocument->isInstanceOf('sales_Sales') && $firstDocument->fetchField('state') == 'active') return TRUE;
     	
     	return FALSE;
     }
@@ -367,17 +363,6 @@ class sales_Proformas extends deals_InvoiceMaster
     	if($data->paymentPlan){
     		$tpl->placeObject($data->paymentPlan);
     	}
-    }
-    
-    
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(get_called_class());
-    	 
-    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     
@@ -415,7 +400,7 @@ class sales_Proformas extends deals_InvoiceMaster
     {
     	$rec = $data->rec;
     
-    	if(sales_Invoices::haveRightFor('add', (object)array('originId' => $rec->originId, 'sourceContainerId' => $rec->containerId))){
+    	if(deals_Helper::showInvoiceBtn($rec->threadId) && sales_Invoices::haveRightFor('add', (object)array('originId' => $rec->originId, 'sourceContainerId' => $rec->containerId))){
     		$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура от проформа фактура,ef_icon=img/16/invoice.png,row=2');
     	}
     	

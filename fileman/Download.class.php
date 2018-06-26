@@ -413,6 +413,14 @@ class fileman_Download extends core_Manager {
             );
             
             foreach($filesToCopy as $src => $dest) {
+
+                if(file_exists($dest) &&  is_readable($dest)) {
+                    if(md5_file($dest) == md5_file($src)) {
+                        $res .= "<li>От преди съществуващ файл: <b>{$dest}</b></li>";
+                        continue;
+                    }
+                }
+
                 if(copy($src, $dest)) {
                     $res .= "<li class=\"debug-new\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
                 } else {

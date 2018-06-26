@@ -38,7 +38,7 @@ class eshop_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg,plg_Search';
+    var $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg,plg_Search,plg_StructureAndOrder';
     
     
     /**
@@ -130,12 +130,12 @@ class eshop_Groups extends core_Master
      */
     function description()
     {
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню,silent,refreshForm');
         $this->FLD('name', 'varchar(64)', 'caption=Група, mandatory,width=100%');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание');
         $this->FLD('icon', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Малка');
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Голяма');
         $this->FLD('productCnt', 'int', 'input=none');
-        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню');
     }
     
     
@@ -349,7 +349,7 @@ class eshop_Groups extends core_Master
     {
         $query = self::getQuery();
         $query->where("#state = 'active' AND #menuId = {$data->menuId}");
-        
+       
         while($rec = $query->fetch()) {
             $rec->url = self::getUrl($rec);
             $data->recs[] = $rec;
@@ -485,7 +485,7 @@ class eshop_Groups extends core_Master
         $query = $this->getQuery();
         
         $query->where("#state = 'active'");
-        
+
         $groupId   = $data->groupId;
         $productId = $data->productId;
         $menuId = $data->menuId;
@@ -499,7 +499,7 @@ class eshop_Groups extends core_Master
             $data->menuId = $menuId = self::fetch($groupId)->menuId;
         }
         
-        $query->where("#menuId = {$menuId}");
+        $query->where("#menuId = '{$menuId}'");
         
         $l = new stdClass();
         $l->selected = ($groupId == NULL &&  $productId == NULL);
@@ -510,7 +510,7 @@ class eshop_Groups extends core_Master
             $l->url['PU'] = 1;
         }
         
-        $l->title = tr('Всички продукти');;
+        $l->title = tr('Продуктови групи');;
         $l->level = 1;
         $data->links[] = $l;
         
@@ -625,6 +625,7 @@ class eshop_Groups extends core_Master
     { 
         $res = array();
         $query = self::getQuery();
+
         $query->where("#menuId = {$menuId} AND #state = 'active'");
         $groups = array();
         while($rec = $query->fetch()) {
@@ -719,4 +720,66 @@ class eshop_Groups extends core_Master
         return $res;
     }
 
+
+    /**
+     * Имплементация на метод, необходим за plg_StructureAndOrder
+     */
+    public function saoCanHaveSublevel($rec, $newRec = NULL)
+    {        
+        return FALSE;
+    }
+    
+
+    /**
+     * Необходим метод за подреждането
+     */
+    public static function getSaoItems($rec)
+    {
+        $res = array();
+        $query = self::getQuery();
+        $menuId = Request::get('menuId', 'int');
+        if(!$menuId) {
+            $menuId = (int) $rec->menuId;
+        }
+        if(!$menuId) {
+            $menuId = cms_Content::getDefaultMenuId('eshop_Groups');
+        }
+        if(!$menuId) return $res;
+        $query->where("#menuId = {$menuId}");
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = $rec;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Връща групите в избрания домейн
+     * 
+     * @param int|NULL $domainId
+     * @return array $groups
+     */
+    public static function getByDomain($domainId = NULL)
+    {
+    	$groups = array();
+    	$domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
+    	 
+    	// Намиране на опциите, които са вързани към артикули от подадения домейн
+    	$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
+    	$contentQuery = cms_Content::getQuery();
+    	$contentQuery->show('id');
+    	$contentQuery->where("#domainId = {$domainId}");
+    	$contents = arr::extractValuesFromArray($contentQuery->fetchAll(), 'id');
+    	if(!count($contents)) return $groups;
+    	
+    	$groupQuery = eshop_Groups::getQuery();
+    	$groupQuery->show('id');
+    	$groupQuery->in("menuId", $contents);
+    	while($rec = $groupQuery->fetch()){
+    		$groups[$rec->id] = eshop_Groups::getTitleById($rec->id, FALSE);
+    	}
+    	
+    	return $groups;
+    }
 }

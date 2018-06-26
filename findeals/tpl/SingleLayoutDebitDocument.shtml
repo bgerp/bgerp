@@ -1,25 +1,24 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+	<div style='padding-bottom:5px'>|Име|*: <b>[#name#]</b></div>
     <table class='styled-table'>
     	<tr>
             <td>|Вальор|*</td>
             <td>[#valior#]</td>
         </tr>
         <tr>
-            <td>|Име|*</td>
-            <td>[#name#]</td>
-        </tr>
-        <tr>
-            <td>|Финансова сделка|*</td>
-            <td>[#dealId#]</td>
-        </tr>
-        <tr>
             <td>|Погасено по|* [#dealHandle#]</td>
             <td><span class='cCode'>[#dealCurrencyId#]</span> [#amount#]</td>
         </tr>
         <tr>
-            <td>|Заверено по |* [#nextHandle#]</td>
+            <td>|Заверено по|* [#nextHandle#]</td>
             <td><span class='cCode'>[#currencyId#]</span> [#amountDeal#]</td>
         </tr>
+        <!--ET_BEGIN fromContainerId-->
+        <tr>
+            <td>|Към фактура|*</td>
+            <td>[#fromContainerId#]</td>
+        </tr>
+        <!--ET_END fromContainerId-->
     </table>
     <div>
         [#description#]

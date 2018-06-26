@@ -126,7 +126,6 @@ class bglocal_Address extends core_MVC
     	"omurtag" => "Омуртаг",
         "p trambesh" => "П. Трамбеш",
         "panagyurishte" => "Панагюрище",
-        "paris" => "Париж",
         "parvomai" => "Първомай",
         "parvomaj" => "Първомай",
         "parvomay" => "Първомай",

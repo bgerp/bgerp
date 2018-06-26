@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа store_Receipts
  *
@@ -38,12 +41,19 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
     {
         $entries = array();
         
-        $rec = $this->fetchShipmentData($id);
+        $rec = $this->fetchShipmentData($id, $error);
+        if(Mode::get('saveTransaction')){
+        	if($error === TRUE){
+        		acc_journal_RejectRedirect::expect(FALSE, "Трябва да има поне един ред с ненулево количество|*!");
+        	}
+        }
         
         $origin = $this->class->getOrigin($rec);
+        $packRecs = store_DocumentPackagingDetail::getRecs($this->class, $rec->id);
+        
         
         // Всяка СР трябва да има поне един детайл
-        if (count($rec->details) > 0) {
+        if (count($rec->details) > 0 || count($packRecs) > 0) {
         	
         	if($rec->isReverse == 'yes'){
         		
@@ -77,7 +87,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
      * @param int|object $id първичен ключ или запис на СР
      * @param object запис на СР (@see store_Receipts)
      */
-    protected function fetchShipmentData($id)
+    protected function fetchShipmentData($id, &$error = FALSE)
     {
         $rec = $this->class->fetchRec($id);
         
@@ -89,8 +99,16 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             $detailQuery->where("#receiptId = '{$rec->id}'");
             $rec->details  = array();
             
+            $error = TRUE;
             while ($dRec = $detailQuery->fetch()) {
                 $rec->details[] = $dRec;
+            	if(!empty($dRec->quantity)){
+                	$error = FALSE;
+                }
+            }
+            
+            if(!count($rec->details)){
+            	$error = FALSE;
             }
         }
         
@@ -122,6 +140,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => TRUE));
         
         foreach ($rec->details as $detailRec) {
+        	if(empty($detailRec->quantity) && Mode::get('saveTransaction')) continue;
         	$pInfo = cat_Products::getProductInfo($detailRec->productId);
         	$amount = $detailRec->amount;
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
@@ -168,6 +187,12 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                 		array($origin->className, $origin->that),
                 ),
             );
+        }
+       
+        $class = ($reverse) ? cls::get('store_ShipmentOrders') : $this->class;
+        $entries2 = store_DocumentPackagingDetail::getEntries($class, $rec, $reverse);
+        if(count($entries2)){
+        	$entries = array_merge($entries, $entries2);
         }
         
         return $entries;

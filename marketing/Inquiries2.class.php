@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -63,19 +63,13 @@ class marketing_Inquiries2 extends embed_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, marketing_Wrapper, plg_Sorting, plg_Clone, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,Router=marketing_InquiryRouter, drdata_PhonePlg';
-    
-    
-    /**
-     * @see marketin
-     */
-    protected $Router;
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, drdata_PhonePlg';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Заглавие, name, company, email, folderId, createdOn, createdBy';
+    public $listFields = 'title=Заглавие, personNames, company, email, folderId, createdOn, createdBy';
     
     
     /**
@@ -117,7 +111,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId, name, title, company, email, place';
+    public $searchFields = 'folderId, personNames, title, company, email, place';
     
     
     /**
@@ -167,19 +161,19 @@ class marketing_Inquiries2 extends embed_Manager
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'title';
+    public $fieldsNotToClone = 'title,proto';
     
     
     /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'tel'     => 'lastDocUser|clientData',
-    	'company' => 'lastDocUser|clientData',
-    	'country' => 'lastDocUser|clientData|defMethod',
-    	'pCode'   => 'lastDocUser|clientData',
-    	'place'   => 'lastDocUser|clientData',
-    	'address' => 'lastDocUser|clientData',
+    	'tel'     => 'clientData|lastDocUser',
+    	'company' => 'clientData|lastDocUser',
+    	'country' => 'clientData|lastDocUser|defMethod',
+    	'pCode'   => 'clientData|lastDocUser',
+    	'place'   => 'clientData|lastDocUser',
+    	'address' => 'clientData|lastDocUser',
     );
     
     
@@ -189,22 +183,23 @@ class marketing_Inquiries2 extends embed_Manager
     function description()
     {
     	$this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,silent,input=hidden,refreshForm,placeholder=Популярни продукти,groupByDiv=»");
-    	$this->FLD('title', 'varchar', 'caption=Заглавие,silent');
+    	$this->FLD('title', 'varchar', 'caption=Заглавие');
      
     	$this->FLD('quantities', 'blob(serialize,compress)', 'input=none,column=none');
     	$this->FLD('quantity1', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47');
     	$this->FLD('quantity2', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
     	$this->FLD('quantity3', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
-    	$this->FLD('company', 'varchar(255)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=50');
-    	$this->FLD('name', 'varchar(255)', 'caption=Контактни данни->Лице,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,mandatory');
+    	$this->FLD('company', 'varchar(128)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=50');
+    	$this->FLD('personNames', 'varchar(128)', 'caption=Контактни данни->Лице,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,oldFieldName=name');
     	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,formOrder=52,contragentDataField=countryId,mandatory');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,hint=Вашият имейл||Your email,formOrder=53,mandatory');
-    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
+    	$this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Контактни данни->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
     	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни данни->П. код,class=contactData,hint=Вашият пощенски код,formOrder=55');
         $this->FLD('place', 'varchar(64)', 'caption=Контактни данни->Град,class=contactData,hint=Населено място: град или село и община,formOrder=56');
         $this->FLD('address', 'varchar(255)', 'caption=Контактни данни->Адрес,class=contactData,hint=Вашият адрес,formOrder=57');
-    	$this->FLD('inqDescription', 'richtext(rows=4,bucket=InquiryBucket)', 'caption=Вашето запитване||Your inquiry->Съобщение||Message');
-    
+    	$this->FLD('inqDescription', 'richtext(rows=4,bucket=InquiryBucket)', 'caption=Вашето запитване||Your inquiry->Съобщение||Message,formOrder=50000');
+    	$this->FLD('deliveryAdress', 'varchar', 'caption=Вашето запитване||Your inquiry->Доставка||Delivery,formOrder=50004');
+    	
     	$this->FLD('ip', 'varchar', 'caption=Ип,input=none');
     	$this->FLD('browser', 'varchar(80)', 'caption=UA String,input=none');
       	$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
@@ -219,9 +214,16 @@ class marketing_Inquiries2 extends embed_Manager
      */
     private function expandEditForm(&$data)
     { 
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	$hide = (isset($cu) && core_Users::haveRole('partner', $cu)) ? TRUE : FALSE;
+    	
     	$form = &$data->form;
     	$form->setField('innerClass', "remember,removeAndRefreshForm=proto|measureId|meta");
-
+		$form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
+		if(empty($cu) || (isset($cu) && !core_Users::isPowerUser($cu))){
+			$form->setField('deliveryAdress', 'input=none');
+		}
+		
     	// Ако има избран прототип, зареждаме му данните в река
     	if(isset($form->rec->proto)){
     		if($pRec = cat_Products::fetch($form->rec->proto)) {
@@ -247,11 +249,17 @@ class marketing_Inquiries2 extends embed_Manager
     			$caption .= "|* <small><i>( |Минимална поръчка|* " . $moq . " {$uom} )</i></small>";
     		}
     	}
-    	 
+    
     	// Добавяме полета за количество според параметрите на продукта
     	$quantityCount = &$form->rec->quantityCount;
-    	if(!isset($quantityCount) || $quantityCount > 3 || $quantityCount < 0){
+    
+    	if(!isset($quantityCount)){
     		$quantityCount = 3;
+    	} elseif($quantityCount > 3){
+    		$quantityCount = 3;
+    	} elseif($quantityCount == 0){
+    		$form->setReadOnly('quantity1', $form->rec->moq);
+    		$form->setField("quantity1", "input,caption={$caption}->Количество|1");
     	}
     	
     	for($i = 1; $i <= $quantityCount; $i++){
@@ -259,14 +267,20 @@ class marketing_Inquiries2 extends embed_Manager
     		$form->setField("quantity{$i}", "input,unit={$uom},caption={$caption}->{$fCaption}");
     	}
     	
-    	$cu = core_Users::getCurrent('id', FALSE);
     	if(isset($cu) && !core_Users::isPowerUser()){
-    		$uRec = core_Users::fetch($cu);
-    		$form->setDefault('name', $uRec->names);
-    		$form->setDefault('email', $uRec->email);
+    		$personRec = crm_Profiles::getProfile($cu);
+    		
+    		$emails = type_Emails::toArray($personRec->buzEmail);
+    		$marketingEmail = count($emails) ? $emails[0] : $personRec->email;
+    		$form->setDefault('personNames', $personRec->name);
+    		$form->setDefault('email', $marketingEmail);
+    		
+    		if($companyFolderId = core_Mode::get('lastActiveContragentFolder')){
+    			$form->setDefault('company', doc_Folders::getCover($companyFolderId)->fetchField('name'));
+    		} else {
+    			$hide = FALSE;
+    		}
     	}
-    	
-    	$hide = (isset($cu) && core_Users::haveRole('partner', $cu)) ? TRUE : FALSE;
     	
     	$contactFields = $this->selectFields("#class == 'contactData'");
     	if(is_array($contactFields)){
@@ -294,14 +308,25 @@ class marketing_Inquiries2 extends embed_Manager
             }
     	}
  
-    	$mvc->expandEditForm($data);
     	if(cls::load($form->rec->innerClass, TRUE)){
     		if($Driver = cls::get($form->rec->innerClass)){
     			if($moq = $Driver->getMoq()){
     				$form->rec->moq = $moq;
     			}
+
+                if($form->rec->quantityCount === NULL && ($inqQuantity = $Driver->getInquiryQuantities()) !== NULL) {
+                    $form->rec->quantityCount = $inqQuantity;
+                }
     		}
     	}
+    	
+        $mvc->expandEditForm($data);
+
+        if(haveRole('powerUser')) {
+            $form->setField('personNames', 'mandatory=unsetValue');
+            $form->setField('country', 'mandatory=unsetValue');
+            $form->setField('email', 'mandatory=unsetValue');
+        }
     }
     
     
@@ -329,7 +354,9 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	 
     	if (!Mode::is('text', 'plain') && !Mode::is('text', 'xhtml')){
-    		$row->email = "<div class='email'>{$row->email}</div>";
+            if($rec->email) {
+    		    $row->email = "<div class='email'>{$row->email}</div>";
+            }
     		$row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
     	}
 
@@ -400,7 +427,10 @@ class marketing_Inquiries2 extends embed_Manager
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-    	$mvc->sendNotificationEmailQueue[$rec->id] = $rec;
+    	// Изпращане на нотифициращ имейл само ако създателя не е контрактор
+    	if($rec->createdBy == core_Users::ANONYMOUS_USER || empty($rec->createdBy)){
+    		$mvc->sendNotificationEmailQueue[$rec->id] = $rec;
+    	}
     	
     	// Ако запитването е в папка на контрагент вкарва се в група запитвания
     	$Cover = doc_Folders::getCover($rec->folderId);
@@ -422,6 +452,7 @@ class marketing_Inquiries2 extends embed_Manager
     		foreach ($mvc->sendNotificationEmailQueue as $rec){
     		    try {
     		        $mvc->isSended = $mvc->sendNotificationEmail($rec);
+    		        cat_Products::logDebug("Изпратен имейл за запитване създадено от '{$rec->createdBy}'", $rec->id);
     		    } catch (core_exception_Expect $e) {
                     self::logErr("Грешка при изпращане", $rec->id);
                     reportException($e);
@@ -532,6 +563,7 @@ class marketing_Inquiries2 extends embed_Manager
                 );
                 
                 doclog_Documents::flushActions();
+                marketing_Inquiries2::logWrite('АВТОМАТИЧНО изпращане на имейл', $rec->id);
     		} else {
     		    marketing_Inquiries2::logErr('Грешка при изпращане', $rec->id);
     		}
@@ -587,7 +619,7 @@ class marketing_Inquiries2 extends embed_Manager
  
     	$Driver = $this->getDriver($rec->id);
     	 
-    	$name = $this->getFieldType('name')->toVerbal((($rec->company) ? $rec->company : $rec->name));
+    	$name = $this->getFieldType('personNames')->toVerbal((($rec->company) ? $rec->company : $rec->personNames));
     	
     	$subject = "{$name} / $rec->title";
     	 
@@ -600,11 +632,21 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * След подготовка на тулбара на единичен изглед
      */
+    protected static function on_AfterPrepareSingle($mvc, &$data)
+    {
+        if(haveRole('partner')) {
+            unset($data->row->ip, $data->row->time, $data->row->brid);
+        }
+    }
+
+    
+    /**
+     * След подготовка на тулбара на единичен изглед
+     */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
-    	 
-    	if($rec->state == 'active'){
+    	if($rec->state == 'active' && !core_Users::isContractor()){
     
     		if($pId = cat_Products::fetchField("#originId = {$rec->containerId} AND #state = 'active'")){
     			$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
@@ -612,7 +654,7 @@ class marketing_Inquiries2 extends embed_Manager
     		} else {
     			// Създаване на нов артикул от запитването
     			if(cat_Products::haveRightFor('add', (object)array('folderId' => $rec->folderId, 'threadId' => $rec->threadId))){
-    				$url = array('cat_Products', 'add', "innerClass" => $rec->innerClass, "originId" => $rec->containerId, 'proto' => $rec->proto, 'ret_url' => TRUE);
+    				$url = array('cat_Products', 'add', "innerClass" => $rec->innerClass, "originId" => $rec->containerId, 'ret_url' => TRUE);
     				if(doc_Folders::getCover($rec->folderId)->haveInterface('crm_ContragentAccRegIntf')){
     					$url['folderId'] = $rec->folderId; 
     					$url['threadId'] = $rec->threadId;
@@ -625,12 +667,12 @@ class marketing_Inquiries2 extends embed_Manager
     		// Ако може да се създава лица от запитването се слага бутон
     		if($mvc->haveRightFor('makeperson', $rec)){
     			$companyId = doc_Folders::fetchCoverId($rec->folderId);
-    			$data->toolbar->addBtn('Визитка на лице', array('crm_Persons', 'add', 'name' => $rec->name, 'buzCompanyId' => $companyId, 'country' => $rec->country), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
+    			$data->toolbar->addBtn('Визитка на лице', array('crm_Persons', 'add', 'name' => $rec->personNames, 'buzCompanyId' => $companyId, 'country' => $rec->country), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
     		}
     		
     		// Ако е настроено да се изпраща нотифициращ имейл, добавяме бутона за препращане
-    		$conf = core_Packs::getConfig('marketing');
-    		if($mvc->haveRightFor('add') && $conf->MARKETING_INQUIRE_TO_EMAIL && $conf->MARKETING_INQUIRE_FROM_EMAIL){
+    		if($mvc->haveRightFor('sendemail', $rec)){
+    			$conf = core_Packs::getConfig('marketing');
     			$data->toolbar->addBtn('Препращане', array($mvc, 'send', $rec->id), array('ef_icon'=> "img/16/email_forward.png", 'warning' => "Сигурни ли сте, че искате да препратите имейла на|* '{$conf->MARKETING_INQUIRE_TO_EMAIL}'",'title' => "Препращане на имейла със запитването към|* '{$conf->MARKETING_INQUIRE_TO_EMAIL}'"));
     		}
     	}
@@ -642,15 +684,15 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public function act_Send()
     {
+    	$this->requireRightFor('sendemail');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
-    	
-    	$this->requireRightFor('add');
+    	$this->requireRightFor('sendemail', $rec);
     	
     	$msg = '|Успешно препращане';
     	try {
     	    $this->sendNotificationEmail($rec);
-    	    $this->logWrite('Препращане', $rec->id);
+    	    $this->logWrite('Ръчно препращане на имейл', $rec->id);
     	} catch (core_exception_Expect $e) {
             $this->logErr("Грешка при изпращане", $rec->id);
             reportException($e);
@@ -692,6 +734,19 @@ class marketing_Inquiries2 extends embed_Manager
     		$cover = doc_Folders::getCover($rec->folderId);
     		if(!$cover->instance instanceof crm_Companies || $rec->state != 'active'){
     			$res = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'sendemail'){
+    		$res = $mvc->getRequiredRoles('add', $rec, $userId);
+    		
+    		if(core_Users::isContractor()){
+    			$res = 'no_one';
+    		} else {
+    			$conf = core_Packs::getConfig('marketing');
+    			if(empty($conf->MARKETING_INQUIRE_TO_EMAIL) || empty($conf->MARKETING_INQUIRE_FROM_EMAIL)){
+    				$res = 'no_one';
+    			}
     		}
     	}
     }
@@ -741,13 +796,16 @@ class marketing_Inquiries2 extends embed_Manager
      */
     function act_New()
     {
-        Mode::set('showBulletin', FALSE);
-        
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	Mode::set('showBulletin', FALSE);
+        Request::setProtected('drvId,protos,moq,lg,measureId');
+       
     	$this->requireRightFor('new');
     	expect($drvId = Request::get('drvId', 'int'));
-    	$proto = Request::get('protos', 'varchar');
+    	$proto = Request::get('protos', 'varchar(10000)');
     	$proto = keylist::toArray($proto);
-        
+        $title = Request::get('title');
+    	
         // Поставя временно външният език, за език на интерфейса
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
@@ -760,21 +818,13 @@ class marketing_Inquiries2 extends embed_Manager
     			$pState = cat_Products::fetchField($pId, 'state');
     			if($pState != 'rejected' && $pState != 'closed'){
     				$name = cat_Products::getTitleById($pId, FALSE);
-                    $sort[$pId] = cat_Products::fetchField($pId, 'code');
     			} else {
     				unset($proto[$pId]);
     			}
     		}
-
-            // Сортиране на продуктите по код
-            asort($sort);
-            $res = array();
-            foreach($sort as $pId => $code) {
-                $res[$pId] = $proto[$pId];
-            }
-            $proto = $res;
     	}
-    	
+
+        asort($proto);
 
     	if($lg = Request::get('Lg')){
     		cms_Content::setLang($lg);
@@ -782,13 +832,28 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	$form = $this->prepareForm($drvId);
+    	$form->formAttr['id'] = 'newEnquiryForm';
+    	$form->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'input=hidden,silent');
     	$form->FLD('moq', 'double', 'input=hidden,silent');
+    	$form->FLD('drvId', 'class', 'input=hidden,silent');
     	$form->FLD('quantityCount', 'double', 'input=hidden,silent');
+    	$form->FLD('protos', 'varchar(10000)', 'input=hidden,silent');
+    	if(empty($cu)){
+    		$form->setDefault('title', $title);
+    	}
+    	
+    	$mandatoryField = bgerp_Setup::get('MANDATORY_CONTACT_FIELDS');
+    	if(in_array($mandatoryField, array('company', 'both'))){
+    		$form->setField('company', 'mandatory');
+    	}
+
+    	if(in_array($mandatoryField, array('person', 'both'))){
+    		$form->setField('personNames', 'mandatory');
+    	}
     	
     	$form->input(NULL, 'silent');
-    	$form->setDefault('measureId', Request::get('measureId'));
+    	
     	if(count($proto)){
-    		
     		$form->setOptions('proto', $proto);
     		if(count($proto) === 1){
     			$form->setDefault('proto', key($proto));
@@ -799,19 +864,22 @@ class marketing_Inquiries2 extends embed_Manager
     	} else {
     		$form->setField('proto', 'input=none');
     	}
-
-    	$form->setDefault('country', $this->getDefaultCountry($form->rec));
+    	
     	$data = (object)array('form' => $form);
     	
     	if(cls::load($form->rec->{$this->driverClassField}, TRUE)){
 
-            
     		$Driver = cls::get($form->rec->{$this->driverClassField}, array('Embedder' => $this));
     		$data->Driver = $Driver;
     		
     		$Driver->addFields($data->form);
-    		
     		$this->expandEditForm($data);
+    		
+    		if($countryId = $this->getDefaultCountry($form->rec)){
+    			$form->setDefault('country', $countryId);
+    		} else {
+    			$form->setField('country', 'input');
+    		}
     		
     		$Driver->invoke('AfterPrepareEditForm', array($this, &$data, &$data));
     		
@@ -819,11 +887,10 @@ class marketing_Inquiries2 extends embed_Manager
     		$this->invoke('AfterInputEditForm', array(&$form));
     	}
     	
-    	$form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($form->rec->title)}</b>";
+    	$form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($title)}</b>";
+    	vislog_History::add("Форма за " . $form->getFieldType('title')->toVerbal($title));
 
-    	vislog_History::add("Форма за " . $form->getFieldType('title')->toVerbal($form->rec->title));
-
-    	if(isset($form->rec->title)){
+    	if(isset($form->rec->title) && !isset($cu)){
     		$form->setField('title', 'input=hidden');
     	}
     	
@@ -834,17 +901,14 @@ class marketing_Inquiries2 extends embed_Manager
     		$rec->state = 'active';
     		$rec->ip = core_Users::getRealIpAddr();
     		$rec->brid = log_Browsers::getBrid();
-    	
-    		if(empty($rec->folderId)){
-    			$rec->folderId = $this->Router->route($rec);
-    		}
+    		
+    		// Винаги се рутира към правилната папка
+    		$rec->folderId = marketing_InquiryRouter::route($rec->company, $rec->personNames, $rec->email, $rec->tel, $rec->country, $rec->pCode, $rec->place, $rec->address, $rec->brid);
     		
     		// Запис и редирект
     		if($this->haveRightFor('new')){
     		    
     		    vislog_History::add('Ново маркетингово запитване');
-    		    
-    			$cu = core_Users::getCurrent('id', FALSE);
     		    
     			// Ако няма потребител
     			if(!$cu){
@@ -858,14 +922,13 @@ class marketing_Inquiries2 extends embed_Manager
                     log_Browsers::setVars($userData);
     			}
 
-                if($Driver) {
-                    if($title = $Driver->getProductTitle($rec)) {
-                        $rec->title = $title;
-                    }
-                }
-
     			$id = $this->save($rec);
-    		 
+    			doc_Threads::doUpdateThread($rec->threadId);
+    			$this->logWrite("Създаване от е-артикул", $id);
+    			
+    			$singleUrl = self::getSingleUrlArray($id);
+    			if(count($singleUrl)) return redirect($singleUrl, FALSE, '|Благодарим Ви за запитването', 'success');
+    			
     			return followRetUrl(NULL, '|Благодарим Ви за запитването', 'success');
     		}
     	}
@@ -873,7 +936,8 @@ class marketing_Inquiries2 extends embed_Manager
     	$form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/disk.png,title=Изпращане на запитването');
     	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png,title=Oтказ');
     	$tpl = $form->renderHtml();
-    	 
+    	core_Form::preventDoubleSubmission($tpl, $form);
+    	
     	// Поставяме шаблона за външен изглед
     	Mode::set('wrapper', 'cms_page_External');
     	
@@ -937,6 +1001,12 @@ class marketing_Inquiries2 extends embed_Manager
     		if(count($errorQuantities)){
     			$form->setError(implode(',', $errorQuantities), "Количествата трябва да са различни||Quantities must be different|*");
     		}
+    		
+    		if(!empty($rec->deliveryAdress)){
+    			if(!drdata_Address::parsePlace($rec->deliveryAdress)){
+    				$form->setError('deliveryAdress', 'Адресът трябва да съдържа държава и пощенски код');
+    			}
+    		}
     	}
     }
     
@@ -976,7 +1046,7 @@ class marketing_Inquiries2 extends embed_Manager
     		$form->title .= " |в|*" . doc_Folders::recToVerbal(doc_Folders::fetch($form->rec->folderId))->title;
     
     		// Слагаме името на лицето, ако не е извлечено
-    		$form->setDefault('name', $personRec->name);
+    		$form->setDefault('personNames', $personRec->name);
     	}
     	 
     	// Ако няма потребител, но има бисквитка зареждаме данни от нея
@@ -1009,6 +1079,11 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public static function getDefaultCountry($rec)
     {
+    	if($cu = core_Users::getCurrent('id', FALSE)){
+    		$profileRec = crm_Profiles::getProfile($cu);
+    		if(isset($profileRec->country)) return $profileRec->country;
+    	}
+    	
     	if(cms_Content::getLang() == 'bg'){
     		$countryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
     	} else {
@@ -1044,6 +1119,9 @@ class marketing_Inquiries2 extends embed_Manager
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
+        // Допълваме данните само при създаване
+        if($rec->id) return;
+
     	// Ако има оригинална дата на създаване, подменяме нея с текущата
     	if(isset($rec->oldCreatedOn)){
     		$rec->createdOn = $rec->oldCreatedOn;
@@ -1055,6 +1133,15 @@ class marketing_Inquiries2 extends embed_Manager
     	if($rec->state != 'rejected'){
     		$rec->state = 'active';
     	}
+      
+        if(!strlen($rec->title)) {
+            $Driver = cls::get($rec->innerClass);
+            if($Driver) {
+                if($title = $Driver->getProductTitle($rec)) {
+                    $rec->title = $title;
+                }
+            }
+        }
     }
     
     
@@ -1074,7 +1161,7 @@ class marketing_Inquiries2 extends embed_Manager
         
         $contrData = new stdClass();
         
-        $contrData->person = $rec->name;
+        $contrData->person = $rec->personNames;
         $contrData->company = $rec->company;
         $contrData->tel = $rec->tel;
         $contrData->pCode = $rec->pCode;

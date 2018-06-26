@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -233,12 +233,12 @@ class label_Counters extends core_Master
      * 
      * @param string $str - Стринг, в който ще се замества
      * @param integer $counterId - id на брояча
-     * @param integer $labelId - id на етикета
+     * @param integer $printId - id на етикета
      * @param boolean $updateCounter - Ако е FALSE не се обновява брояча
      * 
      * @return string - Новия стринг
      */
-    static function placeCounter($str, $counterId, $labelId, $updateCounter=TRUE)
+    static function placeCounter($str, $counterId, $printId, $updateCounter=TRUE)
     {
         // Ако име плейсхолдер за брояч
         if (self::haveCounterPlace($str)) {
@@ -254,7 +254,7 @@ class label_Counters extends core_Master
             } else {
                 
                 // Упдейтваме последния брояч
-                $updated = label_CounterItems::updateCounter($counterId, $labelId, $counter);
+                $updated = label_CounterItems::updateCounter($counterId, $printId, $counter);
             }
             
             // Очакваме да няма грешка
@@ -292,7 +292,7 @@ class label_Counters extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
-     * @param label_Labels $mvc
+     * @param label_Counters $mvc
      * @param string $requiredRoles
      * @param string $action
      * @param stdClass $rec
@@ -352,9 +352,8 @@ class label_Counters extends core_Master
     /**
      * Действия преди извличането на данните
      * 
-     * @param unknown_type $mvc
-     * @param unknown_type $res
-     * @param unknown_type $data
+     * @param label_Counters $mvc
+     * @param stdClass $data
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {

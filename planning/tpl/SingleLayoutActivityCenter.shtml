@@ -1,0 +1,40 @@
+<div  class="singleView">
+	[#SingleToolbar#]
+	<div class='folder-cover state-active'>
+	    <div class='inner-folder'>
+	        <div class='block_title [#STATE_CLASS#] special-title'>
+	            [#SingleIcon#] |Център на дейност|* <b>[#name#]</b>
+	        </div>
+	        <fieldset class="detail-info">
+	            <legend class="groupTitle">|Информация|*</legend>
+	            <div class="groupList">
+	                <!--ET_BEGIN type-->
+	                <!--ET_BEGIN departmentId-->
+	                <div>|В състава на|*: <b>[#departmentId#]</b></div>
+	                <!--ET_END departmentId-->
+	                <div>|Тип|*: <b>[#type#]</b></div>
+	                <!--ET_END type-->
+	                <!--ET_BEGIN nkid-->
+	                <div>|Номер по НКИД|*: <b>[#nkid#]</b></div>
+	                <!--ET_END nkid-->
+	                <!--ET_BEGIN employersCntAll-->
+	                <div>|Щат на служителите|*: <b>[#employersCntAll#]</b></div>
+	                <!--ET_END employersCntAll-->
+	                <!--ET_BEGIN schedule-->
+	                <div>|График|*: <b>[#schedule#]</b></div>
+	                <!--ET_END schedule-->
+	                <!--ET_BEGIN startingOn-->
+	                <div>|Започва на|*: <b>[#startingOn#]</b></div>
+	                <!--ET_END startingOn-->
+					<!--ET_BEGIN CloseTime-->
+					<div>|Затваряне на нишките|*: <b>|Автоматично след|* [#CloseTime#]</b></div>
+					<!--ET_END CloseTime-->
+	            </div>
+	        </fieldset>
+	        [#Assets#]
+	   <!--ET_BEGIN DETAILS-->
+	        [#DETAILS#]
+	   <!--ET_END DETAILS-->
+	    </div>
+    </div>
+</div>

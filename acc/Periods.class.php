@@ -750,12 +750,12 @@ class acc_Periods extends core_Manager
      * Връща всички периоди, с изчислен баланс
      * 
      * @param boolean $descending - възходящ или низходящ ред
+     * @param int|NULL $limit     - лимит
      * @return array $periods     - периодите с баланс
      */
-    public static function getCalcedPeriods($descending = FALSE)
+    public static function getCalcedPeriods($descending = FALSE, $limit = NULL)
     {
     	$periods = array();
-    	
     	$bQuery = acc_Balances::getQuery();
     	$bQuery->where("#periodId IS NOT NULL");
     	
@@ -763,6 +763,9 @@ class acc_Periods extends core_Manager
     	$bQuery->orderBy("#fromDate", $orderBy);
     	$bQuery->show('periodId');
     	$bQuery->groupBy('periodId');
+    	if(isset($limit)){
+    		$bQuery->limit($limit);
+    	}
     	
     	while ($bRec = $bQuery->fetch()) {
     		$b = acc_Balances::recToVerbal($bRec, 'periodId');
@@ -770,5 +773,16 @@ class acc_Periods extends core_Manager
     	}
     	
     	return $periods;
+    }
+    
+    
+    /**
+     * Премахва от резултатите скритите от менютата за избор
+     */
+    protected static function on_AfterMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id')
+    {
+    	if(is_array($res)){
+    		krsort($res);
+    	}
     }
 }

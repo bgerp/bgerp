@@ -385,7 +385,7 @@ class core_Debug
             $result = ($v) ? "TRUE" : "FALSE";
         } elseif (is_object($v)) {
             if(get_class($v) == 'stdClass') {
-                $result = ht::createElement('span', array('title' => self::arrayToString($v)), get_class($v));
+                $result = ht::createElement('span', array('title' => '|*' . mb_strcut(self::arrayToString($v), 0, 500)), get_class($v));
             } else {
                 $result =  get_class($v);
             }
@@ -718,7 +718,12 @@ class core_Debug
             $contex['EF_TIMEZONE'] = EF_TIMEZONE;
             
             $contex['GIT_BRANCH'] = BGERP_GIT_BRANCH;
-            $contex['BGERP_LAST_STABLE_VERSION'] = '17.43-Orelyak';
+            
+            if (defined('PRIVATE_GIT_BRANCH')) {
+                $contex['PRIVATE_GIT_BRANCH'] = PRIVATE_GIT_BRANCH;
+            }
+            
+            $contex['BGERP_LAST_STABLE_VERSION'] = core_Setup::CURRENT_VERSION; 
         }
         
         $state = array( 'errType'   => $errType, 

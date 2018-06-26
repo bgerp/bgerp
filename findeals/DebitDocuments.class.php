@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,12 +19,6 @@ class findeals_DebitDocuments extends deals_Document
 	
 	
 	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'deals_DebitDocuments';
-	
-	
-    /**
      * Какви интерфейси поддържа този мениджър
      */
     public  $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_DebitDocument, bgerp_DealIntf';
@@ -40,26 +34,8 @@ class findeals_DebitDocuments extends deals_Document
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,doc_plg_HidePrices,
+                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,deals_plg_SelectInvoice,doc_plg_HidePrices,
                      plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg';
-    
-    
-    /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-    public $searchFields = 'operationSysId, name,dealId,dealHandler,currencyId,description,contragentId,contragentClassId';
-    
-    
-    /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo, findeals, acc';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'ceo, findeals, acc';
     
     
     /**
@@ -72,24 +48,6 @@ class findeals_DebitDocuments extends deals_Document
      * Абревиатура
      */
     public $abbr = "Cdd";
-    
-    
-    /**
-     * Кой може да пише?
-     */
-    public $canWrite = 'findeals, ceo';
-    
-    
-    /**
-     * Кой може да сторнира
-     */
-    public $canRevert = 'findeals, ceo';
-    
-    
-    /**
-     * Кой може да го контира?
-     */
-    public $canConto = 'findeals, ceo';
     
     
     /**
@@ -108,6 +66,30 @@ class findeals_DebitDocuments extends deals_Document
      * Основна операция
      */
     protected static $operationSysId = 'debitDeals';
+    
+    
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo, findeals, acc';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo, findeals, acc';
+    
+    
+    /**
+     * Кой може да пише?
+     */
+    public $canWrite = 'findeals, ceo';
+    
+    
+    /**
+     * Кой може да го контира?
+     */
+    public $canConto = 'findeals, ceo';
     
     
     /**

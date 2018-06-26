@@ -93,6 +93,7 @@ class acc_Balances extends core_Master
      */
     var $singleLayoutFile = 'acc/tpl/SingleLayoutBalance.shtml';
     
+
     /**
      * Поле за единичен изглед
      */
@@ -115,6 +116,12 @@ class acc_Balances extends core_Master
      * Текущата сметка
      */
     public $accountRec;
+
+
+    /**
+     * Максимално допустимо време в секунди за изчисляване на баланс на период
+     */
+    const MAX_PERIOD_CALC_TIME = 1200;
     
 
     /**
@@ -132,7 +139,10 @@ class acc_Balances extends core_Master
         $this->FLD('fromDate', 'date', 'input=none,caption=Период->от,column=none');
         $this->FLD('toDate', 'date', 'input=none,caption=Период->до,column=none');
         $this->FLD('lastAlternation', 'datetime(format=smartTime)', 'input=none,caption=Последно->Изменение');
+        $this->FLD('lastAlternationDocClass', 'class(interface=acc_TransactionSourceIntf)', 'caption=Последно изменение->Документ клас,input=none,column=none');
+        $this->FLD('lastAlternationDocId', 'int', 'input=none,column=none,caption=Последно изменение->Документ ID');
         $this->FLD('lastCalculate', 'datetime(format=smartTime)', 'input=none,caption=Последно->Изчисляване');
+        $this->FLD('lastCalculateChange', 'enum(yes,no)', 'input=none,caption=Последно->Нови ст-ти');
     }
     
     
@@ -180,6 +190,15 @@ class acc_Balances extends core_Master
     			}
     		}
     	}
+        
+        // Добавяме връзка към последния алтерниращ документ
+        if($rec->lastAlternationDocClass && $rec->lastAlternationDocId) {
+            $row->lastAlternation .= ht::createLink('↗', array($rec->lastAlternationDocClass, 'single', $rec->lastAlternationDocId));
+        }
+
+        if($rec->lastCalculateChange == 'no') {
+            $row->lastCalculate .= ' ' . "<span title='При последното изчисляване не е настъпила промяна'>✓</span>";
+        }
     	
     	if($rec->lastAlternation > $rec->lastCalculate){
     		$row->lastAlternation = ht::createHint($row->lastAlternation, 'Има промяна след последното изчисление на баланса', 'warning');
@@ -263,7 +282,7 @@ class acc_Balances extends core_Master
      * @param string $date дата, към която
      * @return boolean
      */
-    public static function alternate($date)
+    public static function alternate($date, $docClassId, $docId)
     {
     	static $dateArr = array();
         if($dateArr[$date])  return;
@@ -277,7 +296,9 @@ class acc_Balances extends core_Master
         // Инвалидираме баланса, ако датата е по-малка от края на периода
         while($rec = $query->fetch()) {
             $rec->lastAlternation = $now;
-            self::save($rec, 'lastAlternation');
+            $rec->lastAlternationDocClass = $docClassId;
+            $rec->lastAlternationDocId = $docId;
+            self::save($rec, 'lastAlternation,lastAlternationDocClass,lastAlternationDocId');
         }
     }
     
@@ -288,7 +309,7 @@ class acc_Balances extends core_Master
      * @param stdClass Запис на баланс, с попълнени $fromDate, $toDate и $periodId
      * @return boolean Дали е правено преизчисляване
      */
-    private function forceCalc($rec)
+    private function forceCalc(&$rec)
     {
         // Очакваме начална и крайна дата
         expect(strlen($rec->fromDate) == 10 && strlen($rec->toDate) == 10,  $rec);
@@ -302,11 +323,13 @@ class acc_Balances extends core_Master
         } else {
             $rec = $exRec;
         }
-
+        
         // Ако не е валиден го преизчисляваме, като всяка от 
         // десетте минути след преизчисляването - пак го преизчисляваме
-        if(!self::isValid($rec, 10)) {
-
+        $isValid = self::isValid($rec, $rec->lastCalculateChange != 'no' ? 10 : 1);
+        
+        if(!$isValid) {
+            
             // Днешна дата
             $today = dt::today();
             
@@ -330,9 +353,9 @@ class acc_Balances extends core_Master
                     }
                 }
             }
-
+            
             self::calc($rec);
-
+            
             return TRUE;
         }
     }
@@ -343,60 +366,43 @@ class acc_Balances extends core_Master
      */
     function calc($rec)
     {
-    	//$recalcBalance = TRUE;
-    	//$count = 1;
-        
-    	// Вземаме инстанция на детайлите на баланса
+        // Вземаме инстанция на детайлите на баланса
     	$bD = cls::get('acc_BalanceDetails');
-    	$bD->updatedBalances = array();
+    	    		
+    	// Зануляваме флага, за да не се преизчисли баланса отново
+    	$recalcBalance = FALSE;
     	
-    	//while($recalcBalance){
-    		
-    		// Зануляваме флага, за да не се преизчисли баланса отново
-    		$recalcBalance = FALSE;
-    		
-    		// Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
-    		$lastRec = $this->getBalanceBefore($rec->toDate);
-    		
-    		if($lastRec) {
-    			 
-    			// Ако има зададен период не е междинен баланса, иначе е
-    			$isMiddleBalance = (!empty($lastRec->periodId)) ? FALSE : TRUE;
-    			 
-    			// Зареждаме баланса
-    			$bD->loadBalance($lastRec->id, $isMiddleBalance);
-    			$firstDay = dt::addDays(1, $lastRec->toDate);
-    			$firstDay = dt::verbal2mysql($firstDay, FALSE);
-    		} else {
-    			$firstDay = self::TIME_BEGIN;
-    		}
-    		
-    		// Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
-    		$isMiddleBalance = ($rec->periodId) ? FALSE : TRUE;
-    		$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
-    	    
-            // Заключваме процеса за определено време
-            if (core_Locks::get(acc_Balances::saveLockKey)) {
-
-                // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
-                $bD->saveBalance($rec->id);
-                
-                // Изтриваме старите данни за текущия баланс
-                $bD->delete("#balanceId = {$rec->id}");
-                
-                // Ъпдейтваме данните за баланс -1 да са към текущия баланс
-                // Целта е да заместим новите данни със старите само след като новите данни са изчислени до края
-                // За да може ако някой използва данни от таблицата докато не са готови новите да разполага със старите
-                $balanceIdColName = str::phpToMysqlName('balanceId');
-                $bD->db->query("UPDATE {$bD->dbTableName} SET {$balanceIdColName} = {$rec->id} WHERE {$balanceIdColName} = '-1'");
-                
-                // Отбелязваме, кога за последно е калкулиран този баланс
-                $rec->lastCalculate = dt::now();
-                self::save($rec, 'lastCalculate');
-            }
-    		
-    		//$count++;
-    	//}
+    	// Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
+    	$lastRec = $this->getBalanceBefore($rec->toDate);
+    	
+    	if($lastRec) {
+    		 
+    		// Ако има зададен период не е междинен баланса, иначе е
+    		$isMiddleBalance = (!empty($lastRec->periodId)) ? FALSE : TRUE;
+    		 
+    		// Зареждаме баланса
+    		$bD->loadBalance($lastRec->id, $isMiddleBalance);
+    		$firstDay = dt::addDays(1, $lastRec->toDate);
+    		$firstDay = dt::verbal2mysql($firstDay, FALSE);
+    	} else {
+    		$firstDay = self::TIME_BEGIN;
+    	}
+    	
+    	// Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
+    	$isMiddleBalance = ($rec->periodId) ? FALSE : TRUE;
+    	$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
+    	
+ 
+        // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
+        if($bD->saveBalance($rec->id)) {
+            $rec->lastCalculateChange = 'yes';
+        } else {
+            $rec->lastCalculateChange = 'no';
+        }
+        
+        // Отбелязваме, кога за последно е калкулиран този баланс
+        $rec->lastCalculate = dt::now();
+        self::save($rec, 'lastCalculate,lastCalculateChange');
     }
     
     
@@ -408,8 +414,8 @@ class acc_Balances extends core_Master
     	$lockKey = "RecalcBalances";
     	 
     	// Ако изчисляването е заключено не го изпълняваме
-    	if(!core_Locks::get($lockKey, 600, 1)) {
-    		$this->logWarning("Изчисляването на баланса е заключено от друг процес");
+    	if(!core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
+    		$this->logNotice("Изчисляването на баланса е заключено от друг процес");
     		 
     		return;
     	}
@@ -419,21 +425,27 @@ class acc_Balances extends core_Master
     	// Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
     	// до предходния работен ден и селд това до днес
     	
-    	
     	$pQuery = acc_Periods::getQuery();
     	$pQuery->orderBy('#end', 'ASC');
     	$pQuery->where("#state != 'closed'");
     	$pQuery->where("#state != 'draft'");
-    		 
-    	while($pRec = $pQuery->fetch()) {
-    			 
-    		$rec = new stdClass();
-    			 
-    		$rec->fromDate = $pRec->start;
-    		$rec->toDate = $pRec->end;
-    		$rec->periodId = $pRec->id;
-    		self::forceCalc($rec);
-    	}
+        
+        $rc = TRUE;
+        
+        while($pRec = $pQuery->fetch()) {
+            $rec = new stdClass();
+            $rec->fromDate = $pRec->start;
+            $rec->toDate = $pRec->end;
+            $rec->periodId = $pRec->id;
+            
+            // Преизчисляваме баланса (първия няколко пъти, за да подаде верни данни на следващите)
+            $j = 0;
+            do {
+                self::forceCalc($rec);
+                self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
+            } while($rec->lastCalculateChange != 'no' && $j++ < 10 && $rc);
+            $rc = FALSE;
+        }
     	
     	// Освобождаваме заключването на процеса
     	core_Locks::release($lockKey);
@@ -463,9 +475,21 @@ class acc_Balances extends core_Master
     {
         // Ако балансът никога не е калкулиран, значи не е валиден
         if(empty($rec->lastCalculate)) return FALSE;
-
+        
         // Ако нямаме никакви записи за периода, значи всичко е ОК
-        if(empty($rec->lastAlternation)) return TRUE;
+         if(empty($rec->lastAlternation)) return TRUE;
+         
+        // Вземаме предния баланс. Ако той е с по-ново време на изчисление, задължително изчисляваме и този
+        $query = self::getQuery();
+        $query->limit(1);
+        $query->where("#fromDate < '{$rec->fromDate}'");
+        $query->orderBy('fromDate', 'DESC');
+        $lastRec = $query->fetch();
+        
+        if($lastRec && ($lastRec->lastCalculate > $rec->lastCalculate)) {
+
+            return FALSE;
+        }
         
         // Ако последното изчисляване е $calcMinutesAfter и повече след последната промяна на журнала за периода, значи баланса е валиден
         if(dt::secsBetween($rec->lastCalculate, $rec->lastAlternation) > $calcMinutesAfter * 60) {

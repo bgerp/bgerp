@@ -85,7 +85,7 @@ class distro_ArchiveDriver extends core_Mvc
     /**
      * Връща стринга, който ще се пуска за обработка
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return string
      * 
@@ -109,7 +109,7 @@ class distro_ArchiveDriver extends core_Mvc
     /**
      * Вика се след приключване на обработката
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      *
      * @see distro_ActionsDriverIntf
      */

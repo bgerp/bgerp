@@ -292,7 +292,7 @@ class doc_Containers extends core_Manager
             $query = self::getQuery();
             $query->groupBy('docClass');
         }
-        
+       
         $resArr = array();
         
         while ($rec = $query->fetch()) {
@@ -837,9 +837,9 @@ class doc_Containers extends core_Manager
         }
         
         // Дали документа се активира в момента, и кой го активира
-        if(empty($rec->activatedBy) && $rec->state != 'draft' && $rec->state != 'rejected') {
+        if(!isset($rec->activatedBy) && $rec->state != 'draft' && $rec->state != 'rejected') {
             
-            $rec->activatedBy = core_Users::getCurrent();
+            $rec->activatedBy = (int)core_Users::getCurrent();
             
             if (!$updateAll) {
                 $updateField['activatedBy'] = 'activatedBy';
@@ -874,8 +874,11 @@ class doc_Containers extends core_Manager
                 // Масис със споделените потребители
                 $sharedArr = keylist::toArray($shared);
                 
+                // Вземаме, ако има приоритета от документа
+                $priority = ($docRec && $docRec->priority) ? $docRec->priority : 'normal';
+
                 // Нотифицираме споделените
-                self::addNotifications($sharedArr, $docMvc, $rec, 'сподели', FALSE);
+                self::addNotifications($sharedArr, $docMvc, $rec, 'сподели', FALSE, $priority);
                 
                 // Всички абонирани потребилите
                 $subscribedArr = doc_ThreadUsers::getSubscribed($rec->threadId);
@@ -1058,7 +1061,6 @@ class doc_Containers extends core_Manager
             // Ако е избран вид документ за който да се спре или дава нотификация
             $pSettingsNotifyArr = core_Settings::fetchUsers($pSettingsKey);
             $globalNotifyStr = doc_Setup::get('NOTIFY_NEW_DOC_TYPE');
-            $globalNotifyStrStop = doc_Setup::get('STOP_NOTIFY_NEW_DOC_TYPE');
             
             $clsId = $docMvc->getClassId();
             
@@ -1075,16 +1077,6 @@ class doc_Containers extends core_Manager
                 if (isset($settingsArr[$clsId])) {
                     $usersArr[$oUserId] = $oUserId;
                 }
-                
-                // Ако няма да се нотифицира за съответния документ, премахваме потребителя
-                $settingsStop =  $pSettingsNotifyArr[$oUserId]['DOC_STOP_NOTIFY_NEW_DOC_TYPE'];
-                if (!isset($settingsStop)) {
-                    $settingsStop = $globalNotifyStrStop;
-                }
-                $settingsStopArr = type_Keylist::toArray($settingsStop);
-                if (isset($settingsStopArr[$clsId])) {
-                    unset($usersArr[$oUserId]);
-                }
             }
             
             // Ако е зададено в настройките на папката
@@ -1097,6 +1089,23 @@ class doc_Containers extends core_Manager
             
             // Ако е зададено в настройките на нишката
             self::prepareUsersArrForNotifications($usersArr, doc_Threads::getSettingsKey($rec->threadId), 'notify', $rec->threadId);
+            
+            // Ако е зададено за някои документи да не се получава нотификация - спираме ги
+            $globalNotifyStrStop = doc_Setup::get('STOP_NOTIFY_NEW_DOC_TYPE');
+            foreach ((array)$oUsersArr as $oUserId) {
+                
+                if ($oUserId < 1) continue;
+                
+                // Ако няма да се нотифицира за съответния документ, премахваме потребителя
+                $settingsStop =  $pSettingsNotifyArr[$oUserId]['DOC_STOP_NOTIFY_NEW_DOC_TYPE'];
+                if (!isset($settingsStop)) {
+                    $settingsStop = $globalNotifyStrStop;
+                }
+                $settingsStopArr = type_Keylist::toArray($settingsStop);
+                if (isset($settingsStopArr[$clsId])) {
+                    unset($usersArr[$oUserId]);
+                }
+            }
         }
         
         // Ако няма потребители за нотифирциране
@@ -1404,8 +1413,8 @@ class doc_Containers extends core_Manager
             $rec = $id;
         }
         
-        expect($rec->docClass);
-        expect($rec->docId);
+        expect($rec->docClass, $rec);
+        expect($rec->docId, $rec);
         
         return new core_ObjectReference($rec->docClass, $rec->docId, $intf);
     }
@@ -1607,7 +1616,7 @@ class doc_Containers extends core_Manager
             $thRec = doc_Threads::fetch($rec->threadId);
             $title = doc_Threads::recToVerbal($thRec)->onlyTitle;
         } else {
-            $title = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+            $title = doc_Folders::getFolderTitle($rec->folderId);
         }
 
         // Извличане на потенциалните класове на нови документи
@@ -1778,6 +1787,8 @@ class doc_Containers extends core_Manager
      */
     static function getVerbalLink($params)
     {
+        $urlArr = $params;
+        
         try {
             // Опитваме се да вземем инстанция на класа
             $ctrInst = cls::get($params['Ctr']);
@@ -1801,7 +1812,11 @@ class doc_Containers extends core_Manager
             $field = $ctrInst->rowToolsSingleField;
 
             // Очакваме да имаме права за съответния екшън
-            expect($rec && $ctrInst->haveRightFor('single', $rec));
+            expect($rec && ($ctrInst->haveRightFor('single', $rec) || $ctrInst->haveRightFor('viewpsingle', $rec)));
+            
+            if ($rec->containerId) {
+                $urlArr = array('L', 'S', $rec->containerId);
+            }
         } catch (core_exception_Expect $e) {
             
             // Ако възникне някаква греша
@@ -1845,7 +1860,7 @@ class doc_Containers extends core_Manager
             $attr['target'] = '_blank';    
             
             //Създаваме линк
-            $res = ht::createLink($title, $params, NULL, $attr); 
+            $res = ht::createLink($title, $urlArr, NULL, $attr); 
         }
         
         return $res;
@@ -2387,7 +2402,7 @@ class doc_Containers extends core_Manager
     /**
      * Помощна функция за поправка на docClass
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     protected static function repairDocClass($rec)
     {
@@ -2431,7 +2446,7 @@ class doc_Containers extends core_Manager
     /**
      * Помощна функция за поправка на id на документи
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return boolean
      */
@@ -2980,10 +2995,11 @@ class doc_Containers extends core_Manager
         
         $form->input('repair, from, to', TRUE);
         
-        $form->setDefault('from', dt::addDays(-3));
+        if (!$form->cmd) {
+            $form->setDefault('from', dt::addDays(-3, NULL, FALSE));
+        }
         
         if ($form->isSubmitted()) {
-            
             $conf = core_Packs::getConfig('doc');
             
             $Size = cls::get('fileman_FileSize');
@@ -3081,30 +3097,59 @@ class doc_Containers extends core_Manager
     {
         requireRole('admin');
         
-        core_App::setTimeLimit(600);
+        $form = cls::get('core_Form');
+        $form->title = 'Поправка на ключовите думи';
+        $form->FLD('types', 'keylist(mvc=core_Classes)', 'caption=Документи');
+        $form->FLD('force', 'varchar', 'input=hidden,silent');
+        $form->FLD('from', 'datetime', 'caption=Създадени след');
+    	$form->setSuggestions('types', core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title'));
+    	$form->input(NULL, 'silent');
+    	$form->input();
+    	
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		$force = ($rec->force) ? TRUE : FALSE;
+    		
+    		$query = self::getQuery();
+    		if(isset($rec->types)){
+    			$types = keylist::toArray($rec->types);
+    			$query->in('docClass', $types);
+    		}
+    		
+    		if(isset($rec->from)){
+    			$query->where("#createdOn >= '{$rec->from}'");
+    		}
+    		
+    		$limit = $query->count() * 0.005;
+    		core_App::setTimeLimit($limit, FALSE, 2000);
+    		
+    		$rArr = self::regenerateSerchKeywords($force, $query);
+    		
+    		$retUrl = getRetUrl();
+    		if (!$retUrl) {
+    			$retUrl = array('core_Packs');
+    		}
+    		
+    		if (empty($rArr)) {
+    			$msg = '|Няма документи за ре-индексиране';
+    		} else {
+    			$cnt = $rArr[0];
+    			if ($cnt == 1) {
+    				$msg = "|Ре-индексиран|* 1 |документ";
+    			} else {
+    				$msg = "|Ре-индексирани|* {$cnt} |документа";
+    			}
+    		}
+    		
+    		return new Redirect($retUrl, $msg);
+    	}
         
-        $force = Request::get('force');
-        
-        $rArr = self::regenerateSerchKeywords($force);
-        
-        $retUrl = getRetUrl();
-        
-        if (!$retUrl) {
-            $retUrl = array('core_Packs');
-        }
-        
-        if (empty($rArr)) {
-            $msg = '|Няма документи за ре-индексиране';
-        } else {
-            $cnt = $rArr[0];
-            if ($cnt == 1) {
-                $msg = "|Ре-индексиран|* 1 |документ";
-            } else {
-                $msg = "|Ре-индексирани|* {$cnt} |документа";
-            }
-        }
-        
-        return new Redirect($retUrl, $msg);
+    	$form->toolbar->addSbBtn('Поправка', 'save', 'ef_icon = img/16/disk.png, title = Поправка');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+    	 
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	 
+    	return $tpl;
     }
     
     
@@ -3400,8 +3445,9 @@ class doc_Containers extends core_Manager
      * @param int $containerId        - ид на контейнер на документ
      * @param boolean $ignorePartners - да се игнорират ли потребителите с роля партньор или не
      * @return array $subscribed      - масив с абонираните потребители
+     * @return boolean $ignoreCurrent
      */
-    public static function getSubscribedUsers($containerId, $ignorePartners = TRUE)
+    public static function getSubscribedUsers($containerId, $ignorePartners = TRUE, $ignoreCurrent = FALSE)
     {
     	// Кои са абонираните потребители
     	$subscribed = array();
@@ -3440,6 +3486,11 @@ class doc_Containers extends core_Manager
     		}
     	}
     	
+    	if ($ignoreCurrent) {
+    	    $cu = core_Users::getCurrent();
+    	    unset($subscribed[$cu]);
+    	}
+    	
     	// Връщане на абонираните потребители
     	return $subscribed;
     }
@@ -3450,24 +3501,36 @@ class doc_Containers extends core_Manager
      * 
      * @param int $containerId - ид на контейнера
      * @param string $msg      - съобщение за нотифициране
-     * @param array|NULL $url  - съобщение за нотифициране
-     * @return void
+     * @param boolean $removeOldNotify
+     * @param boolean $notifyToThread
+     * @param NULL|array $sharedUsers
      */
-    public static function notifyToSubscribedUsers($containerId, $msg, $url = NULL)
+    public static function notifyToSubscribedUsers($containerId, $msg, $removeOldNotify = FALSE, $notifyToThread = TRUE, $sharedUsers = NULL)
     {
-    	// Намиране на споделените потребители в документа
-    	$sharedUsers = doc_Containers::getSubscribedUsers($containerId);
-    	if(!count($sharedUsers)) return;
+        if (!isset($sharedUsers)) {
+            // Намиране на споделените потребители в документа
+            $sharedUsers = doc_Containers::getSubscribedUsers($containerId, TRUE, TRUE);
+        }
+        
+    	if (!count($sharedUsers)) return;
     	
-    	if(!isset($url)){
-    		$doc = doc_Containers::getDocument($containerId);
-    		$url = array($doc->getInstance(), 'single', $doc->that);
-    		unset($url['ret_url']);
-    	}
+		$doc = doc_Containers::getDocument($containerId);
+		$dRec = $doc->fetch();
+		
+		$customUrl = array($doc->getInstance(), 'single',  $doc->that);
+		if ($dRec->threadId && $notifyToThread) {
+		    $url = array('doc_Containers', 'list', 'threadId' => $dRec->threadId);
+		} else {
+		    $url = $customUrl;
+		}
     	
+		if ($removeOldNotify) {
+		    bgerp_Notifications::clear($url);
+		}
+		
     	// На всеки от абонираните потребители се изпраща нотификацията
-    	foreach ($sharedUsers as $userId){
-    		bgerp_Notifications::add($msg, $url, $userId);
+		foreach ($sharedUsers as $userId) {
+    	    bgerp_Notifications::add($msg, $url, $userId, 'normal', $customUrl);
     	}
     }
 }

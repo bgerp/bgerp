@@ -50,27 +50,31 @@ require_once(EF_APP_PATH . "/core/Html.class.php");
 core_Debug::setErrorWaching();
 
 try {
-    // Инициализиране на системата
-    core_App::initSystem();
-
-
-    // Параметрите от виртуалното URL за зареждат в $_GET
-    core_App::processUrl();
-
-
-    // Зарежда конфигурационните константи
-    core_App::loadConfig();
-
-    if (core_App::isLocked()) {
-        if (Request::get('ajax_mode')) {
-            $resObj = new stdClass();
+    // Дъмпване във файл на всички входни данни
+    if(defined('DEBUG_FATAL_ERRORS_PATH')) {
         
-            return array($resObj);
-        } else {
-            // не е ajax - връщаме културно съобщение, че системата е временно недостъпна
-            // TODO: връщаме културно съобщение, че системата е временно недостъпна
+        $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/' . rand(1000, 9999) . date('_H_i_s') . '.txt';
+        
+        $data = @json_encode(array('GET' => $_GET, 'POST' => $_POST));
+        
+        if (!$data) {
+            $data = json_last_error();
+            $data .= ' Serilize: ' . @serialize($data);
+        }
+        
+        if (!defined('DEBUG_FATAL_ERRORS_FILE') && @file_put_contents($pathName, $data)) {
+            define('DEBUG_FATAL_ERRORS_FILE', $pathName);
         }
     }
+    
+    // Инициализиране на системата
+    core_App::initSystem();
+    
+    // Параметрите от виртуалното URL за зареждат в $_GET
+    core_App::processUrl();
+    
+    // Зарежда конфигурационните константи
+    core_App::loadConfig();
     
     // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
     ob_clean();
@@ -80,6 +84,9 @@ try {
     ini_set('zlib.output_compression', 'Off');
 
     require_once(EF_APP_PATH . "/setup/Controller.class.php");
+
+    // Файл за лога на сетъп процеса
+    define('EF_SETUP_LOG_PATH', EF_TEMP_PATH . '/setupLog_' . md5(__FILE__) . '.html');
 
     // Файл за лога на сетъп процеса
     define(EF_SETUP_LOG_PATH, EF_TEMP_PATH . '/setupLog_' . md5(__FILE__) . '.html');
@@ -103,7 +110,7 @@ try {
     core_App::shutdown();
 
 } catch (Exception  $e) {
-    
+ 
     // Отключваме системата, ако е била заключена в този хит
     core_SystemLock::remove();
 
@@ -147,6 +154,9 @@ try {
     }
     
     reportException($e, $update, FALSE);
+    
+    // Изход от скрипта
+    core_App::exitScript();
 }
 
 
@@ -374,6 +384,8 @@ function bp()
  */
 function wp()
 {   
+    return;
+
     try {
         $dump = func_get_args();
     
@@ -545,7 +557,7 @@ function getTplFromFile($file)
  *
  * @return string
  */
-function setupKey($efSalt = null)
+function setupKey($efSalt = null, $i = 0)
 {
 	// Сетъп ключ, ако не е зададен
 	$salt = ($efSalt)?($efSalt):(EF_SALT);
@@ -555,6 +567,6 @@ function setupKey($efSalt = null)
 	defIfNot('BGERP_SETUP_KEY', $key);
 	
 	// Валидност средно 250 сек.
-	return md5($key . round(time()/10000));
+	return md5($key . round($i + time()/10000));
 }
  

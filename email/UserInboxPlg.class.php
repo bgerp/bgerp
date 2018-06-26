@@ -157,7 +157,21 @@ class email_UserInboxPlg extends core_Plugin
     public static function on_AfterPrepareEditForm(core_Users $mvc, $data)
     {   
         $data->form->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Лице->Държава,mandatory,after=email');
+
+        if($data->form->rec->id) {
+            $profRec = crm_Profiles::fetch("#userId = {$data->form->rec->id}"); 
+   
+            if($profRec) {
+                $pRec = crm_Persons::fetch($profRec->personId);
+                if($pRec) {
+                    $data->form->setDefault('country', $pRec->country);
+                    $data->form->setreadonly('country');
+                }
+            }
+        } 
+        
         $data->form->setDefault('country', crm_Companies::fetchOwnCompany()->countryId);
+         
 
         if (empty($data->form->rec->id)) {
             $personId  = Request::get('personId', 'int');

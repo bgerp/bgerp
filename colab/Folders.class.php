@@ -90,9 +90,7 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
-	 * 
-	 * 
-	 * @see core_Manager::act_List()
+	 * Лист на папките на колабораторите
 	 */
 	function act_List()
 	{
@@ -103,6 +101,8 @@ class colab_Folders extends core_Manager
 	        }
 	    }
 	    
+	    Mode::set('currentExternalTab', 'cms_Profiles');
+	   
 	    return parent::act_List();
 	}
 	
@@ -154,6 +154,8 @@ class colab_Folders extends core_Manager
 		
 		$res->in('id', $sharedFolders);
 		
+        $res->orderBy('#last', 'DESC');
+
 		return $res;
 	}
 	
@@ -187,27 +189,54 @@ class colab_Folders extends core_Manager
 	}
 	
 	
+	
 	/**
-	 * Връща всички споделени папки до този контрактор
+	 * Връща всички споделени папки до този партньор
+	 * 
+	 * @param int|NULL $cu                      - потребител 
+	 * @param boolean  $showTitle               - дали папките да са заглавия
+	 * @param string   $interface               - интерфейс
+	 * @param boolean $skipPrivateFolderIfEmpty - да се пропусне ли частната папка ако е празна
+	 * @return array   $sharedFolders           - масив със споделените папки
 	 */
-	public static function getSharedFolders($cu = NULL)
+	public static function getSharedFolders($cu = NULL, $showTitle = FALSE, $interface = NULL, $skipPrivateFolderIfEmpty = TRUE)
 	{
-		if(!$cu){
-			$cu = core_Users::getCurrent();
-		}
-		
 		$sharedFolders = array();
+		$cu = isset($cu) ? $cu : core_Users::getCurrent();
 		
-		if (!$cu) return $sharedFolders;
+		if(!$cu) return $sharedFolders;
 		
 		$sharedQuery = colab_FolderToPartners::getQuery();
 		$sharedQuery->EXT('state', 'doc_Folders', 'externalName=state,externalKey=folderId');
+		$sharedQuery->EXT('title', 'doc_Folders', 'externalName=title,externalKey=folderId');
+		$sharedQuery->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
+		
 		$sharedQuery->where("#contractorId = {$cu}");
 		$sharedQuery->where("#state != 'rejected'");
-		$sharedQuery->show('folderId');
+		$sharedQuery->show('folderId,title,coverClass');
 		$sharedQuery->groupBy('folderId');
+		
+		// Трябва ли да се пропусне личната папка
+		if($skipPrivateFolderIfEmpty === TRUE){
+
+			$personId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
+
+			// Коя е личната папка на партньора
+			if($personId && ($privateFolderId = crm_Persons::fetchField($personId, 'folderId'))){
+					
+				// Ако в нея няма видими документи за него, пропуска се
+				$count = doc_Threads::count("#folderId = {$privateFolderId} AND #visibleForPartners = 'yes'");
+				if(!$count){
+					$sharedQuery->where("#folderId != {$privateFolderId}");
+				}
+			}
+		}
+		
+		// Подготовка на споделените папки
 		while($fRec = $sharedQuery->fetch()){
-			$sharedFolders[$fRec->folderId] = $fRec->folderId;
+			if(isset($interface) && !cls::haveInterface($interface, $fRec->coverClass)) continue;
+			$value = ($showTitle === TRUE) ? $fRec->title : $fRec->folderId;
+			$sharedFolders[$fRec->folderId] = $value;
 		}
 		
 		return $sharedFolders;
@@ -260,7 +289,7 @@ class colab_Folders extends core_Manager
 		$names = core_Users::getVerbal($cuRec, 'names');
 		$nick = core_Users::getVerbal($cuRec, 'nick');
 		
-		$data->title = "|Папките на|* <span style='color:green'>{$names} ({$nick})</span>";
+		$data->title = "|Папките на |* <span style='color:green'>{$names} ({$nick})</span>";
 	}
     
     
@@ -275,5 +304,29 @@ class colab_Folders extends core_Manager
     public static function getContentHash_(&$status)
     {
         doc_Folders::getContentHash_($status);
+    }
+    
+    
+    /**
+     * Записване в сесията последната активна папка на контрагент на партньор
+     * 
+     * @param int|NULL $folderId - папка, ако няма последната спдоелена папка на партньор
+     * @param int|NULL $cu       - потребител, ако няма текущия
+     */
+    public static function setLastActiveContragentFolder($folderId = NULL, $cu = NULL)
+    {
+    	$cu = isset($cu) ? $cu : core_Users::getCurrent('id', FALSE);
+    	if(empty($cu)) return;
+    	
+    	$folderId = isset($folderId) ? $folderId : colab_FolderToPartners::getLastSharedContragentFolder($cu);
+    	if(empty($folderId)) return;
+    	
+    	$Cover = doc_Folders::getCover($folderId);
+    	if(!$Cover->haveInterface('crm_ContragentAccRegIntf')) return;
+    	
+    	$companyFolderId = core_Mode::get('lastActiveContragentFolder');
+    	if($companyFolderId != $folderId){
+    		Mode::setPermanent('lastActiveContragentFolder', $folderId);
+    	}
     }
 }

@@ -21,7 +21,7 @@ class bgerp_L extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Хоронология на действията с на документи';
+    var $title = 'Хронология на действията с документи';
     
     
     /**
@@ -51,7 +51,7 @@ class bgerp_L extends core_Manager
         
         $L = cls::get('bgerp_L');
         
-        // Очакваме само дайствие, допустимо за извършване от регистриран потребител
+        // Очакваме само действие, допустимо за извършване от регистриран потребител
         $actType = $L->fields['action']->type;
         expect(isset($actType->options[$action]));
         $rec->action = $action;
@@ -72,7 +72,7 @@ class bgerp_L extends core_Manager
      */
     static function addRef($action, $refMid, $res = NULL)
     {
-        // Очакваме действието да започва с долна чера, защото по този начин означаваме действията
+        // Очакваме действието да започва с долна черта, защото по този начин означаваме действията
         // Които 
         // Трябва да имаме референтен 'mid'.
         // Чрез него се извлича 'id', 'tid' и 'cid' на референтния запис
@@ -104,7 +104,7 @@ class bgerp_L extends core_Manager
         while ($action = doclog_Documents::getAction($i--)) {
         
             $options = (array)$action->data;
-        
+            
             // Ако има изпратено от
             if (($action->data->sendedBy > 0) && (!$options['__userId'] || $options['__userId'] <= 0)) {
                 $options['__userId'] = $action->data->sendedBy;
@@ -187,6 +187,13 @@ class bgerp_L extends core_Manager
             
             $options = $this->getDocOptions($cid, $mid);
             
+			// Пушваме езика, на който се е рендирал документа
+            if (!haveRole('user')) {
+                if ($options['lg']) {
+                    core_Lg::set($options['lg']);
+                }
+            }
+            
             // Ако потребителя има права до треда на документа, то той му се показва
             if($rec && $rec->threadId) {
                 
@@ -217,14 +224,61 @@ class bgerp_L extends core_Manager
                 foreach ($emailsArr as $email) {
                     if (!core_Users::fetch(array("#email = '[#1#]' AND #state = 'active'", $email))) continue;
 
-                    $html->append(ht::createLink(tr('Логнете се, за да видите нишката'), array('core_Users', 'login', 'ret_url' => TRUE), NULL, array('class' => 'hideLink')));
-                    
+                    $html->append(ht::createLink(tr('Логнете се, за да видите нишката'), array('core_Users', 'login', 'ret_url' => TRUE), NULL, array('class' => 'hideLink', 'ef_icon' => 'img/16/key.png')));
                     break;
                 }
             }
             
-            if (!haveRole('user') && doc_PdfCreator::canConvert()) {
-                $html->append(ht::createLink(tr('Свали като PDF'), array($this, 'pdf', $cid, 'mid' => $mid, 'ret_url' => TRUE), NULL, array('class' => 'hideLink')));
+            // Показване на линкове за сваляна на документа
+            if (!haveRole('user')) {
+                
+                $userId = $options['__userId'];
+                
+                $dLog = doclog_Documents::getAction();
+                if ($dLog->createdBy > 0) {
+                    $userId = $dLog->createdBy;
+                }
+                
+                if ($userId > 0) {
+                    $sudo = core_Users::sudo($userId);
+                }
+                
+                $exportArr = export_Export::getPossibleExports($doc->instance->getClassId(), $rec->id);
+                
+                if ($sudo) {
+                    core_Users::exitSudo();
+                }
+                
+                $exportLinkArr = array();
+                foreach ($exportArr as $clsId => $name) {
+                    $clsInst = cls::getInterface('export_ExportTypeIntf', $clsId);
+                    
+                    $eLink = $clsInst->getExternalExportLink($doc->instance->getClassId(), $rec->id, $mid);
+                    
+                    if ($eLink) {
+                        $exportLinkArr[] = $eLink;
+                    }
+                }
+                
+                if (!empty($exportLinkArr)) {
+                    $html->append("<div class='hideLink'>" . tr("Свали като") . ": ");
+                    
+                    $isFirst = TRUE;
+                    foreach ($exportLinkArr as $link) {
+                        
+                        if (!$link) continue;
+                        
+                        if (!$isFirst) {
+                            $html->append( " | ");
+                        } else {
+                            $isFirst = FALSE;
+                        }
+                        
+                        $html->append($link);
+                    }
+                    
+                    $html->append("</div>");
+                }
             }
             
             return $html;

@@ -206,18 +206,6 @@ class hr_Shifts extends core_Master
         $tpl->push('hr/tpl/style.css', 'CSS');
     }
     
-    /**
-     * @todo Чака за документация...
-     */
-    function act_Test()
-    {
-        $id = 3;
-        $rec = self::fetch("#id='{$id}'");
-        $recDetail = hr_ShiftDetails::fetch("#shiftId='{$id}'");
-        
-        $date = '2013-05-03 00:00:00';
-    }
-    
     
     /**
      * По зададена смяна и ден от календара

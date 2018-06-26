@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Документи » Търсене в папка
@@ -136,16 +136,9 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	protected function getTableFieldSet($rec, $export = FALSE)
 	{
 		$fld = cls::get('core_FieldSet');
-	
-		if($export === FALSE){
-			$fld->FLD('string', 'varchar', 'caption=Дума');
-			$fld->FLD('diff', 'int', 'caption=Нови,tdClass=small-field');
-			$fld->FLD('count', 'int', 'smartCenter,caption=Резултат,tdClass=small-field');
-		} else {
-			$fld->FLD('string', 'varchar','caption=Дума');
-			$fld->FLD('count', 'int','caption=Резултат');
-			$fld->FLD('diff', 'int','caption=Нови');
-		}
+		$fld->FLD('string', 'varchar', 'caption=Дума');
+		$fld->FLD('diff', 'int', 'caption=Нови,tdClass=small-field');
+		$fld->FLD('count', 'int', 'smartCenter,caption=Резултат,tdClass=small-field');
 	
 		return $fld;
 	}
@@ -161,27 +154,58 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
 	{
-		$isPlain = Mode::is('text', 'plain');
-		if(!isset(self::$versionData[$rec->id])){
-			self::$versionData[$rec->id] = $this->getVersionBeforeData($rec);
-		}
-		$oldData = self::$versionData[$rec->id];
-		
 		$row = new stdClass();
 		$Int = cls::get('type_Int');
 		$row->string = cls::get('type_Varchar')->toVerbal($dRec->string);
-		if(!$isPlain){
-			$row->string = "<span style='font-weight:bold'>{$row->string}</span>";
-		}
+		$row->string = "<span style='font-weight:bold'>{$row->string}</span>";
 		
 		$row->count  = $Int->toVerbal($dRec->count);
-		if(!$isPlain){
-			if(doc_Threads::haveRightFor('list', (object)array('folderId' => $rec->folder))){
-				$row->count = ht::createLink($row->count, array('doc_Threads', 'list', 'folderId' => $rec->folder, 'search' => $dRec->string));
-			}
+		if(doc_Threads::haveRightFor('list', (object)array('folderId' => $rec->folder))){
+			$row->count = ht::createLink($row->count, array('doc_Threads', 'list', 'folderId' => $rec->folder, 'search' => $dRec->string));
 		}
 		
 		$row->num = $Int->toVerbal($dRec->num);
+		$diff = self::getDiff($rec, $dRec);
+		
+		if(!empty($diff)){
+			$row->diff = $Int->toVerbal($diff);
+			$color = ($diff < 0) ? 'red' : 'darkgreen';
+			$sign = ($diff < 0) ? '' : '+';
+			$row->diff = "<span style='color:{$color}'>{$sign}{$row->diff}</span>";
+		}
+		
+		return $row;
+	}
+	
+	
+	/**
+	 * След подготовка на реда за експорт
+	 * 
+	 * @param frame2_driver_Proto $Driver - драйвер
+	 * @param stdClass $res               - резултатен запис
+	 * @param stdClass $rec               - запис на справката
+	 * @param stdClass $dRec              - запис на реда
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+	 */
+	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
+	{
+		$res->diff = self::getDiff($rec, $dRec);
+	}
+	
+	
+	/**
+	 * Връща разликата
+	 *
+	 * @param stdClass $rec  - запис на отчета
+	 * @param stdClass $dRec - запис от детайла
+	 * @return double $diff  - разликата
+	 */
+	private static function getDiff($rec, $dRec)
+	{
+		if(!isset(self::$versionData[$rec->id])){
+			self::$versionData[$rec->id] = self::getVersionBeforeData($rec);
+		}
+		$oldData = self::$versionData[$rec->id];
 		
 		// Ако има промяна спрямо старата версия, показват се промените
 		if(isset($oldData[$dRec->index])){
@@ -191,16 +215,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 			$diff = $dRec->count;
 		}
 		
-		if(!empty($diff)){
-			$row->diff = $Int->toVerbal($diff);
-			if(!$isPlain){
-				$color = ($diff < 0) ? 'red' : 'darkgreen';
-				$sign = ($diff < 0) ? '' : '+';
-				$row->diff = "<span style='color:{$color}'>{$sign}{$row->diff}</span>";
-			}
-		}
-		
-		return $row;
+		return $diff;
 	}
 	
 	
@@ -225,7 +240,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	 * @param stdClass $rec - записа на отчета
 	 * @return array $versionBeforeData - данните от предишната версия
 	 */
-	private function getVersionBeforeData($rec)
+	private static function getVersionBeforeData($rec)
 	{
 		$selectedVersionId = frame2_Reports::getSelectedVersionId($rec->id);
 		
@@ -256,7 +271,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	public function canSendNotificationOnRefresh($rec)
 	{
 		$data = $rec->data;
-		$oldData = $this->getVersionBeforeData($rec);
+		$oldData = self::getVersionBeforeData($rec);
 		
 		$send = FALSE;
 		if(is_array($data->recs)){

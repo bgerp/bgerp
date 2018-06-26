@@ -102,6 +102,7 @@ class embed_Manager extends core_Master
             if($driver = $this->getDriver($rec)){
             	$driver = cls::get($rec->{$this->driverClassField}, array('Embedder' => $this));
             	$driver->addFields($form);
+            	$driver->invoke('AfterAddFields', array($this, &$form));
             }
             
             $form->input(NULL, 'silent');
@@ -242,6 +243,7 @@ class embed_Manager extends core_Master
 				
 				$fieldset = cls::get('core_Fieldset');
 				$driver->addFields($fieldset);
+				$driver->invoke('AfterAddFields', array($mvc, &$fieldset));
 				
 				foreach($fieldset->fields as $name => $field) {
 					
@@ -251,6 +253,9 @@ class embed_Manager extends core_Master
 				}
 			}
 		}
+		
+		$me = cls::get(get_called_class());
+		$row->{$me->driverClassField} = tr($row->{$me->driverClassField});
 		
         return $row;
     }
@@ -266,8 +271,10 @@ class embed_Manager extends core_Master
 	 */
     public static function getDriverFields($driver, $onlySingleFields = FALSE, $returnAsFieldSet = FALSE)
     {
-        $fieldset = cls::get('core_Fieldset');
+        $me = cls::get(get_called_class());
+    	$fieldset = cls::get('core_Fieldset');
         $driver->addFields($fieldset);
+        $driver->invoke('AfterAddFields', array($me, &$fieldset));
         
         $res = array(); 
         if(is_array($fieldset->fields)) {
@@ -288,16 +295,15 @@ class embed_Manager extends core_Master
     function invoke($event, $args = array())
     {
 		$status = parent::invoke($event, $args);
-
+		
+		$driverClass = NULL;
+		
         if($status !== FALSE) {
             switch(strtolower($event)) {
-                case 'aftersave':
-                case 'afterrectoverbal': 
-                    $driverClass = $args[1]->{$this->driverClassField};
-                    break;
-                
                 case 'aftercreate':
                 case 'afterupdate':
+                case 'afterread':
+                case 'afteractivation':
                     $driverClass = $args[0]->{$this->driverClassField};
                     break;
 
@@ -324,25 +330,38 @@ class embed_Manager extends core_Master
                 case 'afterpreparesinglefields':
                 case 'beforepreparesingletoolbar':
                 case 'afterpreparesingletoolbar':
+                case 'afterprepareselectform':
                     $driverClass = $args[1]->rec->{$this->driverClassField};
                     break;
                 case 'afterinputeditform':
                     $driverClass = $args[0]->rec->{$this->driverClassField};
                     break;
-                case 'afterread':
-                    $driverClass = $args[0]->{$this->driverClassField};
-                    break;
+                
                 case 'aftergetsearchkeywords';
+                case 'aftergethidearrforletterhead';
                 case 'beforesaveclonerec':
                 case 'beforesave':
                 case 'aftercreate':
                 case 'aftergetdetailstoclone':
                 case 'aftergetfieldforletterhead':
                 case 'aftergetfieldsnottoclone':
+                case 'aftersave':
+                case 'afterrectoverbal':
+                case 'afterrestore':
+                case 'afterreject':
+                case 'aftergetdefaultdata':
+                    
                 	$driverClass = $args[1]->{$this->driverClassField};
                 	break;
+                case 'aftergetthreadstate':
+                    if ($args[1]) {
+                        $rec = $this->fetchRec($args[1]);
+                        $driverClass = $rec->driverClass;
+                    }
+                    
+                    break;
             }
-
+            
             // Ако има избран драйвер
             if($driverClass) {
             	$dRec = (object)array($this->driverClassField => $driverClass);
@@ -381,7 +400,7 @@ class embed_Manager extends core_Master
     	// Ако има драйвер и той може да се зареди, инстанцираме го
     	if(isset($rec->{$self->driverClassField}) && cls::load($rec->{$self->driverClassField}, TRUE)){
     		
-    		return cls::get($rec->{$self->driverClassField});
+    		return cls::get($rec->{$self->driverClassField}, array('driverRec' => $rec));
     	}
     	
     	return FALSE;

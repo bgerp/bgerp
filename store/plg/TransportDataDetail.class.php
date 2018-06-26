@@ -24,14 +24,17 @@ class store_plg_TransportDataDetail extends core_Plugin
 	 */
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
+		$mvc->declareInterface('store_iface_DetailsTransportData');
 		setIfNot($mvc->weightField, 'weight');
 		setIfNot($mvc->volumeField, 'volume');
 		setIfNot($mvc->productFld, 'productId');
 		setIfNot($mvc->packagingFld, 'packagingId');
 		setIfNot($mvc->quantityFld, 'quantity');
 		
-		$mvc->FLD($mvc->weightField, 'cat_type_Weight', 'input=none,caption=Транспортнa информация->Тегло,forceField,autohide');
-		$mvc->FLD($mvc->volumeField, 'cat_type_Volume', 'input=none,caption=Транспортнa информация->Обем,forceField,autohide');
+		$mvc->FLD($mvc->weightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Тегло,forceField,autohide');
+		$mvc->FLD($mvc->volumeField, 'cat_type_Volume', 'input=none,caption=Логистична информация->Обем,forceField,autohide');
+		$mvc->FLD('transUnitId', 'key(mvc=trans_TransportUnits,select=name,allowEmpty)', "caption=Логистична информация->Единици,forceField,autohide,tdClass=nowrap,after={$mvc->volumeField},input=none");
+		$mvc->FLD('transUnitQuantity', 'int', 'caption=-,autohide,inlineTo=transUnitId,forceField,unit=бр.,input=none');
 	}
 	
 	
@@ -53,6 +56,8 @@ class store_plg_TransportDataDetail extends core_Plugin
     		if($isStorable == 'yes'){
     			$form->setField('weight', 'input');
     			$form->setField('volume', 'input');
+    			$form->setField('transUnitId', 'input');
+    			$form->setField('transUnitQuantity', 'input');
     		}
 		}
 	}
@@ -70,6 +75,16 @@ class store_plg_TransportDataDetail extends core_Plugin
 		// Показване на транспортното тегло/обем ако няма, се показва 'live'
 		$row->weight = deals_Helper::getWeightRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->weightField});
 		$row->volume = deals_Helper::getVolumeRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->volumeField});
+	
+		// Показване на ЛЕ на реда, ако ако не е зададена същата такава от потребителя
+		$masterInputUnits = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'transUnitsInput');
+		$masterInputUnits = is_array($masterInputUnits) ? $masterInputUnits : array();
+		$transUnitId = isset($rec->transUnitId) ? $rec->transUnitId : trans_TransportUnits::fetchIdByName('load');
+		if(!array_key_exists($transUnitId, $masterInputUnits)){
+			$row->transUnitId = trans_TransportUnits::display($rec->transUnitId, $rec->transUnitQuantity);
+		} else {
+			unset($row->transUnitId);
+		}
 	}
 	
 	
@@ -85,10 +100,12 @@ class store_plg_TransportDataDetail extends core_Plugin
 	 */
 	public static function on_AfterGetTransportInfo($mvc, &$res, $masterId, $force = FALSE)
 	{
+		$masterId = $mvc->Master->fetchRec($masterId)->id;
 		$cWeight = $cVolume = 0;
 		$query  = $mvc->getQuery();
 		$query->where("#{$mvc->masterKey} = {$masterId}");
-			
+		$units = array();
+		
 		// За всеки запис
 		while($rec = $query->fetch()){
 			
@@ -125,13 +142,18 @@ class store_plg_TransportDataDetail extends core_Plugin
 			} else {
 				$cVolume = NULL;
 			}
+			
+			$unitId = (!empty($rec->transUnitId)) ? $rec->transUnitId : trans_TransportUnits::fetchIdByName('load');
+			$uQuantity = (!empty($rec->transUnitQuantity)) ? $rec->transUnitQuantity : 1;
+			
+			$units[$unitId] += $uQuantity;
 		}
 			
 		// Връщане на обема и теглото
 		$weight = (!empty($cWeight)) ? $cWeight : NULL;
 		$volume = (!empty($cVolume)) ? $cVolume : NULL;
 		
-		$res = (object)array('weight' => $weight, 'volume' => $volume);
+		$res = (object)array('weight' => $weight, 'volume' => $volume, 'transUnits' => $units);
 	}
 	
 	
@@ -148,7 +170,7 @@ class store_plg_TransportDataDetail extends core_Plugin
 	public function on_AfterGetWeight($mvc, &$res, $productId, $packagingId, $quantity, $weight = NULL)
 	{
 		if(!isset($weight)){
-			$weight = cat_Products::getWeight($productId, $packagingId, $quantity);
+			$weight = cat_Products::getTransportWeight($productId, $quantity);
 			$weight = deals_Helper::roundPrice($weight, 3);
 		}
 		
@@ -169,7 +191,7 @@ class store_plg_TransportDataDetail extends core_Plugin
 	public function on_AfterGetVolume($mvc, &$res, $productId, $packagingId, $quantity, $volume = NULL)
 	{
 		if(!isset($volume)){
-			$volume = cat_Products::getVolume($productId, $packagingId, $quantity);
+			$volume = cat_Products::getTransportVolume($productId, $quantity);
 			$volume = deals_Helper::roundPrice($volume, 3);
 		}
 		
@@ -191,5 +213,53 @@ class store_plg_TransportDataDetail extends core_Plugin
 		if(!empty($masterRec->volumeInput) && $masterRec->volumeInput != $masterRec->calcedVolume){
 			unset($data->listFields['volume']);
 		}
+	}
+	
+	
+	/**
+	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+	 *
+	 * @param core_Mvc $mvc
+	 * @param core_Form $form
+	 */
+	public static function on_AfterInputEditForm($mvc, &$form)
+	{
+		if($form->isSubmitted()){
+			if(!empty($rec->transUnitId) && empty($rec->transUnitQuantity)){
+				$form->setError('transUnitId,transUnitQuantity', 'Трябва да е попълнено к-то на ЛЕ');
+			} elseif(empty($rec->transUnitId) && !empty($rec->transUnitQuantity)){
+				$form->setError('transUnitId,transUnitQuantity', 'Липсва логистична еденица');
+			}
+		}
+	}
+	
+	
+	/**
+	 * Какви са използваните ЛЕ
+	 * 
+	 * @param core_Mvc $mvc       - документ
+	 * @param array $res          - масив с резултати
+	 * @param stdClass $masterRec - ид на мастъра
+	 * @return void               
+	 */
+	public static function on_AfterGetTransUnits($mvc, &$res, $masterRec)
+	{
+		if(!empty($res)) return;
+		 
+		$res = array();
+		$dQuery = $mvc->getQuery();
+		$dQuery->where("#{$mvc->masterKey} = {$masterRec->id}");
+		$dQuery->show('transUnitId,transUnitQuantity');
+		 
+		while($dRec = $dQuery->fetch()){
+			if(!empty($dRec->transUnitId)){
+				$res[$dRec->transUnitId] += $dRec->transUnitQuantity;
+			} else {
+				$defUnitId = trans_TransportUnits::fetchIdByName('load');
+				$res[$defUnitId] += 1;
+			}
+		}
+		 
+		return $res;
 	}
 }

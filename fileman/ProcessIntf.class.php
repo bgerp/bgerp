@@ -18,7 +18,7 @@ class fileman_ProcessIntf
     /**
      * Пуска обработка на файла
      * 
-     * @param stdObject $dRec
+     * @param stdClass $dRec
      * @param datetime $endOn
      * 
      * @return boolean

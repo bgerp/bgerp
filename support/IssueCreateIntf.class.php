@@ -21,7 +21,7 @@ class support_IssueCreateIntf
      * 
      * @param integer $id Кой е пораждащия обект
      * 
-     * @return stdObject за support_Issues
+     * @return stdClass за support_Issues
      * 
      * @see support_IssueCreateIntf
      */
@@ -36,7 +36,8 @@ class support_IssueCreateIntf
     /**
      * След създаване на сигнал от документа
      * 
-     * @param integer $originId
+     * @param integer $id
+     * @param object $iRec
      */
     function afterCreateIssue($id, $iRec)
     {

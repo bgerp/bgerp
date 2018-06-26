@@ -49,7 +49,13 @@ class core_CallOnTime extends core_Manager
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'plg_State, plg_SystemWrapper, plg_RowTools2';
+    public $loadList = 'plg_State, plg_SystemWrapper, plg_RowTools2, plg_Search, plg_Sorting';
+    
+    
+    /**
+     * 
+     */
+    public $searchFields = 'hash, className, methodName, data, callOn, state';
     
     
 	/**
@@ -60,7 +66,7 @@ class core_CallOnTime extends core_Manager
 	    $this->FLD('hash', 'varchar(32)', 'caption=Хеш, input=none');
 	    $this->FLD('className', 'varchar(128)', 'caption=Kлас');
 	    $this->FLD('methodName', 'varchar(128)', 'caption=Функция');
-	    $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни');
+	    $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни, input=none');
 	    $this->FLD('callOn', 'datetime(format=smartTime)', 'caption=Време');
 	    $this->FLD('state', 'enum(draft=Чернова, pending=Чакащо)', 'caption=Състояние, input=none');
 	    
@@ -194,6 +200,27 @@ class core_CallOnTime extends core_Manager
 	}
 	
 	
+	/**
+	 * Изпълнява се след подготвянето на формата за филтриране
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $res
+	 * @param stdClass $data
+	 *
+	 * @return boolean
+	 */
+	protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+	{
+	    $data->listFilter->showFields = 'search';
+	    $data->listFilter->view = 'horizontal';
+	    $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+	    
+	    // Сортиране на записите по num
+	    $data->query->orderBy('state', 'DESC');
+	    $data->query->orderBy('callOn', 'DESC');
+	}
+	
+	
     /**
      * Извикване на функцията по cron
      * 
@@ -207,13 +234,24 @@ class core_CallOnTime extends core_Manager
         $query = self::getQuery();
         $query->where("#callOn <= '{$now}'");
         $query->where("#state != 'pending'");
+
         while ($rec = $query->fetch()) {
+            
+			// Ако сме се доближили до края - да приключваме процеса
+            if (core_Cron::getTimeLeft() < 5) {
+                
+                self::logDebug('Отложен процес, поради свършване на времето');
+                
+                break;
+            }
             
             // Променяме състоянието, за да не може да се извика повторно
             $nRec = clone $rec;
             $nRec->state = 'pending';
             self::save($nRec, 'state');
             
+            $singletons = cls::$singletons;
+
             try {
                 $class = cls::get($rec->className);
                 // Изпълняваме подадената функция с префикс callback_
@@ -227,7 +265,19 @@ class core_CallOnTime extends core_Manager
             } catch (core_exception_Expect $e) {
                 $res .= "Грешка при извикване на '{$rec->className}->callback_{$rec->methodName}'";
                 self::logErr("Грешка при извикване на функция", $rec->id);
+                
+                reportException($e);
             }
+            
+            if($rec->className != 'core_CallOnTime') {
+                
+                $class->invoke('shutdown');
+                
+                unset($class);
+            }
+            
+            cls::$singletons = $singletons;
+            gc_collect_cycles();
         }
         
         // Ако някой процес е гръмнал и е останал в чакащо състояние го оправяме

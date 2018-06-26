@@ -85,7 +85,7 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
         $lineExec = "dwg2" . self::$fileType . " -outfile=[#OUTPUTF#]";
         
         if (self::$useSizes) {
-            $lineExec .= ' -x ' . self::$qualityFactor * fileman_Setup::get('PREVIEW_WIDTH') . ' -y ' . self::$qualityFactor * fileman_Setup::get('PREVIEW_HEIGHT');
+            $lineExec .= ' -platform offscreen -x ' . self::$qualityFactor * fileman_Setup::get('PREVIEW_WIDTH') . ' -y ' . self::$qualityFactor * fileman_Setup::get('PREVIEW_HEIGHT');
         }
         
         $lineExec .= ' [#INPUTF#]';

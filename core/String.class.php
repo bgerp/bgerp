@@ -636,14 +636,14 @@ class core_String
                     if($lastLen !== FALSE && $lastLen < strlen($out)) {
                         // Записваме думата между $lastLen до края на аутпут буфера
                         $res[] = substr($out, $lastLen);
-
+                        
                         // Ако е зададен колбек - викаме го
                         if($callback) {
-                            $callback($out, $lastLen, $lastTag);
+                            call_user_func_array($callback, array(&$out, $lastLen, $lastTag));
                         }
                     }
                 }
-                $lastLen = FALSE;;
+                $lastLen = FALSE;
             } else {
                 if($lastLen === FALSE) {
                     $lastLen = strlen($out);
@@ -835,8 +835,17 @@ class core_String
     /**
      * Подготвя аритметичен израз за изчисляване
      */
-    static function prepareMathExpr($expr)
-    {
+    static function prepareMathExpr($expr, $contex = array())
+    {  
+        // Ако има променливи, заместваме ги в израза
+        if(count($contex)) {
+            uksort($contex, "str::sortByLengthReverse");
+            array_walk($contex, function(&$value, $key) {
+                $value = ($value < 0) ? '(' . $value . ')' : (($value === NULL || $value === '') ? '0' : $value);
+            });
+            $expr  = strtr($expr, $contex);
+        }
+ 
         // Remove whitespaces
         $expr = preg_replace('/\s+/', '', $expr);
                 
@@ -860,7 +869,7 @@ class core_String
         } else {
             $result = FALSE;
         }
-
+ 
         return $result;
     }
 
@@ -870,18 +879,23 @@ class core_String
      * Предварително израза трябва да се подготви 
      */
     static function calcMathExpr($expr, &$success = NULL)
-    { 
+    {  
         $expr = self::prepareMathExpr($expr);
-        
+
         if(strlen($expr)) {
-            $last = error_reporting(0);
+            set_error_handler(function ($errno, $errstr) {
+                throw new Exception("{$errno}: {$errstr}");
+            });
             try {
                 eval('$result = ' . $expr . ';');
+            } catch (Exception $t) {
+                $result = NULL;
+                $success = FALSE;
             } catch (Throwable $t) {
                 $result = NULL;
                 $success = FALSE;
             }
-
+            restore_error_handler();
         }
 
         return $result;
@@ -1084,5 +1098,61 @@ class core_String
     {      
 	
     	return hyphen_Plugin::getHyphenWord($matches[0], $minLen, $maxLen);
+    }
+    
+    
+    /**
+     * Маха всички празни стрингове от стринга
+     * 
+     * @param string $string  - стринг в който да се замести
+     * @param string $replace - стринг за заместване
+     * @return string
+     */
+    public static function removeWhitespaces($string, $replace = '')
+    {
+    	return preg_replace('/\s+/', $replace, $string);
+    }
+    
+    
+    /**
+     * Разбива текст по нови редове във масив
+     * 
+     * @param string $text
+     * @return array $array
+     */
+    public static function text2Array($text)
+    {
+    	$array = preg_split('/$\R?^/m', $text);
+    	
+    	return $array;
+    }
+    
+    
+    /**
+     * Връща текст със заместени урл-та с линкове
+     * 
+     * @param string $text
+     * @return string 
+     */
+    public static function replaceUrlsWithLinks($text) 
+    {
+    	$UrlType = core_Type::getByName('url');
+    	return preg_replace_callback(type_Richtext::URL_PATTERN, function ($matches) use ($UrlType){
+    		return $UrlType->toVerbal($matches[0])->getContent();
+    	}, $text);
+    }
+    
+    
+    /**
+     * Замества НЕ-кирилските символи с str::utf2ascii
+     *  
+     * @param string $string
+     * @return string
+     */
+    public static function nonCyrillic2Ascii($string)
+    {
+    	$res = preg_replace_callback("/[^\p{Cyrillic}]+/u", function ($matches){return str::utf2ascii($matches[0]);}, $string);
+    
+    	return $res;
     }
 }

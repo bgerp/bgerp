@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -69,9 +69,7 @@ class hr_Positions extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование,mandatory');
-        
-        // Към кое звено на организацията е тази позиция
-        $this->FLD('nkpd', 'key(mvc=bglocal_NKPD, select=title)', 'caption=НКПД, hint=Номер по НКПД');
+        $this->FLD('nkpd', 'key2(mvc=bglocal_NKPD, select=title)', 'caption=НКПД, hint=Номер по НКПД');
         
         // Възнаграждения
         $this->FLD('salaryBase', 'double(decimals=2)', 'caption=Възнаграждение->Основно');
@@ -100,22 +98,10 @@ class hr_Positions extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
-
-        $names = hr_Indicators::getIndicatorNames();
-
-        foreach($names as $class => $nArr) {
-            foreach($nArr as $n) {
-                $n = '$' . $n;
-                $sugg[$n] = $n;
-            }
-        }
-        $sugg["$" . 'BaseSalary'] = "$" . 'BaseSalary';
-        
-        $form->setSuggestions('formula', $sugg);
+        $form->setSuggestions('formula', hr_IndicatorNames::getFormulaSuggestions());
     }
 
 
-    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -160,7 +146,7 @@ class hr_Positions extends core_Master
     /**
      * Рендиране на длъжностите
      */
-    function renderPositions($data)
+    public function renderPositions($data)
     {
     	$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
     	

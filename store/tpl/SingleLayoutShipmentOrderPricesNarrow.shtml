@@ -72,6 +72,11 @@
                      <td>[#deliveryTime#]</td>
                   </tr>
                   <!--ET_END deliveryTime-->
+                  <!--ET_BEGIN fromContainerId-->
+                  <tr>
+                     <td colspan='2'><span class='quiet'>|Към фактура|*:</span> [#fromContainerId#]</td>
+                  </tr>
+                  <!--ET_END fromContainerId-->
                   <!--ET_BEGIN deliveryAddressBlock-->
                   [#deliveryAddressBlock#]
                   <tr>
@@ -112,11 +117,21 @@
                <!--ET_END username-->
             </td>
          </tr>
-         <tr class='footerDocInfo'>
-            <td colspan="2">
-               <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
-            </td>
-         </tr>
       </tbody>
    </table>
+   <!--ET_BEGIN store_DocumentPackagingDetail-->
+   <div class='scrolling-holder' style="margin-top: 10px;">
+      <div class="details smallerText" >
+         <p style="margin: 10px 0 5px; font-weight:bold">Отговорно пазене</p>
+         [#store_DocumentPackagingDetail#]
+      </div>
+   </div>
+   <!--ET_END store_DocumentPackagingDetail-->
+   <!--ET_BEGIN PACKAGING_BTNS-->
+   <div style='margin-top:10px'>[#PACKAGING_BTNS#]</div>
+   <!--ET_END PACKAGING_BTNS-->
+
+   <div class='footerDocBlock'   style="border-top: none !important">
+      <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+   </div>
 </div>

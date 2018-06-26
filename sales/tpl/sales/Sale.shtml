@@ -46,7 +46,7 @@
                     <!--ET_BEGIN deliveryLocationId-->
                     <hr style="margin: 3px 0 1px;">
                     <div>
-                        |До обект|*: [#deliveryLocationId#]
+                        |До локация|*: [#deliveryLocationId#]
                     </div>
                     <!--ET_END deliveryLocationId-->
                 </td>
@@ -100,7 +100,8 @@
                     <!--ET_BEGIN bankAccountId-->
                     <hr>
                     <div class='cellRow'>
-                        <span class='quiet'>|Банк. с-ка|*: </span>[#bankAccountId#]
+                        <span class='quiet'>|Банк. с-ка|*: </span>[#bankAccountId#]<!--ET_BEGIN bank-->,<div>
+                        [#bank#]<!--ET_END bank--><!--ET_BEGIN bic-->, <span class="nowrap">BIC: [#bic#]</span><!--ET_END bic--></div>
                     </div>
                     <!--ET_END bankAccountId-->
                     <!--ET_BEGIN caseId-->
@@ -127,6 +128,9 @@
                             <!--ET_BEGIN notes-->
                             [#notes#]
                             <!--ET_END notes-->
+                            <!--ET_BEGIN cartId-->
+                            <li>[#cartId#]</li>
+                            <!--ET_END cartId-->
                             <!--ET_BEGIN closedDocuments-->
                             <li>|Обединява|*: [#closedDocuments#]</li>
                             <!--ET_END closedDocuments-->

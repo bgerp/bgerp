@@ -200,6 +200,9 @@ class core_Lg extends core_Manager
         // Празните стрингове и обектите не се превеждат
         if (is_object($kstring) || !trim($kstring)) return $kstring;
         
+        // Когато се извършва начална инсталация - също не се превежда
+        if (Mode::is('dbInit')) return $kstring;
+
         // Ако не е зададен език, превеждаме на текущия
         if (!$lg) {
             $lg = core_Lg::getCurrent();
@@ -288,6 +291,11 @@ class core_Lg extends core_Manager
             // Само потребители с определена роля могат да добавят (автоматично) в превода
             if (haveRole('translate') || !haveRole('powerUser')) {
                 $this->save($rec, NULL, 'IGNORE');
+                
+                $tLg = substr($lg, 0, 2);
+                if (is_numeric($tLg) || (mb_strlen($rec->translated) > 100) || (i18n_Charset::is7Bit($rec->kstring))) {
+                    wp($rec, 'translate');
+                }
             }
             
             // Записваме в кеш-масива
@@ -302,10 +310,7 @@ class core_Lg extends core_Manager
         return $res;
     }
     
-    function act_Test()
-    {
-        bp(tr("|*<small>|Произведено|*</small>"));
-    }
+ 
 
     /**
      * Подготвяме думите в речника
@@ -341,9 +346,14 @@ class core_Lg extends core_Manager
         $lg = Mode::get('lg');
         
         if (!$lg) {
-            $lg = self::getDefaultLang();
+            if(!haveRole('user')) {
+                $lg = cms_Content::getLang();
+            } else {
+                $lg = self::getDefaultLang();
+            }
+            core_Lg::set($lg);
         }
-        
+     
         return $lg;
     }
 
@@ -459,7 +469,7 @@ class core_Lg extends core_Manager
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
         if(haveRole('debug')) {
-            $data->toolbar->addBtn('Reset', array($mvc, 'resetDB'));
+            $data->toolbar->addBtn('Reset', array($mvc, 'resetDB'), 'warning=Наистина ли желаете да нулирате таблицата?');
             $lg = $data->listFilter->rec->lg;
             setIfNot($lg, 'en');
             $data->toolbar->addBtn('Export CSV', array($mvc, 'exportCSV', 'lg' => $lg));
@@ -570,13 +580,11 @@ class core_Lg extends core_Manager
     static function isGoodLg($lg)
     {
         // Езика в долен регистър
-        $lg = strtolower($lg);
+        $lg = mb_strtolower($lg);
         
-        $langArr = arr::make(EF_LANGUAGES);
+        $langArr = arr::make(mb_strtolower(EF_LANGUAGES), TRUE);
         
-        foreach ($langArr as $lgKey => $verbLg) {
-            if (strtolower($lgKey) == $lg) return TRUE;
-        }
+        if (isset($langArr[$lg])) return TRUE;
         
         // Проверяваме дали са еднакви
         return FALSE;

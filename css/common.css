@@ -1143,6 +1143,9 @@ a.profile {
       color: red; }
   a.profile.no-one {
     font-style: italic; }
+  a.profile.state-rejected {
+    display: inline-block;
+    color: #777777 !important; }
 
 .profile-state {
   text-decoration: underline !important; }
@@ -1187,6 +1190,16 @@ a.profile {
   padding-right: 4px;
   box-shadow: inset 0 0 3px #cccccc; }
 
+.state-stopped-link > a {
+  background-color: #fee3ad;
+  padding-right: 4px;
+  box-shadow: inset 0 0 3px #ffbb33; }
+
+.state-late-link > a {
+  background-color: #fecccc;
+  padding-right: 4px;
+  box-shadow: inset 0 0 3px #fea3a3; }
+
 .state-rejected-link > a {
   background-color: #f3c9c8;
   padding-right: 4px;
@@ -1198,8 +1211,8 @@ a.profile {
   box-shadow: inset 0 0 3px #aaf277; }
 
 .state-closed {
-  background-color: #f1f1f1;
-  background-color: rgba(240, 240, 240, 0.7); }
+  background-color: #eeeeee;
+  background-color: rgba(230, 230, 230, 0.7); }
 
 .state-stopped,
 .state-blocked {
@@ -1210,9 +1223,18 @@ a.profile {
   background-color: #cc6666;
   background-color: rgba(204, 102, 102, 0.8); }
 
+.state-edited {
+  background-color: #0f61a0;
+  background-color: rgba(15, 97, 160, 0.8); }
+
 .state-waiting {
   background-color: #cef763;
   background-color: rgba(210, 255, 120, 0.6); }
+
+.state-removed {
+  background-color: #dddddd;
+  color: #888888;
+  text-decoration: line-through; }
 
   .state-rejected td,
   .state-rejected .document th,
@@ -1226,6 +1248,7 @@ a.profile {
   .state-rejected .richtext div,
   .state-rejected .cCode,
   .state-rejected .antetka,
+  .state-rejected .row-fluid div,
   .state-rejected .document ul,
   .state-rejected .document ol,
   .state-rejected .document li,
@@ -1237,6 +1260,11 @@ a.profile {
   .state-rejected .tagColumn {
     opacity: 0.5; }
 
+.soft-rejected {
+  background-color: #e2aaaa;
+  padding: 2px;
+  border-radius: 3px; }
+
 .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab {
   opacity: 0.5; }
   .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab:hover,
@@ -1247,6 +1275,9 @@ a.profile {
   .state-rejected .single-thread .document .tab-top div.alphabet .tab-row .tab a {
     color: #999999 !important;
     text-decoration: none !important; }
+  .state-rejected .row-fluid table td,
+  .state-rejected .row-fluid table {
+    border-color: #999999 !important; }
 
 .hidden-document.state-rejected {
   opacity: 0.6; }
@@ -1254,6 +1285,18 @@ a.profile {
 .state-template {
   background-color: #a5aaff;
   background-color: rgba(165, 170, 255, 0.7); }
+
+.sale-with-active-job {
+  background-color: #b1ebc0;
+  padding: 1px !important;
+  border-radius: 5px;
+  display: inline-block; }
+
+.sale-with-closed-job {
+  background-color: #cccccc;
+  padding: 1px !important;
+  border-radius: 5px;
+  display: inline-block; }
 
 .document .state-rejected.state,
 .document .state-rejected.state a {
@@ -1354,7 +1397,6 @@ table.listTable {
 
 .detailNumbering {
   text-align: right;
-  padding-top: 2px;
   display: block; }
 
 .narrow table.listTable {
@@ -1466,8 +1508,31 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 .inputError {
   border: solid 1px red; }
 
+.formFooter {
+  font-size: 0.9em;
+  padding-bottom: 10px; }
+  .formFooter label {
+    max-width: none !important; }
+  .formFooter .checkbox,
+  .formFooter input[type=checkbox] {
+    margin-right: 4px;
+    position: relative;
+    top: 1px; }
+  .formFooter input[type=checkbox]:checked + label {
+    color: #222222 !important; }
+  .formFooter input[type=radio] + label a,
+  .formFooter input[type=checkbox] + label a {
+    opacity: 0.8; }
+  .formFooter input[type=checkbox]:checked + label a {
+    opacity: 1; }
+  .formFooter input[type=checkbox].inputError + label {
+    color: red; }
+
 form .inputAdvanced {
   background-color: #ddffdd !important; }
+
+.inlineForm .listFilter form {
+  float: none !important; }
 
 .inputWarning {
   border: solid 1px blue; }
@@ -3086,7 +3151,7 @@ div.statuses-message h2 {
   width: 16px;
   height: 16px;
   display: inline-block;
-  margin: 0 5px; }
+  margin: -2px 5px 0; }
 
 /*
  * цветове

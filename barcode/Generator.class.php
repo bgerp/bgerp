@@ -508,13 +508,13 @@ class barcode_Generator extends core_Manager
         }
         
         // Очакваме да може да се определят размерите
-        if (!$width || !$height) {
+        if ($text && (!$width || !$height)) {
             self::logWarning("Проблем при генериране на баркод с текст '{$text}' в тип '{$type}'");
             expect(FALSE, 'Проблем при генериране на баркод', $text, $type);
         }
         
         // Ако широчината не е четно число, тогава му добавяме единица
-        if ($width % 2 != 0) {
+        if ($width && ($width % 2 != 0)) {
             $width++;
         }
         

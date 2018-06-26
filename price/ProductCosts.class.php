@@ -78,7 +78,7 @@ class price_ProductCosts extends core_Manager
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
     	$this->FLD('type', 'enum(accCost=Складова,
-    							 lastDelivery=Последна доставка,
+    							 lastDelivery=Последна доставка (+разходи),
     							 activeDelivery=Текуща поръчка,
     							 lastQuote=Последна оферта,
     							 bom=Последна рецепта)', 'caption=Тип');
@@ -273,7 +273,15 @@ class price_ProductCosts extends core_Manager
     				// от документите от вида "Корекция на стойност". В обикновените записи имаше приложени
     				// само корекциите от документа когато той е към същата сделка. Когато е към друга не се вземаха
     				// затова трябваше да се добавят ръчно към записите
-    				$purchaseProducts[$purRec->requestId] = purchase_transaction_Purchase::getShippedProducts($entries, $purRec->requestId);
+    				$purchaseProducts[$purRec->requestId] = purchase_transaction_Purchase::getShippedProducts($entries, $purRec->requestId, '321,302,601,602,60010,60020,60201', FALSE, FALSE);
+    				
+    				// Добавяне и на разпределените разходи, ако има
+    				foreach ($purchaseProducts[$purRec->requestId] as $o1){
+    					$itemId = acc_Items::fetchItem('cat_Products', $o1->productId)->id;
+    					$amount = acc_Balances::getBlAmounts($entries, '321', 'debit', '60201', array(NULL, $itemId, NULL))->amount;
+    					$val = (empty($o1->quantity)) ? 0 : ($amount / $o1->quantity);
+    					$o1->price += $val;
+    				}
     			}
     			
     			// Намираме какво е експедирано по сделката

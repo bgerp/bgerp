@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Помощен модел за лесна работа с баланс, в който участват само определени пера и сметки
  *
@@ -12,7 +13,8 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_tpl_SingleLayoutShipmentOrderEuro extends doc_TplScript {
+class store_tpl_SingleLayoutShipmentOrderEuro extends doc_TplScript 
+{
 	
 	
 	/**

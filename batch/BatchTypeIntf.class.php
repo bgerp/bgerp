@@ -106,7 +106,7 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Разбива партидата в масив
      *
-     * @param varchar $value - партида
+     * @param string $value - партида
      * @return array $array - масив с партидата
      */
     public function makeArray($value)
@@ -118,7 +118,7 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Какви са свойствата на партидата
      *
-     * @param varchar $value - номер на партидара
+     * @param string $value - номер на партидара
      * @return array - свойства на партидата
      * 			o name    - заглавие
      * 			o classId - клас
@@ -146,7 +146,7 @@ class batch_BatchTypeIntf extends embed_DriverIntf
      * Добавя филтър към заявката към  batch_Items възоснова на избраната опция (@see getListFilterOptions)
      *
      * @param core_Query $query - заявка към batch_Items
-     * @param varchar $value -стойност на филтъра
+     * @param string $value -стойност на филтъра
      * @param string $featureCaption - Заглавие на колоната на филтъра
      * @return void
      */
@@ -188,7 +188,7 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Заглавието на полето за партида
      * 
-     * @return varchar
+     * @return string
      */
     public function getFieldCaption()
     {
@@ -199,7 +199,7 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Връща името на дефиницията
      *
-     * @return varchar - Името на дефиницията
+     * @return string - Името на дефиницията
      */
     public function getName()
     {

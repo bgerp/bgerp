@@ -67,11 +67,15 @@ class email_Receipts extends email_ServiceEmails
                         preg_match("/^.+{$accEmail}received=([a-z]+)@/i", $soup, $matches);
                     }
                 }
-                
-                if (empty($matches)) return;
             }
             
-            $mid = $matches[1];
+            if (!empty($matches)) {
+                $mid = $matches[1];
+            } else {
+                $mid = self::getMidFromReceipt($mime, $accId);
+            }
+            
+            if (!$mid) return ;
         } else {
             $mid = $forcedMid;
         }
@@ -95,9 +99,60 @@ class email_Receipts extends email_ServiceEmails
             self::save($rec);
             
             self::logNotice('Получена обратна разписка', $rec->id);
+            
+            blast_BlockedEmails::addSentEmailFromText($mid, $mime);
         }
 
         return $isReceipt;
+    }
+    
+    
+    /**
+     * В зависимост от съдържанието на заглавието и текста, се опитваме да определим mid за обратна разписка
+     * 
+     * @param email_Mime $mime
+     * @param integer $accId
+     * 
+     * @return string|NULL
+     */
+    protected static function getMidFromReceipt($mime, $accId)
+    {
+        $subject = trim($mime->getSubject());
+        $textPart = $mime->textPart;
+        $maxTextLen = 500;
+        
+        if ($subject) {
+            $subject = $mime->decodeHeader($subject);
+            
+            $tId = email_ThreadHandles::extractThreadFromSubject($subject);
+            
+            if ($tId) {
+                $returnMid = FALSE;
+                if (stripos($subject, 'read report') === 0) {
+                    if (stripos($textPart, 'time of reading') !== FALSE) {
+                        $returnMid = TRUE;
+                    }
+                } elseif (!$mime->getFiles() && (strlen($textPart) < $maxTextLen)) {
+                    if (stripos($textPart, 'this is a receipt for the mail') !== FALSE) {
+                        $returnMid = TRUE;
+                    }
+                }
+                
+                if ($returnMid) {
+                    $dQuery = doclog_Documents::getQuery();
+                    $dQuery->where(array("#threadId = '[#1#]' AND #action = '[#2#]'", $tId, doclog_Documents::ACTION_SEND));
+                    $dQuery->where("#mid IS NOT NULL");
+                    $dQuery->limit(1);
+                    $dQuery->show('mid');
+                    $dQuery->orderBy('createdOn', 'DESC');
+                    $dRec = $dQuery->fetch();
+                    if ($dRec && $dRec->mid) {
+                        
+                        return $dRec->mid;
+                    }
+                }
+            }
+        }
     }
     
     

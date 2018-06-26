@@ -44,7 +44,7 @@ class colab_Threads extends core_Manager
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'RowNumb=№,title=Заглавие,author=Автор,last=Последно,hnd=Номер,partnerDocCnt=Документи,createdOn=Създаване';
+    public $listFields = 'RowNumb=№,title=Заглавие,author=Автор,partnerDocLast=Последно,hnd=Номер,partnerDocCnt=Документи,createdOn=Създаване';
 	
 	
 	/**
@@ -131,7 +131,7 @@ class colab_Threads extends core_Manager
 	    }
 	    
 		$this->requireRightFor('single');
-		
+		Mode::set('currentExternalTab', 'cms_Profiles');
 		$this->currentTab = 'Нишка';
 		
 		// Създаваме обекта $data
@@ -146,6 +146,9 @@ class colab_Threads extends core_Manager
 		// Трябва папката и да е споделена на текущия потребител и документа начало на нишка да е видим
 		$this->requireRightFor('single', $data->threadRec);
 		
+		// Ако има папка записва се като активна
+		colab_Folders::setLastActiveContragentFolder($data->folderId);
+		
 		// Показваме само неоттеглените документи, чиито контейнери са видими за партньори
 		$cu = core_Users::getCurrent();
 		$sharedUsers = colab_Folders::getSharedUsers($data->folderId);
@@ -156,6 +159,7 @@ class colab_Threads extends core_Manager
 		$data->query->where("#threadId = {$id}");
 		$data->query->where("#visibleForPartners = 'yes'");
 		$data->query->where("#state != 'draft' || (#state = 'draft' AND #createdBy  IN ({$sharedUsers}))");
+ 		$data->query->where("#state != 'rejected' || (#state = 'rejected' AND #createdBy  IN ({$sharedUsers}))");
 		$data->query->orderBy('createdOn,id', 'ASC');
 		
 		$this->prepareTitle($data);
@@ -224,14 +228,21 @@ class colab_Threads extends core_Manager
 	 */
 	function act_List()
 	{
-	    if (core_Users::isPowerUser()) {
-	        $folderId = Request::get('folderId', 'int');
+		$folderId = Request::get('folderId', 'int');
+		
+		if (core_Users::isPowerUser()) {
 	        if ($folderId && doc_Folders::haveRightFor('single', $folderId)) {
-	            
 	            return new Redirect(array('doc_Threads', 'list', 'folderId' => $folderId));
 	        }
 	    }
 	    
+	    Mode::set('currentExternalTab', 'cms_Profiles');
+	    
+	    // Ако има папка записва се като активна
+	    if(isset($folderId) && colab_Folders::haveRightFor('list', (object)array('folderId' => $folderId))){
+	    	colab_Folders::setLastActiveContragentFolder($folderId);
+	    }
+	   
 	    return parent::act_List();
 	}
 	
@@ -336,6 +347,9 @@ class colab_Threads extends core_Manager
 		} else {
 			$data->listFilter->setReadOnly('documentClassId');
 		}
+		
+		// По кое поле за последно да се подреждат
+		$data->listFilter->rec->LastFieldName = 'partnerDocLast';
 		
 		doc_Threads::applyFilter($data->listFilter->rec, $data->query);
 		$data->rejQuery = clone($data->query);

@@ -982,7 +982,7 @@ class i18n_Charset extends core_MVC {
      * Прави и допълнителни на iconv конвертирания. Генерира събития
      */
     static function iconv_($str, $fromCharset, $toCharset = 'UTF-8', $mode = '')
-    { 
+    {
         list($toCharset, $mode) = explode('//', $toCharset);
 
         if($mode && strpos($mode, '//') !== 0) {
@@ -1053,8 +1053,25 @@ class i18n_Charset extends core_MVC {
      */
     static function convertToUtf8($text, $fromCharsets = array(), $isHtml = FALSE)
     {
+        $bFrom = $fromCharsets;
+        
         $fromCharset = self::detect($text, $fromCharsets, $isHtml);
-       
+        
+        if ($fromCharset == 'HTML_ENTITIES' && $isHtml) {
+            if (!$bFrom || is_array($bFrom)) {
+                $pattern = '/<meta[^>]+charset\s*=\s*[\'\"]?(.*?)[[\'\"]]?[\/\s>]/i';
+                preg_match($pattern, $text, $match);
+                $bFrom = self::getCanonical(($match[1]));
+            }
+            
+            if ($bFrom && $bFrom != $fromCharset) {
+                $nText = @self::iconv($text, $bFrom, 'UTF-8//IGNORE');
+                if ($nText) {
+                    $text = $nText;
+                }
+            }
+        }
+        
         // Конвертираме текста в "UTF-8"
         if($fromCharset) {
             $text = self::iconv($text, $fromCharset, 'UTF-8//IGNORE');

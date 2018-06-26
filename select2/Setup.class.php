@@ -4,7 +4,7 @@
 /**
  * Пътя до външния код на SELECT2
  */
-defIfNot('SELECT2_VERSION', '4.0rc2');
+defIfNot('SELECT2_VERSION', '4.0.1');
 
 
 /**

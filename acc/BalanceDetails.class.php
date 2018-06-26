@@ -589,7 +589,10 @@ class acc_BalanceDetails extends core_Detail
         }
         
         $data->listFields = array();
-        $data->listFields['history'] = ' ';
+        
+        if(!Mode::isReadOnly()){
+        	$data->listFields['history'] = ' ';
+        }
         
         /**
          * Указва дали редом с паричните стойности да се покажат и колони с количества.
@@ -852,11 +855,11 @@ class acc_BalanceDetails extends core_Detail
                             // Ако има сума закръгляме я до втория знак преди запис
                             foreach (array('blAmount', 'baseAmount') as $fld){
                             	if(!is_null($rec[$fld])){
-                            		$rec[$fld] = round($rec[$fld], 2);
+                            		$rec[$fld] = round($rec[$fld], 8);
                             	}
                             }
                             
-                            // Закръгляме количествата само ако закръглени равнят на нула
+                            // Закръгляме количествата, само ако закръглени равнят на нула
                             foreach (array('blQuantity', 'baseQuantity') as $fld){
                             	if(!is_null($rec[$fld])){
                             		if(!is_null($rec[$fld]) && round($rec[$fld], 8) == 0){
@@ -871,12 +874,54 @@ class acc_BalanceDetails extends core_Detail
                 }
             }
         }
+
+        $res = TRUE;
+
+        $sum = self::getCheckSum($balanceId);
         
-        // Записваме всички данни на веднъж
+        // Изтриваме всякакви записи за баланс с id == -1
+        $this->delete("#balanceId = -1");
+
+        // Записваме всички данни наведнъж
         $this->saveArray($toSave);
         
         // Изтриваме запаметените изчислени данни
         unset($this->balance, $this->strategies);
+        
+        // Заключваме показването на информацията от баланса в кориците и документи
+        core_Locks::get(acc_Balances::saveLockKey);
+
+        // Изтриваме старите данни за текущия баланс
+        $this->delete("#balanceId = {$balanceId}");
+                
+        // Ъпдейтваме данните за баланс -1 да са към текущия баланс
+        // Целта е да заместим новите данни със старите само след като новите данни са изчислени до края
+        // За да може ако някой използва данни от таблицата докато не са готови новите да разполага със старите
+        $balanceIdColName = str::phpToMysqlName('balanceId');
+        $this->db->query("UPDATE {$this->dbTableName} SET {$balanceIdColName} = {$balanceId} WHERE {$balanceIdColName} = '-1'");
+        
+        // Освобождаваме заключването
+        core_Locks::release(acc_Balances::saveLockKey);
+
+        if($sum == self::getCheckSum($balanceId)) {
+            $res = FALSE;
+        }
+
+        return $res;
+    }
+
+
+    public static function getCheckSum($balanceId)
+    {
+        $query = self::getQuery();
+        $query->XPR('checkSum', 'int', "SUM(CRC32(CONCAT_WS('', #accountId, #ent1Id, #ent2Id, #ent3Id, #baseQuantity,#baseAmount,#debitQuantity,#debitAmount,#creditQuantity,#creditAmount, #blQuantity,#blAmount)))");
+        $query->where("#balanceId = {$balanceId}");
+        
+        $rec = $query->fetch();
+
+        $rec2 = $query->fetch();
+ 
+        return $rec->checkSum;
     }
     
     
@@ -886,7 +931,9 @@ class acc_BalanceDetails extends core_Detail
     public function loadBalance($balanceId, $isMiddleBalance = FALSE, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
     {
         $query = $this->getQuery();
-       
+        
+        $this->balance = array();
+
         static::filterQuery($query, $balanceId, $accs, $itemsAll, $items1, $items2, $items3);
         
         // Да се пропускат записите с нулево крайно салдо, при зареждането на не-междинен баланс
@@ -949,6 +996,12 @@ class acc_BalanceDetails extends core_Detail
      */
     public function calcBalanceForPeriod($from, $to, $isMiddleBalance = FALSE)
     {
+
+        if($cronRec = core_Cron::getCurrentRec()) {
+            list($d, $t) = explode(' ', $cronRec->lastStart);
+            log_System::add('acc_Balances', 'calcBalanceForPeriod: ' . $from  . ' - ' . $to . ' (Cron at ' . $t . ')' , NULL, 'notice');
+        }
+
         $JournalDetails = &cls::get('acc_JournalDetails');
         
         $query = $JournalDetails->getQuery();
@@ -999,10 +1052,8 @@ class acc_BalanceDetails extends core_Detail
                 if($update){
                     $JournalDetails->save_($rec);
                    
-                    // Дигаме флага за преизчисляване само ако, записан не е бил обновяван до сега
-                    //if(!isset($this->updatedBalances[$rec->id])){
-                    	$hasUpdatedJournal = TRUE;
-                   // }
+                    // Дигаме флага за преизчисляване
+                    $hasUpdatedJournal = TRUE;
                 }
             }
             
@@ -1267,7 +1318,7 @@ class acc_BalanceDetails extends core_Detail
             $v += $add;
             
             // Машинно закръгляне
-            $v = round($v, 9);
+            $v = round($v, 8);
         }
     }
     
@@ -1325,7 +1376,9 @@ class acc_BalanceDetails extends core_Detail
         }
         
         // ... само детайлите от последния баланс
-        $query->where("#balanceId = {$balanceId}");
+        if(isset($balanceId)){
+        	$query->where("#balanceId = {$balanceId}");
+        }
         
         // Перата които може да са на произволна позиция
         $itemsAll = arr::make($itemsAll);

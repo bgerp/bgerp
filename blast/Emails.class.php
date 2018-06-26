@@ -160,7 +160,7 @@ class blast_Emails extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_blank, change_Plugin, plg_Search, plg_Clone';
+    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_Blank, change_Plugin, plg_Search, plg_Clone';
     
     
     /**
@@ -206,7 +206,9 @@ class blast_Emails extends core_Master
     protected function description()
     {
         $this->FLD('perSrcClassId', 'class(interface=bgerp_PersonalizationSourceIntf)', 'caption=Източник на данни->Клас, silent, input=hidden');
-        $this->FLD('perSrcObjectId', 'varchar(16)', 'caption=Списък, mandatory, silent, removeAndRefreshForm=unsubscribe|lg');
+        $this->FLD('perSrcObjectId', 'varchar(16)', 'caption=Списък->Източник, mandatory, silent, removeAndRefreshForm=unsubscribe|lg');
+        
+        $this->FLD('negativeList', 'keylist(mvc=blast_Lists, select=title, where=#state !\\= \\\'rejected\\\')', 'caption=Списък->Игнориране');
         
         $this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От, mandatory, changable');
         $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
@@ -310,7 +312,7 @@ class blast_Emails extends core_Master
         expect($rec, 'Няма такъв запис');
         
         // Обновяваме списъка с имейлите
-        $updateCnt = self::updateEmailList($id);
+        $updateCntArr = self::updateEmailList($id);
         
         // Активираме имейла
         $rec->state = 'active';
@@ -318,7 +320,7 @@ class blast_Emails extends core_Master
         $rec->sendPerCall = $sendPerCall;
         self::save($rec);
         
-        return $updateCnt;
+        return $updateCntArr['add'];
     }
     
     /**
@@ -349,10 +351,25 @@ class blast_Emails extends core_Master
         
         expect($emailFieldsArr, 'Трябва да има поне едно поле за имейли');
         
-        // Обновяваме листа и връщаме броя на обновленията
-        $updateCnt = blast_EmailSend::updateList($rec->id, $personalizationArr, $emailFieldsArr);
+        $negativeArr = array();
+        if ($rec->negativeList) {
+            $listsArr = type_Keylist::toArray($rec->negativeList);
+            
+            foreach ($listsArr as $listId) {
+                $dQuery = blast_ListDetails::getQuery();
+                $dQuery->where(array("#listId = '[#1#]'", $listId));
+                $dQuery->where("#state != 'rejected'");
+                
+                while ($dRec = $dQuery->fetch()) {
+                    $negativeArr[$dRec->key] = $dRec->key;
+                }
+            }
+        }
         
-        return $updateCnt;
+        // Обновяваме листа и връщаме броя на обновленията
+        $updateCntArr = blast_EmailSend::updateList($rec->id, $personalizationArr, $emailFieldsArr, $negativeArr);
+        
+        return $updateCntArr;
     }
     
     
@@ -411,6 +428,9 @@ class blast_Emails extends core_Master
         
         $query->where("#state = 'active'");
         $query->orWhere("#state = 'waiting'");
+        
+        $query->XPR('order', 'double', 'RAND()');
+        $query->orderBy('#order');
         
         $conf = core_Packs::getConfig('blast');
         
@@ -580,7 +600,7 @@ class blast_Emails extends core_Master
                 
                 // Връщаме стария потребител
                 core_Users::exitSudo($sudoUser);
-                                
+                
                 // Ако имейлът е изпратен успешно, добавяме времето на изпращане
                 if ($status) {
                     
@@ -588,7 +608,9 @@ class blast_Emails extends core_Master
                     blast_EmailSend::setTimeAndEmail(array($detId => $toEmail));
                 } else {
                     // Ако възникне грешка при изпращане, записваме имейла, като върнат
-                    $this->logWarning("Върнато писмо", $rec->id);
+                    $this->logNotice("Върнато писмо", $rec->id);
+                    
+                    blast_BlockedEmails::addEmail($toEmail, TRUE, 'error');
                 }
                 
                 unset($notSendDataArr[$detId]);
@@ -1079,8 +1101,9 @@ class blast_Emails extends core_Master
             // Упдейтва състоянието и данните за имейл-а
             blast_Emails::save($form->rec, 'state,sendPerCall,activatedBy,modifiedBy,modifiedOn, sendingDay, sendingFrom, sendingTo, errMsg');
             
-            // Обновяваме списъка с имейлите
-            $updateCnt = self::updateEmailList($form->rec->id);
+            $updateCntArr = self::updateEmailList($form->rec->id);
+            $updateCnt = $updateCntArr['add'];
+            $removeCnt = $updateCntArr['remove'];
             
             // В зависимост от броя на обновления променяме състоянието
             if ($updateCnt) {
@@ -1091,6 +1114,14 @@ class blast_Emails extends core_Master
                 }
             } else {
                 $msg = 'Не са добавени нови записи';
+            }
+            
+            if ($removeCnt) {
+                if ($removeCnt == 1) {
+                    $msg .= '|*. Премахнат е|* ' . $removeCnt . ' |запис';
+                } else {
+                    $msg .= '|*. Премахнати са|* ' . $removeCnt . ' |записа';
+                }
             }
             
             // Добавяме ново съобщени
@@ -1194,14 +1225,32 @@ class blast_Emails extends core_Master
         $this->requireRightFor('update', $rec);
         
         // Обновяваме списъка с имейлите
-        $updateCnt = blast_Emails::updateEmailList($rec);
+        $updateCntArr = blast_Emails::updateEmailList($rec);
+        $updateCnt = $updateCntArr['add'];
+        $removeCnt = $updateCntArr['remove'];
+        
+        $updateMsg = '';
         
         // В зависимост от броя на обновления променяме състоянието
-        if ($updateCnt) {
-            if ($updateCnt == 1) {
-                $updateMsg = '|Добавен е|* ' . $updateCnt . ' |запис';
-            } else {
-                $updateMsg = '|Добавени са|* ' . $updateCnt . ' |записа';
+        if ($updateCnt || $removeCnt) {
+            
+            if ($updateCnt) {
+                if ($updateCnt == 1) {
+                    $updateMsg = '|Добавен е|* ' . $updateCnt . ' |запис';
+                } else {
+                    $updateMsg = '|Добавени са|* ' . $updateCnt . ' |записа';
+                }
+            }
+            
+            if ($removeCnt) {
+                if ($updateMsg) {
+                    $updateMsg .= '|*. ';
+                }
+                if ($removeCnt == 1) {
+                    $updateMsg .= 'Премахнат е|* ' . $removeCnt . ' |запис';
+                } else {
+                    $updateMsg .= 'Премахнати са|* ' . $removeCnt . ' |записа';
+                }
             }
             
             $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
@@ -1566,6 +1615,31 @@ class blast_Emails extends core_Master
             $rec->place = $fieldsArr['place'] ? '[#place#]' : '';
             $rec->address = $fieldsArr['address'] ? '[#address#]' : '';
         }
+        
+        //Добавя в лист само списъци с имейли
+        $query = blast_Lists::getQuery();
+        $query->where("#keyField = 'email'");
+        $query->where("#state != 'rejected'");
+        $query->orderBy("createdOn", 'DESC');
+        
+        // Премахваме избрания списък
+        if ($rec->perSrcClassId && $rec->perSrcObjectId) {
+            if (cls::get($rec->perSrcClassId) instanceof blast_Lists) {
+                $query->where(array("#id != '[#1#]'", $rec->perSrcObjectId));
+            }
+        }
+        
+        $lists = array('' => '');
+        
+        // Обхождаме откритите резултати
+        while ($rec = $query->fetch()) {
+            
+            // Добавяме в масива
+            $lists[$rec->id] = blast_Lists::getVerbal($rec, 'title');
+        }
+        
+        // Показваме всички списъци
+        $form->setSuggestions('negativeList', $lists, $form->rec->id);
     }
     
     
@@ -1620,10 +1694,7 @@ class blast_Emails extends core_Master
                     $allowedSize = $mvc->getMaxAttachFileSizeLimit();
                     $allowedSize = $FileSize->toVerbal($allowedSize);
                     
-                    $errStr = "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal;
-                    $errStr .= "<br>|Допустимият размер е|*: {$allowedSize}";
-                    
-                    $form->setError('attachments', $errStr);
+                    $form->setError('attachments', "Максималният разрешен общ размер на прикачените|* {$str} |е|* {$allowedSize}, |а в това писмо те са|* {$docAndFilesSizeVerbal}.");
                 }
             }
         }

@@ -1097,20 +1097,25 @@ function prepareContextMenu() {
     });
 }
 
-var timeOfSettingTab, timeOfNotification, oldNotificationsCnt,oldTimeOfNotification;
-function openCurrentTab(){
+function openCurrentTab(lastNotifyTime){
     if(!$('body').hasClass('modern-theme') || $('body').hasClass('wide')) return;
     var current;
     // взимаме данните за портала в бисквитката
     var portalTabs = getCookie('portalTabs');
+    var lastLoggedNotification = getCookie('notifyTime');
     if($(location.hash).length) {
         // взимаме таба от # в url-то
         current = $(location.hash);
+    } else if(typeof lastLoggedNotification !== 'undefined' && lastLoggedNotification < lastNotifyTime) {
+        current = $("#notificationsPortal");
     } else if($("#" +  portalTabs).length) {
         current = $("#" + portalTabs );
     }  else {
         // първия таб да е активен
         current = $('.narrowPortalBlocks').first();
+    }
+    if(current.attr('id') == 'notificationsPortal') {
+        setCookie('notifyTime', lastNotifyTime);
     }
     $(current).addClass('activeTab');
     $(current).siblings().removeClass('activeTab');
@@ -1123,14 +1128,14 @@ function openCurrentTab(){
     $(tab).addClass('activeTab');
     $(tab).siblings().removeClass('activeTab');
 
-    portalTabsChange();
+    portalTabsChange(lastNotifyTime);
 }
 
 
 /**
  * Действия на табовете в мобилен
  */
-function portalTabsChange() {
+function portalTabsChange(lastNotifyTime) {
     $('ul.portalTabs li').click(function(){
         var tab_id = $(this).attr('data-tab');
         $('ul.portalTabs li').removeClass('activeTab');
@@ -1138,7 +1143,9 @@ function portalTabsChange() {
 
         $(this).addClass('activeTab');
         $("#"+tab_id).addClass('activeTab');
-        timeOfSettingTab = jQuery.now();
+        if(tab_id == 'notificationsPortal') {
+            setCookie('notifyTime', lastNotifyTime);
+        }
         setCookie('portalTabs', tab_id);
     });
 }
@@ -1313,14 +1320,14 @@ function chRwClSb(id) {
 /**
  * Инвертира всички чек-боксове
  */
-function toggleAllCheckboxes() {
+function toggleAllCheckboxes(el) {
+    var isChecked = $(el).is(":checked");
     $('[id^=cb_]').each(function() {
         var id = $(this).attr('id').replace(/^\D+/g, '');
-        if ($(this).is(":checked") == true) {
-            $(this).prop('checked',false);
+        $(this).prop('checked',isChecked);
+        if (isChecked) {
             $('#check' + id).text("Избор");
         } else {
-            $(this).prop('checked',true);
             $('#check' + id).text($("#with_selected").val());
         }
         chRwCl(id);
@@ -1682,6 +1689,9 @@ function setFormElementsWidth() {
         $('.formTable .hiddenFormRow select.w100').css('width', "100%");
         $('.formTable .hiddenFormRow select.w25').css('width', "25%");
 
+        var tempWidth = $('#all .formTable input.w100').last().width() > 200 ? $('#all .formTable input.w100').last().width() : 400;
+        $('#all .formTable textarea').css('min-width', tempWidth);
+
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){
              	$(this).parent().css('white-space', "nowrap");
@@ -1861,8 +1871,15 @@ function saveSelectedTextToSession(handle, onlyHandle) {
 		        			
 		        			// От нивото на ричтекста, намираме div с id на документа
 		        			if ($(parentNode).attr('class') == 'richtext') {
-		        				parentNode = parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
-		        				var handle2 = $(parentNode).attr('id');
+		        				
+		        				var parentNode6 = parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
+		        				var handle2 = $(parentNode6).attr('id');
+		        				
+		        				if (typeof handle2 == "undefined") {
+		        					var parentNode5 = parentNode.parentNode.parentNode.parentNode.parentNode;
+		        					handle2 = $(parentNode5).attr('id');
+		        				}
+		        				
 		        				break;
 		        			}
 		        			
@@ -1870,7 +1887,7 @@ function saveSelectedTextToSession(handle, onlyHandle) {
 		        		}
 	        		}
 	        		
-	        		if (typeof handle2 == "undefined") {
+	        		if (typeof handle2 != "undefined") {
         				handle = handle2;
 	        		}
 	        	}
@@ -2105,7 +2122,7 @@ function refreshForm(form, removeFields) {
 		url: frm.attr('action'),
 		data: serialized + '&ajax_mode=1',
 		dataType: 'json'
-	}).done( function(data) {
+	}).done(function(data) {
 		getEO().saveFormData(frm.attr('id'), data);
 		replaceFormData(frm, data);
 
@@ -2115,6 +2132,8 @@ function refreshForm(form, removeFields) {
                 if($('[name=' + k + ']').val() == '')
                     $('[name=' + k + ']').val(savedPwd[k]);}
         },  600);
+	}).fail(function(res) {
+		getEO().log('Грешка при извличане на данни по AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
 	});
 }
 
@@ -2176,7 +2195,7 @@ function replaceFormData(frm, data)
         refreshForm.loadedFiles = [];
     }
     var params = frm.serializeArray();
-
+    
 	// Затваря всики select2 елементи
 	if ($.fn.select2) {
 		var selFind = frm.find('.select2-src');
@@ -2192,17 +2211,17 @@ function replaceFormData(frm, data)
 			});
 		}
 	}
-
+	
 	if (getType(data) == 'array') {
 		var r1 = data[0];
 		if(r1['func'] == 'redirect') {
-			render_redirect(r1['arg']);
+			return render_redirect(r1['arg']);
 		}
 	}
-
+	
 	// Разрешаваме кеширането при зареждане по ajax
 	$.ajaxSetup ({cache: true});
-
+	
 	// Зареждаме стиловете
 	$.each(data.css, function(i, css) {
 		if(refreshForm.loadedFiles.indexOf(css) < 0) {
@@ -2214,12 +2233,15 @@ function replaceFormData(frm, data)
 			refreshForm.loadedFiles.push(css);
 		}
 	});
-
+	
 	// Зареждаме JS файловете синхронно
 	loadFiles(data.js, refreshForm.loadedFiles, frm, data.html);
 
 	// Забраняваме отново кеширането при зареждане по ajax
 	$.ajaxSetup ({cache: false});
+
+    // Пушваме ново URL
+    history.pushState(null, null, data.url);
 
 	var newParams = $('form').serializeArray();
 	var paramsArray = [];
@@ -2685,6 +2707,22 @@ function checkForHiddenGroups() {
  * В зависимост от натиснатия елемент, се определя какво действие трябва да се извърши с кейлист полетата
  */
 function keylistActions(el) {
+    // изчисление с коя иконка трябва да е групата
+    $('.inner-keylist').each(function(){
+        var uncheckElementInGroup = false;
+        $(this).find('.checkbox').each(function(){
+            if($(this).attr('checked') != "checked") {
+                uncheckElementInGroup = true;
+            }
+        });
+        var className = $(this).find('tr').attr('class');
+        if(uncheckElementInGroup) {
+            $("#" + className).find('.invert-checkbox.unchecked').removeClass('hidden');
+        } else {
+            $("#" + className).find('.invert-checkbox.checked').removeClass('hidden');
+        }
+    });
+
 	 $('.keylistCategory').on('click', function(e) {
 		 // ако натиснем бутона за инвертиране на чекбоксовете
 		  if ($(e.target).is(".invert-checkbox")) {
@@ -2775,15 +2813,15 @@ function findElementKeylistGroup(el){
  */
 function inverseCheckBox(el){
 	// сменяме иконката
+    var checked = $(el).parent().find(".invert-checkbox.checked").hasClass("hidden");
 	$(el).parent().find(".invert-checkbox").toggleClass('hidden');
 	var trItems = findElementKeylistGroup(el);
-
 	//инвертираме
 	$(trItems).find('.checkbox').each(function() {
-		if(this.checked) {
-			$(this).prop('checked',false);
+		if(checked) {
+            $(this).prop('checked',true);
 		} else {
-			$(this).prop('checked',true);
+			$(this).prop('checked',false);
 		}
 	});
 }
@@ -3072,6 +3110,10 @@ function efae() {
     getEO().addEvent(document, 'keypress', function() {
         efaeInst.resetTimeout()
     });
+    
+    getEO().addEvent(document, 'beforeunload', function() {
+        efaeInst.preventRequest = 5;
+    });
 
     // Масив с всички абонирани
     efae.prototype.subscribedArr = new Array();
@@ -3124,6 +3166,9 @@ function efae() {
 
     // Флаг, който указва дали все още се чака резултат от предишна AJAX заявка
     Experta.prototype.isWaitingResponse = false;
+    
+    // Флак за спиране на заявките
+    Experta.prototype.preventRequest = 0;
 	
     // Флаг, който указва колко време да не може да се прави AJAX заявки по часовник
     efae.prototype.waitPeriodicAjaxCall = 0;
@@ -3217,6 +3262,12 @@ efae.prototype.getObjectKeysCnt = function(subscribedObj) {
 efae.prototype.process = function(subscribedObj, otherData, async) {
     // Ако няма URL, което трябва да се извика, връщаме
     if (!this.getObjectKeysCnt(subscribedObj)) return;
+    
+    // Ако са спрени заявките - нищо не правим
+    if (this.preventRequest > 0) {
+        this.preventRequest--;
+        return;
+    }
 
     // Ако не е подададена стойност
     if (typeof async == 'undefined') {
@@ -3297,6 +3348,12 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
             data: dataObj,
             dataType: 'json'
         }).done(function(res) {
+            
+            // Ако са спрени заявките - нищо не правим
+            if (this.preventRequest > 0) {
+                this.preventRequest--;
+                return;
+            }
 
             var n = res.length;
 
@@ -3907,7 +3964,6 @@ function runHljs() {
 }
 
 
-
 /**
  * Функция, която редиректва към определена страница, може да се
  * използва с efae
@@ -4058,6 +4114,42 @@ function render_Sound(data){
 
 
 /**
+* Функция, скролва потребителя до статуса за логване
+* Може да се комбинира с efae
+ */
+function render_forceLoginToSubmit(data)
+{
+	forceLoginToSubmit = data.force;
+	
+	if (forceLoginToSubmit) {
+		jQuery("form").bind('submit', function(event, data) {
+			if (forceLoginToSubmit) {
+				
+				scrollToElem('editStatus');
+				
+		        // Блокиране на събмита, ако няма промени и за определено време
+		        event.preventDefault();
+		        
+		        return false;
+			}
+	    });
+	}
+}
+
+
+/**
+ * Скролване до елемента
+ * 
+ * @param docId
+ */
+function scrollToElem(docId) {
+	$('html, body').animate({
+        scrollTop: $("#" + docId).offset().top - $(window).height() + $(this).height()
+    }, 500);
+}
+
+
+/**
  * изтрива бащата на зададения елемент
  */
 function removeParentTag(el) {
@@ -4140,15 +4232,10 @@ function changeNotificationsCnt(data) {
             nCntLink.className = 'noNtf';
         }
 
-        if($('body').hasClass('modern-theme') && $('body').hasClass('narrow')  && data.notifyTime) {
-            timeOfNotification = data.notifyTime;
-
-            if(timeOfSettingTab < timeOfNotification) {
-                if( oldTimeOfNotification != timeOfNotification) {
-                    oldTimeOfNotification = timeOfNotification;
-                    setCookie('portalTabs', "notificationsPortal");
-                }
-            }
+        if($('body').hasClass('modern-theme') && $('body').hasClass('narrow')  && typeof data.notifyTime !== 'undefined' && data.notifyTime) {
+           if(getCookie('portalTabs') == "notificationsPortal") {
+               setCookie('notifyTime', data.notifyTime);
+           }
         }
     }
 }
@@ -4178,19 +4265,6 @@ function showToast(data) {
 }
 
 
-/**
- * Рендира новото изображение за превю на картина
- * 
- * @param object data - Обект с необходимите стойности
- * data.data-url
- * data.src
- * data.width
- * data.height
- * data.fh
- */
-function render_setNewFilePreview(data) {
-	console.log(data);
-}
 var oldImageSrc, oldImageWidth, oldImageHeight;
 function changeZoomImage(el) {
     if($(el).attr("data-zoomed") == "no") {
@@ -4215,6 +4289,7 @@ function changeZoomImage(el) {
         }
     }
 }
+
 
 /**
  * Experta - Клас за функции на EF
@@ -4632,7 +4707,7 @@ Experta.prototype.log = function(txt) {
         // Показваме съобщението
         console.log(txt);
     }
-};
+}; 
 
 
 /**
@@ -4687,7 +4762,7 @@ Experta.prototype.checkBodyId = function(bodyId) {
  * Записва данните за формата в id на страницата
  */
 Experta.prototype.saveFormData = function(formId, data) {
-
+	
 	var maxItemOnSession = 3;
 
 	bodyId = $('body').attr('id');
@@ -4771,6 +4846,14 @@ function reloadOnPageShow() {
     });
 }
 
+
+/**
+* Презареждане на страницата
+*/
+function render_reload()
+{
+	location.reload();
+}
 
 /**
  * Намаляващ брояч на време
@@ -5197,6 +5280,21 @@ JSON.parse = JSON.parse || function (str) {
 	eval("var p=" + str + ";");
 	return p;
 };
+
+
+
+/**
+ * Фокусира еднократно върху посоченото id пи зададения rand
+ */
+function focusOnce(id, rand) {
+    if (typeof(Storage) !== "undefined") {
+        if(localStorage.getItem(rand) !== null) {
+            return;
+        }
+        localStorage.setItem(rand, 1);
+    }
+    $(id).focus();
+}
 
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);

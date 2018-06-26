@@ -147,7 +147,7 @@ class distro_Group extends core_Master
      */
     function description()
     {
-        $this->FLD('title', 'varchar(128,ci)', 'caption=Заглавие, mandatory, width=100%');
+        $this->FLD('title', 'varchar(128,ci)', 'caption=Заглавие, mandatory, width=100%, silent');
         $this->FLD('repos', 'keylist(mvc=distro_Repositories, select=name, where=#state !\\= \\\'rejected\\\', select2MinItems=6)', 'caption=Хранилища, mandatory, width=100%, maxColumns=3');
     }
     
@@ -168,9 +168,27 @@ class distro_Group extends core_Master
     {
         $handleArr = doc_Containers::parseHandle($path);
         
-        if ($handleArr === FALSE) return ;
+        if ($handleArr && (strtolower($handleArr['abbr']) == 'dst') && $handleArr['id']) {
+            
+            $dRec = self::fetch((int)$handleArr['id']);
+            
+            if ($dRec) {
+                $subDirName = self::getSubDirName($dRec);
+                
+                if ($subDirName == $path) return $handleArr['id'];
+            }
+        } 
         
-        return $handleArr['id'];
+        // Ако името не е зададено с хендлър
+        $query = self::getQuery();
+        plg_Search::applySearch(plg_Search::normalizeText($path), $query);
+        while ($dRec = $query->fetch()) {
+            $subDirName = self::getSubDirName($dRec);
+            
+            if ($subDirName == $path) return $dRec->id;
+        }
+        
+        return NULL;
     }
     
     
@@ -236,12 +254,36 @@ class distro_Group extends core_Master
     }
     
     
+    /**
+     *
+     * Функция, която се извиква след активирането на документа
+     *
+     * @param distro_Group $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeActivation($mvc, &$rec)
+    {
+        if ($rec->id) {
+            $rRec = $mvc->fetch($rec->id);
+            
+            if ($rRec->repos) {
+                $dRepoArr = $mvc->getDuplicateFileRepoId($rRec);
+                
+                if (!empty($dRepoArr)) {
+                    
+                    redirect(array($mvc, 'single', $rec->id), FALSE, '|Не може да се активира, защото същестува такава директория|*. |Променете заглавието');
+                }
+            }
+        }
+    }
+    
+    
 	/**
 	 * 
      * Функция, която се извиква след активирането на документа
 	 * 
 	 * @param distro_Group $mvc
-	 * @param stdObject $rec
+	 * @param stdClass $rec
 	 */
     public static function on_AfterActivation($mvc, &$rec)
     {
@@ -267,24 +309,97 @@ class distro_Group extends core_Master
     
     
     /**
+     * Ако е натиснат бутона 'Активиране" добавя състоянието 'active' в $form->rec
+     * 
+     * @param distro_Group $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, $form)
+    {
+        if ($form->isSubmitted()) {
+            $dRepoArr = $mvc->getDuplicateFileRepoId($form->rec);
+            
+            if (!empty($dRepoArr)) {
+                $form->setError('title', 'Дублиращо се има за директория');
+            }
+        }
+    }
+    
+    
+    /**
+     * Връща хранилищата в които има дублиране на папки
+     * 
+     * @param stdClass $rec
+     * 
+     * @return array
+     */
+    protected function getDuplicateFileRepoId($rec)
+    {
+        $resArr = array();
+        if ($rec->repos) {
+            
+            // Масив с хранилищата
+            $reposArr = type_Keylist::toArray($rec->repos);
+            
+            // Обхождаме масива
+            foreach ((array)$reposArr as $repoId) {
+                
+                // Активираме хранилището
+                $subDirName = $this->getSubDirName($rec);
+                
+                // Създаваме директория в хранилището
+                if (distro_Repositories::checkDirExist($repoId, $subDirName)) {
+                    $resArr[$repoId] = $repoId;
+                }
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * 
      * 
-     * @param integer $id
+     * @param integer|stdClass $rec
      * 
      * @return string
      */
-    public static function getSubDirName($id)
+    public static function getSubDirName($rec)
     {
-        $rec = self::fetch($id);
+        $rec = self::fetchRec($rec);
         
         $title = $rec->title;
+        
+        // Ако в заглавието има хендлър на документ, да се използва то
+        preg_match_all(doc_RichTextPlg::$identPattern, $title, $matches);
+        $abbrArr = doc_Containers::getAbbr();
+        foreach ($matches[0] as $key => $mArr) {
+            $abbr = strtoupper($matches['abbr'][$key]);
+            $mId = $matches['id'][$key];
+            
+            $clsName = $abbrArr[$abbr];
+            
+            if ($clsName && cls::load($clsName, TRUE)) {
+                if ($mId && $clsName::fetch((int)$mId)) {
+                    
+                    $haveAbbr = TRUE;
+                    
+                    break;
+                }
+            }
+        }
         
         $title = STR::utf2ascii($title);
         $title = preg_replace('/[\W]+/', ' ', $title);
         
         $title = trim($title);
         
-        $subDir = self::getHandle($id) . ' - ' . $title;
+        if (!$haveAbbr && $rec->id) {
+            $subDir = self::getHandle($rec->id) . ' - ' . $title;
+        } else {
+            $subDir = $title;
+        }
         
         return $subDir;
     }
@@ -484,7 +599,7 @@ class distro_Group extends core_Master
     {
         // Използваме заглавието на първия документ в нишката или на originId
         $rec = $data->form->rec;
-        if (!$rec->id) {
+        if (!$rec->id && !$rec->title) {
             
             $cid = NULL;
             

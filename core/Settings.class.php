@@ -69,10 +69,11 @@ class core_Settings extends core_Manager
     public function description()
     {
         $this->FLD('key', 'varchar(16)', 'caption=Ключ');
+        $this->FLD('objectId', 'int', 'caption=Обект, input=none');
         $this->FLD('userOrRole', 'userOrRole(rolesType=team)', 'caption=Потребител/и');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Потребител/и');
         
-        $this->setDbUnique('key, userOrRole');
+        $this->setDbUnique('key, objectId, userOrRole');
     }
     
     
@@ -369,6 +370,20 @@ class core_Settings extends core_Manager
         // Извикваме интерфейсната функция
         $class->prepareSettingsForm($form);
         
+        // Ако в някое поле е зададено, че това е опция за всички потребители и кой може да го променя
+        $uSettingForAllArr = array();
+        $sForAllFieldArr = $form->selectFields("#settingForAll");
+        foreach ($sForAllFieldArr as $fName => $fOpt) {
+            
+            if (!isset($fOpt->settingForAll)) continue;
+            
+            if (trim($fOpt->settingForAll) && ($fOpt->settingForAll != 'settingForAll')) {
+                $uSettingForAllArr[$fName] = type_Keylist::toArray($fOpt->settingForAll);
+            } else {
+                $uSettingForAllArr[$fName] = '*';
+            }
+        }
+        
         // Ключа може да е променен в интерфейсния метод
         $key = $form->rec->_key;
         
@@ -415,10 +430,32 @@ class core_Settings extends core_Manager
             }
         }
         
+        $currCu = core_Users::getCurrent();
+        
         // Стойностите да се инпутват с правата на избрания потребител
         $sudo = FALSE;
         if (($form->rec->_userOrRole > 0) && ($form->rec->_userOrRole != core_Users::getCurrent())) {
             $sudo = core_Users::sudo($form->rec->_userOrRole);
+        }
+        
+        $allSystemId = type_UserOrRole::getAllSysTeamId();
+        
+        // Задаваме стойностите на полетата и ги забраняваме за промяна, ако е задено и текущия потребителя няма права
+        $sudoCu = core_Users::getCurrent();
+        if (!empty($uSettingForAllArr)) {
+            $sForAll = self::fetchKeyNoMerge($key, $allSystemId);
+            foreach ($uSettingForAllArr as $fName => $users) {
+                if (isset($sForAll[$fName])) {
+                    $form->setDefault($fName, $sForAll[$fName]);
+                }
+                
+                if (is_array($users)) {
+                    
+                    if (!$users[$sudoCu] && !$users[$currCu] && ($allSystemId != $form->rec->_userOrRole)) {
+                        $form->setReadOnly($fName);
+                    }
+                }
+            }
         }
         
         try {
@@ -459,19 +496,40 @@ class core_Settings extends core_Manager
             unset($recArr['_userOrRole']);
             unset($recArr['_className']);
             
+            $sForAllValArr = array();
+            
             // Премахваме всички празни стойности или defaul от enum
             foreach ((array)$recArr as $valKey => $value) {
+                
+                // Ако тази опция е за всички потребители
+                if (!empty($uSettingForAllArr) && $uSettingForAllArr[$valKey] && ($allSystemId != $form->rec->_userOrRole)) {
+                    $sForAllValArr[$valKey] = $value;
+                    unset($recArr[$valKey]);
+                }
                 
                 $instanceOfEnum = (boolean)($form->fields[$valKey]->type instanceof type_Enum);
                 
                 // Ако няма стойност или стойността е default за enum поле, да се премахне от масива
-                if ((!$value && !$instanceOfEnum) || ($value == 'default' && $instanceOfEnum)) {
+                if ((!$value && !$instanceOfEnum && ($value !== 0)) || ($value == 'default' && $instanceOfEnum)) {
+                    unset($sForAllValArr[$valKey]);
                     unset($recArr[$valKey]);
                 }
             }
             
             // Записваме данните
             self::setValues($key, (array)$recArr, $userOrRole);
+            
+            // Записване данните, които се отнасят за всички потребители
+            if (!empty($sForAllValArr)) {
+                
+                $oldSArr = self::fetchKeyNoMerge($key, $allSystemId);
+                
+                foreach ($sForAllValArr as $k => $v) {
+                    $oldSArr[$k] = $v;
+                }
+                
+                self::setValues($key, (array)$oldSArr, $allSystemId);
+            }
             
             $pKey = self::prepareKey($key);
             $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $pKey, $userOrRole));
@@ -520,6 +578,8 @@ class core_Settings extends core_Manager
     {
         $userOrRole = self::prepareUserOrRole($userOrRole);
         
+        list(, $objectId) = explode('::', $key);
+        
         // Ограничаваме дължината на ключа
         $key = self::prepareKey($key);
         
@@ -544,6 +604,7 @@ class core_Settings extends core_Manager
             $nRec = new stdClass();
             $nRec->key = $key;
             $nRec->userOrRole = $userOrRole;
+            $nRec->objectId = $objectId;
         } else {
             
             // Използваме стария запис

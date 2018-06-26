@@ -88,12 +88,14 @@
                      <td class='quiet nowrap aright' style='width:1%;'>|Общ обем|*:</td>
                      <td>[#volume#]</td>
                   </tr>
-                  <!--ET_BEGIN palletCountInput-->
+                  <!--ET_BEGIN logisticInfo-->
                   <tr>
-                     <td class='quiet nowrap aright' style='width:1%;'>|Брой палети|*:</td>
-                     <td>[#palletCountInput#]</td>
+                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span></td>
                   </tr>
-                  <!--ET_END palletCountInput-->
+                  <tr>
+                  	<td colspan="2" >[#logisticInfo#]</td>
+                  </tr>
+                  <!--ET_END logisticInfo-->
                </table>
                <!--ET_BEGIN note-->
                <hr>
@@ -111,4 +113,19 @@
             </td>
          </tr>
    </table>
+   <!--ET_BEGIN store_DocumentPackagingDetail-->
+   <div class='scrolling-holder' style="margin-top: 10px;">
+      <div class="details smallerText" >
+         <p style="margin: 10px 0 5px; font-weight:bold">Отговорно пазене</p>
+         [#store_DocumentPackagingDetail#]
+      </div>
+   </div>
+   <!--ET_END store_DocumentPackagingDetail-->
+   <!--ET_BEGIN PACKAGING_BTNS-->
+   <div style='margin-top:10px'>[#PACKAGING_BTNS#]</div>
+   <!--ET_END PACKAGING_BTNS-->
+
+   <div class='footerDocBlock'   style="border-top: none !important">
+      <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+   </div>
 </div>

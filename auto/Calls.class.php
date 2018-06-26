@@ -75,7 +75,7 @@ class auto_Calls extends core_Manager
 	/**
 	 * Добавя функция, която да се изпълни след определено време
 	 * 
-	 * @param varchar $event          - име на събитието
+	 * @param string $event          - име на събитието
 	 * @param mixed   $data           - данни за събитието
 	 * @param boolean $once           - дали да се добави само веднъж
 	 * @param boolean $callOnShutdown - да се изпълнили на шътдаун
@@ -116,9 +116,16 @@ class auto_Calls extends core_Manager
 		// Ако е вдигнат флага за автоматично извикване да сработи
 		if($mvc->callOnShutdown === TRUE){
 		    $mvc->logInfo('Извикване на автоматизациите на shutdown');
-		    core_Users::forceSystemUser();
+		    if(!core_Users::isSystemUser()){
+		    	core_Users::forceSystemUser();
+		    }
+		    
 		    $mvc->cron_Automations();
-		    core_Users::cancelSystemUser();
+		    
+		    if(core_Users::isSystemUser()){
+		    	core_Users::cancelSystemUser();
+		    }
+		    
 			unset($mvc->callOnShutdown);
 		}
 	}
@@ -200,9 +207,9 @@ class auto_Calls extends core_Manager
 					}
 				}
 			} catch (core_exception_Expect $e){
+			    self::logDebug("Грешка при изпълнението на автоматизация '{$rec->event}'");
+			    self::logDebug($e->getTraceAsString(), $rec);
 				reportException($e);
-				self::logDebug("Грешка при изпълнението на автоматизация '{$rec->event}'");
-				self::logDebug($e->getTraceAsString(), $rec);
 				$status = 'неуспешно';
 			}
 			

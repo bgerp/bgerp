@@ -22,7 +22,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, acc, rep_acc,rep_cat';
+    public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal';
 
     
     /**
@@ -321,26 +321,14 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 	{
 		$fld = cls::get('core_FieldSet');
 	
-		if($export === FALSE){
-    		$fld->FLD('code', 'varchar','caption=Код');
-    		$fld->FLD('name', 'varchar', 'caption=Артикул');
-    		$fld->FLD('measureId', 'varchar', 'caption=Мярка');
-    		$fld->FLD('baseQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Начално');
-    		$fld->FLD('delivered', 'double(smartRound,decimals=2)', 'caption=Количество->Доставено');
-    		$fld->FLD('converted', 'double(smartRound,decimals=2)', 'caption=Количество->Вложено');
-    		$fld->FLD('sold', 'double(smartRound,decimals=2)', 'caption=Количество->Продадено');
-    		$fld->FLD('blQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Крайно');
-
-		} else { 
-			$fld->FLD('code', 'varchar','caption=Код');
-    		$fld->FLD('name', 'varchar', 'caption=Артикул');
-    		$fld->FLD('measureId', 'varchar', 'smartCenter,caption=Мярка');
-    		$fld->FLD('baseQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Начално');
-    		$fld->FLD('delivered', 'double(smartRound,decimals=2)', 'caption=Количество->Доставено');
-    		$fld->FLD('converted', 'double(smartRound,decimals=2)', 'caption=Количество->Вложено');
-    		$fld->FLD('sold', 'double(smartRound,decimals=2)', 'caption=Количество->Продадено');
-    		$fld->FLD('blQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Крайно');
-		}
+		$fld->FLD('code', 'varchar','caption=Код');
+    	$fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+    	$fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
+    	$fld->FLD('baseQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Начално');
+    	$fld->FLD('delivered', 'double(smartRound,decimals=2)', 'caption=Количество->Доставено');
+    	$fld->FLD('converted', 'double(smartRound,decimals=2)', 'caption=Количество->Вложено');
+    	$fld->FLD('sold', 'double(smartRound,decimals=2)', 'caption=Количество->Продадено');
+    	$fld->FLD('blQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Крайно');
 	
 		return $fld;
 	}
@@ -357,7 +345,6 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 	{
 		$row = new stdClass();
 		
-		$isPlain = Mode::is('text', 'plain');
 		$Int = cls::get('type_Int');
 		$Date = cls::get('type_Date');
 		$Double = cls::get('type_Double');
@@ -365,12 +352,10 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 		$groArr  = array();
 		
 		$row->code = $dRec->code;
-		$row->name = cat_Products::getVerbal($dRec->productId, 'name');
+		$row->productId = cat_Products::getVerbal($dRec->productId, 'name');
 		
-		if(!Mode::is('text', 'plain')){
-			$link = cat_Products::getSingleUrlArray($dRec->productId);
-			$row->name = ht::createLinkRef($row->name, $link);
-		}
+		$link = cat_Products::getSingleUrlArray($dRec->productId);
+		$row->productId = ht::createLinkRef($row->productId, $link);
 		
 		$row->measureId = cat_UoM::getShortName($dRec->measureId);
 		$row->groupId = ($dRec->groupId !== 'total') ? cat_Groups::getVerbal($dRec->groupId, 'name') : tr('Общо');
@@ -378,7 +363,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 		foreach(array('baseQuantity', 'delivered', 'converted', 'sold', 'blQuantity') as $fld) {
 		    $row->{$fld} = $Double->toVerbal($dRec->{$fld});
 		    if($dRec->{$fld} < 0){
-		        $row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
+		    	$row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
 		    } elseif($dRec->{$fld} == 0){
 		    	$row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
 		    }
@@ -386,8 +371,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 		
 		return $row;
 	}
-    
-    
+	
+	
     /**
 	 * След вербализирането на данните
 	 *

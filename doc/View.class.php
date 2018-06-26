@@ -169,8 +169,8 @@ class doc_View extends core_Master
      * Извиква се преди подготовката на формата за редактиране/добавяне $data->form
      * 
      * @param crm_Locations $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
@@ -182,8 +182,8 @@ class doc_View extends core_Master
      * Извиква се преди подготовката на формата за редактиране/добавяне $data->form
      *
      * @param crm_Locations $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
@@ -191,9 +191,13 @@ class doc_View extends core_Master
         
         $tplArr = doc_TplManager::getTemplates($rec->clsId);
         
-        expect($tplArr);
+        expect($tplArr || cls::get($rec->clsId)->createView);
         
-        $data->form->setOptions('tplId', $tplArr);
+        if (empty($tplArr)) {
+            $data->form->setField('tplId', 'input=none');
+        } else {
+            $data->form->setOptions('tplId', $tplArr);
+        }
     }
     
     
@@ -266,7 +270,10 @@ class doc_View extends core_Master
         if (!Mode::isReadOnly()) {
             $clsInst = cls::get($rec->clsId);
             $row->subject = $clsInst->getLinkToSingle($rec->dataId);
-            $row->tplId = doc_TplManager::getLinkToSingle($rec->tplId, 'name');
+            
+            if ($rec->tplId) {
+                $row->tplId = doc_TplManager::getLinkToSingle($rec->tplId, 'name');
+            }
         } else {
             unset($row->tplId);
         }
@@ -278,7 +285,7 @@ class doc_View extends core_Master
      * 
      * @param doc_View $mvc
      * @param string|NULL $res
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {

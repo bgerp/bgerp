@@ -129,17 +129,6 @@ abstract class deals_ManifactureMaster extends core_Master
 		return $row;
 	}
 	
-
-	/**
-	 * Връща разбираемо за човека заглавие, отговарящо на записа
-	 */
-	public static function getRecTitle($rec, $escaped = TRUE)
-	{
-		$self = cls::get(get_called_class());
-    	 
-    	return tr("|{$self->singleTitle}|* №") . $rec->id;
-	}
-	
 	
 	/**
 	 * Връща масив от използваните нестандартни артикули в протоколa
@@ -197,7 +186,7 @@ abstract class deals_ManifactureMaster extends core_Master
     	// Може да добавяме като начало на тред само в папка на склад
     	$folderClass = doc_Folders::fetchCoverClassName($folderId);
     	
-    	return ($folderClass == 'store_Stores' || $folderClass == 'hr_Departments');
+    	return ($folderClass == 'store_Stores' || $folderClass == 'planning_Centers');
     }
     
     

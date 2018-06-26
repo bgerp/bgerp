@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -250,6 +250,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $tplArr[] = array('name' => 'Invoice short', 'content' => 'sales/tpl/InvoiceHeaderShortEN.shtml', 
         		'narrowContent' =>  'sales/tpl/InvoiceHeaderShortNarrowEN.shtml', 'lang' => 'en');
         $tplArr[] = array('name' => 'Фактура с цени в евро', 'content' => 'sales/tpl/InvoiceHeaderEuro.shtml', 'lang' => 'bg');
+        $tplArr[] = array('name' => 'Счетоводна фактура', 'content' => 'sales/tpl/InvoiceAccView.shtml', 'lang' => 'bg');
         
     	$res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
@@ -400,15 +401,18 @@ class sales_Invoices extends deals_InvoiceMaster
     	parent::inputInvoiceForm($mvc, $form);
     	
     	if($form->isSubmitted()){
-    		if(!$mvc->isAllowedToBePosted($rec, $warning)){
+    		
+    		// Валидна ли е датата (при само промяна няма да се изпълни)
+    		if(!$mvc->isAllowedToBePosted($rec, $warning) && $rec->__isBeingChanged !== TRUE){
     			$form->setError('date', $warning);
     		}
     		
     		if($rec->type != 'dc_note' && empty($rec->accountId)){
     			if($paymentMethodId = doc_Threads::getFirstDocument($rec->threadId)->fetchField('paymentMethodId')){
     				$paymentPlan = cond_PaymentMethods::fetch($paymentMethodId);
+    				$timeBalance = $paymentPlan->timeBalancePayment;
     				
-    				if(!empty($paymentPlan->timeBalancePayment) || $paymentPlan->type == 'bank' || $rec->paymentType == 'bank'){
+    				if((!empty($timeBalance) && $timeBalance > 86400) || $paymentPlan->type == 'bank' || $rec->paymentType == 'bank'){
     					$form->setWarning('accountId', "Сигурни ли сте, че не е нужно да се посочи и банкова сметка|*?");
     				}
     			}
@@ -493,7 +497,8 @@ class sales_Invoices extends deals_InvoiceMaster
     	}
     	
     	if($rec->state == 'active'){
-    		$amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount - 0.005;
+    		$minus = ($rec->type == 'dc_note') ? 0 : 0.005;
+    		$amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount - $minus;
     		$amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
     		$amount = round($amount, 2);
     		
@@ -821,5 +826,28 @@ class sales_Invoices extends deals_InvoiceMaster
    		}
    	
    		return $rec;
+   	}
+
+   	
+   	/**
+   	 * Функция, която се извиква след активирането на документа
+   	 */
+   	public static function on_AfterActivation($mvc, &$rec)
+   	{
+   		$rec = $mvc->fetchRec($rec);
+   		 
+   		if(!empty($rec->sourceContainerId)){
+   			$Source = doc_Containers::getDocument($rec->sourceContainerId);
+   			if($Source->isInstanceOf('store_ShipmentOrders')){
+   					
+   				// Ако източника на ф-та е ЕН, записва се че е към нея
+   				$sRec = $Source->fetch('fromContainerId,containerId');
+   				if(empty($sRec->fromContainerId)){
+   					$sRec->fromContainerId = $rec->containerId;
+   					$Source->getInstance()->save_($sRec, 'fromContainerId');
+   					doc_DocumentCache::cacheInvalidation($sRec->containerId);
+   				}
+   			}
+   		}
    	}
 }

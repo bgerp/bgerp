@@ -77,7 +77,7 @@ class uiext_Labels extends core_Manager
      */
     public function description()
     {
-    	$this->FLD('docClassId', 'class(interfaces=d,select=title,allowEmpty)', 'caption=Клас, mandatory,remember');
+    	$this->FLD('docClassId', 'class(interface=core_ManagerIntf,select=title,allowEmpty)', 'caption=Клас, mandatory,remember');
     	$this->FLD('title', 'varchar', 'caption=Заглавие, mandatory');
     	$this->FLD('color', 'color_Type()', 'caption=Фон, mandatory,tdClass=rightCol');
     	
@@ -86,24 +86,9 @@ class uiext_Labels extends core_Manager
     
     
     /**
-     * Подготвя формата за въвеждане на ценови правила за клиент
-     */
-    protected static function on_AfterPrepareEditForm($mvc, $res, $data)
-    {
-    	$form = &$data->form;
-    	
-    	// Определяне на кои класове са допустими за избор
-    	$options = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
-    	$options += core_Classes::getOptionsByInterface('frame2_ReportIntf', 'title');
-    	$options += core_Classes::getOptionsByInterface('frame_ReportSourceIntf', 'title');
-    	$form->setOptions('docClassId', $options);
-    }
-    
-    
-    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if(isset($form->rec->title)){
     		$form->rec->title = str::mbUcfirst($form->rec->title);
@@ -169,7 +154,7 @@ class uiext_Labels extends core_Manager
      * @param array $rows               - масив със вербалните записи
      * @param array $listFields         - колонките
      * @param array $hashFields         - кои полета ще служат за хеш
-     * @param varchar $colName          - Как ще се казва колонката за избора на тагове
+     * @param string $colName          - Как ще се казва колонката за избора на тагове
      * @param core_ET $tpl              - шаблон за рендиране
      * @param core_FieldSet &$fieldset  - шаблон за рендиране
      * @param void
@@ -235,7 +220,7 @@ class uiext_Labels extends core_Manager
      * 
      * @param int $containerId - ид на контейнера
      * @param int $classId     - ид на класа, от който ще се избират таговете
-     * @param varchar $hash    - хеш на реда
+     * @param string $hash    - хеш на реда
      * @return text            - инпута за избор на тагове
      */
     public static function renderLabel($containerId, $classId, $hash)

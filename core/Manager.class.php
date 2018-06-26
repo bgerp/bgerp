@@ -265,9 +265,9 @@ class core_Manager extends core_Mvc
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor($data->cmd, $data->rec, NULL, $data->retUrl);
         
-        $this->delete($data->id);
+        $this->logInAct('Изтриване', $data->id);
         
-        $this->logWrite('Изтриване', $data->id);
+        $this->delete($data->id);
         
         return new Redirect($data->retUrl);
     }
@@ -746,6 +746,7 @@ class core_Manager extends core_Mvc
         
         // Попълваме таблицата с редовете
         setIfNot($data->listTableMvc, clone $this);
+        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, TRUE);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме долния тулбар
@@ -810,7 +811,10 @@ class core_Manager extends core_Mvc
     {
         if (count($data->listFilter->showFields)) {
             
-            return new ET("<div class='listFilter'>[#1#]</div>", $data->listFilter->renderHtml(NULL, $data->listFilter->rec));
+            $tpl = new ET("<div class='listFilter'>[#1#]</div>", $data->listFilter->renderHtml(NULL, $data->listFilter->rec));
+            core_Form::preventDoubleSubmission($tpl, $data->listFilter);
+            
+            return $tpl;
         }
     }
     
@@ -841,12 +845,9 @@ class core_Manager extends core_Mvc
         // Кои ще са колоните на таблицата
         $data->listFields = arr::make($data->listFields, TRUE);
         
-        // Имали колони в които ако няма данни да не се показват ?
-        $hideColumns = arr::make($this->hideListFieldsIfEmpty, TRUE);
-       
         // Ако има колони за филтриране, филтрираме ги
-        if(count($hideColumns)){
-        	$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $hideColumns);
+        if(count($data->hideListFieldsIfEmpty)){
+        	$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $data->hideListFieldsIfEmpty);
         }
         
         // Рендираме таблицата
@@ -1190,5 +1191,29 @@ class core_Manager extends core_Mvc
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Връща иконата на еденичния изглед
+     *
+     * @param int $id
+     * @param string
+     */
+    public function getSingleIcon_($id)
+    {
+    	return $this->singleIcon;
+    }
+    
+    
+    /**
+     * Връща еденичното заглавие
+     *
+     * @param int $id
+     * @param string
+     */
+    public function getSingleTitle_($id)
+    {
+    	return tr($this->singleTitle);
     }
 }

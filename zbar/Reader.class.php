@@ -39,7 +39,7 @@ class zbar_Reader
         if (!$filePath) return $barcodesArr;
         
         // Изпълняваме командата за намиране на баркодове
-        exec("zbarimg " . escapeshellarg($filePath), $allBarcodesArr, $errorCode);
+        exec("zbarimg -q " . escapeshellarg($filePath), $allBarcodesArr, $errorCode);
         
         // Изтриване на временния файл
         fileman::deleteTempPath($filePath);

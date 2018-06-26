@@ -97,7 +97,7 @@ class distro_CopyDriver extends core_Mvc
     /**
      * Връща стринга, който ще се пуска за обработка
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return string
      * 
@@ -134,7 +134,7 @@ class distro_CopyDriver extends core_Mvc
             $copyExec .= "sshpass -p {$pass} ";
         }
         
-        $copyExec .= "scp -P{$port} {$srcFilePath} {$user}@{$host}:{$destFilePath};";
+        $copyExec .= "scp -o StrictHostKeyChecking=no -P{$port} {$srcFilePath} {$user}@{$host}:{$destFilePath};";
         
         return $copyExec;
     }
@@ -155,7 +155,7 @@ class distro_CopyDriver extends core_Mvc
     /**
      * Вика се след приключване на обработката
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      *
      * @see distro_ActionsDriverIntf
      */
@@ -207,7 +207,7 @@ class distro_CopyDriver extends core_Mvc
      *
      * @param distro_CopyDriver $mvc
      * @param distro_Actions $embeder
-     * @param stdObject $data
+     * @param stdClass $data
      */
     public static function on_AfterPrepareEditForm($mvc, $embeder, $data)
     {

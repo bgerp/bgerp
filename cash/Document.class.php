@@ -35,7 +35,7 @@ abstract class cash_Document extends deals_PaymentDocument
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, cash_Wrapper, plg_Sorting, acc_plg_Contable,
-                     plg_Clone,doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,
+                     plg_Clone,doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoice,acc_plg_DocumentSummary,
                      plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_plg_HidePrices,
                      doc_EmailCreatePlg, cond_plg_DefaultValues, doc_SharablePlg,deals_plg_SetTermDate';
     
@@ -43,13 +43,13 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'amount';
+    public $priceFields = 'amount,amountVerbal';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "termDate=Очаквано,valior=Вальор, title=Документ, reason, folderId, currencyId=Валута, amount,state, createdOn, createdBy";
+    public $listFields = "termDate=Очаквано,valior=Вальор, title=Документ, reason, fromContainerId, folderId, currencyId=Валута, amount,state, createdOn, createdBy";
     
     
     /**
@@ -115,7 +115,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'valior, contragentName, reason, id';
+    public $searchFields = 'valior, contragentName, reason';
     
     
     /**
@@ -155,6 +155,12 @@ abstract class cash_Document extends deals_PaymentDocument
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = FALSE;
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, termDate, valior, modifiedOn';
     
     
     /**
@@ -350,17 +356,6 @@ abstract class cash_Document extends deals_PaymentDocument
 
 
     /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(get_called_class());
-    	 
-    	return tr("|{$self->singleTitle}|* №") . $rec->id;
-    }
-
-
-    /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
@@ -459,7 +454,7 @@ abstract class cash_Document extends deals_PaymentDocument
     				$rateFromCurrencyId = $rec->dealCurrencyId;
     				$rateToCurrencyId = $rec->currencyId;
     			} else {
-    				$rate = $rec->amount / $rec->amountDeal;
+    				@$rate = $rec->amount / $rec->amountDeal;
     				$rateFromCurrencyId = $rec->currencyId;
     				$rateToCurrencyId = $rec->dealCurrencyId;
     			}

@@ -179,35 +179,54 @@ class core_Classes extends core_Manager
     
     /**
      * Връща опции за селект с устройствата, имащи определения интерфейс
+     * 
+     * @param   string  $interfaces Имена на интерфейси, разделени с вертикална черта
+     * @param   string  $titlePart  Коя част от записа на класа за се използва за заглавие
+     *
+     * @return  array               Масив с опции от вида classId => title
      */
-    static function getOptionsByInterface($interface, $title = 'name')
+    static function getOptionsByInterface($interfaces, $titlePart = 'name')
     {
-        $params = array($interface, $title, core_Lg::getCurrent());
+        $params = array($interfaces, $titlePart, core_Lg::getCurrent());
  
         return core_Cache::getOrCalc('getOptionsByInterface', $params, function($params)
         {
-            $interface = $params[0];
-            $title = $params[1];
+            $interfaces = $params[0];
+            $titlePart  = $params[1];
 
             $cC = cls::get('core_Classes');
+            
+            $interfaceCond = '';
 
-            if($interface) {
-                // Вземаме инстанция на core_Interfaces
-                $Interfaces = cls::get('core_Interfaces');
+            if($interfaces) {
+
+                $interfacesArr = explode('|', $interfaces);
                 
-                $interfaceId = $Interfaces->fetchByName($interface);
-                
-                // Очакваме валиден интерфeйс
-                expect($interfaceId);
-                
-                $interfaceCond = " AND #interfaces LIKE '%|{$interfaceId}|%'";
-            } else {
-                $interfaceCond = '';
-            }
+                $interfaceCondArr = array();
+
+                foreach($interfacesArr as $interface) {
+                    $interface = trim($interface);
+                    if(!$interface) continue;
+
+                    // Вземаме инстанция на core_Interfaces
+                    $Interfaces = cls::get('core_Interfaces');
+                    
+                    $interfaceId = $Interfaces->fetchByName($interface);
+                    
+                    // Очакваме валиден интерфeйс
+                    expect($interfaceId);
+                    
+                    $interfaceCondArr[] = "#interfaces LIKE '%|{$interfaceId}|%'";
+                }
+
+                if(count($interfaceCondArr)) {
+                    $interfaceCond =  ' AND ' . '(' . implode(' OR ', $interfaceCondArr) . ')';
+                }
+            } 
+
+            $options = core_Classes::makeArray4Select($titlePart, "#state = 'active'" . $interfaceCond);
             
-            $options = core_Classes::makeArray4Select($title, "#state = 'active'" . $interfaceCond);
-            
-            if(is_array($options)){
+            if(is_array($options) && $titlePart == 'title'){
                 foreach($options as $cls => &$name) {
                     $name = core_Classes::translateClassName($name);
                 }
@@ -362,6 +381,7 @@ class core_Classes extends core_Manager
         self::rebuild();
     }
     
+
     
     /**
      * Прецизира информацията за интерфейсите на всички 'активни' класове
@@ -370,13 +390,22 @@ class core_Classes extends core_Manager
     static function rebuild()
     {
         $query = self::getQuery();
-        
+        $res = "<li>Обновяване на информацията за класовете</li>";
+
         while($rec = $query->fetch("#state = 'active'")) {
             
-            if(!cls::load($rec->name, TRUE)) {
+            $load = cls::load($rec->name, TRUE);
+            if($load) {
+                $inst = cls::get($rec->name);
+            }
+            if(!$load) {
                 $rec->state = 'closed';
-                self::save($rec);
+                self::save($rec, 'state');
                 $res .= "<li style='color:red;'>Деактивиран беше класа {$rec->name} защото липсва кода му.</li>";
+            } elseif($inst->deprecated) {
+                $res .= "<li style='color:green;'>Деактивиран беше класа {$rec->name} защото е пенсиониран.</li>";
+                $rec->state = 'closed';
+                self::save($rec, 'state');
             } else {
                 core_Classes::add($rec->name);
             }

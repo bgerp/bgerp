@@ -169,7 +169,7 @@ class cal_TaskDocuments extends core_Detail
      * Изпълнява се след създаване на нов запис
      *
      * @param cal_TaskDocuments $mvc
-     * @param stdObject $rec
+     * @param stdClass          $rec
      */
 	public static function on_AfterCreate($mvc, $rec)
 	{
@@ -186,9 +186,9 @@ class cal_TaskDocuments extends core_Detail
     /**
      * 
      * @param cal_TaskDocuments $mvc
-     * @param integer $id
-     * @param stdObject $rec
-     * @param NULL|string $fields
+     * @param integer       $id
+     * @param stdClass      $rec
+     * @param NULL|string   $fields
      */
     static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
@@ -395,8 +395,8 @@ class cal_TaskDocuments extends core_Detail
      * Преди подготовката на полетата за листовия изглед
      * 
      * @param cal_TaskDocuments $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     public static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
@@ -407,7 +407,7 @@ class cal_TaskDocuments extends core_Detail
 	/**
 	 * 
 	 * 
-	 * @param stdObject $data
+	 * @param stdClass $data
 	 */
 	public function prepareDetail_($data)
 	{
@@ -430,7 +430,7 @@ class cal_TaskDocuments extends core_Detail
 	/**
 	 * 
 	 * 
-	 * @param stdObject $data
+	 * @param stdClass $data
 	 */
 	public function renderDetail_($data)
 	{

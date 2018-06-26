@@ -1,0 +1,23 @@
+<div class='singleView'>
+    [#SingleToolbar#]
+    <h3>
+        <div style="padding:5px" class = "[#STATE_CLASS#]">|Етикет|* 
+            <b style="color:green;display:inline-block;word-break:break-all">[#title#]</b>
+        </div>
+    </h3>
+    <div class="preview-label">
+        [#PreviewLabel#]
+    </div>
+    <!--ET_BEGIN printedCnt-->
+	<div><span class="quiet">|Отпечатъци|*: </span> [#printedCnt#] </div>
+	<!--ET_END printedCnt-->
+	<div style='margin-bottom: 5px;'><span class="quiet">|Шаблон|*: </span> [#templateId#] </div>
+	<div style='margin-bottom: 5px;'><span class="quiet">|Медия|*: </span> [#mediaId#] </div>
+	<div style='margin-bottom: 5px;'><span class="quiet">|Брой етикети|*: </span> [#labelsCnt#] </div>
+	<div style='margin-bottom: 5px;'><span class="quiet">|Брой копия|*: </span> [#copiesCnt#] </div>
+	<!--ET_BEGIN source-->
+	<div style='margin-bottom: 5px;'><span class="quiet">|Източник|*: </span> [#source#] </div>
+	<!--ET_END source-->
+	<div style='margin-bottom: 5px;'><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+	<div><span class="quiet">|Модифициранe|*: </span> |от|* [#modifiedBy#] |на|* [#modifiedOn#]</div>
+</div>

@@ -532,7 +532,7 @@ class crm_Companies extends core_Master
     /**
      * Проверява дали полето име и полето ЕГН се дублират. Ако се дублират сетваме грешка.
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $fields
      * 
      * @return string
@@ -596,7 +596,7 @@ class crm_Companies extends core_Master
     /**
      * Връща масив с възможните съвпадения
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $fields
      * 
      * @return array
@@ -742,14 +742,14 @@ class crm_Companies extends core_Master
             $data->title = "Фирми в групата|* \"<b style='color:green'>|" .
             $mvc->Groups->getTitleById($data->listFilter->rec->groupId) . "|*</b>\"";
         } elseif($data->listFilter->rec->search) {
-            $data->title = "Фирми отговарящи на филтъра|* \"<b style='color:green'>" .
+            $data->title = "Фирми, отговарящи на филтъра|* \"<b style='color:green'>" .
             type_Varchar::escape($data->listFilter->rec->search) .
             "</b>\"";
         } elseif($data->listFilter->rec->alpha) {
             if($data->listFilter->rec->alpha{0} == '0') {
                 $data->title = "Фирми, които започват с не-буквени символи";
             } else {
-                $data->title = "Фирми започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
+                $data->title = "Фирми, започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
             }
         } else {
             $data->title = NULL;
@@ -795,8 +795,10 @@ class crm_Companies extends core_Master
             if($rec->folderName) {  
                 $row->title = $row->name;
             }
+            
+            // Разширяване на $row
+            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec);
         }
-        
         
         // Дали има права single' а на тазу фирма
         $canSingle = static::haveRightFor('single', $rec);
@@ -866,7 +868,7 @@ class crm_Companies extends core_Master
      * 
      * @param crm_Companies $mvc
      * @param integer $id
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string|NULL $saveFileds
      */
     protected static function on_AfterSave(crm_Companies $mvc, &$id, $rec, $saveFileds = NULL)
@@ -885,6 +887,7 @@ class crm_Companies extends core_Master
         
         // Ако се редактира текущата фирма, генерираме лог от данните
         if (crm_Setup::BGERP_OWN_COMPANY_ID == $rec->id) {
+            hr_Departments::forceFirstDepartment($rec->name);
             $mvc->prepareCompanyLogo();
         }
     }
@@ -913,8 +916,12 @@ class crm_Companies extends core_Master
     public static function getCompanyFontSize($companyName)
     {
         $companyNameLen = mb_strlen($companyName);
-        
-        if ($companyNameLen > 37) {
+
+        if ($companyNameLen > 48) {
+            $companyFontSize = 80;
+        } elseif ($companyNameLen > 42) {
+            $companyFontSize = 90;
+        } elseif ($companyNameLen > 37) {
             $companyFontSize = 100;
         } elseif ($companyNameLen > 33) {
             $companyFontSize = 110;
@@ -1034,12 +1041,38 @@ class crm_Companies extends core_Master
                 $email = $emailsArr[0];
             }
         }
-        
+
+        if (mb_strlen($cRec->website) > 32 || mb_strlen($email) > 20) {
+            $tpl->append(58, 'smallFontSize');
+        } else {
+            $tpl->append(66, 'smallFontSize');
+        }
         $tpl->append($fAddres, 'address');
-        $tpl->append($tel, 'tel');
-        $tpl->append($fax, 'fax');
-        $tpl->append($cRec->website, 'site');
-        $tpl->append($email, 'email');
+        
+        if (trim($tel)) {
+            $tpl->append($tel, 'tel');
+        } else {
+            $tpl->removeBlock('tel');
+        }
+        
+        if (trim($fax)) {
+            $tpl->append($fax, 'fax');
+        } else {
+            $tpl->removeBlock('fax');
+        }
+        
+        if (trim($cRec->website)) {
+            $tpl->append($cRec->website, 'site');
+        } else {
+            $tpl->removeBlock('site');
+        }
+        
+        if (trim($email)) {
+            $tpl->append($email, 'email');
+        } else {
+            $tpl->removeBlock('email');
+        }
+        
         $tpl->append($baseColor, 'baseColor');
         $tpl->append($activeColor, 'activeColor');
         
@@ -1192,8 +1225,9 @@ class crm_Companies extends core_Master
                 $qArr = explode(' ', $q);
             }
             
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
             foreach($qArr as $w) {
-                $query->where(array("#searchFieldXprLower REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
+                $query->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         }
  
@@ -1718,8 +1752,8 @@ class crm_Companies extends core_Master
     /**
      * Създава папка на фирма по указаните данни
      */
-    public static function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId)
-    {
+    public static function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId, $inCharge, $access, $shared)
+    { 
         $rec = new stdClass();
         $rec->name = $company;
         
@@ -1733,7 +1767,13 @@ class crm_Companies extends core_Master
         $rec->email = $email;
         $rec->tel   = $tel;
         $rec->fax   = $fax;
-        $rec->website = $website;
+        $rec->website = $website;        
+            
+        // Достъп/права
+        $rec->inCharge = $inCharge;
+        $rec->access   = $access;
+        $rec->shared = $shared;
+
         
         if($vatId){
         	// Данъчен номер на фирмата
@@ -1742,7 +1782,7 @@ class crm_Companies extends core_Master
         }
         
         $Companies = cls::get('crm_Companies');
-        
+   
         $folderId = $Companies->forceCoverAndFolder($rec);
          
         return $folderId;
@@ -2057,9 +2097,10 @@ class crm_Companies extends core_Master
      * @param int $id - ид на контрагент
      * @param boolean $translitarate - дали да се транслитерира адреса
      * @param boolean|NULL $showCountry - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     * @param boolean $showAddress      - да се показва ли адреса
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL)
+    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL, $showAddress = TRUE)
     {
     	expect($rec = $this->fetchRec($id));
     	
@@ -2081,6 +2122,8 @@ class crm_Companies extends core_Master
     	$Varchar = cls::get('type_Varchar');
     	foreach (array('pCode', 'place', 'address') as $fld){
     		if($rec->{$fld}){
+    			if($fld == 'address' && $showAddress !== TRUE) continue;
+    			
     			$obj->{$fld} = $Varchar->toVerbal($rec->{$fld});
     			if($translitarate === TRUE){
     				if($fld != 'pCode'){
@@ -2100,7 +2143,7 @@ class crm_Companies extends core_Master
      * Форсира контрагент в дадена група
      * 
      * @param int $id -ид на продукт
-     * @param varchar $groupSysId - sysId или ид на група
+     * @param string $groupSysId - sysId или ид на група
      * @param boolean $isSysId  - дали е систем ид
      */
     public static function forceGroup($id, $groupSysId, $isSysId = TRUE)
@@ -2343,7 +2386,8 @@ class crm_Companies extends core_Master
      * Дали артикулът създаден в папката трябва да е публичен (стандартен) или не
      *
      * @param mixed $id - ид или запис
-     * @return public|private|template - Стандартен / Нестандартен / Шаблон
+     * 
+     * @return string public|private|template - Стандартен / Нестандартен / Шаблон
      */
     public function getProductType($id)
     {
@@ -2360,4 +2404,72 @@ class crm_Companies extends core_Master
     }
 
 
+    /**
+     * След взимане на иконката за единичния изглед
+     * 
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param int $id
+     */
+    public static function on_AfterGetSingleIcon($mvc, &$res, $id)
+    {
+    	if (core_Users::isContractor() || !haveRole('user')) return ;
+    	
+    	if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+    		if ($extRec->overdueSales == 'yes'){
+    			$res = 'img/16/stop-sign.png';
+    		}
+    	}
+    }
+
+    /**
+     * След взимане на заглавието за единичния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param int $id
+     */
+    public static function on_AfterGetSingleTitle($mvc, &$res, $id)
+    {
+        if(core_Users::isContractor()) return;
+        
+    	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+            if($extRec->overdueSales == 'yes'){
+                $res = "<span class='dangerTitle'>{$res}</span>";
+            }
+        }
+    }
+    
+    
+    /**
+     * Обновяване на адресните данни на фирмата
+     * 
+     * @param int $folderId         - ид на папка
+     * @param string $name          - име на папката
+     * @param string $vatId         - ват номер
+     * @param int $countryId        - ид на държава
+     * @param string|NULL $pCode    - п. код
+     * @param string|NULL $place    - населено място
+     * @param string|NULL $address  - адрес
+     * @return void
+     */
+    public static function updateContactDataByFolderId($folderId, $name, $vatId, $countryId, $pCode, $place, $address)
+    {
+    	$saveFields = array();
+    	$rec = self::fetch("#folderId = {$folderId}");
+    	$arr = array('name' => $name, 'vatId' => $vatId, 'country' => $countryId, 'pCode' => $pCode, 'place' => $place, 'address' => $address);
+    	
+    	// Обновяване на зададените полета
+    	foreach ($arr as $name => $value){
+    		if(!empty($value) && $rec->{$name} != $value){
+    			$rec->{$name} = $value;
+    			$saveFields[] = $name;
+    		}
+    	}
+    	
+    	// Ако има полета за обновяване
+    	if(count($saveFields)){
+    		self::save($rec, $saveFields);
+    	}
+    }
 }

@@ -16,6 +16,9 @@
                     <div style="padding-top:5px;">
                         № <span class="bigData">[#id#]</span> /
                         <span class="bigData">[#valior#]</span>
+                        <!--ET_BEGIN reff-->
+                        <div>|Ваш реф|*: <span class="bigData">[#reff#]</span></div>
+                        <!--ET_END reff-->
                     </div>
                     <!--ET_BEGIN state-->
                     <div class="state [#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
@@ -161,6 +164,11 @@
                             <td class='nowrap'><span class="sign_names">/ [#username#] /</span></td>
                         </tr>
                     </table>
+                </td>
+            </tr>
+            <tr class='footerDocInfo'>
+                <td colspan="3">
+                    <div class='aright'>This document is created by <b><a href='http://bgerp.com'>bgERP</a></b></div>
                 </td>
             </tr>
         </tbody>

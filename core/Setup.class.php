@@ -39,12 +39,6 @@ defIfNot('EF_ROUND_SIGNIFICANT_DIGITS', '6');
 
 
 /**
- * Минимален брой видими нули при подравняване
- */
-defIfNot('CORE_MIN_ALIGN_DIGITS', 2);
-
-
-/**
  * @todo Чака за документация...
  */
 defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
@@ -167,6 +161,12 @@ defIfNot('CORE_SYSTEM_NICK', '@system');
 
 
 /**
+ * Име на системния потребител
+ */
+defIfNot('CORE_SYSTEM_NAME', 'Системата');
+
+
+/**
  * Потребителя, който ще се използва за първи администратор в системата
  */
 defIfNot('CORE_FIRST_ADMIN', '');
@@ -188,6 +188,23 @@ defIfNot('CORE_MAX_ROWS_FOR_PRINTING', 1000);
 
 
 /**
+ * Версия на кода, към която са актуални данните в базата
+ * По дефолт, стойността е равна на версия "Ореляк" - последната, 
+ * която носи всички миграции. Тази константа не трябва да се
+ * променя при по-нови версии
+ */
+define('CORE_LAST_DB_VERSION', '17.43-Orelyak');
+
+
+/**
+ * Версия на кода която работи в момента
+ * Тази константа не трябва да се ползва с core_Setup::getConfig(),
+ * а само с: core_setup::CURRENT_VERSION
+ */
+define('CORE_CODE_VERSION', '17.43-Orelyak');
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -201,7 +218,12 @@ defIfNot('CORE_MAX_ROWS_FOR_PRINTING', 1000);
  */
 class core_Setup extends core_ProtoSetup {
     
+    /**
+     * Последна стабилна версия на цялата система
+     */
+    const CURRENT_VERSION = CORE_CODE_VERSION;
     
+
     /**
      * Версия на пакета
      */
@@ -236,7 +258,10 @@ class core_Setup extends core_ProtoSetup {
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-               
+           'CORE_LAST_DB_VERSION' => array('varchar(32)', 'caption=Версия на системата->База данни,readOnly'),
+            
+           'CORE_CODE_VERSION' => array('varchar(32)', 'caption=Версия на системата->Код,readOnly'),
+
            'EF_DATE_FORMAT'   => array ('enum(d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', 'caption=Формат по подразбиране за датата->Десктоп, customizeBy=user'),
            
            'EF_DATE_NARROW_FORMAT'   => array ('enum(d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99, d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999)', 'caption=Формат по подразбиране за датата->Мобилен, customizeBy=user'),
@@ -257,8 +282,10 @@ class core_Setup extends core_ProtoSetup {
 
            'EF_APP_TITLE'   => array ('varchar(16)', 'caption=Наименование на приложението->Име'),
             
-           'CORE_SYSTEM_NICK'   => array ('varchar(16)', 'caption=Ник на системния потребител->Ник'),
-            
+           'CORE_SYSTEM_NICK'   => array ('varchar(16)', 'caption=Системен потребител->Ник'),
+
+           'CORE_SYSTEM_NAME'   => array ('varchar(16)', 'caption=Системен потребител->Име'),
+
            'CORE_FIRST_ADMIN'   => array ('user(roles=admin, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Главен администратор на системата->Потребител'),
        
            'CORE_LOGIN_INFO'   => array ('varchar', 'caption=Информация във формата за логване->Текст'),
@@ -288,8 +315,7 @@ class core_Setup extends core_ProtoSetup {
            'CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се регистрират нови потребители от логин формата->Избор'),
            
            'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),
-        
-           'CORE_MIN_ALIGN_DIGITS' => array('int', 'caption=Минимален брой видими нули при подравняване->Брой'),
+              
     );
     
     
@@ -722,5 +748,82 @@ class core_Setup extends core_ProtoSetup {
         }
 
         return $res;
+    }
+    
+    
+    /**
+     * Зареждане на данни
+     */
+    function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        
+        $res .= $this->callMigrate('addObjectIdFromKey', 'core');
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Миграция за добавяне на objectId от ключа
+     */
+    public static function addObjectIdFromKey()
+    {
+        $cQuery = core_Settings::getQuery();
+        $cQuery->where("#objectId IS NULL");
+        $cQuery->where("#key LIKE 'doc_Folders%'");
+        $cQuery->orWhere("#key LIKE 'doc_Threads%'");
+        
+        $maxArr = array();
+        
+        $dFolders = doc_Folders::getQuery();
+        $dFolders->XPR('max', 'int', "MAX(#id)");
+        $dFolders->show('max');
+        $fRec = $dFolders->fetch();
+        $maxArr['doc_Folders'] = $fRec->max;
+        
+        $dThreads = doc_Threads::getQuery();
+        $dThreads->XPR('max', 'int', "MAX(#id)");
+        $dThreads->show('max');
+        $tRec = $dThreads->fetch();
+        $maxArr['doc_Threads'] = $tRec->max;
+        
+        $fKeyArr = array();
+        
+        while ($cRec = $cQuery->fetch()) {
+            
+            $kStr = 'doc_Threads';
+            if (stripos($cRec->key, 'doc_Folders') === 0) {
+                $kStr = 'doc_Folders';
+            }
+            
+            if (strpos($cRec->key, '::')) {
+                list(, $fId) = explode('::', $cRec->key);
+                $fKeyArr[$kStr][$fId] = $cRec->key;
+            } else {
+                $fId = 1000;
+            }
+            
+            while (TRUE) {
+                if (!isset($fKeyArr[$kStr][$fId])) {
+                    $fKeyArr[$kStr][$fId] = core_Settings::prepareKey("{$kStr}::" . $fId);
+                }
+                
+                if ($fKeyArr[$kStr][$fId] == $cRec->key) {
+                    
+                    $cRec->objectId = $fId;
+                    
+                    try {
+                        core_Settings::save($cRec, 'objectId');
+                    } catch (core_exception_Expect $e) {
+                        reportException($e);
+                        continue;
+                    }
+                    break;
+                }
+                
+                if ($fId++ > $maxArr[$kStr]) break;
+            }
+        }
     }
 }

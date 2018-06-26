@@ -35,20 +35,26 @@ abstract class bank_Document extends deals_PaymentDocument
 	 * Неща, подлежащи на начално зареждане
 	 */
 	public $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_RejectContoDocuments, acc_plg_Contable,
-         plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,doc_plg_HidePrices,
+         plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoice, acc_plg_DocumentSummary,doc_plg_HidePrices,
          plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg, doc_SharablePlg, deals_plg_SetTermDate';
 	
 	
 	/**
 	 * Полета свързани с цени
 	 */
-	public $priceFields = 'amount';
+	public $priceFields = 'amount,amountVerbal';
+	
+	
+	/**
+	 * Кой може да избира ф-ра по документа?
+	 */
+	public $canSelectinvoice = 'cash, ceo, purchase, sales, acc';
 	
 	
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = "valior, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy";
+	public $listFields = "valior, title=Документ, reason, fromContainerId, folderId, currencyId, amount, state, createdOn, createdBy";
 	
 	
 	/**
@@ -96,7 +102,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	/**
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
-	public $searchFields = 'reason, contragentName, amount, id';
+	public $searchFields = 'reason, contragentName, amount';
 	
 	
 	/**
@@ -313,17 +319,6 @@ abstract class bank_Document extends deals_PaymentDocument
 		$tpl->append($handle, 'handle');
 	
 		return $tpl->getContent();
-	}
-	
-	
-	/**
-	 * Връща разбираемо за човека заглавие, отговарящо на записа
-	 */
-	public static function getRecTitle($rec, $escaped = TRUE)
-	{
-		$self = cls::get(get_called_class());
-    	 
-    	return tr("|{$self->singleTitle}|* №") . $rec->id;
 	}
 
 

@@ -56,7 +56,7 @@ class core_Locks extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_SystemWrapper, plg_RowTools';
+    var $loadList = 'plg_SystemWrapper, plg_RowTools,plg_Sorting';
     
     
     /**
@@ -96,7 +96,10 @@ class core_Locks extends core_Manager
         $objectId = str::convertToFixedKey($objectId, 32, 4);
         
         $lockExpire = time() + $maxDuration;
-        
+
+        // Увеличаваме времето за изпълнение (евентуално) за времето до изтичане на лок-а
+        core_App::setTimeLimit($maxDuration);
+
         $rec = $Locks->locks[$objectId];
         
         // Ако този обект е заключен от текущия хит, връщаме TRUE
@@ -106,7 +109,7 @@ class core_Locks extends core_Manager
             // отразяваме я в модела
             if($rec->lockExpire < $lockExpire) {
                 $rec->lockExpire = $lockExpire;
-                $Locks->save($rec);
+                $Locks->save($rec, 'lockExpire');
                 $Locks->locks[$objectId] = $rec;
                 
                 // Дали да се изтрие преди излизане от хита - за асинхронни процеси
@@ -167,6 +170,7 @@ class core_Locks extends core_Manager
         $objectId = str::convertToFixedKey($objectId, 32, 4);
         
         $Locks = cls::get('core_Locks');
+	unset($Locks->locks[$objectId]);
         $Locks->delete(array("#objectId = '[#1#]'", $objectId));
     }
     
@@ -235,4 +239,14 @@ class core_Locks extends core_Manager
             $maxTrays--;
         }
     }
+
+    
+    /**
+     * Изпълнява се преди подготовката на показваните редове
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('lockExpire', 'DESC');
+    }
+
 }

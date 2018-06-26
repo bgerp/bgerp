@@ -600,6 +600,7 @@ if($step == 2) {
                 
                 // Ако имаме команда за обновяване на репозитори - изпълняваме я
                 if ($update == $repoName ||  $update == 'all') {
+                    core_SystemLock::block("Pulling new bgERP code...", 15);
                     gitPullRepo($repoPath, $log, $branch);
                 }
                  
@@ -640,6 +641,9 @@ if($step == 2) {
 if($step == 3) {
     
     $log = array();
+
+    // Ако има по-нова версия, към която да се мигрира базата данни - правим чекаут на нейния таг
+    checkoutMaxVersion($log);
 
     // Проверяваме дали имаме достъп за четене/запис до следните директории
     $log[] = 'h:Проверка и създаване на работните директории:';
@@ -892,7 +896,7 @@ if($step == 3) {
     // Статистика за различните класове съобщения
     $stat = array();
 
-    $texts['body'] =  logToHtml($log, $stat);
+    $texts['body'] .=  logToHtml($log, $stat);
     
     if($stat['err']) {
         $texts['body'] = "<ul class='msg stats'><li>" .
@@ -1156,6 +1160,7 @@ echo $layout;
 ob_flush();
 
 
+
 die;
 
 //=======================
@@ -1282,14 +1287,12 @@ function gitSetBranch($repoPath, &$log, $branch = NULL)
             return FALSE;
         } else {
             // Ако и двете команди са успешни значи всичко е ОК
-            $log[] = "info: [<b>$repoName</b>] превключен {$requiredBranch} бранч.";
+            $log[] = "new: [<b>$repoName</b>] превключен {$requiredBranch} бранч.";
             
             return TRUE;
         }
         
     }
-
-//    $log[] = "err: [<b>$repoName</b>] Грешка при превключване в бранч {$requiredBranch}";
     
     return FALSE;
 }
@@ -1492,8 +1495,8 @@ function setupLock()
  */
 function setupUnlock()
 {
-
-    return @unlink(EF_TEMP_PATH . "/setupLock.tmp");
+    core_SystemLock::remove();
+    @unlink(EF_TEMP_PATH . "/setupLock.tmp");
 }
     
 /**
@@ -1504,19 +1507,12 @@ function setupUnlock()
 function setupProcess()
 {
     if (@file_exists(EF_TEMP_PATH . "/setupLock.tmp")) {
+        
         return TRUE;
-//         clearstatcache(EF_TEMP_PATH . "/setupLock.tmp");
-//         if (time() - filemtime(EF_TEMP_PATH . "/setupLock.tmp") > SETUP_LOCK_PERIOD) {
-//             setupUnlock();
-            
-//             return FALSE;
-//        }
     } else {
         
         return FALSE;   
     }
-    
-    return TRUE;
 }
     
 
@@ -1552,10 +1548,11 @@ function setupKeyValid()
     $isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
     $key = $_GET['SetupKey'];
     if ($key == BGERP_SETUP_KEY && $isLocal ) {
+
         return TRUE;
     }
     
-    return $_GET['SetupKey'] == setupKey();
+    return ($_GET['SetupKey'] == setupKey()) || ($_GET['SetupKey'] == setupKey(NULL, -1));
 }
 
 
@@ -1646,4 +1643,59 @@ function addParams($url, $newParams)
     }
 
     return $res;
+}
+
+
+/**
+ * Чекаутва до максималната възможна версия, която съдържа миграциите, 
+ * необходими за мигрирането на текущата база данни. Това е една версия 
+ * по-напред от текущата версия, до която е мигрирана базата
+ */
+function checkoutMaxVersion(&$log)
+{
+    // До коя версия трябва да чекаутнем?
+    $verTag = core_Updates::getNewVersionTag();
+    
+    if($verTag) {
+        // Ако има такава - чекаутваме до тага й
+        gitSetTag(EF_APP_PATH, $log, $verTag);
+    } else {
+        $currBranch = gitCurrentBranch(EF_APP_PATH, $log);
+        if ($currBranch != BGERP_GIT_BRANCH) {
+            gitSetBranch(EF_APP_PATH, $log, BGERP_GIT_BRANCH);
+        }
+    }
+}
+
+
+/**
+ * Сетва репозиторито в зададен бранч. Ако не е зададен го взима от конфигурацията
+ */
+function gitSetTag($repoPath, &$log, $tag)
+{
+    $repoName = basename($repoPath);
+
+    $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch --all --tags --prune 2>&1";
+    
+    $commandCheckOut = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" checkout {$tag} 2>&1";
+ 
+    $comm = 'fetch';
+
+    if (gitExec($commandFetch, $arrRes)) {
+        
+        $comm = 'checkOut';
+        
+        if (gitExec($commandCheckOut, $arrRes)) {
+            // Ако и двете команди са успешни значи всичко е ОК
+            $log[] = "new: [<b>$repoName</b>] превключен {$tag} таг.";
+            
+            return TRUE;
+        }
+    }
+
+    foreach ($arrRes as $val) {
+        $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при превключване в {$tag} {$comm}:" . $val):"";
+    }
+
+    return FALSE;
 }

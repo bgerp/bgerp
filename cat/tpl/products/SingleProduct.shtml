@@ -16,17 +16,17 @@
     </fieldset>
     <!--ET_END PARAMETERS-->
     
-    <!--ET_BEGIN groups-->
+    <!--ET_BEGIN groupsInput-->
     <fieldset class="detail-info">
          <legend class="groupTitle nowrap">|Групи|* [#editGroupBtn#]</legend>
          <div class="groupList">
               [#groupsInput#]
          </div>
     </fieldset>
-    <!--ET_END groups-->
+    <!--ET_END groupsInput-->
     <!--ET_BEGIN meta-->
     <fieldset class="detail-info">
-         <legend class="groupTitle">|Свойства|*</legend>
+         <legend class="groupTitle nowrap">|Свойства|* [#editMetaBtn#]</legend>
          <div class="groupList">[#meta#]</div>
     </fieldset>
     <!--ET_END meta-->

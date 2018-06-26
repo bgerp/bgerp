@@ -5,13 +5,11 @@
 /**
  * Клас 'cat_UoM' - мерни единици и опаковки
  *
- * Unit of Measures
- *
  *
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -28,32 +26,31 @@ class cat_UoM extends core_Manager
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'cat,ceo';
+	public $canList = 'packEdit, ceo, sales, purchase';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'cat,ceo';
+	public $canSingle = 'cat, ceo';
 	
 	
 	/**
 	 * Кой може сменя състоянието
-	 * @see plg_State2
 	 */
-	public $canChangestate = 'cat,ceo';
+	public $canChangestate = 'cat, ceo';
 
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'cat,ceo';
+    public $canAdd = 'cat, ceo';
 
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'cat,ceo';
+    public $canEdit = 'cat, ceo';
   
 
     /**
@@ -75,9 +72,15 @@ class cat_UoM extends core_Manager
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'sysId';
+    
+    
+    /**
      * Полета за лист изгледа
      */
-    public $listFields = "id,name,shortName=Съкращение,sysId=System Id,state,round=Точност,showContents,defQuantity";
+    public $listFields = "id,name,shortName=Съкращение,sysId=System Id,round=Точност,showContents,defQuantity,state";
     
     
     /**
@@ -110,12 +113,14 @@ class cat_UoM extends core_Manager
         $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
         $this->FLD('sysId', 'varchar', 'caption=System Id,input=hidden');
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
-        $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка');
+        $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка,smartCenter');
         $this->FLD('defQuantity', 'double(smartRound)', 'caption=Показване в документи->Дефолтно к-во');
         $this->FLD('round', 'int', 'caption=Точност след десетичната запетая->Цифри');
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
+        $this->setDbIndex('baseUnitId');
+        $this->setDbIndex('sysId');
     }
     
     
@@ -176,20 +181,18 @@ class cat_UoM extends core_Manager
     
     
     /**
-     * Ф-я закръгляща количество спрямо основната мярка на даден артикул, Ако е пдоадена опаковка
-     * спрямо нея
+     * ф-я закръгляща к-то в подадената опаковка, ако к-то е много-малко или много
+     * голямо и има по точна мярка се закръгля към нея
      * 
-     * @param double $quantity - к-то което ще закръгляме
-     * @param int $productId - ид на артикула
-     * @return double - закръгленото количество
+     * @param int $uomId
+     * @param double $quantity
+     * @return double $res
      */
-    public static function round($quantity, $productId)
+    public static function round(&$uomId, $quantity)
     {
     	// Коя е основната мярка на артикула
-    	$uomId = cat_Products::fetchField($productId, 'measureId');
-    	
-    	// Имали зададено закръгляне
-    	$round = static::fetchField($uomId, 'round');
+    	expect($rec = self::fetch($uomId));
+    	$round = $rec->round;
     	
     	// Ако няма
     	if(!isset($round)){
@@ -222,6 +225,14 @@ class cat_UoM extends core_Manager
     			$round = 0;
     		}
     	}
+    	
+   		if($quantity < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($uomId, 0.001))){
+			$quantity *= 1000;
+			$uomId = $downMeasureId;
+		} elseif($quantityInPack > 1000 && ($downMeasureId = cat_UoM::getMeasureByRatio($uomId, 1000))){
+			$quantity /= 1000;
+			$uomId = $downMeasureId;
+		}
     	
     	$res = round($quantity, $round);
     	
@@ -274,24 +285,30 @@ class cat_UoM extends core_Manager
     /**
      * Функция връщащи масив от всички мерки които са сродни
      * на посочената мярка (примерно за грам това са : килограм, тон и др)
-     * @param int $measureId - id на мярка
-     * @return array $options - всички мярки от същата категория
-     * като подадената
+     * 
+     * @param int $measureId
+     * @param boolean $short
+     * @return array $options
      */
     public static function getSameTypeMeasures($measureId, $short = FALSE)
     {
-    	expect($rec = static::fetch($measureId), "Няма такава мярка");	
+    	expect($rec = static::fetch($measureId, 'baseUnitId,id'), "Няма такава мярка");	
     	
     	$query = static::getQuery();
-    	($rec->baseUnitId) ? $baseId = $rec->baseUnitId : $baseId = $rec->id;
+    	$baseId = ($rec->baseUnitId) ? $rec->baseUnitId : $rec->id;
+    	
     	$query->where("#baseUnitId = {$baseId}");
     	$query->orWhere("#id = {$baseId}");
     	$query->show('shortName,name');
     	
-    	$options = array("" => "");
+    	$options = array();
     	while($op = $query->fetch()){
     		$cap = ($short) ? $op->shortName : $op->name;
     		$options[$op->id] = $cap;	
+    	}
+    	
+    	if(count($options)){
+    		$options = array("" => "") + $options;
     	}
     	
     	return $options;
@@ -322,8 +339,8 @@ class cat_UoM extends core_Manager
     
     
     /**
-     * Функция която конвертира стойност от една мярка в друга
-     * сродна мярка
+     * Функция която конвертира стойност от една мярка в друга сродна мярка
+     * 
      * @param double $value - Стойноста за конвертиране
      * @param int $from - Id на мярката от която ще обръщаме
      * @param int $to - Id на мярката към която конвертираме
@@ -342,9 +359,9 @@ class cat_UoM extends core_Manager
         } else {
             $toRec = static::fetch($to);
         }
- 
-    	expect($fromRec, 'Проблем при изчислението на първата мярка');
-    	expect($toRec, 'Проблем при изчислението на втората мярка');
+       
+    	expect($fromRec, "Неразпозната мярка: {$from}", $fromRec);
+    	expect($toRec, "Неразпозната мярка: {$to}", $toRec);
     	
     	($fromRec->baseUnitId) ? $baseFromId = $fromRec->baseUnitId : $baseFromId = $fromRec->id;
     	($toRec->baseUnitId) ? $baseToId = $toRec->baseUnitId : $baseToId = $toRec->id;
@@ -368,11 +385,15 @@ class cat_UoM extends core_Manager
      */
     public static function getShortName($id)
     {
+    	static $uoms;
+    	
     	if(!$id) return '???';
     	
-    	$shortName = static::fetchField($id, 'shortName');
+    	if(empty($uoms[$id])){
+    		$uoms[$id] = static::fetchField($id, 'shortName');
+    	}
     	
-    	return cls::get('type_Varchar')->toVerbal($shortName);
+    	return $uoms[$id];
     }
     
     
@@ -381,8 +402,7 @@ class cat_UoM extends core_Manager
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-    	// Ако се импортира от csv файл, заместваме основната
-    	// единица с ид-то и от системата
+    	// Ако се импортира от csv файл, заместваме основната единица с ид-то и от системата
     	if(isset($rec->csv_baseUnitId) && strlen($rec->csv_baseUnitId) != 0){
     		$rec->baseUnitId = static::fetchField("#name = '{$rec->csv_baseUnitId}'", 'id');
     	}
@@ -416,7 +436,7 @@ class cat_UoM extends core_Manager
     
     /**
      * Връща мерна еденициа по систем ид
-     * @param varchar $sysId - sistem Id
+     * @param string $sysId - sistem Id
      * @return stdClass $rec - записа отговарящ на сис ид-то
      */
     public static function fetchBySysId($sysId)
@@ -441,27 +461,16 @@ class cat_UoM extends core_Manager
     public static function fetchBySinonim($unit)
     {
         $unit = trim(mb_strtolower($unit));
-
-        $rec = self::fetch(array("LOWER(#sysId) = LOWER('[#1#]')", $unit));
-
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(#name) = LOWER('[#1#]')", $unit));
-        }
-
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(#shortName) = LOWER('[#1#]')", $unit));
-        }
+        $unitAscii = str::utf2ascii($unit);
         
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(CONCAT('|', #name, '|', #shortName)) LIKE '%|[#1#]|%'", $unit));
-        }
-
-        if(!$rec) {
-            $unit = str::utf2ascii($unit);
-            $rec = self::fetch(array("LOWER(CONCAT('|', #sysId, #sinonims)) LIKE '%|[#1#]|%'", $unit));
-        }
+        $arr = array();
+        $arr[] = "LOWER(#sysId) = LOWER('[#1#]')";
+        $arr[] = "LOWER(#name) = LOWER('[#1#]')";
+        $arr[] = "LOWER(#shortName) = LOWER('[#1#]')";
+        $arr[] = "LOWER(CONCAT('|', #name, '|', #shortName)) LIKE '%|[#1#]|%'";
+        $arr[] = "LOWER(CONCAT('|', #sysId, #sinonims)) LIKE '%|[#2#]|%'";
+        $rec = self::fetch(array(implode(' || ' , $arr), $unit, $unitAscii));
     	
-
     	return $rec;
     }
     
@@ -487,6 +496,11 @@ class cat_UoM extends core_Manager
         $sameMeasures = cat_UoM::getSameTypeMeasures($typeUom->id);
         unset($sameMeasures[""]);
        
+        if($sysId == 'l'){
+        	$sameMeasures = array();
+        	$sameMeasures[$typeUom->id] = $typeUom->name;
+        }
+        
         if(count($sameMeasures) == 1){
         	
         	// Ако мярката няма сродни мерки, сумата се конвертира в нея и се връща
@@ -607,9 +621,22 @@ class cat_UoM extends core_Manager
     		if(!isset($type)){
     			$curUrl = getCurrentUrl();
     			$curUrl['type'] = 'uom';
-    			
     			redirect($curUrl);
     		}
     	}
+    }
+    
+    
+    /**
+     * Дали мярката е тегловна (грам, килограм, тон и т.н.)
+     * 
+     * @param int $uomId
+     * @return boolean
+     */
+    public static function isWeightMeasure($uomId)
+    {
+    	$kgUoms = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
+    	
+    	return array_key_exists($uomId, $kgUoms);
     }
 }

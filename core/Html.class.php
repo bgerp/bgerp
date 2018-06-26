@@ -24,6 +24,10 @@ class core_Html
     {   
         $attrStr = '';
 
+        if($attributes['title']) {
+        	$attributes['title'] = tr($attributes['title']);
+        }
+        
         if($name == 'img') {
             if(!is_array($attributes)) {
                 $attributes = array();
@@ -308,7 +312,7 @@ class core_Html
                     $attr['value'] = $id;
                 }
 
-                if ($attr['value'] == $selected) {
+                if ( ($attr['value'] . '') == $selected) {
                     if($selected != NULL || $attr['value'] === '' || $attr['value'] === NULL) {
                         $attr['selected'] = 'selected';
                     }
@@ -569,7 +573,47 @@ class core_Html
         return $input;
     }
 
+    
+    private static function addAccessKey(&$attr, $title)
+    {
+        if(Mode::is('screenMode', 'narrow')) return;
+        
+        static $accessKeys;
 
+        if($accessKeys === NULL) {
+            $accessKeys = array();
+            $defLines = explode("\n", bgerp_Setup::get('ACCESS_KEYS'));
+            foreach($defLines as $l) {
+                $l = trim($l);
+                if($l) {
+                    list($titles, $c) = explode('=', $l);
+                    $titles = trim($titles);
+                    $c = str::utf2ascii(trim($c));
+                    if(strlen($titles) > 1 && strlen($c) == 1) {
+                        $titlesArr = explode(',', $titles);
+                        foreach($titlesArr as $t) {
+                            $accessKeys[mb_strtolower(trim($t))] = $c;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        if($c = $accessKeys[mb_strtolower($title)]) {
+            $attr['accesskey'] = $c;
+
+            if(substr(log_Browsers::getUserAgentOsName(), 0, 3) == 'Mac') {
+                $hint = '[Control][Alt]+' . $c;
+            } elseif(log_Browsers::getUserAgentBrowserName() == 'Firefox') {
+                $hint = '[Shift][Alt]+' . $c;
+            } else {
+                $hint = '[Alt]+' . $c;
+            }
+
+            $attr['title'] .= ($attr['title'] ? '|* ' : '') . $hint;
+        }
+    }
 
    
     /**
@@ -593,8 +637,10 @@ class core_Html
     static function createBtn($title, $url = array(), $warning = FALSE, $newWindow = FALSE, $attr = array())
     {
         $attr = self::prepareLinkAndBtnAttr($attr, $warning);
-       
+        
         $title = tr($title);
+        
+        self::addAccessKey($attr, $title);
 
         // Ако URL-то е празно - забраняваме бутона
         if((is_array($url) && count($url) == 0) || !$url) {
@@ -686,6 +732,10 @@ class core_Html
     static function createSbBtn($title, $cmd = 'default', $warning = NULL, $newWindow = NULL, $attr = array())
     {
         $attr = self::prepareLinkAndBtnAttr($attr, $warning);
+        
+        $title = tr($title);
+
+        self::addAccessKey($attr, $title);
 
         $attr['name'] .= "Cmd[{$cmd}]";
 
@@ -697,7 +747,7 @@ class core_Html
 
         $attr['type'] = 'submit';
 
-        $attr['value'] = tr($title);
+        $attr['value'] = $title;
 
         // Оцветяваме бутона в зависимост от особеностите му
         if (isset($warning)) {
@@ -1316,17 +1366,17 @@ class core_Html
     /**
      * Подготвя атрибутите на бутон или хипервръзка
      */
-    private static function prepareLinkAndBtnAttr($attr, $warning = '')
+    private static function prepareLinkAndBtnAttr($attr, $warning = '', $trTitle = FALSE)
     {
         $attr = arr::make($attr);
         
-        if($attr['title']) {
+        if ($attr['title'] && $trTitle) {
             $attr['title'] = tr($attr['title']);
         }
 
         // Вкарваме предупреждението
         if ($warning) {
-            $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) return false; ";
+            $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) {event.stopPropagation(); return false; }";
         }
 
         return $attr;
@@ -1352,5 +1402,32 @@ class core_Html
     	}
     	
     	return $verbal;
+    }
+    
+    
+    /**
+     * Стилизира числото според стойноста му:
+     * 		ако е отрицателно го оцветява в червено
+     * 		ако е положително не го променя
+     * 		ако е 0, го засивява
+     * 
+     * @param mixed $verbal
+     * @param double $notVerbal
+     * @return mixed $verbal
+     */
+    public static function styleNumber($verbal, $notVerbal)
+    {
+    	if($notVerbal == 0){
+    		if($verbal instanceof core_ET){
+    			$verbal->prepend("<span class='quiet'>");
+    			$verbal->append("</span>");
+    		} else {
+    			$verbal = "<span class='quiet'>{$verbal}</span>";
+    		}
+    		
+    		return $verbal;
+    	}
+    	
+    	return self::styleIfNegative($verbal, $notVerbal);
     }
 }

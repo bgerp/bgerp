@@ -53,7 +53,7 @@ class fileman_Data extends core_Manager {
     
     
     /**
-     * 
+     * sistemId на крон процеса
      */
     protected static $processFilesSysId = 'processFiles';
     
@@ -188,7 +188,7 @@ class fileman_Data extends core_Manager {
      * Връща пътя до файла на съответния запис
      * Първо проверява с поддиректория, след това 
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param bolean $createDir - Създва директорията, ако липсва
      * 
      * @return string
@@ -409,7 +409,7 @@ class fileman_Data extends core_Manager {
     /**
      * Когато искаме да ресетнем, че файлът е преминал през обработка
      * 
-     * @param integer|stdObject $rec
+     * @param integer|stdClass $rec
      */
     public static function resetProcess($rec)
     {
@@ -440,9 +440,11 @@ class fileman_Data extends core_Manager {
      */
     function cron_ProcessFiles()
     {
-        $timeLimit = core_Cron::getTimeLimit(self::$processFilesSysId);
-        $endOn = dt::addSecs($timeLimit);
-        core_App::setTimeLimit($timeLimit + 50);
+        $cronRec = core_Cron::getCurrentRec();
+
+        $endOn = dt::addSecs($cronRec->timeLimit);
+
+        core_App::setTimeLimit($cronRec->timeLimit + 50);
         ini_set("memory_limit", fileman_Setup::get('DRIVER_MAX_ALLOWED_MEMORY_CONTENT'));
         
         $classesArr = core_Classes::getOptionsByInterface('fileman_ProcessIntf');
@@ -515,7 +517,7 @@ class fileman_Data extends core_Manager {
         $rec->period = 3;
         $rec->offset = rand(0, 2);
         $rec->delay = 0;
-        $rec->timeLimit = 60;
+        $rec->timeLimit = 100;
         
         $res .= core_Cron::addOnce($rec);
     }

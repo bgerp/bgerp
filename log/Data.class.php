@@ -130,7 +130,7 @@ class log_Data extends core_Manager
      * @param string $type
      * @param string $message
      * @param string|object|NULL $className
-     * @param integer|NULL|stdObject $objectId
+     * @param integer|NULL|stdClass $objectId
      * @param integer $lifeDays
      */
     public static function add($type, $message, $className = NULL, $objectId = NULL, $lifeDays = 180)
@@ -430,6 +430,8 @@ class log_Data extends core_Manager
         // Записваме crc32 стойностите на стринговете
         log_Actions::saveActions();
         log_Classes::saveActions();
+        
+        self::$toAdd = array();
     }
     
     
@@ -869,7 +871,7 @@ class log_Data extends core_Manager
         $rec->period = 24 * 60;
         $rec->offset = rand(1320, 1439); // ot 22h до 24h
         $rec->delay = 0;
-        $rec->timeLimit = 200;
+        $rec->timeLimit = 400;
         $res .= core_Cron::addOnce($rec);
     }
 }

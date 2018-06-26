@@ -37,7 +37,7 @@ class core_Cron extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id,title=Описание,parameters=Параметри,last=Последно,state";
+    var $listFields = "id,title=Описание,parameters=Параметри,last=Последно, max=Максимални стойности, state";
     
     
     /**
@@ -84,15 +84,15 @@ class core_Cron extends core_Manager
     
 
     /**
-     * Максимално време в Unix time, до което може да се изпълнява процеса
+     * Спиране на подреждането по състоянието
      */
-     static $timeDeadline = 0;
+    public $state2PreventOrderingByState = TRUE;
 
 
     /**
-     * $systemId na последния стартиран процес
+     * Записа на последния стартиран процес 
      */
-    static $lastSystemId;
+    var $currentRec;
 
 
     /**
@@ -117,44 +117,41 @@ class core_Cron extends core_Manager
         $this->FLD('state', 'enum(free=Свободно,locked=Заключено,stopped=Спряно)', 'caption=Състояние,1input=none');
         $this->FLD('lastStart', 'datetime', 'caption=Последно->Стартиране,input=none');
         $this->FLD('lastDone', 'datetime', 'caption=Последно->Приключване,input=none');
+        $this->FLD('lastMaxUsedMemory', 'fileman_FileSize', 'caption=Последно->Използвана памет,input=none');
+        $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни,input=none');
 
         $this->setDbUnique('systemId,offset,delay');
 		
         $this->dbEngine = 'InnoDB';
     }
     
-    
-    /**
-     * Връща максималното време за изпълнение
-     *
-     * @param $systemId
-     *
-     * @return int - време в секунди
-     */
-    public static function getTimeLimit($systemId = NULL)
-    {
-        if(!$systemId) {
-            $systemId = self::$lastSystemId;
-        }
-        
-        if($systemId) {
-    	    $rec = self::getRecForSystemId($systemId);
-    	
-    	    return $rec->timeLimit;
-        }
 
-        return FALSE;
+    /**
+     * Връща записа на текъщия крон процес
+     * Ако в текущия хит не е по крон процес, връща NULL
+     *
+     * @return NULL|stdClass
+     */
+    public static function getCurrentRec()
+    {
+        $me = cls::get('core_Cron');
+        $rec = $me->currentRec;        
+        
+        return $rec;
     }
-    
+
 
     /**
      * Връща секундите, които оставят до края на прозореца за изпълнение
      */
     public static function getTimeLeft()
     {
-        if(self::$timeDeadline) {
+        $rec = self::getCurrentRec();
+        
+        if($rec) {
+            $deadline = dt::mysql2timestamp($rec->lastStart) + max($rec->timeLimit, 30);
 
-            return max(self::$timeDeadline - time(), 0);
+            return max($deadline - time(), 0);
         }
 
         return FALSE;
@@ -231,6 +228,9 @@ class core_Cron extends core_Manager
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	
+    	$data->query->XPR('oState', 'int', "IF(#state != 'stopped', 1, 0)");
+    	$data->query->orderBy("oState", "DESC");
+    	
     	$data->query->orderBy('period'); 
         $data->query->orderBy('offset');
         $data->query->orderBy('systemId');
@@ -306,6 +306,8 @@ class core_Cron extends core_Manager
         $query = $this->getQuery();
         $i = 0;
         
+        $mCnt = 5;
+        
         while ($rec = $query->fetch("#state != 'stopped'")) {
             
             // Кога е бил последно стартиран този процес?
@@ -318,8 +320,17 @@ class core_Cron extends core_Manager
             // Колко минути остават до следващото стартиране
             $remainMinutes = floor(($currentMinute - $rec->offset) / $rec->period ) * $rec->period + $rec->period + $rec->offset - $currentMinute;
             
-            if( (($currentMinute % $rec->period) == $rec->offset) || ($rec->period > 60 && $lastSchedule > $lastStarting && $rec->period/2 < $remainMinutes)) {
-               
+            $maxRemain = 60;
+            
+            if( (($currentMinute % $rec->period) == $rec->offset) || ($rec->period > $maxRemain && $lastSchedule > $lastStarting && $maxRemain < $remainMinutes)) {
+                
+                if ($maxRemain < $remainMinutes) {
+                    
+                    if ($mCnt-- <= 0) continue;
+                    
+                    self::logNotice('Форсирано пускане на пропуснат процес', $rec->id);
+                }
+                
                 $i++;
                 fopen(toUrl(array(
                             'Act' => 'ProcessRun',
@@ -346,7 +357,7 @@ class core_Cron extends core_Manager
         core_Users::forceSystemUser();
         
         // Затваряме връзката създадена от httpTimer, ако извикването не е форсирано
-        if(!$forced = Request::get('forced')) {
+        if(!($forced = Request::get('forced'))) {
             header("Connection: close");
             ob_start();
             session_write_close();
@@ -361,6 +372,8 @@ class core_Cron extends core_Manager
         } else {
             header ('Content-type: text/html; charset=utf-8');
         }
+
+        
         
         // Декриптираме входния параметър. Чрез предаването на id-to на процеса, който
         // трябва да се стартира в защитен вид, ние се предпазваме от евентуална външна намеса
@@ -372,7 +385,13 @@ class core_Cron extends core_Manager
         }
         
         log_Browsers::stopGenerating();
-        
+
+        // Да не правим лог в Debug за хита, ако се вика по крон
+        if(!Request::get('forced')) {
+            Debug::$isLogging = FALSE;
+        }
+
+
         // Вземаме информация за процеса
         $rec = $this->fetch($id);
         
@@ -395,8 +414,10 @@ class core_Cron extends core_Manager
         $rec->state = 'locked';
         $rec->lastStart = dt::verbal2mysql();
         $rec->lastDone = NULL;
-        $this->save($rec, 'state,lastStart,lastDone');
-        
+        $rec->lastMaxUsedMemory = NULL;
+        $this->save($rec, 'state,lastStart,lastDone,lastMaxUsedMemory');
+        $this->currentRec = clone($rec);
+
         // Изчакваме преди началото на процеса, ако е зададено 
         if ($rec->delay > 0) {
             core_App::setTimeLimit(30 + $rec->delay);
@@ -418,9 +439,7 @@ class core_Cron extends core_Manager
                 // Ако е зададено максимално време за изпълнение, 
                 // задаваме го към PHP , като добавяме 5 секунди
                 if ($rec->timeLimit) {
-                    core_App::setTimeLimit($rec->timeLimit + 5);
-                    self::$timeDeadline =time() + $rec->timeLimit;
-                    self::$lastSystemId = $rec->systemId;
+                    core_App::setTimeLimit($rec->timeLimit + 20);
                 }
                 
                 $startingMicroTime = $this->getMicrotime();
@@ -434,7 +453,7 @@ class core_Cron extends core_Manager
                 // подходящо форматиран към лога
                 if ($content) {
                     $content = "<p><i>$content</i></p>";
-                    if (Request::get('forced')) {
+                    if(Request::get('forced')) {
                         echo $content;
                     }
                 }
@@ -445,37 +464,37 @@ class core_Cron extends core_Manager
             } else {
                 $this->unlockProcess($rec);
                 $this->logThenStop("Няма такъв екшън в класа", $rec->id, 'err');
-                echo(core_Debug::getLog());
-                shutdown();
             }
         } else {
             $this->unlockProcess($rec);
             $this->logThenStop("Няма такъв клас", $rec->id, 'err');
-            echo(core_Debug::getLog());
-            shutdown();
         }
         
         // Отключваме процеса и му записваме текущото време за време на последното приключване
         $this->unlockProcess($rec);
-        echo(core_Debug::getLog());
-        shutdown();
+        $this->logThenStop();
     }
     
     
     /**
      * Записва в лога и спира
      */
-    function logThenStop($msg, $id = NULL, $type = 'info')
+    function logThenStop($msg = '', $id = NULL, $type = 'info')
     {
-        $lifeDays = 7;
-        if ($type == 'info') {
-            $lifeDays = 3;
+        // Ако имаме съобщение - записваме го в лога
+        if(strlen($msg)) {
+            $lifeDays = 7;
+            if ($type == 'info') {
+                $lifeDays = 3;
+            }
+            log_System::add(get_called_class(), $msg, $id, $type, $lifeDays);
         }
         
-        log_System::add(get_called_class(), $msg, $id, $type, $lifeDays);
-        if(haveRole('admin,debug')) {
+        // Ако извикването е от браузър - отпечатваме резултата
+        if(Request::get('forced')) {
             echo(core_Debug::getLog());
         }
+
         shutdown();
     }
     
@@ -491,7 +510,30 @@ class core_Cron extends core_Manager
         if ($rec->state == 'locked') {
             $rec->state = 'free';
             $rec->lastDone = dt::verbal2mysql();
-            $this->save($rec, 'state,lastDone');
+            $rec->lastMaxUsedMemory = memory_get_peak_usage(TRUE);
+            
+            $saveArr = array('state' => 'state', 'lastDone' => 'lastDone', 'lastMaxUsedMemory' => 'lastMaxUsedMemory');
+            
+            $mPeriod = max(7 * $rec->period, 3 * 1440);
+            $mPeriod *= 60;
+            
+            $data = &$rec->data;
+            
+            if (($rec->lastMaxUsedMemory >= $data['maxUsedMemory']) || (dt::subtractSecs($mPeriod, $rec->lastDone) > $data['maxUsedMemoryTime'])) {
+                $data['maxUsedMemory'] = $rec->lastMaxUsedMemory;
+                $data['maxUsedMemoryTime'] = $rec->lastDone;
+                $saveArr['data'] = 'data';
+            }
+            
+            $duration = dt::secsBetween($rec->lastDone, $rec->lastStart);
+            $duration -= $rec->delay;
+            if (($duration >= $data['maxDuration']) || (dt::subtractSecs($mPeriod, $rec->lastDone) > $data['maxDurationTime'])) {
+                $data['maxDuration'] = $duration;
+                $data['maxDurationTime'] = $rec->lastDone;
+                $saveArr['data'] = 'data';
+            }
+            
+            $this->save($rec, $saveArr);
         }
     }
     
@@ -524,13 +566,35 @@ class core_Cron extends core_Manager
         $row->delay = $mvc->getVerbal($rec, 'delay');
         $row->timeLimit = $mvc->getVerbal($rec, 'timeLimit');
         $row->systemId = $mvc->getVerbal($rec, 'systemId');
+        $row->lastMaxUsedMemory = $mvc->getVerbal($rec, 'lastMaxUsedMemory');
         
         if($rec->lastStart) {
-            $row->last = "<p>От: <b>{$row->lastStart}</b>";
+            $duration = NULL;
+            if ($rec->lastDone) {
+                $duration = dt::secsBetween($rec->lastDone, $rec->lastStart);
+                
+                $duration -= $rec->delay;
+                
+                $duration = " ({$duration}s)";
+            }
+            
+            $row->last = "<p>" . tr('Начало') . ": <b>{$row->lastStart}</b>" . $duration . "</p>";
         }
         
-        if($rec->lastDone) {
-            $row->last .= "<p>До: <b>{$row->lastDone}</b>";
+        if($rec->lastMaxUsedMemory) {
+            $row->last .= "<p>" . tr('Памет') . ": <b>{$row->lastMaxUsedMemory}</b></p>";
+        }
+        
+        if ($rec->data['maxUsedMemory']) {
+            $fType = cls::get('fileman_FileSize');
+            
+            $row->max .= "<p>" . tr('Памет') . ": <b>" . $fType->toVerbal($rec->data['maxUsedMemory']) . "</b> - " . dt::mysql2verbal($rec->data['maxUsedMemoryTime'], "smartTime") . "</p>";
+        }
+        
+        if ($rec->data['maxDuration']) {
+            $tTime = cls::get('type_Time');
+            
+            $row->max .= "<p>" . tr('Прод.') . ": <b>" . $tTime->toVerbal($rec->data['maxDuration']) . "</b> - " . dt::mysql2verbal($rec->data['maxDurationTime'], "smartTime") . "</p>";
         }
         
         $url = toUrl(array(
@@ -544,14 +608,14 @@ class core_Cron extends core_Manager
         $row->title = "<p>" . $row->systemId . "</p><p><i>{$row->description}</i></p>";
         
         $row->parameters = "<p style='color:green'><b>\${$row->controller}->{$row->action}</b><p>" .
-        "Всеки <b>{$row->period}</b> + <b>{$row->offset}</b>";
+        tr('Всеки') . " <b>{$row->period}</b> + <b>{$row->offset}</b>";
         
         if($rec->delay) {
-            $row->parameters .= ", Зак.: <b>{$row->delay}</b> s";
+            $row->parameters .= ", " . tr('Зак.') . ": <b>{$row->delay}</b> s";
         }
         
         if($rec->timeLimit) {
-            $row->parameters .= ", Лимит: <b>{$row->timeLimit}</b> s";
+            $row->parameters .= ", " . tr('Лимит') . ": <b>{$row->timeLimit}</b> s";
         }
         
         $now = dt::mysql2timestamp(dt::verbal2mysql());

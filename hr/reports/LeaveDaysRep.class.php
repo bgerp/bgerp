@@ -43,7 +43,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
-     * @var varchar
+     * @var string
      */
     protected $hashField = 'containerId';
     
@@ -51,7 +51,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
-     * @var varchar
+     * @var string
      */
     protected $newFieldToCheck = 'containerId';
     
@@ -187,22 +187,12 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
 	{
 		$fld = cls::get('core_FieldSet');
 	
-		if($export === FALSE){
-			$fld->FLD('num', 'varchar','caption=№');
-			$fld->FLD('person', 'varchar', 'caption=Служител');
-	    	$fld->FLD('dateFrom', 'varchar', 'caption=Дата->От');
-		    $fld->FLD('dateTo', 'varchar', 'smartCenter,caption=Дата->До');
-	    	$fld->FLD('count', 'varchar', 'smartCenter,caption=Бр. дни');
-	    	$fld->FLD('type', 'varchar', 'smartCenter,caption=Вид');
-
-		} else {
-			$fld->FLD('num', 'varchar','caption=№');
-			$fld->FLD('person', 'varchar', 'caption=Служител');
-	    	$fld->FLD('dateFrom', 'varchar', 'caption=Дата->От');
-		    $fld->FLD('dateTo', 'varchar', 'smartCenter,caption=Дата->До');
-	    	$fld->FLD('count', 'varchar', 'smartCenter,caption=Бр. дни');
-	    	$fld->FLD('type', 'varchar', 'smartCenter,caption=Вид');
-		}
+		$fld->FLD('num', 'varchar','caption=№');
+		$fld->FLD('person', 'key(mvc=crm_Persons,select=name)', 'caption=Служител');
+	    $fld->FLD('dateFrom', 'date', 'caption=Дата->От');
+		$fld->FLD('dateTo', 'date', 'smartCenter,caption=Дата->До');
+	    $fld->FLD('count', 'int', 'smartCenter,caption=Бр. дни');
+	    $fld->FLD('type', 'enum(sickDay=Болничен,tripDay=Командировка,leaveDay=Отпуск)', 'smartCenter,caption=Вид');
 	
 		return $fld;
 	}
@@ -217,21 +207,14 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
 	{
-		$isPlain = Mode::is('text', 'plain');
 		$Int = cls::get('type_Int');
 		$Date = cls::get('type_Date');
 		$row = new stdClass();
 
 		// Линк към служителя
-		if(isset($dRec->person)) {
-		    //crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
-		    $row->person = crm_Persons::fetchField($dRec->person, 'name');;
-		}
+		$row->person = crm_Persons::fetchField($dRec->person, 'name');
+		$row->person = strip_tags(($row->person instanceof core_ET) ? $row->person->getContent() : $row->person);
 		
-		if($isPlain){
-			$row->person = strip_tags(($row->person instanceof core_ET) ? $row->person->getContent() : $row->person);
-		}
-
 		if(isset($dRec->num)) {
 		    $row->num = $Int->toVerbal($dRec->num);
 		}

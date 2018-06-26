@@ -387,7 +387,7 @@ class email_Router extends core_Manager
     /**
      * Проверява дали може да се рутира тук
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param array $oldValArr
      * 
      * @return boolean
@@ -689,14 +689,75 @@ class email_Router extends core_Manager
             $accRec = email_Accounts::fetch($rec->accId);
             $rec->folderId = email_Inboxes::forceFolder($accRec->email);
         }
-
+        
         return $rec->folderId;
     }
-
-
     
+    
+    /**
+     * 
+     */
+    function act_TestRoute()
+    {
+        requireRole('admin, debug');
+        
+        $retUrl = getRetUrl();
+        
+        if (!$retUrl) {
+            $retUrl = array($this);
+        }
+        
+        $form = cls::get('core_Form');
+        
+        $form->title = "Тестване на рутиране";
+        
+        $form->FLD('email', 'email', 'caption=Имейл,mandatory,silent');
+        $form->FLD('accId', 'key(mvc=email_Accounts,select=email, where=#state !\\= \\\'rejected\\\')', 'caption=Имейл акаунт,mandatory,silent');
+        
+        $form->toolbar->addSbBtn('Проверка', 'save', array('ef_icon' => 'img/16/testing.png', 'title' => 'Връща папката, където ще се рутират документите от този имейл'));
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        
+        $corpAcc = email_Accounts::getCorporateAcc();
+        
+        if ($corpAcc) {
+            $form->setDefault('accId', $corpAcc->id);
+        }
+        
+        $form->input();
+        
+        // Ако е събмитната формата
+        if($form->isSubmitted()){
+            $rec = $form->rec;
+            
+            $nRec = new stdClass();
+            $nRec->fromEml = $rec->email;
+            $nRec->accId = $rec->accId;
+            
+            $accRec = email_Accounts::fetch($rec->accId);
+            $nRec->toBox = $accRec->email;
+            
+            $Incomings = cls::get('email_Incomings');
+            
+            $Incomings->route_($nRec);
+            
+            $folder = doc_Folders::getLink($nRec->folderId);
+            
+            $form->info = tr("Ще се рутира в папка|* {$folder} |с правило|* '{$nRec->routeBy}'");
+        }
+        
+        $tpl = $this->renderWrapping($form->renderHtml());
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * 
+     */
     static function act_TestDateToPriority()
     {
+        requireRole('admin, debug');
+        
         $date = dt::now();
         
         ob_start();

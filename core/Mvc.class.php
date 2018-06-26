@@ -313,6 +313,8 @@ class core_Mvc extends core_FieldSet
         $rec = $id;
         if (!is_object($rec)) {
             $rec = static::fetch($id, $fields, $cache);
+        } elseif(!$cache) {
+            $rec = static::fetch($id->id, $fields, $cache);
         }
         
         return $rec;
@@ -368,27 +370,50 @@ class core_Mvc extends core_FieldSet
             $query .= ($query ? ",\n " : "\n") . "`{$mysqlField}` = {$value}";
         }
 		
-        switch(strtolower($mode)) {
-            case 'replace' :
-                $query = "REPLACE `{$table}` SET {$query}";
-                break;
+        $mode = str_replace(' ', '_', strtolower($mode));
 
-            case 'ignore' :
-                $query = "INSERT IGNORE `{$table}` SET {$query}";
-                break;
+        if ($rec->id > 0 && $mode != 'replace') {
+            switch($mode) {
+                case 'low_priority':
+                    $query = "UPDATE LOW_PRIORITY `{$table}` SET {$query} WHERE id = {$rec->id}";
+                    break;
 
-            case 'delayed' :
-                $query = "INSERT DELAYED `{$table}` SET {$query}";
-                break;
+                case 'ignore':
+                    $query = "UPDATE IGNORE `{$table}` SET {$query} WHERE id = {$rec->id}";
+                    break;
 
-            default :
-            if ($rec->id > 0) { 
-                $query = "UPDATE `{$table}` SET {$query} WHERE id = {$rec->id}";
-            } else {
-                $query = "INSERT  INTO `{$table}` SET {$query}";
+                case '':
+                case 'update':
+                    $query = "UPDATE `{$table}` SET {$query} WHERE id = {$rec->id}";
+                    break;
+
+                default:
+                    error('Неподдържан режим на запис', $mode, $rec);
+            }
+        } else {
+            switch($mode) {
+                case 'replace' :
+                    $query = "REPLACE `{$table}` SET {$query}";
+                    break;
+
+                case 'ignore':
+                    $query = "INSERT IGNORE `{$table}` SET {$query}";
+                    break;
+
+                case 'delayed':
+                    $query = "INSERT DELAYED `{$table}` SET {$query}";
+                    break;
+
+                case '':
+                case 'update':
+                    $query = "INSERT  INTO `{$table}` SET {$query}";
+                    break;
+
+                default:
+                    error('Неподдържан режим на запис', $mode, $rec);
             }
         }
-       
+
         if (!$this->db->query($query)) return FALSE;
          
         $this->dbTableUpdated();
@@ -438,7 +463,7 @@ class core_Mvc extends core_FieldSet
         $maxLen = CORE_MAX_SQL_QUERY - strlen($queryBegin) - strlen($queryEnd);
     	
         // Конвертираме всеки запис към стойности в db заявката
-        $values = '';
+        $query = '';
     	foreach($recs as $rec) {
             $row = '(';
             foreach($fieldsArr as $key => $field) {
@@ -448,19 +473,17 @@ class core_Mvc extends core_FieldSet
             $row = rtrim($row, ',') . '),';
 			
             // Ако надвишаваме максималната заявка или сме изчерпали записите - записваме всичко до сега
-            if(strlen($row) + strlen($values) >= $maxLen) {
+            if(strlen($row) + strlen($query) >= $maxLen) {
                 // Изпълняваме заявката
-                $query = $queryBegin . rtrim($values, ',') . $queryEnd;
-    	        if(!$this->db->query($query)) return FALSE;
-                $values = '';
+    	        if(!$this->db->query($queryBegin . rtrim($query, ',') . $queryEnd)) return FALSE;
+                $query = '';
             }
-            $values .= $row;
+            $query .= $row;
         }
         
         // Ако имаме някакви натрупани стойности - записваме ги и тях
-        if($values) {
-            $query = $queryBegin . rtrim($values, ',') . $queryEnd;
-    	    if(!$this->db->query($query)) return FALSE;
+        if($query) {
+    	    if(!$this->db->query($queryBegin . rtrim($query, ',') . $queryEnd)) return FALSE;
         }
 
         return TRUE;
@@ -606,8 +629,9 @@ class core_Mvc extends core_FieldSet
                 $qArr = explode(' ', $q);
             }
             
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
             foreach($qArr as $w) {
-                $query->where(array("#searchFieldXpr REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
+                $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         }
  
@@ -761,20 +785,18 @@ class core_Mvc extends core_FieldSet
         expect($rec);
         $cRec = clone $rec;
         $me = cls::get(get_called_class());
-
+        
         if(!$tpl = $me->recTitleTpl) {
             $titleFields = array(
                 'title',
                 'name',
-                'caption',
-                'name',
-                'number',
                 'nick',
                 'id'
             );
 
             foreach ($titleFields as $fieldName) {
                 if (isset($cRec->{$fieldName})) {
+                	
                     $tpl = new ET("[#{$fieldName}#]");
                     break;
                 }
@@ -788,16 +810,20 @@ class core_Mvc extends core_FieldSet
             //Ескейпваме всички записи, които имат шаблони преди да ги заместим
             if($escaped) {
                 $places = $tpl->getPlaceholders();
-               
+                
                 foreach ($places as $place) {
                     $cRec->{$place} = type_Varchar::escape($rec->{$place});
                 }
             }
 
+            if($fieldName == 'id' && isset($me->singleTitle)){
+            	$cRec->id = tr("|{$me->singleTitle}|* №") . $cRec->id;
+            }
+            
             $tpl->placeObject($cRec);
 
             $value = (string) $tpl;
-			
+            
             return $value;
         }
     }
@@ -851,11 +877,7 @@ class core_Mvc extends core_FieldSet
             $title = $inst->className;
         }
         
-        if(Mode::is('text', 'plain')) {
-            $link = $title;
-        } else {
-            $link = ht::createLink($title, array($me, 'list', $objId));
-        }
+        $link = $title;
         
         return $link;
     }
@@ -928,7 +950,7 @@ class core_Mvc extends core_FieldSet
      */
     function setupMVC()
     {
-        $html .= "<li>Създаване на модела <b>" . $this->className . "</b></li><ul style='margin-bottom:10px;'>";
+        $html = "<li>Създаване на модела <b>" . $this->className . "</b></li><ul style='margin-bottom:10px;'>";
 
         // Запалваме събитието on_BeforeSetup
         if ($this->invoke('BeforeSetupMVC', array(&$html)) === FALSE) {

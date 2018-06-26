@@ -1,14 +1,13 @@
 <?php 
 
 
-
 /**
  * Шаблони за създаване на етикети
  * 
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -53,12 +52,6 @@ class label_Templates extends core_Master
     
     
     /**
-     * Кой има право да създва етикет?
-     */
-    public $canCreatelabel = 'label, admin, ceo';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
     public $canList = 'label, admin, ceo';
@@ -83,6 +76,12 @@ class label_Templates extends core_Master
     
     
     /**
+     * Кой има право да клонира системни данни?
+     */
+    public $canClonesysdata = 'ceo, powerUser';
+    
+    
+    /**
      * Кой има право да го изтрие?
      */
     public $canDelete = 'no_one';
@@ -97,7 +96,7 @@ class label_Templates extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy, state';
+    public $listFields = 'id, title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy, lastUsedOn=Последно, state';
 
     
     /**
@@ -140,6 +139,12 @@ class label_Templates extends core_Master
     public $fieldsNotToClone = 'sysId,state,exState,lastUsedOn,createdOn,createdBy';
     
     
+    /**
+     * Кои са системните плейсхолдъри на етикетите
+     */
+    public static $systemPlaceholders = array('Текущ_етикет', 'Общо_етикети', 'Страница');
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
@@ -147,29 +152,30 @@ class label_Templates extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('sizes', 'varchar(128)', 'caption=Размери, mandatory, width=100%');
-        $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Интерфейс');
-        $this->FLD('template', 'html', 'caption=Шаблон->HTML');
+        $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Източник');
+        $this->FLD('template', 'html(tinyEditor=no)', 'caption=Шаблон->HTML');
         $this->FLD('css', 'text', 'caption=Шаблон->CSS');
         $this->FLD('sysId', 'varchar', 'input=none');
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
         
         $this->setDbUnique('sysId');
+        $this->setDbIndex('classId');
     }
     
     
     /**
      * След подготовка на тулбара за еденичния изглед
      * 
-     * @param unknown_type $mvc
-     * @param unknown_type $data
+     * @param labeL_Templates $mvc
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         // Ако имаме права за добавяне на етикет
-        if ($mvc->haveRightFor('createlabel', $data->rec->id)) {
+        if (label_Prints::haveRightFor('add', (object)array('templateId' => $data->rec->id))) {
         
         	// Добавяме бутон за нов етикет
-            $data->toolbar->addBtn('Нов етикет', array('label_Labels', 'add', 'templateId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/star_2.png, title=Създаване на нов етикет');
+            $data->toolbar->addBtn('Нов етикет', array('label_Prints', 'add', 'templateId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/price_tag_label.png, title=Създаване на нов етикет');
         }
     }
     
@@ -340,7 +346,6 @@ class label_Templates extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Вземаме шаблона с вкарания css
-    	$row->STATE_CLASS .= " state-{$rec->state}";
     	$row->template = static::templateWithInlineCSS($row->template, $rec->css);
     }
     
@@ -348,7 +353,7 @@ class label_Templates extends core_Master
  	/**
  	 * Изпълнява се след подготовката на формата за филтриране
  	 * 
- 	 * @param core_Master_type $mvc
+ 	 * @param label_Templates $mvc
  	 * @param stdClass $data
  	 */
     protected static function on_AfterPrepareListFilter($mvc, $data)
@@ -361,24 +366,34 @@ class label_Templates extends core_Master
         
         // Добавяме бутон
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $sourceOptions = array('-1' => 'Без източник') + core_Classes::getOptionsByInterface('label_SequenceIntf', 'title');
         
-        $form->showFields = 'search';
+        $form->FNC('fClassId', 'varchar', 'caption=Източник');
+        $form->setOptions('fClassId', array('' => '') + $sourceOptions);
+        
+        $form->showFields = 'search,fClassId';
         if(!core_Request::get('Rejected', 'int')){
-        	$form->FNC('fState', 'enum(, draft=Чернови, active=Използвани)', 'caption=Всички, allowEmpty,autoFilter');
+        	$form->FNC('fState', 'enum(, active=Използвани, closed=Затворени)', 'caption=Всички, allowEmpty,autoFilter');
         	$form->showFields .= ', fState';
+        	$form->setDefault('fState', 'active');
         	
         	// Инпутваме полетата
-        	$form->input('fState', 'silent');
+        	$form->input('fState,fClassId', 'silent');
         }
         
-        // Подреждаме по състояние
-        $data->query->orderBy('#state=ASC');
-        
-        // Подреждаме по дата на създаване
-        $data->query->orderBy('#createdOn=DESC');
+        // Подреждане по състояние
+        $data->query->orderBy('createdOn', 'DESC');
 
-        if ($state = $data->listFilter->rec->fState) {
+        if($state = $data->listFilter->rec->fState) {
             $data->query->where(array("#state = '[#1#]'", $state));
+        }
+        
+        if($classId = $data->listFilter->rec->fClassId) {
+        	if($classId == '-1'){
+        		$data->query->where("#classId IS NULL");
+        	} else {
+        		$data->query->where(array("#classId = '[#1#]'", $classId));
+        	}
         }
     }
     
@@ -388,12 +403,16 @@ class label_Templates extends core_Master
      * 
      * @param integer $id - id на записа
      * 
-     * @retunr integer - id на записа
+     * @retunr integer|NULL - id на записа
      */
     public static function activateTemplate($id)
     {
+        if (!$id) return ;
+        
         // Вземаме записа
         $rec = static::fetch($id);
+        
+        if (!$rec) return ;
         
         // Очакваме да не е оттеглен
         expect($rec->state != 'rejected');
@@ -490,7 +509,7 @@ class label_Templates extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
-     * @param label_Labels $mvc
+     * @param label_Templates $mvc
      * @param string $requiredRoles
      * @param string $action
      * @param stdClass $rec
@@ -511,33 +530,11 @@ class label_Templates extends core_Master
                     $requiredRoles = 'no_one';
                 }
             }
-            
-            // Ако оттегляме
-            if ($action == 'reject') {
-                
-                // Ако е активно
-                if ($rec->state == 'active') {
-                    
-                    // Активните да не могат да се оттеглят
-                    $requiredRoles = 'no_one';
-                }
-            }
         }
         
         // Ако ще се клонира, трябва да има права за добавяне
         if ($action == 'cloneuserdata') {
             if (!$mvc->haveRightFor('add', $rec, $userId)) {
-                $requiredRoles = 'no_one';
-            }
-        }
-        
-        // Ако ще добавяме нов етикет
-        if ($action == 'createlabel') {
-            
-            // Ако състоянието е оттеглено
-            if ($rec && $rec->state == 'rejected') {
-                
-                // Никой да не може да създава
                 $requiredRoles = 'no_one';
             }
         }
@@ -614,9 +611,8 @@ class label_Templates extends core_Master
     {
     	$res = '';
     	$modified = $skipped = 0;
-    	$array = array(//'defaultTpl' => array('title' => 'Базов шаблон за етикети', 'path' => 'label/tpl/DefaultLabelBG.shtml', 'lang' => 'bg', 'class' => 'planning_Tasks', 'sizes' => array('100', '72')),
-    				   //'defaultTplEn' => array('title' => 'Default label template', 'path' => 'label/tpl/DefaultLabelEN.shtml', 'lang' => 'en', 'class' => 'planning_Tasks', 'sizes' => array('100', '72')),
-    			       'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
+    	$array = array('defaultTplPack' => array('title' => 'Етикети от опаковки', 'path' => 'label/tpl/DefaultLabelPack.shtml', 'lang' => 'bg', 'class' => 'cat_products_Packagings', 'sizes' => array('100', '72')),
+    				   'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
     	);
     	
     	core_Users::forceSystemUser();
@@ -628,18 +624,26 @@ class label_Templates extends core_Master
     			$arr = $this->getPlaceholders($tRec->template);
     			if(is_array($arr)){
     				foreach ($arr as $placeholder){
+    					if(in_array($placeholder, self::$systemPlaceholders)) continue;
+    					
     					if($placeholder == 'BARCODE'){
     						$params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '160', 'Height' => '60', 'Rotation' => 'yes');
     						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
     					} else {
-    						$type = ($placeholder == 'PREVIEW') ? 'html' : 'caption';
-    						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type);
+    						$type = 'caption';
+    						$params = array();
+    						if($placeholder == 'PREVIEW'){
+    							$type = ($placeholder == 'PREVIEW') ? 'image' : 'caption';
+    							$params = array('Width' => planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH'), 'Height' => planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT'));
+    						}
+    						
+    						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type, $params);
     					}
     				}
     			}
-    			$modified ++;
+    			$modified++;
     		} else {
-    			$skipped ++;
+    			$skipped++;
     		}
     	}
     	core_Users::cancelSystemUser();
@@ -655,7 +659,9 @@ class label_Templates extends core_Master
      * Връща шаблоните достъпни за избор от даден документ
      * 
      * @param mixed $class
+     * @param integer $objectId
      * @param boolean $onlyIds
+     * 
      * @return array $res
      */
     public static function getTemplatesByDocument($class, $objectId, $onlyIds = FALSE)
@@ -667,16 +673,12 @@ class label_Templates extends core_Master
     		$tQuery->show('id');
     	}
     	
-    	$intfInst = cls::getInterface('label_SequenceIntf', $class);
-    	
     	$res = array();
     	while($tRec = $tQuery->fetch()){
-    		if($intfInst->canSelectTemplate($objectId, $tRec->id)){
-    			$res[$tRec->id] = $tRec;
-    		}
+			$res[$tRec->id] = $tRec;
     	}
     	
-    	if($onlyIds === TRUE){
+    	if ($onlyIds === TRUE){
     		$res = arr::extractValuesFromArray($res, 'id');
     	}
     	

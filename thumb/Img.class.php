@@ -1,10 +1,10 @@
 <?php
 
-defIfNot('JPEGOPTIM_CMD', 'jpegoptim [#path#]');
+defIfNot('JPEGOPTIM_CMD', 'jpegoptim -q [#path#]');
 
 defIfNot('JPEGTRAN_CMD', 'jpegtran -copy none -optimize -outfile [#path#] [#path#]');
 
-defIfNot('OPTIPNG_CMD', 'optipng [#path#]');
+defIfNot('OPTIPNG_CMD', 'optipng [#path#] 1> /dev/null');
 
 defIfNot('PNGQUANT_CMD', 'pngquant --quality=65-80 --ext .png --force [#path#]');
 
@@ -23,6 +23,11 @@ defIfNot('PNGQUANT_CMD', 'pngquant --quality=65-80 --ext .png --force [#path#]')
  */
 class thumb_Img
 {
+    
+    /**
+     * Масив със забраненете разширения за файловете
+     */
+    protected $blockedExtArr = array('ade' => 'ade', 'adp' => 'adp', 'bat' => 'bat', 'chm' => 'chm', 'cmd' => 'cmd', 'com' => 'com', 'cpl' => 'cpl', 'exe' => 'exe', 'hta' => 'hta', 'ins' => 'ins', 'isp' => 'isp', 'jar' => 'jar', 'js' => 'js', 'jse' => 'jse', 'lib' => 'lib', 'lnk' => 'lnk', 'mde' => 'mde', 'msc' => 'msc', 'msi' => 'msi', 'msp' => 'msp', 'mst' => 'mst', 'nsh' => 'nsh', 'pif' => 'pif', 'scr' => 'scr', 'sct' => 'sct', 'shb' => 'shb', 'sys' => 'sys', 'vb' => 'vb', 'vbe' => 'vbe', 'vbs' => 'vbs', 'vxd' => 'vxd', 'wsc' => 'wsc', 'wsf' => 'wsf', 'wsh' => 'wsh');
     
     
     /**
@@ -443,6 +448,11 @@ class thumb_Img
             
             if($this->format == 'jpeg' || empty($this->format)) {
                 $this->format = 'jpg';
+            }
+            
+            $lFormat = strtolower($this->format);
+            if ($this->blockedExtArr[$lFormat]) {
+                $this->format = 'png';
             }
         }
         

@@ -231,6 +231,37 @@ class distro_Repositories extends core_Master
     
     
     /**
+     * Проверява дали съществува такава директория - без значние дали има нещо в нея или не
+     *
+     * @param integer $repoId
+     * @param string|NULL $name
+     *
+     * @return FALSE|string
+     */
+    public static function checkDirExist($repoId, $name)
+    {
+        $rec = self::fetch((int) $repoId);
+        
+        $sshObj = self::connectToRepo($rec);
+        
+        if ($sshObj === FALSE) return NULL;
+        
+        $path = rtrim($rec->path, '/') . '/' . $name;
+        $path = escapeshellarg($path);
+        
+        $exec = "if [ -d {$path} ]; then echo 'exist'; fi;";
+        
+        $sshObj->exec($exec, $output);
+        
+        $output = trim($output);
+        
+        if ($output && $output == 'exist') return TRUE;
+        
+        return FALSE;
+    }
+    
+    
+    /**
      * Връща изпълнимия стринг за създаване на директрояита
      * 
      * @param integer $repoId
@@ -509,7 +540,7 @@ class distro_Repositories extends core_Master
     /**
      * Прави връзка към сървъра по SSH
      * 
-     * @param stdObject|integer $rec
+     * @param stdClass|integer $rec
      * 
      * @return FALSE|ssh_Actions
      */
@@ -534,7 +565,6 @@ class distro_Repositories extends core_Master
                 $repoConnectArr[$rec->id] = new ssh_Actions($rec->hostId);
             } catch (core_exception_Expect $e) {
                 self::logWarning('Грешка при свързване към хост: ' . $e->getMessage(), $rec->id);
-                reportException($e);
                 
                 $repoConnectArr[$rec->id] = FALSE;
             }
@@ -625,7 +655,7 @@ class distro_Repositories extends core_Master
     /**
      * Премахва процеса от кронтаба и го спира
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     protected static function stopProcess($rec)
     {

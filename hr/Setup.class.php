@@ -88,8 +88,6 @@ class hr_Setup extends core_ProtoSetup
             'hr_Trips',
             'hr_Bonuses',
             'hr_Deductions',
-   			'migrate::forceDepartmentFolders',
-   			'migrate::truncateIndicators'
         );
 
 
@@ -97,7 +95,10 @@ class hr_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = array(
-   		array('hr'),
+   		array('hrSickdays'),
+   		array('hrLeaves'),
+   		array('hrTrips'),
+   		array('hr', 'hrSickdays, hrLeaves, hrTrips'),
    		array('hrMaster', 'hr'),
     );
     
@@ -126,12 +127,12 @@ class hr_Setup extends core_ProtoSetup
             'timeLimit' => 200
         ));
 
-    
+
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.31, 'Счетоводство', 'Персонал', 'hr_Leaves', 'default', "ceo, hr, hrMaster, admin"),
+            array(2.31, 'Счетоводство', 'Персонал', 'hr_Leaves', 'default', "ceo, hrLeaves, admin"),
         );
 
     
@@ -165,68 +166,5 @@ class hr_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    
-    /**
-     * Форсиране на папките на департаментите
-     */
-    function forceDepartmentFolders()
-    {
-    	$Departments = cls::get('hr_Departments');
-    	$Departments->setupMvc();
-    	
-    	$query = hr_Departments::getQuery();
-    	while($dRec = $query->fetch()){
-    		hr_Departments::forceCoverAndFolder($dRec->id);
-    	}
-    }
-
-
-    /**
-     * Миграция "длъжности"
-     */
-    function setPositionName()
-    {
-        $mvc = cls::get('hr_Positions');
-     	if($mvc->fetch('1=1')) {
-            if($mvc->db->tableExists('hr_Professions') && 
-               cls::load('hr_Professions', TRUE) && 
-               $mvc->db->isFieldExists($mvc->dbTableName, 'profession_id') &&
-               $mvc->db->isFieldExists($mvc->dbTableName, 'department_id')) {
-    	        
-                $query = hr_Positions::getQuery();
-                $query->FLD('professionId', 'int');
-                $query->FLD('departmentId', 'int');
-                
-                while($rec = $query->fetch()) { 
-                    $profRec = hr_Professions::fetch($rec->professionId);
-                    $depRec  = hr_Departments::fetch($rec->departmentId);
-                    
-                    if(!$rec->name) {
-                        $rec->name = $profRec->name . '/' . $depRec->name;
-
-                        if($mvc->fetch("#name = '{$rec->name}'")) {
-                            $rec->name .= ' ' . $rec->id;
-                        }
-
-                        $rec->nkpd = $profRec->nkpd;
-
-                        $mvc->save($rec);
-                    }
-                }
-
-            }
-        }
-    }
-  
-    
-    /**
-     * Изчистване на старите записи на индикаторите
-     */
-    public function truncateIndicators()
-    {
-    	hr_Indicators::truncate();
-    	hr_Payroll::truncate();
     }
 }

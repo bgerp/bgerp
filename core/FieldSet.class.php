@@ -215,7 +215,11 @@ class core_FieldSet extends core_BaseClass
                     continue;
                 }
                 if($member) {
-                    $this->fields[$name]->{$member} = $value;
+                    if($value == 'unsetValue') {
+                        unset($this->fields[$name]->{$member});
+                    } else {
+                        $this->fields[$name]->{$member} = $value;
+                    }
                 }
             }
             
@@ -649,6 +653,20 @@ class core_FieldSet extends core_BaseClass
     
     
     /**
+     * Добавя атрибути към поле
+     * 
+     * @param string $name - име на полето
+     * @param mixed $arr   - масив от атрибут -> стойност
+     */
+    public function setFieldAttr($name, $arr)
+    {
+    	$arr = arr::make($arr, TRUE);
+    	
+    	$this->setField($name, array('attr' => $arr));
+    }
+    
+    
+    /**
      * Задава/Подменя тип на полето
      * 
      * @param string $name - име на полето
@@ -680,5 +698,23 @@ class core_FieldSet extends core_BaseClass
     			$fieldType->params[$param] = $value;
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща масив от имената на полетата с техните кепшъни
+     * 
+     * @param string $where
+     * @return array $fieldsArr
+     */
+    public function getFieldArr($where = "")
+    {
+    	$fields = $this->selectFields($where);
+    	$fieldsArr = array();
+    	foreach($fields as $name => $fld){
+    		$fieldsArr[$name] = $fld->caption;
+    	}
+    	
+    	return $fieldsArr;
     }
 }

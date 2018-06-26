@@ -85,7 +85,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         } else {
             if (is_file($errFilePath)) {
                 $err = @file_get_contents($errFilePath);
-                self::logErr('Грешка при конвертиране: ' . $errFilePath);
+                self::logErr('Грешка при конвертиране: ' . $err);
             }
         }
         

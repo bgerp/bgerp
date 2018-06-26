@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -254,7 +254,7 @@ class label_Media extends core_Manager
         $cnt = 0;
         
         // Създаваме таблицата
-        $t = "<table class='label-table printing-page-break' style='border-collapse: separate; margin-top: {$data->pageLayout->up}; margin-left: {$data->pageLayout->left};'>";
+        $t = "<table class='label-table labelBreak' style='border-collapse: separate; margin-top: {$data->pageLayout->up}; margin-left: {$data->pageLayout->left};'>";
         
         // Броя на редовете
         for ($i = 0; $i < $lines; $i++) {

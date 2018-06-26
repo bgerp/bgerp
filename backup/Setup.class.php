@@ -219,7 +219,7 @@ class backup_Setup extends core_ProtoSetup
 
         // Имаме грешка в конфигурацията - не добавяме задачите на крона
         if (!is_null($cfgRes)) {
-            
+
             return $html;
         }
         
@@ -232,7 +232,7 @@ class backup_Setup extends core_ProtoSetup
         $rec->action = 'full';
         $rec->period = BACKUP_FULL_PERIOD;
         $rec->offset = BACKUP_FULL_OFFSET;
-        $rec->delay = 7;
+        $rec->delay = 55;
         $rec->timeLimit = 2400;
         $html .= core_Cron::addOnce($rec);
         
@@ -280,7 +280,11 @@ class backup_Setup extends core_ProtoSetup
      */
     public function checkConfig()
     {
+        $caller = debug_backtrace(FALSE, 2);
 
+        if ($caller[1]['function'] != 'act_Config' && $caller[1]['function'] != 'full') {
+            return;
+        }
         $conf = core_Packs::getConfig('backup');
 
         $storage = core_Cls::get("backup_" . $conf->BACKUP_STORAGE_TYPE);

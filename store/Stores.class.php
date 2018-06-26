@@ -216,22 +216,6 @@ class store_Stores extends core_Master
     
     
     /**
-     * Имплементация на @see intf_Register::getAccItemRec()
-     */
-    public static function getAccItemRec($rec)
-    {
-        return (object)array('title' => $rec->name);
-    }
-    
-    
-    /*******************************************************************************************
-     * 
-     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
-     * 
-     ******************************************************************************************/
-    
-    
-    /**
      * @see crm_ContragentAccRegIntf::getItemRec
      * @param int $objectId
      */

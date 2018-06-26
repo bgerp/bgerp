@@ -29,7 +29,7 @@ class sens2_ProtoDriver
      *
      * @return  array
      */
-    function getInputPorts()
+    function getInputPorts($config = NULL)
     {
         $res = array();
         
@@ -106,5 +106,15 @@ class sens2_ProtoDriver
     {
         return array();
     }
-    
+
+
+    /**
+     * Връща снимка на контролера
+     *
+     * @param   stdClass     $config    конфигурацията на контролера
+     * @return  string|null
+     */
+    public static function getPicture($config)
+    {
+    }
 }

@@ -44,14 +44,14 @@ class support_Setup extends core_ProtoSetup
      */
     var $managers = array(
             'support_Issues',
-            'support_Components',
             'support_Systems',
             'support_IssueTypes',
             'support_Corrections',
             'support_Preventions',
             'support_Ratings',
             'support_Resolutions',
-            'migrate::markUsedComponents'
+            'migrate::markUsedComponents',
+            'migrate::componentsToResources'
         );
     
 
@@ -65,8 +65,20 @@ class support_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.14, 'Обслужване', 'Поддръжка', 'support_Issues', 'default', "support, admin, ceo"),
+            array(2.14, 'Обслужване', 'Поддръжка', 'support_Tasks', 'default', "support, admin, ceo"),
         );
+    
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = "support_TaskType";
+    
+    
+    /**
+     * Необходими пакети
+     */
+    var $depends = 'planning=0.1';
     
     
     /**
@@ -101,11 +113,71 @@ class support_Setup extends core_ProtoSetup
      */
     public static function markUsedComponents()
     {
+        if (!cls::load('support_Components', TRUE)) return ;
+        
+        $Components = cls::get('support_Components');
+        if(!$Components->db->tableExists($Components->dbTableName)) return ;
+        
         $query = support_Issues::getQuery();
         $query->where("#componentId IS NOT NULL");
         $query->where("#componentId != ''");
         while ($rec = $query->fetch()) {
             support_Components::markAsUsed($rec->componentId);
+        }
+    }
+    
+    
+    /**
+     * Миграция за мигриране на компонентите към ресурси
+     */
+    public static function componentsToResources()
+    {
+        if (!cls::load('support_Components', TRUE)) return ;
+        
+        $Components = cls::get('support_Components');
+        if(!$Components->db->tableExists($Components->dbTableName)) return ;
+        
+        $compName = 'Компоненти на системата';
+        $groupId = planning_AssetGroups::fetchField("#name = '{$compName}'", 'id');
+        if (!$groupId) {
+            $groupId = planning_AssetGroups::save((object)array('name' => $compName));
+        }
+        
+        $query = support_Components::getQuery();
+        
+        $Resources = cls::get('planning_AssetResources');
+        
+        while ($rec = $query->fetch()) {
+            
+            $pRec = new stdClass();
+            $pRec->name = $rec->name;
+            $pRec->groupId = $groupId;
+            if ($rec->state == 'active') {
+                $pRec->lastUsedOn = dt::now();
+            }
+            if ($rec->systemId) {
+                $sRec = support_Systems::fetch($rec->systemId);
+                $pRec->folderId = $sRec->folderId;
+            }
+            
+            $pRec->users = $rec->maintainers;
+            $pRec->state = 'active';
+            
+            $pRec->code = $rec->id;
+            $i = 0;
+            while (!$Resources->isUnique($pRec)) {
+                $pRec->code = $rec->id . '_' . $rec->name;
+                
+                if ($i++) {
+                    $pRec->code .= '_' . $i++;
+                }
+            }
+            
+            try {
+                planning_AssetResources::save($pRec);
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+            }
         }
     }
 }

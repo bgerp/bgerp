@@ -204,10 +204,6 @@ class core_Array
         uasort($array, function($a, $b) use ($field) {
             
             // Ако липсва да се подредят най накрая
-//            if (!isset($a->$field)) return 1;
-//            if (!isset($a->$field)) return -1;
-            
-//            if($a->{$field} == $b->{$field})  return 0;
             // Ако има 2 елемента с еднакви стойности, първия срещнат да си остане първи
             if($a->{$field} == $b->{$field})  return 1;
 
@@ -583,7 +579,7 @@ class core_Array
      * Извлича масив със стойностите на определено поле от масив от обекти/масиви
      * 
      * @param array $arr     - масив от който ще се извличат стойностите
-     * @param varchar $field - стойност на записа за екстрактване
+     * @param string $field - стойност на записа за екстрактване
      * @return array $result - екстракнатите стойности, в масив
      */
     public static function extractValuesFromArray($arr, $field)
@@ -603,7 +599,7 @@ class core_Array
      * Извлича масив със стойности от масив със други стойности
      *
      * @param array $arr      - масив от който ще се извличат стойностите
-     * @param varchar $fields - полета
+     * @param string $fields - полета
      * @return array $res     - екстракнатите стойности, в масив
      */
     public static function extractSubArray($arr, $fields)
@@ -661,5 +657,28 @@ class core_Array
                 array_slice($array, $pos)
             );
         }
+    }
+    
+    
+    /**
+     * Връща нов масив само с посочените стойности от подадения масив
+     * 
+     * @param stdClass|array $arr  - обект
+     * @param string|array $fields - кои стойностти да се върнат
+     * @return array $resObj    - резултатен обект
+     */
+    public static function getSubArray($arr, $fields)
+    {
+    	$res = array();
+    	$arr1 = (array)$arr;
+    	
+    	$fields = arr::make($fields, TRUE);
+    	if(is_array($fields)){
+    		foreach ($fields as $fld){
+    			$res[$fld] = $arr1[$fld];
+    		}
+    	}
+    	
+    	return $res;
     }
 }

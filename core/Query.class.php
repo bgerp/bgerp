@@ -115,6 +115,12 @@ class core_Query extends core_FieldSet
 
 
     /**
+     * Дали в заявката ще се използва having клауза
+     */
+    private $useHaving;
+
+
+    /**
      * Данните на записите, които ще бъдат изтрити. Инициализира се преди всяко изтриване.
      *
      * @var array
@@ -439,7 +445,7 @@ class core_Query extends core_FieldSet
     /**
      * Добавя полета, по които ще се сортира. Приоритетните се добавят отпред
      */
-    function orderBy($fields, $direction = '', $priority = FALSE)
+    function orderBy($fields, $direction = '', $priority = 0)
     {
         $fields = arr::make($fields);
         
@@ -454,6 +460,8 @@ class core_Query extends core_FieldSet
                 $order->field = $f;
                 $order->direction = $d;
             }
+
+            $order->priority = -$priority + count($this->orderBy)/100;
             
             if($order->field{0} != '#') {
                 $order->field = '#' . $order->field;
@@ -492,6 +500,9 @@ class core_Query extends core_FieldSet
     function getOrderBy($useAlias = FALSE)
     {
         if (count($this->orderBy) > 0) {
+
+            arr::orderA($this->orderBy, 'priority');
+
             foreach ($this->orderBy as $order) {
             	$fldName = ($useAlias === FALSE) ? $this->expr2mysql($order->field) : str_replace("#", '', $order->field);
             	

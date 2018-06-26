@@ -151,7 +151,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Вземаме текста извлечен от OCR
         $ocrContent = fileman_Indexes::getInfoContentByFh($fileHnd, 'textOcr');
-
+        
         // Ако има OCR съдържание
         if ($ocrContent !== FALSE && !is_object($ocrContent)) {
             
@@ -191,6 +191,9 @@ class fileman_webdrv_Generic extends core_Manager
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_PreText');
         
+        // Махаме ненужните празни редове
+        $content = preg_replace('/([\r\n(\s|\t)*]|[\n\r(\s|\t)*]|[\n(\s|\t)*]){4,}/', '$1$1$1', $content);
+        
         // Ескейпваме текстовата част
         $content = type_Varchar::escape($content);
         
@@ -214,8 +217,12 @@ class fileman_webdrv_Generic extends core_Manager
             $fileHnd = Request::get('fileHnd');
         }
         
+        expect($fileHnd);
+        
         // Вземаме записа за файла
         $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        expect($fRec);
         
         // Очакваме да има права за разглеждане на записа
         $this->requireRightFor('view', $fRec);
@@ -249,66 +256,55 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Вземаме височината и широчината
             $thumbWidthAndHeightArr = static::getPreviewWidthAndHeight();
-            
+
+            // Атрибути на thumbnail изображението
+            $attr = array('class' => 'webdrv-preview', 'style' => 'margin: 0 auto 5px auto; display: block;');
+
             // Background' а на preview' то
             $bgImg = sbf('fileman/img/Preview_background.jpg');
             
             // Създаваме шаблон за preview на изображението
-            $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 8px 0 4px; min-height: 598px;display: table;width: 100%;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
-			
+            $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 8px 0 4px; height: 598px; display: table;width: 100%;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
+
             $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
-            
+
             foreach ($jpgArr as $key => $jpgFh) {
-                
-                // Атрибути на thumbnail изображението
-                $attr = array('class' => 'webdrv-preview', 'style' => 'margin: 0 auto 5px auto; display: block;');
-                
+
                 if ($key === 'otherPagesCnt') {
                     
                     $str = '<div style="margin: 5px 0 0 5px; background: #fff; display: inline-block; padding: 2px; color: #444;">' . tr('Още страници') . ': ' . $jpgFh . '</div>';
                     
                     $preview->append($str, 'THUMB_IMAGE');
                 } else {
-                    
-                    $width = $thumbWidthAndHeightArr['width'];
-                    $height = $thumbWidthAndHeightArr['height'];
-                    $verbalName = 'Preview';
-                    if ($multiplier > 1) {
-                        $bigWidth = $width * $multiplier;
-                        $bigHeight = $height * $multiplier;
-                        
-                        $bigImgInst = new thumb_Img(array($jpgFh, $bigWidth, $bigHeight, 'fileman', 'verbalName' => $verbalName . ' X ' . $multiplier));
-                        
-                        $attr['data-bigwidth'] = $bigWidth;
-                        $attr['data-bigheight'] = $bigHeight;
-                        $attr['data-bigsrc'] = $bigImgInst->getUrl('deferred');
-                        $attr['data-zoomed'] = "no";
-                    }
-                    
-                    $imgInst = new thumb_Img(array($jpgFh, $width, $height, 'fileman', 'verbalName' => $verbalName));
-                    
-                    $attr['class'] .= ' ' . $jpgFh;
-                    
-                    // Вземаме файла
+                    $imgInst = new thumb_Img(array($jpgFh, $thumbWidthAndHeightArr['width'], $thumbWidthAndHeightArr['height'], 'fileman', 'verbalName' => 'Preview'));
+
+                     // Вземаме файла
                     $thumbnailImg = $imgInst->createImg($attr);
                     
-                    // Добавяме към preview' то генерираното изображение
-                    $preview->append($thumbnailImg, 'THUMB_IMAGE');
+                    if ($thumbnailImg) {
+
+                        // Ако е зададено да се увеличава превюто, добавяме линк който показва по-голямото изображение
+                        $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
+                        if ($multiplier > 1) {
+                            $bigImg = new thumb_Img(array($jpgFh, $multiplier*$thumbWidthAndHeightArr['width'], $multiplier*$thumbWidthAndHeightArr['height'], 'fileman', 'verbalName' => 'Preview X ' . $multiplier));
+
+                            $aAttr = array();
+                            // Вземаме URL към sbf директорията
+                            $aAttr['href'] = $bigImg->getUrl();
+
+                            $thumbnailImg = ht::createElement('a', $aAttr, $thumbnailImg);
+                        }
+
+                        // Добавяме към preview' то генерираното изображение
+                        $preview->append($thumbnailImg, 'THUMB_IMAGE');
+                    }
                 }
             }
-            if(Mode::is('screenMode', 'wide')) {
-                $jqRun = 'wheelzoom(document.querySelectorAll(\'img.webdrv-preview\'), {zoom:1});';
-                $action = "click";
-            } else {
-                $action = "dblclick";
-            }
-            
+
             if ($multiplier > 1) {
-                $jqRun = "$('img.webdrv-preview').on('{$action}', function(e){changeZoomImage(e.target)}); " . $jqRun;
+                $jqRun = "$('img.webdrv-preview').on('click', function(e){changeZoomImage(e.target)})";
             }
 
-            $preview->push('js/wheelzoom.js', "JS");
-            
             jquery_Jquery::run($preview, $jqRun);
 
             return $preview;
@@ -562,7 +558,7 @@ class fileman_webdrv_Generic extends core_Manager
     /**
      * Подготвя стойността за заключване
      * 
-     * @param string|stdObject $res
+     * @param string|stdClass $res
      * 
      * @return string|boolean
      */

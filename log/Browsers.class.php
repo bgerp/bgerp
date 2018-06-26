@@ -521,15 +521,28 @@ class log_Browsers extends core_Master
     static function generateBrid()
     {   
         $s = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
+        
+        $str = '';
+        
         if($bot = self::detectBot()) {
             $str = md5($bot . BRID_SALT);
         } else {
-            $str = md5($_SERVER['HTTP_USER_AGENT'] . '|' . core_Users::getRealIpAddr() . '|' . dt::today() . '|' . BRID_SALT);
+            $userAgent = self::getUserAgent();
+            
+            $browserName = self::getUserAgentBrowserName($userAgent);
+            $osName = self::getUserAgentOsName($userAgent);
+            
+            if (($browserName == "Unknown Browser") || ($osName == "Unknown OS") || !self::getAcceptLangs()) {
+                $str = md5($userAgent . '|' . core_Users::getRealIpAddr() . '|' . dt::today() . '|' . BRID_SALT);
+            }
         }
-
-        $brid = $s[hexdec(substr($str, 0, 2)) % 62] . $s[hexdec(substr($str, 2, 2)) % 62] . $s[hexdec(substr($str, 4, 2)) % 62] .  $s[hexdec(substr($str, 6, 2)) % 62] .
-               $s[hexdec(substr($str, 8, 2)) % 62] . $s[hexdec(substr($str, 10, 2)) % 62] . $s[hexdec(substr($str, 12, 2)) % 62] .  $s[hexdec(substr($str, 14, 2)) % 62];
+        
+        if ($str) {
+            $brid = $s[hexdec(substr($str, 0, 2)) % 62] . $s[hexdec(substr($str, 2, 2)) % 62] . $s[hexdec(substr($str, 4, 2)) % 62] .  $s[hexdec(substr($str, 6, 2)) % 62] .
+            $s[hexdec(substr($str, 8, 2)) % 62] . $s[hexdec(substr($str, 10, 2)) % 62] . $s[hexdec(substr($str, 12, 2)) % 62] .  $s[hexdec(substr($str, 14, 2)) % 62];
+        } else {
+            $brid = str::getRand('********');
+        }
         
         return $brid;
     }
@@ -548,7 +561,7 @@ class log_Browsers extends core_Master
         }
 
         $browser = "Unknown Browser";
-    
+        
         $browserArray = array(
                                 '/edge/i' => 'Edge',
                                 '/mobile/i' => 'Mobile Browser',
@@ -640,11 +653,6 @@ class log_Browsers extends core_Master
             $userAgent = $_SERVER['HTTP_USER_AGENT'];
         }
         
-        if(self::getUserAgentBrowserName($userAgent) != 'Unknown Browser') {
-
-            return FALSE;
-        }
-
         $bots = 'GoogleBot|msnbot|Bingbot|Teoma|80legs|xenon|baidu|Charlotte|DotBot|Sosospider|Rambler|Yahoo|' .
             'AbachoBOT|Acoon|appie|Fluffy|ia_archiver|MantraAgent|Openbot|accoona|AcioRobot|ASPSeek|CocoCrawler|Dumbot|' . 
             'FAST-WebCrawler|GeonaBot|Gigabot|Lycos|MSRBOT|Scooter|AltaVista|IDBot|eStyle|Scrubby|majestic12|augurfind|Java';
@@ -659,7 +667,7 @@ class log_Browsers extends core_Master
             }
         }
 
-        if(preg_match("/\b([\w\-]+bot[\w\-]*)\b/i", $userAgent, $matches)) {
+        if(preg_match("/\b([a-z\w\-]+(bot|crawler)[\w\-]*)\b/i", $userAgent, $matches)) {
 
             $botName = $matches[1];
 
@@ -672,7 +680,17 @@ class log_Browsers extends core_Master
 
             return $botName;
         }
-     
+        
+        if(self::getUserAgentBrowserName($userAgent) != 'Unknown Browser') {
+
+            return FALSE;
+        }
+        
+        if(preg_match("/([a-z]+\.com)\b/i", $userAgent, $matches)) {
+        
+            return $matches[1];
+        }
+
         return FALSE;
     }
 
@@ -770,8 +788,8 @@ class log_Browsers extends core_Master
         }
 
         $this->render1x1gif();
-
-        die;
+        
+        core_App::shutdown(FALSE);
     }
     
     
@@ -785,7 +803,7 @@ class log_Browsers extends core_Master
 
         $this->render1x1gif();
         
-        die;
+        core_App::shutdown(FALSE);
     }
     
     

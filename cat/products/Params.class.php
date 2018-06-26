@@ -194,6 +194,40 @@ class cat_products_Params extends doc_Detail
 
     
     /**
+     * Изпълнява се след въвеждане на данните от Request
+     */
+    protected static function on_AfterInputEditForm($mvc, $form)
+    {
+    	if ($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		
+    		// Проверка на теглата (временно решение)
+    		if($rec->classId == cat_Products::getClassId()){
+    			$pSysId = cat_Params::fetchField($rec->paramId, 'sysId');
+    			
+    			if(in_array($pSysId, array('weight', 'weightKg'))){
+    				$weightPackagingsCount = cat_products_Packagings::countSameTypePackagings($rec->productId, 'kg');
+    				$p = ($pSysId == 'weight') ? 'weightKg' : 'weight';
+    				$otherPValue = cat_Products::getParams($rec->productId, $p);
+    				$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+    				
+    				if(!empty($otherPValue)){
+    					$form->setError('paramId', 'Има вече параметър за тегло');
+    				} elseif($weightPackagingsCount || cat_UoM::isWeightMeasure($measureId)) {
+    					$mSysId = ($pSysId == 'weight') ? 'g' : 'kg';
+    					$packagingId = cat_UoM::fetchBySysId($mSysId)->id;
+    					$v = 1 / $rec->paramValue;
+    					if($error = cat_products_Packagings::checkWeightQuantity($rec->productId, $packagingId, $v)){
+    						$form->setError('paramValue', $error);
+    					}
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
      * След подготовката на заглавието на формата
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
@@ -219,11 +253,27 @@ class cat_products_Params extends doc_Detail
     {
     	$query = self::getQuery();
     	$query->where("#classId = {$classId} AND #productId = {$productId}");
-    	$ids = array_map(create_function('$o', 'return $o->paramId;'), $query->fetchAll());
+    	$ids = arr::extractValuesFromArray($query->fetchAll(), 'paramId');
+    	
+    	if($classId == cat_Products::getClassId()){
+    		$grSysid = cat_Params::fetchIdBySysId('weight');
+    		$kgSysid = cat_Params::fetchIdBySysId('weightKg');
+    		
+    		$measureId = cat_Products::fetchField($productId, 'measureId');
+    		if(cat_UoM::isWeightMeasure($measureId)){
+    			$ids[$grSysid] = $grSysid;
+    			$ids[$kgSysid] = $kgSysid;
+    		} else {
+    			if(!empty($ids[$grSysid])){
+    				$ids[$kgSysid] = $kgSysid;
+    			}elseif(!empty($ids[$kgSysid])){
+    				$ids[$grSysid] = $grSysid;
+    			}
+    		}
+    	}
     	
     	$where = "";
     	if(count($ids)){
-    		$ids = array_combine($ids, $ids);
     		$ids = implode(',', $ids);
     		$where = "#id NOT IN ({$ids})";
     	}
@@ -241,11 +291,13 @@ class cat_products_Params extends doc_Detail
      * @param int $productId - ид на продукт
      * @param int $sysId - sysId на параметъра
      * @param boolean $verbal - вербално представяне
-     * @return varchar $value - стойността на параметъра
+     * @return string $value - стойността на параметъра
      */
     public static function fetchParamValue($classId, $productId, $sysId, $verbal = FALSE)
     {
-     	if($paramId = cat_Params::fetchIdBySysId($sysId)){
+    	$paramId = (is_numeric($sysId)) ? cat_Params::fetchField($sysId) : cat_Params::fetchIdBySysId($sysId);
+    	
+    	if(!empty($paramId)){
      		$paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$classId}", 'paramValue');
      		
      		// Ако има записана конкретна стойност за този продукт връщаме я, иначе глобалния дефолт
@@ -338,7 +390,7 @@ class cat_products_Params extends doc_Detail
         			$requiredRoles = 'cat,ceo,catEdit,sales,purchase';
         			$isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
         			if($isPublic == 'yes'){
-        				$requiredRoles = 'cat,ceo';
+        				$requiredRoles = 'catEdit,ceo';
         			}
         		}
         	}
@@ -418,6 +470,7 @@ class cat_products_Params extends doc_Detail
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	$mvc->syncWithFeature($rec->paramId, $rec->productId);
+    	cls::get($rec->classId)->logInAct('Редактиране', $rec->productId);
     }
     
     

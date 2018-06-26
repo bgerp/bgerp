@@ -159,6 +159,7 @@ class change_Plugin extends core_Plugin
         }
 
         // Генерираме събитие в AfterInputEditForm, след въвеждането на формата
+        $form->rec->__isBeingChanged = TRUE;
         $mvc->invoke('AfterInputEditForm', array($form));
         
         // URL' то където ще се редиректва
@@ -175,7 +176,7 @@ class change_Plugin extends core_Plugin
         
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
-            
+        	
             if (is_null($rec->version) && is_null($rec->subVersion)) {
                 $rec->version = 0;
                 $rec->subVersion = 1;
@@ -682,8 +683,8 @@ class change_Plugin extends core_Plugin
      * @see plg_Clone
      * 
      * @param core_Manager $mvc
-     * @param stdObject $rec
-     * @param stdObject $nRec
+     * @param stdClass $rec
+     * @param stdClass $nRec
      */
     function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {

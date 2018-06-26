@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   trans
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -25,23 +25,17 @@ class trans_plg_LinesPlugin extends core_Plugin
 	 */
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
+		$mvc->declareInterface('store_iface_DocumentIntf');
 		setIfNot($mvc->totalWeightFieldName, 'weight');
 		setIfNot($mvc->totalVolumeFieldName, 'volume');
 		setIfNot($mvc->lineFieldName, 'lineId');
-		setIfNot($mvc->palletCountFieldName, 'palletCount');
+		setIfNot($mvc->lineNoteFieldName, 'lineNotes');
 		
 		// Създаваме поле за избор на линия, ако няма такова
 		if(!$mvc->getField($mvc->lineFieldName, FALSE)){
 			$mvc->FLD($mvc->lineFieldName, 'key(mvc=trans_Lines,select=title,allowEmpty)', 'input=none');
 		} else {
 			$mvc->setField($mvc->lineFieldName, 'input=none');
-		}
-		
-		// Създаваме поле за брой пакети ако няма
-		if(!$mvc->getField($mvc->palletCountFieldName, FALSE)){
-			$mvc->FLD($mvc->palletCountFieldName, 'int', 'input=none');
-		} else {
-			$mvc->setField($mvc->palletCountFieldName, 'input=none');
 		}
 		
 		// Създаваме поле за общ обем
@@ -58,9 +52,11 @@ class trans_plg_LinesPlugin extends core_Plugin
 			$mvc->setField($mvc->totalWeightFieldName, 'input=none');
 		}
 		
+		$mvc->FLD('lineNotes', 'text(rows=2)', 'input=none,caption=Забележки');
 		$mvc->FLD('weightInput', 'cat_type_Weight', 'input=none');
 		$mvc->FLD('volumeInput', 'cat_type_Volume', 'input=none');
-		$mvc->FLD('palletCountInput', 'int', 'input=none');
+		$mvc->FLD('transUnits', 'blob(serialize, compress)', 'input=none');
+		$mvc->FLD('transUnitsInput', 'blob(serialize, compress)', 'input=none');
 	}
 	
 	
@@ -75,7 +71,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 			$url = array($mvc, 'changeLine', $rec->id, 'ret_url' => TRUE);
 			
 			if($mvc->haveRightFor('changeLine', $rec)){
-				$data->toolbar->addBtn('Транспорт', $url, "ef_icon=img/16/lorry_go.png, title = Промяна на транспортната информация");
+				$data->toolbar->addBtn('Транспорт', $url, "ef_icon=img/16/door_in.png, title = Промяна на транспортната информация");
 			}
 		}
 	}
@@ -98,18 +94,22 @@ class trans_plg_LinesPlugin extends core_Plugin
 		$mvc->requireRightFor('changeline', $rec);
 		
         $exLineId = $rec->lineId;
-
 		$form = cls::get('core_Form');
 		
 		$form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
-		$form->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty,where=#state \\= \\\'active\\\')', 'caption=Транспорт' . ($exLineId?'':''));
+		$form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Транспорт' . ($exLineId?'':''));
 		$form->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
 		$form->FLD('volume', 'cat_type_Volume', 'caption=Обем');
-		$form->FLD('palletsCount', 'int', 'caption=Kолети/палети,unit=бр.');
+		
+		$rec->transUnitsInput = trans_Helper::convertToUnitTableArr($rec->transUnitsInput);
+		trans_LineDetails::setTransUnitField($form, $rec->transUnitsInput);
+		
+		$form->FLD('lineNotes', 'text(rows=2)', 'caption=Забележки');
+		$form->setOptions('lineId', array('' => '') + trans_Lines::getSelectableLines());
 		$form->setDefault('lineId', $rec->{$mvc->lineFieldName});
 		$form->setDefault('weight', $rec->weightInput);
 		$form->setDefault('volume', $rec->volumeInput);
-		$form->setDefault('palletsCount', $rec->palletCountInput);
+		$form->setDefault('lineNotes', $rec->lineNotes);
 		
 		$form->input(NULL, 'silent');
 		$form->input();
@@ -117,29 +117,43 @@ class trans_plg_LinesPlugin extends core_Plugin
 		if($form->isSubmitted()){
 			$formRec = $form->rec;
 			
-			// Обновяваме в мастъра информацията за общото тегло/обем и избраната линия
-			$rec->weightInput = $formRec->weight;
-			$rec->volumeInput = $formRec->volume;
-			$rec->palletCountInput = $formRec->palletsCount;
+			if($formRec->lineId){
+				
+				// Ако има избрана линия, проверка трябва ли задължително да има МОЛ
+				$firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+				if($firstDocument && $firstDocument->isInstanceOf('deals_DealMaster')){
+					if($methodId = $firstDocument->fetchField('paymentMethodId')){
+						if(cond_PaymentMethods::isCOD($methodId) && !trans_Lines::fetchField("#id = {$formRec->lineId} AND #forwarderPersonId IS NOT NULL")){
+							$form->setError('lineId', 'При наложен платеж, избраната линия трябва да има материално отговорно лице|*!');
+						}
+					}
+				}
+			}
 			
-			$rec->{$mvc->lineFieldName} = $formRec->lineId;
-			$mvc->save($rec);
-			$mvc->logWrite('Редакция на транспорта', $rec->id);
+			if(!$form->gotErrors()){
+				
+				// Обновяваме в мастъра информацията за общото тегло/обем и избраната линия
+				$rec->weightInput = $formRec->weight;
+				$rec->volumeInput = $formRec->volume;
+				$rec->lineNotes = $formRec->lineNotes;
+				$rec->transUnitsInput = trans_Helper::convertTableToNormalArr($formRec->transUnitsInput);
 			
-            // Обновяване на modifiedOn на засегнатите транспортните линии
-            if($rec->lineId) {
-                $tRec = trans_Lines::fetch($rec->lineId);
-                $tRec->modifiedOn = dt::now();
-                trans_Lines::save($tRec, 'modifiedOn');
-            }
-            if($exLineId && $exLineId != $rec->lineId) {
-                $tRec = trans_Lines::fetch($exLineId);
-                $tRec->modifiedOn = dt::now();
-                trans_Lines::save($tRec, 'modifiedOn');
-            }
-			
-			// Редирект след успешния запис
-			redirect($mvc->getSingleUrlArray($id), FALSE, '|Промените са записани успешно');
+				$rec->{$mvc->lineFieldName} = $formRec->lineId;
+				$mvc->save($rec);
+				$mvc->updateMaster($rec);
+				$mvc->logWrite('Редакция на транспорта', $rec->id);
+					
+				if(!$rec->lineId) {
+					trans_LineDetails::delete("#containerId = {$rec->containerId}");
+				}
+				
+				if($exLineId && $exLineId != $rec->lineId) {
+					$mvc->updateLines[$rec->lineId] = $exLineId;
+				}
+					
+				// Редирект след успешния запис
+				redirect($mvc->getSingleUrlArray($id), FALSE, '|Промените са записани успешно');
+			}
 		}
 		
 		$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
@@ -167,6 +181,13 @@ class trans_plg_LinesPlugin extends core_Plugin
 				$requiredRoles = 'no_one';
 			}
 		}
+		
+		if($action == 'changeline' && isset($rec->lineId)){
+			$lineState = trans_Lines::fetchField($rec->lineId, 'state');
+			if($lineState != 'pending'){
+				$requiredRoles = 'no_one';
+			}
+		}
 	}
 	
 	
@@ -175,11 +196,11 @@ class trans_plg_LinesPlugin extends core_Plugin
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
-		$measures = $mvc->getTotalTransportInfo($rec->id);
+		$transInfo = $mvc->getTotalTransportInfo($rec->id);
 		
 		core_Lg::push($rec->tplLang);
 		
-		setIfNot($rec->{$mvc->totalWeightFieldName}, $measures->weight);
+		setIfNot($rec->{$mvc->totalWeightFieldName}, $transInfo->weight);
 		$rec->calcedWeight = $rec->{$mvc->totalWeightFieldName};
 		$rec->{$mvc->totalWeightFieldName} = ($rec->weightInput) ? $rec->weightInput : $rec->{$mvc->totalWeightFieldName};
 		$hintWeight = ($rec->weightInput) ? 'Транспортното тегло е въведено от потребител' : 'Транспортното тегло е сумарно от редовете';
@@ -190,7 +211,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 			$row->{$mvc->totalWeightFieldName} = ht::createHint($row->{$mvc->totalWeightFieldName}, $hintWeight);
 		}
 			
-		setIfNot($rec->{$mvc->totalVolumeFieldName}, $measures->volume);
+		setIfNot($rec->{$mvc->totalVolumeFieldName}, $transInfo->volume);
 		$rec->calcedVolume = $rec->{$mvc->totalVolumeFieldName};
 		$rec->{$mvc->totalVolumeFieldName} = ($rec->volumeInput) ? $rec->volumeInput : $rec->{$mvc->totalVolumeFieldName};
 		$hintVolume = ($rec->volumeInput) ? 'Транспортният обем е въведен от потребител' : 'Транспортният обем е сумарен от редовете';
@@ -199,6 +220,19 @@ class trans_plg_LinesPlugin extends core_Plugin
 		} else {
 			$row->{$mvc->totalVolumeFieldName} = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->{$mvc->totalVolumeFieldName});
 			$row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, $hintVolume);
+		}
+		
+		if(isset($fields['-single'])){
+			$row->logisticInfo = trans_Helper::displayTransUnits($rec->transUnits, $rec->transUnitsInput);
+		}
+		
+		if(isset($rec->lineId)){
+			$row->lineId = (isset($fields['-single'])) ? trans_Lines::getHyperlink($rec->lineId) : trans_Lines::getLink($rec->lineId, 0);
+		
+			if(!Mode::isReadOnly()){
+				$lineState = trans_Lines::fetchField($rec->lineId, 'state');
+				$row->lineId = "<span class='state-{$lineState} document-handler' style='line-height:110%'>{$row->lineId}</span>";
+			}
 		}
 		
 		core_Lg::pop();
@@ -218,8 +252,9 @@ class trans_plg_LinesPlugin extends core_Plugin
 	public static function on_AfterGetTotalTransportInfo($mvc, &$res, $id, $force = FALSE)
 	{
 		if(!$res){
+			$rec = $mvc->fetchRec($id);
 			$Detail = cls::get($mvc->mainDetail);
-			$res = cls::get($mvc->mainDetail)->getTransportInfo($id, $force);
+			$res = cls::get($mvc->mainDetail)->getTransportInfo($rec->id, $force);
 		}
 	}
 	
@@ -237,6 +272,118 @@ class trans_plg_LinesPlugin extends core_Plugin
 			$rec->{$mvc->totalWeightFieldName} = $measures->weight;
 			$rec->{$mvc->totalVolumeFieldName} = $measures->volume;
 			$mvc->save_($rec, "{$mvc->totalWeightFieldName},{$mvc->totalVolumeFieldName}");
+		}
+	}
+	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 *
+	 * @param core_Mvc $mvc
+	 * @param int $id първичния ключ на направения запис
+	 * @param stdClass $rec всички полета, които току-що са били записани
+	 */
+	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	{
+		if(isset($rec->lineId)){
+			$mvc->updateLines[$rec->lineId] = $rec->lineId;
+		}
+	}
+	
+	
+	/**
+	 * Изчиства записите, заопашени за запис
+	 */
+	public static function on_Shutdown($mvc)
+	{
+		// Обновяване на линиите
+		if(is_array($mvc->updateLines)){
+			$Lines = cls::get('trans_Lines');
+			foreach ($mvc->updateLines as $lineId) {
+				$Lines->updateMaster($lineId);
+			}
+		}
+	}
+	
+	
+	/**
+	 * Обновява мастъра
+	 *
+	 * @param mixed $id - ид/запис на мастъра
+	 */
+	public static function on_AfterUpdateMaster($mvc, &$res, $id)
+	{
+		$masterRec = $mvc->fetchRec($id);
+		$details = arr::make($mvc->details, TRUE);
+		
+		$unitsArr = array();
+		foreach ($details as $det){
+			if(cls::haveInterface('store_iface_DetailsTransportData', $det)){
+				$units = cls::get($det)->getTransUnits($masterRec);
+				trans_Helper::sumTransUnits($unitsArr, $units);
+			}
+		}
+		
+		// Записват се сумарните ЛЕ от детайлите на документа
+		$masterRec->transUnits = $unitsArr;
+		$mvc->save_($masterRec, 'transUnits');
+		
+		// Синхронизиране с транспортната линия ако е избрана
+		if(isset($masterRec->lineId)){
+			trans_LineDetails::sync($masterRec->lineId, $masterRec->containerId);
+		}
+	}
+	
+	
+	/**
+	 * Информацията на документа, за показване в транспортната линия
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param $res
+	 * 		['baseAmount'] double|NULL - сумата за инкасиране във базова валута
+	 * 		['amount']     double|NULL - сумата за инкасиране във валутата на документа
+	 * 		['currencyId'] string|NULL - валутата на документа
+	 * 		['notes']      string|NULL - забележки за транспортната линия
+	 *  	['stores']     array       - склад(ове) в документа
+	 *   	['weight']     double|NULL - общо тегло на стоките в документа
+	 *     	['volume']     double|NULL - oбщ обем на стоките в документа
+	 *      ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+	 *      	[transUnitId] => quantity
+	 * @param mixed $id 
+	 */
+	public function on_AfterGetTransportLineInfo($mvc, &$res, $id)
+	{
+		$rec = $mvc->fetchRec($id);
+		$transInfo = $mvc->getTotalTransportInfo($rec);
+		
+		if(empty($res['weight'])){
+			$res['weight'] = ($rec->weightInput) ? $rec->weightInput : $transInfo->weight;
+		}
+		
+		if(empty($res['volume'])){
+			$res['volume'] = ($rec->volumeInput) ? $rec->volumeInput : $transInfo->volume;
+		}
+		
+		if(empty($res['state'])){
+			$res['state'] = $rec->state;
+		}
+		
+		$res['transportUnits'] = trans_Helper::getCombinedTransUnits($rec->transUnits, $rec->transUnitsInput);
+	}
+	
+	
+	/**
+	 * Трябва ли ръчно да се подготвя документа в Транспортната линия
+	 *
+	 * @param core_Mvc $mvc       - документ
+	 * @param boolean $res        - TRUE или FALSE
+	 * @param mixed $id           - ид или запис на документа
+	 * @return void
+	 */
+	public static function on_AfterRequireManualCheckInTransportLine($mvc, &$res, $id)
+	{
+		if(!isset($res)) {
+			$res = TRUE;
 		}
 	}
 }

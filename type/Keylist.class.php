@@ -203,7 +203,7 @@ class type_Keylist extends core_Type {
         $col = self::getCol((array)$this->suggestions, $maxChars);
       
         $i = 0; $html = ''; $trOpen = FALSE;
-        $j = 0; //за конструиране на row-1,row-2 и т.н.
+        static $j = 0; //за конструиране на row-1,row-2 и т.н.
         
         $keyListClass = 'keylist';
         
@@ -248,10 +248,10 @@ class type_Keylist extends core_Type {
                     $plusImg =  ht::createElement("img", array('src' => $plusUrl, 'class' => 'btns-icon plus'));
                     
                     $checkedUrl = sbf("img/16/checked.png", "");
-                    $checkImg =  ht::createElement("img", array('src' => $checkedUrl, 'class' => 'btns-icon invert-checkbox hidden'));
+                    $checkImg =  ht::createElement("img", array('src' => $checkedUrl, 'class' => 'btns-icon invert-checkbox checked hidden'));
                     
                     $uncheckedUrl = sbf("img/16/unchecked.png", "");
-                    $uncheckImg =  ht::createElement("img", array('src' => $uncheckedUrl, 'class' => 'btns-icon invert-checkbox '));
+                    $uncheckImg =  ht::createElement("img", array('src' => $uncheckedUrl, 'class' => 'btns-icon invert-checkbox unchecked hidden'));
                     
                     // Класа за групите
                     $class = 'keylistCategory';
@@ -455,7 +455,7 @@ class type_Keylist extends core_Type {
             }
             
             if($orderBy = $this->params['orderBy']) {
-                $query->orderBy("#{$orderBy}", NULL, TRUE); 
+                $query->orderBy("#{$orderBy}", NULL, 100); 
             }
              
             if($select != "*") {

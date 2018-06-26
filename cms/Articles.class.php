@@ -15,7 +15,7 @@
 class cms_Articles extends core_Master
 {
     
-    
+	
     /**
      * Заглавие
      */
@@ -49,7 +49,7 @@ class cms_Articles extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    var $changableFields = 'level, menuId,  title, body, vid, seoTitle, seoDescription, seoKeywords';
+    var $changableFields = 'level, menuId,  title, body, vid, seoTitle, seoDescription, seoKeywords,footerTitleLink';
 
     
     /**
@@ -134,6 +134,8 @@ class cms_Articles extends core_Master
         $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory,width=100%');
         $this->FLD('body', 'richtext(bucket=Notes)', 'caption=Текст,column=none');
 
+        $this->FLD('footerTitleLink', 'varchar', 'caption=Показване във футъра->Заглавие,autohide');
+        
         $this->setDbUnique('menuId,level');
     }
 
@@ -189,10 +191,10 @@ class cms_Articles extends core_Master
             cms_Domains::selectCurrent($cRec->domainId);
         }
 
-        $data->form->setOptions('menuId', arr::combine( array('' => ''), cms_Content::getMenuOpt($mvc))); 
+        $data->form->setOptions('menuId', arr::combine( array('' => ''), cms_Content::getMenuOpt($mvc)));
     }
-
-
+    
+    
     /**
      * Изпълнява се след преобразуването към вербални стойности на полетата на записа
      */
@@ -809,15 +811,18 @@ class cms_Articles extends core_Master
 
             if(strlen($exRec->level) <= 6 && ($exRec->level != $level)) { 
                 $query = self::getQuery();
-                while($curRec = $query->fetch("#level LIKE '{$exRec->level}%'")) {
+                while($curRec = $query->fetch("#level LIKE '{$exRec->level}%' AND #menuId = {$exRec->menuId}")) {
                     $curRec->level = $level . substr($curRec->level, strlen($level));
                     $mvc->save_($curRec, 'level');
                 }
             }
         }
-
     }
 
+
+    /**
+     *
+     */
     private static function trim3zeros($level)
     {
         if(substr($level, -3) === '000') {
@@ -875,5 +880,37 @@ class cms_Articles extends core_Master
             $res = TRUE;
         } 
     }
-
+    
+    
+    /**
+     * Добавяне на текстове за съгласие към формата
+     * 
+     * @param int|NULL $domainId - за кой домейн
+     * @return core_ET $tpl      - шаблон с линковете
+     */
+    public static function addFooterLinks($domainId = NULL)
+    {
+    	$domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
+    	
+    	// Всички активни статии към домейна с информация за добавяне във футъра
+    	$query = self::getQuery();
+    	$query->EXT('domainId', 'cms_Content', 'externalName=domainId,externalKey=menuId');
+    	$query->where("#domainId = {$domainId} AND #state = 'active'");
+    	$query->where("#footerTitleLink IS NOT NULL AND #footerTitleLink != ''");
+    	$query->orderBy('id', 'ASC');
+    	
+    	$links = array();
+    	while($rec = $query->fetch()){
+    		$link = ht::createLink($rec->footerTitleLink, self::getUrl($rec));
+    		$links[] = $link->getContent();
+    	}
+    	
+    	if(!count($links)) return new core_ET("");
+    	
+    	$links = implode(' | ', $links);
+    	$tpl = new core_ET("<div class='footer-links'>[#FOOTER_LINKS#]</div>");
+    	$tpl->append($links, 'FOOTER_LINKS');
+    	
+    	return $tpl;
+    }
 }

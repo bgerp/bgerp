@@ -32,13 +32,13 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, crm_Wrapper, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, cond_Wrapper, plg_SaveAndNew';
     
     
     /**
      * Кой може да вижда списъчния изглед
      */
-    public $canList = 'no_one';
+    public $canList = 'debug';
     
     
     /**
@@ -94,9 +94,6 @@ class cond_ConditionsToCustomers extends core_Manager
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	
-    	$tab = ($rec->cClass == crm_Companies::getClassId()) ? 'Фирми' : 'Лица';
-    	$mvc->currentTab = $tab;
     	
     	if(!$form->rec->id){
     		$options = static::getRemainingOptions($rec->cClass, $rec->cId);
@@ -406,6 +403,15 @@ class cond_ConditionsToCustomers extends core_Manager
     }
     
     
+    /**
+     * Преди запис
+     */
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	$rec->_logMsg = (isset($rec->id) ? 'Редактиране' : 'Добавяне') . ' на търговско условие';
+    }
+    
+    
 	/**
      * След запис се обновяват свойствата на перата
      */
@@ -413,6 +419,10 @@ class cond_ConditionsToCustomers extends core_Manager
     {
     	if(cond_Parameters::fetchField("#id='{$rec->conditionId}'", 'isFeature') == 'yes'){
     		acc_Features::syncFeatures($rec->cClass, $rec->cId);
+    	}
+    	
+    	if(isset($rec->cClass) && isset($rec->cId)){
+    		cls::get($rec->cClass)->logWrite($rec->_logMsg, $rec->cId);
     	}
     }
     
@@ -426,6 +436,8 @@ class cond_ConditionsToCustomers extends core_Manager
         	if(cond_Parameters::fetchField("#id='{$rec->conditionId}'", 'isFeature') == 'yes'){
         		acc_Features::syncFeatures($rec->cClass, $rec->cId);
         	}
+        	
+        	cls::get($rec->cClass)->logWrite('Премахване на търговско условие', $rec->cId);
         }
     }
     

@@ -433,39 +433,64 @@ body {
 
 .bookmark-links {
     font-size: 0.9em;
+    margin-top: 12px;
     ul {
-        padding-left: 0;
-        li {
-            border-bottom: 1px dashed rgba(254, 253, 214, 0.5);
-            padding: 5px 0 5px 0px;
-            display: block;
-            &:last-child {
-                border-bottom: none;
+      padding-left: 0;
+    }
+    li {
+      display: block;
+    }
+    a, span {
+        background: url("../img/12/star-yellow.png") 3px center no-repeat;
+        margin-left: 0px;
+        padding-left: 20px;
+        outline: none;
+        color: #FFF612;
+        display: block;
+        font-size: 0.97em;
+        border-bottom: 1px dashed rgba(254, 253, 214, 0.5);
+        padding-top: 5px;
+        padding-bottom: 5px;
+        &.bookmark-external-url.out {
+            color: #fefdd6;
+            &:visited {
+              color: #febb44;
             }
+        }
+        &:hover{
+            color: #fefdd6;
+        }
+        &.out {
+            background: url("../img/12/star-out.png") 3px center no-repeat;
+        }
+    }
+    .ul-group {
+        margin: 0;
+        .bookmark-group {
+            border-bottom: 1px dashed rgba(254, 253, 214, 0.5);
+            padding-top: 5px;
+            padding-bottom: 5px;
+            display: block;
+            font-weight: bold;
+        }
+        &:hover {
+            cursor: pointer;
+        }
+        &.open .bookmark-group{
+            background: url("../img/12/minus-border.png") 2px center no-repeat;
+        }
+        &:not(.open) .bookmark-group{
+            background: url("../img/12/plus-border.png") 2px center no-repeat;
+        }
+        .bookmark-group {
+            padding-left: 20px;
+            color: #fffb99;
         }
         a {
-            background: url("../img/12/star-yellow.png") 4px 3px no-repeat;
-            margin-left: 0;
-            padding-left: 20px;
-            outline: none;
-            color: #FFF612;
-            display: block;
-            font-size: 0.97em;
-            &.bookmark-external-url.out {
-	            color: #fefdd6;
-	            &:visited {
-	               color: #febb44;
-	            }
-	        }
-            &:hover{
-                color: #fefdd6;
-            }
-            &.out {
-              background: url("../img/12/star-out.png") 4px 3px no-repeat;
-            }
+            padding-left: 28px;
+            background-position: 12px center;
+            margin-left: 0px;
         }
-
-       
     }
 }
 

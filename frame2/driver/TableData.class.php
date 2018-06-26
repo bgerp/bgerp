@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   frame2
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -37,7 +37,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * Полета за хеширане на таговете
 	 * 
 	 * @see uiext_Labels
-	 * @var varchar
+	 * @var string
 	 */
 	protected $hashField;
 	
@@ -45,7 +45,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	/**
 	 * Кое поле от $data->recs да се следи, ако има нов във новата версия
 	 *
-	 * @var varchar
+	 * @var string
 	 */
 	protected $newFieldToCheck;
 	
@@ -111,7 +111,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	
 		// Подготовка на пейджъра
 		if(!Mode::isReadOnly()){
-			$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+			setIfNot($itemsPerPage, $rec->listItemsPerPage, $this->listItemsPerPage);
+			$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $itemsPerPage));
 			$data->Pager->setPageVar('frame2_Reports', $rec->id);
 			$data->Pager->itemsCount = count($data->recs);
 		}
@@ -320,23 +321,36 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	/**
 	 * Връща редовете на CSV файл-а
 	 *
-	 * @param stdClass $rec
-	 * @return array
+	 * @param stdClass $rec               - запис
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+	 * @return array $recs                - записите за експорт
 	 */
-	public function getCsvExportRows($rec)
+	public function getExportRecs($rec, $ExportClass)
 	{
-		$dRecs = $rec->data->recs;
-		$exportRows = array();
-	
-		Mode::push('text', 'plain');
-		if(is_array($dRecs)){
-			foreach ($dRecs as $key => $dRec){
-				$exportRows[$key] = $this->detailRecToVerbal($rec, $dRec);
+		expect(cls::haveInterface('export_ExportTypeIntf', $ExportClass));
+		
+		$recs = array();
+		if(is_array($rec->data->recs)){
+			foreach ($rec->data->recs as $dRec){
+				$recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
 			}
 		}
-		Mode::pop('text');
+		
+		return $recs;
+	}
 	
-		return $exportRows;
+	
+	/**
+	 * Подготовка на реда за експорт във CSV
+	 * 
+	 * @param stdClass $rec
+	 * @param stdClass $dRec
+	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+	 * @return stdClass
+	 */
+	public function getExportRec_($rec, $dRec, $ExportClass)
+	{
+		return $dRec;
 	}
 	
 	
@@ -382,6 +396,19 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		$res = (is_array($diff) && count($diff));
 	
 		return $res;
+	}
+	
+	
+	/**
+	 * След добавени
+	 *
+	 * @param frame2_driver_Proto $Driver - драйвер
+	 * @param embed_Manager $Embedder     - ембедър
+	 * @param core_Fieldset $fieldset     - форма
+	 */
+	protected static function on_AfterAddFields(frame2_driver_Proto $Driver, embed_Manager $Embedder, core_Fieldset &$fieldset)
+	{
+		$fieldset->FLD('listItemsPerPage', 'int(min=10,Max=100)', "caption=Други настройки->Елементи на страница,after=changeFields,autohide,placeholder={$Driver->listItemsPerPage}");
 	}
 	
 	

@@ -247,8 +247,8 @@ class doc_DocumentIntf
     /**
      * Връща антетката на документа
      * 
-     * @param stdObject $rec
-     * @param stdObject $row
+     * @param stdClass $rec
+     * @param stdClass $row
      */
     function getLetterHead($rec, $row)
     {
@@ -269,7 +269,6 @@ class doc_DocumentIntf
     }
     
     
-    
     /**
      * Връща хеша на подадения документ
      * 
@@ -281,5 +280,35 @@ class doc_DocumentIntf
     {
         
         return $this->class->getExportFormats($id);
+    }
+    
+    
+    /**
+     * Връща дефолтни стойности за попълване на река
+     *
+     * @param stdClass $rec
+     * @param array $otherParams
+     *
+     * @return array
+     */
+    function getDefaultData($rec, $otherParams = array())
+    {
+        
+        return $this->class->getDefaultData($rec, $otherParams);
+    }
+    
+    
+    /**
+     * Връща дефолтни стойности за попълване на река за коментара
+     *
+     * @param stdClass $rec
+     * @param array $otherParams
+     *
+     * @return array
+     */
+    function getDefaultDataForComment($rec, $otherParams = array())
+    {
+        
+        return $this->class->getDefaultDataForComment($rec, $otherParams);
     }
 }

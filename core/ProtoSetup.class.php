@@ -17,6 +17,10 @@
  */
 class core_ProtoSetup
 {
+    /**
+     * Да се инициализира ли, след промяна на конфигурацията?
+     */
+    const INIT_AFTER_CONFIG = TRUE;
     
     /**
      * Версия на пакета
@@ -121,7 +125,11 @@ class core_ProtoSetup
      * Инсталиране на пакета
      */
     public function install()
-    {  
+    {   
+        if(!Mode::get('dbInit')) {
+            Mode::set('dbInit', core_Packs::isFirstSetup() ? 'first' : 'update');
+        }
+
         // Взимаме името на пакета
         $packName = $this->getPackName();
         
@@ -137,9 +145,8 @@ class core_ProtoSetup
             if (stripos($manager, 'migrate::') === 0) {
                 
                 list($migrate, $method) = explode('::', $manager);
-                
                 $html .= $this->callMigrate($method, $packName);
-                
+
                 continue;
             }
 
@@ -164,7 +171,7 @@ class core_ProtoSetup
         foreach(arr::make($this->roles) as $role) {
             $html .= core_Roles::addOnce($role);
         }
-
+        
         return $html;
     }
     
@@ -186,7 +193,11 @@ class core_ProtoSetup
         
         if(!core_Packs::getConfigKey('core', $key)) {
             try {
-                $res = call_user_func(array($this, $method));
+                if(Mode::is('dbInit', 'update')) {
+                    $res = call_user_func(array($this, $method));
+                } else {
+                    $res = "<li class='debug-info'>Миграцията {$packName}::{$method} е пропусната, защото се инициализира празна база</li>";
+                }
                 core_Packs::setConfig('core', array($key => TRUE));
                 if($res) {
                     $html = $res;
@@ -199,7 +210,7 @@ class core_ProtoSetup
            }
         }
         
-        Mode::pop('isMigrate', TRUE);
+        Mode::pop('isMigrate');
         
         return $html;
     }
@@ -357,6 +368,21 @@ class core_ProtoSetup
         
         return $res;
     }
+
+
+    /**
+     * Връща стойност на дефинирана константа
+     *
+     * @param string $constName
+     * 
+     * @return mixed
+     */
+    public static function getConst($constName)
+    {
+        expect(defined($constName), $constName);
+
+        return constant($constName);
+    }
     
     
     /**
@@ -453,9 +479,7 @@ class core_ProtoSetup
 
             	// задаваме позицията в менюто
             	// с приоритет е от конфига
-            	if ($conf->{$constPosition."_".$id}) {
-            		$row = $conf->{$constPosition."_".$id};
-            	} elseif ($item['row']) {
+            	if ($item['row']) {
             		$row = $item['row'];
             	} elseif ($item[0]) {
             		$row = $item[0];
@@ -465,9 +489,7 @@ class core_ProtoSetup
             
             	// задаваме името на менюто
             	// с приоритет е от конфига
-            	if ($conf->{$constMenuName."_".$id}) {
-            		$menu = $conf->{$constMenuName."_".$id};
-            	} elseif ($item['menu']) {
+            	if ($item['menu']) {
             		$menu = $item['menu'];
             	} elseif ($item[1]) {
             		$menu = $item[1];
@@ -477,9 +499,7 @@ class core_ProtoSetup
             	
             	// задаваме името на подменюто
             	// с приоритет е от конфига
-            	if ($conf->{$constSubMenu."_".$id}) {
-            		$subMenu = $conf->{$constSubMenu."_".$id};
-            	} elseif ($item['subMenu']) {
+            	if ($item['subMenu']) {
             		$subMenu = $item['subMenu'];
             	} elseif ($item[2]) {
             		$subMenu = $item[2];
@@ -488,31 +508,19 @@ class core_ProtoSetup
                 $ctr     = $item['ctr'] ? $item['ctr'] : $item[3];
                 $act     = $item['act'] ? $item['act'] : $item[4];
                 $roles   = $item['roles'] ? $item['roles'] : $item[5];
-                
-	            // ако искаме това меню да не е видимо, го изтриваме
-                if ($conf->{$constView."_".$id} === 'no')  { 
-	        	
-		        	$query = bgerp_Menu::getQuery();
-		        	
-			        $del = $query->delete(array("#ctr = '[#1#]' AND #act = '[#2#]' AND #menu = '[#3#]' AND #subMenu = '[#4#]' AND #createdBy = -1", $ctr, $act, $menu, $subMenu));
-                    if($del) {
-                        $res .= "<li class='debug-update'>Премахнат е елемента на менюто <b>{$menu} » {$subMenu}</b></li>";
-                    }
-			       
-	        	} else {
-	        	    // Добавя елемента на менюто
-                	$res .= bgerp_Menu::addOnce($row, $menu, $subMenu, $ctr, $act, $roles);
-	        	}
-	        	
-	        	$cacheKey = 'menuObj_' . core_Lg::getCurrent();
-			        
-			    core_Cache::remove('Menu', $cacheKey);
-			        
+	    
+	            // Добавя елемента на менюто
+                $res .= bgerp_Menu::addOnce($row, $menu, $subMenu, $ctr, $act, $roles);
+	        				        
 	        	unset($row);
                 unset($menu);
                 unset($subMenu);
             }
         }
+	    
+        $cacheKey = 'menuObj_' . core_Lg::getCurrent();
+			        
+	    core_Cache::remove('Menu', $cacheKey);
 
         return $res;
     }
@@ -527,51 +535,6 @@ class core_ProtoSetup
     {
         $description = $this->configDescription;
                               
-        // взимаме текущото зададено меню
-        if ($this->menuItems && count($this->menuItems)) { 
-            
-            // Името на пакета
-            $packName = $this->getPackName();
-
-            // три имена на променливи за менюто
-            $position = strtoupper($packName). "_MENU_POSITION";
-            $menuName = strtoupper($packName). "_MENU";
-            $subMenu = strtoupper($packName). "_SUB_MENU";
-            $view = strtoupper($packName). "_VIEW";
-            
-        	$menu = $this->menuItems;
-        	
-        	if (is_array($menu)) {
-        		foreach($menu as $id=>$m) {
-        			
-        			// дефинираме константи с определените имена
-        			defIfNot($position."_".$id, $m[0]);
-        			defIfNot($menuName."_".$id, $m[1]);
-        			defIfNot($subMenu."_".$id, $m[2]);
-        			defIfNot($view."_".$id, 'yes');
-        			
-        		    $numbMenu =  $id + 1;
-
-        		    if($numbMenu == 1) {
-                        $numbMenu = '';
-                    } else {
-                        $numbMenu = " ({$numbMenu})";
-                    }
-
-        			$description[$position."_".$id] = array ('double', 'caption=Меню '.$numbMenu.'->Позиция');
-        			$description[$menuName."_".$id] = array ('varchar', 'caption=Меню '.$numbMenu.'->Група');
-        			$description[$subMenu."_".$id] = array ('varchar', 'caption=Меню '.$numbMenu.'->Подменю');
-        			$description[$view."_".$id] = array ('enum(yes=Да, no=Не),row=2', 'caption=Меню '.$numbMenu.'->Показване,maxRadio=2');
-        		}
-        	} 
-            
-        }
-        
-        // За всеки случай нулираме, за да не се обърка някой по-нататък
-        if(is_array($description) && !count($description)) {
-            $description = NULL;
-        }
-
         return $description;
     }
 }

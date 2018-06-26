@@ -64,16 +64,24 @@ class cal_Setup extends core_ProtoSetup
     var $managers = array(
             'cal_Calendar',
             'cal_Tasks',
-            'cal_TaskProgresses',
             'cal_Holidays',
         	'cal_Reminders',
             'cal_ReminderSnoozes',
     		'cal_TaskConditions',
+    		'cal_LinkedPostponed',
             'migrate::windUpRem',
-            //'migrate::reCalcNextStart'
+            'migrate::removePOKey',
+            'migrate::updateTaskProgresses',
+            'migrate::updateClosedTimed',
         );
-
-
+    
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = "cal_TaskType, cal_Progresses";
+    
+    
     /**
      * Описание на конфигурационните константи
      */
@@ -215,7 +223,7 @@ class cal_Setup extends core_ProtoSetup
         $keepMinutes = 10000;
         $depends = 'cal_Calendar';
         
-        $resArr = core_Cache::get($type, $handler, 1000, 'cal_Calendar');
+        $resArr = core_Cache::get($type, $handler, $keepMinutes, $depends);
         
         if ($resArr) return $resArr;
         
@@ -295,5 +303,86 @@ class cal_Setup extends core_ProtoSetup
         core_Cache::set($type, $handler, $res, $keepMinutes, $depends);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция за премахване на грешно добавени празници за PO
+     */
+    public static function removePOKey()
+    {
+        cal_Holidays::delete("#key = 'constitutionPO' OR #key = 'independencePO'");
+        
+        cal_Holidays::updateCalendarHolidays();
+    }
+    
+    
+    /**
+     * Зареждане на данни
+     */
+    function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        
+        $res .= $this->callMigrate('addCalTaskType', 'cal');
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Миграция за добавяне на драйвер към задачите
+     */
+    public function addCalTaskType()
+    {
+        $Tasks = cls::get('cal_Tasks');
+        
+        $driverClassField = str::phpToMysqlName('driverClass');
+        
+        $clsId = cal_TaskType::getClassId();
+        
+        expect($clsId);
+        
+        $Tasks->db->query("UPDATE `{$Tasks->dbTableName}` SET `{$driverClassField}` = '{$clsId}' WHERE `{$driverClassField}` IS NULL");
+    }
+    
+    
+    /**
+     * Обновява полетата на модела, ако е инсталиран
+     */
+    public function updateTaskProgresses()
+    {
+        if (!cls::load('cal_TaskProgresses', TRUE)) return ;
+        
+        $Progresses = cls::get('cal_TaskProgresses');
+        
+        // Ако таблицата не е създадена
+        if (!$Progresses->db->tableExists($Progresses->dbTableName)) return ;
+        
+        $Progresses->setupMVC();
+    }
+    
+    
+    /**
+     * Поправка на времето на затваряне на задачите
+     */
+    public function updateClosedTimed()
+    {
+        $Tasks = cls::get('cal_Tasks');
+        
+        $tQuery = $Tasks->getQuery();
+        $tQuery->where("#state = 'closed'");
+        $tQuery->orWhere("#state = 'stopped'");
+        $tQuery->where("#timeClosed IS NULL");
+        
+        while ($tRec = $tQuery->fetch()) {
+            $tRec->timeClosed = $tRec->modifiedOn;
+            
+            try {
+                $Tasks->save($tRec, 'timeClosed');
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+            }
+        }
     }
 }

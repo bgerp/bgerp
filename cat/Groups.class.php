@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на групи с продукти.
+ * Мениджър на групи с артикули.
  *
  *
  * @category  bgerp
@@ -48,12 +48,6 @@ class cat_Groups extends core_Manager
     
     
     /**
-     * Кои полета да се сумират за наследниците
-     */
-    public $fieldsToSumOnChildren = 'productCnt';
-    
-    
-    /**
      * Наименование на единичния обект
      */
     public $singleTitle = "Група";
@@ -81,12 +75,6 @@ class cat_Groups extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'cat,ceo,sales,purchase';
-    
-    
-    /**
-     * Кой може да разглежда сингъла на документите?
-     */
-    public $canSingle = 'cat,ceo,sales,purchase';
     
     
     /**
@@ -127,9 +115,10 @@ class cat_Groups extends core_Manager
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
+    	
     	if($form->isSubmitted()){
     		$condition = "#name = '[#1#]' AND #id != '{$rec->id}' AND ";
     		$condition .= isset($rec->parentId) ? "#parentId = {$rec->parentId}" : " #parentId IS NULL";
@@ -151,16 +140,13 @@ class cat_Groups extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('product', 'key(mvc=cat_Products, select=name, allowEmpty=TRUE)', 'caption=Продукт');
-        
-        $data->listFilter->view = 'horizontal';
-        
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->FNC('product', 'key(mvc=cat_Products, select=name, allowEmpty=TRUE)', 'caption=Продукт');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
         $data->listFilter->showFields = 'search,product';
-        
         $rec = $data->listFilter->input(NULL, 'silent');
         
         $data->query->orderBy('#name');
@@ -216,6 +202,7 @@ class cat_Groups extends core_Manager
     			$rec->parentId = $parentId;
     		}
     	}
+    	$rec->productCnt = 0;
     }
     
     

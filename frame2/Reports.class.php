@@ -3,13 +3,13 @@
 
 
 /**
- * Нов мениджър за справки
+ * Мениджър за динамични справки
  *
  *
  * @category  bgerp
  * @package   frame2
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -32,7 +32,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone';
+    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close';
                       
     
     /**
@@ -75,12 +75,6 @@ class frame2_Reports extends embed_Manager
      * Права за писане
      */
     public $canEdit = 'powerUser';
-    
-    
-    /**
-     * Права за писане
-     */
-    public $canExport = 'powerUser';
     
     
     /**
@@ -196,7 +190,19 @@ class frame2_Reports extends embed_Manager
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'lastRefreshed';
+    public $fieldsNotToClone = 'lastRefreshed,data';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'title,driverClass';
+    
+    
+    /**
+     * Бутона за затваряне на кой ред да е
+     */
+    public $closeBtnRow = 1;
     
     
     /**
@@ -209,9 +215,21 @@ class frame2_Reports extends embed_Manager
     	$this->FLD('updateTime', 'set(08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00)', 'caption=Обновяване и известяване->Час,autohide');
     	$this->FLD('notificationText', 'varchar', 'caption=Обновяване и известяване->Текст,autohide');
     	$this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Обновяване и известяване->Потребители,autohide');
-    	$this->FLD('maxKeepHistory', 'int(Min=0)', 'caption=Запазване на предишни състояния->Версии,autohide,placeholder=Неограничено');
+    	$this->FLD('changeFields', 'set', 'caption=Други настройки->Промяна,autohide,input=none');
+    	$this->FLD('maxKeepHistory', 'int(Min=0)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
     	$this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
     	$this->FLD('lastRefreshed', 'datetime', 'caption=Последно актуализиране,input=none');
+    }
+    
+    
+    /**
+     * След дефиниране на полетата на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Master &$mvc)
+    {
+    	$mvc->setField('priority', 'caption=Обновяване и известяване->Приоритет,after=sharedUsers');
     }
     
     
@@ -221,14 +239,52 @@ class frame2_Reports extends embed_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
+    	$rec = $form->rec;
     	$form->setField('notificationText', array('placeholder' => self::$defaultNotificationText));
     	$form->setField('maxKeepHistory', array('placeholder' => self::MAX_VERSION_HISTORT_COUNT));
     
-    	if($Driver = self::getDriver($form->rec)){
-    		$dates = $Driver->getNextRefreshDates($form->rec);
+    	if($Driver = self::getDriver($rec)){
+    		$dates = $Driver->getNextRefreshDates($rec);
     		if((is_array($dates) && count($dates)) || $dates === FALSE){
     			$form->setField('updateDays', 'input=none');
     			$form->setField('updateTime', 'input=none');
+    		}
+    		
+    		// Има ли полета, които може да се променят
+    		$changeAbleFields = $Driver->getChangeableFields($rec);
+    		if(count($changeAbleFields)){
+    			$set = array();
+    			foreach ($changeAbleFields as $fldName){
+    				if($Fld = $form->getField($fldName, FALSE)){
+    					$set[$fldName] = $Fld->caption; 
+    				}
+    			}
+    			
+    			// Задаване като опции на артикулите, които може да се променят
+    			if(count($set)){
+    				$form->setField('changeFields', 'input');
+    				$form->setSuggestions('changeFields', $set);
+    			}
+    		}
+    		
+    		// При редакция, ако има полета за промяна
+    		if(isset($rec->id) && $rec->changeFields){
+    			$changeable = type_Set::toArray($rec->changeFields);
+    			
+    			// И потребителя не е създател на документа
+    			if($rec->createdBy != core_Users::getCurrent()){
+    				
+    				// Скриват се всички полета, които не са упоменати като променяеми
+    				$fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
+    				$diff = array_diff_key($fields, $changeable);
+    				if($data->action == 'clone'){
+    					unset($diff['sharedUsers'], $diff['notificationText'], $diff['updateDays'], $diff['updateTime'], $diff['maxKeepHistory']);
+    				}
+    				
+    				foreach ($diff as $name => $Type){
+    					$form->setField($name, 'input=none');
+    				}
+    			}
     		}
     	}
     }
@@ -348,7 +404,7 @@ class frame2_Reports extends embed_Manager
     	
     	// На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
     	foreach ($userArr as $userId){
-    		bgerp_Notifications::add($msg, $url, $userId);
+    		bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
     	}
     }
     
@@ -397,10 +453,6 @@ class frame2_Reports extends embed_Manager
     		$data->toolbar->addBtn('Обнови', array($mvc, 'refresh', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на отчета');
     	}
     	
-    	if($mvc->haveRightFor('export', $rec)){
-    		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=2');
-    	}
-    	
     	$url = array($mvc, 'single', $rec->id);
     	$icon = 'img/16/checked.png';
     	if(!Request::get('vId', 'int')){
@@ -410,7 +462,7 @@ class frame2_Reports extends embed_Manager
     	
     	$vCount = frame2_ReportVersions::count("#reportId = {$rec->id}");
     	if($vCount > 1){
-    		$data->toolbar->addBtn("Версии ({$vCount})", $url, NULL, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
+    		$data->toolbar->addBtn("Версии|* ({$vCount})", $url, NULL, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
     	}
     }
     
@@ -425,7 +477,7 @@ class frame2_Reports extends embed_Manager
     	expect($rec = $this->fetch($id));
     	$this->requireRightFor('refresh', $rec);
     	
-    	self::refresh($rec, $save = TRUE);
+    	self::refresh($rec);
     	frame2_ReportVersions::unSelectVersion($rec->id);
     	
     	return followRetUrl();
@@ -443,7 +495,7 @@ class frame2_Reports extends embed_Manager
     	if($Driver = $mvc->getDriver($rec)){
     		$tpl->replace($Driver->renderData($rec)->getContent(), 'DRIVER_DATA');
     	} else {
-    		$tpl->replace("<span class='red'><b>" . tr('Несъществуващ драйвер') . "</b></span>", 'DRIVER_DATA');
+    		$tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на отчета') . "</b></span>", 'DRIVER_DATA');
     	}
     	
     	// Връщане на оригиналния рек ако е пушнат
@@ -498,8 +550,26 @@ class frame2_Reports extends embed_Manager
     			}
     		}
     		
-    		// Mаркиране че отчера реяжва да се обнови
     		$me->setNewUpdateTimes[$rec->id] = $rec;
+    		
+    		// Ако справката сега е създадена да не се обновява
+    		if($rec->__isCreated === TRUE) return;
+    		
+    		// Кога последно е видяна от потребител справката
+    		$lastSeen = self::getLastSeenByUser(__CLASS__, $rec);
+    		$months = frame2_Setup::get('CLOSE_LAST_SEEN_BEFORE_MONTHS');
+    		$seenBefore = dt::addMonths(-1 * $months);
+    		
+    		if($lastSeen <= $seenBefore){
+    			
+    			// Ако е последно видяна преди зададеното време да се затваря и да не се обновява повече
+    			$rec->state = 'closed';
+    			$rec->refreshData = FALSE;
+    			$me->invoke('BeforeChangeState', array($rec, $rec->state));
+    			$me->save($rec, 'state');
+    			$me->logWrite('Затваряне на остаряла справка', $rec->id);
+    			unset($me->setNewUpdateTimes[$rec->id]);
+    		}
     	}
     }
     
@@ -551,7 +621,7 @@ class frame2_Reports extends embed_Manager
     		frame2_ReportVersions::keepInCheck($rec->id);
     	}
     	
-    	// Айи ще се махнат зададените времена за обновяване, махат се
+    	// Ако ще се махнат зададените времена за обновяване, махат се
     	if($rec->removeSetUpdateTimes === TRUE){
     		self::removeAllSetUpdateTimes($rec->id);
     	}
@@ -573,10 +643,14 @@ class frame2_Reports extends embed_Manager
     {
     	if($rec->state == 'draft'){
     		$rec->state = 'active';
-    	} elseif($rec->state == 'rejected'){
+    	} elseif($rec->state == 'rejected' || $rec->state == 'closed'){
     		$rec->removeSetUpdateTimes = TRUE;
-    	} elseif($rec->state == 'active' && $rec->brState == 'rejected'){
+    	} elseif($rec->state == 'active' && in_array($rec->brState, array('rejected', 'closed'))){
     		$rec->updateRefreshTimes = TRUE;
+    	}
+    	
+    	if(empty($rec->id)){
+    		$rec->__isCreated = TRUE;
     	}
     }
     
@@ -594,13 +668,7 @@ class frame2_Reports extends embed_Manager
     			}
     		}
     		
-    		if($rec->state == 'rejected'){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
-    	
-    	if($action == 'export' && isset($rec)){
-    		if(!$mvc->haveRightFor('single', $rec)){
+    		if(in_array($rec->state, array('rejected', 'closed'))){
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -614,10 +682,31 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	// За модификация, потребителя трябва да има права и за драйвера
-    	if(in_array($action, array('edit', 'write', 'refresh', 'export', 'clonerec')) && isset($rec->driverClass)){
+    	if(in_array($action, array('write', 'refresh')) && isset($rec->driverClass)){
     		if($Driver = $mvc->getDriver($rec)){
     			if(!$Driver->canSelectDriver($userId)){
     				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
+    	
+    	if(($action == 'edit' || $action == 'clonerec') && isset($rec->driverClass) && isset($rec->id)){
+    		if($Driver = $mvc->getDriver($rec)){
+    			$fRec = $mvc->fetch($rec->id, 'createdBy,sharedUsers,changeFields');
+    			
+    			// Взимат се стойностите от записа в БД, защото може да е подменен ако се разглежда по стара версия
+    			foreach (array('createdBy', 'sharedUsers', 'changeFields') as $exFld){
+                    ${$exFld} = $fRec->{$exFld};
+                }
+			
+                // Кои са избраните полета за промяна (ако има)
+                $changeAbleFields = type_Set::toArray($changeFields);
+				
+    			// Може да се клонира/редактира ако може да се избере драйвера и има посочени полета за промяна
+    			if(!haveRole('ceo', $userId)){
+    				if(!($userId == $createdBy || (keylist::isIn($userId, $sharedUsers) && count($changeAbleFields)))){
+    					$requiredRoles = 'no_one';
+    				}
     			}
     		}
     	}
@@ -636,9 +725,17 @@ class frame2_Reports extends embed_Manager
     {
     	$resArr = arr::make($resArr);
     	$resArr['title'] = array('name' => tr('Заглавие'), 'val' => $row->title);
+    	$updateHeaderName = tr('Актуализиране');
+    	
+    	if($rec->state == 'closed'){
+    		$nextUpdates = self::getNextRefreshDates($rec);
+    		if(count($nextUpdates)){
+    			$updateHeaderName = ht::createHint($updateHeaderName, 'Справката няма да се актуализира докато е затворена', 'warning', TRUE, 'height=12px;width=12px');
+    		}
+    	}
     	
     	if(!empty($rec->updateDays) || !empty($rec->updateTime) || !empty($row->nextUpdate)){
-    		$resArr['update'] = array('name' => tr('Актуализиране'), 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
+    		$resArr['update'] = array('name' => $updateHeaderName, 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
         																		 <!--ET_BEGIN updateTime--><span style='font-weight:normal'>|Часове|*</span>: [#updateTime#]<!--ET_END updateTime--><!--ET_BEGIN nextUpdate--><div><span style='font-weight:normal'>|Следващо|*</span> [#nextUpdate#]</div><!--ET_END nextUpdate-->"));										 
     	}
     	
@@ -675,6 +772,7 @@ class frame2_Reports extends embed_Manager
     	if($versionId = self::getSelectedVersionId($data->rec->id)){
     		if($versionRec = frame2_ReportVersions::fetchField($versionId, 'oldRec')){
     			$data->originalRec = clone $data->rec;
+    			$versionRec->state = $data->originalRec->state;
     			$data->rec = $versionRec;
     		}
     	}
@@ -718,49 +816,12 @@ class frame2_Reports extends embed_Manager
     
     
     /**
-     * Екшън който експортира данните
+     * Премахване на зададените времена за обновяване
+     * 
+     * @param int $id
+     * @return void
      */
-    public function act_Export()
-    {
-		// Проверка за права
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	$this->requireRightFor('export', $rec);
-    
-    	// Ако е избрана версия експортира се тя
-    	if($versionId = self::getSelectedVersionId($id)){
-    		if($versionRec = frame2_ReportVersions::fetchField($versionId, 'oldRec')){
-    			$rec = $versionRec;
-    		}
-    	}
-    	
-    	// Подготовка на данните
-    	$csvExportRows = $fields = array();
-    	if($Driver = $this->getDriver($rec)){
-    		$csvExportRows = $Driver->getCsvExportRows($rec);
-    		$fields = $Driver->getCsvExportFieldset($rec);
-    	}
-    	
-    	// Проверка има ли данни за експорт
-    	if(!count($csvExportRows)) followRetUrl(NULL, 'Няма данни за експортиране');
-    	
-    	// Създаване на csv-то
-    	$csv = csv_Lib::createCsv($csvExportRows, $fields);
-    	$csv .= "\n" . $rCsv;
-    	
-    	$fileName = str_replace(' ', '_', str::utf2ascii($rec->title));
-    	 
-    	header("Content-type: application/csv");
-    	header("Content-Disposition: attachment; filename={$fileName}({$rec->id}).csv");
-    	header("Pragma: no-cache");
-    	header("Expires: 0");
-    	echo $csv;
-    	shutdown();
-    }
-    
-    
-    // Премахване на зададените времена за обновяване
-    public static function removeAllSetUpdateTimes($id)
+    private static function removeAllSetUpdateTimes($id)
     {
     	foreach (range(0, 2) as $i){
     		$data = new stdClass();
@@ -777,7 +838,7 @@ class frame2_Reports extends embed_Manager
      * @param int $id
      * @return void
      */
-    public static function setAutoRefresh($id)
+    private static function setAutoRefresh($id)
     {
     	$rec = self::fetchRec($id);
     	$dates = NULL;
@@ -801,7 +862,7 @@ class frame2_Reports extends embed_Manager
     		core_CallOnTime::setOnce(get_called_class(), 'refreshOnTime', $data, $dates[$i]);
     	}
     	
-    	if(haveRole('debug')){
+    	if(haveRole('debug') && count($dates)){
     		status_Messages::newStatus("Зададени времена за обновяване");
     	}
     }
@@ -911,5 +972,49 @@ class frame2_Reports extends embed_Manager
     	
     	// Връщат се най близките 3 дати
     	return array($res[0], $res[1], $res[2]);
+    }
+    
+    
+   /**
+    * След клониране на модела
+    */
+    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+    	if($Driver = $mvc->getDriver($nRec)){
+    		$cu = core_Users::getCurrent();
+    		
+    		// Ако потребителя няма права за драйвера, но го е клонирал се споделя автоматично
+    		if(!$Driver->canSelectDriver($cu)){
+    			doc_ThreadUsers::addShared($nRec->threadId, $nRec->containerId, $cu);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Помощна ф-я кога дадения обект е последно видян от потребител
+     * 
+     * @param mixed $classId  - клас
+     * @param mixed $objectId - ид на запис или обект
+     * @return datetime|NULL  - на коя дата
+     */
+    private static function getLastSeenByUser($classId, $objectId)
+    {
+    	$Class = cls::get($classId);
+    	$objectRec = $Class->fetchRec($objectId, 'id,threadId');
+    	
+    	// Нишката посещавана ли е
+    	$oRecs = log_Data::getObjectRecs('doc_Threads', $objectRec->threadId, 'read', NULL, 1, 'DESC');
+    	$lastDate1 = $oRecs[key($oRecs)]->time;
+    	
+    	// Сингъла посещаван ли е
+    	$oRecs1 = log_Data::getObjectRecs($Class->className, $objectRec->id, 'read', NULL, 1, 'DESC');
+    	$lastDate2 = $oRecs[key($oRecs1)]->time;
+    	
+    	// По-голямата дата от двете
+    	$maxDate = max($lastDate1, $lastDate2);
+    	$lastUsedDate = !empty($maxDate) ? dt::timestamp2Mysql($maxDate) : NULL;
+    	
+    	return $lastUsedDate;
     }
 }

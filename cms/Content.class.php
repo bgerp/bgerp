@@ -117,7 +117,7 @@ class cms_Content extends core_Manager
     static function getLang()
     {
         $lang = cms_Domains::getPublicDomain('lang');
-        
+ 
         return $lang;
     }
 
@@ -129,6 +129,11 @@ class cms_Content extends core_Manager
     {
         core_Lg::set($lang, !haveRole('user'));
         cms_Domains::getPublicDomain(NULL, $lang);
+
+        $langsArr = arr::make(core_Lg::getLangs());
+        if($langsArr[$lang]) {
+            core_Lg::push($lang);
+        }
     }
 
 
@@ -324,7 +329,8 @@ class cms_Content extends core_Manager
      */
     static function getContentUrl($rec, $absolute = FALSE) 
     {
-        if($rec->source && cls::load($rec->source, TRUE) && cls::haveInterface('cms_SourceIntf', $rec->source)) {
+    	$rec = self::fetchRec($rec);
+    	if($rec->source && cls::load($rec->source, TRUE) && cls::haveInterface('cms_SourceIntf', $rec->source)) {
             $source = cls::get($rec->source);
             $url = $source->getUrlByMenuId($rec->id);
         } elseif($rec->url) {
@@ -334,7 +340,6 @@ class cms_Content extends core_Manager
                 $url = core_App::parseLocalUrl('/' . ltrim($rec->url, '/'));
             }
         } else {
-            // expect(FALSE);
             $url = '';
         }
         
@@ -450,16 +455,14 @@ class cms_Content extends core_Manager
      */
     static function setCurrent($menuId = NULL, $layout = NULL)
     {
-        if($menuId && $rec = cms_Content::fetch($menuId)) {
-            Mode::set('cMenuId', $menuId);
+        if($menuId && ($rec = cms_Content::fetch($menuId))) {
+            Mode::set('cMenuId', $menuId); 
             cms_Domains::setPublicDomain($rec->domainId);
-        } else {
-            $lg = cms_Domains::getPublicDomain('lang');
-            $langsArr = arr::make(core_Lg::getLangs());
-            if($langsArr[$lg]) {
-                core_Lg::push($lg);
-            }
         }
+        
+        $lg = cms_Domains::getPublicDomain('lang');
+        
+        self::setLang($lg);
 
         Mode::set('wrapper', 'cms_page_External');
     }
@@ -490,7 +493,7 @@ class cms_Content extends core_Manager
      */
     static function getFooter()
     {
-        if(self::getLang() !== 'bg') {
+        if(core_Lg::getCurrent() !== 'bg') {
             $footer =  new ET(getFileContent("cms/tpl/FooterEn.shtml"));
         } else {
             $footer =  new ET(getFileContent("cms/tpl/Footer.shtml"));
@@ -526,7 +529,12 @@ class cms_Content extends core_Manager
      
             return Request::forward($url);
         } else {
-
+            
+            if (!Mode::get('lg')) {
+                $lang = cms_Domains::detectLang(cms_Domains::getCmsLangs());
+                core_Lg::set($lang);
+            }
+            
             return new Redirect(array('bgerp_Portal', 'Show'));
         }
     }

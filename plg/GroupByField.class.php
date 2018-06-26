@@ -5,7 +5,7 @@
 /**
  * Клас 'plg_GroupByDate' - Плъгин за групиране на записите на модел по общо поле
  * 
- * Трябва да е зададено ''. В таблицата на модела се добавя по един ред със встойността на това поле,
+ * Трябва да е зададено ''. В таблицата на модела се добавя по един ред със стойността на това поле,
  * а всички записи които я имат са под нея, така имаме групирани записи.
  *
  *
@@ -97,7 +97,7 @@ class plg_GroupByField extends core_Plugin
 	public static function on_AfterRenderGroupName($mvc, &$res, $data, $groupName, $groupVerbalName)
 	{
 		if(!$res){
-			$res = isset($groupVerbalName) ? "<b>{$groupVerbalName}</b>" : '<div style = "height:12px"></div>';
+			$res = isset($groupVerbalName) ? "<b>{$groupVerbalName}</b>" : '<div style="height:12px"></div>';
 		}
 	}
 }

@@ -55,7 +55,14 @@ class bgerp_Portal extends core_Manager
         // Ако е инсталиран пакета за партньори
     	// И текущия потребител е контрактор, но не е powerUser
     	if(core_Users::haveRole('partner')){
-        		
+            
+            $folderId =  colab_FolderToPartners::getLastSharedContragentFolder();
+            
+            if($folderId) {
+
+    		    return new Redirect(array('colab_Threads', 'list', 'folderId' => $folderId));
+            }
+
     		// Редирект към профила на партньора
     		return new Redirect(array('cms_Profiles', 'single'));
         }
@@ -147,7 +154,8 @@ class bgerp_Portal extends core_Manager
         $portalArrange = core_Setup::get('PORTAL_ARRANGE');
 
         if(Mode::is('screenMode', 'narrow')) {
-            jquery_Jquery::run($tpl, "openCurrentTab();");
+            // подаваме времето на последната нотификация
+            jquery_Jquery::run($tpl, "openCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime(core_Users::getCurrent())) . "'); ");
             // Добавяме календара
             $tpl->append($calendarHeader, 'CALENDAR_COLUMN');
             // Добавяме "Наскоро" - документи и папки с които е работено наскоро

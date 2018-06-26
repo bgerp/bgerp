@@ -92,12 +92,6 @@ class doc_Prototypes extends core_Manager
 
 
     /**
-     * Кой е текущия таб
-     */
-	public $currentTab = "Нишка";
-
-
-    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -327,9 +321,11 @@ class doc_Prototypes extends core_Manager
     	// Ако има записи, се връщат ид-та на документите
     	while($rec = $query->fetch()){
     		$title = (strpos($rec->title, '||') !== FALSE) ? tr($rec->title) : $rec->title;
-    		$arr[$rec->docId] = $title;
+    		$arr[$rec->docId] = trim($title);
     	}
     	
+        asort($arr);
+
     	// Връщане на намерените шаблони
     	return $arr;
     }
@@ -342,7 +338,7 @@ class doc_Prototypes extends core_Manager
      * @param integer $docId
      * @param string|NULL $field
      * 
-     * @return stdObject|string
+     * @return stdClass|string
      */
     public static function getProtoRec($class, $docId, $field = NULL)
     {

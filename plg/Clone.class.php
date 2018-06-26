@@ -65,8 +65,13 @@ class plg_Clone extends core_Plugin
         // добавяме дефолти ще се запишат на чисто
         $mvc->invoke('AfterPrepareEditForm', array(&$data, &$data));
         
+        if ($data->singleTitle) {
+            $mvc->singleTitle = $data->singleTitle;
+        }
+        
         // Задаваме екшъна
         $form->setAction($mvc, 'clonefields');
+        $form->_cloneForm = TRUE;
         
         // Инпутваме формата
         $form->input();
@@ -309,7 +314,7 @@ class plg_Clone extends core_Plugin
             
             // Добавяме бутон за клониране в сингъл изгледа
             $title = tr('|Клониране на|*' . ' ' . $singleTitle);
-            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2, order=19.1");
+            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2,id=clone{$data->rec->containerId}, order=19.1");
         }
     }
     
@@ -407,7 +412,7 @@ class plg_Clone extends core_Plugin
      * 
      * @param core_Mvc $mvc
      * @param NULL|integer $res
-     * @param stdObject $rec
+     * @param stdClass $rec
      */
     public static function on_AfterGetClonedFromId($mvc, &$res, $rec)
     {

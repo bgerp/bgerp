@@ -64,9 +64,48 @@ defIfNot('BGERP_START_OF_WORKING_DAY', '08:00');
 
 
 /**
+ * Кое поле да е задължително при изпращане на запитване или поръчка във външната част
+ */
+defIfNot('BGERP_MANDATORY_CONTACT_FIELDS', 'company');
+
+
+/**
  * Допустим % "Недоставено" за автоматично приключване на сделка
  */
 defIfNot('BGERP_CLOSE_UNDELIVERED_OVER', '1');
+
+
+
+/**
+ * Колко секунди за изчака, преди да сигнализира за известия
+ */
+defIfNot('BGERP_NOTIFY_ALERT', 60);
+defIfNot('BGERP_NOTIFY_WARNING', 1800);
+defIfNot('BGERP_NOTIFY_NORMAL', 86400);
+
+/**
+ * В кой часови пояс да се блокира изпращане на сигнали за известия
+ */
+defIfNot('BGERP_BLOCK_ALERT', 'never');
+defIfNot('BGERP_BLOCK_WARNING', 'night');
+defIfNot('BGERP_BLOCK_NORMAL', 'nonworking');
+
+
+/**
+ * Клавиши за бързо избиране на бутони
+ */
+defIfNot('BGERP_ACCESS_KEYS',
+'Чернова,Draft,Запис,Save = S
+Запис и Нов,Save and New,Нов,New = N
+Артикул,Item = A
+Създаване,Create = R
+Активиране,Activation,Контиране = K
+Conto,Реконтиране = K
+Отказ,Cancel = C
+Връзка,Link = L
+Редакция,Edit = O
+»»» = >
+««« = <');
 
 
 /**
@@ -82,7 +121,13 @@ defIfNot('BGERP_CLOSE_UNDELIVERED_OVER', '1');
  */
 class bgerp_Setup extends core_ProtoSetup {
     
-    
+
+    /**
+     * Да се инициализира ли, след промяна на конфигурацията?
+     */
+    const INIT_AFTER_CONFIG = FALSE;
+
+
     /**
      * Версия на пакета
      */
@@ -126,6 +171,22 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_START_OF_WORKING_DAY' => array ('enum(08:00,09:00,10:00,11:00,12:00)', 'caption=Начало на работния ден->Час'),
         
         'BGERP_CLOSE_UNDELIVERED_OVER'    => array('percent(min=0)', 'caption=Допустимо автоматично приключване на сделка при "Доставено" минимум->Процент'),
+         
+        'BGERP_ACCESS_KEYS'    => array('text(rows=6)', 'caption=Клавиши за бързо избиране на бутони->Дефиниции, customizeBy=powerUser'),
+
+        'BGERP_NOTIFY_ALERT'    => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Критични,placeholder=Неограничено, customizeBy=powerUser'),
+
+        'BGERP_NOTIFY_WARNING'    => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Спешни,placeholder=Неограничено, customizeBy=powerUser'),
+
+        'BGERP_NOTIFY_NORMAL'    => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Нормални,placeholder=Неограничено, customizeBy=powerUser'),
+
+        'BGERP_BLOCK_ALERT' =>  array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Критични, customizeBy=powerUser'),
+
+        'BGERP_BLOCK_WARNING' =>  array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Спешни, customizeBy=powerUser'),
+
+        'BGERP_BLOCK_NORMAL' =>  array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Нормални, customizeBy=powerUser'),
+        
+        'BGERP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни във външната част->Поле'),
     );
     
     
@@ -146,6 +207,8 @@ class bgerp_Setup extends core_ProtoSetup {
      */
     var $managers = array(
             'migrate::addThreadIdToRecently',
+            'migrate::migrateBookmarks2',
+            'migrate::fixTreeObjectName',
         );
     
     
@@ -160,7 +223,7 @@ class bgerp_Setup extends core_ProtoSetup {
                     'action' => "HideInaccesable",
                     'period' => 1440,
                     'offset' => 50,
-                    'timeLimit' => 300
+                    'timeLimit' => 600
             ),
     );
     
@@ -187,7 +250,6 @@ class bgerp_Setup extends core_ProtoSetup {
             'bgerp_Recently',
             'bgerp_Bookmark',
             'bgerp_LastTouch',
-            'bgerp_E',
             'bgerp_F',
         );
         
@@ -209,10 +271,10 @@ class bgerp_Setup extends core_ProtoSetup {
         
         // Списък на основните модули на bgERP
         $packs = "core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,cond,currency,cms,
-                  email,crm, cat, trans, price, blast,hr,trz,lab,dec,sales,planning,marketing,store,cash,bank,
-                  budget,tcost,purchase,accda,permanent,sens2,cams,frame,frame2,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,tasks,
+                  email,crm, cat, trans, price, blast,hr,lab,dec,sales,import2,planning,marketing,store,cash,bank,
+                  budget,tcost,purchase,accda,permanent,sens2,cams,frame,frame2,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
-                  callcenter,social,hyphen,status,phpmailer,label,webkittopdf,jqcolorpicker";
+                  callcenter,social,hyphen,status,phpmailer,label,webkittopdf,jqcolorpicker,export";
         
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
         if (defined('EF_PRIVATE_PATH')) {
@@ -305,7 +367,12 @@ class bgerp_Setup extends core_ProtoSetup {
             
         } while (!empty($haveError) && ($loop<5));
         
-
+        // Записваме в конфигурацията, че базата е мигрирана към текущата версия
+        if ($currentVersion = core_Updates::getNewVersionTag()) {
+            core_Packs::setConfig('core', array('CORE_LAST_DB_VERSION' => $currentVersion));
+        }
+        
+        // Започваме пак да записваме дебъг съобщенията
         core_Debug::$isLogging = TRUE;
         
         
@@ -375,6 +442,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $html .= parent::install();
 
         core_SystemLock::remove();
+
         return $html;
     }
 
@@ -474,6 +542,68 @@ class bgerp_Setup extends core_ProtoSetup {
                 $Recently->save($rec, 'threadId');
             } catch (Exception $e) {
                 continue;
+            }
+        }
+    }
+
+
+    /**
+     * Миграция за подредбата на букмарките
+     */
+    public static function migrateBookmarks2()
+    {
+        $mvc = cls::get('bgerp_Bookmark');
+
+        $query = $mvc->getQuery();
+        
+	    $query->orderBy('modifiedOn', 'DESC');
+	    $query->orderBy('createdOn', 'DESC');
+        
+        $arr = array();
+        $i = array();
+        $cnt = 0;
+        while($rec = $query->fetch()) {
+            if(!isset($i[$rec->user])) {
+                $i[$rec->user] = 1;
+            }
+            $rec->saoOrder = $i[$rec->user]++;
+            $rec->saoLevel = 1;
+            $mvc->save_($rec, 'saoOrder, saoLevel');
+            $cnt++;
+         }
+ 
+  
+        return "<li>Мигрирани букмарки: " . $cnt;    
+    }
+    
+    
+    /**
+     * 
+     */
+    public static function fixTreeObjectName()
+    {
+        foreach (array('cat_Groups', 'crm_Groups', 'hr_Departments') as $clsName) {
+            if (!cls::load($clsName, TRUE)) continue ;
+            
+            $clsInst = cls::get($clsName);
+            
+            if (!$clsInst->hasPlugin('plg_TreeObject')) continue ;
+            
+            $clsQuery = $clsInst->getQuery();
+            $clsQuery->where("#{$clsInst->nameField} = '' OR #{$clsInst->nameField} IS NULL");
+            
+            while ($cRec = $clsQuery->fetch()) {
+                $pQuery = $clsInst->getQuery();
+                $pQuery->where(array("#parentId = '[#1#]'", $cRec->id));
+                
+                while ($pRec = $pQuery->fetch()) {
+                    $pRec->parentId = NULL;
+                    $clsInst->logDebug('Нулиран parentId', $pRec);
+                    $clsInst->save_($pRec, 'parentId');
+                }
+                
+                $clsInst->logDebug('Изтрит запис с празна стойност', $cRec);
+                $clsInst->delete($cRec->id);
             }
         }
     }

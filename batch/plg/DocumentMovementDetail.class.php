@@ -251,7 +251,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		foreach ($data->rows as $id => &$row){
 			$rec = &$data->recs[$id];
 			
-			$storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $data->masterData->rec->{$mvc->Master->storeFieldName};
+			$storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : (($mvc->Master->storeFieldName && $data->masterData->rec->{$mvc->Master->storeFieldName}) ? $data->masterData->rec->{$mvc->Master->storeFieldName} : NULL);
 			
 			if(batch_BatchesInDocuments::haveRightFor('modify', (object)array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $storeId))){
 				core_RowToolbar::createIfNotExists($row->_rowTools);
@@ -277,7 +277,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		foreach ($rows as $id => &$row){
 			$rec = &$data->recs[$id];
 			
-			$storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $data->masterData->rec->{$mvc->Master->storeFieldName};
+			$storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : (($mvc->Master->storeFieldName && $data->masterData->rec->{$mvc->Master->storeFieldName}) ? $data->masterData->rec->{$mvc->Master->storeFieldName} : NULL);
 			if(!$storeId) return;
 			
 			if(!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) continue;
@@ -320,8 +320,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		
 		$operation = ($mvc->getBatchMovementDocument($rec) == 'out') ? 'out' : 'in';
 		if($mvc instanceof core_Detail){
-			$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},containerId,{$mvc->Master->valiorFld},state");
-			$Master = $mvc->Master;
+			$Master = $mvc->getMasterMvc($rec);
+			$masterRec = $Master->fetch($rec->{$mvc->masterKey}, "{$Master->storeFieldName},containerId,{$Master->valiorFld},state");
 		} else {
 			$masterRec = $rec;
 			$Master = $mvc;

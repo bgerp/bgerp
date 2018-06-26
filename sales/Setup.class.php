@@ -4,11 +4,23 @@
 /**
  * Начален номер на фактурите
  */
+defIfNot('SALES_TRANSPORT_PRODUCTS_ID', '');
+
+
+/**
+ * Дефолтна валидност на офертата
+ */
+defIfNot('SALES_DEFAULT_VALIDITY_OF_QUOTATION', '2592000');
+
+
+/**
+ * Начален номер на фактурите
+ */
 defIfNot('SALE_INV_MIN_NUMBER1', '0');
 
 
 /**
- * 
+ * Групи за делта
  */
 defIfNot('SALES_DELTA_CAT_GROUPS', '');
 
@@ -140,6 +152,18 @@ defIfNot('SALES_ADD_BY_IMPORT_BTN', '');
 
 
 /**
+ * Дължина на името на артикула в продажбата
+ */
+defIfNot('SALES_PROD_NAME_LENGTH', '20');
+
+
+/**
+ * % Неснижаема делта по дефолт
+ */
+defIfNot('SALES_DELTA_MIN_PERCENT', '');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -182,33 +206,33 @@ class sales_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'SALE_OVERDUE_CHECK_DELAY'        => array("time", "caption=Толеранс за просрочване на продажбата->Време"),
-			'SALE_CLOSE_OLDER_THAN'           => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на продажбата->Дни'),
-			'SALE_CLOSE_OLDER_NUM'            => array("int", 'caption=По колко продажби да се приключват автоматично на опит->Брой'),
-			'SALE_FISC_PRINTER_DRIVER'        => array('class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър'),
-			'SALE_INV_VAT_DISPLAY'            => array('enum(no=Не,yes=Да)', 'caption=Фактури изчисляване на ддс-то като процент от сумата без ддс->Избор'),
-			'SALE_INV_MIN_NUMBER1'            => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Долна граница'),
-			'SALE_INV_MAX_NUMBER1'            => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Горна граница'),
-			'SALE_INV_MIN_NUMBER2'            => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Долна граница'),
-			'SALE_INV_MAX_NUMBER2'            => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Горна граница'),
-			'SALE_INV_HAS_FISC_PRINTERS'      => array('enum(no=Не,yes=Да)', 'caption=Има ли фирмата касови апарати->Избор'),
-			
-			'SALE_SALE_DEF_TPL_BG'            => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
-			'SALE_SALE_DEF_TPL_EN'            => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
-	
-			'SALE_INVOICE_DEF_TPL_BG'         => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Български,optionsFunc=sales_Invoices::getTemplateBgOptions'),
-			'SALE_INVOICE_DEF_TPL_EN'         => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Английски,optionsFunc=sales_Invoices::getTemplateEnOptions'),
-			'SALE_INVOICES_SHOW_DEAL'         => array("enum(auto=Автоматично,no=Никога,yes=Винаги)", 'caption=Показване на сделката в описанието на фактурата->Избор'),
-			
-			'SALES_USE_RATE_IN_CONTRACTS'     => array("enum(no=Не,yes=Да)", 'caption=Ръчно въвеждане на курс в продажбите->Избор'),
-			'SALES_INVOICE_DEFAULT_VALID_FOR' => array("time", 'caption=Срок за плащане по подразбиране->Срок'),
-			
-			'SALES_ADD_BY_PRODUCT_BTN' => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Артикул'),
-			'SALES_ADD_BY_CREATE_BTN'  => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Създаване'),
-			'SALES_ADD_BY_LIST_BTN'    => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Списък'),
-			'SALES_ADD_BY_IMPORT_BTN'  => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Импорт'),
-			'SALES_DELTA_CAT_GROUPS'   => array('keylist(mvc=cat_Groups,select=name)', 'caption=Групи продажбени артикули за изчисляване на ТРЗ индикатори->Групи'),
-			'SALES_ROUTES_CLOSE_DELAY'   => array('int(min=1)', 'caption=Изчакване преди да се затворят изпълнените търговски маршрути->Дни'),
+			'SALE_OVERDUE_CHECK_DELAY'             => array("time", "caption=Толеранс за просрочване на продажбата->Време"),
+			'SALE_CLOSE_OLDER_THAN'                => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на продажбата->Дни'),
+			'SALE_CLOSE_OLDER_NUM'                 => array("int", 'caption=По колко продажби да се приключват автоматично на опит->Брой'),
+			'SALE_FISC_PRINTER_DRIVER'             => array('class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър'),
+			'SALE_INV_VAT_DISPLAY'                 => array('enum(no=Не,yes=Да)', 'caption=Фактури изчисляване на ддс-то като процент от сумата без ддс->Избор'),
+			'SALE_INV_MIN_NUMBER1'                 => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Долна граница'),
+			'SALE_INV_MAX_NUMBER1'                 => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Горна граница'),
+			'SALE_INV_MIN_NUMBER2'                 => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Долна граница'),
+			'SALE_INV_MAX_NUMBER2'                 => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Горна граница'),
+			'SALE_INV_HAS_FISC_PRINTERS'           => array('enum(no=Не,yes=Да)', 'caption=Има ли фирмата касови апарати->Избор'),
+			'SALE_SALE_DEF_TPL_BG'                 => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
+			'SALE_SALE_DEF_TPL_EN'                 => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
+			'SALE_INVOICE_DEF_TPL_BG'              => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Български,optionsFunc=sales_Invoices::getTemplateBgOptions'),
+			'SALE_INVOICE_DEF_TPL_EN'              => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Английски,optionsFunc=sales_Invoices::getTemplateEnOptions'),
+			'SALE_INVOICES_SHOW_DEAL'              => array("enum(auto=Автоматично,no=Никога,yes=Винаги)", 'caption=Показване на сделката в описанието на фактурата->Избор'),
+			'SALES_USE_RATE_IN_CONTRACTS'          => array("enum(no=Не,yes=Да)", 'caption=Ръчно въвеждане на курс в продажбите->Избор'),
+			'SALES_INVOICE_DEFAULT_VALID_FOR'      => array("time", 'caption=Срок за плащане по подразбиране->Срок'),
+			'SALES_ADD_BY_PRODUCT_BTN'             => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Артикул'),
+			'SALES_ADD_BY_CREATE_BTN'              => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Създаване'),
+			'SALES_ADD_BY_LIST_BTN'                => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Списък'),
+			'SALES_ADD_BY_IMPORT_BTN'  			   => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Импорт'),
+			'SALES_DELTA_CAT_GROUPS'               => array('keylist(mvc=cat_Groups,select=name)', 'caption=Групи продажбени артикули за изчисляване на ТРЗ индикатори->Групи'),
+			'SALES_ROUTES_CLOSE_DELAY'             => array('int(min=1)', 'caption=Изчакване преди да се затворят изпълнените търговски маршрути->Дни'),
+			'SALES_DEFAULT_VALIDITY_OF_QUOTATION'  => array('time', 'caption=Оферти->Валидност'),
+			'SALES_PROD_NAME_LENGTH'               => array('int(min=0)', 'caption=Дължина на артикула в името на продажбата->Дължина, customizeBy=powerUser'),
+			'SALES_DELTA_MIN_PERCENT'              => array('percent', 'caption=Неснижаема делта->Стойност'),
+			'SALES_TRANSPORT_PRODUCTS_ID' => array("keylist(mvc=cat_Products,select=name)", 'mandatory,caption=Транспорт->Артикули,optionsFunc=sales_Setup::getPossibleTransportProducts'),
 	);
 	
 	
@@ -229,10 +253,7 @@ class sales_Setup extends core_ProtoSetup
     		'sales_Proformas',
     		'sales_ProformaDetails',
     		'sales_PrimeCostByDocument',
-    		'migrate::migrateRoles',
-    		'migrate::updateDealFields1',
-    		'migrate::updateDeltaTable',
-    		'migrate::updateRoutes',
+    		'sales_TransportValues',
         );
 
     
@@ -248,8 +269,8 @@ class sales_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     var $defClasses = 'sales_SalesLastPricePolicy,sales_reports_SalesPriceImpl, sales_reports_OweInvoicesImpl, 
-                       sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_ZDDSRep,sales_reports_OverdueByAdvancePayment';
-    
+                       sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_ZDDSRep,sales_reports_OverdueByAdvancePayment,
+                       sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,sales_reports_OverdueInvoices';
     
     /**
      * Настройки за Cron
@@ -295,6 +316,26 @@ class sales_Setup extends core_ProtoSetup
     
     
     /**
+     * Кои артикули могат да се избират като транспорт
+     *
+     * @return array $suggestions - списък с артикули
+     */
+    public static function getPossibleTransportProducts()
+    {
+    	$suggestions = array();
+    	$pQuery = cat_Products::getQuery();
+    	$pQuery->where("#canStore = 'no'");
+    	$pQuery->show('name');
+    	 
+    	while($pRec = $pQuery->fetch()){
+    		$suggestions[$pRec->id] = $pRec->name;
+    	}
+    	 
+    	return $suggestions;
+    }
+    
+    
+    /**
      * Зареждане на данни
      */
     function loadSetupData($itr = '')
@@ -336,101 +377,17 @@ class sales_Setup extends core_ProtoSetup
     		}
     	}
     	
+    	// Ако няма посочени от потребителя сметки за синхронизация
+    	if(strlen($config->SALES_TRANSPORT_PRODUCTS_ID) === 0){
+    		$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+    		if($transportId){
+    			$products = array($transportId => $transportId);
+    			 
+    			core_Packs::setConfig('sales', array('SALES_TRANSPORT_PRODUCTS_ID' => keylist::fromArray($products)));
+    			$res .= "<li style='color:green'>Добавени са дефолтни артикули за транспорт</b></li>";
+    		}
+    	}
+    	
     	return $res;
-    }
-    
-    
-    /**
-     * Миграция на роли
-     */
-    function migrateRoles()
-    {
-    	if(core_Packs::isInstalled('colab')){
-    		
-    		// Добавяне на дефолтни роли за бутоните
-    		foreach (array('SALES_ADD_BY_PRODUCT_BTN', 'SALES_ADD_BY_CREATE_BTN', 'SALES_ADD_BY_LIST_BTN', 'SALES_ADD_BY_IMPORT_BTN') as $const){
-    			$keylist = core_Roles::getRolesAsKeylist('sales,ceo');
-    			core_Packs::setConfig('sales', array($const => $keylist));
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Миграция на сделките
-     */
-    function updateDealFields1()
-    {
-    	foreach (array('sales_Sales', 'purchase_Purchases') as $className){
-    		$Deal = cls::get($className);
-    		$Deal->setupMvc();
-    		if(!$Deal::count()) return;
-    		$update = array();
-    		
-    		$query = $Deal->getQuery();
-    		$query->where("#state = 'active'");
-    		$query->show('id');
-    		 
-    		$timeLimit = 0.2 * $query->count();
-    		$timeLimit = ($timeLimit < 60) ? 60 : $timeLimit;
-    		core_App::setTimeLimit($timeLimit);
-    		
-    		while($rec = $query->fetch()){
-    			try{
-    				if($product = $Deal->findProductIdWithBiggestAmount($rec)){
-    					$update[] = (object)array('productIdWithBiggestAmount' => $product, 'id' => $rec->id);
-    				}
-    			} catch(core_exception_Expect $e){
-    				reportException($e);
-    			}
-    		}
-    		
-    		if(count($update)){
-    			$Deal->saveArray($update, 'id,productIdWithBiggestAmount');
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Миграция на сделките
-     */
-    function updateDeltaTable()
-    {
-    	$Class = cls::get('sales_PrimeCostByDocument');
-    	$Class->setupMvc();
-    	
-    	$update = array();
-    	$query = $Class->getQuery();
-    	while($rec = $query->fetch()){
-    		try{
-    			$Detail = cls::get($rec->detailClassId);
-    			$masterId = $Detail->fetchField($rec->detailRecId, "{$Detail->masterKey}");
-    			
-    			$rec->containerId = $Detail->Master->fetchField($masterId, 'containerId');
-    			$persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($rec->containerId);
-    			$rec->dealerId = $persons['dealerId'];
-    			$rec->initiatorId = $persons['initiatorId'];
-    			
-    			$update[] = $rec;
-    		} catch(core_exception_Expect $e){
-    			reportException($e);
-    		}
-    	}
-    	
-    	if(count($update)){
-    		$Class->saveArray($update, 'id,containerId,dealerId,initiatorId');
-    	}
-    }
-    
-    
-    /**
-     * Ъпдейт на търговските маршрути
-     */
-    function updateRoutes()
-    {
-    	$Routes = cls::get('sales_Routes');
-    	$Routes->setupMvc();
-    	$Routes->cron_calcNextVisit();
     }
 }

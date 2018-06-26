@@ -218,7 +218,6 @@ class doc_UnsortedFolders extends core_Master
     {
         $this->FLD('name' , 'varchar(255)', 'caption=Наименование,mandatory');
         $this->FLD('description' , 'richtext(rows=3, passage=Общи,bucket=Notes)', 'caption=Описание');
-        $this->FLD('closeTime' , 'time', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty');
         $this->FLD('showDocumentsAsButtons' , 'keylist(mvc=core_Classes,select=title)', 'caption=Документи|*&#44; |които да се показват като бързи бутони в папката->Документи');
         $this->FLD('receiveEmail', 'enum(yes=Да, no=Не)', 'caption=Получаване на имейли->Избор');
         
@@ -332,64 +331,6 @@ class doc_UnsortedFolders extends core_Master
             
             // Променяма да сочи към single'a
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
-        }
-    }
-    
-    
-    /**
-     * Зареждане на Cron задачите за автоматично затваряне на папка след setup на класа
-     *
-     * @param core_MVC $mvc
-     * @param string $res
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-        $rec = new stdClass();
-        $rec->systemId = "self_closed_unsorted_folders";
-        $rec->description = "Автоматично затваряне на папки";
-        $rec->controller = "doc_UnsortedFolders";
-        $rec->action = "SelfClosed";
-        $rec->period = 24 * 60;
-        $rec->offset = 17 * 60;
-        $res .= core_Cron::addOnce($rec);
-    }
-    
-
-    /**
-     * Метод за Cron затваряне на нишки в проекти
-     */
-    static function cron_SelfClosed()
-    {   
-    	// сегашно време в секунди
-    	$now = dt::mysql2timestamp(dt::now());
-    	
-    	// заявка към текущата база
-    	$query = static::getQuery();
-	
-    	// търсим всички проекти, които не са отхвърлени и имат време за автоматично затваряне
-        $query->where("#state != 'rejected' AND #closeTime IS NOT NULL");
-
-        while ($rec = $query->fetch()) { 
-        	// заявка към базата на "нишките"
-        	$queryThread = doc_Threads::getQuery();
-
-        	$closedTime = dt::timestamp2mysql($now - $rec->closeTime);
-        	// търсим нишка, която отговаря на тази папка и е отворена
-        	// и също така нищката трябгва да е променяна преди сега-времето за затваряне
-        	$queryThread->where("#folderId = '{$rec->folderId}' AND #state = 'opened' AND #modifiedOn <= '{$closedTime}' ");
-     
-        	// и я взимаме
-        	while ($recThread = $queryThread->fetch()) {		
-        		
-        		// автоматично я затваряме
-        		$recThread->state = 'closed';
-        			
-        		doc_Threads::save($recThread, 'state');
-        		
-        		doc_Threads::updateThread($recThread->id);
-        		
-        		doc_Threads::logWrite('Затвори нишка', $recThread->id);
-           	}
         }
     }
     
@@ -834,8 +775,9 @@ class doc_UnsortedFolders extends core_Master
                 $qArr = explode(' ', $q);
             }
             
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
             foreach($qArr as $w) {
-                $query->where(array("#searchFieldXpr REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
+                $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         }
  		

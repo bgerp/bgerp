@@ -68,7 +68,12 @@
                      <td class='quiet nowrap aright' style='width:1%'>|Натоварване|*:</td>
                      <td>[#deliveryTime#]</td>
                   </tr>
-                  <!--ET_END deliveryTime-->                            
+                  <!--ET_END deliveryTime-->
+                  <!--ET_BEGIN fromContainerId-->
+                  <tr>
+                     <td colspan='2'><span class='quiet'>|Към фактура|*:</span> [#fromContainerId#]</td>
+                  </tr>
+                  <!--ET_END fromContainerId-->                            
                   <!--ET_BEGIN deliveryAddressBlock-->
                   [#deliveryAddressBlock#]
                   <tr>
@@ -103,8 +108,6 @@
                   <div>
                      <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span><span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
                   </div>
-                  <div class='clearfix21'>
-                  <!--ET_BEGIN logisticInfo--><div style='margin-bottom:3px;margin-top:3px;'>|Логистични единици|*:&nbsp;[#logisticInfo#]</div><!--ET_END logisticInfo--> 
                </div>
             </td>
             <td>
@@ -124,14 +127,27 @@
                </table>
             </td>
          </tr>
-         <tr class='footerDocInfo'>
-            <td colspan="2">
-               <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
-            </td>
-         </tr>
       </tbody>
    </table>
 </div>
+
+<!--ET_BEGIN store_DocumentPackagingDetail-->
+<div class='scrolling-holder' style="margin-top: 10px;">
+   <div class="details smallerText" >
+      <p style="margin: 10px 0 5px; font-weight:bold">Отговорно пазане</p>
+      [#store_DocumentPackagingDetail#]
+   </div>
+</div>
+<!--ET_END store_DocumentPackagingDetail-->
+   <!--ET_BEGIN PACKAGING_BTNS-->
+   <div style='margin-top:10px'>[#PACKAGING_BTNS#]</div>
+   <!--ET_END PACKAGING_BTNS-->
+
+   <div class='footerDocBlock'   style="border-top: none !important">
+      <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+   </div>
+
+
 <div style='margin-top:20px'>
    <a href="javascript:toggleDisplay([#id#])"  style="font-weight:bold; background-image:url([#iconPlus#]);"
       class="linkWithIcon more-btn">|Декларация за доставка|*</a>
@@ -160,5 +176,5 @@
       </table>
       <div class='clearfix21'></div>
    </div>
-   
+</div>
 </div>

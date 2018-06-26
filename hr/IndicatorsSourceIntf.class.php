@@ -27,12 +27,12 @@ class hr_IndicatorsSourceIntf
 	 *          o docId       - ид на документа
 	 *          o docClass    - клас ид на документа
 	 *          o indicatorId - ид на индикатора
-	 *          o value       - стойноста на инфикатора
+	 *          o value       - стойноста на индикатора
 	 *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
 	 */
     public function getIndicatorValues($timeline) 
     {
-        return $this->class->getSalaryIndicators($timeline);
+        return $this->class->getIndicatorValues($timeline);
     }
 
 

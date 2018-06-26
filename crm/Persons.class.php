@@ -415,9 +415,9 @@ class crm_Persons extends core_Master
             $date = Request::get('date', 'date');
 
             if($date) {
-                $data->title = "Именници на <span class=\"green\">" . dt::mysql2verbal($date, 'd.m.Y, l') . "</span>";
+                $data->title = "Именици на <span class=\"green\">" . dt::mysql2verbal($date, 'd.m.Y, l') . "</span>";
             } else {
-                $data->title = "Именници";
+                $data->title = "Именици";
             }
         }
         
@@ -588,6 +588,9 @@ class crm_Persons extends core_Master
             if($rec->buzLocationId){
             	$row->buzLocationId = crm_Locations::getHyperLink($rec->buzLocationId, TRUE);
             }
+            
+            // Разширяване на $row
+            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec);
         }
 
         static $ownCompany;
@@ -1201,63 +1204,73 @@ class crm_Persons extends core_Master
         return $tpl;
     }
 
-
-
+    
     /****************************************************************************************
      *                                                                                      *
-     *  Подготвя и рендира именниците                                                       *
+     *  Подготвя и рендира Имениците                                                       *
      *                                                                                      *
      ****************************************************************************************/
 
-    /**
-     * Подготвя (извлича) данните за именниците
-     */
-    static function prepareNamedays(&$data)
-    {   
     
+    /**
+     * Подготвя (извлича) данните за Имениците
+     */
+    public static function prepareNamedays(&$data)
+    {   
+    	if(!count($data->namesArr)) return;
+    	
     	$currentId = core_Users::getCurrent();
         $query = self::getQuery();
+        $query->XPR('trimmedSarchKeywords', 'varchar', 'TRIM(#searchKeywords)');
+        $query->where("#inCharge = '{$currentId}' OR #shared LIKE '|{$currentId}|'");
+       	$query->where("#state != 'rejected' AND #state != 'closed'");
+       	$query->show('name,buzTel,tel,buzEmail,email');
+       	
+       	$or = "";
+       	foreach ($data->namesArr as $name){
+       		$where .= "{$or}#trimmedSarchKeywords LIKE '{$name} %'";
+       		$or = " OR ";
+       	}
+       	$query->where($where);
        
-        foreach($data->namesArr as $name) { 
-        	$query->orWhere(array("#searchKeywords LIKE ' [#1#] %' AND (#inCharge = '{$currentId}' OR #shared LIKE '|{$currentId}|')", $name));
-        }
-        
-        $self = cls::get('crm_Persons');
-
-        while($rec = $query->fetch()) { 
-        	
-            $data->recs[$rec->id] = $rec;
-            $row = $data->rows[$rec->id] = self::recToVerbal($rec, 'name');
-            $row->name = ht::createLink($row->name, array($self, 'Single', $rec->id), NULL, "ef_icon={$self->singleIcon}");
-
-            if(!$row->buzTel) $row->buzTel = $row->tel;
-
-            if(!$row->buzEmail) $row->buzEmail = $row->email;
-        }
+       	while($rec = $query->fetch()){
+       		$data->recs[$rec->id] = $rec;
+       		$row = self::recToVerbal($rec, 'name,tel,buzEmail,email');
+       		$row->name = crm_Persons::getHyperlink($rec->id, TRUE);
+       		$row->buzTel = (!empty($rec->buzTel)) ? $row->buzTel : ((!empty($rec->tel)) ? $row->tel : NULL);
+       		$row->buzEmail = (!empty($rec->buzEmail)) ? $row->buzEmail : ((!empty($rec->email)) ? $row->email : NULL);
+       		
+       		$data->rows[$rec->id] = $row;
+       	}
     }
 
 
     /**
      * Рендира данните
      */
-    static function renderNamedays($data)
+    public static function renderNamedays($data)
     {
-    	
-        if(!count($data->rows)) return '';
+    	if(!count($data->rows)) return '';
 
         $tpl = new ET("<fieldset class='detail-info'>
-                            <legend class='groupTitle'>" . tr('Именници във визитника') . "</legend>
+                            <legend class='groupTitle'>" . tr('Именици във визитника') . "</legend>
                                 <div class='groupList clearfix21'>
-                                 [#persons#]
+                                 <!--ET_BEGIN person-->
+        						 [#person#]
+        						 <div style='font-weight:bold;'>[#name#]
+        						 <!--ET_BEGIN buzTel--> - <span style='font-style:italic;'>[#buzTel#]</span><!--ET_END buzTel-->
+        						 <!--ET_BEGIN buzEmail--><span style='font-style:italic'>, [#buzEmail#]</span><!--ET_END buzEmail-->
+        						</div>
+        						 <!--ET_END person-->
                             </div>
-                            <!--ET_BEGIN regCourt--><div><b>[#regCourt#]</b></div><!--ET_END regCourt-->
                          </fieldset>");
 
+        $block = $tpl->getBlock('person');
         foreach($data->rows as $row) {
- 
-            $tpl->append("{$comma}<span style='font-weight:bold;'>{$row->name}</span>", 'persons');
-            
-            $comma = Mode::is('screenMode', 'narrow') ? '<br>' : ', ';
+        	$clone = clone $block;
+ 			$block->placeObject($row);
+ 			$block->removeBlocks();
+ 			$block->append2Master();
         }
 
         return $tpl;
@@ -1862,7 +1875,6 @@ class crm_Persons extends core_Master
 			if(!count($locations)){
 				$form->setField('buzLocationId', 'input=none');
 			}
-            $form->title = "Добавяне на служител към|* " . crm_Companies::getLinkToSingle($form->rec->buzCompanyId);
         }
         
         crm_Companies::autoChangeFields($form);
@@ -1877,7 +1889,7 @@ class crm_Persons extends core_Master
         $form = &$data->form;
 
         if($form->rec->buzCompanyId){
-            $form->title = "Добавяне на служител към|* " . crm_Companies::getHyperlink($form->rec->buzCompanyId);
+           $form->title = core_Detail::getEditTitle('crm_Companies', $form->rec->buzCompanyId, 'представител', $form->rec->id);
         }
     }
     
@@ -1887,7 +1899,7 @@ class crm_Persons extends core_Master
      * 
      * Връща масив с действия, които могат да се извършат с дадения файл
      * 
-     * @param stdObject $fRec - Обект са данни от модела
+     * @param stdClass $fRec - Обект са данни от модела
      * 
      * @return array $arr - Масив с данните
      * $arr['url'] - array URL на действието
@@ -2292,7 +2304,7 @@ class crm_Persons extends core_Master
     /**
      * Проверява дали полето име и полето ЕГН се дублират. Ако се дублират сетваме грешка.
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $fields
      * 
      * @return string
@@ -2358,7 +2370,7 @@ class crm_Persons extends core_Master
     /**
      * Връща масив с възможните съвпадения
      * 
-     * @param stdObject $rec
+     * @param stdClass $rec
      * @param string $fields
      * 
      * @return array
@@ -2506,7 +2518,7 @@ class crm_Persons extends core_Master
     /**
      * Създава папка на лице по указаните данни
      */
-    static function getPersonFolder($salutation, $name, $country, $pCode, $place, $address, $email, $tel, $website)
+    static function getPersonFolder($salutation, $name, $country, $pCode, $place, $address, $email, $tel, $website, $inCharge, $access, $shared)
     {
         $rec = new stdClass();
         $rec->salutation = $salutation;
@@ -2523,7 +2535,11 @@ class crm_Persons extends core_Master
         $rec->tel   = $tel;
         $rec->website = $website;
         
-         
+        // Достъп/права
+        $rec->inCharge = $inCharge;
+        $rec->access   = $access;
+        $rec->shared = $shared;
+
         $Persons = cls::get('crm_Persons');
         
         $folderId = $Persons->forceCoverAndFolder($rec);
@@ -2595,9 +2611,10 @@ class crm_Persons extends core_Master
      * @param int $id - ид на контрагент
      * @param boolean $translitarate - дали да се транслитерира адреса
      * @param boolean|NULL $showCountry - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     * @param boolean $showAddress      - да се показва ли адреса
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL)
+    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL, $showAddress = TRUE)
     {
     	expect($rec = $this->fetchRec($id));
     	
@@ -2619,6 +2636,8 @@ class crm_Persons extends core_Master
     	$Varchar = cls::get('type_Varchar');
     	foreach (array('pCode', 'place', 'address') as $fld){
     		if($rec->$fld){
+    			if($fld == 'address' && $showAddress !== TRUE) continue;
+    			
     			$obj->$fld = $Varchar->toVerbal($rec->$fld);
     			if($translitarate === TRUE){
     				if($fld != 'pCode'){
@@ -2670,7 +2689,7 @@ class crm_Persons extends core_Master
      * Форсира контрагент в дадена група
      * 
      * @param int $id -ид на продукт
-     * @param varchar $groupSysId - sysId или ид на група
+     * @param string $groupSysId - sysId или ид на група
      * @param boolean $isSysId  - дали е систем ид
      */
     public static function forceGroup($id, $groupSysId, $isSysId = TRUE)
@@ -2902,9 +2921,11 @@ class crm_Persons extends core_Master
     /**
      * Лицата от група 'Служители'
      * 
-     * @return array $options - Опции
+     * @param  boolean $withAccess   - да се филтрира ли по права за редакция или не
+     * @param  boolean $withoutCodes - да имат ли кодове или не
+     * @return array $options        - опции
      */
-    public static function getEmployeesOptions()
+    public static function getEmployeesOptions($withAccess = FALSE, $withoutCodes = FALSE)
     {
     	$options = $codes = array();
     	$emplGroupId = crm_Groups::getIdFromSysId('employees');
@@ -2912,7 +2933,16 @@ class crm_Persons extends core_Master
     	$query = self::getQuery();
     	$query->like("groupList", "|{$emplGroupId}|");
     	
+    	// Ако е указано, само тези които нямат кодове в производствените ресурси
+    	if($withoutCodes === TRUE){
+    		$hrQuery = planning_Hr::getQuery();
+    		$hrQuery->show('personId');
+    		$exceptIds = arr::extractValuesFromArray($hrQuery->fetchAll(), 'personId');
+    		$query->notIn('id', $exceptIds);
+    	}
+    	
     	while($rec = $query->fetch()){
+    		if($withAccess === TRUE && !crm_Persons::haveRightFor('edit', $rec->id)) continue;
     		$options[$rec->id] = $val = self::getVerbal($rec, 'name');
     	}
     	
@@ -2990,8 +3020,9 @@ class crm_Persons extends core_Master
                 $qArr = explode(' ', $q);
             }
             
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
             foreach($qArr as $w) {
-                $query->where(array("#searchFieldXpr REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
+                $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         }
 		
@@ -3021,11 +3052,97 @@ class crm_Persons extends core_Master
 
 
     /**
-     * Добавя ключовио думи за държавата и на bg и на en
+     * Добавя ключови думи за държавата и на bg и на en
      */
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
     }
+    
+    
+    /**
+     * Дали лицето е в подадената група
+     * 
+     * @param int $id
+     * @param string $groupSysId
+     * @return boolean
+     */
+    public static function isInGroup($id, $groupSysId)
+    {
+    	$employeeId = crm_Groups::getIdFromSysId($groupSysId);
+    	if(keylist::isIn($employeeId, crm_Persons::fetchField($id, 'groupList'))) return TRUE;
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
+     * След взимане на иконката за единичния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param int $id
+     */
+    public static function on_AfterGetSingleIcon($mvc, &$res, $id)
+    {
+    	if(core_Users::isContractor()) return;
+    	
+    	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
+            if ($extRec->overdueSales == 'yes') {
+                $res = 'img/16/stop-sign.png';
+            }
+        }
+    }
 
+    
+    /**
+     * След взимане на заглавието за единичния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param int $id
+     */
+    public static function on_AfterGetSingleTitle($mvc, &$res, $id)
+    {
+    	if(core_Users::isContractor()) return;
+    	
+    	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+            if($extRec->overdueSales == 'yes'){
+                $res = "<span class='dangerTitle'>{$res}</span>";
+            }
+        }
+    }
+    
+    
+    /**
+     * Обновяване на адресните данни на фирмата
+     *
+     * @param int $folderId         - ид на папка
+     * @param string $name          - име на папката
+     * @param string $egn           - ЕГН
+     * @param int $countryId        - ид на държава
+     * @param string|NULL $pCode    - п. код
+     * @param string|NULL $place    - населено място
+     * @param string|NULL $address  - адрес
+     * @return void
+     */
+    public static function updateContactDataByFolderId($folderId, $name, $egn, $countryId, $pCode, $place, $address)
+    {
+    	$saveFields = array();
+    	$rec = self::fetch("#folderId = {$folderId}");
+    	$arr = array('name' => $name, 'vatId' => $vatId, 'country' => $countryId, 'pCode' => $pCode, 'place' => $place, 'address' => $address);
+    	 
+    	// Обновяване на зададените полета
+    	foreach ($arr as $name => $value){
+    		if(!empty($value) && $rec->{$name} != $value){
+    			$rec->{$name} = $value;
+    			$saveFields[] = $name;
+    		}
+    	}
+    	 
+    	// Ако има полета за обновяване
+    	if(count($saveFields)){
+    		self::save($rec, $saveFields);
+    	}
+    }
 }

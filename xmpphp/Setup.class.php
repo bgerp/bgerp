@@ -87,7 +87,7 @@ class xmpphp_Setup extends core_ProtoSetup
      
            'XMPPHP_DOMAIN'   => array ('varchar', 'caption=XMPP чат сървър->Домейн'),
     
-           'XMPPHP_USER'   => array ('identifier', 'mandatory, class=w25,caption=Сметка->Ник'),
+           'XMPPHP_USER'   => array ('nick(64, ci)', 'mandatory, class=w25,caption=Сметка->Ник'),
     
            'XMPPHP_PASSWORD'   => array ('password', 'mandatory, caption=Сметка->Парола')
     

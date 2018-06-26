@@ -72,7 +72,7 @@ class vtotal_Checks extends core_Master
     {
         $this->FLD('firstCheck', 'datetime(format=smartTime)', 'caption=Последно от вирус тотал');
         $this->FLD('lastCheck', 'datetime(format=smartTime)', 'caption=Последно проверяване от системата');
-        $this->FLD('filemanDataId', 'key(mvc=fileman_Files,select=id)', 'caption=Файл');
+        $this->FLD('filemanDataId', 'key(mvc=fileman_Data,select=id)', 'caption=Файл');
         $this->FLD('md5', 'varchar', 'caption=Хеш на съответния файл, silent');
         $this->FLD('timesScanned', 'int', 'caption=Пъти сканиран този файл, notNull, value=0, oldFieldName=timesScaned');
         $this->FLD('rateByVT', 'varchar(8)', 'caption=Опастност');
@@ -93,7 +93,27 @@ class vtotal_Checks extends core_Master
         $query->limit(1);
         $rec = $query->fetch();
         $this->putNewFileForCheck($rec, $md5);
-
+        
+        // Форсираме сканирането на файла по крон, ако вече е бил сканиран
+        $cRec = $this->fetch(array("#filemanDataId = '[#1#]'", $rec->dataId));
+        if ($cRec) {
+            $maxScanLimit = vtotal_Setup::get("MAX_SCAN_OF_FILE");
+            $sArr = array();
+            if ($maxScanLimit && $cRec->timesScanned && ($cRec->timesScanned >= $maxScanLimit)) {
+                $cRec->timesScanned = $maxScanLimit - 1;
+                $sArr['timesScanned'] = 'timesScanned';
+            }
+            
+            if (isset($cRec->lastCheck)) {
+                $cRec->lastCheck = NULL;
+                $sArr['lastCheck'] = 'lastCheck';
+            }
+            
+            if (!empty($sArr)) {
+                $this->save($cRec, $sArr);
+            }
+        }
+        
         return new Redirect( array('vtotal_Checks', null , 'md5' => $md5));
     }
     

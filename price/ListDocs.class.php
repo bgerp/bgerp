@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Документ "Ценоразпис"
@@ -69,27 +69,21 @@ class price_ListDocs extends core_Master
     
     
     /**
-     * Кой може да го прочете?
-     */
-    public $canRead = 'powerUser';
-    
-    
-    /**
      * Кой може да го промени?
      */
-    public $canWrite = 'price, ceo';
+    public $canWrite = 'sales, priceDealer, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'price, ceo';
+    public $canList = 'sales, priceDealer, ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'price, ceo';
+	public $canSingle = 'sales, priceDealer, ceo';
     
     
     /**
@@ -220,6 +214,7 @@ class price_ListDocs extends core_Master
     
     /**
      * Подготвя всички политики до които има достъп потребителя
+     * 
      * @param stdClass $rec - запис от модела
      * @return array $options - масив с опции
      */
@@ -229,9 +224,11 @@ class price_ListDocs extends core_Master
     	$polQuery = price_Lists::getQuery();
     	$polQuery->show('title');
     	while($polRec = $polQuery->fetch()){
-    		if(price_Lists::haveRightFor('single', $polRec)){
-    			$options[$polRec->id] = price_Lists::getTitleById($polRec->id, FALSE);
-    		}
+    		$options[$polRec->id] = price_Lists::getTitleById($polRec->id, FALSE);
+    	}
+    	
+    	if(!haveRole('ceo,priceDealer')){
+    		unset($options[price_ListRules::PRICE_LIST_COST]);
     	}
     	
     	return $options;
@@ -519,25 +516,19 @@ class price_ListDocs extends core_Master
     	$Double->params['smartRound'] = 'smartRound';
     	
     	$row = new stdClass();
-    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
+    	$row->productId = cat_Products::getVerbal($rec->productId, 'name');
+    	if(!Mode::isReadOnly()){
+    		$row->productId = ht::createLinkRef($row->productId, cat_Products::getSingleUrlArray($rec->productId));
+    	}
     	
     	foreach (array('priceP', 'priceM') as $priceFld) {
     		if($rec->{$priceFld}){
         		$row->{$priceFld} = $Double->toVerbal($rec->{$priceFld});
         	}
     	}
-        
-    	if(!array_key_exists($rec->measureId, $this->cache)){
-    		$this->cache[$rec->measureId] = cat_UoM::getShortName($rec->measureId);
-    	}
-    	$measureShort = $this->cache[$rec->measureId];
     	
-		if($rec->pack){
-			if(!array_key_exists($rec->pack, $this->cache)){
-				$this->cache[$rec->pack] = cat_UoM::getShortName($rec->pack);
-			}
-			
-    		$row->pack = $this->cache[$rec->pack];
+		if(isset($rec->pack)){
+			$row->pack = tr(cat_UoM::getShortName($rec->pack));
     		$row->pack .= deals_Helper::getPackMeasure($rec->measureId, $rec->perPack);
 		}
     	
@@ -548,7 +539,7 @@ class price_ListDocs extends core_Master
 		}
 		
     	if($rec->measureId && $rec->priceM){
-    		$row->measureId = $measureShort;
+    		$row->measureId = tr(cat_UoM::getShortName($rec->measureId));
     	} else {
     		unset($row->productId);
     		unset($row->code);

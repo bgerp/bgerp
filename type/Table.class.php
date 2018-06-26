@@ -58,12 +58,17 @@ class type_Table extends type_Blob {
         }
 
         $columns = $this->getColumns();
+        $opt = array();
         foreach($columns as $field => $fObj) {
         	if(empty($this->params['noCaptions'])){
         		$row0 .= "<td class='formTypeTable'>{$fObj->caption}</td>";
         	}
             
             $attr[$field] = array('name' => $name . '[' . $field . '][]');
+            
+            // При натискане на ентер да се добавя нов ред
+            $attr[$field]['onkeypress'] = "if (event && (event.which == 13)) { if ($(event.target).closest('tr').is(':last-child')) { $('#dblRow_{$name}').click();} $(event.target).closest('tr').nextAll('tr').find('td :input').first().focus(); return false;}";
+            
             if($fObj->width) {
                 $attr[$field]['style'] .= ";width:{$fObj->width}";
             }
@@ -71,11 +76,15 @@ class type_Table extends type_Blob {
             $selOpt = $field . '_opt';
             $suggestOpt = $field . '_sgt';
             $readOnlyFld = $field . '_ro';
-            
+
             if($this->params[$selOpt]) {
-                $opt = explode('|', $this->params[$selOpt]);
-                foreach($opt as $o) {
-                    $opt[$field][$o] = $o;
+                if(is_string($this->params[$selOpt])) {
+                    $opt = explode('|', $this->params[$selOpt]);
+                    foreach($opt as $o) {
+                        $opt[$field][$o] = $o;
+                    }
+                } else {  
+                    $opt[$field] = $this->params[$selOpt];
                 }
                 $tpl  .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], NULL, $attr[$field]) . "</td>";
                 $row1 .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][0]), $attr[$field]) . "</td>";
@@ -98,7 +107,7 @@ class type_Table extends type_Blob {
             	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])){
             		$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => strip_tags($value[$field][0]))) . "</td>";
             	} else {
-            		$row1 .= "<td>" . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field] + $this->getErrorArr($field, 0), $sgt[$field]) . "</td>";
+            		$row1 .= "<td>" . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field] + $this->getErrorArr($field, 0), array('' => '') + $sgt[$field]) . "</td>";
             	}
             } else {
                 $tpl  .= "<td>" . ht::createElement('input', $attr[$field]) . "</td>";
@@ -119,7 +128,7 @@ class type_Table extends type_Blob {
             $row = '';
             foreach($columns as $field => $fObj) {
                 if(isset($opt[$field])) {
-                    $row .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][0]), $attr[$field]) . "</td>";
+                    $row .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][$i]), $attr[$field]) . "</td>";
                 } else {
                 	$readOnlyFld = $field . '_ro';
                 	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][$i]) && empty($this->errorFields[$field][$i])){
@@ -146,7 +155,7 @@ class type_Table extends type_Blob {
         $tpl = str_replace("\n", "", $tpl);
     
         $id = 'table_' . $name;
-        $btn = ht::createElement('input', array('type' => 'button', 'value' => '+ Нов ред', 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));  
+        $btn = ht::createElement('input', array('id' => 'dblRow_' . $name, 'type' => 'button', 'value' => '+ ' . tr('Нов ред||Add row'), 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));  
         
         $attrTable = array();
         $attrTable['class'] = 'listTable typeTable ' . $attrTable['class'];
@@ -171,10 +180,10 @@ class type_Table extends type_Blob {
     /**
      * Помощна ф-я сетваща определено поле като грешно
      */
-    private function getErrorArr($field, $i)
+    private function getErrorArr($column, $i)
     {
     	$errorArr = array();
-    	if(is_array($this->errorFields[$field]) && array_key_exists($i, $this->errorFields[$field])){
+    	if(is_array($this->errorFields[$column]) && array_key_exists($i, $this->errorFields[$column])){
     		$errorArr['class'] = ' inputError';
     		$errorArr['errorClass'] = ' inputError';
     	}
@@ -187,6 +196,26 @@ class type_Table extends type_Blob {
     {
         if(empty($value)) return NULL;
         
+        if($columns = $this->params['mandatory']) {
+            $value = self::toArray($value);
+            $columns = explode('|', $columns);
+            $errFld = array();
+            foreach($value as $r => $obj) {
+                foreach($columns as $c) {
+                    if(strlen($obj->{$c}) == 0) {
+                        $errFld[$c][$r] =  TRUE;
+                    }
+                }
+            }
+
+            if(count($errFld)) {
+                $res['error'] = "Непопълнено задължително поле";
+            	$this->errorFields = $res['errorFields'] = $errFld;
+                
+                return $res;
+            }
+        }
+
         if($this->params['validate']) {
 
         	$valueToValidate = @json_decode($value, TRUE);
@@ -223,9 +252,10 @@ class type_Table extends type_Blob {
 
         if(is_array($value)) {
             $columns = $this->getColumns();
-            
+            $opt = $this->getOptions();
+
             foreach($columns as $field => $fObj) {
-                $row0 .= "<td class='formTypeTable'>{$fObj->caption}</td>";
+                $row0 .= html_entity_decode("<td class='formTypeTable'>{$fObj->caption}</td>", ENT_QUOTES, 'UTF-8');
             }
  
             $i = 0;
@@ -233,8 +263,12 @@ class type_Table extends type_Blob {
                 $isset = FALSE;
                 $empty = TRUE;
                 $row = '';
-                foreach($columns as $field => $fObj) {
-                    $row .= "<td>" . $value[$field][$i] . "</td>";
+                foreach($columns as $field => $fObj) {  
+                    if(isset($opt[$field])) {
+                        $row .= "<td>" . $opt[$field][$value[$field][$i]] . "</td>";
+                    } else {
+                        $row .= "<td>" . $value[$field][$i] . "</td>";
+                    }
                     if(isset($value[$field][$i])) {
                         $isset = TRUE;
                     }
@@ -342,6 +376,72 @@ class type_Table extends type_Blob {
             $res[$c] = $obj;
         }
  
+        return $res;
+    }
+
+
+    /**
+     * Подготвя опциите
+     */
+    function getOptions()
+    {
+        $opt = array();
+        $columns = $this->getColumns();
+        foreach($columns as $field => $fObj) {
+ 
+            $selOpt = $field . '_opt';
+
+            if($this->params[$selOpt]) {
+                if(is_string($this->params[$selOpt])) {
+                    $opt = explode('|', $this->params[$selOpt]);
+                    foreach($opt as $o) {
+                        $opt[$field][$o] = $o;
+                    }
+                } else {  
+                    $opt[$field] = $this->params[$selOpt];
+                }
+            }
+        }
+
+        return $opt;
+    }
+
+
+    /**
+     * Преобразува Json представяне на типа към PHP масив
+     *
+     * [0] object(col1, col2, col3, ...)
+     * [1] object(col1, col2, col3, ...)
+     * ......
+     */
+    public static function toArray($value)
+    { 
+        $res = array();
+        
+        if(!empty($value)) {
+        
+            if(is_string($value)) {
+                $value = @json_decode($value, TRUE);
+            }
+
+            $r = 0;
+          
+            do {
+                $empty = TRUE;
+                $obj = new StdClass();
+                foreach($value as $f => $arr) {
+                    if(isset($arr[$r])) {
+                        $obj->{$f} = $arr[$r];
+                        $empty = FALSE;
+                    }
+                }
+                if(!$empty) {
+                    $res[$r] = $obj;
+                }
+                $r++;
+            } while(!$empty);
+        }
+
         return $res;
     }
 }

@@ -19,9 +19,8 @@ class support_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {        
-        $this->TAB('support_Issues', 'Сигнали');
+        $this->TAB('support_Tasks', 'Сигнали', 'ceo, admin, support');
         $this->TAB('support_Systems', 'Системи', 'admin, support');
-//        $this->TAB('support_Components', 'Компоненти', 'admin, support');
         $this->TAB('support_IssueTypes', 'Типове', 'admin, support');
         $this->TAB('support_Corrections', 'Корекции', 'ceo, admin, support');
         $this->TAB('support_Preventions', 'Превенции', 'ceo, admin, support');

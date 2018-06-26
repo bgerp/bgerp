@@ -325,17 +325,6 @@ class store_InventoryNotes extends core_Master
     
     
     /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(get_called_class());
-    	 
-    	return tr("|{$self->singleTitle}|* №") . $rec->id;
-    }
-    
-    
-    /**
      * След подготовка на тулбара на единичен изглед.
      *
      * @param core_Mvc $mvc

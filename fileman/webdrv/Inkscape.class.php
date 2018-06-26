@@ -139,7 +139,13 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         
         if (is_file($outFilePath)) {
             if (!$cmyk) {
-                $resFileHnd = fileman::absorb($outFilePath, 'fileIndex');
+                
+                $bucketName = 'fileIndex';
+                if ($otherParam['bucket']) {
+                    $bucketName = $otherParam['bucket'];
+                }
+                
+                $resFileHnd = fileman::absorb($outFilePath, $bucketName);
             } else {
                 $resFileHnd = fileman_webdrv_Pdf::rgbToCmyk($outFilePath);
             }
@@ -157,7 +163,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         } else {
             if (is_file($errFilePath)) {
                 $err = @file_get_contents($errFilePath);
-                self::logErr('Грешка при конвертиране: ' . $errFilePath);
+                self::logErr('Грешка при конвертиране: ' . $err);
             }
         }
         

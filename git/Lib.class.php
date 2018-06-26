@@ -29,7 +29,7 @@ class git_Lib
     {
         $path = escapeshellarg($path . '/.git');
 
-        $c = "git --git-dir=$path {$cmd}";
+        $c = "git --git-dir=$path {$cmd} 2>&1";
 
         exec($c, $lines, $returnVar);
  			
@@ -56,6 +56,31 @@ class git_Lib
 
         $repoName = basename($repoPath);
         $log[] = "[{$repoName}]: Неуспешно извличане на текущия бранч";
+        
+        return FALSE;
+    }
+
+
+
+    /**
+     * Връща текущият бранч на репозитори
+     * 
+     * @param string    $repoPath - път до git репозитори
+     * @param array     $log - масив с логове
+     * @return array    масив със всички тагове
+     */
+    public static function getTags($repoPath, &$log)
+    {
+        $command = "tag 2>&1";
+
+        // Първият ред съдържа резултата
+        if (self::cmdExec($command, $res, $repoPath)) {
+
+            return $res;
+        }
+
+        $repoName = basename($repoPath);
+        $log[] = "[{$repoName}]: Неуспешно извличане на таговете";
         
         return FALSE;
     }
@@ -231,7 +256,7 @@ class git_Lib
         self::cmdExec($commandMergeAbort, $lines, $repoPath);
             
         if (!$res) {
-            $log[] = "Бъдещ ПРОБЛЕМЕН merge.";
+            $log[] = "Бъдещ ПРОБЛЕМЕН merge. -> " . var_export($res, TRUE) . " ->" . var_export($lines, TRUE);
             return FALSE;
         }
         $log[] = "Бъдещ безпроблемен merge $branch1 -> $branch2";

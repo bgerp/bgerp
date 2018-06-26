@@ -530,7 +530,7 @@ class cms_GalleryImages extends core_Manager
     /**
      * Подготвя вербалните стойности на записите, които ще се показват в диалоговия прозорец на галерията
      * 
-     * @param stdObject $data
+     * @param stdClass $data
      */
     function prepareGalleryDialogListRows($data)
     {   
@@ -614,7 +614,7 @@ class cms_GalleryImages extends core_Manager
     /**
      * Рендира таблицата за показване в диалоговия прозорец на галерията
      * 
-     * @param stdObject $data
+     * @param stdClass $data
      */
     function renderGalleryDialogListTable($data)
     {

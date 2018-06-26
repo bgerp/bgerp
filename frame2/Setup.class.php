@@ -3,6 +3,12 @@
 
 
 /**
+ * Как да е форматирана датата
+ */
+defIfNot('FRAME2_CLOSE_LAST_SEEN_BEFORE_MONTHS', '4');
+
+
+/**
  * class frame2_Setup
  *
  * Инсталиране/Деинсталиране на пакета frame2
@@ -11,7 +17,7 @@
  * @category  bgerp
  * @package   frame2
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -22,43 +28,37 @@ class frame2_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * От кои други пакети зависи
      */
-    var $depends = '';
+    public $depends = '';
     
     
     /**
      * Начален контролер на пакета за връзката в core_Packs
      */
-    var $startCtr = 'frame2_Reports';
+    public $startCtr = 'frame2_Reports';
     
     
     /**
      * Начален екшън на пакета за връзката в core_Packs
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Динамични справки";
-
-
-    /**
-     * Описание на конфигурационните константи
-     */
-    var $configDescription = array();
+    public $info = "Динамични справки";
 
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'frame2_Reports',
     		'frame2_ReportVersions',
     		'frame2_AllReports',
@@ -68,33 +68,27 @@ class frame2_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'report,dashboard';
+    public $roles = 'report';
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+    	'FRAME2_CLOSE_LAST_SEEN_BEFORE_MONTHS' => array ('int', 'caption=Затваряне на последно видяни справки преди->Месеца'),
+    );
     
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
+    public $menuItems = array(
     		array(2.56, 'Обслужване', 'Отчети', 'frame2_Reports', 'default', "report, ceo, admin"),
     );
     
     
     /**
-     * Настройки за Cron
+     * Дефинирани класове, които имат интерфейси
      */
-    var $cronSettings = array(
-    	//@TODO
-    );
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
+    public $defClasses = 'frame2_CsvExport';
 }

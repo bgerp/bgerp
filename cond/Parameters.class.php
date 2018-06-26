@@ -138,28 +138,6 @@ class cond_Parameters extends bgerp_ProtoParam
     
     
     /**
-     * Ограничаване на символите на стойноста, ако е текст
-     * 
-     * @param mixed $driverClass
-     * @param mixed $value
-     * @return mixed $value
-     */
-    public static function limitValue($driverClass, $value)
-    {
-    	$driverClass = cls::get($driverClass);
-    	if(($driverClass instanceof cond_type_Text) && mb_strlen($value) > 90){
-    		$bHtml = mb_strcut($value, 0, 90);
-    		$cHtml = mb_strcut($value, 90);
-    	
-    		$value = $bHtml . "\n[hide=" . tr('Вижте още') . "]" . $value . "[/hide]";
-    		$value = cls::get('type_Richtext')->toVerbal($value);
-    	}
-    	
-    	return $value;
-    }
-    
-    
-    /**
      * Форсира параметър
      *
      * @param string $sysId       - систем ид на параметър

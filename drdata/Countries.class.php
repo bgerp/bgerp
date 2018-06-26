@@ -140,6 +140,26 @@ class drdata_Countries extends core_Manager {
     }
 
 
+
+    /**
+     * Връща най-подходящия език от системните, за съответната страна
+     */
+    public static function getLang($countryId)
+    {
+        $rec = self::fetch($countryId);
+        
+        cls::load('core_Lg');
+        
+        $langArr = arr::make(EF_LANGUAGES);
+        
+        foreach($langArr as $lg => $name) {
+            if(strpos($rec->languages, $lg) !== FALSE) return $lg;
+        }
+
+        return 'en';
+    }
+
+
     /**
      * Попълва езиците, които се говорят в дадена страна
      */
@@ -319,7 +339,7 @@ class drdata_Countries extends core_Manager {
                 'o.a.e.' => 'united arab emirates',
                 'oesterreich' => 'austria',
                 'osterreich' => 'austria',
-                'palestinian territory' => 'palestinа',
+                'palestinian territory' => 'palestina',
                 'polska' => 'poland',
                 'protugal' => 'portugal',
                 'rbulgaria' => 'bulgaria',
@@ -367,10 +387,40 @@ class drdata_Countries extends core_Manager {
                 'ελλαδα' => 'greece',
                 'usa' => 'united states',
                 'bahamas' => 'bahamas, the',
+                'alger' => 'algeria',
+                'begium' => 'belgium',
+                'bosna and herzegovina' => 'bosnia and herzegovina',
+                'bosna i hercegovina' => 'bosnia and herzegovina',
+                'chech republik' => 'czech republic',
+                'columbia' => 'colombia',
+                'cypros' => 'cyprus',
+                'czeh republik' => 'czech republic',
+                'finnland' => 'finland',
+                'korea' => 'south korea',
+                'korea, republic of' => 'south korea',
+                'lietuva' => 'lithuania',
+                'luxenbourg' => 'luxembourg',
+                'maroco' => 'morocco',
+                'natherlands' => 'netherlands',
+                'netherlans' => 'netherlands',
+                'new zealend' => 'new zealand',
+                'polland' => 'poland',
+                'porugal' => 'portugal',
+                'quatar' => 'qatar',
+                'salvador' => 'el salvador',
+                'sint maarten' => 'netherlands',
+                'south afrika' => 'south africa',
+                'swtzerland' => 'switzerland',
+                'the nehterlands' => 'netherlands',
+                'tunise' => 'tunisia',
+                'unted kingdom' => 'united kingdom',
+            	'great britain' => 'united kingdom',
+            	'great britan' => 'united kingdom',
+            	'britan' => 'united kingdom',
             );
 
             foreach($mis as $w => $c) {
-                expect($id = $commonNamesArr[$c], $c, $commonNamesArr);
+                expect($id = $commonNamesArr[$c], $c, $commonNamesArr, $mis);
                 expect(!$commonNamesArr[$w], $w, $commonNamesArr);
                 $commonNamesArr[$w] = $id;
             }
@@ -460,7 +510,8 @@ class drdata_Countries extends core_Manager {
             11 => "letterCode2",
             12 => "letterCode3",
             13 => "isoNumber",
-            14 => "domain"
+            14 => "domain",
+            15 => "groupName"
         );
         
         // Импортираме данните от CSV файла. 
@@ -469,5 +520,67 @@ class drdata_Countries extends core_Manager {
 
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;
+    }
+    
+    
+    /**
+     * Изпълнява се преди импортирването на данните
+     * 
+     * @param drdata_Countries $mvc
+     * @param mixed $res
+     * @param array $recs
+     * @param mixed $fields
+     */
+    public static function on_AfterSaveArray($mvc, &$res, $recs, $fields = NULL)
+    {
+        if (empty($recs)) return ;
+        
+        $saveArr = array();
+        
+        $countryGroupsInst = cls::get('drdata_CountryGroups');
+        
+        foreach ($recs as $rec) {
+            if (!$rec->groupName) continue;
+            
+            expect($rec->commonName && $rec->commonNameBg);
+            
+            $fRec = self::fetch(array("#commonName = '[#1#]' AND #commonNameBg = '[#2#]'", $rec->commonName, $rec->commonNameBg));
+            
+            expect($fRec);
+            
+            $groupNameArr = explode('|', $rec->groupName);
+            
+            foreach ($groupNameArr as $name) {
+                
+                $mustSave = FALSE;
+                
+                $grRec = $saveArr[$name];
+                
+                if (!$grRec) {
+                    $grRec = $countryGroupsInst->fetch(array("#name = '[#1#]'", $name));
+                }
+                
+                if (!$grRec) {
+                    $grRec = new stdClass;
+                    $grRec->name = $name;
+                    $grRec->createdOn = dt::verbal2mysql();
+                    $grRec->createdBy = core_Users::getCurrent();
+                }
+                
+                if (!keylist::isIn($fRec->id, $grRec->countries)) {
+                    $mustSave = TRUE;
+                }
+                
+                $grRec->countries = keylist::addKey($grRec->countries, $fRec->id);
+                
+                if ($mustSave) {
+                    $saveArr[$name] = $grRec;
+                }
+            }
+        }
+        
+        if (!empty($saveArr)) {
+            $countryGroupsInst->saveArray($saveArr);
+        }
     }
 }

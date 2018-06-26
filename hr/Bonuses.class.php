@@ -7,7 +7,7 @@
  *
  *
  * @category  bgerp
- * @package   trz
+ * @package   hr
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
@@ -17,12 +17,8 @@
 class hr_Bonuses extends core_Master
 {
 
-    /**
-     * Старото име на класа
-     */
-    public $oldClassName = 'trz_Bonuses';
 
-    /**
+	/**
      * Поддържани интерфейси
      */
     public $interfaces = 'hr_IndicatorsSourceIntf';
@@ -147,7 +143,7 @@ class hr_Bonuses extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    public $singleLayoutFile = 'trz/tpl/SingleLayoutBonuses.shtml';
+    public $singleLayoutFile = 'hr/tpl/SingleLayoutBonuses.shtml';
 
     
     /**
@@ -240,7 +236,7 @@ class hr_Bonuses extends core_Master
 	 *          o docId       - ид на документа
 	 *          o docClass    - клас ид на документа
 	 *          o indicatorId - ид на индикатора
-	 *          o value       - стойноста на инфикатора
+	 *          o value       - стойноста на индикатора
 	 *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
 	 */
     public static function getIndicatorValues($timeline)
@@ -353,5 +349,4 @@ class hr_Bonuses extends core_Master
          
         return $title;
     }
-
 }

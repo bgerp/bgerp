@@ -181,13 +181,14 @@ class tcost_Fees extends core_Detail
     	
         // Определяне на зоната на транспорт, за зададеното условие на доставка
         $zone = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $countryId, $pCode);
-       
+ 
+
         // Ако не се намери зона се връща 0
-        if(is_null($zone)) return tcost_CostCalcIntf::ZONE_FIND_ERROR;
+        if(is_null($zone)) return cond_TransportCalc::ZONE_FIND_ERROR;
 
         // Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();
-
+ 
         $weightsLeft = NULL;
         $weightsRight = INF;
         $smallestWeight = NULL;
@@ -263,16 +264,23 @@ class tcost_Fees extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        static $lastPrice;
+        static $lastPrice, $lastKgPrice;
 
     	$rec->total = self::getTotalPrice($rec);
     	$row->total = $mvc->getFieldType('total')->toVerbal($rec->total);
-
+        
+        $kgPrice = $rec->total / $rec->weight;
+ 
         if($lastPrice >= $rec->price) {
             $row->ROW_ATTR = array('style' => 'color:red;');
+        } elseif(isset($lastKgPrice) && $lastKgPrice <= $kgPrice) {
+            $row->ROW_ATTR = array('style' => 'color:#ff9900');
+            $max = round($lastKgPrice * $rec->weight);
+            $row->priceHint = $max;
         }
 
- 
+        $lastKgPrice = $kgPrice;
+
         $lastPrice = $rec->price;
     }
     
@@ -297,7 +305,10 @@ class tcost_Fees extends core_Detail
     		$rec = &$data->recs[$id];
     		
     		// Зад сумите, се залепва валутата им
-    		$row->price .=  " <span class='cCode'>{$rec->currencyId}</span>";
+            if($row->priceHint) {
+                $row->price = "<span title='Не трябва да е повече от {$row->priceHint}'>" . $row->price . "</span>";
+            }
+       		$row->price .=  " <span class='cCode'>{$rec->currencyId}</span>";
     		if(!empty($rec->secondPrice) && !empty($rec->secondCurrencyId)){
     			$row->secondPrice .=  " <span class='cCode'>{$rec->secondCurrencyId}</span>";
     		}

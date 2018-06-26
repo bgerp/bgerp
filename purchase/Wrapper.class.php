@@ -25,7 +25,8 @@ class purchase_Wrapper extends plg_ProtoWrapper
         $this->TAB('purchase_Purchases', 'Покупки', 'ceo,purchase,acc');
         $this->TAB('purchase_Invoices', 'Фактури', 'ceo,purchase,acc');
     	$this->TAB('purchase_Offers', 'Оферти', 'ceo,purchase');
-        $this->TAB('purchase_Services', 'Протоколи', 'ceo,purchase');
+        $this->TAB('purchase_Services', 'Протоколи->Приемателни', 'ceo,purchase');
+        $this->TAB('purchase_Vops', 'Протоколи->ВОП', 'ceo,purchase');
         $this->TAB('purchase_ClosedDeals', 'Приключвания', 'ceo,purchase');
         
         $this->title = 'Покупки « Доставки';

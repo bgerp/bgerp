@@ -245,7 +245,7 @@ class core_Form extends core_FieldSet
                 
                 // Вдигаме грешка, ако стойността от Request 
                 // не може да се конвертира към вътрешния тип
-                if ($type->error) {
+                if (strlen($type->error)) {
                     
                     $result = array('error' => $type->error);
                     
@@ -381,7 +381,7 @@ class core_Form extends core_FieldSet
         
                 // Вдигаме грешка, ако стойността от Request
                 // не може да се конвертира към вътрешния тип
-                if ($type->error) {
+                if (strlen($type->error)) {
         
                     $result = array('error' => $type->error);
         
@@ -496,7 +496,9 @@ class core_Form extends core_FieldSet
                     "<!--ET_BEGIN FORM_INFO-->\n<div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
                     "<!--ET_BEGIN FORM_FIELDS-->\n<div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->" .
                     "<!--ET_BEGIN FORM_HIDDEN-->\n[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
-                    "\n</td></tr><!--ET_BEGIN FORM_TOOLBAR-->\n<tr><td style='padding:0px;'><div class=\"formToolbar\">[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
+                    "\n</td></tr><!--ET_BEGIN FORM_TOOLBAR-->\n<tr><td style='padding:0px;'><div class=\"formToolbar\">" .
+                    "\n<!--ET_BEGIN FORM_FOOTER--><div class=\"formFooter\">[#FORM_FOOTER#]</div><!--ET_END FORM_FOOTER-->".
+                    "[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
                     "[#AFTER_MAIN_TABLE#]" .
                     "\n</div>" .
                     "\n</form>\n");
@@ -689,12 +691,12 @@ class core_Form extends core_FieldSet
             }
 
             $fieldsLayout = $this->renderFieldsLayout($fields, $vars);
-            
+           
             // Създаваме input - елементите
             foreach($fields as $name => $field) {
-                
+               
                 expect($field->kind, $name, 'Липсващо поле');
-
+                
                 if(Mode::is('staticFormView')) {
                     $value = $field->type->toVerbal($vars[$name]);
                     $attr = array('class' => 'formFieldValue');
@@ -708,10 +710,10 @@ class core_Form extends core_FieldSet
                 
                 $options = $field->options;
                 
-                $attr = $field->attr;
+                $attr = $field->attr ? $field->attr : array();
                 
                 if ($field->hint) {
-                    $attr['title'] = tr($field->hint);
+                    $attr['title'] = $field->hint;
                 }
 
                 if ($field->class) {
@@ -761,9 +763,8 @@ class core_Form extends core_FieldSet
                     }
 
                     $type->error = TRUE;
-                }
-                
-                
+                }  
+                    
                 
                 // Стойността на полето
                 $value = $vars[$name];
@@ -780,9 +781,17 @@ class core_Form extends core_FieldSet
                 
                 // Ако полето има свойството да поема фокуса
                 // фокусираме на него
-                if(!$firstError && $field->focus) {
-                    ht::setUniqId($attr);
-                    $idForFocus = $attr['id'];
+                if(!$firstError) {
+                    if($field->focus) {
+                        ht::setUniqId($attr);
+                        $idForFocus = $attr['id'];
+                    } elseif((!$field->type->params['isReadOnly']) && (count($field->type->options) != 1) && !$idFirstFocus && 
+                            (empty($value) || ($field->type instanceof type_Richtext) || ($field->type instanceof type_Key) || ($field->type instanceof type_Enum)) &&
+                            !($field->type instanceof type_Date) &&
+                            !($field->type instanceof type_DateTime)) {
+                        ht::setUniqId($attr);
+                        $idFirstFocus = $attr['id'];
+                    }
                 }
                 
                 // Задължителните полета, които имат една опция - тя да е избрана по подразбиране
@@ -797,13 +806,19 @@ class core_Form extends core_FieldSet
 
                 // Рендиране на select или input полето
                 if ((count($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
-                    
+                	
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                     
                     // Гупиране по часта преди посочения разделител
                     if($div = $field->groupByDiv) {
                         $options = ht::groupOptions($options, $div);
+                    }
+  
+                    if(is_a($type, 'type_Enum') && $type->params['isReadOnly']) {
+                        foreach($options as &$title) {
+                            $title = tr($title);
+                        }
                     }
 
                     $input = ht::createSmartSelect($options, $name, $value, $attr,
@@ -815,16 +830,23 @@ class core_Form extends core_FieldSet
                     $input = $type->renderInput($name, $value, $attr);
                 }
                 
-                $fieldsLayout->replace($input, $name);
+                if(!empty($field->displayInToolbar)){
+                	$fieldsLayout->append($input, 'FORM_FOOTER');
+                } else {
+                	$fieldsLayout->replace($input, $name);
+                }
             }
-        
+
             if(Mode::is('staticFormView')) {
             	$fieldsLayout->prepend("<div class='staticFormView'>");
             	$fieldsLayout->append("</div>");
             } else {
+                $rand = 'focus' . rand(1,10000000);
             	if ($idForFocus) {
-            		jquery_Jquery::run($fieldsLayout, "$('#{$idForFocus}').focus();", TRUE);
-            	}
+            		jquery_Jquery::run($fieldsLayout, "focusOnce('#{$idForFocus}', '{$rand}');", TRUE);
+            	} elseif($idFirstFocus) {
+                    jquery_Jquery::run($fieldsLayout, "focusOnce('#{$idFirstFocus}', '{$rand}');", TRUE);
+                }
             }
         }
 
@@ -835,8 +857,29 @@ class core_Form extends core_FieldSet
     /**
      * Подготвя шаблона за инпут-полетата
      */
-    function renderFieldsLayout($fields, $vars)
+    function renderFieldsLayout($fields1, $vars)
     {
+        // Подреждане на полетата на формата
+        $fields = $res = array();
+
+        foreach($fields1 as $name => $field) {
+			if(!empty($field->displayInToolbar)) continue;
+        	
+            list($group, $caption) = explode('->', $field->caption);
+            if(!$caption) {
+                $group = 'autoGroup' . $i++;
+            } else {
+                $group = tr($group);
+            }
+            $res[$group][$name] = $field;
+        }
+
+        foreach($res as $group => $fArr) {
+            foreach($fArr as $name => $field) {
+                $fields[$name] = $field;
+            }
+        }
+
     	if ($this->fieldsLayout) return new ET($this->fieldsLayout);
         
         if($this->view == 'horizontal') {
@@ -1160,8 +1203,26 @@ class core_Form extends core_FieldSet
         "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->", $tpl);
         $res->html = str_replace("</form>", '', $ajaxPage->getContent()) . '</form>';
         $res->html = substr($res->html, strpos($res->html, '<form'));
-
-        core_App::getJson($res);
+        $fields = $this->selectFields("#silent == 'silent'");
+        
+        $sf = array();
+        foreach($fields as $name => $field) {
+            $sf[$name] = $this->rec->{$name};
+        }
+        
+        $getArr = Request::getParams('_GET');
+        unset($getArr['virtual_url']);
+        unset($getArr['App']);
+        unset($getArr['Ctr']);
+        unset($getArr['Act']);
+        
+        if (!empty($getArr)) {
+            $sf += $getArr;
+        }
+        
+        $res->url = toUrl($sf);
+        
+        core_App::outputJson($res);
     }
 
 
@@ -1277,7 +1338,7 @@ class core_Form extends core_FieldSet
             $errRec->msg = $msg;
             $errRec->ignorable = $ignorable;
             
-            if(!$this->errors[$f] || ($this->errors[$f]->ignorable && !$ignorable)) {
+            if(!($this->errors[$f] && $oncePerField) || ($this->errors[$f]->ignorable && !$ignorable)) {
                 $this->errors[$f] = $errRec;
                 $msg = FALSE;
             }
@@ -1288,9 +1349,9 @@ class core_Form extends core_FieldSet
     /**
      * Вдига флаг за предупреждение на посоченото поле
      */
-    function setWarning($field, $msg)
+    function setWarning($field, $msg, $oncePerField = TRUE)
     {
-        $this->setError($field, $msg, 'ignorable');
+        $this->setError($field, $msg, 'ignorable', $oncePerField);
     }
     
     
@@ -1397,7 +1458,7 @@ class core_Form extends core_FieldSet
         	
         		if($fieldset->fields[$name]->autohide == 'any') continue;
         		if($fieldset->fields[$name]->autohide == 'autohide' || $fieldset->fields[$name]->autohide == $mode) {
-        			if(!$rec->{$name}) { 
+        			if(!$rec->{$name} || ($rec->{$name} == 'no') || ($rec->{$name} == 'none')) { 
                         continue;
                     }
         			$type = $fieldset->fields[$name]->type;

@@ -81,6 +81,22 @@ class crm_Setup extends core_ProtoSetup
     
     
     /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+    		array(
+    				'systemId' => "Gather_contragent_info",
+    				'description' => "Събиране на информация за контрагентите",
+    				'controller' => "crm_ext_ContragentInfo",
+    				'action' => "GatherInfo",
+    				'period' => 720,
+    				'offset' => 70,
+    				'timeLimit' => 300
+    		),
+    );
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
@@ -90,17 +106,17 @@ class crm_Setup extends core_ProtoSetup
             'crm_ext_IdCards',
             'crm_Personalization',
             'crm_ext_CourtReg',
-    		'crm_ext_Employees',
             'crm_Profiles',
             'crm_Locations',
             'crm_Formatter',
+    		'crm_ext_ContragentInfo',
             'migrate::movePersonalizationData',
             'migrate::addCountryToCompaniesAndPersons',
             'migrate::updateSettingsKey',
             'migrate::updateGroupFoldersToUnsorted',
             'migrate::updateLocationType',
             'migrate::addCountryIn2LgPersons',
-            'migrate::addCountryIn2LgCompanies'
+            'migrate::addCountryIn2LgCompanies',
         );
     
 
@@ -409,7 +425,4 @@ class crm_Setup extends core_ProtoSetup
         Mode::pop('htmlEntity');
         Mode::pop('text');
     }
-
-
-
 }

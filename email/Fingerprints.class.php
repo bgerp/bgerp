@@ -158,8 +158,33 @@ class email_Fingerprints extends core_Manager
                 $headersArr = email_Mime::parseHeaders($headersStr);
                 $hashStr = '|';
                 foreach ($headerValArr as $hVar) {
+                    if ($hVar == 'message-id') {
+                        $messageId = email_Mime::getHeadersFromArr($headersArr, $hVar, '*', FALSE);
+                        $tMessageId = trim($messageId);
+                        
+                        // Ако няма message-id опитваме се да определим хеша от датата
+                        // Ако няма и дата взмема хеша на всички хедъри
+                        if (!$tMessageId || (strlen($tMessageId) <= 5)) {
+                            $date = email_Mime::getHeadersFromArr($headersArr, 'date', '*', FALSE);
+                            $tDate = trim($date);
+                            
+                            if (!$tDate || (strlen($tDate) <= 3)) {
+                                $hashStr .= $headerHash;
+                            } else {
+                                $hashStr .= $date;
+                            }
+                        } else {
+                            $hashStr .= $messageId;
+                        }
+                        
+                        $hashStr .= '|';
+                        
+                        continue;
+                    }
+                    
                     $hashStr .= email_Mime::getHeadersFromArr($headersArr, $hVar, '*', FALSE) . '|';
                 }
+                
                 $headerHashArr[$headerHash] = md5($hashStr);
             } catch (ErrorException $e) {
                 reportException($e);
@@ -174,11 +199,11 @@ class email_Fingerprints extends core_Manager
     /**
      * Връща TRUE, ако писмо със същите хедъри е свалено преди,иначе FALSE
      */
-    static function isDown($headers) 
+    static function fetchByHeaders($headers) 
     {
         $hash = self::getHeaderHash($headers);
         $hashPart = self::getHeaderPartHash($headers);
-        $res = self::fetchField(array("#hash = '[#1#]' OR #hash = '[#2#]'", $hash, $hashPart), 'id', FALSE) > 0;
+        $res = self::fetch(array("#hash = '[#1#]' OR #hash = '[#2#]'", $hash, $hashPart), '*', FALSE);
 		
         return $res;
     }

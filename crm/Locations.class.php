@@ -3,13 +3,13 @@
 
 
 /**
- * Локации
+ * Локации на котнрагенти
  *
  *
  * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,25 +19,25 @@ class crm_Locations extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'cms_ObjectSourceIntf';
+    public $interfaces = 'cms_ObjectSourceIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = "Локации на контрагенти";
+    public $title = "Локации на контрагенти";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper, plg_Rejected, plg_RowNumbering, plg_Sorting, plg_Search, plg_Printing';
+    public $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper, plg_Rejected, plg_Sorting, plg_Search';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "title, contragent=Контрагент, type, createdOn, createdBy";
+    public $listFields = "title, contragent=Контрагент, type, createdOn, createdBy";
     
     
     /**
@@ -49,55 +49,55 @@ class crm_Locations extends core_Master {
     /**
      * Кой може да пише
      */
-    var $canWrite = 'powerUser';
+    public $canWrite = 'powerUser';
     
     
     /**
      * Кой има достъп до единичния изглед
      */
-    var $canSingle = 'powerUser';
+    public $canSingle = 'powerUser';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'powerUser';
+	public $canList = 'powerUser';
     
 	
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Локация";
+    public $singleTitle = "Локация";
     
     
     /**
      * Икона на единичния обект
      */
-    var $singleIcon = 'img/16/location_pin.png';
+    public $singleIcon = 'img/16/location_pin.png';
     
     
     /**
 	 * Детайли към локацията
 	 */
-	var $details = 'routes=sales_Routes';
+	public $details = 'routes=sales_Routes';
 	
 	
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
 
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'crm/tpl/SingleLayoutLocation.shtml';
+    public $singleLayoutFile = 'crm/tpl/SingleLayoutLocation.shtml';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, countryId, place, address, email, tel';
+    public $searchFields = 'title, countryId, place, address, email, tel';
     
 
     /**
@@ -134,7 +134,67 @@ class crm_Locations extends core_Master {
         $this->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=@Информация');
 
         $this->setDbUnique('gln');
-        $this->setDbIndex('contragentId');
+        $this->setDbIndex('contragentCls,contragentId');
+    }
+    
+    
+    /**
+     * Обновява или добавя локация към контрагента
+     * 
+     * @param int $contragentClassId  - Клас на контрагента
+     * @param int $contragentId       - Ид на контрагента
+     * @param int $countryId          - Ид на държава
+     * @param string $type            - Тип на локацията
+     * @param string|NULL $pCode      - П. код
+     * @param string|NULL $place      - Населено място
+     * @param string|NULL $address    - Адрес
+     * @param string|NULL $locationId - Локация която да се обнови, NULL за нова
+     * @param array $otherParams      - Други параметри
+     */
+    public static function update($contragentClassId, $contragentId, $countryId, $type, $pCode, $place, $address, $locationId = NULL, $otherParams = array())
+    {
+    	$newRec = (object)array('contragentCls' => $contragentClassId, 
+    						    'contragentId'  => $contragentId, 
+    			                'countryId'     => $countryId,
+    							'type'          => $type,
+    							'pCode'         => $pCode,
+    							'place'         => $place,
+    							'address'       => $address,
+    	);
+    	
+    	// Ако има локация, ъпдейт
+    	if(isset($locationId)){
+    		$exLocationRec = self::fetch($locationId);
+    		$newRec->id = $locationId;
+    		$newRec->type = $exLocationRec->type;
+    		if(!empty($exLocationRec->title)){
+    			$newRec->title = $exLocationRec->title;
+    		}
+    	}
+    	
+    	// Ако има други параметри и са от допустимите се добавят
+    	if(count($otherParams)){
+    		$otherFields = arr::make(array('mol', 'gln', 'email', 'tel', 'gpsCoords', 'comment', 'title'), TRUE);
+    		$otherFields = array_intersect_key($otherParams, $otherFields);
+    		$newRec = (array)$newRec + $otherFields;
+    		$newRec = (object)$newRec;
+    	}
+    	
+    	// Ако има стара локация, но няма промени по нея не се ъпдейтва
+    	if(is_object($exLocationRec)){
+    		$skip = TRUE;
+    		$fields = arr::make('countryId,type,pCode,place,address,mol,gln,email,tel,gpsCoords,comment,title', TRUE);
+    		foreach ($fields as $name){
+    			if($exLocationRec->{$name} != $newRec->{$name}){
+    				$skip = FALSE;
+    				break;
+    			}
+    		}
+    		
+    		if($skip === TRUE) return $exLocationRec->id;
+    	}
+    	
+    	return self::save($newRec);
     }
     
     
@@ -168,8 +228,8 @@ class crm_Locations extends core_Master {
      * Извиква се преди подготовката на формата за редактиране/добавяне $data->form
      * 
      * @param crm_Locations $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
@@ -181,8 +241,8 @@ class crm_Locations extends core_Master {
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      * 
      * @param crm_Locations $mvc
-     * @param stdObject $res
-     * @param stdObject $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
@@ -194,7 +254,6 @@ class crm_Locations extends core_Master {
         expect($Contragents instanceof core_Master);
         
         $contragentRec = $Contragents->fetch($rec->contragentId);
-        
         $Contragents->requireRightFor('edit', $contragentRec);
         
         $data->form->setDefault('countryId', $contragentRec->country);
@@ -202,9 +261,6 @@ class crm_Locations extends core_Master {
         $data->form->setDefault('pCode', $contragentRec->pCode);
         
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
-
-
-
         $data->form->setSuggestions('type', self::getTypeSuggestions());
     }
 
@@ -219,7 +275,7 @@ class crm_Locations extends core_Master {
     }
     
     
-     /**
+    /**
      * Изпълнява се след въвеждането на данните от заявката във формата
      */
     protected static function on_AfterInputEditForm($mvc, $form)
@@ -256,6 +312,13 @@ class crm_Locations extends core_Master {
     			 
     			$rec->title = $mvc->getVerbal($rec, 'type') . " ({$count})";
     		}
+    	}
+    	
+    	// Записване в лога
+    	if(isset($rec->exState) && isset($rec->state) && $rec->exState != $rec->state){
+    		$rec->_logMsg = (($rec->state == 'rejected') ? 'Оттегляне' : 'Възстановяване') . ' на локация';
+    	} else {
+    		$rec->_logMsg = (isset($rec->id) ? 'Редактиране' : 'Добавяне') . ' на локация';
     	}
     }
     
@@ -294,16 +357,33 @@ class crm_Locations extends core_Master {
     
     
     /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    protected static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	
+    	if(sales_Routes::fetch("#locationId = {$rec->id} AND #state != 'rejected' AND #state != 'closed'")){
+    		core_Statuses::newStatus('Локацията не може да се оттегли, докато има активни търговски маршрути към нея', 'error');
+    
+    		return FALSE;
+    	}
+    }
+    
+    
+    /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     protected static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
-    	$mvc->routes->changeState($id);
-    	
     	$mvc->updatedRecs[$id] = $rec;
     	
     	// Трябва да е тук, за да може да сработят on_ShutDown процесите
     	$mvc->updateNumbers($rec);
+    	
+    	if(isset($rec->contragentCls) && isset($rec->contragentId)){
+    		cls::get($rec->contragentCls)->logWrite($rec->_logMsg, $rec->contragentId);
+    	}
     }
     
     
@@ -335,10 +415,10 @@ class crm_Locations extends core_Master {
     {
     	$rec = &$data->rec;
     	
-    	if($rec->address && $rec->place && $rec->countryId){
-    		$address = "{$data->row->address},{$data->row->place},{$data->row->countryId}";
-    	} elseif($rec->gpsCoords) {
+    	if($rec->gpsCoords){
     		$address = $rec->gpsCoords;
+    	} elseif($rec->address && $rec->place && $rec->countryId) {
+    		$address = "{$data->row->address},{$data->row->place},{$data->row->countryId}";
     	}
     	
     	if($rec->state != 'rejected'){
@@ -481,7 +561,6 @@ class crm_Locations extends core_Master {
         $query->where("#state != 'rejected'");
         
         $recs = array();
-        
         while($rec = $query->fetch()) {
             $recs[$rec->id] = $rec;
         }
@@ -539,7 +618,7 @@ class crm_Locations extends core_Master {
      * Ф-я връщаща пълния адрес на локацията: Държава, ПКОД, град, адрес
      * 
      * @param int $id
-     * @param boolen $translitarate
+     * @param boolean $translitarate
      * @return core_ET $tpl 
      */
     public static function getAddress($id, $translitarate = FALSE)

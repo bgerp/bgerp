@@ -191,15 +191,10 @@ class hr_WorkingCycles extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if($action == 'delete'){
-            if ($rec->id) {
-                
-                $inUse = hr_Departments::fetch(array("#schedule = [#1#]", $rec->id));
-                
-                if($inUse){
-                    $requiredRoles = 'no_one';
-                }
-            }
+        if($action == 'delete' && isset($rec->id)){
+             if(planning_Centers::fetch(array("#schedule = [#1#]", $rec->id))){
+                $requiredRoles = 'no_one';
+             }
         }
     }
     
@@ -209,11 +204,14 @@ class hr_WorkingCycles extends core_Master
      */
     function prepareGrafic($data, $start = NULL)
     {
+       
+        return;
         
-        expect($data->masterId); 
+
+        expect($data->masterId);
         $shift = hr_Departments::fetchField($data->masterId, 'schedule');
         
-        return;
+        
         
         $customScheQuery = hr_CustomSchedules::getQuery();
         $custom = array();
@@ -497,21 +495,6 @@ class hr_WorkingCycles extends core_Master
         }
 
         return $tpl;
-    }
-
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function act_Test()
-    {
-        $id = 5;
-        
-        //$rec = self::fetch("#id='{$id}'");
-        //$recDetail = hr_ShiftDetails::fetch("#shiftId='{$id}'");
-        $masterId = 5;
-        $date = '2013-05-28 00:00:00';
-        $date2 = '2013-06-05 00:00:00';
     }
     
     
