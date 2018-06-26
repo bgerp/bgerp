@@ -600,7 +600,7 @@ if($step == 2) {
                 
                 // Ако имаме команда за обновяване на репозитори - изпълняваме я
                 if ($update == $repoName ||  $update == 'all') {
-                    core_SystemLock::block("Pulling new bgERP code...", 30);
+                    core_SystemLock::block("Pulling new bgERP code...", 15);
                     gitPullRepo($repoPath, $log, $branch);
                 }
                  

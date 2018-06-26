@@ -1609,9 +1609,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	$termSysId = (get_called_class() == 'sales_Sales') ? 'deliveryTermSale' : 'deliveryTermPurchase';
     	$fields['deliveryTermId'] = (empty($fields['deliveryTermId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $termSysId) : $fields['deliveryTermId'];
     	
-    	// Ако няма търговец, това е текущия потребител
-    	$fields['dealerId'] = (empty($fields['dealerId'])) ? core_Users::getCurrent() : $fields['dealerId'];
-    	 
     	// Ако не е подадено да се начислявали ддс, определяме от контрагента
     	if(empty($fields['chargeVat'])){
     		$fields['chargeVat'] = ($contragentClass::shouldChargeVat($contragentId)) ? 'yes' : 'no';
