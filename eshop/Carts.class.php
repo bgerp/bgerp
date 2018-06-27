@@ -1236,7 +1236,8 @@ class eshop_Carts extends core_Master
     		$options = colab_Folders::getSharedFolders($cu, TRUE, 'crm_ContragentAccRegIntf', FALSE);
     		$profileRec = crm_Profiles::getProfile($cu);
     		$form->setDefault('personNames', $profileRec->name);
-    		$form->setDefault('email', $profileRec->email);
+            $emails = type_Emails::toArray($profileRec->email);
+    		$form->setDefault('email', $emails[0]);
     		$form->setDefault('tel', $profileRec->tel);
     		
     		// Задаване като опции
