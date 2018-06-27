@@ -1275,7 +1275,7 @@ class eshop_Carts extends core_Master
     			$paymentMethods[$defaultPaymentId] = tr(cond_PaymentMethods::getVerbal($paymentId, 'name'));
     		}
     	}
-    	$deliveryTerms[11] = 'ysn';
+    	
     	if(count($deliveryTerms) == 1){
     		$form->setDefault('termId', key($deliveryTerms));
     	} else {
