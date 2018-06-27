@@ -64,7 +64,7 @@ DEFINE('EF_APP_TITLE', 'bgERP');
 ****************************************************/ 
 
 // Път до gs файла
-# DEFINE('FILEMAN_GHOSTSCRIPT_PATH', '/var/www/ghostscript-9.20-linux-x86_64/gs-920-linux_x86_64');
+# DEFINE('FILEMAN_GHOSTSCRIPT_PATH', '/var/www/ghostscript-9.23-linux-x86_64/gs-923-linux-x86_64');
 
 
 // Базова директория, където се намират по-директориите за
