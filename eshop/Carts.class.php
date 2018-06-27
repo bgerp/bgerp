@@ -1209,7 +1209,10 @@ class eshop_Carts extends core_Master
     	
     	if ($form->cmd == 'refresh') {
     	    $form->renderLayout();
-    	    jquery_Jquery::run($form->layout, "copyValToPlaceholder();");
+    	    
+    	    if ($form->layout) {
+    	        jquery_Jquery::run($form->layout, "copyValToPlaceholder();");
+    	    }
     	}
     	
     	$tpl = $form->renderHtml();
