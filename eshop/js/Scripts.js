@@ -129,6 +129,7 @@ function eshopActions() {
 		if (val + step > 0 && (!max || step == -1 || (max && val + step <= max))) {
 			$(input).val(val + step);
 			$(input).css( "color", "green");
+            $("#cart-view-table").css("cursor", "progress");
 			if(max && val >= max) return;
 		}
 
