@@ -269,14 +269,15 @@ class core_CallOnTime extends core_Manager
                 reportException($e);
             }
             
-            if($rec->className != 'core_CallOnTime') {
-                
-                $class->invoke('shutdown');
+            cls::shutdown();
+            
+            if ($rec->className != 'core_CallOnTime') {
                 
                 unset($class);
             }
             
             cls::$singletons = $singletons;
+            
             gc_collect_cycles();
         }
         

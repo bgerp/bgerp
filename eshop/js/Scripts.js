@@ -1,3 +1,33 @@
+function copyValToPlaceholder()
+{
+	$('.updateonchange').bind('keyup', function() {
+		var changeVal = $(this).attr("data-updateonchange");
+		
+		$placeholder = $(this).val();
+		
+		var element = $("input[name="+ changeVal +"]");
+		if (element.length <= 0) return;
+		
+		element.attr("placeholder", $placeholder);
+	});
+	
+	$('select[name=deliveryCountry]').bind('change', function() {
+		var changeVal = $(this).attr("data-updateonchange");
+		
+		var $placeholder = $('select[name=deliveryCountry] option:selected').text();
+		
+		var element = $("select[name="+ changeVal +"");
+		if (element.length <= 0) return;
+		
+		element.attr("data-placeholder", $placeholder);
+		element.select2();
+	});
+	
+	$('select[name=deliveryCountry]').trigger('change');
+	$('.updateonchange').trigger('keyup');
+}
+
+
 function eshopActions() {
 
 	// Изтриване на ред от кошницата
@@ -107,27 +137,7 @@ function eshopActions() {
 	});
 	
 	
-	$(document.body).on('change', "select[name=deliveryCountry]",  function(){
-		var deliveryCountry = $(this).val();
-		
-		$("select[name=invoiceCountry]").attr("placeholder", deliveryCountry);
-		$("select[name=invoiceCountry]").trigger("change");
-	});
 	
-	$(document.body).on('keyup', "input[name=deliveryPlace], input[name=invoicePlace]",  function(){
-		var deliveryPlace = $("input[name=deliveryPlace]").val();
-		$("input[name=invoicePlace]").attr("placeholder", deliveryPlace);
-	});
-	
-	$(document.body).on('keyup', "input[name=deliveryAddress], input[name=invoiceAddress]",  function(){
-		var deliveryAddress = $("input[name=deliveryAddress]").val();
-		$("input[name=invoiceAddress]").attr("placeholder", deliveryAddress);
-	});
-	
-	$(document.body).on('keyup', "input[name=deliveryPCode], input[name=invoicePCode]",  function(){
-		var deliveryPCode = $("input[name=deliveryPCode]").val();
-		$("input[name=invoicePCode]").attr("placeholder", deliveryPCode);
-	});
 
 	$('.eshop-product .eshop-btn').on('click', function () {
 		var cart = $('.logoutBlock #cart-external-status');

@@ -1016,6 +1016,9 @@ class sales_Quotations extends core_Master
     					'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
     	);
     	
+    	$folderId = cls::get($rec->contragentClassId)->forceCoverAndFolder($rec->contragentId);
+    	$fields['dealerId'] = sales_Sales::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
+    	
     	// Създаваме нова продажба от офертата
     	$saleId = sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
     	sales_Sales::logWrite("Създаване от оферта", $saleId);
