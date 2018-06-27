@@ -11,6 +11,8 @@ function copyValToPlaceholder()
 		element.attr("placeholder", $placeholder);
 	});
 	
+	$('select[name=deliveryCountry]').trigger('change');
+	
 	$('select[name=deliveryCountry]').bind('change', function() {
 		var changeVal = $(this).attr("data-updateonchange");
 		
@@ -23,7 +25,6 @@ function copyValToPlaceholder()
 		element.select2();
 	});
 	
-	$('select[name=deliveryCountry]').trigger('change');
 	$('.updateonchange').trigger('keyup');
 }
 
