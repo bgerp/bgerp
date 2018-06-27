@@ -1207,6 +1207,11 @@ class eshop_Carts extends core_Master
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на данните за поръчката');
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	
+    	if ($form->cmd == 'refresh') {
+    	    $form->renderLayout();
+    	    jquery_Jquery::run($form->layout, "copyValToPlaceholder();");
+    	}
+    	
     	$tpl = $form->renderHtml();
     	core_Form::preventDoubleSubmission($tpl, $form);
     	core_Lg::pop();
