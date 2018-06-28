@@ -644,7 +644,7 @@ if($step == 3) {
 
     // Ако има по-нова версия, към която да се мигрира базата данни - правим чекаут на нейния таг
     checkoutMaxVersion($log);
-
+    
     // Проверяваме дали имаме достъп за четене/запис до следните директории
     $log[] = 'h:Проверка и създаване на работните директории:';
 
@@ -1075,7 +1075,23 @@ if ($step == 'setup') {
 
     contentFlush("<h3 id='success'>Инициализирането завърши успешно!</h3>");
     
-    $l = linksToHtml(array("new|{$appUri}|Стартиране bgERP »|_parent")); 
+    $links = array();
+    
+    $haveNewVersion = core_Updates::getNewVersionTag();
+    if (!$haveNewVersion) {
+        $currBranch = gitCurrentBranch(EF_APP_PATH, $log);
+        if ($currBranch != BGERP_GIT_BRANCH) {
+            $haveNewVersion = TRUE;
+        }
+    }
+    
+     if ($haveNewVersion) {
+        $links[] = "inf|{$selfUrl}&amp;step=3|Има по-нова версия. Обновете я »|_parent";
+     }
+    
+    $links[] = "new|{$appUri}|Стартиране bgERP »|_parent";
+    
+    $l = linksToHtml($links); 
     $l = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($l));
     contentFlush("<script>
                         document.getElementById('startHeader').innerHTML = '" .
