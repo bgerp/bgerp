@@ -365,12 +365,40 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		
 		$tempArr=array();
 		foreach ($recs as $v){
-		  
-		    list($firstGroup)=explode('|',  trim($v->group,'|'));
-		    $v->group = $firstGroup;
+		    
+		    if (! $rec->group){
+		    
+ 		        list($firstGroup)=explode('|',  trim($v->group,'|'));
+		        
+		        $tempArr[$v->productId]=($v);
+		        $tempArr[$v->productId]->group = $firstGroup;
+		        
+		   
+		    }else{
+		        
+		        foreach (explode('|',  trim($rec->group,'|')) as $gr){
+		            
+		            $tempArr[$v->productId]=($v);
+		            
+		            if(keylist::isIn($gr, $v->group)){
+		               
+		                $tempArr[$v->productId]->group = $gr;
+		                
+		                break;
+		            }
+		            
+		        }
+		      
+		    }
 		    
 		}
 		
+		$recs = $tempArr;
+		
+		if (! is_null($recs)){
+		
+		    arr::natOrder($recs, 'code');
+		}
 		return $recs;
 		
 	}
@@ -610,8 +638,46 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 		$tpl->append ( $fieldTpl, 'DRIVER_FIELDS' );
 	}
 	
-
+	    /**
+	     * Групиране по продуктови групи
+	     *
+	     * @param array $recs
+	     * @param string $group
+	     * @param stdClass $data
+	     * @return array
+	     */
+// 	    public function groupRecs($recs, $group)
+// 	    {
+// 	        $ordered = array();
+	    
+// 	        $groups = keylist::toArray($group);
+// 	        if (! count($groups)) {
+// 	            return $recs;
+// 	        } else {
+// 	            cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(
+// 	                &$groups
+// 	            ));
+// 	        }
 	
+// 	        // За всеки маркер
+// 	        foreach ($groups as $grId => $groupName) {
 	
+// 	                // Отделяме тези записи, които съдържат текущия маркер
+// 	                $res = array_filter($recs,
+// 	                    function (&$e) use($grId, $groupName) {
+// 	                        if (keylist::isIn($grId, $e->group)) {
+// 	                            $e->group = $grId;
+// 	                            return TRUE;
+// 	                        }
+// 	                        return FALSE;
+// 	                    });
+	    
+// 	                    if (count($res)) {
+// 	                        arr::natOrder($res, 'kod');
+// 	                        $ordered += $res;
+// 	                    }
+// 	        }
+	
+//         }
 	
 }

@@ -84,6 +84,18 @@ class eshop_Settings extends core_Manager
      
     
     /**
+     * Колко секунди да е живота на забравените колички от регистрирани потребители
+     */
+    const DEFAULT_LIFETIME_USER_CARTS = 259200;
+    
+    
+    /**
+     * Колко секунди да е живота на забравените колички от нерегистрирани потребители
+     */
+    const DEFAULT_LIFETIME_NO_USER_CARTS = 86400;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -107,8 +119,36 @@ class eshop_Settings extends core_Manager
     	$this->FLD('inboxId', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Кутия от която да се изпраща имейл->Кутия');
     	$this->FLD('state', 'enum(active=Активно,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
     	$this->FLD('emailBody', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Текст');
+    	$this->FLD('lifetimeForUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На потребители');
+    	$this->FLD('lifetimeForNoUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На анонимни');
     	
     	$this->setDbIndex('classId, objectId');
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	if($form->isSubmitted()){
+    		if(!empty($rec->emailBody)){
+    			$missing = array();
+    			foreach (array('[#SALE_HANDLER#]', '[#NAME#]', '[#link#]') as $placeholder){
+    				if(strpos($rec->emailBody, $placeholder) === FALSE){
+    					$missing[] = $placeholder;
+    				}
+    			}
+    			
+    			if(count($missing)){
+    				$form->setWarning('emailBody', "Пропуснати са следните плейсхолдъри|*: <b>" . implode(", ", $missing) . "</b>");
+    			}
+    		}
+    	}
     }
     
     
@@ -169,10 +209,13 @@ class eshop_Settings extends core_Manager
     		}
     	}
     	
-    	// Добавяне на плейсхолдър
+    	// Добавяне на плейсхолдъри на някои полета
     	$lang = cls::get($form->rec->classId)->fetchField($form->rec->objectId, 'lang');
     	$placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_BG : self::DEFAULT_EMAIL_BODY_EN;
     	$form->setParams('emailBody', array('placeholder' => $placeholderValue));
+    	
+    	$form->setField('lifetimeForUserDraftCarts', "placeholder=" . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_USER_CARTS));
+    	$form->setField('lifetimeForNoUserDraftCarts', "placeholder=" . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS));
     }
     
     
@@ -222,9 +265,21 @@ class eshop_Settings extends core_Manager
     	}
     	
     	// Ако няма тяло на имейла да се взимат дефолтните
-    	if(is_object($settingRec) && empty($settingRec->emailBody)){
-    		$lang = cls::get($settingRec->classId)->fetchField($settingRec->objectId, 'lang');
-    		$settingRec->emailBody = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_BG : self::DEFAULT_EMAIL_BODY_EN;
+    	if(is_object($settingRec)){
+    		if(empty($settingRec->emailBody)){
+    			$lang = cls::get($settingRec->classId)->fetchField($settingRec->objectId, 'lang');
+    			$settingRec->emailBody = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_BG : self::DEFAULT_EMAIL_BODY_EN;
+    		}
+    	
+    		// Какъв е живота на количките на регистрираните потребители
+    		if(empty($settingRec->lifetimeForUserDraftCarts)){
+    			$settingRec->lifetimeForUserDraftCarts = self::DEFAULT_LIFETIME_USER_CARTS;
+    		}
+    		
+    		// Какъв е живота на количките на нерегистрираните потребители
+    		if(empty($settingRec->lifetimeForNoUserDraftCarts)){
+    			$settingRec->lifetimeForNoUserDraftCarts = self::DEFAULT_LIFETIME_NO_USER_CARTS;
+    		}
     	}
     	
     	return $settingRec;

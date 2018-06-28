@@ -16,28 +16,32 @@ class sens2_DriverIntf
 {
 
     /**
-     *  Информация за входните портове на устройството
+     * Информация за входните портове на устройството
+     * 
+     * @param   stdClass $config Конфигурация на контролера
      *
      * @return  array   Масив с ключове - системните имена на входовете и стойности - обекти със следното описание:
      *                      о ->uom      препоръчителна мярка или списък с мерки за дадената физ. величина
      *                      о ->caption  заглавие на входната величнина
      */
-    function getInputPorts()
+    function getInputPorts($config = NULL)
     {
-        return $this->class->getInputPorts();
+        return $this->class->getInputPorts($config);
     }
 
     
     /**
      * Информация за изходните портове на устройството
      *
+     * @param   stdClass $config Конфигурация на контролера
+     *
      * @return  array   Mасив с ключове - системните имена на изходите и стойности - обекти със следното описание:
      *                      о ->uom      препоръчителна мярка или списък с мерки за дадената физ. величина
      *                      о ->caption  заглавие на входната величнина
      */
-    function getOutputPorts()
+    function getOutputPorts($config = NULL)
     {
-        return $this->class->getOutputPorts();
+        return $this->class->getOutputPorts($config);
     }
 
 
@@ -95,4 +99,17 @@ class sens2_DriverIntf
     {
         return $this->class->checkConfigForm($form);
     }
+
+
+    /**
+     * Връща снимка на контролера
+     *
+     * @param   stdClass     $config    конфигурацията на контролера
+     * @return  string|null
+     */
+    public static function getPicture($config)
+    {
+        return $this->class->getPicture($config);
+    }
+
 }

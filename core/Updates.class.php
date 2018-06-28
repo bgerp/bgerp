@@ -97,7 +97,6 @@ class core_Updates extends core_Manager
         $this->FLD('description', 'text', 'caption=@Описание');
         $this->FLD('ghCreatedAt', 'datetime', 'caption=Създаване,column=none');
 
-
         $this->setDbUnique('repo,branch,tag');
     }
 
@@ -117,8 +116,6 @@ class core_Updates extends core_Manager
         if(!is_array($releases)) return;
 
         foreach($releases as $rel) {
-
-            if($rel->target_commitish != BGERP_GIT_BRANCH) continue;
 
             $rec = new stdClass();
             $rec->repo = 'bgerp';
@@ -220,7 +217,80 @@ class core_Updates extends core_Manager
             }
 
         }
+    }
 
+
+    /**
+     * Чекаутва тага на новата версия, към която ще бъде обновена базата данни
+     */
+    public static function getNewVersionTag()
+    {
+        try {
+            $lastDbVersion = core_Setup::get('LAST_DB_VERSION');
+        } catch (core_exception_Db $e) {
+            if (!$e->isNotExistsDB() && !$e->isNotInitializedDB()) {
+                reportException($e);
+                
+                throw $e;
+            }
+        }
+        
+        // Вземаме текущата версия на DB
+        $dbVer = self::parseVersion($lastDbVersion);
+        
+        $pastVers = self::getReleaseTags();
+        
+        $newVer = NULL;
+        
+        $success = FALSE;
+        foreach($pastVers as $v) {
+            if ($success) {
+                $newVer = $v;
+                break;
+            }
+            
+            if(self::parseVersion($v) == $dbVer) {
+                $success = TRUE;
+            }
+        }
+        
+        return $newVer;
+    }
+
+
+    /**
+     * Връща версиите за посоченото репо и бранч
+     * Ако не са посочени параметри, вземат се текущите за bgERP
+     */
+    public static function getReleaseTags($branch = NULL, $repo = NULL, &$log = NULL)
+    {
+        setIfNot($branch, BGERP_GIT_BRANCH, 'master');
+        setIfNot($repo, EF_APP_PATH);
+
+        $tags = git_Lib::getTags($repo, $log);
+        
+        $res = array();
+
+        if(is_array($tags)) {
+            foreach($tags as $t) {
+                $id = self::parseVersion($t);
+                if($id) {
+                    foreach(array('dev', 'test', 'DC1', 'DC2', '.') as $b) {
+                        if(stripos($t, $b) !== FALSE) {
+                            if($b == $branch || ($branch == 'master' && $b == '.')) {
+                                $res[$id] = $t;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Подреждаме версиите от най-старата към по-новата
+        ksort($res);
+
+        return $res;
     }
 
 
@@ -244,18 +314,64 @@ class core_Updates extends core_Manager
 
 
     /**
-     *
+     * Връща релизите на даденото репозитори
      */
-    public static function getReleases($owner = 'bgerp', $repo = 'bgerp')
+    public static function getReleases($owner = 'bgerp', $repo = 'bgerp', $branch = NULL)
     {
+        setIfNot($branch, BGERP_GIT_BRANCH, 'master');
+
         $url = "https://api.github.com/repos/{$owner}/{$repo}/releases";
 
         $releasesJson = git_Lib::gitHubApiCall($url);
 
         $releases = json_decode($releasesJson);
+        
+        $res = array();
 
-        return $releases;
+        foreach($releases as $id => $rel) {
+            if($rel->target_commitish == $branch) {
+                $res[$id] = $rel;
+            }
+        }
 
+        return $res;
+    }
+
+
+    /**
+     * От масива с релийси извлича този, който отговаря на следващата версия, спрямо зададената
+     */
+    public static function getBgErpNextVersion($releases, $version = NULL)
+    {
+        $bestRel = NULL;
+        $best = '99.99';
+
+        if(!$version) {
+            $version = self::parseVersion(core_Setup::get('LAST_DB_VERSION'));
+        }
+
+        foreach($releases as $rel) {
+            if($v = self::parseVersion($rel->tag_name)) {
+                if($v > $version && $v < $best) {
+                    $bestRel = $rel;
+                    $best    = $v;
+                }
+            }
+        }
+
+        return $bestRel;
+    }
+
+
+    /**
+     * Парсира таг към номер на версия
+     */
+    public static function parseVersion($tagName)
+    {
+        $matches = array();
+        preg_match("/[0-9]{2}\\.[0-9]{2}(p[0-9]{0,3}|)/i", $tagName, $matches);
+
+        return $matches[0];
     }
 
 
@@ -295,7 +411,7 @@ class core_Updates extends core_Manager
     {
         if($rec->state == 'opened') {
             $row->update = ht::createBtn('Обнови', array("core_Packs", "systemUpdate"), NULL, FALSE,
-                                               'ef_icon = img/16/download.png, title=Сваляне на най-новия код и инициализиране на системата, class=system-update-btn');
+                'ef_icon = img/16/download.png, title=Сваляне на най-новия код и инициализиране на системата, class=system-update-btn');
         }
     }
 
@@ -307,6 +423,7 @@ class core_Updates extends core_Manager
     {
         return self::checkForUpdates();
     }
+
 
    
 }

@@ -29,7 +29,7 @@ class sens2_Indicators extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_RowTools2, sens2_Wrapper, plg_AlignDecimals, plg_RefreshRows, plg_Rejected, plg_State';
+    var $loadList = 'plg_RowTools2, sens2_Wrapper, plg_AlignDecimals, plg_RefreshRows, plg_Rejected, plg_State2';
     
     
     /**
@@ -68,6 +68,12 @@ class sens2_Indicators extends core_Manager
 	var $canSingle = 'ceo, admin, sens';
     
     var $canDelete = 'no_one';
+    
+    
+    /**
+     * Кой може да променя състоянието на Условията на доставка
+     */
+    public $canChangestate = 'sens,admin';
 
     /**
      * Описание на модела
@@ -312,7 +318,8 @@ class sens2_Indicators extends core_Manager
         
         if(!$params[$rec->controllerId]) {
             $driver = cls::get(sens2_Controllers::fetchField($rec->controllerId, 'driver'));
-            $params[$rec->controllerId] = arr::combine($driver->getInputPorts(), $driver->getOutputPorts());  
+            $ctrRec = sens2_Controllers::fetch($rec->controllerId);
+            $params[$rec->controllerId] = arr::combine($driver->getInputPorts($ctrRec->config), $driver->getOutputPorts($ctrRec->config));  
         }
         
         $var = $rec->port . '_name'; 

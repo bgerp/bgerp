@@ -26,12 +26,30 @@
  */
 class planning_plg_StateManager extends core_Plugin
 {
-	
-	
+    
+    
 	/**
 	 * За кои действия да се изисква основание
 	 */
 	public $demandReasonChangeState;
+	
+	
+	/**
+	 * Масив със състояниет, за които да се праща нотификация
+	 */
+	public $notifyActionNamesArr = array();
+	
+	
+	/**
+	 * Масив със състояния, за които да се изтрива предишната нотификация
+	 */
+	public $removeOldNotifyStatesArr = array();
+	
+	
+	/**
+	 * Дали ключа на нотификацията да сочи към нишката или документа - за уникалност на нотификацията
+	 */
+	public $notifyToThread = TRUE;
 	
 	
 	/**
@@ -296,6 +314,57 @@ class planning_plg_StateManager extends core_Plugin
 	{
 		$rec = $mvc->fetchRec($id);
 		$mvc->invoke('AfterChangeState', array(&$rec, 'rejected'));
+	}
+	
+	
+	/**
+	 * След промяна на състоянието
+	 */
+	protected static function on_AfterChangeState($mvc, &$rec, $action)
+	{
+	    $action = strtolower($action);
+	    if ($mvc->notifyActionNamesArr && ($caption = $mvc->notifyActionNamesArr[$action])) {
+	        
+	        // Абонираните потребители към документа
+	        $notifyArr = doc_Containers::getSubscribedUsers($rec->containerId, TRUE, TRUE);
+	        
+	        // Възможност за спиране/пускане на нотификациите за заявка в папка
+	        $fKey = doc_Folders::getSettingsKey($rec->folderId);
+	        $stateChangeNotifications = core_Settings::fetchUsers($fKey, 'stateChange');
+	        foreach ((array)$stateChangeNotifications as $userId => $stateChange) {
+	            if ($stateChange['stateChange'] == 'no') {
+	                unset($notifyArr[$userId]);
+	            } else if ($stateChange['stateChange'] == 'yes') {
+	                // Може да е абониран, но да няма права
+	                if ($mvc->haveRightFor('single', $rec, $userId)) {
+	                    $notifyArr[$userId] = $userId;
+	                }
+	            }
+	        }
+	        
+	        if (empty($notifyArr)) return ;
+	        
+	        $caption = str::mbUcfirst($caption);
+	        
+	        $name = $mvc->getRecTitle($rec);
+	        
+	        $removeOldNotify = FALSE;
+	        if ($mvc->removeOldNotifyStatesArr) {
+	            $mvc->removeOldNotifyStatesArr = arr::make($mvc->removeOldNotifyStatesArr, TRUE);
+	            
+	            if ($mvc->removeOldNotifyStatesArr[$action]) {
+	                $removeOldNotify = TRUE;
+	            }
+	        }
+	        
+	        $notifyToThread = TRUE;
+	        if ($mvc->notifyToThread === FALSE) {
+	            $notifyToThread = FALSE;
+	        }
+	        
+	        $msg = "|{$caption} на|* \"{$name}\"";
+	        doc_Containers::notifyToSubscribedUsers($rec->containerId, $msg, $removeOldNotify, $notifyToThread, $notifyArr);
+	    }
 	}
 	
 	

@@ -197,7 +197,7 @@ class eshop_Products extends core_Master
 
             $menuId = eshop_Groups::fetchField($rec->groupId, 'menuId');
 
-            if($exRec = $query->fetch(array("#code = '[#1#]' AND #menuId = '[#2#]'", $rec->code, $menuId))) {
+            if(strlen($rec->code) && ($exRec = $query->fetch(array("#code = '[#1#]' AND #menuId = '[#2#]'", $rec->code, $menuId)))) {
                 $form->setError('code', "Повторение на кода със съществуващ продукт: |* <strong>" . $mvc->getVerbal($rec, 'name') . '</strong>');
             }
         }
@@ -238,9 +238,9 @@ class eshop_Products extends core_Master
         if($rec->coDriver) {
             if(marketing_Inquiries2::haveRightFor('new')){
             	$title = 'Изпратете запитване за|* ' . tr($rec->name);
-            	Request::setProtected('drvId,protos,moq,quantityCount,lg,measureId');
             	$lg = cms_Content::getLang();
             	if(cls::load($rec->coDriver, TRUE)){
+            		Request::setProtected('drvId,protos,moq,lg,measureId');
             		$url = array('marketing_Inquiries2', 'new', 'title' => $rec->name, 'drvId' => $rec->coDriver, 'Lg' => $lg, 'protos' => $rec->proto, 'quantityCount' => $rec->quantityCount, 'moq' => $rec->coMoq, 'ret_url' => TRUE);
             		$uomId = NULL;
             		$defUom = cat_Setup::get('DEFAULT_MEASURE_ID');
@@ -253,7 +253,8 @@ class eshop_Products extends core_Master
             			$uomId = cat_UoM::fetchBySysId('pcs')->id;
             		}
             		$url['measureId'] = $uomId;
-            		$row->coInquiry = ht::createLink(tr('Запитване'), $url, NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
+            		$row->coInquiry = ht::createLink(tr('Запитване'), $url, NULL, "ef_icon=img/16/button-question-icon.png,title={$title},class=productBtn");
+            		Request::removeProtected('drvId,protos,moq,lg,measureId');
             	}
             }
         }
@@ -308,8 +309,9 @@ class eshop_Products extends core_Master
     public static function prepareGroupList($data)
     {
         $pQuery = self::getQuery();
-
-        while($pRec = $pQuery->fetch("#state = 'active' AND #groupId = {$data->groupId}")) {
+		$pQuery->where("#state = 'active' AND #groupId = {$data->groupId}");
+        
+        while($pRec = $pQuery->fetch()) {
             $data->recs[] = $pRec;
             $pRow = $data->rows[] = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
 
@@ -332,6 +334,35 @@ class eshop_Products extends core_Master
             $pRow->image = $img->createImg(array('class' => 'eshop-product-image'));
             if(self::haveRightFor('edit', $pRec)) {
                 $pRec->editUrl = array('eshop_Products', 'edit', $pRec->id, 'ret_url' => TRUE);
+            }
+            
+            // Детайлите на артикула
+            $dQuery = eshop_ProductDetails::getQuery();
+            $dQuery->where("#eshopProductId = {$pRec->id}");
+            
+            // Ако има само един артикул
+            if($dQuery->count() == 1){
+            	$dRec = $dQuery->fetch();
+            	$measureId = cat_Products::fetchField($dRec->productId, 'measureId');
+            	$pcsId = cat_UoM::fetchBySinonim('pcs')->id;
+            	
+            	// Ако мярката е брой и е показано да се показва
+            	if($measureId == $pcsId && keylist::isIn($measureId, $dRec->packagings)){
+            		
+            		// Ако има цена показва се в реда
+            		if($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $measureId, 1)){
+            			$singlePrice = core_Type::getByName('double(decimals=2)')->toVerbal($singlePrice->price);
+            			$settings = cms_Domains::getSettings();
+            			$pRow->singlePrice = $singlePrice;
+            			$pRow->singleCurrencyId = $settings->currencyId;
+            			$pRow->measureId = cat_UoM::getShortName($measureId);
+            			$pRow->singleCurrencyId = $settings->currencyId;
+            			$pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
+            			
+            			$addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
+            			$pRow->addBtn = ht::createFnBtn('Купи', NULL, FALSE, array('ef_icon' => "img/16/cart_go.png", 'title'=> 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $measureId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
+					}
+            	}
             }
         }
 
@@ -377,25 +408,25 @@ class eshop_Products extends core_Master
             foreach($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
 
-                $pTpl = getTplFromFile('eshop/tpl/ProductListGroup.shtml');
-
-                if($rec->editUrl) {
+                $pTpl = getTplFromFile(Mode::is('screenMode', 'narrow') ? 'eshop/tpl/ProductListGroupNarrow.shtml' : 'eshop/tpl/ProductListGroup.shtml');
+				if($rec->editUrl) {
                     $row->editLink = ht::createLink($editImg, $rec->editUrl);
                 }
-                
                 $url = self::getUrl($rec);
 
                 $row->name = ht::createLink($row->name, $url);
-                $row->image = ht::createLink($row->image, $url);
+                $row->image = ht::createLink($row->image, $url, FALSE, 'class=eshopLink');
 
                 $pTpl->placeObject($row);
-
+                $pTpl->removePlaces();
+                $pTpl->removeBlocks();
+                
                 $layout->append($pTpl);
             }
         }
 
         if($data->addUrl) {
-            $layout->append(ht::createBtn('Нов продукт', $data->addUrl,  NULL, NULL, array('style' => 'margin-top:15px;')));
+            $layout->append(ht::createBtn('Нов продукт', $data->addUrl,  NULL, NULL, array('style' => 'margin-top:15px;', 'ef_icon' => 'img/16/star_2.png')));
         }
 
         return $layout;

@@ -851,7 +851,7 @@ en,Конкатениране,Concatenation
 en,Консумативи,Consumables
 en,Контакт,Contact
 en,Контакти,Contacts
-en,Контактни данни, Contact info
+en,Контактни данни, Contact details
 en,Контейнер,Container
 en,Контиран,Posted
 en,Контиране,Post
@@ -1322,6 +1322,7 @@ en,Офис,Office
 en,Оценка на сигнал,Issue Evaluation
 en,Оценки,Ratings
 en,Очаквано начало,Estimated start
+en,Очакван край,Estimated end
 en,Очаквано,Expected
 en,Още...,More...
 en,П - почивка,R - rest
@@ -2698,10 +2699,12 @@ en,Грешна стара парола,Wrong current password
 en,Инструкции,Instructions
 en,Онлайн поръчка,Online order
 en,Данни за фактура,Invoice details
+en,Данни за поръчка,Order details
 en,Данни за поръчката,Order details
 en,Активна папка,Active folder
-en,Продължи пазаруването,Continue shopping
-en,Към онлайн магазина,To the online store
+en,Към магазина,To the eshop
+en,Връщане в онлайн магазина,Return to the eshop
+en,"Сигурни ли сте, че искате да изчистите артикулите","Are you sure, that you want to clear all items"
 en,Изчисти,Clear
 en,"Имате предишна активна поръчка, моля проверете си имейла","You have active order, please check your email"
 en,Прекратяване на действията,Cancel all actions
@@ -2712,3 +2715,19 @@ en,Завършване на поръчката,Finish order
 en,"Сигурни ли сте, че искате да направите поръчката", "Are you sure you want to place the order"
 en,Поръчката е направена,The order was placed
 en,Премахване на артикул,Remove item
+en,Възложено,Assigned
+en,коментар към,comment to
+en,прогрес към,progress to
+en,Купи,Buy
+en,"Има потребител с този имейл. Трябва да се логнете за да продължите","User with this email, already exists. You must login to continue",
+en,Ако вече имате потребител,If you already have a user
+en,Поръчано / Доставено,Ordered / Delivered
+en,Разполагаемо,Available
+en,Разполагаемо в,Available in
+en,приходен,debit
+en,разходен,credit
+en,касов ордер,cash order
+en,Към профила,Visit profile
+en,До локация,To location
+en,От локация,From location
+en,представител,representative

@@ -29,7 +29,7 @@ class sens2_MockupDrv  extends sens2_ProtoDriver
     var $interfaces = 'sens2_DriverIntf';
 
     
-    function getInputPorts()
+    function getInputPorts($config = NULL)
     {
         return array(
                 'Temp1'  => (object) array('caption' => 'Температура 1', 'uom' => 'ºC'),

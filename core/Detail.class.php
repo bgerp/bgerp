@@ -285,13 +285,13 @@ class core_Detail extends core_Manager
     public static function getEditTitle($master, $masterId, $singleTitle, $recId, $preposition = NULL, $len = NULL)
     {
     	if(!$preposition){
-    		$preposition = 'към';
+    		$preposition = tr('към');
     	}
-    	 
+    	
     	if ($singleTitle) {
-    		$single = ' на| ' . mb_strtolower($singleTitle);
+    		$single = ' на|* |' . mb_strtolower($singleTitle);
     	}
-    	 
+    	
     	$title = ($recId) ? "Редактиране{$single} {$preposition}" : "Добавяне{$single} {$preposition}";
     	$title .= "|* " . cls::get($master)->getFormTitleLink($masterId);
     	

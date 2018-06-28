@@ -48,6 +48,27 @@ class cal_Tasks extends embed_Manager
     
     
     /**
+     * Масив със състояниет, за които да се праща нотификация
+     * 
+     * @see planning_plg_StateManager
+     */
+    public $notifyActionNamesArr = array('active' => 'Активиране',
+            'waiting' => 'Паузирана',
+            'closed' => 'Приключване',
+            'wakeup' => 'Събуждане',
+            'stopped' => 'Спиране',
+            'rejected' => 'Оттегляне');
+    
+    
+    /**
+     * Масив със състояния, за които да се изтрива предишната нотификация
+     * 
+     * @see planning_plg_StateManager
+     */
+    public $removeOldNotifyStatesArr = array('closed');
+    
+    
+    /**
      * Поддържани интерфейси
      */
     public $interfaces = 'email_DocumentIntf, doc_DocumentIntf, doc_ContragentDataIntf';
@@ -460,7 +481,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Подготвяне на вербалните стойности
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $grey = new color_Object("#bbb");
         $blue = new color_Object("#2244cc");
@@ -813,7 +834,14 @@ class cal_Tasks extends embed_Manager
             
             $cQuery->orderBy('activatedOn', 'ASC');
             
+            $isPartner = haveRole('partner');
+            
             while ($cRec = $cQuery->fetch()) {
+                
+                // Партньорите да не виждат всичките прогреси - само видимите документи
+                if ($isPartner) {
+                    if (!doc_Comments::haveRightFor('single', $cRec)) continue;
+                }
                 
                 $rowAttr = array();
                 
@@ -857,7 +885,7 @@ class cal_Tasks extends embed_Manager
             $tTpl = $table->get($data->Progresses, $showFieldArr);
             
             $tplx = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
-                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">Прогрес</div>
+                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">' . tr('Прогрес') . '</div>
                             <div class="listRows">
                             [#TABLE#]
                             </div>
@@ -2676,55 +2704,27 @@ class cal_Tasks extends embed_Manager
      */
     protected function on_AfterChangeState($mvc, $rec, $state)
     {
-        $msg = '';
-        $removeOldNotify = FALSE;
-        switch ($state) {
-            case 'closed':
-                $msg = 'Приключена';
-                $removeOldNotify = TRUE;
-            break;
-            
-            case 'stopped':
-                $msg = 'Спряна';
-            break;
-                
-            case 'wakeup':
-                $msg = 'Събудена';
-            break;
-                
-            case 'active':
-                $msg = 'Активирана';
-            break;
-                
-            case 'waiting':
-                $msg = 'Паузирана';
-            break;
-        }
-        
-        $rec = cal_Tasks::fetchRec($rec);
-        
-        if ($msg) {
-            
-            $msg .= ' е задачата';
-            
-            $notifyUsersArr = type_Keylist::toArray($rec->assign);
-            
-            if ($rec->createdBy > 0) {
-                $notifyUsersArr[$rec->createdBy] = $rec->createdBy;
-            }
-            
-            $cu = core_Users::getCurrent();
-            unset($notifyUsersArr[$cu]);
-            
-            cal_Tasks::notifyForChanges($rec, $msg, $notifyUsersArr, $removeOldNotify);
-        }
-        
         // Променяме времето
         if (($state == 'stopped') || ($state == 'closed')) {
             $rec->timeClosed = dt::now();
             self::save($rec, 'timeClosed');
         }
     }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+        $me = cls::get(get_called_class());
+        $dRow = $me->getDocumentRow($rec->id);
+        
+        $handle = $me->getHandle($rec->id);
+        
+        return "{$handle} - {$dRow->title}";
+    }
+
     
     /**
      * Правим нотификация на всички шернати потребители,

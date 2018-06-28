@@ -63,7 +63,7 @@ class cal_Progresses extends core_Mvc
      */
     static function on_AfterPrepareEditForm($Driver, $mvc, &$data)
     {
-        $mvc->singleTitle = 'Прогрес';
+        $data->singleTitle = 'Прогрес';
         
         $rec = $data->form->rec;
         
@@ -72,17 +72,19 @@ class cal_Progresses extends core_Mvc
             $doc = doc_Containers::getDocument($originId);
             $tRec = $doc->fetch();
             
-            $shareUsersArr = type_Users::toArray($tRec->assign);
-            
-            if ($tRec->createdBy > 0) {
-                $shareUsersArr[$tRec->createdBy] = $tRec->createdBy;
-            }
-            
-            $cu = core_Users::getCurrent();
-            unset($shareUsersArr[$cu]);
-            
-            if (!empty($shareUsersArr)) {
-                $data->form->setDefault('sharedUsers', $shareUsersArr);
+            if (!haveRole('partner')) {
+                $shareUsersArr = type_Users::toArray($tRec->assign);
+                
+                if ($tRec->createdBy > 0) {
+                    $shareUsersArr[$tRec->createdBy] = $tRec->createdBy;
+                }
+                
+                $cu = core_Users::getCurrent();
+                unset($shareUsersArr[$cu]);
+                
+                if (!empty($shareUsersArr)) {
+                    $data->form->setDefault('sharedUsers', $shareUsersArr);
+                }
             }
             
             if ($doc->instance instanceof embed_Manager) {
@@ -345,20 +347,6 @@ class cal_Progresses extends core_Mvc
     
     
     /**
-     * Преди подготовка на сингъла
-     * 
-     * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    public static function on_BeforePrepareSingle($Driver, $mvc, &$res, $data)
-    {
-        $mvc->singleTitle = 'Прогрес';
-    }
-    
-    
-    /**
      * Подготвяне на вербалните стойности
      * 
      * @param cal_Progresses $Driver
@@ -368,6 +356,8 @@ class cal_Progresses extends core_Mvc
      */
     function on_AfterRecToVerbal($Driver, $mvc, $row, $rec)
     {
+        $row->singleTitle = tr('Прогрес');
+        
         // Показване на типа на прогреса
         if ($rec->originId) {
             

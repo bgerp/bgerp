@@ -996,13 +996,14 @@ abstract class deals_InvoiceMaster extends core_Master
     			$row->paymentType = tr("Плащане " . $arr[$rec->paymentType]);
     		}
     		
-    		if(isset($rec->autoPaymentType) && isset($rec->paymentType) && ($rec->paymentType != $rec->autoPaymentType && !($rec->paymentType == 'card' && $rec->autoPaymentType == 'cash'))){
-    			$row->paymentType = ht::createHint($row->paymentType, 'Избрания начин на плащане не отговаря на реалния', 'warning');
-    		}
-    		
     		if(haveRole('debug')){
+    			if(isset($rec->autoPaymentType) && isset($rec->paymentType) && ($rec->paymentType != $rec->autoPaymentType && !($rec->paymentType == 'card' && $rec->autoPaymentType == 'cash'))){
+    				$row->paymentType = ht::createHint($row->paymentType, 'Избрания начин на плащане не отговаря на реалния', 'warning');
+    			}
+    		
     			$row->paymentType = ht::createHint($row->paymentType, "Автоматично '{$rec->autoPaymentType}'", 'img/16/bug.png');
     		}
+    		
     		core_Lg::pop();
     	}
     }

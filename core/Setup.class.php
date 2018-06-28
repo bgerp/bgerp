@@ -188,6 +188,23 @@ defIfNot('CORE_MAX_ROWS_FOR_PRINTING', 1000);
 
 
 /**
+ * Версия на кода, към която са актуални данните в базата
+ * По дефолт, стойността е равна на версия "Ореляк" - последната, 
+ * която носи всички миграции. Тази константа не трябва да се
+ * променя при по-нови версии
+ */
+define('CORE_LAST_DB_VERSION', '17.43-Orelyak');
+
+
+/**
+ * Версия на кода която работи в момента
+ * Тази константа не трябва да се ползва с core_Setup::getConfig(),
+ * а само с: core_setup::CURRENT_VERSION
+ */
+define('CORE_CODE_VERSION', '17.43-Orelyak');
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -201,7 +218,12 @@ defIfNot('CORE_MAX_ROWS_FOR_PRINTING', 1000);
  */
 class core_Setup extends core_ProtoSetup {
     
+    /**
+     * Последна стабилна версия на цялата система
+     */
+    const CURRENT_VERSION = CORE_CODE_VERSION;
     
+
     /**
      * Версия на пакета
      */
@@ -236,7 +258,10 @@ class core_Setup extends core_ProtoSetup {
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-               
+           'CORE_LAST_DB_VERSION' => array('varchar(32)', 'caption=Версия на системата->База данни,readOnly'),
+            
+           'CORE_CODE_VERSION' => array('varchar(32)', 'caption=Версия на системата->Код,readOnly'),
+
            'EF_DATE_FORMAT'   => array ('enum(d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', 'caption=Формат по подразбиране за датата->Десктоп, customizeBy=user'),
            
            'EF_DATE_NARROW_FORMAT'   => array ('enum(d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99, d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999)', 'caption=Формат по подразбиране за датата->Мобилен, customizeBy=user'),
@@ -290,6 +315,7 @@ class core_Setup extends core_ProtoSetup {
            'CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се регистрират нови потребители от логин формата->Избор'),
            
            'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),
+              
     );
     
     

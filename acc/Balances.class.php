@@ -309,7 +309,7 @@ class acc_Balances extends core_Master
      * @param stdClass Запис на баланс, с попълнени $fromDate, $toDate и $periodId
      * @return boolean Дали е правено преизчисляване
      */
-    private function forceCalc($rec)
+    private function forceCalc(&$rec)
     {
         // Очакваме начална и крайна дата
         expect(strlen($rec->fromDate) == 10 && strlen($rec->toDate) == 10,  $rec);
@@ -323,13 +323,13 @@ class acc_Balances extends core_Master
         } else {
             $rec = $exRec;
         }
-
+        
         // Ако не е валиден го преизчисляваме, като всяка от 
         // десетте минути след преизчисляването - пак го преизчисляваме
         $isValid = self::isValid($rec, $rec->lastCalculateChange != 'no' ? 10 : 1);
         
         if(!$isValid) {
-
+            
             // Днешна дата
             $today = dt::today();
             
@@ -353,9 +353,9 @@ class acc_Balances extends core_Master
                     }
                 }
             }
-
+            
             self::calc($rec);
-
+            
             return TRUE;
         }
     }
@@ -399,7 +399,7 @@ class acc_Balances extends core_Master
         } else {
             $rec->lastCalculateChange = 'no';
         }
-                            
+        
         // Отбелязваме, кога за последно е калкулиран този баланс
         $rec->lastCalculate = dt::now();
         self::save($rec, 'lastCalculate,lastCalculateChange');
@@ -429,16 +429,23 @@ class acc_Balances extends core_Master
     	$pQuery->orderBy('#end', 'ASC');
     	$pQuery->where("#state != 'closed'");
     	$pQuery->where("#state != 'draft'");
-            		 
-    	while($pRec = $pQuery->fetch()) {
- 
-    		$rec = new stdClass();
-    			 
-    		$rec->fromDate = $pRec->start;
-    		$rec->toDate = $pRec->end;
-    		$rec->periodId = $pRec->id;
-    		self::forceCalc($rec);
-    	}
+        
+        $rc = TRUE;
+        
+        while($pRec = $pQuery->fetch()) {
+            $rec = new stdClass();
+            $rec->fromDate = $pRec->start;
+            $rec->toDate = $pRec->end;
+            $rec->periodId = $pRec->id;
+            
+            // Преизчисляваме баланса (първия няколко пъти, за да подаде верни данни на следващите)
+            $j = 0;
+            do {
+                self::forceCalc($rec);
+                self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
+            } while($rec->lastCalculateChange != 'no' && $j++ < 10 && $rc);
+            $rc = FALSE;
+        }
     	
     	// Освобождаваме заключването на процеса
     	core_Locks::release($lockKey);
@@ -468,10 +475,10 @@ class acc_Balances extends core_Master
     {
         // Ако балансът никога не е калкулиран, значи не е валиден
         if(empty($rec->lastCalculate)) return FALSE;
-
+        
         // Ако нямаме никакви записи за периода, значи всичко е ОК
-        if(empty($rec->lastAlternation)) return TRUE;
-
+         if(empty($rec->lastAlternation)) return TRUE;
+         
         // Вземаме предния баланс. Ако той е с по-ново време на изчисление, задължително изчисляваме и този
         $query = self::getQuery();
         $query->limit(1);

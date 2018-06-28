@@ -718,7 +718,12 @@ class core_Debug
             $contex['EF_TIMEZONE'] = EF_TIMEZONE;
             
             $contex['GIT_BRANCH'] = BGERP_GIT_BRANCH;
-            $contex['BGERP_LAST_STABLE_VERSION'] = '17.43-Orelyak';
+            
+            if (defined('PRIVATE_GIT_BRANCH')) {
+                $contex['PRIVATE_GIT_BRANCH'] = PRIVATE_GIT_BRANCH;
+            }
+            
+            $contex['BGERP_LAST_STABLE_VERSION'] = core_Setup::CURRENT_VERSION; 
         }
         
         $state = array( 'errType'   => $errType, 

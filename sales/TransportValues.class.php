@@ -560,22 +560,17 @@ class sales_TransportValues extends core_Manager
     	if(empty($Driver)) return FALSE;
     	
     	$toPcodeId = $toCountryId = NULL;
-    	if(!empty($deliveryAddress)){
-    		if($parsePlace = drdata_Address::parsePlace($deliveryAddress)){
-    			$toCountryId = $parsePlace->countryId;
-    			$toPcodeId = $parsePlace->pCode;
-    		}
-    	}
     	
     	// Извличане на държавата и кода
-    	$codeAndCountryArr = self::getCodeAndCountryId($contragentClassId, $contragentId, $toPcodeId, $toCountryId, $deliveryLocationId);
+    	$location = isset($deliveryLocationId) ? $deliveryLocationId : $deliveryAddress;
+    	$codeAndCountryArr = self::getCodeAndCountryId($contragentClassId, $contragentId, $toPcodeId, $toCountryId, $location);
     	$ourCompany = crm_Companies::fetchOurCompany();
     	
     	// Опит за изчисляване на дъмми транспорт
     	$params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
     	$totalFee = $Driver->getTransportFee($deliveryTermId, 1, 1, 1000, 1000, $params);
     	
-    	if($totalFee['fee'] <= 0) {
+    	if($totalFee['fee'] < 0) {
     		$toCountryId = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($codeAndCountryArr['countryId'] );
     		$errAddress = cond_DeliveryTerms::getVerbal($deliveryTermId, 'codeName') . ", " . $toCountryId . " " . $codeAndCountryArr['pCode'];
     		
