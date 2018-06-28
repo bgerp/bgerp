@@ -2194,6 +2194,8 @@ class doc_Containers extends core_Manager
             
             $dQuery = $clsInst->getQuery();
             
+            if (!$clsInst->fields['modifiedOn']) continue;
+            
             // Подготвяме данните за търсене
             doc_Folders::prepareRepairDateQuery($dQuery, $from, $to, $delay);
             

@@ -123,9 +123,9 @@ class core_Updates extends core_Manager
             $rec->tag = $rel->tag_name;
             $rec->version = $rel->name;
             $rec->description = $rel->body;
-            $rec->ghCreatedAt = $rel->created_at;
-            $rec->ghPublishedAt = $rel->published_at;
-
+            $rec->ghCreatedAt = date("Y-m-d H:i:s", strtotime($rel->created_at));
+            $rec->ghPublishedAt = date("Y-m-d H:i:s", strtotime($rel->published_at));
+            
             self::save($rec, NULL, 'IGNORE');
         }
 
@@ -157,8 +157,8 @@ class core_Updates extends core_Manager
                             $rec->tag = $rel->tag_name;
                             $rec->version = $rel->name;
                             $rec->description = $rel->body;
-                            $rec->ghCreatedAt = $rel->created_at;
-                            $rec->ghPublishedAt = $rel->published_at;
+                            $rec->ghCreatedAt = date("Y-m-d H:i:s", strtotime($rel->created_at));
+                            $rec->ghPublishedAt = date("Y-m-d H:i:s", strtotime($rel->published_at));
 
                             self::save($rec, NULL, 'IGNORE');
                         }

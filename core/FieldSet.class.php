@@ -653,6 +653,20 @@ class core_FieldSet extends core_BaseClass
     
     
     /**
+     * Добавя атрибути към поле
+     * 
+     * @param string $name - име на полето
+     * @param mixed $arr   - масив от атрибут -> стойност
+     */
+    public function setFieldAttr($name, $arr)
+    {
+    	$arr = arr::make($arr, TRUE);
+    	
+    	$this->setField($name, array('attr' => $arr));
+    }
+    
+    
+    /**
      * Задава/Подменя тип на полето
      * 
      * @param string $name - име на полето

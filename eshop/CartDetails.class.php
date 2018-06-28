@@ -355,7 +355,7 @@ class eshop_CartDetails extends core_Detail
 			core_RowToolbar::createIfNotExists($row->_rowTools);
 			if($mvc->haveRightFor('removeexternal', $rec)){
 				$removeUrl = toUrl(array('eshop_CartDetails', 'removeexternal', $rec->id), 'local');
-				$row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => "img/16/delete.png", 'title' => "Премахване на артикул", 'data-cart' => $rec->cartId, "data-url" => $removeUrl, "class" => 'remove-from-cart'));
+				$row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => "img/16/deletered.png", 'title' => "Премахване на артикул", 'data-cart' => $rec->cartId, "data-url" => $removeUrl, "class" => 'remove-from-cart', 'warning' => tr('Наистина ли желаете да премахнете артикула?')));
 			}
 			
 			$productTitle = eshop_ProductDetails::fetchField("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'title');
@@ -368,7 +368,7 @@ class eshop_CartDetails extends core_Detail
 			// Колко е максималното допустимо количество
 			$maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
 			
-			$minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намaляване на количеството'), "-");
+			$minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), "-");
 			$plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), "+");
 			$row->quantity = "<span>" . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity}") . $plus . "</span>";
 		
@@ -439,7 +439,9 @@ class eshop_CartDetails extends core_Detail
 		
 		core_Statuses::newStatus($msg);
 		core_Lg::pop();
-		
+	    
+        Mode::set('currentExternalTab', 'eshop_Carts');
+
 		// Ако заявката е по ajax
 		if (Request::get('ajax_mode')) return self::getUpdateCartResponse($cartId);
 		
@@ -497,10 +499,13 @@ class eshop_CartDetails extends core_Detail
 		$rec = self::fetch($id);
 		$rec->quantity = $quantity * $rec->quantityInPack;
 		self::save($rec, 'quantity');
+        
+        Mode::set('currentExternalTab', 'eshop_Carts');
 		
 		// Ако заявката е по ajax
 		if (Request::get('ajax_mode')) return self::getUpdateCartResponse($cartId);
-		
+	    
+
 		return followRremoveexternaletUrl($retUrl);
 	}
 	
