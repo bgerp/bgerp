@@ -199,7 +199,7 @@ class abbyyocr_Converter extends core_Manager
     /**
      * Вземаме текстова част от подадения файл
      * 
-     * @param fileHnd $fileHnd - Манипулатора на файла
+     * @param resource $fileHnd - Манипулатора на файла
      * @param array $params - Допълнителни параметри
      */
     static function getText($fileHnd, $params)
