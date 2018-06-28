@@ -124,7 +124,7 @@ class acc_type_Item extends type_Key
         	$this->options += $closedOptions;
         }
         
-        $this->handler = md5($this->getSelectFld() . $where . $this->params['mvc']);
+        $this->handler = md5($this->getSelectFld() . '|' . $where . $this->params['mvc'] . '|' . implode(',', array_keys($this->options)) . '|' . core_Lg::getCurrent());
         
         $this->options = parent::prepareOptions();
         
@@ -165,7 +165,6 @@ class acc_type_Item extends type_Key
         $this->prepareOptions();
         
         $conf = core_Packs::getConfig('core');
-        setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
         
         foreach ($this->options as $key => $val) {
             if (!is_object($val) && intval($key) == $value) {
@@ -175,7 +174,7 @@ class acc_type_Item extends type_Key
                 break;
             }
         }
-
+        
         return parent::renderInput_($name, $value, $attr);
     }
     
