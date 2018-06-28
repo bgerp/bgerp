@@ -31,7 +31,7 @@ class batch_definitions_Document extends batch_definitions_Proto
 	 * @param mixed $documentClass - класа за който ще връщаме партидата
 	 * @param int $id              - ид на документа за който ще връщаме партидата
 	 * @param int $storeId         - склад
-	 * @param date|NULL $date      - дата
+	 * @param datetime|NULL $date      - дата
 	 * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
 	 */
 	public function getAutoValue($documentClass, $id, $storeId, $date = NULL)
@@ -54,7 +54,7 @@ class batch_definitions_Document extends batch_definitions_Proto
 	 * Проверява дали стойността е невалидна
 	 *
 	 * @param string $value - стойноста, която ще проверяваме
-	 * @param quantity $quantity - количеството
+	 * @param int $quantity - количеството
 	 * @param string &$msg - текста на грешката ако има
 	 * @return boolean - валиден ли е кода на партидата според дефиницията или не
 	 */
@@ -96,7 +96,7 @@ class batch_definitions_Document extends batch_definitions_Proto
 	 *
 	 * @param array $batches - наличните партиди
 	 * 		['batch_name'] => ['quantity']
-	 * @param date|NULL $date
+	 * @param datetime|NULL $date
 	 * return void
 	 */
 	public function orderBatchesInStore(&$batches, $storeId, $date = NULL)

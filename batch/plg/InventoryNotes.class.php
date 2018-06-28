@@ -213,7 +213,7 @@ class batch_plg_InventoryNotes extends core_Plugin
 	 * @param int $productId
 	 * @param double $expectedQuantity
 	 * @param int $storeId
-	 * @param date $valior
+	 * @param DateTime $valior
 	 * @param boolean $alwaysShowBatches
 	 * @return array|FALSE
 	 */

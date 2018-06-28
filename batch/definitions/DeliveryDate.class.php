@@ -32,7 +32,7 @@ class batch_definitions_DeliveryDate extends batch_definitions_Date
 	 * @param mixed $documentClass - класа за който ще връщаме партидата
 	 * @param int $id              - ид на документа за който ще връщаме партидата
 	 * @param int $storeId         - склад
-	 * @param date|NULL $date      - дата
+	 * @param datetime|NULL $date      - дата
 	 * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
 	 */
 	public function getAutoValue($documentClass, $id, $storeId, $date = NULL)

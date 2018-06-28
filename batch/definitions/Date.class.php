@@ -40,7 +40,7 @@ abstract class batch_definitions_Date extends batch_definitions_Proto
 	 * Проверява дали стойността е невалидна
 	 *
 	 * @param string $value - стойноста, която ще проверяваме
-	 * @param quantity $quantity - количеството
+	 * @param int $quantity - количеството
 	 * @param string &$msg - текста на грешката ако има
 	 * @return boolean - валиден ли е кода на партидата според дефиницията или не
 	 */
