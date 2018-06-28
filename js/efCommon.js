@@ -5270,6 +5270,20 @@ JSON.stringify = JSON.stringify || function (obj) {
 
 
 /**
+ * Дали елемента е видим във viewport
+ */
+$.fn.isInViewport = function() {
+    var elementTop = $(this).offset().top;
+    var elementBottom = elementTop + $(this).outerHeight();
+
+    var viewportTop = $(window).scrollTop();
+    var viewportBottom = viewportTop + $(window).height();
+
+    return elementBottom > viewportTop && elementTop < viewportBottom;
+};
+
+
+/**
  * Fix за IE7
  * implement JSON.parse de-serialization
  *
@@ -5293,8 +5307,11 @@ function focusOnce(id, rand) {
         }
         localStorage.setItem(rand, 1);
     }
-    $(id).focus();
+    if($(id).isInViewport()) {
+        $(id).focus();
+    }
 }
+
 
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);

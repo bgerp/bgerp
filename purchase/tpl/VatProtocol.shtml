@@ -52,26 +52,8 @@
                                 <tr>
                                     <td class="cell">
                                         <table>
-                                            <tbody>
-                                                <!--ET_BEGIN contragentVatNo-->
-                                                <tr>
-                                                    <td class="aright"><small>|ЗДДС|*&nbsp;№:</small></td>
-                                                    <td><span class="bigData" style='padding-left:5px;'>[#contragentVatNo#]</span></td>
-                                                </tr>
-                                                <!--ET_END contragentVatNo-->
-                                                <!--ET_BEGIN uicNo-->
-                                                <tr>
-                                                    <td class="aright"><small>|ЕИК|*:</small></td>
-                                                    <td> <span class="bigData" style='padding-left:5px;'>[#uicNo#]</span></td>
-                                                </tr>
-                                                <!--ET_END uicNo-->
-                                            </tbody>
-                                        </table>
-                                    </td>
-                                    <td class="cell">
-                                        <table>
-                                            <tbody>
-                                                <!--ET_BEGIN MyCompanyVatNo-->
+                                         <!--ET_BEGIN MyCompanyVatNo-->
+                                         	<tbody>
                                                 <tr>
                                                     <td class="aright"><small>|ЗДДС|*&nbsp;№:</small></td>
                                                     <td><span class="bigData" style='padding-left:5px;'>[#MyCompanyVatNo#]</span></td>
@@ -83,6 +65,24 @@
                                                     <td><span class="bigData" style='padding-left:5px;'>[#uicId#]</span></td>
                                                 </tr>
                                                 <!--ET_END uicId-->
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                    <td class="cell">
+                                        <table>
+                                            <tbody>
+                                               <!--ET_BEGIN contragentVatNo-->
+                                                <tr>
+                                                    <td class="aright"><small>|ЗДДС|*&nbsp;№:</small></td>
+                                                    <td><span class="bigData" style='padding-left:5px;'>[#contragentVatNo#]</span></td>
+                                                </tr>
+                                                <!--ET_END contragentVatNo-->
+                                                <!--ET_BEGIN uicNo-->
+                                                <tr>
+                                                    <td class="aright"><small>|ЕИК|*:</small></td>
+                                                    <td> <span class="bigData" style='padding-left:5px;'>[#uicNo#]</span></td>
+                                                </tr>
+                                                <!--ET_END uicNo-->
                                             </tbody>
                                         </table>
                                     </td>
@@ -100,9 +100,6 @@
                             <tbody>
                                 <tr>
                                     <td style='line-height: 140%;'>
-                                        <!--ET_BEGIN vatReason-->
-                                        <div><span class='quiet'>|Основание|*:</span> [#vatReason#]</div>
-                                        <!--ET_END vatReason-->
                                         <!--ET_BEGIN vodIssueReason-->
                                         <div><span class='quiet'>|Основание за издаване|*:</span> [#vodIssueReason#]</div>
                                         <!--ET_END vodIssueReason-->
