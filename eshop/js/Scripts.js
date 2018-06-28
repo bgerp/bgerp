@@ -4,8 +4,6 @@ function copyValToPlaceholder()
 		var changeVal = $(this).attr("data-updateonchange");
 		
 		$placeholder = $(this).val();
-		console.log($placeholder);
-		if(!$placeholder) return;
 		
 		var element = $("input[name="+ changeVal +"]");
 		if (element.length <= 0) return;
@@ -13,11 +11,12 @@ function copyValToPlaceholder()
 		element.attr("placeholder", $placeholder);
 	});
 	
+	$('select[name=deliveryCountry]').trigger('change');
+	
 	$('select[name=deliveryCountry]').bind('change', function() {
 		var changeVal = $(this).attr("data-updateonchange");
 		
 		var $placeholder = $('select[name=deliveryCountry] option:selected').text();
-		if(!$placeholder) return;
 		
 		var element = $("select[name="+ changeVal +"");
 		if (element.length <= 0) return;
@@ -26,7 +25,6 @@ function copyValToPlaceholder()
 		element.select2();
 	});
 	
-	$('select[name=deliveryCountry]').trigger('change');
 	$('.updateonchange').trigger('keyup');
 }
 
@@ -131,7 +129,8 @@ function eshopActions() {
 		
 		if (val + step > 0 && (!max || step == -1 || (max && val + step <= max))) {
 			$(input).val(val + step);
-			
+			$(input).css( "color", "green");
+            $("#cart-view-table").css("cursor", "progress");
 			if(max && val >= max) return;
 		}
 

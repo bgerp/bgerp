@@ -120,7 +120,7 @@ class eshop_Carts extends core_Master
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,hint=Вашият имейл||Your email,mandatory');
     	$this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Контактни данни->Тел,hint=Вашият телефон,mandatory');
     	
-    	$this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Начин,removeAndRefreshForm=deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|deliveryData,silent,mandatory');
+    	$this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Начин,removeAndRefreshForm=deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|deliveryData,silent,mandatory');
     	$this->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,hint=Страна за доставка');
     	$this->FLD('deliveryPCode', 'varchar(16)', 'caption=Доставка->П. код,hint=Пощенски код за доставка');
     	$this->FLD('deliveryPlace', 'varchar(64)', 'caption=Доставка->Място,hint=Населено място: град или село и община');
@@ -1188,6 +1188,11 @@ class eshop_Carts extends core_Master
     				}
     			}
     			
+    			if(!$cu){
+    				$userData = array('email' => $rec->email, 'personNames' => $rec->personNames, 'tel' => $rec->tel);
+    				log_Browsers::setVars($userData);
+    			}
+    			
     			$this->save($rec);
     			$this->updateMaster($rec);
     			core_Lg::pop();
@@ -1201,6 +1206,14 @@ class eshop_Carts extends core_Master
     	// Добавяне на бутони
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на данните за поръчката');
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+    	
+    	if ($form->cmd == 'refresh') {
+    	    $form->renderLayout();
+    	    
+    	    if ($form->layout) {
+    	        jquery_Jquery::run($form->layout, "copyValToPlaceholder();");
+    	    }
+    	}
     	
     	$tpl = $form->renderHtml();
     	core_Form::preventDoubleSubmission($tpl, $form);
@@ -1231,7 +1244,8 @@ class eshop_Carts extends core_Master
     		$options = colab_Folders::getSharedFolders($cu, TRUE, 'crm_ContragentAccRegIntf', FALSE);
     		$profileRec = crm_Profiles::getProfile($cu);
     		$form->setDefault('personNames', $profileRec->name);
-    		$form->setDefault('email', $profileRec->email);
+            $emails = type_Emails::toArray($profileRec->email);
+    		$form->setDefault('email', $emails[0]);
     		$form->setDefault('tel', $profileRec->tel);
     		
     		// Задаване като опции
@@ -1261,7 +1275,7 @@ class eshop_Carts extends core_Master
     			$paymentMethods[$defaultPaymentId] = tr(cond_PaymentMethods::getVerbal($paymentId, 'name'));
     		}
     	}
-    	 
+    	
     	if(count($deliveryTerms) == 1){
     		$form->setDefault('termId', key($deliveryTerms));
     	} else {
