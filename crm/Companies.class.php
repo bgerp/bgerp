@@ -4,7 +4,7 @@
 /**
  * Отдалечен сървър за генериране на лого на фирма
  */
-defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'http://experta.bg/api_Companies/getLogo/apiKey/crm123/');
+defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'https://experta.bg/api_Companies/getLogo/apiKey/crm123/');
 
 
 /**
