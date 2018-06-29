@@ -5273,7 +5273,12 @@ JSON.stringify = JSON.stringify || function (obj) {
  * Дали елемента е видим във viewport
  */
 $.fn.isInViewport = function() {
-    var elementTop = $(this).offset().top;
+	if ($(this).offset()) {
+		var elementTop = $(this).offset().top;
+	} else {
+		var elementTop = 0;
+	}
+    
     var elementBottom = elementTop + $(this).outerHeight();
 
     var viewportTop = $(window).scrollTop();
