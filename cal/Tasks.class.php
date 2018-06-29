@@ -1071,6 +1071,26 @@ class cal_Tasks extends embed_Manager
                }
             }
         }
+        
+        if ($action == 'edit' && $rec->state == 'pending') {
+            $requiredRoles = 'no_one';
+        }
+    }
+    
+    
+    /**
+     * Проверява дали може да се променя записа в зависимост от състоянието на документа
+     *
+     * @param core_Mvc $mvc
+     * @param boolean $res
+     * @param string $state
+     */
+    function on_AfterCanChangeRec($mvc, &$res, $rec)
+    {
+        // Чернова документи не могат да се променят
+        if ($res !== FALSE && $rec->state != 'draft') {
+            $res = TRUE;
+        }
     }
 
 

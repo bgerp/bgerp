@@ -2000,7 +2000,7 @@ class doc_DocumentPlg extends core_Plugin
 		    }
 		    
 		    // Ако документа е бил на заявка преди, обръща се в чернова
-		    if(isset($rec->id) && $rec->state == 'pending' && ($form->cmd == 'save')){
+		    if(isset($rec->id) && $rec->state == 'pending' && ($form->cmd == 'save') && (!$form->rec->__isBeingChanged)) {
 		    	$rec->state = 'draft';
 		    	$rec->brState = 'pending';
 		    	$rec->pendingSaved = TRUE;
