@@ -410,9 +410,29 @@ class core_Updates extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if($rec->state == 'opened') {
-            $row->update = ht::createBtn('Обнови', array("core_Packs", "systemUpdate"), NULL, FALSE,
+            $row->update = ht::createBtn('Обнови', array($mvc, 'SystemUpdate', $rec->id), NULL, FALSE,
                 'ef_icon = img/16/download.png, title=Сваляне на най-новия код и инициализиране на системата, class=system-update-btn');
         }
+    }
+    
+    
+    /**
+     * Екшън за обновяване на системата - сменя състоянието и редиректва към обновяването
+     * 
+     * @return Redirect
+     */
+    function act_SystemUpdate()
+    {
+        $id = Request::get('id', 'int');
+        
+        $rec = $this->fetch($id);
+        
+        if ($rec->state != 'closed') {
+            $rec->state = 'closed';
+            $this->save($rec, 'state');
+        }
+        
+        return new Redirect(array('core_Packs', 'systemUpdate'));
     }
 
 
