@@ -289,11 +289,11 @@ class core_Detail extends core_Manager
     	}
     	
     	if ($singleTitle) {
-    		$single = ' на|* |' . mb_strtolower($singleTitle);
+    	    $single = ' на|* ' . tr(mb_strtolower($singleTitle));
     	}
     	
     	$title = ($recId) ? "Редактиране{$single} {$preposition}" : "Добавяне{$single} {$preposition}";
-    	$title .= "|* " . cls::get($master)->getFormTitleLink($masterId);
+    	$title .= " " . cls::get($master)->getFormTitleLink($masterId);
     	
     	return $title;
     }
