@@ -5273,11 +5273,9 @@ JSON.stringify = JSON.stringify || function (obj) {
  * Дали елемента е видим във viewport
  */
 $.fn.isInViewport = function() {
-	if ($(this).offset()) {
-		var elementTop = $(this).offset().top;
-	} else {
-		var elementTop = 0;
-	}
+	if (typeof($(this).offset()) == 'undefined') return ;
+	
+	var elementTop = $(this).offset().top;
     
     var elementBottom = elementTop + $(this).outerHeight();
 
