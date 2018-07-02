@@ -548,8 +548,8 @@ class store_Products extends core_Detail
     			while($td = $tdQuery->fetch()){
     				$key = "{$tRec->fromStore}|{$td->newProductId}";
     				$key2 = "{$tRec->toStore}|{$td->newProductId}";
-    				$reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'q' => -1 * $td->sum);
-    				$reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'q' => $td->sum);
+    				$reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'q' => $td->sum);
+    				$reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'q' => -1 * $td->sum);
     				
     				// Кеширане
     				core_Permanent::set("reserved_{$sRec->containerId}", $reserved, 4320);
