@@ -1,70 +1,67 @@
 <?php
 
 
-
 /**
- * Клас 'bgerp_ExtendedImporter'
+ * Клас 'bgerp_ExtendedImporter'.
  *
  * @category  bgerp
- * @package   bgerp
+ *
  * @author    Stefan Arsov <stefan.arsov@mail.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class bgerp_ExtendedImporter extends core_Manager {
-    
-    
+class bgerp_ExtendedImporter extends core_Manager
+{
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'bgerp_ImportIntf';
-    
-    
+    public $interfaces = 'bgerp_ImportIntf';
+
     /**
-     * Заглавие
+     * Заглавие.
      */
-    var $title = "Разширен импорт";
-    
+    public $title = 'Разширен импорт';
+
     /*
      * Имплементация на bgerp_ImportIntf
      */
-    
-    
+
     /**
-     * Инициализиране драйвъра
+     * Инициализиране драйвъра.
      */
-    function init($params = array())
+    public function init($params = array())
     {
         $this->mvc = $params['mvc'];
     }
-    
-    
+
     /**
      * Функция, връщаща полетата в които ще се вкарват данни
      * в мениджъра-дестинация
-     * Не връща полетата които са hidden, input=none и enum
+     * Не връща полетата които са hidden, input=none и enum.
      */
     public function getFields()
     {
         $fields = array();
         $Dfields = $this->mvc->selectFields();
-        
-        foreach($Dfields as $name => $fld){
-            if($fld->input != 'hidden' && $fld->kind != 'FNC'){
+
+        foreach ($Dfields as $name => $fld) {
+            if ('hidden' != $fld->input && 'FNC' != $fld->kind) {
                 $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
             }
         }
-        
+
         return $fields;
     }
-    
-    
+
     /**
      * Инпортиране на csv-файл в даден мениджър
-     * @param array $rows - масив с обработени csv данни, получен от Експерта в bgerp_Import
+     *
+     * @param array $rows   - масив с обработени csv данни, получен от Експерта в bgerp_Import
      * @param array $fields - масив с съответстията на колоните от csv-то и
-     * полетата от модела array[{поле_oт_модела}] = {колона_от_csv}
+     *                      полетата от модела array[{поле_oт_модела}] = {колона_от_csv}
+     *
      * @return string $html - съобщение с резултата
      */
     public function import($rows, $fields)
@@ -72,45 +69,44 @@ class bgerp_ExtendedImporter extends core_Manager {
         $html = '';
         $created = $updated = 0;
         core_Debug::startTimer('import');
-        
-        foreach ($rows as $row){
+
+        foreach ($rows as $row) {
             $rec = new stdClass();
-            
-            foreach($fields as $name => $position){
-                if($position != -1){
+
+            foreach ($fields as $name => $position) {
+                if (-1 != $position) {
                     $value = $row[$position];
                     $rec->{$name} = $value;
                 }
             }
-            
+
             // Ако записа е уникален, създаваме нов, ако не е обновяваме стария
             $fieldsUn = array();
-            
-            if(!$this->mvc->isUnique($rec, $fieldsUn, $exRec)){
+
+            if (!$this->mvc->isUnique($rec, $fieldsUn, $exRec)) {
                 $rec->id = $exRec->id;
-                $updated++;
+                ++$updated;
             } else {
-                $created++;
+                ++$created;
             }
-            
+
             // Запис в модела
             $this->mvc->save($rec);
         }
-        
+
         core_Debug::stopTimer('import');
-        
+
         $html .= "|Импортирани|* {$created} |нови записа, обновени|* {$updated} |съществуващи записа|*<br />";
-        $html .= "|Общо време|*: " . round(core_Debug::$timers['import']->workingTime, 2);
-        
+        $html .= '|Общо време|*: '.round(core_Debug::$timers['import']->workingTime, 2);
+
         return $html;
     }
-    
-    
+
     /**
-     * Драйвъра може да се показва към всички мениджъри
+     * Драйвъра може да се показва към всички мениджъри.
      */
     public function isApplicable($className)
     {
-        return TRUE;
+        return true;
     }
 }

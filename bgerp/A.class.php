@@ -1,86 +1,84 @@
 <?php
 
 
-
 /**
- * CMS статии
+ * CMS статии.
  *
  * @category  bgerp
- * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_A extends core_Mvc
 {
     /**
-     * Да не се кодират id-тата
+     * Да не се кодират id-тата.
      */
-    var $protectId = FALSE;
-    
+    public $protectId = false;
+
     /**
-     * Създава пряк път до публичните статии
+     * Създава пряк път до публичните статии.
      */
-    function act_A()
+    public function act_A()
     {
         return Request::forward(array('Ctr' => 'cms_Articles', 'Act' => 'Article'));
     }
-    
+
     /**
-     * Създава пряк път до групите в онлайн магазина
+     * Създава пряк път до групите в онлайн магазина.
      */
-    function act_G()
+    public function act_G()
     {
         return Request::forward(array('Ctr' => 'eshop_Groups', 'Act' => 'Show'));
     }
-    
+
     /**
-     * Създава пряк път до продукти в онлайн магазина
+     * Създава пряк път до продукти в онлайн магазина.
      */
-    function act_P()
+    public function act_P()
     {
         return Request::forward(array('Ctr' => 'eshop_Products', 'Act' => 'Show'));
     }
-    
+
     /**
-     * Създава пряк път до статиите в блога
+     * Създава пряк път до статиите в блога.
      */
-    function act_B()
+    public function act_B()
     {
         return Request::forward(array('Ctr' => 'blogm_Articles', 'Act' => 'Article'));
     }
 
-
     /**
-     * Създава watchpoint
+     * Създава watchpoint.
      */
-    function act_wp()
+    public function act_wp()
     {
         wp(Request::$vars);
 
         return array();
     }
 
-
     /**
-     * Връща кратко URL към съдържание на статия
+     * Връща кратко URL към съдържание на статия.
      */
-    static function getShortUrl($url)
+    public static function getShortUrl($url)
     {
-        if($url['Act'] == 'A') {
+        if ('A' == $url['Act']) {
             $url['Ctr'] = 'cms_Articles';
             $url['Act'] = 'Article';
             $url = cms_Articles::getShortUrl($url);
-        } elseif($url['Act'] == 'G') {
+        } elseif ('G' == $url['Act']) {
             $url['Ctr'] = 'eshop_Groups';
             $url['Act'] = 'Show';
             $url = eshop_Groups::getShortUrl($url);
-        } elseif($url['Act'] == 'P') {
+        } elseif ('P' == $url['Act']) {
             $url['Ctr'] = 'eshop_Products';
             $url['Act'] = 'Show';
             $url = eshop_Products::getShortUrl($url);
-        } elseif($url['Act'] == 'B') {
+        } elseif ('B' == $url['Act']) {
             $url['Ctr'] = 'blogm_Articles';
             $url['Act'] = 'Article';
             $url = blogm_Articles::getShortUrl($url);
@@ -88,14 +86,12 @@ class bgerp_A extends core_Mvc
 
         return $url;
     }
-    
-    
+
     /**
-     * Създава пряк път до статиите в блога
+     * Създава пряк път до статиите в блога.
      */
-    function act_Default()
+    public function act_Default()
     {
         return Request::forward(array('Index'));
     }
-
 }
