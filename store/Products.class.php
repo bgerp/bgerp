@@ -552,17 +552,17 @@ class store_Products extends core_Detail
     				$reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'q' => -1 * $td->sum);
     				
     				// Кеширане
-    				core_Permanent::set("reserved_{$sRec->containerId}", $reserved, 4320);
+    				core_Permanent::set("reserved_{$tRec->containerId}", $reserved, 4320);
     			}
     			 
     			$queue[] = $reserved;
     		}
     	}
-    	
+    	//bp(core_Permanent::get("reserved_256741"));
     	// Сумиране на к-та
     	foreach ($queue as $arr){
     		foreach ($arr as $key => $obj){
-    			if(!array_key_exists($key, $result)){
+    			if (!array_key_exists($key, $result)){
     				$result[$key] = (object)array('storeId' => $obj['sId'], 'productId' => $obj['pId'], 'reservedQuantity' => $obj['q'], 'state' => 'active');
     			} else {
     				$result[$key]->reservedQuantity += $obj['q'];
