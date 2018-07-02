@@ -618,23 +618,26 @@ class store_Products extends core_Detail
     	
     	// Намират се документите, запазили количества
     	$docs = array();
-    	foreach (array('store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'toStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId') as $Detail => $storeField){
+    	foreach (array('store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore,toStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId') as $Detail => $stores){
+    		$stores = arr::make($stores, TRUE);
     		$Detail = cls::get($Detail);
     		expect($Detail->productFld, $Detail);
     		
-    		$Master = $Detail->Master;
-    		$dQuery = $Detail->getQuery();
-    		$dQuery->EXT('containerId', $Master->className, "externalName=containerId,externalKey={$Detail->masterKey}");
-    		$dQuery->EXT('storeId', $Master->className, "externalName={$storeField},externalKey={$Detail->masterKey}");
-    		$dQuery->EXT('state', $Master->className, "externalName=state,externalKey={$Detail->masterKey}");
-    		$dQuery->where("#state = 'pending'");
-    		$dQuery->where("#{$Detail->productFld} = {$rec->productId}");
-    		$dQuery->where("#storeId = {$rec->storeId}");
-    		$dQuery->groupBy('containerId');
-    		$dQuery->show('containerId');
-    		
-    		while ($dRec = $dQuery->fetch()){
-    			$docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
+    		foreach ($stores as $storeField){
+    			$Master = $Detail->Master;
+    			$dQuery = $Detail->getQuery();
+    			$dQuery->EXT('containerId', $Master->className, "externalName=containerId,externalKey={$Detail->masterKey}");
+    			$dQuery->EXT('storeId', $Master->className, "externalName={$storeField},externalKey={$Detail->masterKey}");
+    			$dQuery->EXT('state', $Master->className, "externalName=state,externalKey={$Detail->masterKey}");
+    			$dQuery->where("#state = 'pending'");
+    			$dQuery->where("#{$Detail->productFld} = {$rec->productId}");
+    			$dQuery->where("#storeId = {$rec->storeId}");
+    			$dQuery->groupBy('containerId');
+    			$dQuery->show('containerId');
+    			
+    			while ($dRec = $dQuery->fetch()){
+    				$docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
+    			}
     		}
     	}
     	
