@@ -488,7 +488,7 @@ class store_Products extends core_Detail
     		// Всички заявки
     		$sQuery = $Doc->getQuery();
     		$sQuery->where("#state = 'pending'");
-    		$sQuery->show("id,containerId,modifiedOn,{$storeField}");
+    		$sQuery->show("id,containerId,{$storeField}");
     		
     		while($sRec = $sQuery->fetch()){
     			
@@ -527,6 +527,34 @@ class store_Products extends core_Detail
     				core_Permanent::set("reserved_{$sRec->containerId}", $reserved, 4320);
     			}
     			
+    			$queue[] = $reserved;
+    		}
+    	}
+    	
+    	$tQuery = store_Transfers::getQuery();
+    	$tQuery->where("#state = 'pending'");
+    	$tQuery->show("id,containerId,fromStore,toStore,modifiedOn");
+    	while($tRec = $tQuery->fetch()){
+    		$reserved = core_Permanent::get("reserved_{$tRec->containerId}", $tRec->modifiedOn);
+    		
+    		// Ако няма кеширани к-ва
+    		if(!isset($reserved)){
+    			$reserved = array();
+    			$tdQuery = store_TransfersDetails::getQuery();
+    			$tdQuery->XPR('sum', 'double', "SUM(#quantity)");
+    			$tdQuery->where("#transferId = {$tRec->id}");
+    			$tdQuery->show("newProductId,quantity,transferId,sum,quantityInPack");
+    			
+    			while($td = $tdQuery->fetch()){
+    				$key = "{$tRec->fromStore}|{$td->newProductId}";
+    				$key2 = "{$tRec->toStore}|{$td->newProductId}";
+    				$reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'q' => -1 * $td->sum);
+    				$reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'q' => $td->sum);
+    				
+    				// Кеширане
+    				core_Permanent::set("reserved_{$sRec->containerId}", $reserved, 4320);
+    			}
+    			 
     			$queue[] = $reserved;
     		}
     	}
@@ -590,7 +618,7 @@ class store_Products extends core_Detail
     	
     	// Намират се документите, запазили количества
     	$docs = array();
-    	foreach (array('store_ShipmentOrderDetails' => 'storeId', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId') as $Detail => $storeField){
+    	foreach (array('store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'toStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId') as $Detail => $storeField){
     		$Detail = cls::get($Detail);
     		expect($Detail->productFld, $Detail);
     		
