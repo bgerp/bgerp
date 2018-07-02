@@ -62,9 +62,6 @@ class trans_Setup extends core_ProtoSetup
     		'trans_TransportModes',
     		'trans_TransportUnits',
     		'trans_LineDetails',
-    		'migrate::updateVehicles',
-    		'migrate::updateLineVehicles',
-    		'migrate::updateStoreDocuments'
         );
 
         
@@ -98,55 +95,6 @@ class trans_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    
-    /**
-     * Ъпдейт на превозните средства
-     */
-    function updateVehicles()
-    {
-    	$query = trans_Vehicles::getQuery();
-    	$query->where("#state != 'rejected' OR #state IS NULL");
-    	while($rec = $query->fetch()){
-    		try{
-    			$rec->state = 'active';
-    			trans_Vehicles::save($rec, 'state');
-    		} catch(core_exception_Expect $e){
-    			reportException($e);
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Обновява транспортните линии
-     */
-    function updateLineVehicles()
-    {
-    	foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_Transfers', 'store_ConsignmentProtocols') as $Doc){
-    		$D = cls::get($Doc);
-    		$D->setupMvc();
-    	}
-    	
-    	$Lines = cls::get('trans_Lines');
-    	$Lines->setupMvc();
-    	
-    	$query = trans_Lines::getQuery();
-    	$query->where("#vehicle IS NOT NULL");
-    	
-    	while($rec = $query->fetch()){
-    		if(is_numeric($rec->vehicle)){
-    			try{
-    				if($name = trans_Vehicles::fetchField($rec->vehicle, 'name')){
-    					$rec->vehicle = $name;
-    					$Lines->save($rec, 'vehicle');
-    				}
-    			} catch(core_exception_Expect $e){
-    				reportException($e);
-    			}
-    		}
-    	}
     }
     
     
@@ -275,29 +223,6 @@ class trans_Setup extends core_ProtoSetup
     	}
     	
     	wp("UPDATE ADDED LINE DETAILS" . count($save));
-    }
-    
-    public function updateStoreDocuments()
-    {
-    	core_Cron::delete("#systemId = 'CreateNewLines'");
-    	core_App::setTimeLimit(1200);
-    	
-    	$Tld = cls::get('trans_LineDetails');
-    	$Tld->setupMvc();
-    	
-    	$Tl = cls::get('trans_Lines');
-    	$Tl->setupMvc();
-    	
-    	$Tm = cls::get('trans_TransportModes');
-    	$Tm->setupMvc();
-    	
-    	$Tu = cls::get('trans_TransportUnits');
-    	$Tu->setupMvc();
-    	$Tu->loadSetupData();
-    	
-    	$this->updateLu();
-    	$this->updateStoreMasters();
-    	$this->addDetailsToLines();
     }
     
     
