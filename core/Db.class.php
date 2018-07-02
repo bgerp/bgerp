@@ -445,6 +445,9 @@ class core_Db extends core_BaseClass
     }
     
 
+    /**
+     * Връща посочената MySQL променлива
+     */
     public function getVariable($name)
     {
         $query = "SHOW VARIABLES LIKE '{$name}'";
@@ -461,6 +464,7 @@ class core_Db extends core_BaseClass
         return $res->Value;
     }
     
+
     /**
      * Връща атрибутите на посоченото поле от таблицата
      */
@@ -693,7 +697,7 @@ class core_Db extends core_BaseClass
     
     
     /**
-     * @todo Чака за документация...
+     * Връща масив с индексите на таблицата
      */
     public function getIndexes($tableName)
     {
@@ -788,6 +792,7 @@ class core_Db extends core_BaseClass
         
         return $link->real_escape_string($value);
     }
+
 
     /**
      * Празна ли е базата данни?
