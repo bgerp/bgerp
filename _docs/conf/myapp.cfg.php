@@ -114,10 +114,10 @@ DEFINE('BGERP_DEMO_MODE', FALSE);
 /**
  * URL за отдалечено репортване на грешки
  */
-DEFINE('EF_REMOTE_ERROR_REPORT_URL','http://experta.bg/ci_Errors/add/apiKey/rmon123/');
+DEFINE('EF_REMOTE_ERROR_REPORT_URL','https://experta.bg/ci_Errors/add/apiKey/rmon123/');
 
 
 /**
  * Отдалечен сървър за генериране на лого на фирма
 */
-DEFINE('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'http://experta.bg/api_Companies/getLogo/apiKey/crm123/');
+DEFINE('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'https://experta.bg/api_Companies/getLogo/apiKey/crm123/');

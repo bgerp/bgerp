@@ -25,7 +25,7 @@ class sens2_IOPorts extends embed_Detail
     /**
      * Интерфейса на вътрешните обекти
      */
-    public $driverInterface = 'sens2_IOPortIntf';
+    public $driverInterface = 'sens2_ioport_Intf';
     
  
     /**

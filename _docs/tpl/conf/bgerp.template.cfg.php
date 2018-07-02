@@ -104,13 +104,13 @@
 /**
 * URL за отдалечено репортване на грешки
 */
-defIfNot('EF_REMOTE_ERROR_REPORT_URL','http://experta.bg/ci_Errors/add/apiKey/rmon123/');
+defIfNot('EF_REMOTE_ERROR_REPORT_URL','https://experta.bg/ci_Errors/add/apiKey/rmon123/');
 
 
 /**
  * Отдалечен сървър за генериране на лого на фирма
  */
-defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'http://experta.bg/api_Companies/getLogo/apiKey/crm123/');
+defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'https://experta.bg/api_Companies/getLogo/apiKey/crm123/');
 
 
 /*****************************************************************************

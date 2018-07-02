@@ -508,6 +508,8 @@ en,Добавяне на за_4524f,"Add an entry in ""Catering Companies"""
 en,Добавяне на запис,Add a new record
 en,Добавяне на картинка,Add a picture
 en,Добавяне на ко_1ce3b,Add a comment to document
+en,Добавяне на прогрес към задачата,Add a progress to the task
+en,Добавяне на прогрес към задача,Add a progress to task
 en,Добавяне на но_877ab,Adding new document to this thread
 en,Добавяне на но_972cc,Add a new location
 en,Добавяне на но_a245f,Add new Reminder
@@ -2736,3 +2738,4 @@ en,Назад към магазина,Return to store
 en,Наистина ли желаете да премахнете артикула?,Do you really like to remove this product?
 en,"Ако имате акаунт, моля логнете се от","If you have an account, please login from"
 en,Времето за разпознаване е изтекло. Пробвайте с друг код,Recognition time has expired. Try another code
+en,прогрес,progress

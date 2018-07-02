@@ -85,6 +85,7 @@ class hr_Setup extends core_ProtoSetup
             'hr_Payroll',
             'hr_Leaves',
             'hr_Sickdays',
+            'hr_Menu',
             'hr_Trips',
             'hr_Bonuses',
             'hr_Deductions',
@@ -139,7 +140,7 @@ class hr_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "hr_reports_LeaveDaysPersons, hr_reports_LeaveDaysRep, hr_reports_IndicatorsRep";
+    var $defClasses = "hr_reports_LeaveDaysPersons, hr_reports_LeaveDaysRep, hr_reports_IndicatorsRep, hr_reports_AbsencesPerEmployee";
     
     
     /**

@@ -99,6 +99,9 @@ class sens2_Setup extends core_ProtoSetup
             'sens2_ScriptActionSignal',
             'sens2_ScriptActionSMS',
             'sens2_ScriptActionNotify',
+            'sens2_ioport_AI',
+            'sens2_ioport_DI',
+
         );
         
         foreach ($drivers as $drvClass) {
