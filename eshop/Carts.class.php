@@ -1348,7 +1348,13 @@ class eshop_Carts extends core_Master
     	if($isColab === TRUE){
     		
     		// Адреса за доставка е този от последната количка
-    		if($lastCart = eshop_Carts::fetch("#userId = {$cu} AND #state = 'active'", 'termId,deliveryCountry,deliveryPCode,deliveryPlace,deliveryAddress')){
+    		$cQuery = eshop_Carts::getQuery();
+    		$cQuery->where("#userId = {$cu} AND #state = 'active'");
+    		$cQuery->show('termId,deliveryCountry,deliveryPCode,deliveryPlace,deliveryAddress');
+    		$cQuery->orderBy('activatedOn', 'DESC');
+    		$cQuery->limit(1);
+    		
+    		if($lastCart = $cQuery->fetch()){
     			foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress') as $field){
     				$form->setDefault($field, $lastCart->{$field});
     			}
