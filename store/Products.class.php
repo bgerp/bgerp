@@ -590,7 +590,7 @@ class store_Products extends core_Detail
     	
     	// Намират се документите, запазили количества
     	$docs = array();
-    	foreach (array('store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId') as $Detail => $storeField){
+    	foreach (array('store_ShipmentOrderDetails' => 'storeId', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId') as $Detail => $storeField){
     		$Detail = cls::get($Detail);
     		expect($Detail->productFld, $Detail);
     		
