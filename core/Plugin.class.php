@@ -14,8 +14,6 @@
  * @since     v 0.1
  * @link
  */
-class core_Plugin extends core_BaseClass {
-    
-    
-   
+class core_Plugin extends core_BaseClass
+{
 }

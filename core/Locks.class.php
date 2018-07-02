@@ -21,7 +21,7 @@ class core_Locks extends core_Manager
     /**
      * Заглавие на мениджъра
      */
-    var $title = 'Заключвания';
+    public $title = 'Заключвания';
     
     /**
      * Кои полета ще бъдат показани?
@@ -30,45 +30,45 @@ class core_Locks extends core_Manager
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'admin,debug';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'admin,debug';
     
-	
+    
     /**
      * Кой може да листва и разглежда?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой може да добавя, редактира и изтрива?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой може да добавя, редактира и изтрива?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_SystemWrapper, plg_RowTools,plg_Sorting';
+    public $loadList = 'plg_SystemWrapper, plg_RowTools,plg_Sorting';
     
     
     /**
      * Масив с $objectId на всички заключени обекти от текущия хит
      */
-    var $locks = array();
+    public $locks = array();
     
     
     /**
      * Описание на полетата на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('objectId', 'varchar(64)', 'caption=Обект');
         $this->FLD('lockExpire', 'int', 'caption=Срок');
@@ -86,13 +86,13 @@ class core_Locks extends core_Manager
      * Заключва обект с посоченото $objectId за максимално време $maxDuration,
      * като за това прави $maxTrays опити, през интервал от 1 секунда
      */
-    static function get($objectId, $maxDuration = 10, $maxTrays = 5, $delOnShutDown = TRUE)
+    public static function get($objectId, $maxDuration = 10, $maxTrays = 5, $delOnShutDown = true)
     {
         $Locks = cls::get('core_Locks');
         
         // Санитаризираме данните
         $maxTrays = max($maxTrays, 0);
-        $maxDuration = max($maxDuration , 0);
+        $maxDuration = max($maxDuration, 0);
         $objectId = str::convertToFixedKey($objectId, 32, 4);
         
         $lockExpire = time() + $maxDuration;
@@ -103,11 +103,11 @@ class core_Locks extends core_Manager
         $rec = $Locks->locks[$objectId];
         
         // Ако този обект е заключен от текущия хит, връщаме TRUE
-        if($rec) {
+        if ($rec) {
             
             // Ако имаме промяна в крайния срок за заключването
             // отразяваме я в модела
-            if($rec->lockExpire < $lockExpire) {
+            if ($rec->lockExpire < $lockExpire) {
                 $rec->lockExpire = $lockExpire;
                 $Locks->save($rec, 'lockExpire');
                 $Locks->locks[$objectId] = $rec;
@@ -116,18 +116,18 @@ class core_Locks extends core_Manager
                 $Locks->locks[$objectId]->_delOnShutDown = $delOnShutDown;
             }
             
-            return TRUE;
+            return true;
         }
         
         // Извличаме записа съответстващ на заключването, от модела
-        $rec = $Locks->fetch(array("#objectId = '[#1#]'", $objectId), '*', FALSE);
+        $rec = $Locks->fetch(array("#objectId = '[#1#]'", $objectId), '*', false);
         
         // Създаваме празен запис, ако не съществува такъв за обекта
-        if(!$rec) {
+        if (!$rec) {
             $rec = new stdClass();
         }
         
-        // Ако няма запис за този обект или заключването е преминало крайния си срок 
+        // Ако няма запис за този обект или заключването е преминало крайния си срок
         // - записваме го и излизаме с успех
         if (empty($rec->id) || ($rec->lockExpire <= time())) {
             $rec->lockExpire = $lockExpire;
@@ -135,27 +135,29 @@ class core_Locks extends core_Manager
             $rec->user = core_Users::getCurrent();
             
             // Ако възникне дублиран запис
-            if ($Locks->save($rec, NULL, 'IGNORE')) {
+            if ($Locks->save($rec, null, 'IGNORE')) {
                 $Locks->locks[$objectId] = $rec;
                 
                 // Дали да се изтрие преди излизане от хита - за асинхронни процеси
                 $Locks->locks[$objectId]->_delOnShutDown = $delOnShutDown;
                 
-                return TRUE;
+                return true;
             }
         }
         
         // Правим последователно няколко опита да заключим обекта, през интервал 1 сек
-        if (static::waitForLock($objectId, $maxDuration, $maxTrays)) return TRUE;    
+        if (static::waitForLock($objectId, $maxDuration, $maxTrays)) {
+            return true;
+        }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Форматира в по-вербални данни реда от листовата таблица
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->lockExpire = dt::mysql2verbal(dt::timestamp2Mysql($rec->lockExpire), 'd-M-Y G:i:s');
     }
@@ -165,12 +167,12 @@ class core_Locks extends core_Manager
      * Отключва обект с посоченото $objectId
      * Извиква се при край на операцията четене или запис започната с add()
      */
-    static function release($objectId)
+    public static function release($objectId)
     {
         $objectId = str::convertToFixedKey($objectId, 32, 4);
         
         $Locks = cls::get('core_Locks');
-	unset($Locks->locks[$objectId]);
+        unset($Locks->locks[$objectId]);
         $Locks->delete(array("#objectId = '[#1#]'", $objectId));
     }
     
@@ -178,14 +180,14 @@ class core_Locks extends core_Manager
     /**
      * Преди излизане от хита, изтриваме всички негови локове
      */
-    static function on_Shutdown($mvc)
+    public static function on_Shutdown($mvc)
     {
         if (count($mvc->locks)) {
-            foreach($mvc->locks as $rec) {
+            foreach ($mvc->locks as $rec) {
                 
                 // Дали да се изтрие преди излизане от хита - за асинхронни процеси
                 if ($rec->_delOnShutDown) {
-                    $mvc->delete($rec->id);    
+                    $mvc->delete($rec->id);
                 }
             }
         }
@@ -194,46 +196,43 @@ class core_Locks extends core_Manager
     
     /**
      * Проверява дали обекта е заключен
-     * 
+     *
      * @param string $objectId - Стринга, за който се проверява дали не е заключен
-     * 
+     *
      * @return boolean - Връща TRUE, ако обекта е заключен
      */
-    static function isLocked($objectId)
+    public static function isLocked($objectId)
     {
         // Сегашното време
         $now = time();
         
         // Проверяваме дали обекта не е заключен
-        if (core_Locks::fetch("#objectId = '{$objectId}' AND #lockExpire >= '{$now}'", NULL, FALSE)) {
-            
-            return TRUE;
+        if (core_Locks::fetch("#objectId = '{$objectId}' AND #lockExpire >= '{$now}'", null, false)) {
+            return true;
         }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Правим последователно няколко опита да заключим обекта, през интервал 1 сек
-     * 
-     * @param string $objectId - Стринга, за който се проверява дали не е заключен 
+     *
+     * @param string  $objectId    - Стринга, за който се проверява дали не е заключен
      * @param integer $maxDuration - За колко време да заключим
-     * @param integer $maxTrays - Колко опита да се направи за заключване
-     * 
+     * @param integer $maxTrays    - Колко опита да се направи за заключване
+     *
      * @return boolean
      */
-    static function waitForLock($objectId, $maxDuration = 10, $maxTrays = 5)
+    public static function waitForLock($objectId, $maxDuration = 10, $maxTrays = 5)
     {
         // Правим последователно няколко опита да заключим обекта, през интервал 1 сек
-        while($maxTrays > 0) {
-            
+        while ($maxTrays > 0) {
             sleep(1);
-            Debug::log("Sleep 1 sec. in" . __CLASS__);
+            Debug::log('Sleep 1 sec. in' . __CLASS__);
 
-            if(static::get($objectId, $maxDuration, 0)) {
-                
-                return TRUE;
+            if (static::get($objectId, $maxDuration, 0)) {
+                return true;
             }
             
             $maxTrays--;
@@ -248,5 +247,4 @@ class core_Locks extends core_Manager
     {
         $data->query->orderBy('lockExpire', 'DESC');
     }
-
 }

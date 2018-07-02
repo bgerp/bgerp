@@ -39,32 +39,32 @@ class core_Permanent extends core_Manager
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Постоянен обект";
+    public $singleTitle = 'Постоянен обект';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'admin';
-	
-	
-	/**
-	 * Кой може да добавя
-	 */
-	public $canAdd = 'no_one';
-	
-	
-	/**
-	 * Кой може да редактира
-	 */
-	public $canEdit = 'no_one';
-	
-	
-	/**
-	 * Кой може да изтрива
-	 */
-	public $canDelete = 'no_one';
-	
+     * Кой може да го разглежда?
+     */
+    public $canList = 'admin';
+    
+    
+    /**
+     * Кой може да добавя
+     */
+    public $canAdd = 'no_one';
+    
+    
+    /**
+     * Кой може да редактира
+     */
+    public $canEdit = 'no_one';
+    
+    
+    /**
+     * Кой може да изтрива
+     */
+    public $canDelete = 'no_one';
+    
 
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
@@ -81,7 +81,7 @@ class core_Permanent extends core_Manager
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('key', 'identifier(' . (CORE_PERMANENT_HANDLER_SIZE + 3) . ')', 'caption=Ключ,notNull');
         $this->FLD('data', 'blob(16777215,serialize,compress)', 'caption=Данни');
@@ -96,112 +96,112 @@ class core_Permanent extends core_Manager
      */
     public static function set($key, $data, $lifetime = 1)
     {
-    	// Ключа
-    	$key = self::getKey($key);
-    	expect(is_numeric($lifetime));
-    	expect(!is_null($data));
-    	
-    	// Колко е живота на кеша
-    	$lifetime = time() + ($lifetime * 60);
-    	
-    	// Подготовка на записа
-    	$rec = (object)array('key' => $key, 'data' => (object)array('value' => $data), 'lifetime' => $lifetime);
-    	
-    	// Запис, ако има стар го замества
-    	$me = cls::get(get_called_class());
-    	$id = $me->save($rec, NULL, 'REPLACE');
-    	Debug::log("PERMANENT_CACHE::set {$key}");
-    	
-    	return $id;
+        // Ключа
+        $key = self::getKey($key);
+        expect(is_numeric($lifetime));
+        expect(!is_null($data));
+        
+        // Колко е живота на кеша
+        $lifetime = time() + ($lifetime * 60);
+        
+        // Подготовка на записа
+        $rec = (object) array('key' => $key, 'data' => (object) array('value' => $data), 'lifetime' => $lifetime);
+        
+        // Запис, ако има стар го замества
+        $me = cls::get(get_called_class());
+        $id = $me->save($rec, null, 'REPLACE');
+        Debug::log("PERMANENT_CACHE::set {$key}");
+        
+        return $id;
     }
     
     
     /**
      * Извлича запис от кеша
-     * 
-     * @param string $key            - ключ на кеша
-     * @param datetime $minCreatedOn - от коя дата насетне да се търси
-     * @return mixed                 - кешираната стойност или NULL, ако не е намерена
+     *
+     * @param  string   $key          - ключ на кеша
+     * @param  datetime $minCreatedOn - от коя дата насетне да се търси
+     * @return mixed    - кешираната стойност или NULL, ако не е намерена
      */
-    public static function get($key, $minCreatedOn = NULL)
+    public static function get($key, $minCreatedOn = null)
     {
-    	$key = self::getKey($key);
-    	
-    	// Подготовка на условието
-    	$where = "#key = '[#1#]'";
-    	if(isset($minCreatedOn)){
-    		$where .= " AND #createdOn >= '{$minCreatedOn}'";
-    	}
-    	
-    	// Опит за извличане на данни
-    	$rec = self::fetch(array($where, $key), 'data,lifetime', FALSE);
-    	
-    	if(empty($rec) || !is_object($rec->data)){
-    		Debug::log("PERMANENT_CACHE::get {$key} - no exists");
-    		
-    		return NULL;
-    	}
-    	 
-    	// Ако живота е изтекъл се изтрива записа, вместо да се връща-
-    	if($rec->lifetime < time()){
-    		self::delete($rec->id);
-    		Debug::log("PERMANENT_CACHE::delete {$key} - expired");
-    		
-    		return NULL;
-    	}
-    	
-    	// Връщане на кешираните данни
-    	$value = $rec->data->value;
-    	Debug::log("PERMANENT_CACHE::get {$key} - success");
-    	
-    	return $value;
+        $key = self::getKey($key);
+        
+        // Подготовка на условието
+        $where = "#key = '[#1#]'";
+        if (isset($minCreatedOn)) {
+            $where .= " AND #createdOn >= '{$minCreatedOn}'";
+        }
+        
+        // Опит за извличане на данни
+        $rec = self::fetch(array($where, $key), 'data,lifetime', false);
+        
+        if (empty($rec) || !is_object($rec->data)) {
+            Debug::log("PERMANENT_CACHE::get {$key} - no exists");
+            
+            return;
+        }
+         
+        // Ако живота е изтекъл се изтрива записа, вместо да се връща-
+        if ($rec->lifetime < time()) {
+            self::delete($rec->id);
+            Debug::log("PERMANENT_CACHE::delete {$key} - expired");
+            
+            return;
+        }
+        
+        // Връщане на кешираните данни
+        $value = $rec->data->value;
+        Debug::log("PERMANENT_CACHE::get {$key} - success");
+        
+        return $value;
     }
     
     
     /**
      * Изтриване на постоянния кеш
-     * 
-     * @param string $key
+     *
+     * @param  string $key
      * @return int
      */
     public static function remove($key)
     {
-    	$key = self::getKey($key);
-    	self::delete(array("#key = '[#1#]'", $key));
+        $key = self::getKey($key);
+        self::delete(array("#key = '[#1#]'", $key));
     }
     
     
     /**
      * Връща ключ за запазване
-     * 
-     * @param string $key - оригиналния ключ
+     *
+     * @param  string $key - оригиналния ключ
      * @return string $newKey - ключа за запис
      */
     private static function getKey($key)
     {
-    	$handler = str::convertToFixedKey($key, CORE_PERMANENT_HANDLER_SIZE - 4, 12);
-    	$prefix = md5(EF_DB_NAME . '|' . CORE_PERMANENT_PREFIX_SALT);
-    	$prefix = substr($prefix, 0, 6);
-    	
-    	$newKey = "{$prefix}|{$handler}";
-    	
-    	return $newKey;
+        $handler = str::convertToFixedKey($key, CORE_PERMANENT_HANDLER_SIZE - 4, 12);
+        $prefix = md5(EF_DB_NAME . '|' . CORE_PERMANENT_PREFIX_SALT);
+        $prefix = substr($prefix, 0, 6);
+        
+        $newKey = "{$prefix}|{$handler}";
+        
+        return $newKey;
     }
     
     
     /**
      * Изтриване на изтеклите записи, по разписание
      */
-    function cron_DeleteExpiredPermData()
+    public function cron_DeleteExpiredPermData()
     {
-    	$query = $this->getQuery();
-    	$query->where("#lifetime < " . time());
-    	
-    	$deletedRecs = 0;
-    	while($rec = $query->fetch()) {
-    		$deletedRecs += $this->delete($rec->id);
-    	}
-    	
-    	$msg = "Лог: <b style='color:blue;'>{$deletedRecs}</b> постоянни записа с изтекъл срок бяха изтрити";
+        $query = $this->getQuery();
+        $query->where('#lifetime < ' . time());
+        
+        $deletedRecs = 0;
+        while ($rec = $query->fetch()) {
+            $deletedRecs += $this->delete($rec->id);
+        }
+        
+        $msg = "Лог: <b style='color:blue;'>{$deletedRecs}</b> постоянни записа с изтекъл срок бяха изтрити";
     }
 }

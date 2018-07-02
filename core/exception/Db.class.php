@@ -40,7 +40,7 @@ class core_exception_Db extends core_exception_Expect
      */
     public function repairDB($link)
     {
-        $tableName = NULL;
+        $tableName = null;
         
         if (strlen($this->dump['query']) && isset($this->dump['mysqlErrCode'])) {
             list($l, $r) = explode('FROM', $this->dump['query']);
@@ -49,19 +49,17 @@ class core_exception_Db extends core_exception_Expect
             $tableName = $parts[1];
         }
         
-        if (isset($tableName) && ($this->dump['mysqlErrCode'] ==  1062)) {
+        if (isset($tableName) && ($this->dump['mysqlErrCode'] == 1062)) {
             $query = "SELECT max(id) as m FROM `{$tableName}`";
-            $dbRes = $link->query($query);  
+            $dbRes = $link->query($query);
             $res = $dbRes->fetch_object();
             $autoIncrement = $res->m + 10;
             $link->query("ALTER TABLE `{$tableName}` AUTO_INCREMENT = {$autoIncrement}");
         }
         
-        if (isset($tableName) && in_array($this->dump['mysqlErrCode'], array(126, 127, 132, 134, 141, 144, 145, 1194)) ) {
+        if (isset($tableName) && in_array($this->dump['mysqlErrCode'], array(126, 127, 132, 134, 141, 144, 145, 1194))) {
             $query = "REPAIR TABLE `{$tableName}`";
-            $dbRes = $link->query($query);  
+            $dbRes = $link->query($query);
         }
     }
-
-
 }

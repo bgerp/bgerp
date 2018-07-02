@@ -3,29 +3,32 @@
 
 /**
  * Клас Агрегатор на бизнес данни по сделките, Инстанцира се в Модел с интерфейс 'bgerp_DealAggregatorIntf',
- * и се предава в документите от неговата нишка, те му сетват пропъртита ако няма.
+ * и се предава в документите от неговата нишка, те му сетват пропъртита ако няма
  *
  *
  * @category  bgerp
- *
+ * @package   bgerp
  * @author    Ivelin Dimov <ivelin_pdimov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
- *
  * @since     v 0.1
  */
 class bgerp_iface_DealAggregator
 {
+    
+    
     /**
-     * Масив с издадените фактури към момента.
+     * Масив с издадените фактури към момента
      */
     public $invoices = array();
-
+    
+    
     /**
-     * Задава стойност на пропърти, ако няма.
+     * Задава стойност на пропърти, ако няма
      *
-     * @param string $name  - име на пропърти
-     * @param string $value - стойност
+     * @param  string $name  - име на пропърти
+     * @param  string $value - стойност
+     * @return void
      */
     public function setIfNot($name, $value)
     {
@@ -34,23 +37,25 @@ class bgerp_iface_DealAggregator
             $this->{$name} = $value;
         }
     }
-
+    
+    
     /**
-     * Задава стойност на пропърти.
+     * Задава стойност на пропърти
      *
-     * @param string $name  - име на пропърти
-     * @param string $value - стойност
+     * @param  string $name  - име на пропърти
+     * @param  string $value - стойност
+     * @return void
      */
     public function set($name, $value)
     {
         $this->{$name} = $value;
     }
-
+    
+    
     /**
-     * Връща стойност на пропърти.
+     * Връща стойност на пропърти
      *
-     * @param string $name - име на пропърти
-     *
+     * @param  string $name - име на пропърти
      * @return mixed
      */
     public function get($name)
@@ -58,21 +63,24 @@ class bgerp_iface_DealAggregator
         // Връщаме стойността на пропъртито
         return $this->{$name};
     }
-
+    
+    
     /**
-     * Добавя/изважда сума от пропърти на обекта.
+     * Добавя/изважда сума от пропърти на обекта
      *
-     * @param string $name  - име на пропърти
-     * @param mixed  $value - стойност за добавяне / изваждане
+     * @param  string $name  - име на пропърти
+     * @param  mixed  $value - стойност за добавяне / изваждане
+     * @return void
      */
     public function sum($name, $value)
     {
         // Добавяме към стойността на пропъртито
         $this->{$name} += $value;
     }
-
+    
+    
     /**
-     * Пушва стойност към масив.
+     * Пушва стойност към масив
      *
      * @param string $name  - име на пропърти
      * @param mixed  $array - масив, обект или скалар който да се добавя към масива
@@ -83,7 +91,7 @@ class bgerp_iface_DealAggregator
         if (!isset($this->{$name})) {
             $this->{$name} = array();
         }
-
+        
         if ($index) {
             $a = &$this->{$name};
             $a[$index] = $array;
@@ -92,9 +100,10 @@ class bgerp_iface_DealAggregator
             array_push($this->{$name}, $array);
         }
     }
-
+    
+    
     /**
-     * Добавя стойност към масив от масиви.
+     * Добавя стойност към масив от масиви
      *
      * @param string $name  - име на пропърти
      * @param mixed  $array - масив, обект или скалар който да се добавя към масива
@@ -105,7 +114,7 @@ class bgerp_iface_DealAggregator
         if (!isset($this->{$name})) {
             $this->{$name} = array();
         }
-
+        
         $a = &$this->{$name};
         $a[$index][] = $array;
     }

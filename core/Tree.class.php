@@ -21,13 +21,13 @@ class core_Tree extends core_BaseClass
     /**
      * Масив в елементите на дървото
      */
-    var $nodes = array();
+    public $nodes = array();
     
     
     /**
      * Инициализиране на обекта
      */
-    function init($params = array())
+    public function init($params = array())
     {
         parent::init($params);
         
@@ -38,20 +38,18 @@ class core_Tree extends core_BaseClass
     /**
      * Добавя елемент в дървото
      */
-    function addNode($path, $url, $onlyLastUrl = FALSE)
+    public function addNode($path, $url, $onlyLastUrl = false)
     {
-        $nodes = explode("->", $path);
+        $nodes = explode('->', $path);
         
         $pid = -1;
         
         $nodesCnt = count($nodes);
 
-        foreach($nodes as $key => $node) {
+        foreach ($nodes as $key => $node) {
+            $currentPath .= ($currentPath ? '->' : '') . $node;
             
-            $currentPath .= ($currentPath ? "->" : "") . $node;
-            
-            if(!isset($this->nodes[$currentPath])) {
-                
+            if (!isset($this->nodes[$currentPath])) {
                 $n = new stdClass();
                 
                 $n->id = count($this->nodes);
@@ -60,10 +58,9 @@ class core_Tree extends core_BaseClass
                 $n->title = $node;
 
                 // Ако е задедено само на последния nod да се добавя URL
-                if (!$onlyLastUrl || ($onlyLastUrl && ($key == $nodesCnt-1))) {
-                    
-                    if ($url) { 
-                        $n->url = toUrl($url);       
+                if (!$onlyLastUrl || ($onlyLastUrl && ($key == $nodesCnt - 1))) {
+                    if ($url) {
+                        $n->url = toUrl($url);
                     }
                 }
                 
@@ -78,14 +75,14 @@ class core_Tree extends core_BaseClass
     /**
      * Рендира дървото
      */
-    function renderHtml_($body, $selected = NULL)
+    public function renderHtml_($body, $selected = null)
     {
         // Ако нямаме дърво - връщаме съдържанието без промяна
         if (!count($this->nodes)) {
             return $body;
         }
         
-        //  @тодо    
+        //  @тодо
         if (!$selectedNode) {
             $selectedId = 0;
         }
@@ -113,23 +110,22 @@ class core_Tree extends core_BaseClass
         
         $name = $this->name;
         
-        $tpl->append("\n{$name}.icon.root = " . sbf('img/dtree/base.gif', "'") . ";", 'treeDesciption');
-        $tpl->append("\n{$name}.icon.folder = " . sbf('img/dtree/folder.gif', "'") . ";", 'treeDesciption');
-        $tpl->append("\n{$name}.icon.folderOpen = " . sbf('img/dtree/folderopen.gif', "'") . ";", 'treeDesciption');
-        $tpl->append("\n{$name}.icon.node = " . sbf('img/dtree/page.gif', "'") . ";", 'treeDesciption');
-        $tpl->append("\n{$name}.icon.empty = " . sbf('img/dtree/empty.gif', "'") . ";", 'treeDesciption');
-        $tpl->append("\n{$name}.icon.line = " . sbf('img/dtree/line.gif', "'") . ";", 'treeDesciption');
-        $tpl->append("\n{$name}.icon.join = " . sbf('img/dtree/join.gif', "'") . ";", 'treeDesciption');
-        $tpl->append("\n{$name}.icon.joinBottom = " . sbf('img/dtree/joinbottom.gif', "'") . ";", 'treeDesciption');
-        $tpl->append("\n{$name}.icon.plus = " . sbf('img/dtree/plus.gif', "'") . ";", 'treeDesciption');
-        $tpl->append("\n{$name}.icon.plusBottom = " . sbf('img/dtree/plusbottom.gif', "'") . ";", 'treeDesciption');
-        $tpl->append("\n{$name}.icon.minus = " . sbf('img/dtree/minus.gif', "'") . ";", 'treeDesciption');
-        $tpl->append("\n{$name}.icon.minusBottom = " . sbf('img/dtree/minusbottom.gif', "'") . ";", 'treeDesciption');
-        $tpl->append("\n{$name}.icon.nlPlus = " . sbf('img/dtree/nolines_plus.gif', "'") . ";", 'treeDesciption');
-        $tpl->append("\n{$name}.icon.nlMinus = " . sbf('img/dtree/nolines_minus.gif', "'") . ";", 'treeDesciption');
+        $tpl->append("\n{$name}.icon.root = " . sbf('img/dtree/base.gif', "'") . ';', 'treeDesciption');
+        $tpl->append("\n{$name}.icon.folder = " . sbf('img/dtree/folder.gif', "'") . ';', 'treeDesciption');
+        $tpl->append("\n{$name}.icon.folderOpen = " . sbf('img/dtree/folderopen.gif', "'") . ';', 'treeDesciption');
+        $tpl->append("\n{$name}.icon.node = " . sbf('img/dtree/page.gif', "'") . ';', 'treeDesciption');
+        $tpl->append("\n{$name}.icon.empty = " . sbf('img/dtree/empty.gif', "'") . ';', 'treeDesciption');
+        $tpl->append("\n{$name}.icon.line = " . sbf('img/dtree/line.gif', "'") . ';', 'treeDesciption');
+        $tpl->append("\n{$name}.icon.join = " . sbf('img/dtree/join.gif', "'") . ';', 'treeDesciption');
+        $tpl->append("\n{$name}.icon.joinBottom = " . sbf('img/dtree/joinbottom.gif', "'") . ';', 'treeDesciption');
+        $tpl->append("\n{$name}.icon.plus = " . sbf('img/dtree/plus.gif', "'") . ';', 'treeDesciption');
+        $tpl->append("\n{$name}.icon.plusBottom = " . sbf('img/dtree/plusbottom.gif', "'") . ';', 'treeDesciption');
+        $tpl->append("\n{$name}.icon.minus = " . sbf('img/dtree/minus.gif', "'") . ';', 'treeDesciption');
+        $tpl->append("\n{$name}.icon.minusBottom = " . sbf('img/dtree/minusbottom.gif', "'") . ';', 'treeDesciption');
+        $tpl->append("\n{$name}.icon.nlPlus = " . sbf('img/dtree/nolines_plus.gif', "'") . ';', 'treeDesciption');
+        $tpl->append("\n{$name}.icon.nlMinus = " . sbf('img/dtree/nolines_minus.gif', "'") . ';', 'treeDesciption');
         
         foreach ($this->nodes as $path => $n) {
-            
             $n->title = json_encode($n->title);
             $n->url = json_encode($n->url);
             
@@ -140,7 +136,7 @@ class core_Tree extends core_BaseClass
         // Аппендваме стринга
         $tpl->append($treeDescription, 'treeDesciption');
         
-        if($selectedId) {
+        if ($selectedId) {
             // $tpl->append("\n{$name}.openTo({$selectedId}, true);", 'treeDesciption');
         }
 

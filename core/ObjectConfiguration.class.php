@@ -18,13 +18,13 @@ class core_ObjectConfiguration extends core_BaseClass
     /**
      * Описание на конфигурацията
      */
-    var $_description = array();
+    public $_description = array();
     
 
     /**
      * Стойности на константите
      */
-    var $_data = array();
+    public $_data = array();
     
 
     /**
@@ -38,7 +38,7 @@ class core_ObjectConfiguration extends core_BaseClass
             $description = unserialize($description);
         }
 
-        if(is_array($description)) {
+        if (is_array($description)) {
             $this->_description = $description;
         }
 
@@ -46,7 +46,7 @@ class core_ObjectConfiguration extends core_BaseClass
             $data = unserialize($data);
         }
         
-        if(is_array($data)) {
+        if (is_array($data)) {
             $this->_data = $data;
         }
     }
@@ -55,28 +55,26 @@ class core_ObjectConfiguration extends core_BaseClass
     /**
      * 'Магически' метод, който връща стойността на константата
      */
-    function __get($name)
+    public function __get($name)
     {
         if (!Mode::get('stopInvoke')) {
             $this->invoke('BeforeGetConfConst', array(&$value, $name));
         }
 
         // Търси константата в данните въведени през уеб-интерфейса
-        if(!isset($value) && isset($this->_data[$name]) && !(empty($this->_data[$name]) && $this->_data[$name] !== (double) 0 && $this->_data[$name] !== (int) 0)) {
-
+        if (!isset($value) && isset($this->_data[$name]) && !(empty($this->_data[$name]) && $this->_data[$name] !== (double) 0 && $this->_data[$name] !== (int) 0)) {
             $value = $this->_data[$name];
         }
  
         // Търси константата като глобално дефинирана
-        if(!isset($value) && defined($name)) {
-
+        if (!isset($value) && defined($name)) {
             $value = constant($name);
         }
         
-        if(isset($this->_description[$name])) {
-            expect(isset($value), "Константата $name няма стойност", $this->_description, $this->_data);
+        if (isset($this->_description[$name])) {
+            expect(isset($value), "Константата ${name} няма стойност", $this->_description, $this->_data);
         } else {
-            expect(isset($value), "Константата $name не е дефинирана", $this->_description, $this->_data);
+            expect(isset($value), "Константата ${name} не е дефинирана", $this->_description, $this->_data);
         }
 
         return $value;
@@ -86,7 +84,7 @@ class core_ObjectConfiguration extends core_BaseClass
     /**
      * Връща броя на описаните константи
      */
-    function getConstCnt()
+    public function getConstCnt()
     {
         return count($this->_description);
     }
@@ -95,21 +93,26 @@ class core_ObjectConfiguration extends core_BaseClass
     /**
      * Връща броя на недефинираните константи
      */
-    function haveErrors()
+    public function haveErrors()
     {
         $cnt = 0;
-        if(count($this->_description)) {
-            foreach($this->_description as $name => $descr) {
-                $params = arr::make($descr[1], TRUE);
-                if(!$params['mandatory']) continue;
-                if(isset($this->_data[$name]) && $this->_data[$name] !== '') continue;
-                if(defined($name) && constant($name) !== '' && constant($name) !== NULL) continue;
+        if (count($this->_description)) {
+            foreach ($this->_description as $name => $descr) {
+                $params = arr::make($descr[1], true);
+                if (!$params['mandatory']) {
+                    continue;
+                }
+                if (isset($this->_data[$name]) && $this->_data[$name] !== '') {
+                    continue;
+                }
+                if (defined($name) && constant($name) !== '' && constant($name) !== null) {
+                    continue;
+                }
 
-                return TRUE;
+                return true;
             }
         }
 
-        return FALSE;
+        return false;
     }
-    
 }

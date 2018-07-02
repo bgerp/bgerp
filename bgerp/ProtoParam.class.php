@@ -1,59 +1,69 @@
 <?php
 
 
+
 /**
- * Клас 'bgerp_ProtoParam' - Клас за наследяване от класове за параметри на обекти.
+ * Клас 'bgerp_ProtoParam' - Клас за наследяване от класове за параметри на обекти
  *
  *
  * @category  bgerp
- *
+ * @package   bgerp
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
- *
  * @since     v 0.1
  */
 abstract class bgerp_ProtoParam extends embed_Manager
 {
+    
+    
     /**
-     * Свойство, което указва интерфейса на вътрешните обекти.
+     * Свойство, което указва интерфейса на вътрешните обекти
      */
     public $driverInterface = 'cond_ParamTypeIntf';
-
+    
+    
     /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search).
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'name, suffix,  sysId';
-
+    
+    
     /**
-     * Полета, които ще се показват в листов изглед.
+     * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'typeExt,order,driverClass=Тип,state,roles';
-
+    
+    
     /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него.
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'typeExt';
-
+    
+    
     /**
-     * Нов темплейт за показване.
+     * Нов темплейт за показване
      */
     public $singleLayoutFile = 'bgerp/tpl/SingleLayoutParams.shtml';
-
+    
+    
     /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях.
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
     public $hideListFieldsIfEmpty = 'order,roles';
-
+    
+    
     /**
-     * Работен кеш.
+     * Работен кеш
      */
     public static $cache = array();
-
+    
+    
     /**
-     * Добавя задължителни полета към модела.
+     * Добавя задължителни полета към модела
      *
-     * @param bgerp_ProtoParam $mvc
+     * @param  bgerp_ProtoParam $mvc
+     * @return void
      */
     public static function setFields(&$mvc)
     {
@@ -67,39 +77,42 @@ abstract class bgerp_ProtoParam extends embed_Manager
         $mvc->FLD('group', 'varchar(64,ci)', 'caption=Група,after=suffix,placeholder=В която да се показва параметъра в списъците');
         $mvc->FLD('order', 'int', 'caption=Позиция,after=group');
         $mvc->FLD('roles', 'keylist(mvc=core_Roles,select=role,allowEmpty,groupBy=type)', 'caption=Роли,after=group');
-
+        
         $mvc->setDbUnique('name, suffix, group');
         $mvc->setDbUnique('sysId');
     }
-
+    
+    
     /**
-     * Помощна ф-я.
+     * Помощна ф-я
      */
     private static function calcTypeExt($rec)
     {
         $typeExt = tr($rec->name);
         $typeExt = str_replace(array('&lt;', '&amp;'), array('<', '&'), $typeExt);
-
+        
         if (!empty($rec->group)) {
             $group = tr($rec->group);
             $typeExt = "{$group} » {$typeExt}";
         }
-
+            
         if (!empty($rec->suffix)) {
-            $typeExt .= ' ('.str_replace(array('&lt;', '&amp;'), array('<', '&'), tr($rec->suffix)).')';
+            $typeExt .= ' (' . str_replace(array('&lt;', '&amp;'), array('<', '&'), tr($rec->suffix)) . ')';
         }
-
+        
         return $typeExt;
     }
-
+    
+    
     /**
-     * Изчисляване на typeExt.
+     * Изчисляване на typeExt
      */
     protected static function on_CalcTypeExt($mvc, $rec)
     {
         $rec->typeExt = self::calcTypeExt($rec);
     }
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -109,48 +122,50 @@ abstract class bgerp_ProtoParam extends embed_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $data->form->setField('driverClass', 'caption=Тип');
-
+         
         if (isset($data->form->rec->sysId)) {
             $data->form->setReadOnly('name');
             $data->form->setReadOnly('suffix');
             $data->form->setReadOnly('default');
-
+            
             $data->form->setReadOnly('group');
         }
-
+        
         $query = $mvc->getQuery();
         $query->where("#group != '' AND #group IS NOT NULL");
         $params = array_map(create_function('$o', 'return $o->group;'), $query->fetchAll());
         if (count($params)) {
             $params = arr::make($params, true);
         }
-
+        
         $data->form->setSuggestions('group', array('' => '') + $params);
     }
-
+    
+    
     /**
-     * Връща ид-то на параметъра по зададен sysId.
+     * Връща ид-то на параметъра по зададен sysId
      *
-     * @param string $sysId
-     *
-     * @return int $id - ид на параметъра
+     * @param  string $sysId
+     * @return int    $id - ид на параметъра
      */
     public static function fetchIdBySysId($sysId)
     {
         return static::fetchField(array("#sysId = '[#1#]'", $sysId), 'id');
     }
-
+    
+    
     /**
-     * След подготовка на масива за избор на опции.
+     * След подготовка на масива за избор на опции
      */
     protected static function on_AfterMakeArray4Select($mvc, &$options, $fields = null, &$where = '', $index = 'id')
     {
         $newOptions = $options;
-
+    
         // Ако има опции
         if (is_array($options)) {
             $newOptions = array();
             foreach ($options as $id => $value) {
+                
                 // Ако има роли за параметъра и потребителя ги няма, не може да избира параметъра
                 $roles = self::$cache[$id]->roles;
                 if (!empty($roles)) {
@@ -158,9 +173,9 @@ abstract class bgerp_ProtoParam extends embed_Manager
                         continue;
                     }
                 }
-
+                
                 $group = self::$cache[$id]->group;
-
+                
                 // Ако имат група, и няма такава група в масива, те се групират
                 if (!empty($group)) {
                     if (!array_key_exists($group, $newOptions)) {
@@ -168,20 +183,21 @@ abstract class bgerp_ProtoParam extends embed_Manager
                         $newOptions[$group] = (object) array('title' => $group, 'group' => true);
                     }
                 }
-
+                
                 // Махане на гръпата от името
                 $exploded = explode(' » ', $value);
-                $value = (2 == count($exploded)) ? $exploded[1] : $value;
-
+                $value = (count($exploded) == 2) ? $exploded[1] : $value;
+                    
                 $newOptions[$id] = $value;
             }
         }
-
+        
         $options = $newOptions;
     }
-
+    
+    
     /**
-     * Подготвя опциите за селектиране на параметър като към името се добавя неговия suffix.
+     * Подготвя опциите за селектиране на параметър като към името се добавя неговия suffix
      */
     public function makeArray4Select_($fields = null, $where = '', $index = 'id', $tpl = null)
     {
@@ -191,26 +207,26 @@ abstract class bgerp_ProtoParam extends embed_Manager
         }
         $query->orderBy('group,order', 'ASC');
         $query->show('name,suffix,group,roles,group');
-
+        
         $options = array();
-
+        
         while ($rec = $query->fetch()) {
             self::$cache[$rec->id] = $rec;
             $options[$rec->{$index}] = self::calcTypeExt($rec);
         }
-
+        
         return $options;
     }
-
+    
+    
     /**
-     * Връща типа на параметъра.
+     * Връща типа на параметъра
      *
-     * @param mixed $id          - ид или запис на параметър
-     * @param mixed $domainClass - клас на домейна на параметъра
-     * @param int   $domainId    - ид на домейна на параметъра
-     * @param mixed $value       - стойност
-     *
-     * @return false|core_Type - инстанцираният тип или FALSE ако не може да се определи
+     * @param  mixed           $id          - ид или запис на параметър
+     * @param  mixed           $domainClass - клас на домейна на параметъра
+     * @param  int             $domainId    - ид на домейна на параметъра
+     * @param  mixed           $value       - стойност
+     * @return FALSE|core_Type - инстанцираният тип или FALSE ако не може да се определи
      */
     public static function getTypeInstance($id, $domainClass, $domainId, $value = null)
     {
@@ -218,18 +234,19 @@ abstract class bgerp_ProtoParam extends embed_Manager
         if ($Driver = static::getDriver($rec)) {
             return $Type = $Driver->getType($rec, $domainClass, $domainId, $value);
         }
-
+         
         return false;
     }
-
+    
+    
     /**
-     * Изпълнява се преди импортирването на данните.
+     * Изпълнява се преди импортирването на данните
      */
     protected static function on_BeforeImportRec($mvc, &$rec)
     {
         core_Classes::add($rec->driverClass);
         $rec->driverClass = cls::get($rec->driverClass)->getClassId();
-
+        
         // Импортиране на параметри при нужда
         if (isset($rec->csv_params)) {
             $params = arr::make($rec->csv_params);
@@ -239,7 +256,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
                 }
             }
         }
-
+        
         // Импортиране и на ролите
         if (!empty($rec->csv_roles)) {
             $rolesArr = arr::make($rec->csv_roles);
@@ -249,14 +266,15 @@ abstract class bgerp_ProtoParam extends embed_Manager
                         core_Roles::addOnce($role);
                     }
                 }
-
+                
                 $rec->roles = core_Roles::getRolesAsKeylist($rec->csv_roles);
             }
         }
     }
-
+    
+    
     /**
-     * Подготовка на филтър формата.
+     * Подготовка на филтър формата
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
@@ -264,7 +282,8 @@ abstract class bgerp_ProtoParam extends embed_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->view = 'horizontal';
     }
-
+    
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -278,23 +297,23 @@ abstract class bgerp_ProtoParam extends embed_Manager
             $row->suffix = $mvc->getFieldType('suffix')->toVerbal(tr($rec->suffix));
         }
     }
-
+    
+    
     /**
-     * Подготвя запис за форсиране.
+     * Подготвя запис за форсиране
      *
-     * @param string      $sysId   - систем ид на параметър
-     * @param string      $name    - име на параметъра
-     * @param string      $type    - тип на параметъра
-     * @param null|text   $options - опции на параметъра само за типовете enum и set
-     * @param null|string $suffix  - наставка
-     *
-     * @return stdClass $nRec     - ид на параметъра
+     * @param  string      $sysId   - систем ид на параметър
+     * @param  string      $name    - име на параметъра
+     * @param  string      $type    - тип на параметъра
+     * @param  NULL|text   $options - опции на параметъра само за типовете enum и set
+     * @param  NULL|string $suffix  - наставка
+     * @return stdClass    $nRec     - ид на параметъра
      */
     protected static function makeNewRec($sysId, $name, $type, $options = array(), $suffix = null)
     {
         // Проверка дали типа е допустим
         expect(in_array(strtolower($type), array('double', 'text', 'varchar', 'time', 'date', 'component', 'percent', 'int', 'delivery', 'paymentmethod', 'image', 'enum', 'set', 'file')));
-
+            
         // Подготовка на записа на параметъра
         expect($Type = cls::get("cond_type_{$type}"));
         $nRec = new stdClass();
@@ -304,41 +323,42 @@ abstract class bgerp_ProtoParam extends embed_Manager
         if (!empty($suffix)) {
             $nRec->suffix = $suffix;
         }
-
+            
         // Само за типовете enum и set, се искат опции
-        if ('enum' == $type || 'set' == $type) {
+        if ($type == 'enum' || $type == 'set') {
             $nRec->options = cond_type_abstract_Proto::options2text($options);
         }
-
+        
         return $nRec;
     }
-
+    
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ('delete' == $action && isset($rec->id)) {
+        if ($action == 'delete' && isset($rec->id)) {
             if ($rec->sysId || $rec->lastUsedOn) {
                 $requiredRoles = 'no_one';
             }
         }
-
-        if (('changestate' == $action) && isset($rec->id)) {
+        
+        if (($action == 'changestate') && isset($rec->id)) {
             if (isset($rec->sysId)) {
                 $requiredRoles = 'no_one';
             }
         }
     }
-
+    
+    
     /**
-     * Параметри функция за вербализиране.
+     * Параметри функция за вербализиране
      *
-     * @param int   $id          - ид на параметър
-     * @param mixed $domainClass - клас на домейна на параметъра
-     * @param int   $domainId    - ид на домейна на параметъра
-     * @param mixed $value       - стойност за вебализиране
-     *
+     * @param  int   $id          - ид на параметър
+     * @param  mixed $domainClass - клас на домейна на параметъра
+     * @param  int   $domainId    - ид на домейна на параметъра
+     * @param  mixed $value       - стойност за вебализиране
      * @return mixed - вербализирана стойност или FALSE ако не може
      */
     public static function toVerbal($id, $domainClass, $domainId, $value)
@@ -347,16 +367,16 @@ abstract class bgerp_ProtoParam extends embed_Manager
         if ($Type) {
             return $Type->toVerbal(trim($value));
         }
-
+         
         return false;
     }
-
+    
+    
     /**
      * Ограничаване на символите на стойноста, ако е текст
      *
-     * @param mixed $driverClass
-     * @param mixed $value
-     *
+     * @param  mixed $driverClass
+     * @param  mixed $value
      * @return mixed $value
      */
     public static function limitValue($driverClass, $value)
@@ -365,11 +385,11 @@ abstract class bgerp_ProtoParam extends embed_Manager
         if (($driverClass instanceof cond_type_Text) && mb_strlen($value) > 90) {
             $bHtml = mb_strcut($value, 0, 90);
             $cHtml = mb_strcut($value, 90);
-
-            $value = $bHtml."\n[hide=".tr('Вижте още').']'.$value.'[/hide]';
+             
+            $value = $bHtml . "\n[hide=" . tr('Вижте още') . ']' . $value . '[/hide]';
             $value = cls::get('type_Richtext')->toVerbal($value);
         }
-
+         
         return $value;
     }
 }

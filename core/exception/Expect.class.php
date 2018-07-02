@@ -2,8 +2,8 @@
 
 
 /**
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   core
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class core_exception_Expect extends ErrorException 
+class core_exception_Expect extends ErrorException
 {
     /**
      * Вербален тип на изключението
@@ -28,12 +28,12 @@ class core_exception_Expect extends ErrorException
     /**
      *  Конструктор на изключението
      */
-    public function __construct($message = "", $type = 'Изключение', $dump = NULL)
+    public function __construct($message = '', $type = 'Изключение', $dump = null)
     {
         parent::__construct($message);
         
-        $this->type  = $type;
-        $this->dump  = $dump;
+        $this->type = $type;
+        $this->dump = $dump;
     }
     
     
@@ -59,5 +59,4 @@ class core_exception_Expect extends ErrorException
     {
         return $this->dump;
     }
-
 }

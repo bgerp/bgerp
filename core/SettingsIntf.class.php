@@ -18,13 +18,12 @@ class core_SettingsIntf
     
     /**
      * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
-     * 
-     * @param string $key
+     *
+     * @param string  $key
      * @param integer $userOrRole
      */
-    function canModifySettings($key, $userOrRole=NULL)
+    public function canModifySettings($key, $userOrRole = null)
     {
-        
         return $this->class->canModifySettings($key, $userOrRole);
     }
     
@@ -32,24 +31,22 @@ class core_SettingsIntf
     
     /**
      * Подготвя формата за настройки
-     * 
+     *
      * @param core_Form $form
      */
-    function prepareSettingsForm(&$form)
+    public function prepareSettingsForm(&$form)
     {
-        
         return $this->class->prepareSettingsForm($form);
     }
     
     
     /**
      * Проверява формата за настройки
-     * 
+     *
      * @param core_Form $form
      */
-    function checkSettingsForm(&$form)
+    public function checkSettingsForm(&$form)
     {
-        
         return $this->class->checkSettingsForm($form);
     }
 }

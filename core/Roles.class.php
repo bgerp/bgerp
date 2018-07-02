@@ -26,68 +26,64 @@ class core_Roles extends core_Manager
     /**
      * Заглавие на модела
      */
-    var $title = 'Роли';
+    public $title = 'Роли';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Роля";
+    public $singleTitle = 'Роля';
     
 
     /**
      * Статична променлива за съхранение на съществуващите роли в системата
      * (id -> Role, Role -> id)
      */
-    static $rolesArr;
+    public static $rolesArr;
     
     
     /**
-     * Променлива - флаг, че изчислените роли за наследяване 
+     * Променлива - флаг, че изчислените роли за наследяване
      * и потребителските роли трябва да се преизчислят
      */
-    var $recalcRoles = FALSE;
+    public $recalcRoles = false;
     
 
     /**
      * Кой може да редактира системните роли
      */
-    var $canEditsysdata = 'no_one';
+    public $canEditsysdata = 'no_one';
     
 
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'admin';
-	
+     * Кой може да го разглежда?
+     */
+    public $canList = 'admin';
+    
     /**
      * Наследените роли, преди да редактираме формата
      */
-    var $oldInheritRecs;
+    public $oldInheritRecs;
     
 
     /**
      * Колонки в списъчния изглед
      */
-    var $listFields = 'id,role, inheritInput, type';
+    public $listFields = 'id,role, inheritInput, type';
     
     
-    /**
-     * 
-     */
+    
     public $loadList = 'plg_Sorting, plg_State2, plg_Created, plg_SystemWrapper, plg_RowTools2, plg_Search';
     
 
-    /**
-     * 
-     */
+    
     public $searchFields = 'role, inherit, inheritInput, type';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory,translate');
         $this->FLD('inheritInput', 'keylist(mvc=core_Roles,select=role,groupBy=type,where=#type !\\= \\\'rang\\\' AND #type !\\= \\\'team\\\',orderBy=orderByRole)', 'caption=Наследяване,notNull,');
@@ -102,11 +98,11 @@ class core_Roles extends core_Manager
     /**
      * Добавя посочената роля, ако я няма
      */
-    static function addOnce($role, $inherit = NULL, $type = 'job')
+    public static function addOnce($role, $inherit = null, $type = 'job')
     {
         expect($role);
         
-        if(is_array($role)) {
+        if (is_array($role)) {
             list($role, $inherit, $type) = $role;
         }
 
@@ -117,26 +113,26 @@ class core_Roles extends core_Manager
         
         $Roles = cls::get('core_Roles');
         
-        if(isset($inherit)) {
+        if (isset($inherit)) {
             $rec->inheritInput = $Roles->getRolesAsKeylist($inherit);
         }
         
         $exRec = $Roles->fetch(array("#role = '[#1#]'", $rec->role));
         
-        if($exRec) {
+        if ($exRec) {
             $rec->id = $exRec->id;
             $rec->inheritInput = keylist::fromArray(arr::combine(keylist::toArray($rec->inheritInput), keylist::toArray($exRec->inheritInput)));
         }
         
         $Roles->save($rec);
         
-        if(!$exRec) {
+        if (!$exRec) {
             $res = "<li class=\"debug-new\">Създаване на роля <b>{$role}</b></li>";
-        } elseif($rec->id) {
-            if($rec->inheritInput  == $exRec->inheritInput) {
+        } elseif ($rec->id) {
+            if ($rec->inheritInput == $exRec->inheritInput) {
                 $res = "<li class=\"debug-info\">Без промяна на роля <b>{$role}</b></li>";
             } else {
-                $res = "<li class=\"debug-update\">Модифициране на роля <b>{$role}</b>  $rec->inheritInput  == $exRec->inheritInput </li>";
+                $res = "<li class=\"debug-update\">Модифициране на роля <b>{$role}</b>  {$rec->inheritInput}  == {$exRec->inheritInput} </li>";
             }
         } else {
             $res = "<li class=\"debug-error\">Грешка при създаване на роля <b>{$role}</b></li>";
@@ -149,18 +145,16 @@ class core_Roles extends core_Manager
     /**
      * Зарежда ролите, ако все още не са заредени
      */
-    static function loadRoles()
+    public static function loadRoles()
     {
-        if(!count(self::$rolesArr)) {
-            
+        if (!count(self::$rolesArr)) {
             self::$rolesArr = core_Cache::get('core_Roles', 'allRoles', 1440, array('core_Roles'));
             
-            if(!self::$rolesArr) {
-                
+            if (!self::$rolesArr) {
                 $query = static::getQuery();
                 
-                while($rec = $query->fetch()) {
-                    if($rec->role) {
+                while ($rec = $query->fetch()) {
+                    if ($rec->role) {
                         self::$rolesArr[$rec->role] = $rec->id;
                         self::$rolesArr[$rec->id] = $rec->role;
                     }
@@ -174,7 +168,7 @@ class core_Roles extends core_Manager
 
     /**
      * Връща масив от групирани по тип опции за ролите
-     * 
+     *
      * @param array $rolesArr
      */
     public static function getGroupedOptions($rolesArr = array())
@@ -184,19 +178,19 @@ class core_Roles extends core_Manager
         $query->where("#state != 'closed'");
         
         if (!empty($rolesArr)) {
-            $query->in('id', $rolesArr, FALSE, TRUE);
+            $query->in('id', $rolesArr, false, true);
         }
         
         $types = $query->getFieldType('type')->options;
         
         $res = array();
 
-        foreach($types as $t => $n) {
+        foreach ($types as $t => $n) {
             $res[$t] = array();
         }
 
-        while($rec = $query->fetch()) {
-            if($rec->role) {
+        while ($rec = $query->fetch()) {
+            if ($rec->role) {
                 $res[$rec->type][$rec->id] = $rec->role;
             }
         }
@@ -209,7 +203,7 @@ class core_Roles extends core_Manager
     /**
      * Връща id-то на ролята според името и
      */
-    static function fetchByName($role)
+    public static function fetchByName($role)
     {
         self::loadRoles();
         
@@ -220,7 +214,7 @@ class core_Roles extends core_Manager
     /**
      * Връща id-то на ролята според името и
      */
-    static function fetchById($roleId)
+    public static function fetchById($roleId)
     {
         self::loadRoles();
         
@@ -231,26 +225,28 @@ class core_Roles extends core_Manager
     /**
      * Създава рекурсивно списък с всички роли, които наследява посочената роля
      *
-     * @param mixed $roles keylist или масив от роли, където елементите са id-тата, наименованията или записите на ролите
+     * @param  mixed $roles keylist или масив от роли, където елементите са id-тата, наименованията или записите на ролите
      * @return array масив от първични ключове на роли
      */
-    static function expand($roles, &$current = array())
+    public static function expand($roles, &$current = array())
     {
         if (!is_array($roles)) {
-            $roles = keylist::toArray($roles, TRUE);
+            $roles = keylist::toArray($roles, true);
         }
        
         foreach ($roles as $role) {
             if (is_object($role)) {
                 $rec = $role;
             } elseif (is_numeric($role)) {
-                $rec = static::fetch($role); 
+                $rec = static::fetch($role);
             } else {
                 $rec = static::fetch("#role = '{$role}'");
             }
 
             // Прескачаме насъсществуващите роли
-            if(!$rec) continue;
+            if (!$rec) {
+                continue;
+            }
             
             if ($rec && !isset($current[$rec->id])) {
                 $current[$rec->id] = $rec->id;
@@ -265,21 +261,21 @@ class core_Roles extends core_Manager
     /**
      * Връща keylist с всички роли от посочения тип
      */
-    static function getRolesByType($type, $result = 'keylist', $onlyActive = FALSE)
+    public static function getRolesByType($type, $result = 'keylist', $onlyActive = false)
     {
         $roleQuery = core_Roles::getQuery();
         
-        if($onlyActive) {
+        if ($onlyActive) {
             $roleQuery->where("#state = 'active'");
         }
 
-        $roleQuery->orderBy("orderByRole=ASC");
+        $roleQuery->orderBy('orderByRole=ASC');
 
-        while($roleRec = $roleQuery->fetch("#type = '{$type}'")) {
+        while ($roleRec = $roleQuery->fetch("#type = '{$type}'")) {
             $res[$roleRec->id] = $roleRec->id;
         }
         
-        if($result == 'keylist') {
+        if ($result == 'keylist') {
             $res = keylist::fromArray($res);
         }
 
@@ -290,11 +286,10 @@ class core_Roles extends core_Manager
     /**
      * Връща keylist с роли от вербален списък
      */
-    static function getRolesAsKeylist($roles)
+    public static function getRolesAsKeylist($roles)
     {
         // Ако входния аргумент е keylist - директно го връщаме
-        if(keylist::isKeylist($roles)) {
-
+        if (keylist::isKeylist($roles)) {
             return $roles;
         }
 
@@ -302,7 +297,7 @@ class core_Roles extends core_Manager
         
         $Roles = cls::get('core_Roles');
         
-        foreach($rolesArr as $role) {
+        foreach ($rolesArr as $role) {
             $id = $Roles->fetchByName($role);
             expect($id, $role);
             $keylistArr[$id] = $id;
@@ -316,36 +311,35 @@ class core_Roles extends core_Manager
     
     /**
      * Връща масив с броя на всички типове, които се срещат
-     * 
+     *
      * @paramt keyList, array или list $roles - id' тата на ролите
-     * 
+     *
      * @return array $rolesArr - Масив с всички типове и броя срещания
      */
-    static function countRolesByType($roles) 
+    public static function countRolesByType($roles)
     {
         $res = array();
 
-        if(is_string($roles) && $roles) {
-            if(!keylist::isKeylist($roles)) {
+        if (is_string($roles) && $roles) {
+            if (!keylist::isKeylist($roles)) {
                 //Вземаме всики типове роли
                 $roles = self::getRolesAsKeylist($roles);
             }
             $roles = keylist::toArray($roles);
-        } elseif(is_int($roles)) {
+        } elseif (is_int($roles)) {
             $roles = array($roles => $roles);
         } else {
             expect(is_array($roles));
         }
         
-        if(count($roles)) {
+        if (count($roles)) {
             foreach ($roles as $id => $dummy) {
-                
                 $type = self::fetchField($id, 'type');
 
                 if ($type) {
                     
                     //За всяко срещане на роля добавяме единица
-                    $res[$type] += 1 ;
+                    ++$res[$type] ;
                 }
             }
         }
@@ -361,10 +355,10 @@ class core_Roles extends core_Manager
     {
         $query = self::getQuery();
 
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             $iArr = keylist::toArray($rec->inheritInput);
-            foreach($rArr as $r) {
-                if($r > 0) {
+            foreach ($rArr as $r) {
+                if ($r > 0) {
                     unset($iArr[$r]);
                 }
             }
@@ -374,8 +368,8 @@ class core_Roles extends core_Manager
             $query->mvc->save_($rec, 'inheritInput,inherit');
         }
 
-        foreach($rArr as $r) {
-            if($r>0) {
+        foreach ($rArr as $r) {
+            if ($r > 0) {
                 self::delete($r);
             }
         }
@@ -385,7 +379,7 @@ class core_Roles extends core_Manager
     /**
      * Проверка за зацикляне след субмитване на формата. Разпъване на всички наследени роли
      */
-    static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
         
@@ -395,64 +389,58 @@ class core_Roles extends core_Manager
             // Шаблона за проверка на валидна роля
             // Да започва с буква(кирилица или латиница) или долна черта
             // Може да съдържа само: букви(кирилица или латиница), цифри, '_' и '-'
-            $pattern = "/^[a-zА-Я\\_]{1}[a-z0-9А-Я\\_\\-]*$/iu";
+            $pattern = '/^[a-zА-Я\\_]{1}[a-z0-9А-Я\\_\\-]*$/iu';
             
             // Ако не е валидна роля
             if (!preg_match($pattern, $rec->role)) {
                 
                 // Сетваме грешка
-                $form->setError('role', 'Некоректно име на роля|*: ' . $mvc->getVerbal($form->rec, 'role').' - |допустими са само: букви, цифри|*, "&nbsp_&nbsp", "&nbsp-&nbsp".');    
+                $form->setError('role', 'Некоректно име на роля|*: ' . $mvc->getVerbal($form->rec, 'role').' - |допустими са само: букви, цифри|*, "&nbsp_&nbsp", "&nbsp-&nbsp".');
             }
         }
         
         // Ако формата е субмитната и редактираме запис
         if ($form->isSubmitted() && ($rec->id)) {
-            
-            if($rec->inheritInput || $rec->inherit) {
-                
+            if ($rec->inheritInput || $rec->inherit) {
                 $expandedRoles = self::expand($form->rec->inheritInput);
                 
                 // Ако има грешки
                 if ($expandedRoles[$rec->id]) {
-                    $form->setError('inherit', "|Не може да се наследи роля, която е или наследява текущата роля");  
+                    $form->setError('inherit', '|Не може да се наследи роля, която е или наследява текущата роля');
                 } else {
                     $rec->inherit = keylist::fromArray($expandedRoles);
                 }
-
             }
-         }
+        }
     }
 
 
     /**
      * Изпълнява се при преобразуване на реда към вербални стойности
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    public function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $rolesInputArr = keylist::toArray($rec->inheritInput);
-        $rolesArr      = keylist::toArray($rec->inherit);
+        $rolesArr = keylist::toArray($rec->inherit);
 
-        foreach($rolesArr as $roleId) {
-
-            if(!$rolesInputArr[$roleId]) {
+        foreach ($rolesArr as $roleId) {
+            if (!$rolesInputArr[$roleId]) {
                 $addRoles .= ($addRoles ? ', ' : '') . $mvc->getVerbal($roleId, 'role');
             }
         }
 
-        if($addRoles) {
-
-            $row->inheritInput .= "<div style='color:#666;'>" . tr("индиректно") . ": " . $addRoles . "</div>";
+        if ($addRoles) {
+            $row->inheritInput .= "<div style='color:#666;'>" . tr('индиректно') . ': ' . $addRoles . '</div>';
         }
 
         $row->inheritInput = "<div style='max-width:400px;'>{$row->inheritInput}</div>";
-
     }
 
 
     /**
      * Преизчислява за всяка роля, всички наследени индеректно роли
      */
-    static function rebuildRoles()
+    public static function rebuildRoles()
     {
         $i = 0;
 
@@ -461,44 +449,41 @@ class core_Roles extends core_Manager
         $Roles = cls::get('core_Roles');
         
         do {
-            
-            $haveChanges = FALSE;
+            $haveChanges = false;
             
             expect($i++ <= $maxI);
             
             $query = self::getQuery();
 
-            while($rec = $query->fetch()) {
-                
+            while ($rec = $query->fetch()) {
                 $calcRolesArr = self::expand($rec->inheritInput);
                 
                 $calcRolesKeylist = keylist::fromArray($calcRolesArr);
 
-                if(($calcRolesKeylist || $rec->inherit) && ($calcRolesKeylist != $rec->inherit)) {
+                if (($calcRolesKeylist || $rec->inherit) && ($calcRolesKeylist != $rec->inherit)) {
                     $rec->inherit = $calcRolesKeylist;
-                    $haveChanges = TRUE;
+                    $haveChanges = true;
                     $Roles->save_($rec, 'inherit');
                     $ind++;
                 }
             }
-
-        } while($haveChanges);
+        } while ($haveChanges);
         
-        return "<li> Преизчислени са $ind индиректни роли</li>";
+        return "<li> Преизчислени са ${ind} индиректни роли</li>";
     }
     
 
     /**
      * Получава управлението, когато в модела има промени
      */
-    static function haveChanges()
+    public static function haveChanges()
     {
         $Roles = cls::get('core_Roles');
 
-        $Roles->recalcRoles = TRUE;
+        $Roles->recalcRoles = true;
 
         // Нулираме статичната променлива
-        self::$rolesArr = NULL;
+        self::$rolesArr = null;
         
         // Изтриваме кеша
         core_Cache::remove('core_Roles', 'allRoles');
@@ -509,7 +494,7 @@ class core_Roles extends core_Manager
     /**
      * Виртуално добавяне на двата служебни потребителя
      */
-    static function fetch($cond, $fields = '*', $cache = TRUE)
+    public static function fetch($cond, $fields = '*', $cache = true)
     {
         if ($cond === 0) {
             $res = new stdClass();
@@ -526,10 +511,9 @@ class core_Roles extends core_Manager
     /**
      * Превръща стойността на посоченото поле във вербална
      */
-    static function getVerbal($rec, $fieldName)
+    public static function getVerbal($rec, $fieldName)
     {
         if ($rec->id === 0) {
-            
             return tr($rec->name);
         }
         
@@ -544,7 +528,7 @@ class core_Roles extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->showFields = 'search, type';
         
@@ -573,21 +557,21 @@ class core_Roles extends core_Manager
     /**
      * При шътдаун на скрипта преизчислява наследените роли и ролите на потребителите
      */
-    static function on_Shutdown($mvc)
+    public static function on_Shutdown($mvc)
     {
-        if($mvc->recalcRoles) {
+        if ($mvc->recalcRoles) {
             self::rebuildRoles();
             core_Users::rebuildRoles();
         }
 
-        $mvc->recalcRoles = FALSE;
+        $mvc->recalcRoles = false;
     }
 
 
     /**
      * Изпълнява се след запис/промяна на роля
      */
-    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
     {
         $mvc->haveChanges();
     }
@@ -596,7 +580,7 @@ class core_Roles extends core_Manager
     /**
      * Изпълнява се след запис/промяна на роля
      */
-    static function on_AfterDelete($mvc, &$id)
+    public static function on_AfterDelete($mvc, &$id)
     {
         $mvc->haveChanges();
     }
@@ -605,35 +589,33 @@ class core_Roles extends core_Manager
     /**
      * Само за преход между старата версия
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    public function on_AfterSetupMVC($mvc, &$res)
     {
-        self::addOnce('admin', NULL, 'system');
-        self::addOnce('debug', NULL, 'system');
-        self::addOnce(EF_ROLES_DEFAULT, NULL, 'system');
-        self::addOnce('every_one', NULL, 'system');
+        self::addOnce('admin', null, 'system');
+        self::addOnce('debug', null, 'system');
+        self::addOnce(EF_ROLES_DEFAULT, null, 'system');
+        self::addOnce('every_one', null, 'system');
     }
     
     
-    /**
-     * 
-     */
+    
     public function loadSetupData()
     {
-        // Подготвяме пътя до файла с данните 
-        $file = "core/csv/Roles.csv";
+        // Подготвяме пътя до файла с данните
+        $file = 'core/csv/Roles.csv';
         
         // Кои колонки ще вкарваме
         $fields = array(
-            0 => "role",
-            1 => "inheritInput",
-            2 => "type"
+            0 => 'role',
+            1 => 'inheritInput',
+            2 => 'type'
         );
         
-        // Импортираме данните от CSV файла. 
-        // Ако той не е променян - няма да се импортират повторно 
+        // Импортираме данните от CSV файла.
+        // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::importOnce($this, $file, $fields, array(), array('delimiter' => '|'));
         
-        // Записваме в лога вербалното представяне на резултата от импортирането 
+        // Записваме в лога вербалното представяне на резултата от импортирането
         $res = $cntObj->html;
         
         return $res;
@@ -642,9 +624,9 @@ class core_Roles extends core_Manager
     
     /**
      * Изпълнява се преди импортирването на данните
-     * 
+     *
      * @param core_Roles $mvc
-     * @param object $rec
+     * @param object     $rec
      */
     public static function on_BeforeImportRec($mvc, &$rec)
     {
@@ -657,9 +639,9 @@ class core_Roles extends core_Manager
         try {
             $rec->inheritInput = self::getRolesAsKeylist($rolesArr);
         } catch (core_exception_Expect $e) {
-            
             reportException($e);
-            return FALSE;
+
+            return false;
         }
     }
 }

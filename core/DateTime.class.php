@@ -18,28 +18,28 @@ class core_DateTime
 {
     
     // Дните от седмицата, съкратени
-    static $weekDays = array('Пон', 'Вто', 'Сря', 'Чет', 'Пет', 'Съб', 'Нед');
+    public static $weekDays = array('Пон', 'Вто', 'Сря', 'Чет', 'Пет', 'Съб', 'Нед');
 
 
     // Имената на месеците на български
-    static $months = array("Януари", "Февруари", "Март", "Април", "Май", "Юни",
-            "Юли", "Август", "Септември", "Октомври", "Ноември", "Декември");
+    public static $months = array('Януари', 'Февруари', 'Март', 'Април', 'Май', 'Юни',
+            'Юли', 'Август', 'Септември', 'Октомври', 'Ноември', 'Декември');
 
     // Кратки имена на месеците на български
-    static $monthsShort = array("Яну", "Фев", "Мар", "Апр", "Май", "Юни", 
-        "Юли", "Авг", "Сеп", "Окт", "Ное", "Дек");
+    public static $monthsShort = array('Яну', 'Фев', 'Мар', 'Апр', 'Май', 'Юни',
+        'Юли', 'Авг', 'Сеп', 'Окт', 'Ное', 'Дек');
     
     // Имената на месеците на английски
-    static $monthsEn = array("January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December");
+    public static $monthsEn = array('January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December');
     
     // Кратки имена на месеците на английски
-    static $monthsShortEn = array("Jan", "Feb", "Mar", "Apr", "May", "Jun", 
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
+    public static $monthsShortEn = array('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
     
     // Кратки имена на дните от седмицата на английски
-    static $weekDaysShortEn = array("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", 
-        "Sun");
+    public static $weekDaysShortEn = array('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat',
+        'Sun');
     
     /**
      * Колко секунди има средно в един месец
@@ -50,34 +50,34 @@ class core_DateTime
     /**
      * Връща посочения месец в посочения формат и език
      */
-    static function getMonth($m, $format = 'm', $lg =  NULL)
+    public static function getMonth($m, $format = 'm', $lg = null)
     {
-        if(!$lg) {
+        if (!$lg) {
             $lg = core_Lg::getCurrent();
         }
 
-        if($format == 'FM') {
+        if ($format == 'FM') {
             $format = Mode::is('screenMode', 'narrow') ? 'M' : 'F';
         }
 
-        switch($format) {
+        switch ($format) {
             case 'F':
-                if($lg == 'bg') {
-                    $res =  self::$months[$m-1];
-                } elseif($lg == 'en') {
-                    $res = self::$monthsEn[$m-1];
+                if ($lg == 'bg') {
+                    $res = self::$months[$m - 1];
+                } elseif ($lg == 'en') {
+                    $res = self::$monthsEn[$m - 1];
                 } else {
-                    $res = tr(self::$monthsEn[$m-1]);
+                    $res = tr(self::$monthsEn[$m - 1]);
                 }
                 break;
 
             case 'M':
-                if($lg == 'bg') {
-                    $res =  self::$monthsShort[$m-1];
-                } elseif($lg == 'en') {
-                    $res = self::$monthsShortEn[$m-1];
+                if ($lg == 'bg') {
+                    $res = self::$monthsShort[$m - 1];
+                } elseif ($lg == 'en') {
+                    $res = self::$monthsShortEn[$m - 1];
                 } else {
-                    $res = tr(self::$monthsShortEn[$m-1]);
+                    $res = tr(self::$monthsShortEn[$m - 1]);
                 }
                 break;
 
@@ -93,11 +93,11 @@ class core_DateTime
     /**
      * Връща месеците на годината, като опции
      */
-    static function getMonthOptions($format = 'm', $lg = NULL)
+    public static function getMonthOptions($format = 'm', $lg = null)
     {
         $months = array();
 
-        for($i = 1; $i <= 12; $i++) {
+        for ($i = 1; $i <= 12; $i++) {
             $months[$i] = self::getMonth($i, $format, $lg);
         }
         
@@ -108,7 +108,7 @@ class core_DateTime
     /**
      * Превръща MySQL-ска data/време UNIX timestamp
      */
-    static function mysql2timestamp($mysqlDate=NULL)
+    public static function mysql2timestamp($mysqlDate = null)
     {
         if (!$mysqlDate) {
             $mysqlDate = static::now();
@@ -121,34 +121,34 @@ class core_DateTime
     /**
      * Превръща UNIX timestamp в MySQL-ска дата
      */
-    static function timestamp2Mysql($t)
+    public static function timestamp2Mysql($t)
     {
-        return date("Y-m-d H:i:s", $t);
+        return date('Y-m-d H:i:s', $t);
     }
     
 
     /**
      * Връща последния ден за зададения месец
      */
-    static function getLastDayOfMonth($date = NULL, $monthOffset = 0) 
+    public static function getLastDayOfMonth($date = null, $monthOffset = 0)
     {
-        if(!$date) {
+        if (!$date) {
             $date = dt::verbal2mysql();
         }
         
-        $date = dt::mysql2verbal($date, "Y-m-1", NULL, FALSE);
+        $date = dt::mysql2verbal($date, 'Y-m-1', null, false);
 
         $monthOffset = (int) $monthOffset;
 
-        if($monthOffset > 0) {
+        if ($monthOffset > 0) {
             $time = strtotime("{$date} + {$monthOffset} month");
-        } elseif($monthOffset < 0) {
+        } elseif ($monthOffset < 0) {
             $time = strtotime("{$date} {$monthOffset} month");
         } else {
             $time = strtotime("{$date}");
         }
 
-        $res  = date("Y-m-t", $time);
+        $res = date('Y-m-t', $time);
 
         return $res;
     }
@@ -164,40 +164,40 @@ class core_DateTime
      *
      * @return string mysql форматирана дата, напр. '2011-02-23'
      */
-    static function firstDayOfMonthTms($month, $year, $wDay)
+    public static function firstDayOfMonthTms($month, $year, $wDay)
     {
         list($base, $dayName) = explode('-', $wDay);
         
         expect(in_array($base, array('first', 'second', 'third', 'penultimate', 'last')));
         
         $weekDayNames = array(
-            'monday'    => 1,
-            'tuesday'   => 2,
+            'monday' => 1,
+            'tuesday' => 2,
             'wednesday' => 3,
-            'thursday'  => 4,
-            'friday'    => 5,
-            'saturday'  => 6,
-            'sunday'    => 7);
+            'thursday' => 4,
+            'friday' => 5,
+            'saturday' => 6,
+            'sunday' => 7);
 
         expect($dayNumb = $weekDayNames[$dayName]);
         
-        for($i = 1; $i <= 7; $i++) {
-            if($base == 'first') {
+        for ($i = 1; $i <= 7; $i++) {
+            if ($base == 'first') {
                 $curDay = mktime(0, 0, 0, $month, $i, $year);
-            } elseif($base == 'second'){
-            	$curDay = mktime(0, 0, 0, $month, $i + 7, $year);
-            } elseif($base == 'third'){
-            	$curDay = mktime(0, 0, 0, $month, $i + 14, $year);
-            } elseif($base == 'penultimate'){
-            	$curDay = mktime(12, 59, 59, $month + 1, 1 - $i -7, $year);
+            } elseif ($base == 'second') {
+                $curDay = mktime(0, 0, 0, $month, $i + 7, $year);
+            } elseif ($base == 'third') {
+                $curDay = mktime(0, 0, 0, $month, $i + 14, $year);
+            } elseif ($base == 'penultimate') {
+                $curDay = mktime(12, 59, 59, $month + 1, 1 - $i - 7, $year);
             } else {
                 $curDay = mktime(12, 59, 59, $month + 1, 1 - $i, $year);
             }
             
-            $curWeekDay = date("N", $curDay);
+            $curWeekDay = date('N', $curDay);
            
-            if($curWeekDay == $dayNumb) {
-                $res =$curDay;
+            if ($curWeekDay == $dayNumb) {
+                $res = $curDay;
                 break;
             }
         }
@@ -211,7 +211,7 @@ class core_DateTime
     /**
      * Превръща mySql дата във дни от началото на UNIX ерата
      */
-    static function mysql2UnixDays($date)
+    public static function mysql2UnixDays($date)
     {
         return round(dt::mysql2timestamp($date) / (3600 * 24));
     }
@@ -221,7 +221,7 @@ class core_DateTime
      * Връща разликата в дни между две дати.
      * Може да работи само с дати в UNIX ерата
      */
-    static function daysBetween($date1, $date2)
+    public static function daysBetween($date1, $date2)
     {
         return dt::mysql2UnixDays($date1) - dt::mysql2UnixDays($date2);
     }
@@ -231,7 +231,7 @@ class core_DateTime
      * Връща разликата в секунди между две дати.
      * Може да работи само с дати в UNIX ерата
      */
-    static function secsBetween($date1, $date2)
+    public static function secsBetween($date1, $date2)
     {
         return dt::mysql2timestamp($date1) - dt::mysql2timestamp($date2);
     }
@@ -250,20 +250,24 @@ class core_DateTime
     
     /**
      * Връща MySQL времето с TIMEOFFSET;
-     * 
+     *
      * @param datetime $mysqlDate
-     * 
+     *
      * @return datetime
      */
     public static function getDateWithTimeoffeset($mysqlDate)
     {
         $conf = core_Packs::getConfig('core');
         
-        if ($conf->EF_DATE_USE_TIMEOFFSET != 'yes') return $mysqlDate;
+        if ($conf->EF_DATE_USE_TIMEOFFSET != 'yes') {
+            return $mysqlDate;
+        }
         
         $timeZoneDiff = self::getTimezoneDiff();
 
-        if (!$timeZoneDiff) return $mysqlDate;
+        if (!$timeZoneDiff) {
+            return $mysqlDate;
+        }
         
         $time = strtotime($mysqlDate);
         
@@ -278,47 +282,46 @@ class core_DateTime
     /**
      * Превръща MySQL-ска data/време към вербална дата/време
      */
-    static function mysql2verbal($mysqlDate, $mask = "d.m.y H:i", $lg = NULL, $autoTimeZone = NULL, $callRecursive = TRUE)
+    public static function mysql2verbal($mysqlDate, $mask = 'd.m.y H:i', $lg = null, $autoTimeZone = null, $callRecursive = true)
     {
-        $noTime = FALSE;
+        $noTime = false;
 
         if ($mask == 'smartDate') {
             $mask = 'smartTime';
-            $noTime = TRUE;
+            $noTime = true;
         }
 
         // Опцията "относително време" да не работи в абсолутен или печатен режим
         if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('pdf')) {
-            if($mask == 'smartTime') {
-                $mask = "d.m.y H:i";
+            if ($mask == 'smartTime') {
+                $mask = 'd.m.y H:i';
             }
         }
         
         // Ако изришно не е зададено да е TRUE, R (за отместване във времето) ще се добавя за смарт време
         if (!isset($autoTimeZone)) {
             if ($mask == 'smartTime') {
-                $autoTimeZone = TRUE;
+                $autoTimeZone = true;
             }
         }
 
         $origMask = $mask;
-        if($mysqlDate === NULL) {
+        if ($mysqlDate === null) {
             $mysqlDate = self::verbal2mysql();
         }
 
         if (!$mysqlDate || $mysqlDate == '0000-00-00' || $mysqlDate == '0000-00-00 00:00:00') {
-            
-            return FALSE;
+            return false;
         }
         
-        if(!$lg) {
+        if (!$lg) {
             $lg = core_Lg::getCurrent();
         }
         
         $mysqlDate = trim(strtolower($mysqlDate));
-        $mysqlDate = str_replace("  ", " ", $mysqlDate);
-        $mysqlDate = str_replace("''", ":", $mysqlDate);
-        $mysqlDate = str_replace("'", ":", $mysqlDate);
+        $mysqlDate = str_replace('  ', ' ', $mysqlDate);
+        $mysqlDate = str_replace("''", ':', $mysqlDate);
+        $mysqlDate = str_replace("'", ':', $mysqlDate);
         
         $time = strtotime($mysqlDate);
         
@@ -333,25 +336,25 @@ class core_DateTime
         $year = date('y', $time);
         $yearNow = date('y', time());
         
-        if($mask == 'smartTime') {
-            $addColor = TRUE;
+        if ($mask == 'smartTime') {
+            $addColor = true;
             
-            if($year != $yearNow) {
-                if(Mode::is('screenMode', 'narrow')) {
+            if ($year != $yearNow) {
+                if (Mode::is('screenMode', 'narrow')) {
                     $mask = 'd.m.y H:i';
                 } else {
                     $mask = 'd.m.Y H:i';
                 }
             } else {
-                $smartMode = TRUE;
+                $smartMode = true;
                 $mask = 'd M H:i';
-                $today = dt::mysql2verbal(dt::verbal2mysql(), "d M", 'en', FALSE, FALSE);
-                $yesterday = dt::mysql2verbal(dt::addDays(-1), "d M", 'en', FALSE, FALSE);
-                $tomorrow = dt::mysql2verbal(dt::addDays(1), "d M", 'en', FALSE, FALSE);
+                $today = dt::mysql2verbal(dt::verbal2mysql(), 'd M', 'en', false, false);
+                $yesterday = dt::mysql2verbal(dt::addDays(-1), 'd M', 'en', false, false);
+                $tomorrow = dt::mysql2verbal(dt::addDays(1), 'd M', 'en', false, false);
             }
         }
 
-        if($noTime) {
+        if ($noTime) {
             $mask = str_replace(' H:i', '', $mask);
         }
         
@@ -367,11 +370,10 @@ class core_DateTime
         
         $verbDate = date($mask, $time);
         
-        if($smartMode) {
-            
+        if ($smartMode) {
             $fromArr = array($today, $yesterday, $tomorrow);
             
-            if($lg == 'bg') {
+            if ($lg == 'bg') {
                 $toArr = array('Днес', 'Вчера', 'Утре');
             } else {
                 $toArr = array('Today', 'Yesterday', 'Tomorrow');
@@ -380,45 +382,43 @@ class core_DateTime
             $verbDate = str_replace($fromArr, $toArr, $verbDate);
         }
         
-        $weekDaysLongEn = array("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday");
-        $weekDaysShortEn = array("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun");
-        $montsLongEn = array("January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December");
-        $montsShortEn = array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
+        $weekDaysLongEn = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+        $weekDaysShortEn = array('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun');
+        $montsLongEn = array('January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December');
+        $montsShortEn = array('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
         
-        $weekDaysLongBg = array("Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота", "Неделя");
-        $weekDaysShortBg = array("Пон", "Вто", "Сря", "Чет", "Пет", "Съб", "Нед");
-        $montsLongBg = array("Януари", "Февруари", "Март", "Април", "Май", "Юни",
-            "Юли", "Август", "Септември", "Октомври", "Ноември", "Декември");
-        $montsShortBg = array("Яну", "Фев", "Мар", "Апр", "Май", "Юни", "Юли", "Авг", "Сеп", "Окт", "Ное", "Дек");
+        $weekDaysLongBg = array('Понеделник', 'Вторник', 'Сряда', 'Четвъртък', 'Петък', 'Събота', 'Неделя');
+        $weekDaysShortBg = array('Пон', 'Вто', 'Сря', 'Чет', 'Пет', 'Съб', 'Нед');
+        $montsLongBg = array('Януари', 'Февруари', 'Март', 'Април', 'Май', 'Юни',
+            'Юли', 'Август', 'Септември', 'Октомври', 'Ноември', 'Декември');
+        $montsShortBg = array('Яну', 'Фев', 'Мар', 'Апр', 'Май', 'Юни', 'Юли', 'Авг', 'Сеп', 'Окт', 'Ное', 'Дек');
         
-        if ($lg == "bg") {
+        if ($lg == 'bg') {
             $verbDate = str_ireplace($weekDaysLongEn, $weekDaysLongBg, $verbDate);
             $verbDate = str_ireplace($weekDaysShortEn, $weekDaysShortBg, $verbDate);
             $verbDate = str_ireplace($montsLongEn, $montsLongBg, $verbDate);
             $verbDate = str_ireplace($montsShortEn, $montsShortBg, $verbDate);
         }
         
-        if($addColor && $callRecursive) {
-                        
+        if ($addColor && $callRecursive) {
             $color = static::getColorByTime(self::timestamp2Mysql($time));
           
-            $title = dt::mysql2verbal($mysqlDate, "d.m.Y H:i:s (l)", $lg, FALSE, FALSE);
+            $title = dt::mysql2verbal($mysqlDate, 'd.m.Y H:i:s (l)', $lg, false, false);
             $title = "  title='{$title}'";
             
-            $verbDate = "<span class='timeSpan' style=\"color:#{$color}\" $title>{$verbDate}</span>";
+            $verbDate = "<span class='timeSpan' style=\"color:#{$color}\" ${title}>{$verbDate}</span>";
         }
         
-        if ($callRecursive && $timeZoneDiff && 
+        if ($callRecursive && $timeZoneDiff &&
             !Mode::is('text', 'plain') && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
-                    
-            $origVerbDate = self::mysql2verbal($mysqlDate, $origMask, $lg, FALSE, FALSE);
+            $origVerbDate = self::mysql2verbal($mysqlDate, $origMask, $lg, false, false);
             
             if ($origVerbDate) {
                 if (!$color) {
                     $color = '444';
                 }
-                    $verbDate .= "<span class='timeSpan' style='color: #{$color};' title='{$origVerbDate}'>®</span>";
+                $verbDate .= "<span class='timeSpan' style='color: #{$color};' title='{$origVerbDate}'>®</span>";
             }
         }
         
@@ -435,15 +435,15 @@ class core_DateTime
      *
      * @return string ('Днес', 'Tommorow' ..., или NULL)
      */
-    static function getRelativeDayName($date, $format = 'mysql', $lg = NULL)
+    public static function getRelativeDayName($date, $format = 'mysql', $lg = null)
     {
         // Ако не е зададен език, избираме текущия
-        if(!$lg) {
+        if (!$lg) {
             $lg = core_Lg::getCurrent();
         }
         
         // Според езика, конструираме масивите за релативни дати
-        if($lg == 'bg') {
+        if ($lg == 'bg') {
             $relNames = array(
                 -2 => 'Завчера',
                 -1 => 'Вчера',
@@ -461,7 +461,7 @@ class core_DateTime
                 );
         }
 
-        if($format == 'mysql') {
+        if ($format == 'mysql') {
             $date = explode(' ', $date);
             $date = $date[0];
         } else {
@@ -469,9 +469,8 @@ class core_DateTime
             $date = date('Y-m-d', $date);
         }
 
-        for($i = -2; $i <= 2; $i++) {
-            if(date('Y-m-d', time() + $i * 24 * 60 * 60) == $date) {
-                
+        for ($i = -2; $i <= 2; $i++) {
+            if (date('Y-m-d', time() + $i * 24 * 60 * 60) == $date) {
                 return $relNames[$i];
             }
         }
@@ -481,30 +480,31 @@ class core_DateTime
     /**
      * Връща цвят, според разтояние в секунди
      */
-    static function getColorByTime($datetime, $baseDatetime = NULL)
+    public static function getColorByTime($datetime, $baseDatetime = null)
     {
-        if(!$baseDatetime) {
+        if (!$baseDatetime) {
             $baseDatetime = self::now();
         }
 
         $dist = strtotime($baseDatetime) - strtotime($datetime);
  
-        if($dist < 0) {
-            $dist =  1 - $dist / (24 * 60 * 60);
+        if ($dist < 0) {
+            $dist = 1 - $dist / (24 * 60 * 60);
             $g = round(max(4, 9 - $dist * $dist));
-            $color = "0" . dechex($g) . "0";
+            $color = '0' . dechex($g) . '0';
         } else {
-            
-            if($dist < 20) $dist = 20;
+            if ($dist < 20) {
+                $dist = 20;
+            }
             
             $dist = round(pow(log($dist, 1.85) - log(20, 1.85), 1.85));
             
-            if($dist <= 255) {
+            if ($dist <= 255) {
                 $g = 255 - $dist;
                 $b = $dist;
                 $r = $b / 3;
                 $b = $b - $r;
-            } elseif($dist <= 511) {
+            } elseif ($dist <= 511) {
                 $b = 256 - round($dist / 2);
                 $r = $b / 3;
                 $g = 0;
@@ -513,16 +513,18 @@ class core_DateTime
                 $color = '000000';
             }
             
-            $r = $r / 1.2; $b = $b / 1.2; $g = $g / 1.5;
+            $r = $r / 1.2;
+            $b = $b / 1.2;
+            $g = $g / 1.5;
             
             $g1 = $g;
             $g = $r;
             $r = $g1;
             
-            if(!$color) {
-                $r = dechex($r<0 ? 0 : ($r>255 ? 255 : $r));
-                $g = dechex($g<0 ? 0 : ($g>255 ? 255 : $g));
-                $b = dechex($b<0 ? 0 : ($b>255 ? 255 : $b));
+            if (!$color) {
+                $r = dechex($r < 0 ? 0 : ($r > 255 ? 255 : $r));
+                $g = dechex($g < 0 ? 0 : ($g > 255 ? 255 : $g));
+                $b = dechex($b < 0 ? 0 : ($b > 255 ? 255 : $b));
                 
                 $color = (strlen($r) < 2 ? '0' : '') . $r;
                 $color .= (strlen($g) < 2 ? '0' : '') . $g;
@@ -538,97 +540,95 @@ class core_DateTime
      * Превръща вербална дата/време вкъм MySQL-ска data.
      * Ако няма параметър, връща текущото време, в страната, където е часовата зона.
      */
-    static function verbal2mysql($verbDate = "", $full = TRUE)
+    public static function verbal2mysql($verbDate = '', $full = true)
     {
-        if ($verbDate != "") {
-            
+        if ($verbDate != '') {
             $verbDate = trim(strtolower($verbDate));
 
-            for($i = 1; $i <= 12; $i++) {
-                $verbDate = str_replace(mb_strtolower(self::$months[$i-1]), "-{$i}-", $verbDate);
-                $verbDate = str_replace(mb_strtolower(self::$monthsShort[$i-1]), "-{$i}-", $verbDate);
-                $verbDate = str_replace(mb_strtolower(self::$monthsEn[$i-1]), "-{$i}-", $verbDate);
-                $verbDate = str_replace(mb_strtolower(self::$monthsShortEn[$i-1]), "-{$i}-", $verbDate);
+            for ($i = 1; $i <= 12; $i++) {
+                $verbDate = str_replace(mb_strtolower(self::$months[$i - 1]), "-{$i}-", $verbDate);
+                $verbDate = str_replace(mb_strtolower(self::$monthsShort[$i - 1]), "-{$i}-", $verbDate);
+                $verbDate = str_replace(mb_strtolower(self::$monthsEn[$i - 1]), "-{$i}-", $verbDate);
+                $verbDate = str_replace(mb_strtolower(self::$monthsShortEn[$i - 1]), "-{$i}-", $verbDate);
             }
 
             $verbDate = trim($verbDate, '-');
             
-            $verbDate = str_replace(".", "-", $verbDate);
-            $verbDate = str_replace("/", "-", $verbDate);
-            $verbDate = str_replace("\\", "-", $verbDate);
-            $verbDate = str_replace("  ", " ", $verbDate);
-            $verbDate = str_replace("  ", " ", $verbDate);
-            $verbDate = str_replace("  ", " ", $verbDate);
-            $verbDate = str_replace("- ", "-", $verbDate);
-            $verbDate = str_replace(" -", "-", $verbDate);
-            $verbDate = str_replace(" -", "-", $verbDate);
-            $verbDate = str_replace("--", "-", $verbDate);
+            $verbDate = str_replace('.', '-', $verbDate);
+            $verbDate = str_replace('/', '-', $verbDate);
+            $verbDate = str_replace('\\', '-', $verbDate);
+            $verbDate = str_replace('  ', ' ', $verbDate);
+            $verbDate = str_replace('  ', ' ', $verbDate);
+            $verbDate = str_replace('  ', ' ', $verbDate);
+            $verbDate = str_replace('- ', '-', $verbDate);
+            $verbDate = str_replace(' -', '-', $verbDate);
+            $verbDate = str_replace(' -', '-', $verbDate);
+            $verbDate = str_replace('--', '-', $verbDate);
 
-            $verbDate = str_replace("''", ":", $verbDate);
-            $verbDate = str_replace("'", ":", $verbDate);
+            $verbDate = str_replace("''", ':', $verbDate);
+            $verbDate = str_replace("'", ':', $verbDate);
             
-            $dPtr = "/^(0?[1-9]|1[0-9]|2[0-9]|3[0-1])-(0?[1-9]|1[0-2]|[1-9])(?:-([0-2][0-9][0-9][0-9]|[0-9][0-9]){0,1}){0,1}";
-            $tPtr = "(?: ?((0?[0-9]|1[0-9]|2[0-3]):([0-5][0-9])(?:\\:([0-5][0-9])){0,1}(?: ?(pm|am)){0,1})){0,1}$/";
+            $dPtr = '/^(0?[1-9]|1[0-9]|2[0-9]|3[0-1])-(0?[1-9]|1[0-2]|[1-9])(?:-([0-2][0-9][0-9][0-9]|[0-9][0-9]){0,1}){0,1}';
+            $tPtr = '(?: ?((0?[0-9]|1[0-9]|2[0-3]):([0-5][0-9])(?:\\:([0-5][0-9])){0,1}(?: ?(pm|am)){0,1})){0,1}$/';
  
-            if(preg_match($dPtr . $tPtr, $verbDate, $out)) { 
-                $day   = $out[1];
+            if (preg_match($dPtr . $tPtr, $verbDate, $out)) {
+                $day = $out[1];
                 $month = $out[2];
-                $year  = $out[3];
+                $year = $out[3];
 
                 $hours = $out[5];
-                $minutes  = $out[6];
-                $seconds  = $out[7];
-                $mode  = $out[8];
-                $found = TRUE;
+                $minutes = $out[6];
+                $seconds = $out[7];
+                $mode = $out[8];
+                $found = true;
             } else {
-                $dPtr = "/^([0-2][0-9][0-9][0-9]|[0-9][0-9])-(0?[1-9]|1[0-2]|[1-9])-(0?[1-9]|1[0-9]|2[0-9]|3[0-1])";
-                if(preg_match($dPtr . $tPtr, $verbDate, $out)) {  
-                    $year  = $out[1];
+                $dPtr = '/^([0-2][0-9][0-9][0-9]|[0-9][0-9])-(0?[1-9]|1[0-2]|[1-9])-(0?[1-9]|1[0-9]|2[0-9]|3[0-1])';
+                if (preg_match($dPtr . $tPtr, $verbDate, $out)) {
+                    $year = $out[1];
                     $month = $out[2];
-                    $day   = $out[3];
+                    $day = $out[3];
 
                     $hours = $out[5];
-                    $minutes  = $out[6];
-                    $seconds  = $out[7];
-                    $mode  = $out[8];
-                    $found = TRUE;
+                    $minutes = $out[6];
+                    $seconds = $out[7];
+                    $mode = $out[8];
+                    $found = true;
                 }
             }
 
             // Ако сме намерили дата/време, правим малко обработки на числата
-            if($found) {
+            if ($found) {
 
-                // Ако нямаме година, то това е текущата година 
-                if(!$year) {
+                // Ако нямаме година, то това е текущата година
+                if (!$year) {
                     $year = date('Y');
                 }
 
                 // Ако годината е под 30, то приемаме, че е 20??, ако е под 100, приемаме, че е 19??
-                if(strlen($year) == 2) {
-                    if($year <= 30) {
+                if (strlen($year) == 2) {
+                    if ($year <= 30) {
                         $year = 2000 + $year;
-                    } elseif($year < 100) {
+                    } elseif ($year < 100) {
                         $year = 1900 + $year;
                     }
                 }
                 
                 // Ако денят е по-голям от последния ден за месеца, то денят е равен на последния ден за месеца
-                $ldm = date("t", strtotime(sprintf("%04d-%02d-01", $year, $month, $day)));
+                $ldm = date('t', strtotime(sprintf('%04d-%02d-01', $year, $month, $day)));
 
-                if($day > $ldm) { 
+                if ($day > $ldm) {
                     $day = $ldm;
                 }
 
                 // Ако Mode == 'pm', то към часовете прибавяме 12
-                if($mode == 'pm') {
+                if ($mode == 'pm') {
                     $hours += 12;
                 }
                 
-                $date = sprintf($full ? "%04d-%02d-%02d %02d:%02d:%02d" : "%04d-%02d-%02d", $year, $month, $day, $hours, $minutes, $seconds);
+                $date = sprintf($full ? '%04d-%02d-%02d %02d:%02d:%02d' : '%04d-%02d-%02d', $year, $month, $day, $hours, $minutes, $seconds);
             }
-
         } else {
-            $date = date($full ? "Y-m-d H:i:s" : "Y-m-d", time());
+            $date = date($full ? 'Y-m-d H:i:s' : 'Y-m-d', time());
         }
 
         return $date;
@@ -638,10 +638,10 @@ class core_DateTime
     /**
      * Текуща дата (или текуща дата и час) в MySQL формат.
      *
-     * @param boolean $full TRUE - дата и час; FALSE - само дата, без час.
+     * @param  boolean $full TRUE - дата и час; FALSE - само дата, без час.
      * @return string
      */
-    static function now($full = TRUE)
+    public static function now($full = true)
     {
         return self::verbal2mysql('', $full);
     }
@@ -652,9 +652,9 @@ class core_DateTime
      *
      * @return string
      */
-    static function today()
+    public static function today()
     {
-        return self::now(FALSE);
+        return self::now(false);
     }
     
     
@@ -662,7 +662,7 @@ class core_DateTime
      * Намира първият работен ден, започвайки от посочения и
      * движейки се напред (1) или назад (-1)
      */
-    static function nextWorkingDay($date = NULL, $direction = 1)
+    public static function nextWorkingDay($date = null, $direction = 1)
     {
         if (!$date) {
             $date = dt::addDays($direction);
@@ -679,13 +679,15 @@ class core_DateTime
     /**
      * Добавя дни към дата
      */
-    static function addDays($days, $date = NULL, $full = TRUE)
+    public static function addDays($days, $date = null, $full = true)
     {
-        if (!$date) $date = dt::verbal2mysql();
+        if (!$date) {
+            $date = dt::verbal2mysql();
+        }
         
         list($d, $t) = explode(' ', $date);
         
-        if(!$t) {
+        if (!$t) {
             $t = '00:00:00';
         }
 
@@ -698,7 +700,7 @@ class core_DateTime
 
         $res = $d1 . ' ' . $t;
 
-        if(!$full) {
+        if (!$full) {
             list($res, ) = explode(' ', $res);
         }
 
@@ -706,26 +708,26 @@ class core_DateTime
     }
     
     
-	/**
+    /**
      * Добавя секунди към датата
      */
-    static function addSecs($secs, $date = NULL, $full = TRUE)
-    {  
-        if (!$date) $date = dt::verbal2mysql();
+    public static function addSecs($secs, $date = null, $full = true)
+    {
+        if (!$date) {
+            $date = dt::verbal2mysql();
+        }
         
         // Ако добавяме точно количество дни
-        if($secs % (24*60*60) == 0) {
-
-            return self::addDays($secs / (24*60*60), $date, $full);
+        if ($secs % (24 * 60 * 60) == 0) {
+            return self::addDays($secs / (24 * 60 * 60), $date, $full);
         }
         
         // Оставащи секунди до точен брой месеци
         $resDays = $secs % core_DateTime::SECONDS_IN_MONTH;
 
         // Ако добавяме точно количество месеци
-        if($resDays % (24*60*60) == 0) {
-
-            return self::addDays(floor($resDays / (24*60*60)), self::addMonths(floor($secs / core_DateTime::SECONDS_IN_MONTH), $date, $full), $full);
+        if ($resDays % (24 * 60 * 60) == 0) {
+            return self::addDays(floor($resDays / (24 * 60 * 60)), self::addMonths(floor($secs / core_DateTime::SECONDS_IN_MONTH), $date, $full), $full);
         }
 
         $date = dt::mysql2timestamp($date);
@@ -735,10 +737,10 @@ class core_DateTime
     }
     
     
-	/**
+    /**
      * Премахва секунди от датата
      */
-    static function subtractSecs($secs, $date = NULL)
+    public static function subtractSecs($secs, $date = null)
     {
         $secs *= -1;
         
@@ -749,43 +751,43 @@ class core_DateTime
     /**
      * Дали датата е събота или неделя?
      */
-    static function isHoliday($date)
+    public static function isHoliday($date)
     {
         if (!$date) {
             $date = dt::verbal2mysql();
         }
         
-        $dayOfWeek = dt::mysql2verbal($date, "w");
+        $dayOfWeek = dt::mysql2verbal($date, 'w');
         
         if ($dayOfWeek == 0 || $dayOfWeek == 6) {
-            return TRUE;
+            return true;
         }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Заменя датата с "днес" или "вчера" ако тя се отнася за тези дни.
      */
-    static function addVerbal($date, $sep = '-')
+    public static function addVerbal($date, $sep = '-')
     {
         static $months;
         
-        if(empty($months)) {
+        if (empty($months)) {
             $months = array(
-                '01' => tr("Яну"),
-                '02' => tr("Фев"),
-                '03' => tr("Мар"),
-                '04' => tr("Апр"),
-                '05' => tr("Май"),
-                '06' => tr("Юни"),
-                '07' => tr("Юли"),
-                '08' => tr("Авг"),
-                '09' => tr("Сеп"),
-                '10' => tr("Окт"),
-                '11' => tr("Ное"),
-                '12' => tr("Дек")
+                '01' => tr('Яну'),
+                '02' => tr('Фев'),
+                '03' => tr('Мар'),
+                '04' => tr('Апр'),
+                '05' => tr('Май'),
+                '06' => tr('Юни'),
+                '07' => tr('Юли'),
+                '08' => tr('Авг'),
+                '09' => tr('Сеп'),
+                '10' => tr('Окт'),
+                '11' => tr('Ное'),
+                '12' => tr('Дек')
             );
         }
         
@@ -796,13 +798,13 @@ class core_DateTime
         
         $today = dt::mysql2verbal(dt::verbal2mysql(), "d{$sep}m ");
         $yesterday = dt::mysql2verbal(dt::addDays(-1), "d{$sep}m ");
-        $date = trim(str_replace($today, tr('днес') . " ", $date . " "));
-        $date = trim(str_replace($yesterday, tr('вчера') . " ", $date . " "));
+        $date = trim(str_replace($today, tr('днес') . ' ', $date . ' '));
+        $date = trim(str_replace($yesterday, tr('вчера') . ' ', $date . ' '));
         
-        $Y = dt::mysql2verbal(dt::verbal2mysql(), "Y");
-        $y = dt::mysql2verbal(dt::verbal2mysql(), "y");
+        $Y = dt::mysql2verbal(dt::verbal2mysql(), 'Y');
+        $y = dt::mysql2verbal(dt::verbal2mysql(), 'y');
         
-        foreach($months as $m => $verbal) {
+        foreach ($months as $m => $verbal) {
             $date = str_replace($m . '-' . $Y, $verbal, $date);
             $date = str_replace($m . '-' . $y, $verbal, $date);
         }
@@ -814,9 +816,9 @@ class core_DateTime
     /**
      * Връща timestamp в микро секунди, като рационално число
      */
-    static function getMicrotime()
+    public static function getMicrotime()
     {
-        list($usec, $sec) = explode(" ", microtime());
+        list($usec, $sec) = explode(' ', microtime());
         
         return ((float) $usec + (float) $sec);
     }
@@ -825,7 +827,7 @@ class core_DateTime
     /**
      * Връща датата на православния Великден за указаната година
      */
-    static function getOrthodoxEasterTms($year)
+    public static function getOrthodoxEasterTms($year)
     {
         $r1 = $year % 19;
         $r2 = $year % 4;
@@ -837,60 +839,60 @@ class core_DateTime
         $rc = $r4 + $r5;
         
         // Православния Великден за тази година се пада $rc дни след 3-ти Април
-        return strtotime("3 April $year + $rc days");
+        return strtotime("3 April ${year} + ${rc} days");
     }
     
 
     /**
      * Връща датата на западния Великден за указаната година
      */
-    static function getEasterTms($year)
+    public static function getEasterTms($year)
     {
-        return strtotime("{$year}-03-21 +".easter_days($year)." days");
+        return strtotime("{$year}-03-21 +".easter_days($year).' days');
     }
 
     
     /**
      * Ф-я добавяща/изваждаща месеци към дадена дата
-     * @param int $num - брой месеци, които ще се вадят/добавят
+     * @param int   $num  - брой месеци, които ще се вадят/добавят
      * @param mixed $date - дата или NULL ако е текущата
      */
-    static function addMonths($num, $date = NULL, $full = TRUE)
+    public static function addMonths($num, $date = null, $full = true)
     {
-    	if(!$date){
-    		$date = dt::now();
-    	}
+        if (!$date) {
+            $date = dt::now();
+        }
 
         list($d, $t) = explode(' ', $date);
 
-        if(!$t) {
+        if (!$t) {
             $t = '00:00:00';
         }
         
         list($y, $m, $day) = explode('-', $d);
-    	
-    	$num = (int)$num;
-        if($num >= 0) {
+        
+        $num = (int) $num;
+        if ($num >= 0) {
             $num = '+' . $num;
         }
         
         $mStart = "{$y}-{$m}-01";
 
-    	$newDateStamp = strtotime("{$num} months", dt::mysql2timestamp($mStart));
+        $newDateStamp = strtotime("{$num} months", dt::mysql2timestamp($mStart));
         
-        $lastDay = date("t", $newDateStamp);
+        $lastDay = date('t', $newDateStamp);
 
-        if($day > $lastDay) {
+        if ($day > $lastDay) {
             $day = $lastDay;
         }
 
-    	$newMonth = dt::timestamp2Mysql($newDateStamp);
+        $newMonth = dt::timestamp2Mysql($newDateStamp);
 
         list($y, $m) = explode('-', $newMonth);
 
         $res = "{$y}-{$m}-{$day} {$t}";
         
-        if(!$full) {
+        if (!$full) {
             list($res, ) = explode(' ', $res);
         }
 
@@ -903,108 +905,110 @@ class core_DateTime
      */
     public static function sec2hours($sec, $dev = ':')
     {
-        return sprintf("%02d%s%02d%s%02d", floor($sec / 3600), $dev, ($sec / 60) % 60, $dev, $sec % 60);
+        return sprintf('%02d%s%02d%s%02d', floor($sec / 3600), $dev, ($sec / 60) % 60, $dev, $sec % 60);
     }
     
     
     /**
      * Дали дадена дата е във формата на подадената маска
-     * 
-     * @param string $date - дата
-     * @param string $mask - маска
+     *
+     * @param  string  $date - дата
+     * @param  string  $mask - маска
      * @return boolean
      */
     public static function checkByMask($date, $mask)
     {
-		// Карта
-    	$map = array();
-    	$map['m'] = "(?'month'[0-9]{2})";
-    	$map['d'] = "(?'day'[0-9]{2})";
-    	$map['y'] = "(?'yearShort'[0-9]{2})";
-    	$map['Y'] = "(?'year'[0-9]{4})";
-    	
-    	// Генерираме регулярен израз спрямо картата
-    	$expr = preg_quote($mask, '/');
-    	$expr = strtr($expr, $map);
-    	
-    	// Проверяваме дали датата отговаря на формата
-    	if(!preg_match("/^{$expr}$/", $date, $matches)){
-    		return FALSE;
-    	}
-    	
-    	return TRUE;
+        // Карта
+        $map = array();
+        $map['m'] = "(?'month'[0-9]{2})";
+        $map['d'] = "(?'day'[0-9]{2})";
+        $map['y'] = "(?'yearShort'[0-9]{2})";
+        $map['Y'] = "(?'year'[0-9]{4})";
+        
+        // Генерираме регулярен израз спрямо картата
+        $expr = preg_quote($mask, '/');
+        $expr = strtr($expr, $map);
+        
+        // Проверяваме дали датата отговаря на формата
+        if (!preg_match("/^{$expr}$/", $date, $matches)) {
+            return false;
+        }
+        
+        return true;
     }
     
     
     /**
      * Опитва се да обърне подаден стринг с дадена маска, в mysql-ски формат дата
-     * 
-     * @param string $string     - стринг
-     * @param string $mask       - маска (e.g dd.mm.yyyy)
-     * @return string|FALSE       - mysql датата в формат 'Y-m-d', или FALSE ако има проблем
+     *
+     * @param  string       $string - стринг
+     * @param  string       $mask   - маска (e.g dd.mm.yyyy)
+     * @return string|FALSE - mysql датата в формат 'Y-m-d', или FALSE ако има проблем
      */
     public static function getMysqlFromMask($string, $mask)
     {
-    	// Подготовка на времевия обект
-    	$timeFormat = DateTime::createFromFormat($mask, $string);
-    	
-    	// Ако успешно е инстанциран датата се обръща във mysql-ски формат
-    	if(is_object($timeFormat)){
-    		return $timeFormat->format('Y-m-d');
-    	}
-    	
-    	// В краен случай се връща FALSE
-    	return FALSE;
+        // Подготовка на времевия обект
+        $timeFormat = DateTime::createFromFormat($mask, $string);
+        
+        // Ако успешно е инстанциран датата се обръща във mysql-ски формат
+        if (is_object($timeFormat)) {
+            return $timeFormat->format('Y-m-d');
+        }
+        
+        // В краен случай се връща FALSE
+        return false;
     }
     
     
     /**
      * Връща масив с последните $n месеца
-     * 
-     * @param int $n         - колко месеца на зад (включително текущия)
-     * @param datetime $date - дата, NULL за текущата
-     * @return array $months - масив с месеците
+     *
+     * @param  int      $n    - колко месеца на зад (включително текущия)
+     * @param  datetime $date - дата, NULL за текущата
+     * @return array    $months - масив с месеците
      */
-    public static function getRecentMonths($n, $date = NULL)
+    public static function getRecentMonths($n, $date = null)
     {
-    	$months = array();
-    	$date = new DateTime($date);
-    	foreach (range(1, $n) as $i){
-    		if($i != 1) $date->modify("last month");
-    	
-    		$thisMonth = $date->format('Y-m-01');
-    		$months[$thisMonth] = dt::mysql2verbal($thisMonth, 'M Y');
-    	}
-    	
-    	return $months;
+        $months = array();
+        $date = new DateTime($date);
+        foreach (range(1, $n) as $i) {
+            if ($i != 1) {
+                $date->modify('last month');
+            }
+        
+            $thisMonth = $date->format('Y-m-01');
+            $months[$thisMonth] = dt::mysql2verbal($thisMonth, 'M Y');
+        }
+        
+        return $months;
     }
     
     
     /**
      * Намира месеците между две дати
      *
-     * @param date $startDate    - начална дата
-     * @param date|NULL $endDate - дата, NULL за текущата
-     * @return string $mask      - маска
-     * @return array $months     - масив с месеци
+     * @param  date      $startDate - начална дата
+     * @param  date|NULL $endDate   - дата, NULL за текущата
+     * @return string    $mask      - маска
+     * @return array     $months     - масив с месеци
      */
-    public static function getMonthsBetween($startDate, $endDate = NULL, $mask = 'M Y')
+    public static function getMonthsBetween($startDate, $endDate = null, $mask = 'M Y')
     {
-    	$endDate = isset($endDate) ? $endDate : dt::today();
-    	$endDate = new DateTime($endDate);
-    	$endDate = $endDate->format('Y-m-01');
-    	
-    	$months = array();
-    	$date = new DateTime($startDate);
-    	$nextDate = $date->format('Y-m-01');
-    	$months[$nextDate] = dt::mysql2verbal($nextDate, $mask);
-    	
-    	while($nextDate < $endDate){
-    		$date->modify("next month");
-    		$nextDate = $date->format('Y-m-01');
-    		$months[$nextDate] = dt::mysql2verbal($nextDate, $mask);
-    	}
-    	
-    	return $months;
+        $endDate = isset($endDate) ? $endDate : dt::today();
+        $endDate = new DateTime($endDate);
+        $endDate = $endDate->format('Y-m-01');
+        
+        $months = array();
+        $date = new DateTime($startDate);
+        $nextDate = $date->format('Y-m-01');
+        $months[$nextDate] = dt::mysql2verbal($nextDate, $mask);
+        
+        while ($nextDate < $endDate) {
+            $date->modify('next month');
+            $nextDate = $date->format('Y-m-01');
+            $months[$nextDate] = dt::mysql2verbal($nextDate, $mask);
+        }
+        
+        return $months;
     }
 }

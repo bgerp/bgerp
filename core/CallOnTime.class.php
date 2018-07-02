@@ -38,192 +38,185 @@ class core_CallOnTime extends core_Manager
      * Кой има право да го изтрие?
      */
     protected $canDelete = 'debug';
-	
+    
 
-	/**
-	 * 
-	 */
-	public $title = 'Еднократни процеси';
-	
-	
+    
+    public $title = 'Еднократни процеси';
+    
+    
     /**
      * Плъгините и враперите, които ще се използват
      */
     public $loadList = 'plg_State, plg_SystemWrapper, plg_RowTools2, plg_Search, plg_Sorting';
     
     
-    /**
-     * 
-     */
+    
     public $searchFields = 'hash, className, methodName, data, callOn, state';
     
     
-	/**
-	 * 
-	 */
-	public function description()
-	{
-	    $this->FLD('hash', 'varchar(32)', 'caption=Хеш, input=none');
-	    $this->FLD('className', 'varchar(128)', 'caption=Kлас');
-	    $this->FLD('methodName', 'varchar(128)', 'caption=Функция');
-	    $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни, input=none');
-	    $this->FLD('callOn', 'datetime(format=smartTime)', 'caption=Време');
-	    $this->FLD('state', 'enum(draft=Чернова, pending=Чакащо)', 'caption=Състояние, input=none');
-	    
-	    $this->setDbUnique('hash');
-	}
-	
-	
-	/**
-	 * Добавя функция, която да се изпълни след определено време
-	 * 
-	 * @param string $className
-	 * @param string $methodName
-	 * @param mixed $data
-	 * @param date $callOn
-	 * @param boolean $once
-	 * 
-	 * @return integer
-	 */
-	public static function setCall($className, $methodName, $data=NULL, $callOn=NULL, $once=FALSE)
-	{
-	    // Класа трябва да съществува
-	    cls::load($className);
-	    
-	    // Очакваме да е подаден метод
+    
+    public function description()
+    {
+        $this->FLD('hash', 'varchar(32)', 'caption=Хеш, input=none');
+        $this->FLD('className', 'varchar(128)', 'caption=Kлас');
+        $this->FLD('methodName', 'varchar(128)', 'caption=Функция');
+        $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни, input=none');
+        $this->FLD('callOn', 'datetime(format=smartTime)', 'caption=Време');
+        $this->FLD('state', 'enum(draft=Чернова, pending=Чакащо)', 'caption=Състояние, input=none');
+        
+        $this->setDbUnique('hash');
+    }
+    
+    
+    /**
+     * Добавя функция, която да се изпълни след определено време
+     *
+     * @param string  $className
+     * @param string  $methodName
+     * @param mixed   $data
+     * @param date    $callOn
+     * @param boolean $once
+     *
+     * @return integer
+     */
+    public static function setCall($className, $methodName, $data = null, $callOn = null, $once = false)
+    {
+        // Класа трябва да съществува
+        cls::load($className);
+        
+        // Очакваме да е подаден метод
         expect(trim($methodName));
-	    
+        
         // Ако не е подадено време, използваме текущото
         if (!$callOn) {
-           $callOn = dt::now();
+            $callOn = dt::now();
         }
-	    
+        
         $nRec = new stdClass();
         
         // Ако трябва да е уникално
         // Проверяваме дали има запис с този хеш
         if ($once) {
-            
             $hash = static::getHash($className, $methodName, $data);
             $rec = self::fetch("#hash = '{$hash}'");
             if ($rec) {
-    	        $nRec->id = $rec->id;
-    	    }
-    	    $nRec->hash = $hash;
+                $nRec->id = $rec->id;
+            }
+            $nRec->hash = $hash;
         }
         
         // Попълване необходимите полета
         $nRec->className = $className;
-	    $nRec->methodName = $methodName;
-	    $nRec->data = $data;
-	    $nRec->callOn = $callOn;
-	    $nRec->state = 'draft';
-	    
-	    $savedId = self::save($nRec);
-	    
-	    return $savedId;
-	}
-	
-	
-	/**
-	 * Еднократно добавя функция, която да се изпълни след определно време
-	 * 
-	 * @param string $className
-	 * @param string $methodName
-	 * @param mixed $data
-	 * @param date $callOn
-	 * 
-	 * @return integer
-	 */
-	public static function setOnce($className, $methodName, $data=NULL, $callOn=NULL)
-	{
-	    $id = self::setCall($className, $methodName, $data, $callOn, TRUE);
-	    
-	    return $id;
-	}
-	
-	
-	/**
-	 * Изтриване на вече зададен запис, който все още не е изпълнен
-	 * 
-	 * @param string $className
-	 * @param string $methodName
-	 * @param mixed $data
-	 * @return void
-	 */
-	public static function remove($className, $methodName, $data)
-	{
-		$hash = self::getHash($className, $methodName, $data);
-		
-		self::delete("#hash = '{$hash}' AND #state = 'draft'");
-	}
-	
-	
-	/**
-	 * Връща хеша за записа
-	 * 
-	 * @param string $className
-	 * @param string $methodName
-	 * @param mixed $data
-	 * 
-	 * @return string
-	 */
-	protected static function getHash($className, $methodName, $data)
-	{
-	    $hash = md5($className . ' ' . $methodName . ' ' . json_encode($data));
-	    
-	    return $hash;
-	}
-	
-	
-	/**
-	 * Връща времето на изпълнение
-	 *
-	 * @param string $className
-	 * @param string $methodName
-	 * @param mixed $data
-	 *
-	 * @return string
-	 */
-	public static function getNextCallTime($className, $methodName, $data)
-	{
-		$hash = self::getHash($className, $methodName, $data);
-		
-		$query = self::getQuery();
-		$query->where("#hash = '{$hash}' AND #state = 'draft'");
-		$query->orderBy('callOn', 'ASC');
-		$query->show('callOn');
-		
-		$callOn = $query->fetch()->callOn;
-		
-		return ($callOn) ? $callOn : NULL;
-	}
-	
-	
-	/**
-	 * Изпълнява се след подготвянето на формата за филтриране
-	 *
-	 * @param core_Mvc $mvc
-	 * @param stdClass $res
-	 * @param stdClass $data
-	 *
-	 * @return boolean
-	 */
-	protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
-	{
-	    $data->listFilter->showFields = 'search';
-	    $data->listFilter->view = 'horizontal';
-	    $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-	    
-	    // Сортиране на записите по num
-	    $data->query->orderBy('state', 'DESC');
-	    $data->query->orderBy('callOn', 'DESC');
-	}
-	
-	
+        $nRec->methodName = $methodName;
+        $nRec->data = $data;
+        $nRec->callOn = $callOn;
+        $nRec->state = 'draft';
+        
+        $savedId = self::save($nRec);
+        
+        return $savedId;
+    }
+    
+    
+    /**
+     * Еднократно добавя функция, която да се изпълни след определно време
+     *
+     * @param string $className
+     * @param string $methodName
+     * @param mixed  $data
+     * @param date   $callOn
+     *
+     * @return integer
+     */
+    public static function setOnce($className, $methodName, $data = null, $callOn = null)
+    {
+        $id = self::setCall($className, $methodName, $data, $callOn, true);
+        
+        return $id;
+    }
+    
+    
+    /**
+     * Изтриване на вече зададен запис, който все още не е изпълнен
+     *
+     * @param  string $className
+     * @param  string $methodName
+     * @param  mixed  $data
+     * @return void
+     */
+    public static function remove($className, $methodName, $data)
+    {
+        $hash = self::getHash($className, $methodName, $data);
+        
+        self::delete("#hash = '{$hash}' AND #state = 'draft'");
+    }
+    
+    
+    /**
+     * Връща хеша за записа
+     *
+     * @param string $className
+     * @param string $methodName
+     * @param mixed  $data
+     *
+     * @return string
+     */
+    protected static function getHash($className, $methodName, $data)
+    {
+        $hash = md5($className . ' ' . $methodName . ' ' . json_encode($data));
+        
+        return $hash;
+    }
+    
+    
+    /**
+     * Връща времето на изпълнение
+     *
+     * @param string $className
+     * @param string $methodName
+     * @param mixed  $data
+     *
+     * @return string
+     */
+    public static function getNextCallTime($className, $methodName, $data)
+    {
+        $hash = self::getHash($className, $methodName, $data);
+        
+        $query = self::getQuery();
+        $query->where("#hash = '{$hash}' AND #state = 'draft'");
+        $query->orderBy('callOn', 'ASC');
+        $query->show('callOn');
+        
+        $callOn = $query->fetch()->callOn;
+        
+        return ($callOn) ? $callOn : null;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return boolean
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Сортиране на записите по num
+        $data->query->orderBy('state', 'DESC');
+        $data->query->orderBy('callOn', 'DESC');
+    }
+    
+    
     /**
      * Извикване на функцията по cron
-     * 
+     *
      * @return string
      */
     public function cron_Start()
@@ -237,9 +230,8 @@ class core_CallOnTime extends core_Manager
 
         while ($rec = $query->fetch()) {
             
-			// Ако сме се доближили до края - да приключваме процеса
+            // Ако сме се доближили до края - да приключваме процеса
             if (core_Cron::getTimeLeft() < 5) {
-                
                 self::logDebug('Отложен процес, поради свършване на времето');
                 
                 break;
@@ -264,7 +256,7 @@ class core_CallOnTime extends core_Manager
                 sleep(1);
             } catch (core_exception_Expect $e) {
                 $res .= "Грешка при извикване на '{$rec->className}->callback_{$rec->methodName}'";
-                self::logErr("Грешка при извикване на функция", $rec->id);
+                self::logErr('Грешка при извикване на функция', $rec->id);
                 
                 reportException($e);
             }
@@ -272,7 +264,6 @@ class core_CallOnTime extends core_Manager
             cls::shutdown();
             
             if ($rec->className != 'core_CallOnTime') {
-                
                 unset($class);
             }
             
@@ -287,7 +278,7 @@ class core_CallOnTime extends core_Manager
         $before = dt::subtractSecs(10000);
         $pQuery->where("#callOn <= '{$before}'");
         $pQuery->limit(1);
-        while($pRec = $pQuery->fetch()) {
+        while ($pRec = $pQuery->fetch()) {
             $pRec->state = 'draft';
             self::save($pRec, 'state');
             self::logNotice('Променено състояние', $pRec->id);
@@ -299,11 +290,11 @@ class core_CallOnTime extends core_Manager
     
     /**
      * Изпълнява се след създаването на модела
-     * 
+     *
      * @param core_CallOnTime $mvc
-     * @param string $res
+     * @param string          $res
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         //Данни за работата на cron
         $rec = new stdClass();

@@ -40,7 +40,7 @@ class core_Detail extends core_Manager
     /**
      * Изпълнява се след началното установяване на модела
      */
-    static function on_AfterDescription(&$mvc)
+    public static function on_AfterDescription(&$mvc)
     {
         expect($mvc->masterKey);
         
@@ -54,10 +54,10 @@ class core_Detail extends core_Manager
         
         // Проверяваме дали мастър ключа има индекс за търсене
         $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make($mvc->masterKey))));
-        if(!isset($mvc->dbIndexes[$indexName])){
-        	
-        	// Ако мастър ключа не е индексиран, добавяме го като индекс
-        	$mvc->setDbIndex($mvc->masterKey);
+        if (!isset($mvc->dbIndexes[$indexName])) {
+            
+            // Ако мастър ключа не е индексиран, добавяме го като индекс
+            $mvc->setDbIndex($mvc->masterKey);
         }
     }
     
@@ -65,9 +65,8 @@ class core_Detail extends core_Manager
     /**
      * Подготвяме  общия изглед за 'List'
      */
-    function prepareDetail_($data)
+    public function prepareDetail_($data)
     {
-    	
         setIfNot($data->masterKey, $this->masterKey);
         setIfNot($data->masterMvc, $this->Master);
         
@@ -91,9 +90,9 @@ class core_Detail extends core_Manager
         $this->prepareListPager($data);
         
         // Името на променливата за страниране на детайл
-        if(is_object($data->pager)) {
+        if (is_object($data->pager)) {
             $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
-            if(cls::existsMethod($data->masterMvc, 'getHandle')) {
+            if (cls::existsMethod($data->masterMvc, 'getHandle')) {
                 $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
             }
         }
@@ -114,9 +113,8 @@ class core_Detail extends core_Manager
     /**
      * Създаване на шаблона за общия List-изглед
      */
-    function renderDetailLayout_($data)
+    public function renderDetailLayout_($data)
     {
-      
         $className = cls::getClassName($this);
         
         // Шаблон за листовия изглед
@@ -141,9 +139,9 @@ class core_Detail extends core_Manager
     /**
      * Рендираме общия изглед за 'List'
      */
-    function renderDetail_($data)
-    { 
-        if(!isset($data->listClass)) {
+    public function renderDetail_($data)
+    {
+        if (!isset($data->listClass)) {
             $data->listClass = 'listRowsDetail';
         }
 
@@ -162,7 +160,7 @@ class core_Detail extends core_Manager
         
         // Попълваме таблицата с редовете
         setIfNot($data->listTableMvc, clone $this);
-        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, TRUE);
+        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, true);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме таблицата с редовете
@@ -180,7 +178,7 @@ class core_Detail extends core_Manager
     /**
      * Подготвя заявката за данните на детайла
      */
-    function prepareDetailQuery_($data)
+    public function prepareDetailQuery_($data)
     {
         // Създаваме заявката
         $data->query = $this->getQuery();
@@ -195,26 +193,33 @@ class core_Detail extends core_Manager
     /**
      * Подготвя лентата с инструменти за табличния изглед
      */
-    function prepareListToolbar_(&$data)
+    public function prepareListToolbar_(&$data)
     {
         $data->toolbar = cls::get('core_Toolbar');
  
         $masterKey = $data->masterKey;
 
-        if($data->masterId) {
+        if ($data->masterId) {
             $rec = new stdClass();
             $rec->{$masterKey} = $data->masterId;
         }
-		
+        
         if ($this->haveRightFor('add', $rec) && $data->masterId) {
-        	
-            $data->toolbar->addBtn('Нов запис', array(
+            $data->toolbar->addBtn(
+            
+                'Нов запис',
+            
+                array(
                     $this,
                     'add',
                     $masterKey => $data->masterId,
-                    'ret_url' => TRUE,
+                    'ret_url' => true,
                 ),
-                'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
+                'id=btnAdd',
+            
+                'ef_icon = img/16/star_2.png,title=Създаване на нов запис'
+            
+            );
         }
         
         return $data;
@@ -224,7 +229,7 @@ class core_Detail extends core_Manager
     /**
      * Подготвя формата за редактиране
      */
-    function prepareEditForm_($data)
+    public function prepareEditForm_($data)
     {
         setIfNot($data->singleTitle, $this->singleTitle);
 
@@ -232,21 +237,21 @@ class core_Detail extends core_Manager
         
         $form = $data->form;
 
-        if(!$data->masterMvc) {
-            $data->masterMvc = $this->getMasterMvc($data->form->rec);  
+        if (!$data->masterMvc) {
+            $data->masterMvc = $this->getMasterMvc($data->form->rec);
         }
 
-        if(!$data->masterKey) {
+        if (!$data->masterKey) {
             $data->masterKey = $this->getMasterKey($data->form->rec);
         }
 
         // Очакваме да masterKey да е зададен
-        expect($data->masterKey, $data); 
+        expect($data->masterKey, $data);
         expect($data->masterMvc instanceof core_Master, $data);
         
         $masterKey = $data->masterKey;
 
-        if(!isset($form->fields[$masterKey]->input) || $form->fields[$masterKey]->input == 'none') {
+        if (!isset($form->fields[$masterKey]->input) || $form->fields[$masterKey]->input == 'none') {
             $form->fields[$masterKey]->input = 'hidden';
         }
  
@@ -259,12 +264,12 @@ class core_Detail extends core_Manager
 
     /**
      * Подготвя заглавието на формата
-     * 
+     *
      * @param stdClass $data
      */
-    function prepareEditTitle_($data)
+    public function prepareEditTitle_($data)
     {
-    	$data->form->title = self::getEditTitle($data->masterMvc, $data->masterId, $data->singleTitle, $data->form->rec->id, $this->formTitlePreposition);
+        $data->form->title = self::getEditTitle($data->masterMvc, $data->masterId, $data->singleTitle, $data->form->rec->id, $this->formTitlePreposition);
     }
     
     
@@ -272,37 +277,37 @@ class core_Detail extends core_Manager
      * Помощна ф-я, която връща заглавие за формата при добавяне на детайл към клас
      * Изнесена е статично за да може да се използва и от класове, които не наследяват core_Detail,
      * Но реално се добавят като детайли към друг клас
-     * 
-     * @param mixed $master       - ид на класа на мастъра
-     * @param int $masterId       - ид на мастъра
-     * @param string $singleTitle - еденично заглавие
-     * @param int|NULL $recId     - ид на записа, ако има
-     * @param string $preposition - предлог
-     * @param integer|NULL $len   - максимална дължина на стринга
-     * 
+     *
+     * @param mixed        $master      - ид на класа на мастъра
+     * @param int          $masterId    - ид на мастъра
+     * @param string       $singleTitle - еденично заглавие
+     * @param int|NULL     $recId       - ид на записа, ако има
+     * @param string       $preposition - предлог
+     * @param integer|NULL $len         - максимална дължина на стринга
+     *
      * @return string $title      - заглавието на формата на 'Детайла'
      */
-    public static function getEditTitle($master, $masterId, $singleTitle, $recId, $preposition = NULL, $len = NULL)
+    public static function getEditTitle($master, $masterId, $singleTitle, $recId, $preposition = null, $len = null)
     {
-    	if(!$preposition){
-    		$preposition = tr('към');
-    	}
-    	
-    	if ($singleTitle) {
-    		$single = ' на|* |' . mb_strtolower($singleTitle);
-    	}
-    	
-    	$title = ($recId) ? "Редактиране{$single} {$preposition}" : "Добавяне{$single} {$preposition}";
-    	$title .= "|* " . cls::get($master)->getFormTitleLink($masterId);
-    	
-    	return $title;
+        if (!$preposition) {
+            $preposition = tr('към');
+        }
+        
+        if ($singleTitle) {
+            $single = ' на|* |' . mb_strtolower($singleTitle);
+        }
+        
+        $title = ($recId) ? "Редактиране{$single} {$preposition}" : "Добавяне{$single} {$preposition}";
+        $title .= '|* ' . cls::get($master)->getFormTitleLink($masterId);
+        
+        return $title;
     }
     
     
     /**
      * Дефолт функция за определяне мастера, спрямо дадения запис
      */
-    function getMasterMvc_($rec)
+    public function getMasterMvc_($rec)
     {
         return $this->Master;
     }
@@ -311,7 +316,7 @@ class core_Detail extends core_Manager
     /**
      * Дефолт функция за определяне полето-ключ към мастера, спрямо дадения запис
      */
-    function getMasterKey_($rec)
+    public function getMasterKey_($rec)
     {
         return $this->masterKey;
     }
@@ -320,18 +325,16 @@ class core_Detail extends core_Manager
     /**
      * Връща ролите, които могат да изпълняват посоченото действие
      */
-    function getRequiredRoles_(&$action, $rec = NULL, $userId = NULL)
+    public function getRequiredRoles_(&$action, $rec = null, $userId = null)
     {
-        
-        if($action == 'read') {
+        if ($action == 'read') {
             // return 'no_one';
         }
         
-        if($action == 'write' && isset($rec) && $this->Master instanceof core_Master) {
-            
+        if ($action == 'write' && isset($rec) && $this->Master instanceof core_Master) {
             expect($masterKey = $this->masterKey);
             
-            if($rec->{$masterKey}) {
+            if ($rec->{$masterKey}) {
                 $masterRec = $this->Master->fetch($rec->{$masterKey});
             }
             
@@ -347,10 +350,10 @@ class core_Detail extends core_Manager
     /**
      * След запис в детайла извиква събитието 'AfterUpdateDetail' в мастъра
      */
-    function save_(&$rec, $fieldsList = NULL, $mode = NULL)
+    public function save_(&$rec, $fieldsList = null, $mode = null)
     {
         if (!$id = parent::save_($rec, $fieldsList, $mode)) {
-            return FALSE;
+            return false;
         }
 
         $masterKey = $this->masterKey;
@@ -358,9 +361,9 @@ class core_Detail extends core_Manager
         $masters = $this->getMasters($rec);
         
         foreach ($masters as $masterKey => $masterInstance) {
-            if($rec->{$masterKey}) {
+            if ($rec->{$masterKey}) {
                 $masterId = $rec->{$masterKey};
-            } elseif($rec->id) {
+            } elseif ($rec->id) {
                 $masterId = $this->fetchField($rec->id, $masterKey);
             }
             
@@ -374,12 +377,12 @@ class core_Detail extends core_Manager
     
     /**
      * Логва действието
-     * 
-     * @param string $msg
+     *
+     * @param string                $msg
      * @param NULL|stdClass|integer $rec
-     * @param string $type
+     * @param string                $type
      */
-    function logInAct($msg, $rec = NULL, $type = 'write')
+    public function logInAct($msg, $rec = null, $type = 'write')
     {
         if (is_numeric($rec)) {
             $rec = $this->fetch($rec);
@@ -391,9 +394,9 @@ class core_Detail extends core_Manager
         $newMsg = $msg . ' на детайл';
         
         foreach ($masters as $masterKey => $masterInstance) {
-            if($rec->{$masterKey}) {
+            if ($rec->{$masterKey}) {
                 $masterId = $rec->{$masterKey};
-            } elseif($rec->id) {
+            } elseif ($rec->id) {
                 $masterId = $this->fetchField($rec->id, $masterKey);
             }
             
@@ -411,10 +414,10 @@ class core_Detail extends core_Manager
     /**
      * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастъра
      */
-    static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    public static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         if ($numRows) {
-            foreach($query->getDeletedRecs() as $rec) {
+            foreach ($query->getDeletedRecs() as $rec) {
                 $masters = $mvc->getMasters($rec);
                 
                 foreach ($masters as $masterKey => $masterInstance) {
@@ -427,11 +430,11 @@ class core_Detail extends core_Manager
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @see core_Manager::act_Delete()
      */
-    function act_Delete()
+    public function act_Delete()
     {
         $id = Request::get('id', 'int');
         
@@ -444,7 +447,7 @@ class core_Detail extends core_Manager
         foreach ($masters as $masterKey => $masterInstance) {
             if ($rec->{$masterKey}) {
                 $masterId = $rec->{$masterKey};
-            } elseif($rec->id) {
+            } elseif ($rec->id) {
                 $masterId = $this->fetchField($rec->id, $masterKey);
             }
             
@@ -457,13 +460,13 @@ class core_Detail extends core_Manager
     
     /**
      * Връща списъка от мастър-мениджъри на зададен детайл-запис.
-     * 
+     *
      * Обикновено детайлите имат точно един мастър. Използваме този метод в случаите на детайли
      * с повече от един мастър, който евентуално зависи и от данните в детайл-записа $rec.
-     * 
-     * @param stdClass $rec
-     * @return array масив от core_Master-и. Ключа е името на полето на $rec, където се 
-     *               съхранява външния ключ към съотв. мастър
+     *
+     * @param  stdClass $rec
+     * @return array    масив от core_Master-и. Ключа е името на полето на $rec, където се
+     *                      съхранява външния ключ към съотв. мастър
      */
     public function getMasters_($rec)
     {
@@ -473,9 +476,9 @@ class core_Detail extends core_Manager
     
     /**
      * Връща линк към подадения обект
-     * 
+     *
      * @param integer $objId
-     * 
+     *
      * @return core_ET
      */
     public static function getLinkForObject($objId)

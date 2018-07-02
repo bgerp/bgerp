@@ -14,19 +14,20 @@
  * @since     v 0.1
  * @link
  */
-class core_page_Wrapper extends core_BaseClass {
+class core_page_Wrapper extends core_BaseClass
+{
     
     
     /**
      * Прави стандартна 'обвивка' на изгледа
      */
-    function render_($content)
+    public function render_($content)
     {
         // Определяме каква да е темата обвивката на страницата
         if (!($tplName = Mode::get('wrapper'))) {
-            if(Mode::is('printing')) {
+            if (Mode::is('printing')) {
                 $tplName = 'page_Print';
-            } elseif(haveRole('admin,ceo,manager,officer,executive')) {
+            } elseif (haveRole('admin,ceo,manager,officer,executive')) {
                 $tplName = 'core_page_Internal';
             } else {
                 $tplName = 'cms_page_External';
@@ -35,11 +36,11 @@ class core_page_Wrapper extends core_BaseClass {
         
         // Определяне на темите, в случаите, когато се изисква външната или вътрешната обвивка
         $coreConf = core_Packs::getConfig('core');
-        if($tplName == 'core_page_Internal' && $coreConf->CORE_PAGE_WRAPPER) {
+        if ($tplName == 'core_page_Internal' && $coreConf->CORE_PAGE_WRAPPER) {
             $tplName = $coreConf->CORE_PAGE_WRAPPER;
         }
         
-        // Зареждаме опаковката 
+        // Зареждаме опаковката
         $wrapperTpl = cls::get($tplName);
         
         $wrapperTpl->prepare();
@@ -55,7 +56,7 @@ class core_page_Wrapper extends core_BaseClass {
     
     /**
      * Замества специалните плейсхолдъри
-     * 
+     *
      * @param core_ET|string $tpl
      */
     protected static function replaceSpecialPlaceholders(&$tpl)
@@ -71,21 +72,22 @@ class core_page_Wrapper extends core_BaseClass {
         $placeHolders = $tpl->getPlaceHolders();
         
         // Заместваме специалните плейсхолдери, със съдържанието към което те сочат
-        foreach($placeHolders as $place) {
-            
+        foreach ($placeHolders as $place) {
             $method = explode('::', $place);
 
-            if(count($method) != 2) continue;
+            if (count($method) != 2) {
+                continue;
+            }
 
             $html = call_user_func($method);
             
             if ($html instanceof core_ET) {
-                $content = $html->getContent(NULL, "CONTENT", FALSE, FALSE);
+                $content = $html->getContent(null, 'CONTENT', false, false);
             } else {
                 $content = $html;
             }
             
-            if (strpos($content, '::') !== FALSE) {
+            if (strpos($content, '::') !== false) {
                 self::replaceSpecialPlaceholders($html);
             }
             

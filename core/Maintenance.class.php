@@ -35,9 +35,7 @@ class core_Maintenance extends core_Manager
     public $loadList = 'plg_SystemWrapper';
 
 
-    /**
-     *
-     */
+    
     public function act_Default()
     {
         requireRole('admin');
@@ -48,21 +46,19 @@ class core_Maintenance extends core_Manager
         
         $res = '';
         
-        while($rec = $query->fetch("#state = 'active'")) {
+        while ($rec = $query->fetch("#state = 'active'")) {
             $stp = $rec->name . '_Setup';
-            if(cls::load($stp, TRUE)) {
+            if (cls::load($stp, true)) {
                 $setups[$rec->name] = cls::get($stp);
-                if(is_array($setups[$rec->name]->systemActions)) {
-                    $res .= "\n<div style='margin-top:15px; background-color:#66a; color:white; padding:5px;'><strong>" . $rec->name . '</strong> - ' . $setups[$rec->name]->info . "</div>";
-                    foreach($setups[$rec->name]->systemActions as $a) {  
-                        $res .= "\n<div style='margin-top:5px;'>" . ht::createBtn($a['title'], $a['url'], NULL, FALSE, $a['params']) . $a['params']['title'] . "</div>";
+                if (is_array($setups[$rec->name]->systemActions)) {
+                    $res .= "\n<div style='margin-top:15px; background-color:#66a; color:white; padding:5px;'><strong>" . $rec->name . '</strong> - ' . $setups[$rec->name]->info . '</div>';
+                    foreach ($setups[$rec->name]->systemActions as $a) {
+                        $res .= "\n<div style='margin-top:5px;'>" . ht::createBtn($a['title'], $a['url'], null, false, $a['params']) . $a['params']['title'] . '</div>';
                     }
                 }
             }
         }
         
-        return $this->renderWrapping("<div style='display:table-cell'>" . $res . "</div>", $data);
+        return $this->renderWrapping("<div style='display:table-cell'>" . $res . '</div>', $data);
     }
-
-   
 }

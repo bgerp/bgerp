@@ -16,105 +16,105 @@
 abstract class bank_DocumentBlank extends core_Master
 {
 
-	
-	/**
-	 * Какви интерфейси поддържа този мениджър
-	 */
-	public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
-	
-	
-	/**
-	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-	 */
-	public $rowToolsSingleField = 'reason';
-	
-	
-	/**
-	 * Кой има право да разглежда документа?
-	 */
-	public $canSingle = 'bank, ceo';
-	
-	
-	/**
-	 * Кой може да пише?
-	 */
-	public $canWrite = 'bank, ceo';
-	
-	
-	/**
-	 * Кой може да създава
-	 */
-	public $canAdd = 'bank, ceo';
-	
-	
-	/**
-	 * Кой има право да редактира?
-	 */
-	public $canEdit = 'bank, ceo';
-	
-	
-	/**
-	 * Дали в листовия изглед да се показва бутона за добавяне
-	 */
-	public $listAddBtn = FALSE;
-	
-	
-	/**
-	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-	 */
-	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-	{
-		if($action == 'add' && isset($rec)){
-			if(empty($rec->originId)){
-				$requiredRoles = 'no_one';
-			} else {
-				$origin = doc_Containers::getDocument($rec->originId);
-				if(!$origin->isInstanceOf('bank_IncomeDocuments') && !$origin->isInstanceOf('bank_SpendingDocuments')){
-					$requiredRoles = 'no_one';
-				} else {
-					$originRec = $origin->fetch();
-					if($originRec->state != 'draft'){
-						$requiredRoles = 'no_one';
-					}
-				}
-			}
-		}
-	}
-	
-	
-	/**
-	 * След рендиране на единичния изглед
-	 */
-	protected static function on_AfterRenderSingleLayout($mvc, $tpl, $data)
-	{
-		if(Mode::is('printing') || Mode::is('text', 'xhtml')){
-			$tpl->removeBlock('header');
-		}
-	}
-	
-	
-	/**
-	 * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-	 */
-	public function getDocumentRow($id)
-	{
-		$rec = $this->fetch($id);
-		$row = new stdClass();
-		$row->title = $rec->reason;
-		$row->authorId = $rec->createdBy;
-		$row->author = $this->getVerbal($rec, 'createdBy');
-		$row->state = $rec->state;
-		$row->recTitle = $rec->reason;
-	
-		return $row;
-	}
-	
-	
-	/**
-	 * Вкарваме css файл за единичния изглед
-	 */
-	protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
-	{
-		$tpl->push('bank/tpl/css/belejka.css', 'CSS');
-	}
+    
+    /**
+     * Какви интерфейси поддържа този мениджър
+     */
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'reason';
+    
+    
+    /**
+     * Кой има право да разглежда документа?
+     */
+    public $canSingle = 'bank, ceo';
+    
+    
+    /**
+     * Кой може да пише?
+     */
+    public $canWrite = 'bank, ceo';
+    
+    
+    /**
+     * Кой може да създава
+     */
+    public $canAdd = 'bank, ceo';
+    
+    
+    /**
+     * Кой има право да редактира?
+     */
+    public $canEdit = 'bank, ceo';
+    
+    
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = false;
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'add' && isset($rec)) {
+            if (empty($rec->originId)) {
+                $requiredRoles = 'no_one';
+            } else {
+                $origin = doc_Containers::getDocument($rec->originId);
+                if (!$origin->isInstanceOf('bank_IncomeDocuments') && !$origin->isInstanceOf('bank_SpendingDocuments')) {
+                    $requiredRoles = 'no_one';
+                } else {
+                    $originRec = $origin->fetch();
+                    if ($originRec->state != 'draft') {
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     */
+    protected static function on_AfterRenderSingleLayout($mvc, $tpl, $data)
+    {
+        if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
+            $tpl->removeBlock('header');
+        }
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public function getDocumentRow($id)
+    {
+        $rec = $this->fetch($id);
+        $row = new stdClass();
+        $row->title = $rec->reason;
+        $row->authorId = $rec->createdBy;
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->state = $rec->state;
+        $row->recTitle = $rec->reason;
+    
+        return $row;
+    }
+    
+    
+    /**
+     * Вкарваме css файл за единичния изглед
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        $tpl->push('bank/tpl/css/belejka.css', 'CSS');
+    }
 }

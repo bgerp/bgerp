@@ -21,7 +21,7 @@ class core_Redirect extends core_ET
     /**
      * Конструктор на шаблона - редирект
      */
-    function __construct($url, $msg = NULL, $type = 'notice')
+    public function __construct($url, $msg = null, $type = 'notice')
     {
         if (isset($msg)) {
             Mode::set('redirectMsg', array('msg' => $msg, 'type' => $type));

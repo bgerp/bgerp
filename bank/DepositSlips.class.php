@@ -19,7 +19,7 @@ class bank_DepositSlips extends bank_DocumentBlank
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Вносни бележки";
+    public $title = 'Вносни бележки';
     
     
     /**
@@ -33,7 +33,7 @@ class bank_DepositSlips extends bank_DocumentBlank
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "number=Номер, reason, valior, amount, currencyId, beneficiaryName, beneficiaryIban, state, createdOn, createdBy";
+    public $listFields = 'number=Номер, reason, valior, amount, currencyId, beneficiaryName, beneficiaryIban, state, createdOn, createdBy';
     
     
     /**
@@ -51,7 +51,7 @@ class bank_DepositSlips extends bank_DocumentBlank
     /**
      * Абревиатура
      */
-    public $abbr = "Vb";
+    public $abbr = 'Vb';
     
     
     /**
@@ -79,13 +79,13 @@ class bank_DepositSlips extends bank_DocumentBlank
      */
     public static $defaultStrategies = array(
         
-        'execBank'           => 'lastDocUser|lastDoc',
-        'execBankBranch'  => 'lastDocUser|lastDoc',
-        'execBankAdress'  => 'lastDocUser|lastDoc',
+        'execBank' => 'lastDocUser|lastDoc',
+        'execBankBranch' => 'lastDocUser|lastDoc',
+        'execBankAdress' => 'lastDocUser|lastDoc',
         'beneficiaryName' => 'lastDocUser|lastDoc',
         'beneficiaryIban' => 'lastDocUser|lastDoc',
         'beneficiaryBank' => 'lastDocUser|lastDoc',
-        'depositor'       => 'lastDocUser|lastDoc',
+        'depositor' => 'lastDocUser|lastDoc',
     );
     
     
@@ -98,7 +98,7 @@ class bank_DepositSlips extends bank_DocumentBlank
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
@@ -124,7 +124,7 @@ class bank_DepositSlips extends bank_DocumentBlank
         $form = &$data->form;
         $originId = $form->rec->originId;
         
-        if($originId) {
+        if ($originId) {
             
             // Ако основанието е по банков документ намираме кой е той
             $doc = doc_Containers::getDocument($originId);
@@ -143,11 +143,11 @@ class bank_DepositSlips extends bank_DocumentBlank
             $form->setDefault('beneficiaryBank', $ownAccount->bank);
             
             // Ако контрагента е лице, слагаме името му за получател
-            if($originRec->contragentClassId != crm_Companies::getClassId()){
+            if ($originRec->contragentClassId != crm_Companies::getClassId()) {
                 $form->setDefault('depositor', $originRec->contragentName);
             }
             
-            if($originRec->contragentId && $originRec->contragentId){
+            if ($originRec->contragentId && $originRec->contragentId) {
                 $options = bank_Accounts::getContragentIbans($originRec->contragentId, $originRec->contragentClassId);
                 $form->setSuggestions('beneficiaryIban', $options);
             }
@@ -162,15 +162,16 @@ class bank_DepositSlips extends bank_DocumentBlank
      */
     protected static function getContragentInfo(core_Form $form)
     {
-        if(isset($form->rec->beneficiaryName)) return;
+        if (isset($form->rec->beneficiaryName)) {
+            return;
+        }
         $folderId = $form->rec->folderId;
         
         // Информацията за контрагента на папката
-        expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
+        expect($contragentData = doc_Folders::getContragentData($folderId), 'Проблем с данните за контрагент по подразбиране');
         
-        if($contragentData) {
-            if($contragentData->company) {
-                
+        if ($contragentData) {
+            if ($contragentData->company) {
                 $form->setReadOnly('beneficiaryName', $contragentData->company);
             } elseif ($contragentData->person) {
                 
@@ -188,9 +189,9 @@ class bank_DepositSlips extends bank_DocumentBlank
     {
         $row->number = static::getHandle($rec->id);
         
-        if($fields['-single']) {
+        if ($fields['-single']) {
             $SpellNumber = cls::get('core_SpellNumber');
-            $row->sayWords = $SpellNumber->asCurrency($rec->amount, 'bg', TRUE);
+            $row->sayWords = $SpellNumber->asCurrency($rec->amount, 'bg', true);
             
             $row->sayWords = str_replace('0.0', '', $row->sayWords);
             $row->sayWords = str_replace('0.', '', $row->sayWords);
@@ -203,8 +204,8 @@ class bank_DepositSlips extends bank_DocumentBlank
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        if($form->isSubmitted()){
-            if(!$form->rec->beneficiaryBank){
+        if ($form->isSubmitted()) {
+            if (!$form->rec->beneficiaryBank) {
                 $form->rec->beneficiaryBank = bglocal_Banks::getBankName($form->rec->beneficiaryIban);
             }
         }
@@ -213,16 +214,16 @@ class bank_DepositSlips extends bank_DocumentBlank
     
     /**
      * Връща тялото на имейла генериран от документа
-     * 
+     *
      * @see email_DocumentIntf
-     * @param int $id - ид на документа
-     * @param boolean $forward
-     * @return string - тялото на имейла
+     * @param  int     $id      - ид на документа
+     * @param  boolean $forward
+     * @return string  - тялото на имейла
      */
-    public function getDefaultEmailBody($id, $forward = FALSE)
+    public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашата вносна бележка") . ': #[#handle#]');
+        $tpl = new ET(tr('Моля запознайте се с нашата вносна бележка') . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();

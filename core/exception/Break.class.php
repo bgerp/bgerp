@@ -2,8 +2,8 @@
 
 
 /**
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   core
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -30,12 +30,12 @@ class core_exception_Break extends Exception
     /**
      *  Конструктор на изключението
      */
-    public function __construct($message = "", $type = 'Изключение', $dump = NULL)
+    public function __construct($message = '', $type = 'Изключение', $dump = null)
     {
         parent::__construct($message);
         
-        $this->type  = $type;
-        $this->dump  = $dump;
+        $this->type = $type;
+        $this->dump = $dump;
     }
     
     

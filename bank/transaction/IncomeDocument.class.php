@@ -34,7 +34,7 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
         
         $origin = $this->class->getOrigin($rec);
         
-        if($rec->isReverse == 'yes'){
+        if ($rec->isReverse == 'yes') {
             // Ако документа е обратен, правим контировката на РБД-то но с отрицателен знак
             $entry = bank_transaction_SpendingDocument::getReverseEntries($rec, $origin);
         } else {
@@ -46,7 +46,7 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         // Подготвяме информацията която ще записваме в Журнала
-        $result = (object)array(
+        $result = (object) array(
             'reason' => (!empty($rec->reason)) ? $rec->reason : deals_Helper::getPaymentOperationText($rec->operationSysId),   // основанието за ордера
             'valior' => $rec->valior,   // датата на ордера
             'entries' => $entry
@@ -59,50 +59,50 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
     /**
      * Връща записа на транзакцията
      */
-    private function getEntry($rec, $origin, $reverse = FALSE)
+    private function getEntry($rec, $origin, $reverse = false)
     {
-    	// Ако е обратна транзакцията, сумите и к-та са с минус
-    	$sign = ($reverse) ? -1 : 1;
-    	
-    	$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
-    	if($rec->currencyId == $baseCurrencyId){
-    		$amount = $rec->amount;
-    	} elseif($rec->dealCurrencyId == $baseCurrencyId){
-    		$amount = $rec->amountDeal;
-    	} else {
-    		$amount = $rec->amount * $rec->rate;
-    	}
-    	
-    	$entry1 = array('amount' => $sign * $amount,
-    			'debit' => array($rec->debitAccId,
-    					array('bank_OwnAccounts', $rec->ownAccount),
-            			array('currency_Currencies', $rec->currencyId),
-    					'quantity' => $sign * $rec->amount),
-    			 
-    			'credit' => array($rec->creditAccId,
-    					array($rec->contragentClassId, $rec->contragentId),
-    					array($origin->className, $origin->that),
-    					array('currency_Currencies', $rec->dealCurrencyId),
-    					'quantity' => $sign * $rec->amountDeal),);
-    	
-    	$entry[] = $entry1;
+        // Ако е обратна транзакцията, сумите и к-та са с минус
+        $sign = ($reverse) ? -1 : 1;
+        
+        $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
+        if ($rec->currencyId == $baseCurrencyId) {
+            $amount = $rec->amount;
+        } elseif ($rec->dealCurrencyId == $baseCurrencyId) {
+            $amount = $rec->amountDeal;
+        } else {
+            $amount = $rec->amount * $rec->rate;
+        }
+        
+        $entry1 = array('amount' => $sign * $amount,
+                'debit' => array($rec->debitAccId,
+                        array('bank_OwnAccounts', $rec->ownAccount),
+                        array('currency_Currencies', $rec->currencyId),
+                        'quantity' => $sign * $rec->amount),
+                 
+                'credit' => array($rec->creditAccId,
+                        array($rec->contragentClassId, $rec->contragentId),
+                        array($origin->className, $origin->that),
+                        array('currency_Currencies', $rec->dealCurrencyId),
+                        'quantity' => $sign * $rec->amountDeal),);
+        
+        $entry[] = $entry1;
 
-    	if($reverse === TRUE && ($rec->operationSysId == 'bank2customerRet' || $rec->operationSysId == 'bankAdvance2customerRet')){
-    		$entry2 = $entry[0];
-    		$entry2['amount'] = abs($entry2['amount']);
-    		$debitArr = $entry2['debit'];
-    		$creditArr = $entry2['credit'];
-    		$entry[0]['debit'] = $creditArr;
-    		$entry[0]['debit'][0] = '482';
-    		
-    		$entry2['credit'] = $debitArr;
-    		$entry2['credit']['quantity'] = abs($entry2['credit']['quantity']);
-    		$entry2['debit'] = $entry[0]['debit'];
-    		$entry2['debit']['quantity'] = abs($entry2['debit']['quantity']);
-    		$entry[] = $entry2;
-    	}
-    	
-    	return $entry;
+        if ($reverse === true && ($rec->operationSysId == 'bank2customerRet' || $rec->operationSysId == 'bankAdvance2customerRet')) {
+            $entry2 = $entry[0];
+            $entry2['amount'] = abs($entry2['amount']);
+            $debitArr = $entry2['debit'];
+            $creditArr = $entry2['credit'];
+            $entry[0]['debit'] = $creditArr;
+            $entry[0]['debit'][0] = '482';
+            
+            $entry2['credit'] = $debitArr;
+            $entry2['credit']['quantity'] = abs($entry2['credit']['quantity']);
+            $entry2['debit'] = $entry[0]['debit'];
+            $entry2['debit']['quantity'] = abs($entry2['debit']['quantity']);
+            $entry[] = $entry2;
+        }
+        
+        return $entry;
     }
     
     
@@ -113,6 +113,6 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
     {
         $self = cls::get(get_called_class());
         
-        return $self->getEntry($rec, $origin, TRUE);
+        return $self->getEntry($rec, $origin, true);
     }
 }

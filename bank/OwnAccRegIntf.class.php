@@ -16,5 +16,4 @@
  */
 class bank_OwnAccRegIntf extends acc_RegisterIntf
 {
-
 }

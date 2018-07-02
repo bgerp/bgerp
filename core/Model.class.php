@@ -38,7 +38,7 @@ class core_Model
     }
     
     
-    public function save($fields = NULL, $mode = NULL)
+    public function save($fields = null, $mode = null)
     {
         return $this->_mvc->save($this, $fields, $mode);
     }
@@ -58,10 +58,11 @@ class core_Model
     
     /**
      *
-     * @param core_Mvc $detailMvc
+     * @param  core_Mvc $detailMvc
      * @return array
      */
-    public function getDetails($detailMvc, $detailModel = NULL) {
+    public function getDetails($detailMvc, $detailModel = null)
+    {
         if (is_scalar($detailMvc)) {
             $detailMvc = cls::get($detailMvc);
         }
@@ -94,5 +95,4 @@ class core_Model
             return $this->{"calc_{$property}"}();
         }
     }
-    
 }

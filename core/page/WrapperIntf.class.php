@@ -16,18 +16,17 @@
 class core_page_WrapperIntf
 {
 
-	/**
-	 * Инстанция на обекта
-	 */
-	public $class;
+    /**
+     * Инстанция на обекта
+     */
+    public $class;
 
 
     /**
      * Подготвя шаблона на опаковката
      */
-    public function  prepare()
+    public function prepare()
     {
         $this->class->prepare();
     }
-	
 }

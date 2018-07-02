@@ -2,110 +2,118 @@
 
 
 /**
- * Описание на продукт, участващ в сделка.
+ * Описание на продукт, участващ в сделка
  *
  * @category  bgerp
- *
+ * @package   bgerp
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- *
  * @since     v 0.1
  */
 class bgerp_iface_DealProduct
 {
+
+    
     /**
-     * Първичен ключ на продукт (в рамките на мениджъра му).
+     * Първичен ключ на продукт (в рамките на мениджъра му)
      *
      * @var int
-     *
      * @see $classId
      */
     public $productId;
-
+    
+    
     /**
-     * Мярка.
+     * Мярка
      *
      * @var int key(mvc=cat_UoM)
      */
     public $uomId;
-
+    
+    
     /**
-     * Опаковка.
+     * Опаковка
      *
      * @var int key(mvc=cat_Uom)
-     *
      * @see cat_UoM
      */
     public $packagingId;
-
+    
+    
     /**
-     * Количество.
+     * Количество
      *
-     * @var float
+     * @var double
      */
     public $quantity;
-
+    
+    
     /**
-     * Количество.
+     * Количество
      *
-     * @var float
+     * @var double
      */
     public $quantityInPack;
-
+    
+    
     /**
-     * Цена.
+     * Цена
      *
-     * @var float
+     * @var double
      */
     public $price;
-
+    
+    
     /**
-     * Отстъпка.
+     * Отстъпка
      *
-     * @var float в интервала [0..1]
+     * @var double в интервала [0..1]
      */
     public $discount;
-
+    
+    
     /**
-     * Тегло на продукта (ако има).
+     * Тегло на продукта (ако има)
      *
      * @var int
-     *
      * @see $classId
      */
     public $weight;
-
+    
+    
     /**
-     * Обем на продукта (ако има).
+     * Обем на продукта (ако има)
      *
      * @var int
-     *
      * @see $classId
      */
     public $volume;
-
+    
+    
     /**
-     * Срок на продукта.
+     * Срок на продукта
      *
      * @var time
-     *
      * @see $classId
      */
     public $term;
-
+    
+    
     /**
-     * Забележки.
+     * Забележки
      */
     public $notes;
-
+    
+    
     /**
-     * Запис за разходи.
+     * Запис за разходи
      */
     public $expenseRecId;
-
+    
+    
     /**
-     * Партиди.
+     * Партиди
      */
     public $batches = array();
 }

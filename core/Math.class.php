@@ -17,25 +17,25 @@
 class core_Math
 {
 
-	/**
+    /**
      * "Интелигентно" закръгляне, което гарантира минимален брой
      * (зададен чрез конфигурация) знаци след закръглянето
      *
-     * @param   double  $number             число, което подлежи на закръгляне
-     * @param   int     $fractionalLen      текуща максимална дробна част
-     * @param   int     $significantDigits  минимален брой значещи цифри след закръглянето
+     * @param double $number            число, което подлежи на закръгляне
+     * @param int    $fractionalLen     текуща максимална дробна част
+     * @param int    $significantDigits минимален брой значещи цифри след закръглянето
      *
-     * @return  double|string               закръгленo число
+     * @return double|string закръгленo число
      */
-	public static function roundNumber($number, &$fractionalLen = 0, $significantDigits = NULL)
-	{
-        if(!$fractionalLen){
-        	$fractionalLen = 0;
+    public static function roundNumber($number, &$fractionalLen = 0, $significantDigits = null)
+    {
+        if (!$fractionalLen) {
+            $fractionalLen = 0;
         }
-		
-		if($significantDigits === NULL) {
+        
+        if ($significantDigits === null) {
             
-            // Вземаме конфигурацията на пакета ef	    
+            // Вземаме конфигурацията на пакета ef
             $conf = core_Packs::getConfig('core');
 
             $significantDigits = $conf->EF_ROUND_SIGNIFICANT_DIGITS;
@@ -46,47 +46,46 @@ class core_Math
             $r = log10(abs($number));
         }
         
-	    // Плаваща, лимитирана от долу прецизност
-	    $precision =  max($fractionalLen, round($significantDigits - $r));
-		
-	    // Закръгляваме
-	    $number = round($number, $precision);
-	    
-	    // Дължината на дробната част
-        $thisFractionalLen = strlen(substr(strrchr($number, "."), 1));
+        // Плаваща, лимитирана от долу прецизност
+        $precision = max($fractionalLen, round($significantDigits - $r));
+        
+        // Закръгляваме
+        $number = round($number, $precision);
+        
+        // Дължината на дробната част
+        $thisFractionalLen = strlen(substr(strrchr($number, '.'), 1));
        
-        if($thisFractionalLen > $fractionalLen) {
+        if ($thisFractionalLen > $fractionalLen) {
             
             // Записваме новата по-голяма част
             $fractionalLen = $thisFractionalLen;
-
-        } elseif($thisFractionalLen < $fractionalLen) {
+        } elseif ($thisFractionalLen < $fractionalLen) {
 
             // Падваме с 0-ли отдясно
-            if(floor($number) != $number){
-            	$number = str_pad($number, $fractionalLen, "0", STR_PAD_RIGHT);
+            if (floor($number) != $number) {
+                $number = str_pad($number, $fractionalLen, '0', STR_PAD_RIGHT);
             }
-		}
-	    
-	    return $number;
-	}
-	
-	
-	/**
-	 * Функция намираща остатъка на делението на две реални числа
-	 * 
-	 * @param double $x
-	 * @param double $y
-	 * @return double $r
-	 */
-	public static function fmod($x, $y)
-	{
-		$x = (double)$x;
-		$y = (double)$y;
-		expect($y != 0, 'Опит за деление на нула');
-		
-		$r = $x - floor($x / $y) * $y;
-		
-		return $r;
-	}
+        }
+        
+        return $number;
+    }
+    
+    
+    /**
+     * Функция намираща остатъка на делението на две реални числа
+     *
+     * @param  double $x
+     * @param  double $y
+     * @return double $r
+     */
+    public static function fmod($x, $y)
+    {
+        $x = (double) $x;
+        $y = (double) $y;
+        expect($y != 0, 'Опит за деление на нула');
+        
+        $r = $x - floor($x / $y) * $y;
+        
+        return $r;
+    }
 }

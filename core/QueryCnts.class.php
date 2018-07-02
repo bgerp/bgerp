@@ -48,7 +48,7 @@ class core_QueryCnts extends core_Manager
      */
     public static function getFromChache($query, $part = 'cnt')
     {
-        if(is_object($query)) {
+        if (is_object($query)) {
             $hash = self::getHash($query);
         } else {
             $hash = $query;
@@ -56,7 +56,7 @@ class core_QueryCnts extends core_Manager
 
         $data = core_Cache::get(self::CACHE_PREFIX, $hash);
         
-        if(!empty($part)) {
+        if (!empty($part)) {
             $res = $data->{$part};
         } else {
             $res = $data;
@@ -69,9 +69,9 @@ class core_QueryCnts extends core_Manager
     /**
      * Връща кешираната стойност за броя на резултатите в заявката
      */
-    public static function set($query, $cnt, $start = NULL)
+    public static function set($query, $cnt, $start = null)
     {
-        if(is_object($query)) {
+        if (is_object($query)) {
             $hash = self::getHash($query);
         } else {
             $hash = $query;
@@ -79,25 +79,25 @@ class core_QueryCnts extends core_Manager
         
         $data = (object) array('cnt' => $cnt, 'time' => time());
 
-        if($start) {
+        if ($start) {
             $data->calcTime = time() - $start;
         }
 
-        $res  = core_Cache::set(self::CACHE_PREFIX, $hash, $data, self::CACHE_LIFETIME);
+        $res = core_Cache::set(self::CACHE_PREFIX, $hash, $data, self::CACHE_LIFETIME);
 
         return $res;
     }
 
 
     /**
-     * Връща хеш за посочената заявка. 
+     * Връща хеш за посочената заявка.
      * Като страничен резултат я оптимизира за преброяване
      */
     private static function getHash($query)
     {
         $query->orderBy = array();
         $query->show('id');
-        $hash = $query->getHash(TRUE);
+        $hash = $query->getHash(true);
         
         return $hash;
     }
@@ -108,14 +108,15 @@ class core_QueryCnts extends core_Manager
      */
     public function on_Shutdown()
     {
-        foreach($this->queries as $hash => $qCnt) {
+        foreach ($this->queries as $hash => $qCnt) {
+            $lastRec = self::getFromChache($hash, null);
+            $cnt = false;
             
-            $lastRec = self::getFromChache($hash, NULL);
-            $cnt = FALSE;
-            
-            if($lastRec) {
+            if ($lastRec) {
                 $cnt = $lastRec->cnt;
-                if(time() - $lastRec->time < 60) continue;
+                if (time() - $lastRec->time < 60) {
+                    continue;
+                }
             }
             self::set($hash, $cnt);
             
@@ -124,6 +125,4 @@ class core_QueryCnts extends core_Manager
             self::set($hash, $cnt, $start);
         }
     }
-
-    
 }

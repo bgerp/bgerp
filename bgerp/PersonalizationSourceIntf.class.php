@@ -1,21 +1,23 @@
 <?php
 
 
+
 /**
  * @category  bgerp
- *
+ * @package   bgerp
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- *
  * @since     v 0.1
  */
 class bgerp_PersonalizationSourceIntf
 {
+    
+    
     /**
      * Връща масив с ключове имената на плейсхолдърите и съдържание - типовете им
      *
-     * @param int $id
+     * @param integer $id
      *
      * @return array
      */
@@ -23,12 +25,13 @@ class bgerp_PersonalizationSourceIntf
     {
         return $this->class->getPersonalizationDescr($id);
     }
-
+    
+    
     /**
-     * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value.
+     * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value
      *
-     * @param int $id
-     * @param int $limit
+     * @param integer $id
+     * @param integer $limit
      *
      * @return array
      */
@@ -36,12 +39,13 @@ class bgerp_PersonalizationSourceIntf
     {
         return $this->class->getPresonalizationArr($id, $limit);
     }
-
+    
+    
     /**
-     * Връща вербално представяне на заглавието на дадения източник за персонализирани данни.
+     * Връща вербално представяне на заглавието на дадения източник за персонализирани данни
      *
-     * @param int  $id
-     * @param bool $verbal
+     * @param integer $id
+     * @param boolean $verbal
      *
      * @return string
      */
@@ -49,25 +53,27 @@ class bgerp_PersonalizationSourceIntf
     {
         return $this->class->getPersonalizationTitle($id, $verbal);
     }
-
+    
+    
     /**
-     * Връща TRUE или FALSE дали потребителя може да използва дадения източник на персонализация.
+     * Връща TRUE или FALSE дали потребителя може да използва дадения източник на персонализация
      *
-     * @param int $id
-     * @param int $userId
+     * @param integer $id
+     * @param integer $userId
      *
-     * @return bool
+     * @return boolean
      */
     public function canUsePersonalization($id, $userId = null)
     {
         return $this->class->canUsePersonalization($id, $userId);
     }
-
+    
+    
     /**
      * Връща масив за SELECT с всички възможни източници за персонализация от даден клас,
-     * които са достъпни за посочения потребител.
+     * които са достъпни за посочения потребител
      *
-     * @param int $userId
+     * @param integer $userId
      *
      * @return array
      */
@@ -75,13 +81,14 @@ class bgerp_PersonalizationSourceIntf
     {
         return $this->class->getPersonalizationOptions($userId);
     }
-
+    
+    
     /**
      * Връща масив за SELECT с всички възможни източници за персонализация от даден клас,
      * за съответния запис,
-     * които са достъпни за посочения потребител.
+     * които са достъпни за посочения потребител
      *
-     * @param int $srcId
+     * @param integer $srcId
      *
      * @return array
      */
@@ -89,11 +96,12 @@ class bgerp_PersonalizationSourceIntf
     {
         return $this->class->getPersonalizationOptionsForId($srcId);
     }
-
+    
+    
     /**
-     * Връща линк, който сочи към източника за персонализация.
+     * Връща линк, който сочи към източника за персонализация
      *
-     * @param int $id
+     * @param integer $id
      *
      * @return core_ET
      */
@@ -101,11 +109,12 @@ class bgerp_PersonalizationSourceIntf
     {
         return $this->class->getPersonalizationSrcLink($id);
     }
-
+    
+    
     /**
-     * Връща езика за източника на персонализация.
+     * Връща езика за източника на персонализация
      *
-     * @param int $id
+     * @param integer $id
      *
      * @return string
      */
