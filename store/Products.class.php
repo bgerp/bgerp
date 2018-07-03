@@ -541,24 +541,23 @@ class store_Products extends core_Detail
     		if(!isset($reserved)){
     			$reserved = array();
     			$tdQuery = store_TransfersDetails::getQuery();
-    			$tdQuery->XPR('sum', 'double', "SUM(#quantity)");
     			$tdQuery->where("#transferId = {$tRec->id}");
-    			$tdQuery->show("newProductId,quantity,transferId,sum,quantityInPack");
+    			$tdQuery->show("newProductId,quantity,transferId,quantityInPack");
+    			$tdQuery->groupBy('newProductId');
     			
     			while($td = $tdQuery->fetch()){
     				$key = "{$tRec->fromStore}|{$td->newProductId}";
     				$key2 = "{$tRec->toStore}|{$td->newProductId}";
-    				$reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'q' => $td->sum);
-    				$reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'q' => -1 * $td->sum);
-    				
-    				// Кеширане
-    				core_Permanent::set("reserved_{$tRec->containerId}", $reserved, 4320);
+    				$reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'q' => $td->quantity);
+    				$reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'q' => -1 * $td->quantity);
     			}
     			 
-    			$queue[] = $reserved;
+    			core_Permanent::set("reserved_{$tRec->containerId}", $reserved, 4320);
     		}
+    		
+    		$queue[] = $reserved;
     	}
-    	//bp(core_Permanent::get("reserved_256741"));
+    	
     	// Сумиране на к-та
     	foreach ($queue as $arr){
     		foreach ($arr as $key => $obj){
