@@ -549,6 +549,18 @@ class eshop_Products extends core_Master
         
         $data->detailData = (object)array('rec' => $data->rec);
         eshop_ProductDetails::prepareExternal($data->detailData);
+        
+        // Линк към менюто
+        $groupRec = eshop_Groups::fetch($data->rec->groupId);
+        $menu = cms_Content::getVerbal($groupRec->menuId, 'menu');
+        $menuLink = ht::createLink($menu, cms_Content::getContentUrl($groupRec->menuId));
+        
+        // Линк към групата
+        $group = eshop_Groups::getVerbal($groupRec, 'name');
+        $groupLink = ht::createLink($group, eshop_Groups::getUrl($groupRec));
+        
+        // Навигация до артикула
+        $data->row->productPath = $menuLink . " » " . $groupLink . " » " . $data->row->name;
     }
 
 
