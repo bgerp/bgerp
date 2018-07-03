@@ -445,10 +445,23 @@ class eshop_Carts extends core_Master
     	}
     	
     	// Рутиране в папка
-    	$folderId = isset($rec->saleFolderId) ? $rec->saleFolderId : marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
-    	$Cover = doc_Folders::getCover($folderId);
-    	$settings = cms_Domains::getSettings();
+    	if(isset($rec->saleFolderId)){
+    		$Cover = doc_Folders::getCover($folderId);
+    		$folderId = $rec->saleFolderId;
+    	} else {
+    		$folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
+    		
+    		// Ако папката е на фирма, добавя се нейния ват номер
+    		$Cover = doc_Folders::getCover($folderId);
+    		if($Cover->isInstanceOf('crm_Companies')){
+    			$companyRec = crm_Companies::fetch($Cover->that);
+    			$companyRec->vatId = $rec->invoiceVatNo;
+    			
+    			crm_Companies::save($companyRec, 'vatId');
+    		}
+    	}
     	
+    	$settings = cms_Domains::getSettings();
     	$templateId = cls::get('sales_Sales')->getDefaultTemplate((object)array('folderId' => $folderId));
     	$templateLang = doc_TplManager::fetchField($templateId, 'lang');
     	
