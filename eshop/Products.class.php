@@ -512,28 +512,28 @@ class eshop_Products extends core_Master
         $data->row = $this->recToVerbal($data->rec, $fields);
         
         if($data->rec->image) {
-            $data->row->image = fancybox_Fancybox::getImage($data->rec->image, array(160, 160), array(800, 800), $data->row->name); 
+            $data->row->image = fancybox_Fancybox::getImage($data->rec->image, array(160, 160), array(800, 800), $data->row->name, array('class' => 'product-image'));
         } elseif(!$data->rec->image2 && !$data->rec->image3 && !$data->rec->image4 && !$data->rec->image5) {
             $data->row->image = new thumb_Img(getFullPath("eshop/img/noimage" . 
                     (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . 
                     ".png"), 120, 120, 'path'); 
-            $data->row->image = $data->row->image->createImg(array('width' => 160, 'height' => 160));
+            $data->row->image = $data->row->image->createImg(array('width' => 160, 'height' => 160, 'class' => 'product-image'));
         }
 
         if($data->rec->image2) {
-            $data->row->image2 = fancybox_Fancybox::getImage($data->rec->image2, array(160, 160), array(800, 800), $data->row->name . ' 2'); 
+            $data->row->image2 = fancybox_Fancybox::getImage($data->rec->image2, array(160, 160), array(800, 800), $data->row->name . ' 2', array('class' => 'product-image'));
         }
 
         if($data->rec->image3) {
-            $data->row->image3 = fancybox_Fancybox::getImage($data->rec->image3, array(160, 160), array(800, 800), $data->row->name3 . ' 3'); 
+            $data->row->image3 = fancybox_Fancybox::getImage($data->rec->image3, array(160, 160), array(800, 800), $data->row->name3 . ' 3', array('class' => 'product-image'));
         }
 
         if($data->rec->image4) {
-            $data->row->image4 = fancybox_Fancybox::getImage($data->rec->image4, array(160, 160), array(800, 800), $data->row->name4 . ' 4'); 
+            $data->row->image4 = fancybox_Fancybox::getImage($data->rec->image4, array(160, 160), array(800, 800), $data->row->name4 . ' 4', array('class' => 'product-image'));
         }
 
         if($data->rec->image5) {
-            $data->row->image5 = fancybox_Fancybox::getImage($data->rec->image5, array(160, 160), array(800, 6800), $data->row->name5 . ' 5'); 
+            $data->row->image5 = fancybox_Fancybox::getImage($data->rec->image5, array(160, 160), array(800, 6800), $data->row->name5 . ' 5', array('class' => 'product-image'));
         }
 
         if(self::haveRightFor('single', $data->rec)) {
@@ -549,6 +549,18 @@ class eshop_Products extends core_Master
         
         $data->detailData = (object)array('rec' => $data->rec);
         eshop_ProductDetails::prepareExternal($data->detailData);
+        
+        // Линк към менюто
+        $groupRec = eshop_Groups::fetch($data->rec->groupId);
+        $menu = cms_Content::getVerbal($groupRec->menuId, 'menu');
+        $menuLink = ht::createLink($menu, cms_Content::getContentUrl($groupRec->menuId));
+        
+        // Линк към групата
+        $group = eshop_Groups::getVerbal($groupRec, 'name');
+        $groupLink = ht::createLink($group, eshop_Groups::getUrl($groupRec));
+        
+        // Навигация до артикула
+        $data->row->productPath = $menuLink . " » " . $groupLink . " » " . $data->row->name;
     }
 
 

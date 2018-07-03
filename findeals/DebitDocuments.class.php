@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -35,7 +35,7 @@ class findeals_DebitDocuments extends deals_Document
      */
     public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,deals_plg_SelectInvoice,doc_plg_HidePrices,
-                     plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg';
+                     plg_Search, bgerp_plg_Blank,bgerp_DealIntf';
     
     
     /**

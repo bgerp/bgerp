@@ -85,6 +85,8 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     	$form->setField('deliveryPCode', 'mandatory');
     	$form->setField('deliveryPlace', 'mandatory');
     	$form->setField('deliveryAddress', 'mandatory');
+    	
+    	$form->setDefault('invoiceCountry', $bgId);
     }
     
     

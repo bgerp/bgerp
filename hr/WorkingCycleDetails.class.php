@@ -190,8 +190,8 @@ class hr_WorkingCycleDetails extends core_Detail
      * 2 - втори
      * 3 - нощен
      * 4 - дневен
-     * @param time $start - започването на режима в секунди
-     * @param time $duration - продължителността на режима в секънди
+     * @param datetime $start - започването на режима в секунди
+     * @param datetime $duration - продължителността на режима в секънди
      */
     static public function getWorkingShiftType($start, $duration)
     {

@@ -143,7 +143,7 @@ function eshopActions() {
 
 	$('.eshop-product .eshop-btn').on('click', function () {
 		var cart = $('.logoutBlock #cart-external-status');
-		var imgtodrag = $('.eshop-product-images').find("img").eq(0);
+		var imgtodrag = $('.product-image').eq(0);
 		if (imgtodrag) {
 			var imgclone = imgtodrag.clone()
 				.offset({

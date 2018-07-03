@@ -445,10 +445,23 @@ class eshop_Carts extends core_Master
     	}
     	
     	// Рутиране в папка
-    	$folderId = isset($rec->saleFolderId) ? $rec->saleFolderId : marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
-    	$Cover = doc_Folders::getCover($folderId);
-    	$settings = cms_Domains::getSettings();
+    	if(isset($rec->saleFolderId)){
+    		$Cover = doc_Folders::getCover($folderId);
+    		$folderId = $rec->saleFolderId;
+    	} else {
+    		$folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
+    		
+    		// Ако папката е на фирма, добавя се нейния ват номер
+    		$Cover = doc_Folders::getCover($folderId);
+    		if($Cover->isInstanceOf('crm_Companies')){
+    			$companyRec = crm_Companies::fetch($Cover->that);
+    			$companyRec->vatId = $rec->invoiceVatNo;
+    			
+    			crm_Companies::save($companyRec, 'vatId');
+    		}
+    	}
     	
+    	$settings = cms_Domains::getSettings();
     	$templateId = cls::get('sales_Sales')->getDefaultTemplate((object)array('folderId' => $folderId));
     	$templateLang = doc_TplManager::fetchField($templateId, 'lang');
     	
@@ -852,11 +865,11 @@ class eshop_Carts extends core_Master
     	if(eshop_CartDetails::haveRightFor('add', (object)array('cartId' => $rec->id))){
     		$addUrl = array('eshop_CartDetails', 'add', 'cartId' => $rec->id, 'external' => TRUE, 'ret_url' => TRUE);
     		$btn = ht::createLink(tr('Добавяне на артикул'), $addUrl, NULL, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
-    		$tpl->append($btn, 'CART_TOOLBAR_LEFT');
+    		$tpl->append($btn, 'CART_TOOLBAR_TOP');
     	}
     	
     	$btn = ht::createLink(tr('Назад към магазина'), $shopUrl, NULL, 'title=Връщане в онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
-    	$tpl->append($btn, 'CART_TOOLBAR_LEFT');
+    	$tpl->append($btn, 'CART_TOOLBAR_TOP');
     	
     	$checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE) : array();
     	if(empty($rec->personNames) && count($checkoutUrl)){
@@ -1319,8 +1332,9 @@ class eshop_Carts extends core_Master
     			$form->setDefault('invoicePCode', $contragentData->pCode);
     			$form->setDefault('invoicePlace', $contragentData->place);
     			$form->setDefault('invoiceAddress', $contragentData->address);
+    			
+    			$locations = crm_Locations::getContragentOptions('crm_Companies', $contragentData->companyId);
     		}
-    		$locations = crm_Locations::getContragentOptions('crm_Companies', $contragentData->companyId);
     	} else {
     		if($isColab === TRUE){
     			$locations = crm_Locations::getContragentOptions('crm_Persons', crm_Profiles::getProfile($cu)->id);
@@ -1348,7 +1362,13 @@ class eshop_Carts extends core_Master
     	if($isColab === TRUE){
     		
     		// Адреса за доставка е този от последната количка
-    		if($lastCart = eshop_Carts::fetch("#userId = {$cu} AND #state = 'active'", 'termId,deliveryCountry,deliveryPCode,deliveryPlace,deliveryAddress')){
+    		$cQuery = eshop_Carts::getQuery();
+    		$cQuery->where("#userId = {$cu} AND #state = 'active'");
+    		$cQuery->show('termId,deliveryCountry,deliveryPCode,deliveryPlace,deliveryAddress');
+    		$cQuery->orderBy('activatedOn', 'DESC');
+    		$cQuery->limit(1);
+    		
+    		if($lastCart = $cQuery->fetch()){
     			foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress') as $field){
     				$form->setDefault($field, $lastCart->{$field});
     			}
