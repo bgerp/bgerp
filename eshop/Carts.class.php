@@ -1319,8 +1319,9 @@ class eshop_Carts extends core_Master
     			$form->setDefault('invoicePCode', $contragentData->pCode);
     			$form->setDefault('invoicePlace', $contragentData->place);
     			$form->setDefault('invoiceAddress', $contragentData->address);
+    			
+    			$locations = crm_Locations::getContragentOptions('crm_Companies', $contragentData->companyId);
     		}
-    		$locations = crm_Locations::getContragentOptions('crm_Companies', $contragentData->companyId);
     	} else {
     		if($isColab === TRUE){
     			$locations = crm_Locations::getContragentOptions('crm_Persons', crm_Profiles::getProfile($cu)->id);
