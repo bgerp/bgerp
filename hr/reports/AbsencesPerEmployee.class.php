@@ -88,11 +88,11 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         
         $sickdaysQuery->where("#state != 'rejected'");
         
-        $leavesQuery->where("#leaveFrom >= '{$rec->from}' OR #leaveTo <= '{$rec->to}'");
+        $leavesQuery->where("(#leaveFrom >= '{$rec->from}' AND #leaveFrom <= '{$rec->to}') OR (#leaveTo <= '{$rec->to}' AND #leaveTo >= '{$rec->from}')");
         
         $leavesQuery->where("#state != 'rejected'");
         
-        $tripsQuery->where("#startDate >= '{$rec->from}' OR #toDate <= '{$rec->to}'");
+        $tripsQuery->where("(#startDate >= '{$rec->from}' AND #startDate <= '{$rec->to}') OR (#toDate >= '{$rec->from}' AND #toDate <= '{$rec->to}')");
         
         $tripsQuery->where("#state != 'rejected'");
         
@@ -233,10 +233,10 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             $fld->FLD('absencesDays', 'varchar', 'caption=Общо отсъствия,tdClass=centered');
         } else {
             
-            $fld->FLD('employee', 'varchar', 'caption=Потребител,smartCenter');
-            $fld->FLD('numberOfLeavesDays', 'varchar', 'caption=Дни->Отпуска');
-            $fld->FLD('numberOfSickdays', 'varchar', 'caption=Дни->Болнични');
-            $fld->FLD('numberOfTripsesDays', 'varchar', 'caption=Дни->Командировъчни');
+            $fld->FLD('employee', 'varchar', 'caption=Потребител');
+            $fld->FLD('numberOfLeavesDays', 'varchar', 'caption=Дни->Отпуска,tdClass=centered');
+            $fld->FLD('numberOfSickdays', 'varchar', 'caption=Дни->Болнични,tdClass=centered');
+            $fld->FLD('numberOfTripsesDays', 'varchar', 'caption=Дни->Командировъчни,tdClass=centered');
             $fld->FLD('absencesDays', 'varchar', 'caption=Общо отсъствия,tdClass=centered');
         }
         return $fld;
@@ -323,30 +323,11 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $res->paidAmount = (self::getPaidAmount($dRec));
+        $res->absencesDays = ($dRec->numberOfTripsesDays + $dRec->numberOfSickdays + $dRec->numberOfLeavesDays);
         
-        $res->paidDates = self::getPaidDates($dRec, FALSE);
+        $employee = crm_Persons::getContragentData($dRec->personId)->person;
         
-        $res->dueDate = self::getDueDate($dRec, FALSE, $rec);
-        
-        if ($dRec->invoiceCurrentSumm < 0) {
-            $invoiceOverSumm = -1 * $dRec->invoiceCurrentSumm;
-            $res->invoiceCurrentSumm = '';
-            $res->invoiceOverSumm = ($invoiceOverSumm);
-        }
-        
-        if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
-            
-            $res->dueDateStatus = 'Просрочен';
-        }
-        
-        $invoiceNo = str_pad($dRec->invoiceNo, 10, "0", STR_PAD_LEFT);
-        
-        $res->invoiceNo = $invoiceNo;
-        
-        $contragentName = crm_Companies::getTitleById($dRec->contragentId);
-        
-        $res->contragentId = $contragentName;
+        $res->employee = $employee;
     }
 
     /**
@@ -357,7 +338,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
      * @param array $doc
      *            - начална и крайна дата на документа
      * @return array - масив с начална и крайна дата на периода за проверка,
-     *         брой календарни дни, брий работни дни.
+     *         брой календарни дни, брoй работни дни.
      */
     public function getPeriod($rec, $doc)
     {
