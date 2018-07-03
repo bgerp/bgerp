@@ -13,17 +13,10 @@
  */
 class doc_ExpandComments extends core_Mvc
 {
-    
-    
-    /**
-     *
-     */
     public $interfaces = 'doc_ExpandCommentsIntf';
     
     
-    /**
-     *
-     */
+    
     public $title = 'Коментар';
     
     
@@ -35,7 +28,6 @@ class doc_ExpandComments extends core_Mvc
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        
     }
     
     
@@ -46,10 +38,9 @@ class doc_ExpandComments extends core_Mvc
      *
      * @return boolean
      */
-    public function canSelectDriver($userId = NULL)
+    public function canSelectDriver($userId = null)
     {
-        
-        return TRUE;
+        return true;
     }
     
     
@@ -57,17 +48,17 @@ class doc_ExpandComments extends core_Mvc
      * Връща състоянието на нишката
      *
      * @param doc_ExpandComments $Driver
-     * @param doc_Comments $mvc
-     * @param string|NULL $res
-     * @param integer $id
+     * @param doc_Comments       $mvc
+     * @param string|NULL        $res
+     * @param integer            $id
      *
      * @return string
      */
-    static function on_AfterGetThreadState($Driver, $mvc, &$res, $id)
+    public static function on_AfterGetThreadState($Driver, $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
         
-        $res = NULL;
+        $res = null;
         
         if (core_Packs::isInstalled('colab')) {
             if (core_Users::haveRole('partner', $rec->createdBy)) {
@@ -82,20 +73,20 @@ class doc_ExpandComments extends core_Mvc
     /**
      *
      * @param doc_ExpandComments $Driver
-     * @param core_Mvc $mvc
-     * @param NULL|array $res
-     * @param stdClass $rec
-     * @param array $otherParams
+     * @param core_Mvc           $mvc
+     * @param NULL|array         $res
+     * @param stdClass           $rec
+     * @param array              $otherParams
      */
-    function on_AfterGetDefaultData($Driver, $mvc, &$res, $rec, $otherParams = array())
+    public function on_AfterGetDefaultData($Driver, $mvc, &$res, $rec, $otherParams = array())
     {
         $res = arr::make($res);
         
-        $haveOrigin = FALSE;
+        $haveOrigin = false;
         //Ако имаме originId
         if ($rec->originId) {
             $cid = $rec->originId;
-            $haveOrigin = TRUE;
+            $haveOrigin = true;
         } elseif ($rec->threadId) {
             // Ако добавяме коментар в нишката
             $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');

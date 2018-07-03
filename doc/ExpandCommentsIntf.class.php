@@ -2,8 +2,8 @@
 
 
 /**
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   cal
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -13,5 +13,4 @@
  */
 class doc_ExpandCommentsIntf extends embed_DriverIntf
 {
-    
 }

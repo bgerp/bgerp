@@ -19,43 +19,43 @@ class doc_ThreadUsers extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_Modified, doc_Wrapper, plg_RowTools2';
+    public $loadList = 'plg_Modified, doc_Wrapper, plg_RowTools2';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Отношения на потребители, към тредове';
+    public $title = 'Отношения на потребители, към тредове';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = 'Отношениe на потребител, към тредове';
+    public $singleTitle = 'Отношениe на потребител, към тредове';
     
     
     /**
      * Права за писане
      */
-    var $canWrite = 'admin';
+    public $canWrite = 'admin';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой има право да добавя ?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         // Полета на таблицата
         $this->FLD('threadId', 'key(mvc=doc_Threads,select=id)', 'caption=Нишка, mandatory');
@@ -64,7 +64,7 @@ class doc_ThreadUsers extends core_Manager
         $this->FLD('relation', 'enum(shared=Споделен, subscribed=Абониран)', 'caption=Отношение');
         $this->FLD('seenOn', 'datetime', 'caption=Видян на');
         
-        // Индекси 
+        // Индекси
         $this->setDbIndex('threadId');
         $this->setDbIndex('containerId');
         $this->setDbUnique('threadId,containerId,userId,relation');
@@ -74,29 +74,31 @@ class doc_ThreadUsers extends core_Manager
     /**
      * Добавя споделен потребител(и) към дадената нишка
      * Споделения потребител има права за нишката, дори и да няма права за нейната папка
-     * Ако $users е int приема се, че това е id на един потребител. 
+     * Ако $users е int приема се, че това е id на един потребител.
      * При множество потребители $users е keylist или масив
      */
-    static function addShared($threadId, $containerId, $users, $relation = 'shared')
+    public static function addShared($threadId, $containerId, $users, $relation = 'shared')
     {
-        if(!$users) return;
+        if (!$users) {
+            return;
+        }
 
-        if(is_int($users)) {
+        if (is_int($users)) {
             $usersArr = array($users => $users);
         } else {
             $usersArr = keylist::toArray($users);
         }
 
-        if(count($usersArr)) {
-            foreach($usersArr as $userId) {
-                if($userId > 0) {
+        if (count($usersArr)) {
+            foreach ($usersArr as $userId) {
+                if ($userId > 0) {
                     $rec = (object) array(
                             'threadId' => $threadId,
                             'containerId' => $containerId,
                             'userId' => $userId,
                             'relation' => $relation,
                         );
-                    static::save($rec, NULL, 'IGNORE');
+                    static::save($rec, null, 'IGNORE');
                 }
             }
         }
@@ -106,10 +108,10 @@ class doc_ThreadUsers extends core_Manager
     /**
      * Добавя 'абониран' потребител(и) към дадената нишка
      * Абонирания потребител, получава нотификации, когато в нишката има нов документ
-     * Ако $users е int приемасе, че това е id на един потребител. 
+     * Ако $users е int приемасе, че това е id на един потребител.
      * При множество потребители $users е keylist или масив
      */
-    static function addSubscribed($threadId, $containerId, $users)
+    public static function addSubscribed($threadId, $containerId, $users)
     {
         return static::addShared($threadId, $containerId, $users, 'subscribed');
     }
@@ -118,13 +120,13 @@ class doc_ThreadUsers extends core_Manager
     /**
      * Връща всички потребители, за които посочената нишка е споделена
      */
-    static function getShared($threadId, $relation = 'shared')
+    public static function getShared($threadId, $relation = 'shared')
     {
         $res = array();
         
         $query = self::getQuery();
-        $query->show("userId");
-        while($rec = $query->fetch(array("#threadId = [#1#] AND #relation = '[#2#]'", $threadId, $relation))) {
+        $query->show('userId');
+        while ($rec = $query->fetch(array("#threadId = [#1#] AND #relation = '[#2#]'", $threadId, $relation))) {
             $res[$rec->userId] = $rec->userId;
         }
 
@@ -135,7 +137,7 @@ class doc_ThreadUsers extends core_Manager
     /**
      * Връща всички потребители, които са абонирани за посочената нишка
      */
-    static function getSubscribed($threadId)
+    public static function getSubscribed($threadId)
     {
         return static::getShared($threadId, 'subscribed');
     }
@@ -144,22 +146,20 @@ class doc_ThreadUsers extends core_Manager
     /**
      * Проверява дали посочения потребител е в посоченото отношение към посочената нишка
      */
-    static function is($threadId, $userId, $relation)
+    public static function is($threadId, $userId, $relation)
     {
-        if(static::fetch("#threadId = {$threadId} AND #userId = {$userId} AND #relation = {$relation}")) {
-
-            return TRUE;
-        } else {
-
-            return FALSE;
+        if (static::fetch("#threadId = {$threadId} AND #userId = {$userId} AND #relation = {$relation}")) {
+            return true;
         }
+
+        return false;
     }
 
 
     /**
      * Премахва цялата информация за даден контейнер
      */
-    static function removeContainer($containerId)
+    public static function removeContainer($containerId)
     {
         return static::delete("#containerId = {$containerId}");
     }

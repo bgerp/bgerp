@@ -19,7 +19,7 @@ class doc_View extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf';
     
     
     /**
@@ -31,92 +31,92 @@ class doc_View extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Изгледи";
+    public $title = 'Изгледи';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Изглед";
+    public $singleTitle = 'Изглед';
     
     
     /**
      * Кой има право да го чете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'powerUser';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'officer';
+    public $canAdd = 'officer';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    public $canView = 'powerUser';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo, debug';
+    public $canList = 'ceo, debug';
     
     
     /**
      * Кой има право да изтрива?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * @todo Чака за документация...
      */
-    var $canSingle = 'powerUser';
+    public $canSingle = 'powerUser';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
+    public $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
         plg_Printing, doc_ActivatePlg, bgerp_plg_Blank';
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'doc/tpl/SingleLayoutViews.shtml';
+    public $singleLayoutFile = 'doc/tpl/SingleLayoutViews.shtml';
     
     
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/ui_saccordion.png';
+    public $singleIcon = 'img/16/ui_saccordion.png';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = 'V';
+    public $abbr = 'V';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'tplId, clsId, dataId';
+    public $searchFields = 'tplId, clsId, dataId';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('clsId', 'class', 'caption=Клас, input=hidden, silent');
         $this->FLD('dataId', 'int', 'caption=Документ, input=hidden, silent');
@@ -133,17 +133,16 @@ class doc_View extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     * 
+     *
      * @param int $id
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         
@@ -167,10 +166,10 @@ class doc_View extends core_Master
     
     /**
      * Извиква се преди подготовката на формата за редактиране/добавяне $data->form
-     * 
+     *
      * @param crm_Locations $mvc
-     * @param stdClass $res
-     * @param stdClass $data
+     * @param stdClass      $res
+     * @param stdClass      $data
      */
     protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
@@ -182,8 +181,8 @@ class doc_View extends core_Master
      * Извиква се преди подготовката на формата за редактиране/добавяне $data->form
      *
      * @param crm_Locations $mvc
-     * @param stdClass $res
-     * @param stdClass $data
+     * @param stdClass      $res
+     * @param stdClass      $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
@@ -203,8 +202,8 @@ class doc_View extends core_Master
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm($mvc, &$form)
@@ -214,20 +213,20 @@ class doc_View extends core_Master
             expect($clsInst->haveRightFor('single', $form->rec->dataId));
             
             Mode::push('text', 'xhtml');
-            Mode::push('noBlank', TRUE);
+            Mode::push('noBlank', true);
             
-            $tplManagerLg = FALSE;
+            $tplManagerLg = false;
             if ($form->rec->tplId) {
                 $lg = doc_TplManager::fetchField($form->rec->tplId, 'lang');
                 
                 if ($lg) {
                     Mode::push('tplManagerLg', $lg);
-                    $tplManagerLg = TRUE;
+                    $tplManagerLg = true;
                     core_Lg::push($lg);
                 }
             }
             
-            $options = NULL;
+            $options = null;
             if ($form->rec->dataId) {
                 $dRec = $clsInst->fetch($form->rec->dataId);
                 $dRec->template = $form->rec->tplId;
@@ -239,9 +238,9 @@ class doc_View extends core_Master
             
             $data->rec->template = $form->rec->tplId;
             
-            $data->noToolbar = TRUE;
+            $data->noToolbar = true;
             
-            $res  = $clsInst->renderDocument($form->rec->dataId, $data);
+            $res = $clsInst->renderDocument($form->rec->dataId, $data);
             
             $form->rec->body = $res->getContent();
             
@@ -282,54 +281,54 @@ class doc_View extends core_Master
     
     /**
      * Добавя ключови думи за пълнотекстово търсене
-     * 
-     * @param doc_View $mvc
+     *
+     * @param doc_View    $mvc
      * @param string|NULL $res
-     * @param stdClass $rec
+     * @param stdClass    $rec
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         $body = strip_tags($rec->body);
         
-        $res .= " " . plg_Search::normalizeText($body);
+        $res .= ' ' . plg_Search::normalizeText($body);
     }
 
 
     /**
-	 * Модификация на ролите, които могат да видят избраната тема
-	 * 
-     * @param doc_View $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * Модификация на ролите, които могат да видят избраната тема
+     *
+     * @param doc_View    $mvc
+     * @param string      $requiredRoles
+     * @param string      $action
      * @param string|NULL $rec
      * @param string|NULL $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-	{
-	    if ($action == 'add') {
-	        if ($rec) {
-	            if (!$rec->clsId || !$rec->dataId) {
-	                $requiredRoles = 'no_one';
-	            } else {
-	                if (!cls::load($rec->clsId, TRUE)) {
-	                    $requiredRoles = 'no_one';
-	                } else {
-	                    $inst = cls::get($rec->clsId);
-	                    if (!$inst->haveRightFor('single', $rec->dataId)) {
-	                        $requiredRoles = 'no_one';
-	                    }
-	                }
-	            }
-	            
-	            // Ако няма достъп до сингъла на нишката, да не може да създава изглед
-	            if (($requiredRoles != 'no_one') && ($rec->originId)) {
-	                if ($threadId = doc_Containers::fetchField($rec->originId, 'threadId')) {
-	                    if (!doc_Threads::haveRightFor('single', $threadId)) {
-	                        $requiredRoles = 'no_one';
-	                    }
-	                }
-	            }
-	        }
-	    }
-	}
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'add') {
+            if ($rec) {
+                if (!$rec->clsId || !$rec->dataId) {
+                    $requiredRoles = 'no_one';
+                } else {
+                    if (!cls::load($rec->clsId, true)) {
+                        $requiredRoles = 'no_one';
+                    } else {
+                        $inst = cls::get($rec->clsId);
+                        if (!$inst->haveRightFor('single', $rec->dataId)) {
+                            $requiredRoles = 'no_one';
+                        }
+                    }
+                }
+                
+                // Ако няма достъп до сингъла на нишката, да не може да създава изглед
+                if (($requiredRoles != 'no_one') && ($rec->originId)) {
+                    if ($threadId = doc_Containers::fetchField($rec->originId, 'threadId')) {
+                        if (!doc_Threads::haveRightFor('single', $threadId)) {
+                            $requiredRoles = 'no_one';
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

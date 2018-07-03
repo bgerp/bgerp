@@ -1,5 +1,5 @@
 <?php
- 
+
 /**
  * Генериране на PDF файлове от HTML файл чрез web kit
  *
@@ -13,67 +13,66 @@
  */
 class doc_PdfCreator extends core_Manager
 {
-    
     const PDF_BUCKET = 'pdf';
     
     /**
      * Заглавие
      */
-    var $title = "Генерирани PDF документи";
+    public $title = 'Генерирани PDF документи';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_Wrapper, plg_Created, plg_RowTools';
+    public $loadList = 'doc_Wrapper, plg_Created, plg_RowTools';
     
     
     /**
      * Кой има право да го чете?
      */
-    var $canRead = 'admin, ceo';
+    public $canRead = 'admin, ceo';
     
     
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin';
+    public $canAdd = 'admin';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin, ceo';
+    public $canView = 'admin, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, ceo';
+    public $canList = 'admin, ceo';
     
     
     /**
      * Кой има право да изтрива?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Кой има права за имейли-те?
      */
-    var $canEmail = 'admin, ceo';
+    public $canEmail = 'admin, ceo';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Име,mandatory');
         $this->FLD('fileHnd', 'fileman_FileType(bucket=' . self::PDF_BUCKET . ')', 'caption=Файл,mandatory');
@@ -86,25 +85,24 @@ class doc_PdfCreator extends core_Manager
     /**
      * Създава pdf файл и връща манипулатора му
      */
-    static function convert($html, &$name)
+    public static function convert($html, &$name)
     {
         // Шаблона
         $htmlET = $html;
         
         // Добавяме класа
-        $html = "<div class='wide'>" . $html . "</div>";
+        $html = "<div class='wide'>" . $html . '</div>';
         
         // Проверяваме дали файла със същото име съществува в кофата
         $md5 = md5($html);
         $fileHnd = self::fetchField("#md5='{$md5}'", 'fileHnd');
-        if($fileHnd && isDebug()) {
+        if ($fileHnd && isDebug()) {
             doc_PdfCreator::delete("#fileHnd = '{$fileHnd}'");
             unset($fileHnd);
         }
         
         //Ако не съществува
         if (!$fileHnd) {
-            
             $css = self::getCssStr($htmlET);
             
             $html = self::removeFormAttr($html);
@@ -122,7 +120,7 @@ class doc_PdfCreator extends core_Manager
             
             $name = self::createPdfName($name);
             
-            $PdfCreatorInst = cls::getInterface('doc_ConvertToPdfIntf', doc_Setup::get('BGERP_PDF_GENERATOR', TRUE));
+            $PdfCreatorInst = cls::getInterface('doc_ConvertToPdfIntf', doc_Setup::get('BGERP_PDF_GENERATOR', true));
             
             // Емулираме xhtml режим
             Mode::push('text', 'xhtml');
@@ -131,10 +129,10 @@ class doc_PdfCreator extends core_Manager
             
             if ($htmlET instanceof core_ET) {
                 // Вземаме всички javascript файлове, които ще се добавят
-                $jsArr['JS'] = $htmlET->getArray('JS', FALSE);
+                $jsArr['JS'] = $htmlET->getArray('JS', false);
                 
                 // Вземаме всеки JQUERY код, който ще се добави
-                $jsArr['JQUERY_CODE'] = $htmlET->getArray('JQUERY_CODE', FALSE);
+                $jsArr['JQUERY_CODE'] = $htmlET->getArray('JQUERY_CODE', false);
             }
             
             try {
@@ -168,18 +166,18 @@ class doc_PdfCreator extends core_Manager
     
     /**
      * Проверява дали може да се направи конвертирането
-     * 
+     *
      * @return boolean
      */
     public static function canConvert()
     {
         try {
-            $PdfCreatorInst = cls::getInterface('doc_ConvertToPdfIntf', doc_Setup::get('BGERP_PDF_GENERATOR', TRUE));
+            $PdfCreatorInst = cls::getInterface('doc_ConvertToPdfIntf', doc_Setup::get('BGERP_PDF_GENERATOR', true));
             
             $res = $PdfCreatorInst->isEnabled();
         } catch (core_exception_Expect $e) {
             reportException($e);
-            $res = FALSE;
+            $res = false;
         }
         
         return $res;
@@ -188,27 +186,27 @@ class doc_PdfCreator extends core_Manager
     
     /**
      * Връща всичкия css
-     * 
+     *
      * @param string|core_ET $html
-     * 
+     *
      * @return string
      */
     public static function getCssStr($html)
     {
         //Вземаме всичките css стилове
-        $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
-            "\n" . file_get_contents(sbf('css/Application.css', "", TRUE));
+        $css = file_get_contents(sbf('css/common.css', '', true)) .
+            "\n" . file_get_contents(sbf('css/Application.css', '', true));
         
         // Ако е инстанция на core_ET
         if ($html instanceof core_ET) {
         
             // Вземаме масива с всички чакащи CSS файлове
-            $cssArr = $html->getArray('CSS', FALSE);
-            foreach ((array)$cssArr as $cssPath) {
+            $cssArr = $html->getArray('CSS', false);
+            foreach ((array) $cssArr as $cssPath) {
                 try {
         
                     // Опитваме се да вземаме съдържанието на CSS
-                    $css .= "\n" . file_get_contents(sbf($cssPath, "", TRUE));
+                    $css .= "\n" . file_get_contents(sbf($cssPath, '', true));
                 } catch (core_exception_Expect $e) {
         
                     // Ако възникне грешка, добавяме в лога
@@ -217,21 +215,20 @@ class doc_PdfCreator extends core_Manager
             }
         
             // Вземаме всички стилове
-            $styleArr = $html->getArray('STYLES', FALSE);
-            foreach ((array)$styleArr as $styles) {
-        
+            $styleArr = $html->getArray('STYLES', false);
+            foreach ((array) $styleArr as $styles) {
                 $css .= "\n" . $styles;
             }
         }
         
-        $css .= "\n" . file_get_contents(sbf('css/email.css', "", TRUE)) .
-            "\n" . file_get_contents(sbf('css/pdf.css', "", TRUE));
+        $css .= "\n" . file_get_contents(sbf('css/email.css', '', true)) .
+            "\n" . file_get_contents(sbf('css/pdf.css', '', true));
         
         return $css;
     }
     
     
-	/**
+    /**
      * Изчиства всикo което е между <form> ... </form>
      */
     public static function removeFormAttr($html)
@@ -242,7 +239,7 @@ class doc_PdfCreator extends core_Manager
         // Премахваме всикo което е между <form> ... </form>
         $res = preg_replace_callback($pattern, array(get_called_class(), 'removeMatchedFormAttr'), $html);
         
-        if (($res === NULL) || ($res === FALSE)) {
+        if (($res === null) || ($res === false)) {
             $res = $html;
         }
         
@@ -252,16 +249,15 @@ class doc_PdfCreator extends core_Manager
     
     /**
      * Премахва form елементите, ако вътре няма нещо с клас `staticFormView`
-     * 
+     *
      * @param array $matches
-     * 
+     *
      * @return string
      */
     protected static function removeMatchedFormAttr($matches)
     {
         if ($matches[0]) {
             if (!preg_match('/class\s*=\s*(\'|\")staticFormView(\'|\")/i', $matches[0], $m)) {
-                
                 return '';
             }
         }
@@ -273,18 +269,17 @@ class doc_PdfCreator extends core_Manager
     /**
      * Преобразува името на файла да е с разширение .pdf
      */
-    static function createPdfName($name)
+    public static function createPdfName($name)
     {
         $name = mb_strtolower($name);
         
         //Проверява разширението дали е PDF
-        if (($dotPos = mb_strrpos($name, '.')) !== FALSE) {
+        if (($dotPos = mb_strrpos($name, '.')) !== false) {
             //Вземаме разширението
             $ext = mb_strtolower(mb_substr($name, $dotPos + 1));
             
             //Ако разширението е pdf връщаме
             if ($ext == 'pdf') {
-                
                 return $name;
             }
         }
@@ -299,10 +294,10 @@ class doc_PdfCreator extends core_Manager
      * След началното установяване на този мениджър, ако е зададено -
      * той сетъпва външния пакет, чрез който ще се генерират pdf-те
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         //Създаваме, кофа, където ще държим всички генерирани PDF файлове
         $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket(self::PDF_BUCKET, 'PDF-и на документи', NULL, '104857600', 'user', 'user');
+        $res .= $Bucket->createBucket(self::PDF_BUCKET, 'PDF-и на документи', null, '104857600', 'user', 'user');
     }
 }

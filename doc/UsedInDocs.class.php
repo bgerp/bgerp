@@ -3,7 +3,7 @@
 
 /**
  * Обекти, използвани в документите
- * 
+ *
  * @category  bgerp
  * @package   doc
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -18,7 +18,7 @@ class doc_UsedInDocs extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Използвани обекти в документите";
+    public $title = 'Използвани обекти в документите';
     
     
     /**
@@ -40,16 +40,14 @@ class doc_UsedInDocs extends core_Manager
     
     
     /**
-     * 
+     *
      * @var array
      */
     protected $objectArr = array();
     
     
-    /**
-     * 
-     */
-    function description()
+    
+    public function description()
     {
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер, input=none');
         $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни, input=none');
@@ -61,11 +59,11 @@ class doc_UsedInDocs extends core_Manager
     
     
     /**
-     * 
-     * 
-     * @param mixed $val
+     *
+     *
+     * @param mixed   $val
      * @param integer $cId
-     * @param string $type
+     * @param string  $type
      */
     public static function addObject($val, $cId, $type)
     {
@@ -80,7 +78,7 @@ class doc_UsedInDocs extends core_Manager
     /**
      * Добавяне контейнера към списъка с проверени, ако няма запис
      * При флъшване, ако няма запис - ще се изтрие
-     * 
+     *
      * @param integer $cId
      */
     public static function addToChecked($cId)
@@ -96,32 +94,33 @@ class doc_UsedInDocs extends core_Manager
     
     
     /**
-     * 
-     * 
-     * @param integer $cId
+     *
+     *
+     * @param integer      $cId
      * @param integer|NULL $userId
-     * @param NULL|string $type
-     * 
+     * @param NULL|string  $type
+     *
      * @return NULL|array $type
      */
-    public static function getObjectVals($cId, $userId, $type = NULL)
+    public static function getObjectVals($cId, $userId, $type = null)
     {
         if (isset($userId)) {
-            $where = array("#containerId = '[#1#]' AND #userId = '[#2#]'", $cId, (integer)$userId);
+            $where = array("#containerId = '[#1#]' AND #userId = '[#2#]'", $cId, (integer) $userId);
         } else {
             $where = array("#containerId = '[#1#]'", $cId);
         }
         
         $rec = self::fetch($where);
         
-        if (!$rec) return ;
+        if (!$rec) {
+            return ;
+        }
         
         if (!$type) {
-            
             return $rec->data;
-        } else {
-            return $rec->data[$type];
         }
+
+        return $rec->data[$type];
     }
     
     
@@ -131,24 +130,28 @@ class doc_UsedInDocs extends core_Manager
     public static function flushArr()
     {
         $me = cls::get(get_called_class());
-        if (empty($me->objectArr)) return ;
+        if (empty($me->objectArr)) {
+            return ;
+        }
         
         foreach ($me->objectArr as $userId => $cidDataArr) {
-            if (!isset($cidDataArr)) continue;
+            if (!isset($cidDataArr)) {
+                continue;
+            }
         
             foreach ($cidDataArr as $cId => $dataArr) {
-        
                 $rec = self::fetch(array("#userId = '[#1#]' AND #containerId = '[#2#]'", $userId, $cId));
         
                 if (!$rec) {
-        
-                    if (!$dataArr) continue;
+                    if (!$dataArr) {
+                        continue;
+                    }
         
                     $rec = new stdClass();
                 } else {
                     if (!$dataArr && $rec->id) {
                         $me->delete($rec->id);
-						
+                        
                         continue;
                     }
                 }
@@ -167,8 +170,8 @@ class doc_UsedInDocs extends core_Manager
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param doc_UsedInDocs $mvc
      */
     public static function on_Shutdown($mvc)
@@ -177,9 +180,7 @@ class doc_UsedInDocs extends core_Manager
     }
     
     
-    /**
-     * 
-     */
+    
     public static function cron_deleteOldObject()
     {
         $lifeDays = 7;

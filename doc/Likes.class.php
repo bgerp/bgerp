@@ -13,24 +13,17 @@
  */
 class doc_Likes extends core_Manager
 {
-    
-    
-    /**
-     * 
-     */
     protected static $isLikedArr = array();
     
     
-    /**
-     * 
-     */
+    
     protected static $likedArr = array();
     
     
     /**
      * Заглавие
      */
-    public $title = "Харесвания";
+    public $title = 'Харесвания';
     
     
     /**
@@ -72,7 +65,7 @@ class doc_Likes extends core_Manager
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption = Контейнер');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption = Нишка');
@@ -84,14 +77,14 @@ class doc_Likes extends core_Manager
     
     /**
      * Отбелязва докумена, като харесан
-     * 
-     * @param integer $cid
+     *
+     * @param integer      $cid
      * @param NULL|integer $threadId
      * @param NULL|integer $userId
-     * 
+     *
      * @return integer
      */
-    public static function like($cid, $threadId = NULL, $userId = NULL)
+    public static function like($cid, $threadId = null, $userId = null)
     {
         if (!$userId) {
             $userId = core_Users::getCurrent();
@@ -106,7 +99,7 @@ class doc_Likes extends core_Manager
         $rec->createdBy = $userId;
         $rec->threadId = $threadId;
         
-        $savedId = self::save($rec, NULL, 'IGNORE');
+        $savedId = self::save($rec, null, 'IGNORE');
         
         self::resetCache();
         
@@ -116,13 +109,13 @@ class doc_Likes extends core_Manager
     
     /**
      * Премахва харесването
-     * 
-     * @param integer $cid
+     *
+     * @param integer      $cid
      * @param NULL|integer $userId
-     * 
+     *
      * @return integer
      */
-    public static function dislike($cid, $userId = NULL)
+    public static function dislike($cid, $userId = null)
     {
         if (!$userId) {
             $userId = core_Users::getCurrent();
@@ -138,31 +131,29 @@ class doc_Likes extends core_Manager
     
     /**
      * Проверява дали има харесване за документа
-     * 
+     *
      * @param integer $cid
      * @param integer $threadId
      * @param integer $userId
-     * 
+     *
      * @return boolean
      */
-    public static function isLiked($cid, $threadId, $userId = NULL)
+    public static function isLiked($cid, $threadId, $userId = null)
     {
         $likedArr = self::prepareLikedArr($cid, $threadId);
         
         if (!isset($userId)) {
-            
             $isEmpty = empty($likedArr);
             
             return !$isEmpty;
         }
         
         if (!isset(self::$isLikedArr[$cid][$userId])) {
-            self::$isLikedArr[$cid][$userId] = FALSE;
+            self::$isLikedArr[$cid][$userId] = false;
             
             foreach ($likedArr as $lRec) {
                 if ($lRec->createdBy == $userId) {
-                    
-                    self::$isLikedArr[$cid][$userId] = TRUE;
+                    self::$isLikedArr[$cid][$userId] = true;
                     
                     break;
                 }
@@ -175,10 +166,10 @@ class doc_Likes extends core_Manager
     
     /**
      * Връща броя на харесванията на документа
-     * 
+     *
      * @param integer $cid
      * @param integer $threadId
-     * 
+     *
      * @return integer
      */
     public static function getLikesCnt($cid, $threadId)
@@ -191,25 +182,24 @@ class doc_Likes extends core_Manager
     
     /**
      * Връща всички харесвания
-     * 
+     *
      * @param integer $cid
-     * @param string $order
-     * 
+     * @param string  $order
+     *
      * @return array
      */
     public static function getLikedArr($cid, $threadId, $order = 'DESC')
     {
-        
         return self::prepareLikedArr($cid, $threadId, $order);
     }
     
     
     /**
-     * 
+     *
      * @param integer $cid
      * @param integer $threadId
-     * @param string $order
-     * 
+     * @param string  $order
+     *
      * @return array
      */
     protected static function prepareLikedArr($cid, $threadId, $order = 'DESC')
@@ -220,7 +210,7 @@ class doc_Likes extends core_Manager
             self::$likedArr[$key] = array();
             
             $query = self::getQuery();
-            $query->where(array("#threadId = [#1#]", $threadId));
+            $query->where(array('#threadId = [#1#]', $threadId));
             $query->orderBy('createdOn', $order);
             
             while ($rec = $query->fetch()) {

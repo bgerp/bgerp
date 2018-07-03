@@ -22,13 +22,13 @@ abstract class doc_Detail extends core_Detail
     /**
      * Подготвя формата за редактиране
      */
-    function prepareEditForm_($data)
+    public function prepareEditForm_($data)
     {
         parent::prepareEditForm_($data);
         
         // Добавяме клас, за да може формата да застане до привюто на документа/файла
-        if(Mode::is('screenMode', 'wide') ) {
-            $data->form->class .= " floatedElement ";
+        if (Mode::is('screenMode', 'wide')) {
+            $data->form->class .= ' floatedElement ';
         }
         
         if ($this->Master && $this->masterKey && $data->form->rec->{$this->masterKey}) {

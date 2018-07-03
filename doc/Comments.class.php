@@ -31,13 +31,13 @@ class doc_Comments extends embed_Manager
     /**
      * Дали да се споделя създадели на оригиналния документ
      */
-    public $autoShareOriginCreator = TRUE;
+    public $autoShareOriginCreator = true;
     
     
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, colab_CreateDocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, colab_CreateDocumentIntf';
     
     
     /**
@@ -49,111 +49,111 @@ class doc_Comments extends embed_Manager
     /**
      * Заглавие
      */
-    var $title = "Коментари";
+    public $title = 'Коментари';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Коментар";
+    public $singleTitle = 'Коментар';
     
     
     /**
      * Кой има право да го чете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'powerUser';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    public $canAdd = 'powerUser';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    public $canView = 'powerUser';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo, debug';
+    public $canList = 'ceo, debug';
     
     
     /**
      * Кой има право да изтрива?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * @todo Чака за документация...
      */
-    var $canSingle = 'powerUser';
+    public $canSingle = 'powerUser';
     
     
-	/**
+    /**
      * Кой може да променя активирани записи
      * @see change_Plugin
      */
-    var $canChangerec = 'powerUser';
+    public $canChangerec = 'powerUser';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
+    public $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
         plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone';
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'doc/tpl/SingleLayoutComments.shtml';
+    public $singleLayoutFile = 'doc/tpl/SingleLayoutComments.shtml';
     
     
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/comment.png';
+    public $singleIcon = 'img/16/comment.png';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = 'C';
+    public $abbr = 'C';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'subject, body';
+    public $searchFields = 'subject, body';
     
     
     /**
      * Полето "Относно" да е хипервръзка към единичния изглед
      */
-    var $rowToolsSingleField = 'subject';
+    public $rowToolsSingleField = 'subject';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
+    public $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "1.1|Общи";
+    public $newBtnGroup = '1.1|Общи';
     
     
     /**
@@ -165,13 +165,13 @@ class doc_Comments extends embed_Manager
     /**
      * Да се показва антетка
      */
-    public $showLetterHead = TRUE;
+    public $showLetterHead = true;
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,input=hidden,reduceText');
         $this->FLD('body', 'richtext(rows=10,bucket=Comments)', 'caption=Коментар,mandatory');
@@ -187,7 +187,7 @@ class doc_Comments extends embed_Manager
      */
     public static function canAddToFolder($folderId)
     {
-        return FALSE;
+        return false;
     }
     
     
@@ -201,7 +201,7 @@ class doc_Comments extends embed_Manager
         if (!Request::get($this->driverClassField) && !Request::get('id')) {
             $dClsId = doc_ExpandComments::getClassId();
             
-			Request::push(array($this->driverClassField => $dClsId));
+            Request::push(array($this->driverClassField => $dClsId));
         }
         
         return parent::prepareEditForm_($data);
@@ -211,17 +211,16 @@ class doc_Comments extends embed_Manager
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $data->form->setField($mvc->driverClassField, 'input=hidden');
         
         // Да се цитират документа, ако не се редактира
-        if (!$data->form->rec->id) { 
+        if (!$data->form->rec->id) {
             $data->form->fields['body']->type->params['appendQuote'] = 'appendQuote';
         }
         
         if (!$data->form->rec->id && !$data->form->rec->clonedFromId) {
-            
             $detId = Request::get('detId', 'int');
             
             $originId = $data->form->rec->originId;
@@ -237,8 +236,9 @@ class doc_Comments extends embed_Manager
                 
                 if (!empty($dData)) {
                     foreach ($dData as $key => $val) {
-                        
-                        if (!isset($val)) continue;
+                        if (!isset($val)) {
+                            continue;
+                        }
                         
                         $data->form->rec->{$key} = $val;
                     }
@@ -250,12 +250,12 @@ class doc_Comments extends embed_Manager
     
     /**
      *
-     * @param core_Mvc $mvc
+     * @param core_Mvc   $mvc
      * @param NULL|array $res
-     * @param stdClass $rec
-     * @param array $otherParams
+     * @param stdClass   $rec
+     * @param array      $otherParams
      */
-    function on_AfterGetDefaultData($mvc, &$res, $rec, $otherParams = array())
+    public function on_AfterGetDefaultData($mvc, &$res, $rec, $otherParams = array())
     {
         $res = arr::make($res);
         
@@ -280,7 +280,7 @@ class doc_Comments extends embed_Manager
     /**
      * Подготвя иконата за единичния изглед
      */
-    static function on_AfterPrepareSingle($mvc, &$data)
+    public static function on_AfterPrepareSingle($mvc, &$data)
     {
         if (Mode::is('text', 'plain')) {
             // Форматиране на данните в $data->row за показване в plain text режим
@@ -297,7 +297,7 @@ class doc_Comments extends embed_Manager
      * След рендиране на singleLayout заместваме плейсхолдера
      * с шаблонa за тялото на съобщение в документната система
      */
-    static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
         if (Mode::is('text', 'plain')) {
             //Ако сме в текстов режим, използваме txt файла
@@ -309,7 +309,7 @@ class doc_Comments extends embed_Manager
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         
@@ -334,10 +334,10 @@ class doc_Comments extends embed_Manager
     /**
      * Изпълнява се след създаването на модела
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket('Comments', 'Прикачени файлове в коментарите', NULL, '300 MB', 'user', 'user');
+        $res .= $Bucket->createBucket('Comments', 'Прикачени файлове в коментарите', null, '300 MB', 'user', 'user');
     }
 }

@@ -16,12 +16,11 @@ class doc_ChartAdapterIntf
 
     /**
      * Подготвя диаграмата
-     * @param array $data - данните, които ще се използват за изчертаване
+     * @param array  $data      - данните, които ще се използват за изчертаване
      * @param string $chartType - тип на диаграмата: pie, bar, line
      */
-    public function  prepare($data, $chartType)
+    public function prepare($data, $chartType)
     {
-        
         return $this->class->prepare($data, $chartType);
     }
 }

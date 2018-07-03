@@ -4,8 +4,8 @@
 
 /**
  * Мениджър на отчети от документи
- * 
- * По посочен тип на документа със статус различен от 
+ *
+ * По посочен тип на документа със статус различен от
  * чернова и оттеглено се брои за посочения период,
  * колко документа е създал конкретният потребител
  *
@@ -18,15 +18,15 @@
  * @since     v 0.1
  */
 class doc_reports_Docs extends frame_BaseDriver
-{                  
+{
     
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'doc_DocsReport';
-	
-	
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'doc_DocsReport';
+    
+    
     /**
      * Заглавие
      */
@@ -76,9 +76,9 @@ class doc_reports_Docs extends frame_BaseDriver
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'powerUser';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'powerUser';
 
     
     /**
@@ -88,10 +88,10 @@ class doc_reports_Docs extends frame_BaseDriver
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
-    	$form->FLD('from', 'date', 'caption=Начало');
-    	$form->FLD('to', 'date', 'caption=Край');
-    	$form->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title)', 'caption=Документ,mandatory');
-    	$form->FLD('user', 'users(rolesForAll = ceo|report, rolesForTeams = manager|ceo|report)', 'caption=Потребител');
+        $form->FLD('from', 'date', 'caption=Начало');
+        $form->FLD('to', 'date', 'caption=Край');
+        $form->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title)', 'caption=Документ,mandatory');
+        $form->FLD('user', 'users(rolesForAll = ceo|report, rolesForTeams = manager|ceo|report)', 'caption=Потребител');
     }
       
 
@@ -102,23 +102,23 @@ class doc_reports_Docs extends frame_BaseDriver
      */
     public function prepareEmbeddedForm(core_Form &$form)
     {
-    	$cu = core_Users::getCurrent();
-    	
-    	if (core_Users::haveRole('ceo', $cu)) {
-    		$form->setDefault('user', 'all_users');
-    	} elseif (core_Users::haveRole('manager', $cu)) {
-    		$teamCu = type_Users::getUserWithFirstTeam($cu);
-    		$team = strstr($teamCu, '_', TRUE);
-    		$form->setDefault('user', "{$team} team");
-    	} else {
-    	    $userFromTeamsArr = type_Users::getUserFromTeams($cu);
-    		$form->setDefault('user', key($userFromTeamsArr));
-    	}
+        $cu = core_Users::getCurrent();
+        
+        if (core_Users::haveRole('ceo', $cu)) {
+            $form->setDefault('user', 'all_users');
+        } elseif (core_Users::haveRole('manager', $cu)) {
+            $teamCu = type_Users::getUserWithFirstTeam($cu);
+            $team = strstr($teamCu, '_', true);
+            $form->setDefault('user', "{$team} team");
+        } else {
+            $userFromTeamsArr = type_Users::getUserFromTeams($cu);
+            $form->setDefault('user', key($userFromTeamsArr));
+        }
 
-    	$today = dt::today();
-    	
-    	$form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
-    	$form->setDefault('to', dt::addDays(-1,$today));
+        $today = dt::today();
+        
+        $form->setDefault('from', date('Y-m-01', strtotime('-1 months', dt::mysql2timestamp(dt::now()))));
+        $form->setDefault('to', dt::addDays(-1, $today));
     }
     
     
@@ -128,14 +128,14 @@ class doc_reports_Docs extends frame_BaseDriver
      * @param core_Form $form
      */
     public function checkEmbeddedForm(core_Form &$form)
-    {  	 
-    	// Размяна, ако периодите са объркани
-    	if(isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {
-    		$mid = $form->rec->from;
-    		$form->rec->from = $form->rec->to;
-    		$form->rec->to = $mid;
-    	}
-    }  
+    {
+        // Размяна, ако периодите са объркани
+        if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
+            $mid = $form->rec->from;
+            $form->rec->from = $form->rec->to;
+            $form->rec->to = $mid;
+        }
+    }
     
     
     /**
@@ -145,13 +145,13 @@ class doc_reports_Docs extends frame_BaseDriver
      */
     public function prepareInnerState()
     {
-    	$data = new stdClass();
+        $data = new stdClass();
         $data->docCnt = array();
         $fRec = $data->fRec = $this->innerForm;
       
         $query = doc_Containers::getQuery();
         
-        if ($fRec->from) {  
+        if ($fRec->from) {
             $query->where("#createdOn >= '{$fRec->from} 00:00:00'");
         }
 
@@ -160,18 +160,16 @@ class doc_reports_Docs extends frame_BaseDriver
         }
         
         if ($fRec->docClass) {
-        	$query->where("#docClass = '{$fRec->docClass}'");
+            $query->where("#docClass = '{$fRec->docClass}'");
         }
         
-        if(($fRec->user != 'all_users') && (strpos($fRec->user, '|-1|') === FALSE)) {
-        	$query->where("'{$fRec->user}' LIKE CONCAT('%|', #createdBy, '|%')");
+        if (($fRec->user != 'all_users') && (strpos($fRec->user, '|-1|') === false)) {
+            $query->where("'{$fRec->user}' LIKE CONCAT('%|', #createdBy, '|%')");
         }
        
 
-        while($rec = $query->fetch()) {
-        	
-        	$data->docCnt[$rec->docClass][$rec->createdBy]++;
-
+        while ($rec = $query->fetch()) {
+            $data->docCnt[$rec->docClass][$rec->createdBy]++;
         }
  
         // Сортиране на данните
@@ -189,8 +187,8 @@ class doc_reports_Docs extends frame_BaseDriver
         // Подготвяме страницирането
         $data = $res;
         
-        if(!Mode::is('printing')){
-            $pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+        if (!Mode::is('printing')) {
+            $pager = cls::get('core_Pager', array('itemsPerPage' => $this->listItemsPerPage));
             $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
             $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
             
@@ -202,10 +200,12 @@ class doc_reports_Docs extends frame_BaseDriver
         
         $rows = $mvc->getVerbal($data->docCnt);
         
-        if(is_array($rows)) {
+        if (is_array($rows)) {
             foreach ($rows as $id => $row) {
-                if(!Mode::is('printing')){
-                    if (!$pager->isOnPage()) continue;
+                if (!Mode::is('printing')) {
+                    if (!$pager->isOnPage()) {
+                        continue;
+                    }
                 }
         
                 $data->rows[$id] = $row;
@@ -219,25 +219,23 @@ class doc_reports_Docs extends frame_BaseDriver
      */
     protected function getVerbal_($rec)
     {
-        
         $Class = cls::get('type_Class');
-        $Class->params['interface'] = "doc_DocumentIntf";
-        $Class->params['select'] = "title";
-        $Class->params['allowEmpty'] = "allowEmpty";
+        $Class->params['interface'] = 'doc_DocumentIntf';
+        $Class->params['select'] = 'title';
+        $Class->params['allowEmpty'] = 'allowEmpty';
 
         $Int = cls::get('type_Int');
         
         foreach ($rec as $docClass => $userCnt) {
             foreach ($userCnt as $user => $cnt) {
-    
                 $row = new stdClass();
                 $row->docClass = $Class->toVerbal($docClass);
                 $row->cnt = $Int->toVerbal($cnt);
                  
-                if(!$user) {
-                    $row->createdBy = "Анонимен";
-                } elseif($user == -1) {
-                    $row->createdBy = "Система";
+                if (!$user) {
+                    $row->createdBy = 'Анонимен';
+                } elseif ($user == -1) {
+                    $row->createdBy = 'Система';
                 } else {
                     $names = core_Users::fetchField($user, 'names');
                     $row->createdBy = $names . ' ' . crm_Profiles::createLink($user);
@@ -271,31 +269,33 @@ class doc_reports_Docs extends frame_BaseDriver
      */
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
-    	if(empty($data)) return;
-    	 
-    	$tpl = $this->getReportLayout();
+        if (empty($data)) {
+            return;
+        }
+         
+        $tpl = $this->getReportLayout();
     
-    	$docClass = cls::get($data->fRec->docClass);
-    	$tpl->replace($docClass->singleTitle,'DOCTYPE');
-    	
-    	$this->prependStaticForm($tpl, 'FORM');
-    	 
-    	$tpl->placeObject($data->row);
+        $docClass = cls::get($data->fRec->docClass);
+        $tpl->replace($docClass->singleTitle, 'DOCTYPE');
+        
+        $this->prependStaticForm($tpl, 'FORM');
+         
+        $tpl->placeObject($data->row);
     
-    	$f = $this->getFields();
+        $f = $this->getFields();
 
-    	$table = cls::get('core_TableView', array('mvc' => $f));
-    	
-    	$tpl->append($table->get($data->rows, "docClass=Създадени документи->Тип,
+        $table = cls::get('core_TableView', array('mvc' => $f));
+        
+        $tpl->append($table->get($data->rows, 'docClass=Създадени документи->Тип,
     	                                       createdBy=Създадени документи->Автор,
-    	                                       cnt=Създадени документи->Брой"), 'DOCS');
-    	
-    	if($data->pager){
-    	    $tpl->append($data->pager->getHtml(), 'PAGER');
-    	}
+    	                                       cnt=Създадени документи->Брой'), 'DOCS');
+        
+        if ($data->pager) {
+            $tpl->append($data->pager->getHtml(), 'PAGER');
+        }
 
-    	$embedderTpl->append($tpl, 'data');
-    }  
+        $embedderTpl->append($tpl, 'data');
+    }
     
 
     /**
@@ -310,7 +310,7 @@ class doc_reports_Docs extends frame_BaseDriver
         // Кои полета ще се показват
         $f = new core_FieldSet;
         $f->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'tdClass=itemClass');
-        $f->FLD('createdBy', 'key(mvc=core_Users,select=names)','tdClass=itemClass');
+        $f->FLD('createdBy', 'key(mvc=core_Users,select=names)', 'tdClass=itemClass');
         $f->FLD('cnt', 'int', 'tdClass=itemClass,smartCenter');
     
         return $f;
@@ -326,9 +326,9 @@ class doc_reports_Docs extends frame_BaseDriver
     protected function getExportFields_()
     {
         // Кои полета ще се показват
-        $fields = arr::make("docClass=Тип на документа,
+        $fields = arr::make('docClass=Тип на документа,
     					     createdBy=Автор,
-    					     cnt=Създадени документи (бр.)", TRUE);
+    					     cnt=Създадени документи (бр.)', true);
     
         return $fields;
     }
@@ -346,7 +346,7 @@ class doc_reports_Docs extends frame_BaseDriver
         $fields = $this->getFields();
         $dataRec = array();
 
-        foreach ($this->innerState->docCnt as $docClass => $docCnt) { 
+        foreach ($this->innerState->docCnt as $docClass => $docCnt) {
             foreach ($docCnt  as $userId => $cnt) {
                 $row = new stdClass();
                 
@@ -379,6 +379,6 @@ class doc_reports_Docs extends frame_BaseDriver
      */
     public function getEarlyActivation()
     {
-    	return $this->innerForm->to;
+        return $this->innerForm->to;
     }
 }
