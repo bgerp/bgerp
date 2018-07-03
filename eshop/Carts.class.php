@@ -852,11 +852,11 @@ class eshop_Carts extends core_Master
     	if(eshop_CartDetails::haveRightFor('add', (object)array('cartId' => $rec->id))){
     		$addUrl = array('eshop_CartDetails', 'add', 'cartId' => $rec->id, 'external' => TRUE, 'ret_url' => TRUE);
     		$btn = ht::createLink(tr('Добавяне на артикул'), $addUrl, NULL, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
-    		$tpl->append($btn, 'CART_TOOLBAR_LEFT');
+    		$tpl->append($btn, 'CART_TOOLBAR_TOP');
     	}
     	
     	$btn = ht::createLink(tr('Назад към магазина'), $shopUrl, NULL, 'title=Връщане в онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
-    	$tpl->append($btn, 'CART_TOOLBAR_LEFT');
+    	$tpl->append($btn, 'CART_TOOLBAR_TOP');
     	
     	$checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE) : array();
     	if(empty($rec->personNames) && count($checkoutUrl)){
