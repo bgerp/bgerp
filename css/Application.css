@@ -2914,6 +2914,10 @@ span.sharing-history-title {
 .narrow .optionsTable {
   min-width: 320px; }
 
+.eshop-product-navigation {
+  margin-bottom: 20px;
+  font-size: 0.9em; }
+
 table .eshop-btn {
   margin-right: 0 !important; }
 
