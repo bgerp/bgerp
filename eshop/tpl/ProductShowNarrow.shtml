@@ -6,7 +6,7 @@
 		<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code-->
 		<!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]
 	</div>
-	<div>
+	<div class="eshop-product-images">
 		[#image#]
 		[#image2#]
 		[#image3#]

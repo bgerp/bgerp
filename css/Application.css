@@ -4449,15 +4449,22 @@ div.location.public {
 
 .eshop-product-images {
   padding: 5px;
-  width: 30%;
   background-color: #e6e6e6;
-  height: 100%;
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
   -ms-border-radius: 3px;
   border-radius: 3px; }
-  .eshop-product-images img {
+
+.wide .eshop-product-images {
+  width: 30%;
+  height: 100%; }
+  .wide .eshop-product-images img {
     width: 100%; }
+
+.narrow .eshop-product-images a {
+  display: inline-block;
+  width: 160px;
+  text-align: center; }
 
 .eshop-product-labels > a {
   font-weight: bold; }
