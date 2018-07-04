@@ -28,7 +28,7 @@ class auto_AutomationIntf
      */
     public function doAutomation($event, $data)
     {
-    	return $this->class->doAutomation($event, $data);
+        return $this->class->doAutomation($event, $data);
     }
     
     
@@ -37,6 +37,6 @@ class auto_AutomationIntf
      */
     public function canHandleEvent($event)
     {
-    	return $this->class->canHandleEvent($event);
+        return $this->class->canHandleEvent($event);
     }
 }

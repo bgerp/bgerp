@@ -24,68 +24,68 @@ class auto_Setup extends core_ProtoSetup
 {
 
 
-	/**
-	 * Версия на пакета
-	 */
-	public $version = '0.1';
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
 
 
-	/**
-	 * Описание на модула
-	 */
-	public $info = "Пакет за автоматизации";
-	
-	
-	/**
+    /**
+     * Описание на модула
+     */
+    public $info = 'Пакет за автоматизации';
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-				'auto_Calls',
-		);
+                'auto_Calls',
+        );
     
 
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = "auto_handler_CreateQuotationFromInquiry";
+    public $defClasses = 'auto_handler_CreateQuotationFromInquiry';
     
     
     /**
      * Настройки за Cron
      */
-    var $cronSettings = array(
-    		array(
-    				'systemId' => "Do automations",
-    				'description' => "Извършване на автоматизации",
-    				'controller' => "auto_Calls",
-    				'action' => "Automations",
-    				'period' => 1,
-    				'offset' => 0,
-    				'timeLimit' => 100
-    		));
-    		
+    public $cronSettings = array(
+            array(
+                    'systemId' => 'Do automations',
+                    'description' => 'Извършване на автоматизации',
+                    'controller' => 'auto_Calls',
+                    'action' => 'Automations',
+                    'period' => 1,
+                    'offset' => 0,
+                    'timeLimit' => 100
+            ));
+            
 
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
+        $html = parent::install();
     
-    	return $html;
+        return $html;
     }
     
     
     /**
      * Зареждане на начални данни
      */
-    function loadSetupData($itr = '')
+    public function loadSetupData($itr = '')
     {
-    	$html = parent::loadSetupData($itr);
-    	
-    	$Plugins = cls::get('core_Plugins');
-    	$html .= $Plugins->installPlugin('Автоматично създаване на оферта от запитване', 'auto_plg_QuotationFromInquiry', 'marketing_Inquiries2', 'private');
-    	
-    	return $html;
+        $html = parent::loadSetupData($itr);
+        
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Автоматично създаване на оферта от запитване', 'auto_plg_QuotationFromInquiry', 'marketing_Inquiries2', 'private');
+        
+        return $html;
     }
 }
