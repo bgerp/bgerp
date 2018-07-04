@@ -18,12 +18,12 @@ class acc_reports_TakingCustomers extends acc_reports_PeriodHistoryImpl
 {
 
 
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'acc_TakingCustomersReport';
-	
-	
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'acc_TakingCustomersReport';
+    
+    
     /**
      * Кой може да избира драйвъра
      */
@@ -55,7 +55,6 @@ class acc_reports_TakingCustomers extends acc_reports_PeriodHistoryImpl
 
         $form->setFieldTypeParams("ent{$customersPositionId}Id", array('select' => 'title'));
         $form->setFieldTypeParams("ent{$currencyPosition}Id", array('select' => 'title'));
-
     }
 
 

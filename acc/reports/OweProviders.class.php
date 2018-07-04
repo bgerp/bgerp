@@ -18,12 +18,12 @@ class acc_reports_OweProviders extends acc_reports_BalanceImpl
 {
 
 
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'acc_OweProvidersReport';
-	
-	
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'acc_OweProvidersReport';
+    
+    
     /**
      * Кой може да избира драйвъра
      */
@@ -58,12 +58,11 @@ class acc_reports_OweProviders extends acc_reports_BalanceImpl
         $form->setField('to', 'input=none');
         $positionId = acc_Lists::getPosition($mvc->accountSysId, 'crm_ContragentAccRegIntf');
       
-        $form->setOptions('orderField', array("", "ent{$positionId}" => "Контрагент", 
-                                                  "baseAmount" => "Начално салдо",
-                                                  "debitAmount" => "Дебит",
-                                                  "creditAmount" => "Кредит",
-                                                  "blAmount" => "Крайно салдо"));
-        
+        $form->setOptions('orderField', array('', "ent{$positionId}" => 'Контрагент',
+                                                  'baseAmount' => 'Начално салдо',
+                                                  'debitAmount' => 'Дебит',
+                                                  'creditAmount' => 'Кредит',
+                                                  'blAmount' => 'Крайно салдо'));
     }
 
 
@@ -74,7 +73,6 @@ class acc_reports_OweProviders extends acc_reports_BalanceImpl
      */
     public function checkEmbeddedForm(core_Form &$form)
     {
-
     }
 
 
@@ -85,24 +83,22 @@ class acc_reports_OweProviders extends acc_reports_BalanceImpl
     {
         $positionId = acc_Lists::getPosition($mvc->accountSysId, 'crm_ContragentAccRegIntf');
         
-        $form->setOptions('orderField', array("", "ent1{$positionId}" => "Контрагент",
-        "baseAmount" => "Начално салдо",
-        "debitAmount" => "Дебит",
-        "creditAmount" => "Кредит",
-        "blAmount" => "Крайно салдо"));
+        $form->setOptions('orderField', array('', "ent1{$positionId}" => 'Контрагент',
+        'baseAmount' => 'Начално салдо',
+        'debitAmount' => 'Дебит',
+        'creditAmount' => 'Кредит',
+        'blAmount' => 'Крайно салдо'));
         
         $form->setHidden('action');
 
 
         foreach (range(1, 3) as $i) {
-
             $form->setHidden("feat{$i}");
             $form->setHidden("grouping{$i}");
-
         }
 
         $articlePositionId = acc_Lists::getPosition($mvc->accountSysId, 'crm_ContragentAccRegIntf');
-        $form->setDefault("feat{$articlePositionId}", "*");
+        $form->setDefault("feat{$articlePositionId}", '*');
     }
 
 
@@ -114,7 +110,6 @@ class acc_reports_OweProviders extends acc_reports_BalanceImpl
 
     public static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-
     }
 
 
@@ -140,5 +135,4 @@ class acc_reports_OweProviders extends acc_reports_BalanceImpl
 
         return $activateOn;
     }
-
 }

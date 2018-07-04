@@ -23,7 +23,7 @@ class acc_type_Accounts extends type_Keylist
     /**
      * Инициализиране на обекта
      */
-    function init($params = array())
+    public function init($params = array())
     {
         $params['params']['mvc'] = 'acc_Accounts';
         
@@ -40,10 +40,9 @@ class acc_type_Accounts extends type_Keylist
      *
      * `$this->params['root']` е префикс, който трябва да имат номерата на всички сметки-опции
      */
-    public function prepareOptions($value = NULL)
+    public function prepareOptions($value = null)
     {
         if (isset($this->options)) {
-            
             return $this->options;
         }
         $mvc = cls::get($this->params['mvc']);
@@ -54,7 +53,7 @@ class acc_type_Accounts extends type_Keylist
         $suggestions = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%' AND #state NOT IN ('closed')", $root));
         
         // Ако има зададени интерфейси на аналитичностите
-        if($regInterfaces){
+        if ($regInterfaces) {
             acc_type_Account::filterSuggestions($regInterfaces, $suggestions);
         }
         
@@ -67,7 +66,7 @@ class acc_type_Accounts extends type_Keylist
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
         $this->prepareOptions();
         
@@ -78,7 +77,7 @@ class acc_type_Accounts extends type_Keylist
     /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
-    function fromVerbal_($value)
+    public function fromVerbal_($value)
     {
         $this->prepareOptions();
         

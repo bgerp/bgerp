@@ -1,8 +1,5 @@
 <?php
-abstract
-
-
-/**
+abstract /**
  * Клас 'acc_strategy_Strategy' -
  *
  *
@@ -12,26 +9,25 @@ abstract
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- */
-class acc_strategy_Strategy
+ */ class acc_strategy_Strategy
 {
     
     
     /**
      * Ид на аналитична сметка
      */
-    var $accountId;
+    public $accountId;
     
     /**
      * Масив, които ще захрани стратегията с данни
      */
-    var $data = array();
+    public $data = array();
     
     
     /**
      * Конструктор
      */
-    function __construct($accountId)
+    public function __construct($accountId)
     {
         $this->accountId = $accountId;
     }
@@ -43,7 +39,7 @@ class acc_strategy_Strategy
      * @param double $quantity
      * @param double $amount
      */
-    function feed($quantity, $amount)
+    public function feed($quantity, $amount)
     {
         $this->data[] = array(
             $quantity, $amount
@@ -53,8 +49,8 @@ class acc_strategy_Strategy
     /**
      * Извличане на паричната стойност на зададено количество.
      *
-     * @param double $quantity
+     * @param  double $quantity
      * @return double
      */
-    abstract function consume($quantity);
+    abstract public function consume($quantity);
 }

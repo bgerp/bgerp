@@ -20,10 +20,10 @@ class acc_strategy_LIFO extends acc_strategy_Strategy
     
     /**
      * Извличане на паричната стойност на зададено количество.
-     * @param double $quantity
+     * @param  double $quantity
      * @return double
      */
-    function consume($quantity)
+    public function consume($quantity)
     {
         if ($quantity == 0) {
             return 0;
@@ -39,7 +39,7 @@ class acc_strategy_LIFO extends acc_strategy_Strategy
             list($q, $a) = array_pop($this->data);
             $quantity -= $q;
             $amount += $a;
-        };
+        }
         
         // Изчисляваме остатъка и коригираме с него общата стойност.
         $a = ($a / $q) * $quantity;

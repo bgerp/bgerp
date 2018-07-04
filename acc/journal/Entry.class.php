@@ -13,8 +13,8 @@
  */
 class acc_journal_Entry
 {
-	
-	
+    
+    
     /**
      * Дебитна част на ред от счетоводна транзакция
      *
@@ -48,18 +48,18 @@ class acc_journal_Entry
     /**
      * @var int
      */
-    public $reasonCode = NULL;
+    public $reasonCode = null;
     
     
     /**
      * Конструктор
      *
-     * @param object|array|null $debitData дебитната част на реда
+     * @param object|array|null $debitData  дебитната част на реда
      * @param object|array|null $creditData кредитната част на реда
      */
-    public function __construct($debitData = NULL, $creditData = NULL)
+    public function __construct($debitData = null, $creditData = null)
     {
-        $this->debit  = new acc_journal_EntrySide($debitData, acc_journal_EntrySide::DEBIT);
+        $this->debit = new acc_journal_EntrySide($debitData, acc_journal_EntrySide::DEBIT);
         $this->credit = new acc_journal_EntrySide($creditData, acc_journal_EntrySide::CREDIT);
         
         $this->JournalDetails = cls::get('acc_JournalDetails');
@@ -69,15 +69,15 @@ class acc_journal_Entry
     /**
      * Инициализира ред на транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
      *
-     * @param stdClass $data
+     * @param  stdClass          $data
      * @return acc_journal_Entry
      */
     public function initFromTransactionSource($data)
     {
         $this->debit->initFromTransactionSource($data);
         $this->credit->initFromTransactionSource($data);
-        if(isset($data['reason'])){
-        	$this->reasonCode = acc_Operations::getIdByTitle($data['reason']);
+        if (isset($data['reason'])) {
+            $this->reasonCode = acc_Operations::getIdByTitle($data['reason']);
         }
         
         
@@ -86,7 +86,7 @@ class acc_journal_Entry
     
     
     /**
-     * @param array $data
+     * @param  array             $data
      * @return acc_journal_Entry
      */
     public function setDebit($data)
@@ -98,7 +98,7 @@ class acc_journal_Entry
     
     
     /**
-     * @param array $data
+     * @param  array             $data
      * @return acc_journal_Entry
      */
     public function setCredit($data)
@@ -116,10 +116,10 @@ class acc_journal_Entry
      */
     public function check()
     {
-        // Проверка за съответствие между разбивките на сметката и зададените пера  
+        // Проверка за съответствие между разбивките на сметката и зададените пера
         $this->debit->checkItems() && $this->credit->checkItems();
         
-        // Цена по кредита е позволена единствено и само, когато кредит-сметка няма зададена 
+        // Цена по кредита е позволена единствено и само, когато кредит-сметка няма зададена
         // стратегия (LIFO, FIFO, WAC).
         if ($this->credit->account->hasStrategy()) {
             acc_journal_Exception::expect(
@@ -160,7 +160,7 @@ class acc_journal_Entry
         
         $this->checkAmounts();
         
-        return TRUE;
+        return true;
     }
     
     /**
@@ -170,16 +170,16 @@ class acc_journal_Entry
     {
         $PRECISION = 0.001;
         
-        if (isset($this->debit->amount) && isset($this->credit->amount)) {
+        if (isset($this->debit->amount, $this->credit->amount)) {
             acc_journal_Exception::expect(
                 abs($this->debit->amount - $this->credit->amount) < $PRECISION
                 &&
                 abs($this->debit->amount - $this->amount()) < $PRECISION,
-                "Дебит-стойността на транзакцията не съвпада с кредит-стойността"
+                'Дебит-стойността на транзакцията не съвпада с кредит-стойността'
             );
         }
         
-        return TRUE;
+        return true;
     }
     
     
@@ -207,18 +207,18 @@ class acc_journal_Entry
      */
     public function getRec($transactionId)
     {
-    	$this->debit->forceItems();
-    	$this->credit->forceItems();
+        $this->debit->forceItems();
+        $this->credit->forceItems();
     
-    	$entryRec = $this->debit->getData()
-    	+ $this->credit->getData()
-    	+ array(
-    			'journalId'   => $transactionId,
-    			'amount'      => $this->amount(),
-    			'reasonCode'  => $this->reasonCode,
-    	);
+        $entryRec = $this->debit->getData()
+        + $this->credit->getData()
+        + array(
+                'journalId' => $transactionId,
+                'amount' => $this->amount(),
+                'reasonCode' => $this->reasonCode,
+        );
     
-    	return (object)$entryRec;
+        return (object) $entryRec;
     }
     
     
@@ -234,11 +234,11 @@ class acc_journal_Entry
         + $this->credit->getData()
         + array(
             'journalId' => $transactionId,
-            'amount'    => $this->amount(),
-        	'reasonCode'  => $this->reasonCode,
+            'amount' => $this->amount(),
+            'reasonCode' => $this->reasonCode,
         );
         
-        return $this->JournalDetails->save((object)$entryRec);
+        return $this->JournalDetails->save((object) $entryRec);
     }
     
     

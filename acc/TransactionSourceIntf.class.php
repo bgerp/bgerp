@@ -21,7 +21,7 @@ class acc_TransactionSourceIntf
     /**
      * Връща линк към документа с посоченото id
      */
-    function getLink($id)
+    public function getLink($id)
     {
         return $this->class->getLink($id);
     }
@@ -90,10 +90,10 @@ class acc_TransactionSourceIntf
      * )
      *
      *
-     * @param int $id ид на документ
+     * @param  int      $id ид на документ
      * @return stdClass
      */
-    function getTransaction($id)
+    public function getTransaction($id)
     {
         return $this->class->getTransaction($id);
     }
@@ -104,7 +104,7 @@ class acc_TransactionSourceIntf
      *
      * @param int $id ид на документ
      */
-    function finalizeTransaction($id)
+    public function finalizeTransaction($id)
     {
         return $this->class->finalizeTransaction($id);
     }

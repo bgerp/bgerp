@@ -19,7 +19,7 @@ class acc_FeatureTitles extends core_Manager
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Заглавия на свойства";
+    public $title = 'Заглавия на свойства';
     
     
     /**
@@ -86,7 +86,7 @@ class acc_FeatureTitles extends core_Manager
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Черта');
     }
@@ -98,7 +98,7 @@ class acc_FeatureTitles extends core_Manager
     public static function fetchIdByTitle($title)
     {
         $id = acc_FeatureTitles::fetchField(array("#title = '[#1#]'", $title), 'id');
-        if(!isset($id)) {
+        if (!isset($id)) {
             $ftRec = (object) array('title' => $title);
             acc_FeatureTitles::save($ftRec);
             $id = $ftRec->id;
@@ -106,5 +106,4 @@ class acc_FeatureTitles extends core_Manager
 
         return $id;
     }
-
 }

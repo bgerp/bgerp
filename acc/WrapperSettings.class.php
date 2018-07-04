@@ -23,7 +23,7 @@ class acc_WrapperSettings extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('acc_Periods', 'Периоди', 'ceo,acc');
         $this->TAB('acc_Lists', 'Номенклатури', 'ceo,acc');
