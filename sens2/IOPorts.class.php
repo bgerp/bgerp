@@ -19,8 +19,14 @@ class sens2_IOPorts extends embed_Detail
     /**
      * Заглавие на драйвера
      */
-    public $title = 'I/O ports';
+    public $title = 'Портове';
     
+
+    /**
+     * Единично заглавие
+     */
+    public $singleTitle = 'Порт';
+
 
     /**
      * Интерфейса на вътрешните обекти
@@ -43,7 +49,7 @@ class sens2_IOPorts extends embed_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_State';
+    public $loadList = 'plg_Created, plg_State2,plg_RowTools2';
 
     
     /**
@@ -62,9 +68,60 @@ class sens2_IOPorts extends embed_Detail
     {
         $this->FLD('controllerId', 'key(mvc=sens2_Controllers, select=name)', 'caption=Контролер');
 
-        $this->FLD('name', 'varchar(64,ci)', 'caption=Име, mandatory');
-        $this->FLD('slot', 'varchar(16)', 'caption=I/O Слот');
+        $this->FLD('name', 'varchar(64,ci)', 'caption=Име, mandatory,smartCenter');
+        $this->FLD('slot', 'varchar(16)', 'caption=Слот,smartCenter');
      
         $this->setDbUnique('name, controllerId');
     }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = $data->form;
+        $rec  = $form->rec;
+ 
+        if($rec->driverClass) {
+            $driver = sens2_Controllers::getDriver($rec->controllerId);
+            $portClass = cls::get($rec->driverClass);
+ 
+            // Трябва да отделим слотовете за този вид порт
+            $opt = $driver->getSlotOpt($portClass::SLOT_TYPES);
+            
+            // Добавяме индикация след името на слота, колко пъти е използван до сега
+            $usedSlots = self::getUsedSlots($rec->controllerId);
+            foreach($usedSlots as $slot => $cnt) {
+                if($opt[$slot]) {
+                    $opt[$slot] = $slot . ' (' . $cnt . ')';
+                }
+            }
+
+            $form->setOptions('slot', $opt);
+        } else {
+            $form->setField('slot', 'input=none');
+        }
+    }
+
+
+    /**
+     * Връща броя на използваните слотове
+     *
+     * @return array (slot => cnt)
+     */
+    public static function getUsedSlots($controllerId)
+    {
+        $pQuery = sens2_IOPorts::getQuery();
+        $res = array();
+        while($pRec = $pQuery->fetch("#controllerId = {$controllerId}")) {
+            $res[$pRec->slot]++;
+        }
+
+        return $res;
+    }
+
 }

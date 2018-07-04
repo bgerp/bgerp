@@ -14,7 +14,7 @@
  * @title     Unipi Neuron
  * @see       https://www.unipi.technology/
  */
-class unipi_Neuron extends core_Master
+class unipi_Neuron extends sens2_ProtoDriver
 {
 
     /**
@@ -40,26 +40,26 @@ class unipi_Neuron extends core_Master
      *
      */
     private $models = array(
-                'S103' => array(4,  4,  0,  1, 1, 1, 12),
+                'S103' => array(4,  4,  0,  1, 1, 1, 1),
                 
-                'M103' => array(12, 4,  8,  1, 1, 1, 12),
-                'M203' => array(20, 4,  14, 1, 1, 1, 12),
-                'M303' => array(34, 4,  0,  1, 1, 1, 12),
-                'M403' => array(4,  4,  28, 1, 1, 1, 12),
-                'M503' => array(10, 4,  5,  5 ,5, 2, 12),
+                'M103' => array(12, 4,  8,  1, 1, 1, 1),
+                'M203' => array(20, 4,  14, 1, 1, 1, 1),
+                'M303' => array(34, 4,  0,  1, 1, 1, 1),
+                'M403' => array(4,  4,  28, 1, 1, 1, 1),
+                'M503' => array(10, 4,  5,  5 ,5, 2, 1),
 
-                'L203' => array(36, 4,  28, 1,  1, 1, 12),
-                'L303' => array(64, 4,  1,  1,  1, 1, 12),
-                'L403' => array(4,  4,  56, 1,  1, 1, 12),
-                'L503' => array(24, 4,  19, 5,  5, 2, 12),
-                'L513' => array(16, 4,  10, 9,  9, 3, 12),
+                'L203' => array(36, 4,  28, 1,  1, 1, 1),
+                'L303' => array(64, 4,  1,  1,  1, 1, 1),
+                'L403' => array(4,  4,  56, 1,  1, 1, 1),
+                'L503' => array(24, 4,  19, 5,  5, 2, 1),
+                'L513' => array(16, 4,  10, 9,  9, 3, 1),
              );
 
     private $extensions = array(
-                'xS10' => array(16, 0,  8,  0,  0,  1, 0),
-                'xS30' => array(24, 0,  0,  0,  0,  1, 0),
-                'xS40' => array(8,  0,  14, 0,  0,  1, 0),
-                'xS50' => array(6,  0,  5,  4,  4,  1, 0),
+                'xS10' => array(16, 0,  8,  0,  0,  0, 0),
+                'xS30' => array(24, 0,  0,  0,  0,  0, 0),
+                'xS40' => array(8,  0,  14, 0,  0,  0, 0),
+                'xS50' => array(6,  0,  5,  4,  4,  0, 0),
              );
     
     /**
@@ -170,14 +170,16 @@ class unipi_Neuron extends core_Master
 
     /**
      * Връща масив със портовете на устройството
+     * 
+     * @return array
      */
-    private function getSlots($config, $onlyFree = false)
-    {
+    public function getSlotCnt()
+    {   
+        $config = $this->driverRec->config;
         $model = $this->models[$config->model];
-        $extension = $this->extensions[$config->extension];
-        if (!$extension) {
-            $extension = array();
-        }
+
+        $extension = $this->extensions[$config->extension] ?? array();
+
         $res = array();
         foreach ($this->mapIOType as $id => $type) {
             $res[$type] = $model[$id] + $extension[$id];

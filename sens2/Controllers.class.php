@@ -132,6 +132,7 @@ class sens2_Controllers extends core_Master
         if(!isset($drivers[$controllerId])) {
             $rec = self::fetch($controllerId);
             $drivers[$controllerId] = cls::get($rec->driver);
+            $drivers[$controllerId]->driverRec = $rec;
         }
 
         return $drivers[$controllerId];

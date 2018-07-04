@@ -112,4 +112,16 @@ class sens2_DriverIntf
         return $this->class->getPicture($config);
     }
 
+
+    /**
+     * Връща масив със портовете на устройството
+     * 
+     * @return array
+     */
+    public function getSlots()
+    {
+        return $this->class->getSlots();
+    }
+
+
 }
