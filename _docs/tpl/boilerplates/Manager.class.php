@@ -17,7 +17,7 @@ class boilerplate_Manager extends core_Manager
 {
     /**
      * Заглавие в множествено число
-     * 
+     *
      * @var string
      */
     public $title;
@@ -25,7 +25,7 @@ class boilerplate_Manager extends core_Manager
     
     /**
      * Плъгини за зареждане
-     * 
+     *
      * var string|array
      */
     public $loadList;
@@ -33,7 +33,7 @@ class boilerplate_Manager extends core_Manager
 
     /**
      * Поддържани интерфейси
-     * 
+     *
      * var string|array
      */
     public $interfaces;
@@ -41,14 +41,14 @@ class boilerplate_Manager extends core_Manager
     
     /**
      * Активен таб на менюто
-     * 
+     *
      * @var string
      */
     public $menuPage;
     
     /**
      * Кой има право да чете?
-     * 
+     *
      * @var string|array
      */
     public $canRead;
@@ -56,7 +56,7 @@ class boilerplate_Manager extends core_Manager
     
     /**
      * Кой има право да променя?
-     * 
+     *
      * @var string|array
      */
     public $canEdit;
@@ -64,7 +64,7 @@ class boilerplate_Manager extends core_Manager
     
     /**
      * Кой има право да добавя?
-     * 
+     *
      * @var string|array
      */
     public $canAdd;
@@ -72,7 +72,7 @@ class boilerplate_Manager extends core_Manager
     
     /**
      * Кой може да го види?
-     * 
+     *
      * @var string|array
      */
     public $canView;
@@ -80,7 +80,7 @@ class boilerplate_Manager extends core_Manager
     
     /**
      * Кой може да го изтрие?
-     * 
+     *
      * @var string|array
      */
     public $canDelete;
@@ -88,7 +88,7 @@ class boilerplate_Manager extends core_Manager
     
     /**
      * Брой записи на страница
-     * 
+     *
      * @var integer
      */
     public $listItemsPerPage;
@@ -102,7 +102,7 @@ class boilerplate_Manager extends core_Manager
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     * 
+     *
      * @var string
      * @see plg_RowTools2
      */
@@ -111,7 +111,7 @@ class boilerplate_Manager extends core_Manager
 
     /**
      * Заглавие в единствено число
-     * 
+     *
      * @var string
      */
     public $singleTitle;
@@ -119,7 +119,7 @@ class boilerplate_Manager extends core_Manager
     
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     * 
+     *
      *  @var string
      */
     public $hideListFieldsIfEmpty;
@@ -135,7 +135,7 @@ class boilerplate_Manager extends core_Manager
 
     /**
      * След дефиниране на полетата на модела
-     * 
+     *
      * @param core_Mvc $mvc
      */
     public static function on_AfterDescription(core_Mvc $mvc)
@@ -147,7 +147,7 @@ class boilerplate_Manager extends core_Manager
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
+     * @param int      $id  първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
@@ -157,10 +157,10 @@ class boilerplate_Manager extends core_Manager
 
     /**
      * Извиква се преди изпълняването на екшън
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param string $action
+     * @param mixed    $res
+     * @param string   $action
      */
     public static function on_BeforeAction($mvc, &$res, $action)
     {
@@ -171,12 +171,12 @@ class boilerplate_Manager extends core_Manager
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
     }
     
@@ -197,7 +197,7 @@ class boilerplate_Manager extends core_Manager
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
@@ -206,8 +206,8 @@ class boilerplate_Manager extends core_Manager
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm($mvc, &$form)
@@ -230,8 +230,8 @@ class boilerplate_Manager extends core_Manager
     /**
      * След изтриване на записи
      *
-     * @param core_Mvc $mvc
-     * @param int $numRows  
+     * @param core_Mvc   $mvc
+     * @param int        $numRows
      * @param core_Query $query
      * @param string|array
      *
@@ -250,7 +250,7 @@ class boilerplate_Manager extends core_Manager
      *
      * @return bool Дали да продължи обработката на опашката от събития
      */
-    static function on_AfterRead($mvc, $rec)
+    public static function on_AfterRead($mvc, $rec)
     {
     }
 
@@ -265,7 +265,7 @@ class boilerplate_Manager extends core_Manager
      * @return boolean
      */
     protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
-    {   
+    {
     }
    
     
@@ -300,14 +300,14 @@ class boilerplate_Manager extends core_Manager
     /**
      * Изпълнява се преди опаковане на съдаржанието от мениджъра
      *
-     * @param core_Mvc $mvc
+     * @param core_Mvc            $mvc
      * @param null|string|core_ET $res
-     * @param string|core_ET $tpl
-     * @param stdClass $data
+     * @param string|core_ET      $tpl
+     * @param stdClass            $data
      *
      * @return boolean
      */
-    protected static function on_BeforeRenderWrapping(core_Manager $mvc, &$res, &$tpl = NULL, $data = NULL)
+    protected static function on_BeforeRenderWrapping(core_Manager $mvc, &$res, &$tpl = null, $data = null)
     {
     }
 
@@ -315,17 +315,14 @@ class boilerplate_Manager extends core_Manager
     /**
      * Изпълнява се след опаковане на съдаржанието от мениджъра
      *
-     * @param core_Mvc $mvc
+     * @param core_Mvc       $mvc
      * @param string|core_ET $res
      * @param string|core_ET $tpl
-     * @param stdClass $data
+     * @param stdClass       $data
      *
      * @return boolean
      */
-    protected static function on_AfterRenderWrapping(core_Manager $mvc, &$res, &$tpl = NULL, $data = NULL)
+    protected static function on_AfterRenderWrapping(core_Manager $mvc, &$res, &$tpl = null, $data = null)
     {
     }
-    
-
-
 }
