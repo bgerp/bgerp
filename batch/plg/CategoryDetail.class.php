@@ -15,15 +15,15 @@
  */
 class batch_plg_CategoryDetail extends core_Plugin
 {
-	
-	
-	/**
-	 * Изпълнява се след закачане на детайлите
-	 */
-	public static function on_BeforeAttachDetails(core_Mvc $mvc, &$res, &$details)
-	{
-		$details = arr::make($details);
-		$details['Definitions'] = 'batch_CategoryDefinitions';
-		$details = arr::fromArray($details);
-	}
+    
+    
+    /**
+     * Изпълнява се след закачане на детайлите
+     */
+    public static function on_BeforeAttachDetails(core_Mvc $mvc, &$res, &$details)
+    {
+        $details = arr::make($details);
+        $details['Definitions'] = 'batch_CategoryDefinitions';
+        $details = arr::fromArray($details);
+    }
 }

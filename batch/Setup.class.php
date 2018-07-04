@@ -58,7 +58,7 @@ class batch_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "Партиди и серийни номера към складовите документи";
+    public $info = 'Партиди и серийни номера към складовите документи';
             
         
     /**
@@ -66,11 +66,11 @@ class batch_Setup extends core_ProtoSetup
      */
     public $managers = array(
             'batch_Defs',
-    		'batch_Items',
-    		'batch_Movements',
-    		'batch_CategoryDefinitions',
-    		'batch_Features',
-    		'batch_Templates',
+            'batch_Items',
+            'batch_Movements',
+            'batch_CategoryDefinitions',
+            'batch_Features',
+            'batch_Templates',
             'batch_BatchesInDocuments'
         );
     
@@ -79,22 +79,22 @@ class batch_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
-    		array('batch'),
-    		array('batchMaster', 'batch'),
+            array('batch'),
+            array('batchMaster', 'batch'),
     );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = "batch_definitions_Varchar,batch_definitions_Serial,batch_definitions_ExpirationDate,batch_definitions_Document,batch_definitions_DeliveryDate,batch_definitions_ProductionDate,batch_definitions_Component,batch_definitions_StringAndDate,batch_definitions_Digits";
+    public $defClasses = 'batch_definitions_Varchar,batch_definitions_Serial,batch_definitions_ExpirationDate,batch_definitions_Document,batch_definitions_DeliveryDate,batch_definitions_ProductionDate,batch_definitions_Component,batch_definitions_StringAndDate,batch_definitions_Digits';
     
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.4, 'Логистика', 'Партиди', 'batch_Items', 'default', "batch,ceo"),
+            array(3.4, 'Логистика', 'Партиди', 'batch_Items', 'default', 'batch,ceo'),
         );
     
         
@@ -102,9 +102,9 @@ class batch_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-    		'BATCH_EXPIRYDATE_PERCENT' => array("percent", 'caption=Оцветяване на изтичащите партиди->Преди края'),
-    		'BATCH_CLOSE_OLD_BATCHES'  => array('time', 'caption=Затваряне на изчерпани партиди->След'),
-    		'BATCH_COUNT_IN_EDIT_WINDOW' => array('int', 'caption=Колко партиди да се показват в прозореца за промяна->Брой'),
+            'BATCH_EXPIRYDATE_PERCENT' => array('percent', 'caption=Оцветяване на изтичащите партиди->Преди края'),
+            'BATCH_CLOSE_OLD_BATCHES' => array('time', 'caption=Затваряне на изчерпани партиди->След'),
+            'BATCH_COUNT_IN_EDIT_WINDOW' => array('int', 'caption=Колко партиди да се показват в прозореца за промяна->Брой'),
     );
     
     
@@ -112,22 +112,22 @@ class batch_Setup extends core_ProtoSetup
      * Настройки за Cron
      */
     public $cronSettings = array(
-    		array(
-    				'systemId' => "Close Old Batches",
-    				'description' => "Затваряне на старите партиди по които не е имало движение",
-    				'controller' => "batch_Items",
-    				'action' => "closeOldBatches",
-    				'period' => 1440,
-    				'offset' => 20,
-    				'timeLimit' => 100
-    		),
+            array(
+                    'systemId' => 'Close Old Batches',
+                    'description' => 'Затваряне на старите партиди по които не е имало движение',
+                    'controller' => 'batch_Items',
+                    'action' => 'closeOldBatches',
+                    'period' => 1440,
+                    'offset' => 20,
+                    'timeLimit' => 100
+            ),
     );
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
         
