@@ -23,7 +23,7 @@ class backup_StorageIntf
      *
      * @param string $fileName
      */
-    function getFile($fileName)
+    public function getFile($fileName)
     {
         return $this->class->getFile($fileName);
     }
@@ -34,7 +34,7 @@ class backup_StorageIntf
      *
      * @param string $fileName
      */
-    function putFile($fileName)
+    public function putFile($fileName)
     {
         return $this->class->putFile($fileName);
     }
@@ -45,7 +45,7 @@ class backup_StorageIntf
      *
      * @param string $fileName
      */
-    function removeFile($fileName)
+    public function removeFile($fileName)
     {
         return $this->class->removeFile($fileName);
     }

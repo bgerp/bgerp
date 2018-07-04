@@ -21,13 +21,13 @@ class backup_Local extends core_BaseClass
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'backup_StorageIntf';
+    public $interfaces = 'backup_StorageIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Архивиране в локалната файлова система';
+    public $title = 'Архивиране в локалната файлова система';
     
     
     /**
@@ -40,7 +40,7 @@ class backup_Local extends core_BaseClass
      *
      * @return boolean
      */
-    static function getFile($sourceFile, $destFile)
+    public static function getFile($sourceFile, $destFile)
     {
         $conf = core_Packs::getConfig('backup');
         $result = @copy($conf->BACKUP_LOCAL_PATH . '/' . $sourceFile, $destFile);
@@ -56,10 +56,10 @@ class backup_Local extends core_BaseClass
      *
      * @param string $fileName
      *
-     * @param null $subDir
+     * @param  null $subDir
      * @return bool
      */
-    static function putFile($fileName, $subDir = NULL)
+    public static function putFile($fileName, $subDir = null)
     {
         $conf = core_Packs::getConfig('backup');
         if ($subDir) {
@@ -86,7 +86,7 @@ class backup_Local extends core_BaseClass
      *
      * @return boolean
      */
-    static function removeFile($fileName)
+    public static function removeFile($fileName)
     {
         $conf = core_Packs::getConfig('backup');
         $result = @unlink($conf->BACKUP_LOCAL_PATH . '/' . basename($fileName));
