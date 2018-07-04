@@ -471,10 +471,6 @@ class core_Setup extends core_ProtoSetup
         $html .= core_Classes::add('core_page_Internal');
         $html .= core_Classes::add('core_page_InternalModern');
 
-
-        $html .= core_Classes::rebuild();
-        
-        $html .= core_Cron::cleanRecords();
         
         $html .= static::addCronToDelOldTempFiles();
         

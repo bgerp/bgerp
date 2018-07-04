@@ -433,7 +433,9 @@ class bgerp_Setup extends core_ProtoSetup
 
         
         $html .= $Menu->repair();
-        
+        $html .= core_Classes::rebuild();
+        $html .= core_Cron::cleanRecords();
+
         // Принудително обновяване на ролите
         $html .= core_Roles::rebuildRoles();
         $html .= core_Users::rebuildRoles();
