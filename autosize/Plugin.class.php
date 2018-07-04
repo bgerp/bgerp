@@ -13,15 +13,15 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class autosize_Plugin extends core_Plugin {
+class autosize_Plugin extends core_Plugin
+{
     
     
     /**
      * Изпълнява се преди рендирането на input
      */
-    function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr = array())
+    public function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr = array())
     {
-        
         ht::setUniqId($attr);
         $attr['class'] .= ' autosize';
     }
@@ -30,12 +30,12 @@ class autosize_Plugin extends core_Plugin {
     /**
      * Изпълнява се след рендирането на input
      */
-    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
+    public function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
     {
         $conf = core_Packs::getConfig('autosize');
         
-        $tpl->push("autosize/" . $conf->AUTOSIZE_VERSION . "/jquery.autosize.min.js", "JS");
+        $tpl->push('autosize/' . $conf->AUTOSIZE_VERSION . '/jquery.autosize.min.js', 'JS');
         
         jquery_Jquery::run($tpl, "$('.autosize').autosize({maxHeight:$(window).height() - 150});");
     }
-} 
+}

@@ -38,33 +38,33 @@ class autosize_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Автоматично увеличаване на височината на полетата за въвеждане на текст";
+    public $info = 'Автоматично увеличаване на височината на полетата за въвеждане на текст';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
         
-        'AUTOSIZE_VERSION' => array ('enum(v1.18.4=v1.18.4,
+        'AUTOSIZE_VERSION' => array('enum(v1.18.4=v1.18.4,
                                                  v1.18.9=v1.18.9)', 'mandatory, caption=Версията на програмата->Версия'),
     );
     
@@ -72,7 +72,7 @@ class autosize_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
         
@@ -89,7 +89,7 @@ class autosize_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         $html = parent::deinstall();
         

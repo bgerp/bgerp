@@ -3,8 +3,8 @@
 
 /**
  * Клас 'doc_ThreadRefreshPlg' - Ajax обновяване на нишка
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   doc
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -18,18 +18,19 @@ class doc_ThreadRefreshPlg extends core_Plugin
     
     /**
      * Преди рендиране на врапера
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param core_ET $res
-     * @param core_ET $tpl
+     * @param core_ET  $res
+     * @param core_ET  $tpl
      */
-    function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data=NULL)
+    public function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = null)
     {
         // Ако не се листва, да не се изпълнява
         if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
-            if ($data->action != 'single') return ;
-        } elseif($data->action != 'list') {
-            
+            if ($data->action != 'single') {
+                return ;
+            }
+        } elseif ($data->action != 'list') {
             return ;
         }
         
@@ -56,7 +57,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
             
             // Обграждаме с дивове
             $tpl->prepend("<div id='rowsContainer'>");
-            $tpl->append("</div>");
+            $tpl->append('</div>');
             
             $res = $tpl;
         } else {
@@ -65,17 +66,17 @@ class doc_ThreadRefreshPlg extends core_Plugin
             
             $res = $tpl;
             
-            return FALSE;
+            return false;
         }
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param core_Manager $mvc
-     * @param stdClass $res
-     * @param stdClass $data
+     * @param stdClass     $res
+     * @param stdClass     $data
      */
     public static function on_AfterPrepareListRecs($mvc, &$res, $data)
     {
@@ -93,36 +94,38 @@ class doc_ThreadRefreshPlg extends core_Plugin
     
     /**
      * Проверява дали стария и новия хеш си отговарят и ако е зададено сетва новия
-     * 
+     *
      * @param ingeter $threadId
-     * @param array $recsArr
+     * @param array   $recsArr
      * @param boolean $setNew
-     * 
+     *
      * @return boolean
      */
-    public static function checkHash($threadId, $recsArr, $setNew = TRUE)
+    public static function checkHash($threadId, $recsArr, $setNew = true)
     {
         $hash = self::getDocumentStatesHash($recsArr);
         $hashName = self::getStateHashName($threadId, $recsArr);
         
         $oldHash = Mode::get($hashName);
         
-        if ($oldHash == $hash) return TRUE;
+        if ($oldHash == $hash) {
+            return true;
+        }
         
         if ($setNew) {
             Mode::setPermanent($hashName, $hash);
         }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param integer $threadId
-     * @param array $recsArr
-     * 
+     * @param array   $recsArr
+     *
      * @return string
      */
     protected static function getStateHashName($threadId, $recsArr)
@@ -147,14 +150,16 @@ class doc_ThreadRefreshPlg extends core_Plugin
     
     
     /**
-     * 
-     * 
-     * @param array $recsArr
+     *
+     *
+     * @param  array       $recsArr
      * @return string|NULL
      */
     protected static function getDocumentStatesHash($recsArr)
     {
-        if (empty($recsArr)) return ;
+        if (empty($recsArr)) {
+            return ;
+        }
         
         ksort($recsArr);
         
@@ -170,10 +175,10 @@ class doc_ThreadRefreshPlg extends core_Plugin
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param integer $threadId
-     * 
+     *
      * @return string
      */
     protected static function getLastSendName($threadId)
@@ -194,22 +199,26 @@ class doc_ThreadRefreshPlg extends core_Plugin
     
     /**
      * Извиква се преди изпълняването на екшън
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param array $resStatus
-     * @param string $action
+     * @param array    $resStatus
+     * @param string   $action
      */
     public static function on_BeforeAction($mvc, &$resStatus, $action)
     {
         // Ако екшъна не е за обновяване на редовете, да не се изпълнява
-        if ($action != 'ajaxthreadrefresh') return ;
+        if ($action != 'ajaxthreadrefresh') {
+            return ;
+        }
         
         $resStatus = array();
         
         $ajaxMode = Request::get('ajax_mode');
         
         // Ако заявката не е по ajax
-        if (!$ajaxMode) return FALSE;
+        if (!$ajaxMode) {
+            return false;
+        }
         
         $threadId = Request::get('threadId', 'int');
         
@@ -233,7 +242,9 @@ class doc_ThreadRefreshPlg extends core_Plugin
             $recsArr[$rec->id] = $rec;
         }
         
-        if (self::checkHash($threadId, $recsArr)) return FALSE;
+        if (self::checkHash($threadId, $recsArr)) {
+            return false;
+        }
         
         // URL-то за рефрешване
         $refreshUrlStr = Request::get('refreshUrl');
@@ -247,14 +258,16 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $tpl = Request::forward($refreshUrl);
         
         // Ако липсва шаблона, да не се изпълнява
-        if (!$tpl) return FALSE;
+        if (!$tpl) {
+            return false;
+        }
         
         // Вземаме съдържанието на шаблона
         $content = static::getContent($tpl);
         
         // Масив с добавения CSS
         $cssArr = array();
-        $allCssArr = (array)$tpl->getArray('CSS');
+        $allCssArr = (array) $tpl->getArray('CSS');
         $allCssArr = array_unique($allCssArr);
         foreach ($allCssArr as $css) {
             $cssArr[] = page_Html::getFileForAppend($css);
@@ -262,7 +275,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         // Масив с добавения JS
         $jsArr = array();
-        $allJsArr = (array)$tpl->getArray('JS');
+        $allJsArr = (array) $tpl->getArray('JS');
         $allJsArr = array_unique($allJsArr);
         foreach ($allJsArr as $js) {
             $jsArr[] = page_Html::getFileForAppend($js);
@@ -271,7 +284,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         // Добавяме резултата
         $resObj = new stdClass();
         $resObj->func = 'html';
-        $resObj->arg = array('id'=>'rowsContainer', 'html' => $content, 'replace' => TRUE, 'css' => $cssArr, 'js' => $jsArr);
+        $resObj->arg = array('id' => 'rowsContainer', 'html' => $content, 'replace' => true, 'css' => $cssArr, 'js' => $jsArr);
         
         $resStatus[] = $resObj;
         
@@ -298,7 +311,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
             // Да няма повтарящи се функции
             $runAfterAjaxArr = array_unique($runAfterAjaxArr);
             
-            foreach ((array)$runAfterAjaxArr as $runAfterAjax) {
+            foreach ((array) $runAfterAjaxArr as $runAfterAjax) {
                 $resObj = new stdClass();
                 $resObj->func = $runAfterAjax;
                 
@@ -311,21 +324,22 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         // Ако има документи за обновяване
         if ($docsArr) {
-            
             $modifiedDocsArr = array();
             $cu = core_Users::getCurrent();
 
-            foreach ((array)$docsArr as $cid => $docId) {
+            foreach ((array) $docsArr as $cid => $docId) {
                 $cRec = doc_Containers::fetch($cid);
-                if($cRec) {
+                if ($cRec) {
                     $currUrl = getCurrentUrl();
                     $currUrl['#'] = $docId;
-                    $link = ht::createLink('#' . $docId, $currUrl, NULL, array('onclick' => "getEO().scrollTo('$docId'); return false;"));
+                    $link = ht::createLink('#' . $docId, $currUrl, null, array('onclick' => "getEO().scrollTo('${docId}'); return false;"));
                     
-                    if($cu == $cRec->modifiedBy) continue;
+                    if ($cu == $cRec->modifiedBy) {
+                        continue;
+                    }
 
                     $user = crm_Profiles::createLink($cRec->modifiedBy);
-                    $action = ($cRec->modifiedOn == $cRec->createdOn) ? tr("добави") : tr("промени");
+                    $action = ($cRec->modifiedOn == $cRec->createdOn) ? tr('добави') : tr('промени');
                     $msg = "{$user} {$action} {$link}";
                     
                     $statusData = array();
@@ -347,21 +361,23 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $threadLastSendName = self::getLastSendName($threadId);
         Mode::setPermanent($threadLastSendName, dt::now());
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Връща съдържанието на шаблона
-     * 
+     *
      * @param core_ET $tpl
-     * 
+     *
      * @return string
      */
-    static function getContent($tpl)
+    public static function getContent($tpl)
     {
         // Ако не е обект или няма съдържание
-        if (!$tpl instanceof core_ET || !$tpl) return $tpl;
+        if (!$tpl instanceof core_ET || !$tpl) {
+            return $tpl;
+        }
         
         // Клонираме, за да не променяме оригиналния обект
         $cTpl = clone $tpl;
@@ -378,10 +394,10 @@ class doc_ThreadRefreshPlg extends core_Plugin
     
     /**
      * След подготвяне на вербалната стойност на полетата
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param object $res
-     * @param object $data
+     * @param object   $res
+     * @param object   $data
      */
     public static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
@@ -397,11 +413,10 @@ class doc_ThreadRefreshPlg extends core_Plugin
             
             // Намира всички документи, които са променени
             if ($lastSend && count($data->recs)) {
-            
-                foreach($data->recs as $id => $r) {
+                foreach ($data->recs as $id => $r) {
             
                     // Ако са променени след последно изтегленото време
-                    if($r->modifiedOn >= $lastSend) {
+                    if ($r->modifiedOn >= $lastSend) {
             
                         // Добавяме хендълуте в масива
                         $docsArr[$id] = $data->rows[$id]->ROW_ATTR['id'];

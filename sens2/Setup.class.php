@@ -69,12 +69,6 @@ class sens2_Setup extends core_ProtoSetup
      */
     var $roles = 'sens';
     
-    
-    /**
-     * Дефинирани класове, които имат интерфейси
-     */
-    var $defClasses = "sens2_reports_DataLog";
-    
 
     /**
      * Връзки от менюто, сочещи към модула
@@ -83,16 +77,12 @@ class sens2_Setup extends core_ProtoSetup
             array(3.4, 'Мониторинг', 'Сензори', 'sens2_Indicators', 'default', "sens, ceo,admin"),
         );
     
-        
+
     /**
-     * Инсталиране на пакета
+     * Дефинирани класове, които имат интерфейси
      */
-    function install()
-    {
-        $html = parent::install();
-                                 
-        // Добавяме наличните драйвери
-        $drivers = array(
+    public $defClasses = array(
+            'sens2_reports_DataLog',
             'sens2_MockupDrv',
             'sens2_ServMon',
             'sens2_ScriptActionAssign',
@@ -101,12 +91,16 @@ class sens2_Setup extends core_ProtoSetup
             'sens2_ScriptActionNotify',
             'sens2_ioport_AI',
             'sens2_ioport_DI',
-
-        );
+            'sens2_ioport_DO',
+            'sens2_ioport_AO',
+    );
         
-        foreach ($drivers as $drvClass) {
-            $html .= core_Classes::add($drvClass);
-        }
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+        $html = parent::install();
          
         $rec = new stdClass();
         $rec->systemId = "sens2_UpdateIndications";

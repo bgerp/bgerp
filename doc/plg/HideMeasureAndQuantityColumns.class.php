@@ -15,15 +15,15 @@ class doc_plg_HideMeasureAndQuantityColumns extends core_Plugin
 {
     
     
-	/**
+    /**
      * Извиква се след описанието на модела
      */
     public static function on_AfterDescription(&$mvc)
     {
-    	setIfNot($mvc->packQuantityFld, 'packQuantity');
-    	setIfNot($mvc->packagingFld, 'packagingId');
-    	setIfNot($mvc->packPriceFld, 'packPrice');
-    	setIfNot($mvc->productFld, 'productId');
+        setIfNot($mvc->packQuantityFld, 'packQuantity');
+        setIfNot($mvc->packagingFld, 'packagingId');
+        setIfNot($mvc->packPriceFld, 'packPrice');
+        setIfNot($mvc->productFld, 'productId');
     }
     
     
@@ -32,26 +32,28 @@ class doc_plg_HideMeasureAndQuantityColumns extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-    	$rows = &$data->rows;
-    	
-    	if(!count($rows)) return;
+        $rows = &$data->rows;
+        
+        if (!count($rows)) {
+            return;
+        }
     
-    	$unset = TRUE;
-    	$pcsId = cat_UoM::fetchBySinonim('pcs')->id;
-    	
-    	foreach ($rows as $id => $row){
-    		$rec = $data->recs[$id];
-    		$canStore = cat_Products::fetchField($rec->{$mvc->productFld}, 'canStore');
-    		
-    		if($rec->{$mvc->packagingFld} != $pcsId || $rec->{$mvc->packQuantityFld} != 1 || $canStore == 'yes'){
-    			$unset = FALSE;
-    		}
-    	}
-    	
-    	if($unset === TRUE){
-    		unset($data->listFields[$mvc->packQuantityFld]);
-    		unset($data->listFields[$mvc->packagingFld]);
-    		unset($data->listFields[$mvc->packPriceFld]);
-    	}
+        $unset = true;
+        $pcsId = cat_UoM::fetchBySinonim('pcs')->id;
+        
+        foreach ($rows as $id => $row) {
+            $rec = $data->recs[$id];
+            $canStore = cat_Products::fetchField($rec->{$mvc->productFld}, 'canStore');
+            
+            if ($rec->{$mvc->packagingFld} != $pcsId || $rec->{$mvc->packQuantityFld} != 1 || $canStore == 'yes') {
+                $unset = false;
+            }
+        }
+        
+        if ($unset === true) {
+            unset($data->listFields[$mvc->packQuantityFld]);
+            unset($data->listFields[$mvc->packagingFld]);
+            unset($data->listFields[$mvc->packPriceFld]);
+        }
     }
 }

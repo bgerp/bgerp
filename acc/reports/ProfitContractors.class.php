@@ -18,12 +18,12 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
 {
 
 
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'acc_ProfitContractorsReport';
-	
-	
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'acc_ProfitContractorsReport';
+    
+    
     /**
      * Кой може да избира драйвъра
      */
@@ -69,11 +69,10 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
         $form->setDefault('orderBy', 'DESC');
 
         $form->setDefault('orderField', 'blAmount');
-        $form->setOptions('orderField', array('blAmount' => "Сума"));
+        $form->setOptions('orderField', array('blAmount' => 'Сума'));
         
-        $form->setField('from','refreshForm,silent');
-        $form->setField('to','refreshForm,silent');
-
+        $form->setField('from', 'refreshForm,silent');
+        $form->setField('to', 'refreshForm,silent');
     }
 
 
@@ -82,25 +81,23 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
      */
     public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
     {
-        $form->setOptions('orderField', array('blAmount' => "Сума"));
+        $form->setOptions('orderField', array('blAmount' => 'Сума'));
         
         foreach (range(1, 3) as $i) {
-
             $form->setHidden("feat{$i}");
-
         }
 
         $contragentPositionId = acc_Lists::getPosition($mvc->baseAccountId, 'crm_ContragentAccRegIntf');
 
-        $form->setDefault("feat{$contragentPositionId}", "*");   
+        $form->setDefault("feat{$contragentPositionId}", '*');
         
         // Поставяме удобни опции за избор на период
         $query = acc_Periods::getQuery();
         $query->where("#state = 'closed'");
-        $query->orderBy("#end", "DESC");
+        $query->orderBy('#end', 'DESC');
         
-        $yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);
-        $daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
+        $yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), false);
+        $daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), false);
         $optionsFrom = $optionsTo = array();
         $optionsFrom[dt::today()] = 'Днес';
         $optionsFrom[$yesterday] = 'Вчера';
@@ -110,8 +107,8 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
         $optionsTo[$daybefore] = 'Завчера';
         
         while ($op = $query->fetch()) {
-        	$optionsFrom[$op->start] = $op->title;
-        	$optionsTo[$op->end] = $op->title;
+            $optionsFrom[$op->start] = $op->title;
+            $optionsTo[$op->end] = $op->title;
         }
    
         $form->setSuggestions('from', array('' => '') + $optionsFrom);
@@ -121,7 +118,6 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
 
     public static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-
         unset($data->listFields['debitQuantity']);
         unset($data->listFields['debitAmount']);
         unset($data->listFields['creditQuantity']);
@@ -134,22 +130,21 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
         unset($data->listFields['blQuantityCompare']);
         
         // Кои полета ще се показват
-        if($mvc->innerForm->compare != 'no'){
+        if ($mvc->innerForm->compare != 'no') {
             $fromVerbalOld = dt::mysql2verbal($data->fromOld, 'd.m.Y');
             $toVerbalOld = dt::mysql2verbal($data->toOld, 'd.m.Y');
-            $prefixOld = (string) $fromVerbalOld . " - " . $toVerbalOld;
+            $prefixOld = (string) $fromVerbalOld . ' - ' . $toVerbalOld;
         
             $fromVerbal = dt::mysql2verbal($mvc->innerForm->from, 'd.m.Y');
             $toVerbal = dt::mysql2verbal($mvc->innerForm->to, 'd.m.Y');
-            $prefix = (string) $fromVerbal . " - " . $toVerbal;
+            $prefix = (string) $fromVerbal . ' - ' . $toVerbal;
         
-            $fields = arr::make("id=№,item1=Контрагенти,blAmount={$prefix}->Сумa,delta={$prefix}->Дял,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", TRUE);
+            $fields = arr::make("id=№,item1=Контрагенти,blAmount={$prefix}->Сумa,delta={$prefix}->Дял,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", true);
             $data->listFields = $fields;
         } else {
-        
-            $data->listFields['blAmount'] = str_replace("->Остатък", "", $data->listFields['blAmount']);
-            $data->listFields['blAmount'] = str_replace("Остатък->", "", $data->listFields['blAmount']);
-            $data->listFields['blAmountCompare'] = str_replace("->Остатък", "", $data->listFields['blAmountCompare']);
+            $data->listFields['blAmount'] = str_replace('->Остатък', '', $data->listFields['blAmount']);
+            $data->listFields['blAmount'] = str_replace('Остатък->', '', $data->listFields['blAmount']);
+            $data->listFields['blAmountCompare'] = str_replace('->Остатък', '', $data->listFields['blAmountCompare']);
         }
     }
 
@@ -172,7 +167,7 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
      */
     public function getEarlyActivation()
     {
-    	$activateOn = "{$this->innerForm->to} 23:59:59";
+        $activateOn = "{$this->innerForm->to} 23:59:59";
 
         return $activateOn;
     }
@@ -183,12 +178,11 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
      */
     public function getReportTitle()
     {
-
-    	$explodeTitle = explode(" » ", $this->title);
-    	
-    	$title = tr("|{$explodeTitle[1]}|*");
-    	 
-    	return $title;
+        $explodeTitle = explode(' » ', $this->title);
+        
+        $title = tr("|{$explodeTitle[1]}|*");
+         
+        return $title;
     }
 
 
@@ -198,14 +192,12 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
      *
      * @return array
      */
-    public function getExportFields ()
+    public function getExportFields()
     {
-
-        $exportFields['item1']  = "Контрагенти";
-        $exportFields['blAmount']  = "Сума";
-        $exportFields['delta']  = "Дял";
+        $exportFields['item1'] = 'Контрагенти';
+        $exportFields['blAmount'] = 'Сума';
+        $exportFields['delta'] = 'Дял';
 
         return $exportFields;
     }
-
 }

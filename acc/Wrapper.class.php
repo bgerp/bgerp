@@ -23,7 +23,7 @@ class acc_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('acc_Balances', 'Оборотни ведомости', 'ceo,acc');
         
@@ -32,18 +32,18 @@ class acc_Wrapper extends plg_ProtoWrapper
         $histUrl = array();
         
         // Ако екшъна е хронологичната справка, активираме таба
-        if(strtolower($act) == 'history' && $ctr == 'acc_BalanceHistory'){
+        if (strtolower($act) == 'history' && $ctr == 'acc_BalanceHistory') {
             $histUrl = getCurrentUrl();
         }
         
-        if(!count($histUrl)) {
+        if (!count($histUrl)) {
             
             // Ако няма хрон. справка извличаме я от сесията
-            if(empty($histUrl)){
+            if (empty($histUrl)) {
                 $histUrl = Mode::get('lastBalanceHistory');
             }
             
-            if(empty($histUrl)){
+            if (empty($histUrl)) {
                 $histUrl = array();
             }
         } else {

@@ -18,12 +18,12 @@ class acc_reports_MovementContractors extends acc_reports_PeriodHistoryImpl
 {
 
 
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'acc_MovementContractorsReport';
-	
-	
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'acc_MovementContractorsReport';
+    
+    
     /**
      * Кой може да избира драйвъра
      */
@@ -55,7 +55,6 @@ class acc_reports_MovementContractors extends acc_reports_PeriodHistoryImpl
 
         $form->setFieldTypeParams("ent{$contractorPositionId}Id", array('select' => 'title'));
         $form->setFieldTypeParams("ent{$currencyPosition}Id", array('select' => 'title'));
-
     }
 
 

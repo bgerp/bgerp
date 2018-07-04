@@ -7,7 +7,7 @@ class acc_journal_Account
      *
      * @var stdClass
      */
-    var $rec;
+    public $rec;
     
     
     /**
@@ -23,7 +23,7 @@ class acc_journal_Account
             acc_journal_Exception::expect(
                 $rec = acc_Accounts::fetch(array("#systemId = '[#1#]'", $systemId)),
                 "Липсва сметка със `systemId`={$systemId}",
-                array('redirect'=>array('acc_Accounts', 'list'))
+                array('redirect' => array('acc_Accounts', 'list'))
             );
         }
         
@@ -41,7 +41,7 @@ class acc_journal_Account
         acc_journal_Exception::expect(
             $rec = acc_Accounts::fetch($id),
             "Липсва сметка с `id`={$id}",
-            array('redirect'=>array('acc_Accounts', 'list'))
+            array('redirect' => array('acc_Accounts', 'list'))
         );
         
         return new static($rec);
@@ -66,7 +66,7 @@ class acc_journal_Account
      * о N-тото перо в $items да има зададено количество точно тогава, когато N-тата
      * номенклатура-аналитичност на сметката e измерима.
      *
-     * @param array $items
+     * @param  array   $items
      * @return boolean
      */
     public function accepts($items)
@@ -76,9 +76,12 @@ class acc_journal_Account
         + intval(isset($this->rec->groupId2))
         + intval(isset($this->rec->groupId3));
         
-        // колкото са пера - толкова аналитичности на сметката 
-        acc_journal_Exception::expect(TRUE || $countAnalit == count($items),
-            sprintf("Броя на аналитичностите на сметка '%s' (%d) не съвпада с броя на подадените пера (%d)",
+        // колкото са пера - толкова аналитичности на сметката
+        acc_journal_Exception::expect(
+ 
+            true || $countAnalit == count($items),
+            sprintf(
+                "Броя на аналитичностите на сметка '%s' (%d) не съвпада с броя на подадените пера (%d)",
                 $this->rec->systemId,
                 $countAnalit,
                 count($items)
@@ -86,15 +89,17 @@ class acc_journal_Account
         );
         
         /* @var $item acc_journal_Item */
-        foreach (array_values($items) as $N=>$item) {
+        foreach (array_values($items) as $N => $item) {
             $nn = $N + 1;
             
             acc_journal_Exception::expect(
                 $listId = $this->rec->{"groupId{$nn}"},
-                sprintf("{$this->rec->systemId}: на перо #%d(%s) не съответства аналитичност на сметката",
-                    $nn, $item->className()
+                sprintf(
+                    "{$this->rec->systemId}: на перо #%d(%s) не съответства аналитичност на сметката",
+                    $nn,
+                    $item->className()
                 ),
-                array('redirect'=>array('acc_Accounts', 'list'))
+                array('redirect' => array('acc_Accounts', 'list'))
             );
             
             // Съпоставка на интерфейсите
@@ -103,16 +108,19 @@ class acc_journal_Account
             if (!empty($listInterfaceId)) {
                 acc_journal_Exception::expect(
                     $item->implementsInterface($listInterfaceId),
-                    sprintf("{$this->rec->systemId}: перо #%d(%s) не поддържа интерфейс %s",
-                        $nn, $item->className(), core_Interfaces::fetchField($listInterfaceId, 'name')
+                    sprintf(
+                        "{$this->rec->systemId}: перо #%d(%s) не поддържа интерфейс %s",
+                        $nn,
+                        $item->className(),
+                        core_Interfaces::fetchField($listInterfaceId, 'name')
                     ),
-                    (array)$items,
-                    array('redirect'=>array('acc_Accounts', 'list'))
+                    (array) $items,
+                    array('redirect' => array('acc_Accounts', 'list'))
                 );
             }
         }
         
-        return TRUE;
+        return true;
     }
     
     

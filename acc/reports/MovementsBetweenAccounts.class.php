@@ -82,10 +82,18 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $form->FLD('from', 'date', 'caption=От,mandatory');
         $form->FLD('to', 'date', 'caption=До,mandatory');
         $form->FLD('compare', 'enum(no=Няма,old=Предходен период,year=Миналогодишен период)', 'caption=Съпоставка,silent');
-        $form->FLD('dAcc', 'acc_type_Account(allowEmpty)', 'mandatory,silent,removeAndRefreshForm=df1|df2|df3',
-            array('caption' => "|*<span style='color:#ffccaa'>|Дебит|*</span>->|Сметка"));
-        $form->FLD('cAcc', 'acc_type_Account(allowEmpty)', 'mandatory,silent,removeAndRefreshForm=cf1|cf2|cf3',
-            array('caption' => "|*<span style='color:#aaccff'>|Кредит|*</span>->|Сметка"));
+        $form->FLD(
+            'dAcc',
+            'acc_type_Account(allowEmpty)',
+            'mandatory,silent,removeAndRefreshForm=df1|df2|df3',
+            array('caption' => "|*<span style='color:#ffccaa'>|Дебит|*</span>->|Сметка")
+        );
+        $form->FLD(
+            'cAcc',
+            'acc_type_Account(allowEmpty)',
+            'mandatory,silent,removeAndRefreshForm=cf1|cf2|cf3',
+            array('caption' => "|*<span style='color:#aaccff'>|Кредит|*</span>->|Сметка")
+        );
         $form->FLD('order', 'enum(,DESC=Низходящо,ASC=Възходящо)', 'caption=Сортиране->Вид,silent,formOrder=100');
         
         
@@ -111,18 +119,17 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $form->setDefault('orderBy', 'DESC');
         $form->setDefault('compare', 'no');
         
-        $form->input(NULL, TRUE);
+        $form->input(null, true);
  
         self::addAccFeats($form->rec->dAcc, 'd', $form);
         self::addAccFeats($form->rec->cAcc, 'c', $form);
          
         // Ако е избрано подреждаме
-        if(isset($form->rec->orderBy) && $form->rec->orderBy != ''){
-            
-            if(isset($form->rec->side)){
-                if($form->rec->side == 'credit'){
+        if (isset($form->rec->orderBy) && $form->rec->orderBy != '') {
+            if (isset($form->rec->side)) {
+                if ($form->rec->side == 'credit') {
                     $options = arr::make('creditQuantity=Кредит к-во,creditAmount=Кредит сума');
-                } elseif($form->rec->side == 'debit') {
+                } elseif ($form->rec->side == 'debit') {
                     $options = arr::make('debitQuantity=Дебит к-во,debitAmount=Дебит сума');
                 } else {
                     $options = arr::make('debitQuantity=Дебит к-во,debitAmount=Дебит сума,creditQuantity=Кредит к-во,creditAmount=Кредит сума,blQuantity=Остатък к-во,blAmount=Остатък сума');
@@ -144,15 +151,17 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
      */
     private static function addAccFeats($accId, $prefix, $form)
     {
-        if(!$accId) return;
+        if (!$accId) {
+            return;
+        }
 
         $aRec = acc_Accounts::fetch($accId);
         
-        $color = ($prefix == 'd') ? "#ffccaa" : "#aaccff";
+        $color = ($prefix == 'd') ? '#ffccaa' : '#aaccff';
         
         $afterField = $prefix . 'Acc';
 
-        for($i = 1; $i <= 3; $i++) {
+        for ($i = 1; $i <= 3; $i++) {
             $groupName = "groupId{$i}";
             $afterField = self::addFeatSection($aRec->{$groupName}, $prefix . 'Feat' . $i, $afterField, $form, $color);
         }
@@ -164,7 +173,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
      */
     private static function addFeatSection($listId, $field, $afterField, $form, $color)
     {
-        if($listId) {
+        if ($listId) {
             $lRec = acc_Lists::fetch($listId);
             $caption = $listName = acc_Lists::getVerbal($lRec, 'name');
             $caption = "<span style='color:{$color}'>{$caption}</span>";
@@ -172,8 +181,16 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             $valField = $field . 'Val';
 
             
-            $form->FLD($field, 'varchar', "placeholder=Без показване,class=w100,removeAndRefreshForm={$valField},silent", 
-                array('caption' => "|*{$caption}->|Признаци", 'after' => $afterField));
+            $form->FLD(
+            
+                $field,
+            
+                'varchar',
+            
+                "placeholder=Без показване,class=w100,removeAndRefreshForm={$valField},silent",
+                array('caption' => "|*{$caption}->|Признаци", 'after' => $afterField)
+            
+            );
             
             // Намираме перата, които с абили използвани в посочения период от посочената номенклатура
             $items = acc_Items::fetchUsedItems($form->rec->from, $form->rec->to, $listId);
@@ -184,24 +201,22 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
 
 
             // Отново въвеждаме новото silent поле
-            $form->input(NULL, TRUE);
+            $form->input(null, true);
 
-            if($form->rec->{$field}) {
-                if($form->rec->{$field} == '*') {
-                    $form->FLD($valField, "keylist(mvc=acc_Items,select=title)", "placeholder=Всички", array('caption' => "|*{$caption}->|Стойности", 'after' => $field));
+            if ($form->rec->{$field}) {
+                if ($form->rec->{$field} == '*') {
+                    $form->FLD($valField, 'keylist(mvc=acc_Items,select=title)', 'placeholder=Всички', array('caption' => "|*{$caption}->|Стойности", 'after' => $field));
                     $form->setSuggestions($valField, $items);
                 } else {
                     $featureTitleId = acc_FeatureTitles::fetchIdByTitle($form->rec->{$field});
                     $featureValuesOpt = acc_Features::getFeatureValueOptions($featureTitleId);
-                    $form->FLD($valField, "keylist(mvc=acc_Features,select=value)", "placeholder=Всички", array('caption' => "|*{$caption}->|Стойности", 'after' => $field));
+                    $form->FLD($valField, 'keylist(mvc=acc_Features,select=value)', 'placeholder=Всички', array('caption' => "|*{$caption}->|Стойности", 'after' => $field));
                     $form->setSuggestions($valField, $featureValuesOpt);
                 }
                 
                 $field = $actField = $field . 'Act';
                 $form->FLD($actField, 'enum(group=Групиране по признаци,groupItems=Групиране по пера,filter=Филтриране)', array('caption' => "|*{$caption}->|Действие", 'after' => $valField));
             }
-
-
         }
         
         return $field;
@@ -211,10 +226,10 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     /**
      * Рендира вътрешната форма като статична форма в подадения шаблон
      *
-     * @param core_ET $tpl - шаблон
-     * @param string $placeholder - плейсхолдър
+     * @param core_ET $tpl         - шаблон
+     * @param string  $placeholder - плейсхолдър
      */
-    protected function prependStaticForm(core_ET &$tpl, $placeholder = NULL)
+    protected function prependStaticForm(core_ET &$tpl, $placeholder = null)
     {
         $form = cls::get('core_Form');
     
@@ -234,12 +249,12 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     public function checkEmbeddedForm(core_Form &$form)
     {
         // Проверяваме дали началната и крайната дата са валидни
-        if($form->isSubmitted()){
-            if($form->rec->to < $form->rec->from){
+        if ($form->isSubmitted()) {
+            if ($form->rec->to < $form->rec->from) {
                 $form->setError('to, from', 'Началната дата трябва да е по-малка от крайната');
             }
             
-            if($form->rec->orderBy == ''){
+            if ($form->rec->orderBy == '') {
                 unset($form->rec->orderBy);
             }
         }
@@ -249,13 +264,15 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     /**
      * Връща ключ за иникланост
      */
-    function getJKey($rec)
-    {   
+    public function getJKey($rec)
+    {
         $p = array();
 
-        foreach(array('debitItem1' => 'dFeat1', 'debitItem2' => 'dFeat2', 'debitItem3' => 'dFeat3', 'creditItem1' => 'cFeat1', 'creditItem2' => 'cFeat2', 'creditItem3' => 'cFeat3') as $partItem => $partFeat) {
-            $p[] = $r= self::getPeroKey($rec, $partItem, $partFeat);
-            if($r === FALSE) return FALSE;
+        foreach (array('debitItem1' => 'dFeat1', 'debitItem2' => 'dFeat2', 'debitItem3' => 'dFeat3', 'creditItem1' => 'cFeat1', 'creditItem2' => 'cFeat2', 'creditItem3' => 'cFeat3') as $partItem => $partFeat) {
+            $p[] = $r = self::getPeroKey($rec, $partItem, $partFeat);
+            if ($r === false) {
+                return false;
+            }
         }
 
         $key = implode('|', $p);
@@ -267,13 +284,17 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     /**
      * Връща ключа за посочената част
      */
-    function getPeroKey($rec, $partItem, $partFeat)
+    public function getPeroKey($rec, $partItem, $partFeat)
     {
         $formRec = $this->innerForm;
  
-        if(!($itemId = $rec->{$partItem})) return '';
+        if (!($itemId = $rec->{$partItem})) {
+            return '';
+        }
 
-        if(!($featTitle = $formRec->{$partFeat})) return '';
+        if (!($featTitle = $formRec->{$partFeat})) {
+            return '';
+        }
         
         $valPart = $partFeat . 'Val';
 
@@ -282,40 +303,38 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         // Филтриране или групиране
         $actPart = $partFeat . 'Act';
         
-        if($featTitle == '*') {
+        if ($featTitle == '*') {
             $res = $rec->{$partItem};
         } else {
             $fTitleRec = acc_FeatureTitles::fetch(array("#title = '[#1#]'", $featTitle));
             expect($fTitleRec, $featTitle);
             $fRec = acc_Features::fetch("#itemId = {$itemId} AND #featureTitleId = {$fTitleRec->id}");
 
-            if($fRec) {
-                if(!($fId = $this->features[$fRec->value])) {
+            if ($fRec) {
+                if (!($fId = $this->features[$fRec->value])) {
                     $fId = $this->features[$fRec->value] = $fRec->id;
                 }
                 $res = -$fId;
 
-                //expect($res != 0, $features, $features[$fRec->value], $fid);
+            //expect($res != 0, $features, $features[$fRec->value], $fid);
             } else {
                 $res = 0;
             }
         }
  
-        if($formRec->{$actPart} == 'group' || $formRec->{$actPart} == 'groupItems') {
-                
-            if(count($vArr) && !$vArr[abs($res)]) {
+        if ($formRec->{$actPart} == 'group' || $formRec->{$actPart} == 'groupItems') {
+            if (count($vArr) && !$vArr[abs($res)]) {
                 $res = '0';
             }
 
-            if($res < 0 && $formRec->{$actPart} == 'groupItems') {
+            if ($res < 0 && $formRec->{$actPart} == 'groupItems') {
                 $res = $rec->{$partItem};
             }
-
         } else {
             expect($formRec->{$actPart} == 'filter', $formRec, $actPart);
             
-            if(count($vArr) && !$vArr[abs($res)]) {
-                $res = FALSE;
+            if (count($vArr) && !$vArr[abs($res)]) {
+                $res = false;
             } else {
                 $res = '';
             }
@@ -328,23 +347,19 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     /**
      * Превръща във вербален запис перо или фичърс
      */
-    function idToVerbal($id)
+    public function idToVerbal($id)
     {
-        if($id < 0) {
-
+        if ($id < 0) {
             return array_search(-$id, $this->features) ;
-        } elseif($id == 0) {
-            if($id === '') {
-
+        } elseif ($id == 0) {
+            if ($id === '') {
                 return '';
-            } else {
-
-                return tr("Други");
             }
-        } else {
 
-            return acc_Items::fetch($id)->title;
+            return tr('Други');
         }
+
+        return acc_Items::fetch($id)->title;
     }
 
 
@@ -363,46 +378,46 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
      * Подготвя вътрешното състояние, на база въведените данни
      */
     public function prepareInnerState()
-    {  
+    {
         core_App::setTimeLimit(300);
         $data = new stdClass();
-        $data->summary = (object)array('debitQuantity' => 0, 'debitAmount' => 0, 'creditQuantity' => 0, 'creditAmount' => 0, 'blQuantity' => 0, 'blAmount' => 0);
-        $data->hasSameAmounts = TRUE;
+        $data->summary = (object) array('debitQuantity' => 0, 'debitAmount' => 0, 'creditQuantity' => 0, 'creditAmount' => 0, 'blQuantity' => 0, 'blAmount' => 0);
+        $data->hasSameAmounts = true;
         $data->rows = $data->recs = array();
         $data->rowsOld = $data->recsOld = array();
         $form = &$this->innerForm;
     
 
-        if($form->from > $form->to) {
+        if ($form->from > $form->to) {
             list($form->from, $form->to) = array($form->from, $form->to);
         }
         
-        if(!$form->dFeat1) {
+        if (!$form->dFeat1) {
             $form->dFeat1Act = '';
             $form->dFeat1Val = '';
         }
 
-        if(!$form->dFeat2) {
+        if (!$form->dFeat2) {
             $form->dFeat2Act = '';
             $form->dFeat2Val = '';
         }
 
-        if(!$form->dFeat3) {
+        if (!$form->dFeat3) {
             $form->dFeat3Act = '';
             $form->dFeat3Val = '';
         }
         
-        if(!$form->cFeat1) {
+        if (!$form->cFeat1) {
             $form->cFeat1Act = '';
             $form->cFeat1Val = '';
         }
 
-        if(!$form->cFeat2) {
+        if (!$form->cFeat2) {
             $form->cFeat2Act = '';
             $form->cFeat2Val = '';
         }
 
-        if(!$form->cFeat3) {
+        if (!$form->cFeat3) {
             $form->cFeat3Act = '';
             $form->cFeat3Val = '';
         }
@@ -416,12 +431,14 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         // За всеки запис добавяме го към намерените резултати
         $all = array();
 
-        while($rec = $jQuery->fetch()) {
+        while ($rec = $jQuery->fetch()) {
             $key = $this->getJKey($rec);
             
-            if(!$key) continue;
+            if (!$key) {
+                continue;
+            }
 
-            if(!isset($all[$key])) {
+            if (!isset($all[$key])) {
                 $all[$key] = new stdClass();
             }
 
@@ -431,16 +448,16 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             $all[$key]->docs[$rec->docType . ':' . $rec->docId] = $rec->reason;
         }
         
-        if($form->order) {
+        if ($form->order) {
             arr::order($all, 'amount', $form->order);
         }
 
         $p = array();
 
-        foreach($all as $key => $rec) {
+        foreach ($all as $key => $rec) {
             list($p['d1'], $p['d2'], $p['d3'], $p['c1'], $p['c2'], $p['c3']) = explode('|', $key);
 
-            foreach($p as $part => $id) {
+            foreach ($p as $part => $id) {
                 $rec->{$part} = $this->idToVerbal($id);
             }
 
@@ -461,12 +478,12 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
      * След подготовката на показването на информацията
      */
     public static function on_AfterPrepareEmbeddedData($mvc, &$data)
-    {   
+    {
         // Ако има намерени записи
-        if(count($data->recs)){
+        if (count($data->recs)) {
             
             // Подготвяме страницирането
-            $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+            $pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
             $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
             $data->Pager = $pager;
             $data->Pager->itemsCount = count($data->recs);
@@ -475,16 +492,17 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
         
             // За всеки запис
-            foreach ($data->recs as &$rec){
+            foreach ($data->recs as &$rec) {
                 
                 // Ако не е за текущата страница не го показваме
-                if(!$data->Pager->isOnPage()) continue;
+                if (!$data->Pager->isOnPage()) {
+                    continue;
+                }
                 
                 // Вербално представяне на записа
                 $data->rows[] = $mvc->getVerbalRec($rec, $data);
             }
         }
-  
     }
     
     
@@ -506,7 +524,9 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
      */
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
-        if(empty($data)) return;
+        if (empty($data)) {
+            return;
+        }
      
 
         $tpl = $this->getReportLayout();
@@ -517,14 +537,14 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
 
         $cntItem = array();
         for ($i = 0; $i <= count($data->rows); $i++) {
-            foreach (range(1, 6) as $l){
-                if(!empty($data->rows[$i]->{"item{$l}"})){
+            foreach (range(1, 6) as $l) {
+                if (!empty($data->rows[$i]->{"item{$l}"})) {
                     $cntItem[$l] = "item{$l}";
                 }
             }
         }
 
-        if(count($cntItem) <= 1 && count($data->recs) >= 2 ) {
+        if (count($cntItem) <= 1 && count($data->recs) >= 2) {
         
             // toolbar
             $btns = $this->generateBtns($data);
@@ -549,82 +569,82 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
  
         $dAccRec = acc_Accounts::fetch($formRec->dAcc);
         
-        if($dAccRec->groupId1 && $formRec->dFeat1Act) {
-            if(($caption1d = $formRec->dFeat1) == '*') {
+        if ($dAccRec->groupId1 && $formRec->dFeat1Act) {
+            if (($caption1d = $formRec->dFeat1) == '*') {
                 $caption1d = acc_Lists::fetch($dAccRec->groupId1)->name;
-            } 
+            }
 
             $f->FLD('d1', 'varchar', "tdClass=itemClass,caption={$caption1d}");
         }
 
-        if($dAccRec->groupId2 && $formRec->dFeat2Act) {
-            if(($caption2d = $formRec->dFeat2) == '*') {
+        if ($dAccRec->groupId2 && $formRec->dFeat2Act) {
+            if (($caption2d = $formRec->dFeat2) == '*') {
                 $caption2d = acc_Lists::fetch($dAccRec->groupId2)->name;
-            } 
+            }
 
             $f->FLD('d2', 'varchar', "tdClass=itemClass,caption={$caption2d}");
         }
 
-        if($dAccRec->groupId3 && $formRec->dFeat3Act) {
-            if(($caption3d = $formRec->dFeat3) == '*') {
+        if ($dAccRec->groupId3 && $formRec->dFeat3Act) {
+            if (($caption3d = $formRec->dFeat3) == '*') {
                 $caption3d = acc_Lists::fetch($dAccRec->groupId3)->name;
-            } 
+            }
 
             $f->FLD('d3', 'varchar', "tdClass=itemClass,caption={$caption3d}");
         }
 
         $cAccRec = acc_Accounts::fetch($formRec->cAcc);
         
-        if($cAccRec->groupId1 && $formRec->cFeat1Act) {
-            if(($caption1c = $formRec->cFeat1) == '*') {
+        if ($cAccRec->groupId1 && $formRec->cFeat1Act) {
+            if (($caption1c = $formRec->cFeat1) == '*') {
                 $caption1c = acc_Lists::fetch($cAccRec->groupId1)->name;
-            } 
+            }
 
             $f->FLD('c1', 'varchar', "tdClass=itemClass,caption={$caption1c}");
         }
 
-        if($cAccRec->groupId2 && $formRec->cFeat2Act) {
-            if(($caption2c = $formRec->cFeat2) == '*') {
+        if ($cAccRec->groupId2 && $formRec->cFeat2Act) {
+            if (($caption2c = $formRec->cFeat2) == '*') {
                 $caption2c = acc_Lists::fetch($cAccRec->groupId2)->name;
-            } 
+            }
 
             $f->FLD('c2', 'varchar', "tdClass=itemClass,caption={$caption2c}");
         }
 
-        if($cAccRec->groupId3 && $formRec->cFeat3Act) {
-            if(($caption3c = $formRec->cFeat3) == '*') {
+        if ($cAccRec->groupId3 && $formRec->cFeat3Act) {
+            if (($caption3c = $formRec->cFeat3) == '*') {
                 $caption3c = acc_Lists::fetch($cAccRec->groupId3)->name;
-            } 
+            }
 
             $f->FLD('c3', 'varchar', "tdClass=itemClass,caption={$caption3c}");
         }
 
 
-        foreach (array('debitQuantity' => "Количество->Дебит", 'creditQuantity' => "Количество->Кредит", 'amount' => "Сума") as $fld => $caption){
+        foreach (array('debitQuantity' => 'Количество->Дебит', 'creditQuantity' => 'Количество->Кредит', 'amount' => 'Сума') as $fld => $caption) {
             $f->FLD($fld, 'int', 'tdClass=accCell,caption=' . $caption);
         }
         
-        foreach($f->fields as $name => $fRec) {
+        foreach ($f->fields as $name => $fRec) {
             $data->listFields[$name] = $fRec->caption;
         }
  
-            // Рендираме таблицата
-            $table = cls::get('core_TableView', array('mvc' => $f));
-            $tableHtml = $table->get($data->rows, $data->listFields);
+        // Рендираме таблицата
+        $table = cls::get('core_TableView', array('mvc' => $f));
+        $tableHtml = $table->get($data->rows, $data->listFields);
              
-            $tpl->replace($tableHtml, 'CONTENT');
+        $tpl->replace($tableHtml, 'CONTENT');
              
-            // Рендираме пейджъра, ако го има
-            if(isset($data->Pager)){
-                $tpl->replace($data->Pager->getHtml(), 'PAGER');
-            }
+        // Рендираме пейджъра, ако го има
+        if (isset($data->Pager)) {
+            $tpl->replace($data->Pager->getHtml(), 'PAGER');
+        }
              
-            // Показваме данните от формата
-            $form = cls::get('core_Form');
-            $this->addEmbeddedFields($form);
+        // Показваме данните от формата
+        $form = cls::get('core_Form');
+        $this->addEmbeddedFields($form);
 
-            $form->rec = $this->innerForm;
-            $form->class = 'simpleForm';
+        $form->rec = $this->innerForm;
+        $form->class = 'simpleForm';
      
         $this->prependStaticForm($tpl, 'FORM');
          
@@ -635,7 +655,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     /**
      * Вербално представяне на групираните записи
      *
-     * @param stdClass $rec - групиран запис
+     * @param  stdClass $rec - групиран запис
      * @return stdClass $row - вербален запис
      */
     protected function getVerbalRec($rec, $data)
@@ -645,35 +665,35 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $Varchar = cls::get('type_Varchar');
  
         // Вербалното представяне на перата
-        foreach (range(1, 6) as $i){
-            if(!empty($rec->{"item{$i}"})){
-                if($this->innerForm->{"feat{$i}"} == '*'){
+        foreach (range(1, 6) as $i) {
+            if (!empty($rec->{"item{$i}"})) {
+                if ($this->innerForm->{"feat{$i}"} == '*') {
                     $row->{"item{$i}"} = acc_Items::getVerbal($rec->{"item{$i}"}, 'titleLink');
                 } else {
                     $row->{"item{$i}"} = $Varchar->toVerbal($rec->{"item{$i}"});
-                    if($row->{"item{$i}"} == 'others'){
-                        $row->{"item{$i}"} = tr("|*<i>|Други|*</i>");
+                    if ($row->{"item{$i}"} == 'others') {
+                        $row->{"item{$i}"} = tr('|*<i>|Други|*</i>');
                     }
                 }
             }
         }
         
         // Вербално представяне на сумите и к-та
-        foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
-            if(isset($rec->{$fld})){
+        foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld) {
+            if (isset($rec->{$fld})) {
                 $row->{$fld} = $Double->toVerbal($rec->{$fld});
-                if($rec->{$fld} < 0){
+                if ($rec->{$fld} < 0) {
                     $row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
                 }
             }
         }
         
-        if (isset($rec->delta)) { 
+        if (isset($rec->delta)) {
             $row->delta = $rec->delta;
         }
         
         if (isset($rec->measure)) {
-           $row->measure = $rec->measure;
+            $row->measure = $rec->measure;
         }
 
         // Връщаме подготвеното вербално рпедставяне
@@ -690,10 +710,10 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     {
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
          
-        foreach ((array)$data->summary as $index => $fld){
+        foreach ((array) $data->summary as $index => $fld) {
             $f = $data->summary->{$index};
             $data->summary->{$index} = $Double->toVerbal($f);
-            if($f < 0){
+            if ($f < 0) {
                 $data->summary->{$index} = "<span class='red'>{$data->summary->{$index}}</span>";
             }
         }
@@ -707,7 +727,9 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
      */
     private function sortRecs($a, $b)
     {
-        if($a->sortField == $b->sortField) return 0;
+        if ($a->sortField == $b->sortField) {
+            return 0;
+        }
     
         return (strnatcasecmp($a->sortField, $b->sortField) < 0) ? -1 : 1;
     }
@@ -715,18 +737,18 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     
     /**
      * Групира записите от журнала по пера
-     * 
-     * @param int      $baseAccountId - Ид на основната сметка
-     * @param stdClass $jRec          - запис от журнала
-     * @param array    $recs          - групираните записи
+     *
+     * @param  int      $baseAccountId - Ид на основната сметка
+     * @param  stdClass $jRec          - запис от журнала
+     * @param  array    $recs          - групираните записи
      * @return void
      */
     private function addEntry($baseAccountId, $jRec, &$data, $groupBy, $form, $features, &$recs)
     {
         
         // Обхождаме дебитната и кредитната част, И намираме в какви номенклатури имат сметките
-        foreach (array('debit', 'credit') as $type){
-            if(!isset($this->cache2[$jRec->{"{$type}AccId"}])){
+        foreach (array('debit', 'credit') as $type) {
+            if (!isset($this->cache2[$jRec->{"{$type}AccId"}])) {
                 $this->cache2[$jRec->{"{$type}AccId"}] = acc_Accounts::fetch($jRec->{"{$type}AccId"}, 'groupId1,groupId2,groupId3');
             }
         }
@@ -735,15 +757,15 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $creditGroups = $this->cache2[$jRec->creditAccId];
         
         $index = array();
-        foreach (range(1, 6) as $i){
-            if(!empty($form->{"feat{$i}"})){
-                foreach (array('debit', 'credit') as $type){
+        foreach (range(1, 6) as $i) {
+            if (!empty($form->{"feat{$i}"})) {
+                foreach (array('debit', 'credit') as $type) {
                     $groups = ${"{$type}Groups"};
-                    foreach (range(1, 3) as $j){
-                        if($groups->{"groupId{$j}"} == $form->{"list{$i}"}){
+                    foreach (range(1, 3) as $j) {
+                        if ($groups->{"groupId{$j}"} == $form->{"list{$i}"}) {
                             $key = $jRec->{"{$type}Item{$j}"};
                             
-                            if($form->{"feat{$i}"} != '*'){
+                            if ($form->{"feat{$i}"} != '*') {
                                 $featValue = $features[$key][$form->{"feat{$i}"}];
                                 $key = isset($featValue) ? $featValue : 'others';
                             }
@@ -758,21 +780,23 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         
         // Ако записите няма обект с такъв индекс, създаваме го
         $index = implode('|', $index);
-        if(!array_key_exists($index, $recs)){
+        if (!array_key_exists($index, $recs)) {
             $recs[$index] = new stdClass();
             
-            foreach (range(1, 6) as $k){
-                if(isset($jRec->{"column{$k}"})){
+            foreach (range(1, 6) as $k) {
+                if (isset($jRec->{"column{$k}"})) {
                     $recs[$index]->{"item{$k}"} = $jRec->{"column{$k}"};
                 }
             }
         }
         
         // Сумираме записите
-        foreach (array('debit', 'credit') as $type){
+        foreach (array('debit', 'credit') as $type) {
             
             // Пропускаме движенията от сметката кореспондент
-            if($jRec->{"{$type}AccId"} != $baseAccountId) continue;
+            if ($jRec->{"{$type}AccId"} != $baseAccountId) {
+                continue;
+            }
             
             // Сумираме дебитния или кредитния оборот
             $quantityFld = "{$type}Quantity";
@@ -793,19 +817,20 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $newFields = array();
 
         // Кои полета ще се показват
-        if($this->innerForm->compare != 'no'){
+        if ($this->innerForm->compare != 'no') {
             $fromVerbal = dt::mysql2verbal($form->from, 'd.m.Y');
             $toVerbal = dt::mysql2verbal($form->to, 'd.m.Y');
             
-            $prefix = (string) $fromVerbal . " - " . $toVerbal;
+            $prefix = (string) $fromVerbal . ' - ' . $toVerbal;
 
-            $fields = arr::make("debitQuantity={$prefix}->Дебит->К-во,debitAmount={$prefix}->Дебит->Сума,creditQuantity={$prefix}->Кредит->К-во,creditAmount={$prefix}->Кредит->Сума,blQuantity={$prefix}->Остатък->К-во,blAmount={$prefix}->Остатък->Сума,delta={$prefix}->Дял", TRUE);
-            
-        } else $fields = arr::make("debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума,delta=Дял", TRUE);
+            $fields = arr::make("debitQuantity={$prefix}->Дебит->К-во,debitAmount={$prefix}->Дебит->Сума,creditQuantity={$prefix}->Кредит->К-во,creditAmount={$prefix}->Кредит->Сума,blQuantity={$prefix}->Остатък->К-во,blAmount={$prefix}->Остатък->Сума,delta={$prefix}->Дял", true);
+        } else {
+            $fields = arr::make('debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума,delta=Дял', true);
+        }
 
-        foreach (range(1, 6) as $i){
-            if(!empty($form->{"feat{$i}"})){
-                if($form->{"feat{$i}"} == '*'){
+        foreach (range(1, 6) as $i) {
+            if (!empty($form->{"feat{$i}"})) {
+                if ($form->{"feat{$i}"} == '*') {
                     $newFields["item{$i}"] = acc_Lists::getVerbal($form->{"list{$i}"}, 'name');
                 } else {
                     $newFields["item{$i}"] = $form->{"feat{$i}"};
@@ -813,28 +838,26 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             }
         }
         
-        if(count($newFields)){
+        if (count($newFields)) {
             $fields = $newFields + $fields;
         }
         
-        if($this->innerForm->side){
-            if($this->innerForm->side == 'debit'){
+        if ($this->innerForm->side) {
+            if ($this->innerForm->side == 'debit') {
                 unset($fields['creditQuantity'], $fields['creditAmount'], $fields['blQuantity'], $fields['blAmount']);
-            }elseif($this->innerForm->side == 'credit'){
+            } elseif ($this->innerForm->side == 'credit') {
                 unset($fields['debitQuantity'], $fields['debitAmount'], $fields['blQuantity'], $fields['blAmount']);
             }
         }
         
-        if($this->innerForm->compare != 'no'){
-            
-            if ($data->fromOld != NULL &&  $data->toOld != NULL) {
-
-                $fromOldVerbal = dt::mysql2verbal($data->fromOld, "d.m.Y");
-                $toOldVerbal = dt::mysql2verbal($data->toOld, "d.m.Y");
+        if ($this->innerForm->compare != 'no') {
+            if ($data->fromOld != null && $data->toOld != null) {
+                $fromOldVerbal = dt::mysql2verbal($data->fromOld, 'd.m.Y');
+                $toOldVerbal = dt::mysql2verbal($data->toOld, 'd.m.Y');
             
             
                 
-                $prefixOld = (string) $fromOldVerbal . " - " . $toOldVerbal;
+                $prefixOld = (string) $fromOldVerbal . ' - ' . $toOldVerbal;
 
                 $fieldsCompare = arr::make("debitQuantityCompare={$prefixOld}->Дебит->К-во,
                                             debitAmountCompare={$prefixOld}->Дебит->Сума,
@@ -842,29 +865,29 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
                                             creditAmountCompare={$prefixOld}->Кредит->Сума,
                                             blQuantityCompare={$prefixOld}->Остатък->К-во,
                                             blAmountCompare={$prefixOld}->Остатък->Сума,
-                                            deltaCompare={$prefixOld}->Дял", TRUE);
+                                            deltaCompare={$prefixOld}->Дял", true);
     
                 
                 $fields = $fields + $fieldsCompare;
                 
-                if($this->innerForm->side){ 
-                    if($this->innerForm->side == 'debit'){
+                if ($this->innerForm->side) {
+                    if ($this->innerForm->side == 'debit') {
                         unset($fields['creditQuantityCompare'], $fields['creditAmountCompare'], $fields['blQuantityCompare'], $fields['blAmountCompare']);
-                    } elseif($this->innerForm->side == 'credit'){
+                    } elseif ($this->innerForm->side == 'credit') {
                         unset($fields['debitQuantityCompare'], $fields['debitAmountCompare'], $fields['blQuantityCompare'], $fields['blAmountCompare']);
                     }
                 }
-            } 
+            }
         }
         
         // Кои полета ще се показват
-        $fields = arr::make("debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума,delta=Дял", TRUE);
+        $fields = arr::make('debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума,delta=Дял', true);
         $newFields = array();
         $form = $this->innerForm;
          
-        foreach (range(1, 6) as $i){
-            if(!empty($form->{"feat{$i}"})){
-                if($form->{"feat{$i}"} == '*'){
+        foreach (range(1, 6) as $i) {
+            if (!empty($form->{"feat{$i}"})) {
+                if ($form->{"feat{$i}"} == '*') {
                     $newFields["item{$i}"] = acc_Lists::getVerbal($form->{"list{$i}"}, 'name');
                 } else {
                     $newFields["item{$i}"] = $form->{"feat{$i}"};
@@ -872,14 +895,14 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             }
         }
          
-        if(count($newFields)){
+        if (count($newFields)) {
             $fields = $newFields + $fields;
         }
          
-        if($this->innerForm->side){
-            if($this->innerForm->side == 'debit'){
+        if ($this->innerForm->side) {
+            if ($this->innerForm->side == 'debit') {
                 unset($fields['creditQuantity'], $fields['creditAmount'], $fields['blQuantity'], $fields['blAmount']);
-            }elseif($this->innerForm->side == 'credit'){
+            } elseif ($this->innerForm->side == 'credit') {
                 unset($fields['debitQuantity'], $fields['debitAmount'], $fields['blQuantity'], $fields['blAmount']);
             }
         }
@@ -895,9 +918,9 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-        if(count($innerState->rows)){
-            foreach ($innerState->rows as $row){
-                foreach (array('debitAmount', 'debitQuantity','creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld){
+        if (count($innerState->rows)) {
+            foreach ($innerState->rows as $row) {
+                foreach (array('debitAmount', 'debitQuantity','creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld) {
                     unset($row->{$fld});
                 }
             }
@@ -921,15 +944,14 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
      *
      * @param core_Mvc $mvc
      * @param stdClass $rec
-     * $todo да се замени в кода
+     *                      $todo да се замени в кода
      */
     public function exportCsv()
     {
-
         $conf = core_Packs::getConfig('core');
         
         if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
-            redirect(array($this), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+            redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
         
         $exportFields = $this->innerState->listFields;
@@ -938,53 +960,51 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         
         arr::order($this->innerState->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
         
-        $rows = $this->prepareEmbeddedData()->rows; 
+        $rows = $this->prepareEmbeddedData()->rows;
         
         if (count($this->innerState->recs)) {
-            foreach($this->innerState->recs as $id => $rec) {
-        
+            foreach ($this->innerState->recs as $id => $rec) {
                 $dataRecs[] = $this->getVerbalRec($rec, $data);
-                foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'plus', 'minus','quantity','sum') as $fld){
-                    if(!is_null($rec->{$fld})){
+                foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'plus', 'minus','quantity','sum') as $fld) {
+                    if (!is_null($rec->{$fld})) {
                         $dataRecs[$id]->{$fld} = $rec->{$fld};
                     }
                 }
-                if(!is_null($rec->delta)){
-                    $dataRecs[$id]->delta = str_replace("&nbsp;", '', $rec->delta);
+                if (!is_null($rec->delta)) {
+                    $dataRecs[$id]->delta = str_replace('&nbsp;', '', $rec->delta);
                 }
                 
-                if(!is_null($rec->measure)){
+                if (!is_null($rec->measure)) {
                     $dataRecs[$id]->measure = $rows[$id]->measure;
                 }
                 
-                if(!is_null($rec->valior)){
+                if (!is_null($rec->valior)) {
                     $dataRecs[$id]->valior = $rec->valior;
                 }
                 
-                foreach (array('item1', 'item2', 'item3', 'item4', 'item5', 'item6') as $fld1){
-                    if(!is_null($rec->{$fld1})){ 
-                        $dataRecs[$id]->{$fld1} = str_replace("&nbsp;", '', $dataRecs[$id]->{$fld1});
+                foreach (array('item1', 'item2', 'item3', 'item4', 'item5', 'item6') as $fld1) {
+                    if (!is_null($rec->{$fld1})) {
+                        $dataRecs[$id]->{$fld1} = str_replace('&nbsp;', '', $dataRecs[$id]->{$fld1});
                         $dataRecs[$id]->{$fld1} = trim(html_entity_decode(strip_tags($dataRecs[$id]->{$fld1})));
-                    } 
+                    }
                 }
             }
     
-            foreach($exportFields as $caption => $name) {
-                if($caption == 'creditAmount') {
+            foreach ($exportFields as $caption => $name) {
+                if ($caption == 'creditAmount') {
                     unset($exportFields[$caption]);
                     $exportFields['sum'] = 'Сума';
                 }
                 
-                if($caption == 'blAmountCompare') {
+                if ($caption == 'blAmountCompare') {
                     unset($exportFields[$caption]);
                 }
-       
             }
     
             $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
             
             return $csv;
-        } 
+        }
     }
 
     
@@ -1030,41 +1050,65 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     
     /**
      * Генериране на бутоните за тулбара
-     * 
-     * @param stdClass $data
+     *
+     * @param  stdClass $data
      * @return StdClass
      */
     public function generateBtns($data)
     {
-
-         $curUrl = getCurrentUrl();
+        $curUrl = getCurrentUrl();
     
         $pageVar = core_Pager::getPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
         
-        $pagePie = $pageVar . "_pie";
-        $pageBar = $pageVar . "_bar";
+        $pagePie = $pageVar . '_pie';
+        $pageBar = $pageVar . '_bar';
        
-        if ($curUrl["{$pageVar}_pie"] || $curUrl["{$pageVar}_bar"] ) { 
-            unset ($curUrl["{$pageVar}_pie"]);
-            unset ($curUrl["{$pageVar}_bar"]);
+        if ($curUrl["{$pageVar}_pie"] || $curUrl["{$pageVar}_bar"]) {
+            unset($curUrl["{$pageVar}_pie"]);
+            unset($curUrl["{$pageVar}_bar"]);
         }
         $realUrl = $curUrl;
    
         // правим бутони за toolbar
-        $btnList = ht::createBtn('Таблица', $realUrl, NULL, NULL,
-                'ef_icon = img/16/table.png');
+        $btnList = ht::createBtn(
+            'Таблица',
+            $realUrl,
+            null,
+            null,
+                'ef_icon = img/16/table.png'
+        );
         
         $curUrl[$pagePie] = $this->EmbedderRec->that;
         $urlPie = $curUrl;
         
-        $btnPie = ht::createBtn('Графика', $urlPie, NULL, NULL,
-                'ef_icon = img/16/chart_pie.png');
+        $btnPie = ht::createBtn(
+        
+            'Графика',
+        
+            $urlPie,
+        
+            null,
+        
+            null,
+                'ef_icon = img/16/chart_pie.png'
+        
+        );
         
         $realUrl[$pageBar] = $this->EmbedderRec->that;
         $urlBar = $realUrl;
         
-        $btnBar = ht::createBtn('Сравнение', $urlBar, NULL, NULL,
-                'ef_icon = img/16/chart_bar.png');
+        $btnBar = ht::createBtn(
+        
+            'Сравнение',
+        
+            $urlBar,
+        
+            null,
+        
+            null,
+                'ef_icon = img/16/chart_bar.png'
+        
+        );
         
         $btns = array();
         
@@ -1076,28 +1120,26 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     
     /**
      * Изчертаване на графиката
-     * 
-     * @param stdClass $data
+     *
+     * @param  stdClass $data
      * @return core_ET
      */
-    protected function generateChartData ($data)
+    protected function generateChartData($data)
     {
         //arr::order($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
     
         $arr = array();
         $dArr = array();
 
-        foreach ($data->recs as $id => $rec) { 
-
+        foreach ($data->recs as $id => $rec) {
             $value = abs($rec->{$this->innerForm->orderField});
             
-            if ($rec->item1 || $rec->item2 || $rec->item3 || $rec->item4 || $rec->item5 || $rec->item6) { 
-                // правим масив с всички пера и стойност 
+            if ($rec->item1 || $rec->item2 || $rec->item3 || $rec->item4 || $rec->item5 || $rec->item6) {
+                // правим масив с всички пера и стойност
                 // сумирано полето което е избрали във формата
-                if(!array_key_exists($id, $dArr)){ 
-                
+                if (!array_key_exists($id, $dArr)) {
                     $dArr[$id] =
-                    (object) array ('item1' => $rec->item1,
+                    (object) array('item1' => $rec->item1,
                             'item2' => $rec->item2,
                             'item3' => $rec->item3,
                             'item4' => $rec->item4,
@@ -1108,7 +1150,6 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
                     );
                 // в противен случай го ъпдейтваме
                 } else {
-                     
                     $obj = &$dArr[$id];
         
                     $obj->item1 = $rec->item1;
@@ -1120,10 +1161,9 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
                     $obj->value = $value;
                 }
             } else {
-                if(!array_key_exists($id, $dArr)){
-            
+                if (!array_key_exists($id, $dArr)) {
                     $dArr[$id] =
-                    (object) array ('valior' => $rec->valior,
+                    (object) array('valior' => $rec->valior,
                             'value' => $rec->sum,
                             'valueNew' => $rec->sumNew
                              
@@ -1143,9 +1183,8 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $value1 = array();
         $value2 = array();
 
-        foreach ($dArr as $id=>$rec){
-            
-            if ($rec->valior) { 
+        foreach ($dArr as $id => $rec) {
+            if ($rec->valior) {
                 $m = date('m', strtotime($rec->valior));
                 $y = date('Y', strtotime($rec->valior));
 
@@ -1155,9 +1194,8 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             }
         }
         
-        usort($dArr, function($a, $b) {
-             
-          return ($a->value > $b->value) ? -1 : 1;
+        usort($dArr, function ($a, $b) {
+            return ($a->value > $b->value) ? -1 : 1;
         });
         
         $arr = $this->preparePie($dArr, 12);
@@ -1169,23 +1207,23 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             $info["{$title}"] = $recSort->value;
         }
 
-        $pie = array (
+        $pie = array(
                     'legendTitle' => $this->getReportTitle(),
-                    'suffix' => "лв.",
+                    'suffix' => 'лв.',
                     'info' => $info,
         );
 
         $yFrom = date('Y', strtotime($data->rec->from));
         $yTo = date('Y', strtotime($data->rec->to));
         
-        if($yFrom ==  $yTo) {
+        if ($yFrom == $yTo) {
             $year = $yFrom;
-            $yearPrev = $yFrom -1;
+            $yearPrev = $yFrom - 1;
         } else {
-            $year = $yFrom . "-" . $yTo;
+            $year = $yFrom . '-' . $yTo;
             $yPrevFrom = $yFrom - 1;
-            $yPrevTo= $yTo - 1;
-            $yearPrev = $yPrevFrom . "-" . $yPrevTo;
+            $yPrevTo = $yTo - 1;
+            $yearPrev = $yPrevFrom . '-' . $yPrevTo;
         }
 
         $bar = array(
@@ -1205,7 +1243,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     }
     
     
-    protected function getChartPie ($data)
+    protected function getChartPie($data)
     {
         $ch = $this->generateChartData($data);
 
@@ -1213,13 +1251,13 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $chartAdapter = $coreConf->DOC_CHART_ADAPTER;
         $chartHtml = cls::get($chartAdapter);
 
-        $chart =  $chartHtml::prepare($ch[0]->data,$ch[0]->type);
+        $chart = $chartHtml::prepare($ch[0]->data, $ch[0]->type);
 
         return $chart;
     }
     
     
-    protected function getChartBar ($data)
+    protected function getChartBar($data)
     {
         $ch = $this->generateChartData($data);
 
@@ -1227,7 +1265,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $chartAdapter = $coreConf->DOC_CHART_ADAPTER;
         $chartHtml = cls::get($chartAdapter);
 
-        $chart =  $chartHtml::prepare($ch[1]->data,$ch[1]->type);
+        $chart = $chartHtml::prepare($ch[1]->data, $ch[1]->type);
     
         return $chart;
     }
@@ -1237,26 +1275,25 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
      * По даден масив, правим подготовка за
      * графика тип "торта"
      *
-     * @param array $data
-     * @param int $n
+     * @param array  $data
+     * @param int    $n
      * @param string $otherName
      */
-    public static function preparePie ($data, $n, $otherName = 'Други')
+    public static function preparePie($data, $n, $otherName = 'Други')
     {
         $newArr = array();
         
         foreach ($data as $key => $rec) {
             // Вземаме всички пера като наредени н-орки
             $title = '';
-            foreach (range(1, 6) as $i){
-                if(!empty($rec->{"item{$i}"})){
-
-                    $title .= $rec->{"item{$i}"} . "|";
+            foreach (range(1, 6) as $i) {
+                if (!empty($rec->{"item{$i}"})) {
+                    $title .= $rec->{"item{$i}"} . '|';
                 }
             }
 
             $newArr[$key] =
-                    (object) array ('title' => substr($title, 0,strlen($title)-1),
+                    (object) array('title' => substr($title, 0, strlen($title) - 1),
                                     'value' => $rec->value
                 
                             );
@@ -1271,55 +1308,53 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         if ($cntData <= $n) {
    
             // връщаме направо масива
-            foreach($newArr as $id => $rec) {
+            foreach ($newArr as $id => $rec) {
 
                 // Вербалното представяне на перата
-                $t = explode("|", $rec->title);
+                $t = explode('|', $rec->title);
                 $titleV = '';
-                for ($i=0; $i <= count($t) -1; $i++) {
-                    $titleV .= acc_Items::getVerbal($t[$i], 'title'). "|";
+                for ($i = 0; $i <= count($t) - 1; $i++) {
+                    $titleV .= acc_Items::getVerbal($t[$i], 'title'). '|';
                 }
-                $titleV = substr($titleV, 0,strlen($titleV)-1);
+                $titleV = substr($titleV, 0, strlen($titleV) - 1);
             
-                $res[] = (object) array ('key' => $k, 'title' => $titleV, 'value' => $rec->value);
+                $res[] = (object) array('key' => $k, 'title' => $titleV, 'value' => $rec->value);
             }
     
             return $res;
     
             //в противен случай
-        } else {
-            // взимаме първите n елемента от сортирания масив
+        }
+        // взимаме първите n елемента от сортирания масив
             
-            for($k = 0; $k <= $n -1; $k++) {
+        for ($k = 0; $k <= $n - 1; $k++) {
 
                 // Вербалното представяне на перата
-                $t = explode("|", $newArr[$k]->title);
-                $titleV = '';
-                for ($i=0; $i <= count($t) -1; $i++) {
- 
-                    $titleV .= acc_Items::getVerbal($t[$i], 'title'). "|";
-                }
-                $titleV = substr($titleV, 0,strlen($titleV)-1);
-
-                $res[] = (object) array ('key' => $k, 'title' => $titleV, 'value' => $newArr[$k]->value);
+            $t = explode('|', $newArr[$k]->title);
+            $titleV = '';
+            for ($i = 0; $i <= count($t) - 1; $i++) {
+                $titleV .= acc_Items::getVerbal($t[$i], 'title'). '|';
             }
+            $titleV = substr($titleV, 0, strlen($titleV) - 1);
 
-            // останалите елементи ги събираме
-            for ($i = $n; $i <= $cntData; $i++){
-
-                $sum += $newArr[$i]->value;
-            }
-    
-            // ако имаме изрично зададено име за обобщения елемент
-            if ($otherName) {
-                // използваме него и го добавяме към получения нов масив с
-                // n еленета и сумата на останалите елементи
-                $res[] = (object) array ('key' => $n+1, 'title' => $otherName, 'value' => $sum);
-                // ако няма, използваме default
-            } else {
-                $res[] = (object) array ('key' => $n+1,'title' => "Други", 'value' => $sum);
-            }
+            $res[] = (object) array('key' => $k, 'title' => $titleV, 'value' => $newArr[$k]->value);
         }
+
+        // останалите елементи ги събираме
+        for ($i = $n; $i <= $cntData; $i++) {
+            $sum += $newArr[$i]->value;
+        }
+    
+        // ако имаме изрично зададено име за обобщения елемент
+        if ($otherName) {
+            // използваме него и го добавяме към получения нов масив с
+            // n еленета и сумата на останалите елементи
+            $res[] = (object) array('key' => $n + 1, 'title' => $otherName, 'value' => $sum);
+        // ако няма, използваме default
+        } else {
+            $res[] = (object) array('key' => $n + 1,'title' => 'Други', 'value' => $sum);
+        }
+        
 
         return $res;
     }

@@ -2,7 +2,7 @@
 
 
 /**
- * 
+ *
  *
  *
  * @category  vendors
@@ -17,13 +17,13 @@ class doc_DialogWrapper extends core_Plugin
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param core_Mvc $mvc
-     * @param core_ET $res
-     * @param core_ET $tpl
+     * @param core_ET  $res
+     * @param core_ET  $tpl
      */
-    function on_AfterRenderDialog($mvc, &$res, $tpl)
+    public function on_AfterRenderDialog($mvc, &$res, $tpl)
     {
         $res = $tpl;
         
@@ -41,7 +41,7 @@ class doc_DialogWrapper extends core_Plugin
             'callback' => $mvc->callback);
         
         // Обхождаме табовете
-        foreach($tabArr as $name => $params) {
+        foreach ($tabArr as $name => $params) {
             $params = arr::make($params);
             $url['Ctr'] = $params['Ctr'];
             $url['Act'] = $params['Act'];
@@ -49,8 +49,8 @@ class doc_DialogWrapper extends core_Plugin
             
             $title = $params['caption'];
             
-            if($params['icon'] && !Mode::is('screenMode', 'narrow')) {
-                $title = "$title";
+            if ($params['icon'] && !Mode::is('screenMode', 'narrow')) {
+                $title = "${title}";
             }
             
             $tabs->TAB($name, $title, $url, $name);
@@ -69,23 +69,23 @@ class doc_DialogWrapper extends core_Plugin
             </style>");
         
         // Добавяме css-файла
-       	$res->push('doc/css/dialogDoc.css','CSS');
+        $res->push('doc/css/dialogDoc.css', 'CSS');
         
         // Конфигурация на ядрото
         $conf = core_Packs::getConfig('core');
         
         // Добавяме титлата
-        $res->prepend(tr("Документи") . " « " . $conf->EF_APP_TITLE, 'PAGE_TITLE');
+        $res->prepend(tr('Документи') . ' « ' . $conf->EF_APP_TITLE, 'PAGE_TITLE');
     }
     
     
-	/**
-	 * 
-	 * 
-	 * @param unknown_type $mvc
-	 * @param unknown_type $tabs
-	 */
-    function on_AfterGetGalleryTabsArr($mvc, &$tabs)
+    /**
+     *
+     *
+     * @param unknown_type $mvc
+     * @param unknown_type $tabs
+     */
+    public function on_AfterGetGalleryTabsArr($mvc, &$tabs)
     {
         $tabs['docLog'] = array('caption' => 'Документи', 'Ctr' => $mvc, 'Act' => 'addDocDialog');
     }

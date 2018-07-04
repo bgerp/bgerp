@@ -17,10 +17,16 @@ class sens2_ProtoDriver
 {
    
     /**
+     * От кой номер започва броенето на слотовете
+     */
+    const FIRST_SLOT_NO = 0;
+
+
+    /**
      * Интерфeйси, поддържани от всички наследници
      */
     var $interfaces = 'sens2_DriverIntf';
-
+    
     
     /**
      *  Информация за входните портове на устройството
@@ -116,5 +122,32 @@ class sens2_ProtoDriver
      */
     public static function getPicture($config)
     {
+    }
+
+
+    /**
+     * Връща списъка с възможните слотове от посочен тип
+     */
+    public function getSlotOpt($type = array())
+    {
+        $slots = $this->getSlotCnt();
+ 
+        $typeArr = arr::make($type, TRUE);
+
+        if(!count($typeArr)) {
+            $typeArr = array_keys($slots);
+        }
+
+        $res = array();
+        foreach($typeArr as $st) {
+            $cnt = (int) $slots[$st];
+            
+            for($i = static::FIRST_SLOT_NO; $i < $cnt + static::FIRST_SLOT_NO; $i++) {
+                $name = $st . '-' . $i;
+                $res[$name] = $name;
+            }
+        }
+
+        return $res;
     }
 }

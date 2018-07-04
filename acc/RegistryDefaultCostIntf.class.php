@@ -25,11 +25,11 @@ class acc_RegistryDefaultCostIntf
     
     /**
      * Връща дефолтната цена отговаряща на количеството
-     * 
+     *
      * @param mixed $id - ид/запис на обекта
      */
-    function getDefaultCost($id)
+    public function getDefaultCost($id)
     {
-    	$this->class->getDefaultCost($id);
+        $this->class->getDefaultCost($id);
     }
 }

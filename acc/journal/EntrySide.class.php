@@ -19,7 +19,7 @@ class acc_journal_EntrySide
     /**
      * @var string
      */
-    const DEBIT  = 'debit';
+    const DEBIT = 'debit';
     
     
     /**
@@ -67,7 +67,7 @@ class acc_journal_EntrySide
      * Конструктор
      *
      * @param array|object $data
-     * @param string $type debit или credit
+     * @param string       $type debit или credit
      */
     public function __construct($data, $type)
     {
@@ -83,14 +83,16 @@ class acc_journal_EntrySide
      */
     public function initFromTransactionSource($transactionData)
     {
-        $transactionData = (array)$transactionData;
+        $transactionData = (array) $transactionData;
         
         // Преобразуваме $transactionData към структура, подходяща за параметър на метода init()
         $data = new stdClass();
         
         acc_journal_Exception::expect(
             $d = $transactionData[$this->type],
-            "Липсва {$this->type} част на транзакция", array('data'=>$transactionData)
+            "Липсва {$this->type} част на транзакция",
+        
+            array('data' => $transactionData)
         );
         
         $data->amount = $transactionData['amount'];  // Сума в основна валута
@@ -105,7 +107,8 @@ class acc_journal_EntrySide
         // Приемаме, че всичко останало в $d е пера.
         acc_journal_Exception::expect(
             count($d) <= 3,
-            "{$this->type}: Макс 3 пера",  array('data'=>$transactionData)
+            "{$this->type}: Макс 3 пера",
+            array('data' => $transactionData)
         );
         
         // Изтриваме празните позиции за пера
@@ -124,24 +127,23 @@ class acc_journal_EntrySide
     /**
      * Инициализира транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
      *
-     * @param stdClass $data
+     * @param  stdClass $data
      * @return void
      */
     public function init($data)
     {
-        $data = (object)$data;
+        $data = (object) $data;
         
-        $this->amount   = isset($data->amount)   ? floatval($data->amount) : NULL;
-        $this->quantity = isset($data->quantity) ? floatval($data->quantity) : NULL;
-        $this->price    = isset($data->price)    ? floatval($data->price) : NULL;
-        $this->account  = $data->account instanceof acc_journal_Account ? $data->account :
+        $this->amount = isset($data->amount)   ? floatval($data->amount) : null;
+        $this->quantity = isset($data->quantity) ? floatval($data->quantity) : null;
+        $this->price = isset($data->price)    ? floatval($data->price) : null;
+        $this->account = $data->account instanceof acc_journal_Account ? $data->account :
         new acc_journal_Account($data->account);
         
         $this->items = array();
         
         if (is_array($data->items)) {
             foreach ($data->items as $item) {
-                
                 $this->items[] = $item instanceof acc_journal_Item ? $item :
                 new acc_journal_Item($item);
             }
@@ -155,13 +157,13 @@ class acc_journal_EntrySide
     /**
      * Има ли зададена стойност поле на класа
      *
-     * @param string $name
+     * @param  string  $name
      * @return boolean
      */
     public function __isset($name)
     {
         if (!property_exists($this, $name)) {
-            return FALSE;
+            return false;
         }
         
         if ($name == 'price') {
@@ -175,7 +177,7 @@ class acc_journal_EntrySide
     /**
      * Readonly достъп до полетата на обекта
      *
-     * @param string $name
+     * @param  string                $name
      * @return mixed
      * @throws core_exception_Expect когато полето не е дефинирано в класа
      */
@@ -202,7 +204,7 @@ class acc_journal_EntrySide
     {
         $this->account->accepts($this->items);
         
-        return TRUE;
+        return true;
     }
     
     
@@ -217,12 +219,12 @@ class acc_journal_EntrySide
     public function evaluate()
     {
         switch (true) {
-            case isset($this->amount) && isset($this->quantity) && isset($this->price) :
+            case isset($this->amount, $this->quantity, $this->price):
             break;
-            case isset($this->quantity) && isset($this->price) :
+            case isset($this->quantity, $this->price):
             $this->amount = $this->quantity * $this->price;
             break;
-            case isset($this->amount) && isset($this->price) :
+            case isset($this->amount, $this->price):
             $this->quantity = $this->amount / $this->price;
             break;
         }
@@ -249,12 +251,12 @@ class acc_journal_EntrySide
         $type = $this->type;
         
         $rec = array(
-            "{$type}AccId"    => $this->account->id,  // 'key(mvc=acc_Accounts,select=title,remember)',
-            "{$type}Item1"    => isset($this->items[0]) ? $this->items[0]->id : NULL, // 'key(mvc=acc_Items,select=titleLink)'
-            "{$type}Item2"    => isset($this->items[1]) ? $this->items[1]->id : NULL, // 'key(mvc=acc_Items,select=titleLink)'
-            "{$type}Item3"    => isset($this->items[2]) ? $this->items[2]->id : NULL, // 'key(mvc=acc_Items,select=titleLink)'
+            "{$type}AccId" => $this->account->id,  // 'key(mvc=acc_Accounts,select=title,remember)',
+            "{$type}Item1" => isset($this->items[0]) ? $this->items[0]->id : null, // 'key(mvc=acc_Items,select=titleLink)'
+            "{$type}Item2" => isset($this->items[1]) ? $this->items[1]->id : null, // 'key(mvc=acc_Items,select=titleLink)'
+            "{$type}Item3" => isset($this->items[2]) ? $this->items[2]->id : null, // 'key(mvc=acc_Items,select=titleLink)'
             "{$type}Quantity" => $this->quantity, // 'double'
-            "{$type}Price"    => $this->price, // 'double(minDecimals=2)'
+            "{$type}Price" => $this->price, // 'double(minDecimals=2)'
         );
         
         return $rec;
@@ -287,17 +289,14 @@ class acc_journal_EntrySide
             return $this->price;
         }
         
-        if (isset($this->amount) && isset($this->quantity)) {
-            if($this->quantity){
+        if (isset($this->amount, $this->quantity)) {
+            if ($this->quantity) {
                 return $this->amount / $this->quantity;
-            } else {
-                
-                // Зада няма деление на нула, ако к-то е нула
-                return 0;
             }
+                
+            // Зада няма деление на нула, ако к-то е нула
+            return 0;
         }
-        
-        return NULL;
     }
     
     
@@ -309,11 +308,11 @@ class acc_journal_EntrySide
         $closedItems = array();
         
         // Ако има пера, обхождаме ги
-        if(count($this->items)){
-            foreach ($this->items as $item){
+        if (count($this->items)) {
+            foreach ($this->items as $item) {
                 
                 // Запомняме затворените пера
-                if($item->isClosed() && isset($item->id)){
+                if ($item->isClosed() && isset($item->id)) {
                     $closedItems[$item->id] = $item->id;
                 }
             }

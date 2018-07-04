@@ -22,9 +22,8 @@ class accda_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
-        
         $this->TAB('accda_Da', 'Инвентарна книга', 'ceo,accda');
         $this->TAB('accda_Documents', 'Документи', 'ceo,accda');
         

@@ -22,7 +22,7 @@ class doc_Location
      *
      * @var int
      */
-    var $folderId;
+    public $folderId;
     
     
     /**
@@ -30,7 +30,7 @@ class doc_Location
      *
      * @var int
      */
-    var $threadId;
+    public $threadId;
     
     
     /**
@@ -39,5 +39,5 @@ class doc_Location
      *
      * @var string
      */
-    var $routeRule;
+    public $routeRule;
 }

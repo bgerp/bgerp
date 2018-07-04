@@ -4,7 +4,6 @@ require_once 'aws/aws-autoloader.php';
 
 use Aws\S3\S3Client;
 
-
 /**
  * Модул backUp чрез Amazon Web Services (главно S3)
  *
@@ -33,18 +32,18 @@ class backup_Amazon extends core_BaseClass
     private static $s3Client;
     private static $bucket;
 
-    function __construct()
+    public function __construct()
     {
         self::$s3Client = new S3Client([
-            'version'     => 'latest',
-            'region'      => 'eu-west-1',
+            'version' => 'latest',
+            'region' => 'eu-west-1',
             'credentials' => [
-                'key'    => backup_Setup::get('AMAZON_KEY',true),
+                'key' => backup_Setup::get('AMAZON_KEY', true),
                 'secret' => backup_Setup::get('AMAZON_SECRET', true),
             ],
         ]);
 
-        self::$bucket = backup_Setup::get('AMAZON_BUCKET',true);
+        self::$bucket = backup_Setup::get('AMAZON_BUCKET', true);
     }
 
 
@@ -59,22 +58,21 @@ class backup_Amazon extends core_BaseClass
      * @return bool
      *
      */
-    static function getFile($sourceFile, $destFile)
+    public static function getFile($sourceFile, $destFile)
     {
-
         try {
             $object = self::$s3Client->getObject(
-                array (
+                array(
                     'Bucket' => self::$bucket,
-                    'Key'    => $sourceFile,
+                    'Key' => $sourceFile,
                     'SaveAs' => $destFile
                     )
             );
-        } catch(Exception $e) {
-            $object = FALSE;
+        } catch (Exception $e) {
+            $object = false;
         }
         
-        return $object ?  TRUE : FALSE;
+        return $object ?  true : false;
     }
 
 
@@ -84,27 +82,27 @@ class backup_Amazon extends core_BaseClass
      * Част от интерфейса: backup_StorageIntf
      *
      * @param $sourceFile
-     * @param null $subDir
+     * @param  null $subDir
      * @return bool
      *
      */
-    static function putFile($sourceFile, $subDir = NULL)
+    public static function putFile($sourceFile, $subDir = null)
     {
         $key = $subDir ?  $subDir . '/' . basename($sourceFile) : basename($sourceFile);
 
         try {
             $result = self::$s3Client->putObject(
-                array (
+                array(
                     'Bucket' => self::$bucket,
-                    'Key'    => $key,
-                    'Body'   => fopen( $sourceFile, 'r+')
+                    'Key' => $key,
+                    'Body' => fopen($sourceFile, 'r+')
                     )
             );
-        } catch(Exception $e) {
-            $result = FALSE;
+        } catch (Exception $e) {
+            $result = false;
         }
         
-        return $result ? TRUE : FALSE;
+        return $result ? true : false;
     }
 
 
@@ -117,21 +115,19 @@ class backup_Amazon extends core_BaseClass
      * @return bool
      *
      */
-    static function removeFile($sourceFile)
+    public static function removeFile($sourceFile)
     {
-
         try {
             $result = self::$s3Client->deleteObject(
-                array (
+                array(
                     'Bucket' => self::$bucket,
                     'Key' => $sourceFile,
                     )
             );
-        } catch(Exception $e) {
-            $result = FALSE;
+        } catch (Exception $e) {
+            $result = false;
         }
 
-        return $result ? TRUE : FALSE;
+        return $result ? true : false;
     }
-
 }

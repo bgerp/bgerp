@@ -141,7 +141,10 @@ class core_Mvc extends core_FieldSet
      * е вече свързан към базата.
      */
     public function init($params = array())
-    {
+    {   
+        // Сетваме параметрите по родителския начин
+        parent::init($params);
+
         // Задаваме името на класа
         if (!$this->className) {
             $this->className = cls::getClassName($this);

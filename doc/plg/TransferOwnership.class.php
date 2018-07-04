@@ -19,22 +19,22 @@
  */
 class doc_plg_TransferOwnership extends core_Plugin
 {
-	
-	
-	/**
+    
+    
+    /**
      * След създаването на първия потребител
      */
-	static function on_AfterCreateFirstUser($mvc, &$res)
+    public static function on_AfterCreateFirstUser($mvc, &$res)
     {
-    	// Намираме всички класове, които са корици на папки
-    	$options = core_Classes::getOptionsByInterface('doc_FolderIntf');
-    	if(count($options)){
-    		foreach ($options as $name){
-    			
-    			// За всяка корица прехвърляме празните отговорници на първия потребител
-    			$Class = cls::get($name);
-    			doc_FolderPlg::transferEmptyOwnership($Class, $res);
-    		}
-    	}
+        // Намираме всички класове, които са корици на папки
+        $options = core_Classes::getOptionsByInterface('doc_FolderIntf');
+        if (count($options)) {
+            foreach ($options as $name) {
+                
+                // За всяка корица прехвърляме празните отговорници на първия потребител
+                $Class = cls::get($name);
+                doc_FolderPlg::transferEmptyOwnership($Class, $res);
+            }
+        }
     }
 }

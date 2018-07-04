@@ -30,31 +30,31 @@ class abbyyocr_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Адаптер за ABBYY FineReader CLI for Linux - разпознаване на текст в сканирани документи";
+    public $info = 'Адаптер за ABBYY FineReader CLI for Linux - разпознаване на текст в сканирани документи';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'abbyyocr_Converter',
         );
     
@@ -64,9 +64,9 @@ class abbyyocr_Setup extends core_ProtoSetup
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
            
-       'ABBYYOCR_LANGUAGES' => array ('varchar', 'caption=Езици за търсене'),
+       'ABBYYOCR_LANGUAGES' => array('varchar', 'caption=Езици за търсене'),
 
      );
      
@@ -74,26 +74,26 @@ class abbyyocr_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Вземаме конфига
-    	$conf = core_Packs::getConfig('fileman');
-    	
-    	$data = array();
-    	
-    	// Ако текущия клас е избран по подразбиране
-    	if ($conf->_data['FILEMAN_OCR'] == core_Classes::getId('abbyyocr_Converter')) {
-    	    
+        $conf = core_Packs::getConfig('fileman');
+        
+        $data = array();
+        
+        // Ако текущия клас е избран по подразбиране
+        if ($conf->_data['FILEMAN_OCR'] == core_Classes::getId('abbyyocr_Converter')) {
+            
             // Премахваме го
-	        $data['FILEMAN_OCR'] = NULL;
+            $data['FILEMAN_OCR'] = null;
 
-	        // Добавяме в записите
+            // Добавяме в записите
             core_Packs::setConfig('fileman', $data);
             
             $html .= "<li class=\"green\">Премахнат е 'abbyyocr_Converter' от конфигурацията</li>";
-    	}
+        }
         
         return $html;
     }
@@ -101,12 +101,14 @@ class abbyyocr_Setup extends core_ProtoSetup
 
     /**
      * Проверява дали програмата е инсталирана в сървъра
-     * 
+     *
      * @return NULL|string
      */
-    function checkConfig()
+    public function checkConfig()
     {
-        if (fconv_Remote::canRunRemote('abbyyocr9')) return ;
+        if (fconv_Remote::canRunRemote('abbyyocr9')) {
+            return ;
+        }
         
         $conf = core_Packs::getConfig('abbyyocr');
         
@@ -115,18 +117,17 @@ class abbyyocr_Setup extends core_ProtoSetup
         if (core_Os::isWindows()) {
             $res = @exec($abbyocr . ' --help', $output, $code);
             if ($code != 0) {
-                $haveError = TRUE;
+                $haveError = true;
             }
         } else {
             $res = @exec('which ' . $abbyocr, $output, $code);
             if (!$res) {
-                $haveError = TRUE;
+                $haveError = true;
             }
         }
         
         if ($haveError) {
-            
-            return "Програмата " . type_Varchar::escape($conf->ABBYYOCR_PATH) . " не е инсталирана.";
+            return 'Програмата ' . type_Varchar::escape($conf->ABBYYOCR_PATH) . ' не е инсталирана.';
         }
     }
 }

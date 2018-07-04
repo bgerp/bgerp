@@ -151,46 +151,46 @@ class backup_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Архивиране на системата: база данни, конфигурация, файлове";
+    public $info = 'Архивиране на системата: база данни, конфигурация, файлове';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'fileman=0.1';
+    public $depends = 'fileman=0.1';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array (
+    public $configDescription = array(
         
-        'BACKUP_PREFIX'   => array ('varchar', 'caption=Имена на архивираните файлове->Префикс'),
-        'BACKUP_STORAGE_TYPE'   => array ('enum(local=Локално, amazon=S3Amazon)', 'caption=Място за съхранение на архива->Тип'),
-        'BACKUP_LOCAL_PATH' => array ('varchar', 'notNull, value=/storage, caption=Локален архив->Път'),
-        'BACKUP_FILEMAN_COUNT_FILES' => array ('int', 'caption=По колко файла да се архивират наведнъж->Брой'),
-        'BACKUP_MYSQL_USER_NAME'   => array ('varchar', 'caption=Връзка към MySQL (с права за бекъп)->Потребител, hint=(SELECT, RELOAD, SUPER)'),
-        'BACKUP_MYSQL_USER_PASS'   => array ('password', 'caption=Връзка към MySQL (с права за бекъп)->Парола'),
-        'BACKUP_MYSQL_HOST'     => array ('varchar', 'caption=Връзка към MySQL->Хост'),
-        'BACKUP_CLEAN_KEEP'     => array ('int', 'caption=Колко пълни бекъп-и да се пазят?->Брой'),
-        'BACKUP_CRYPT'     => array ('enum(yes=Да, no=Не)', 'notNull,value=no,maxRadio=2,caption=Сигурност на архивите->Криптиране'),
-        'BACKUP_PASS'     => array ('password', 'caption=Сигурност на архивите->Парола'),
-        "AMAZON_KEY" => array ('password(show)', 'caption=Амазон->Ключ'),
-        "AMAZON_SECRET"    => array ('password(show)', 'caption=Амазон->Секрет'),
-        "AMAZON_BUCKET"  => array('varchar', 'caption=Амазон->Кофа'),
+        'BACKUP_PREFIX' => array('varchar', 'caption=Имена на архивираните файлове->Префикс'),
+        'BACKUP_STORAGE_TYPE' => array('enum(local=Локално, amazon=S3Amazon)', 'caption=Място за съхранение на архива->Тип'),
+        'BACKUP_LOCAL_PATH' => array('varchar', 'notNull, value=/storage, caption=Локален архив->Път'),
+        'BACKUP_FILEMAN_COUNT_FILES' => array('int', 'caption=По колко файла да се архивират наведнъж->Брой'),
+        'BACKUP_MYSQL_USER_NAME' => array('varchar', 'caption=Връзка към MySQL (с права за бекъп)->Потребител, hint=(SELECT, RELOAD, SUPER)'),
+        'BACKUP_MYSQL_USER_PASS' => array('password', 'caption=Връзка към MySQL (с права за бекъп)->Парола'),
+        'BACKUP_MYSQL_HOST' => array('varchar', 'caption=Връзка към MySQL->Хост'),
+        'BACKUP_CLEAN_KEEP' => array('int', 'caption=Колко пълни бекъп-и да се пазят?->Брой'),
+        'BACKUP_CRYPT' => array('enum(yes=Да, no=Не)', 'notNull,value=no,maxRadio=2,caption=Сигурност на архивите->Криптиране'),
+        'BACKUP_PASS' => array('password', 'caption=Сигурност на архивите->Парола'),
+        'AMAZON_KEY' => array('password(show)', 'caption=Амазон->Ключ'),
+        'AMAZON_SECRET' => array('password(show)', 'caption=Амазон->Секрет'),
+        'AMAZON_BUCKET' => array('varchar', 'caption=Амазон->Кофа'),
     );
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
         // Архивиране в локалната файлова система;
         //'backup_Local',
         // Архивиране на Amazon
@@ -207,9 +207,8 @@ class backup_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-
         $html = parent::install();
         
         // Отключваме процеса, ако не е бил легално отключен
@@ -219,7 +218,6 @@ class backup_Setup extends core_ProtoSetup
 
         // Имаме грешка в конфигурацията - не добавяме задачите на крона
         if (!is_null($cfgRes)) {
-
             return $html;
         }
         
@@ -280,77 +278,71 @@ class backup_Setup extends core_ProtoSetup
      */
     public function checkConfig()
     {
-        $caller = debug_backtrace(FALSE, 2);
+        $caller = debug_backtrace(false, 2);
 
         if ($caller[1]['function'] != 'act_Config' && $caller[1]['function'] != 'full') {
             return;
         }
         $conf = core_Packs::getConfig('backup');
 
-        $storage = core_Cls::get("backup_" . $conf->BACKUP_STORAGE_TYPE);
+        $storage = core_Cls::get('backup_' . $conf->BACKUP_STORAGE_TYPE);
         
         // Проверяваме дали имаме права за писане в сториджа
-        $touchFile = tempnam(EF_TEMP_PATH, "bgERP");
-        file_put_contents($touchFile, "1");
+        $touchFile = tempnam(EF_TEMP_PATH, 'bgERP');
+        file_put_contents($touchFile, '1');
         
         if (@$storage->putFile($touchFile) && @$storage->removeFile(basename($touchFile))) {
             unlink($touchFile);
         } else {
             unlink($touchFile);
-            return "|*<li class='debug-error'>|Няма права за писане в |*" . get_class($storage) . "</li>";
+
+            return "|*<li class='debug-error'>|Няма права за писане в |*" . get_class($storage) . '</li>';
         }
         
         // проверка дали всичко е наред с mysqldump-a
-        $cmd = "mysqldump --no-data --no-create-info --no-create-db --skip-set-charset --skip-comments -h"
-                . $conf->BACKUP_MYSQL_HOST . " -u"
-                        . $conf->BACKUP_MYSQL_USER_NAME . " -p"
-                                . $conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME . " 2>&1";
-        @exec($cmd, $output ,  $returnVar);
+        $cmd = 'mysqldump --no-data --no-create-info --no-create-db --skip-set-charset --skip-comments -h'
+                . $conf->BACKUP_MYSQL_HOST . ' -u'
+                        . $conf->BACKUP_MYSQL_USER_NAME . ' -p'
+                                . $conf->BACKUP_MYSQL_USER_PASS . ' ' . EF_DB_NAME . ' 2>&1';
+        @exec($cmd, $output, $returnVar);
         
         if ($returnVar !== 0) {
-
             return "|*<li class='debug-error'>|mysqldump грешка при свързване|*!</li>";
         }
         
         // Проверка дали gzip е наличен
-        @exec("gzip --version", $output,  $returnVar);
+        @exec('gzip --version', $output, $returnVar);
         if ($returnVar !== 0) {
-
             return "<li class='debug-error'>липсва gzip!</li>";
         }
         
         // Проверка дали tar е наличен
-        @exec("tar --version", $output,  $returnVar);
+        @exec('tar --version', $output, $returnVar);
         if ($returnVar !== 0) {
-        
             return "<li class='debug-error'>липсва tar!</li>";
         }
         
         // Проверка дали МySql сървъра е настроен за binlog
-        $res = @exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"");
+        $res = @exec('mysql -u' . EF_DB_USER . '  -p' . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"");
         // Премахваме всички табулации, нови редове и шпации - log_bin ON
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
         if ($res != 'log_binon') {
-    
             return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
         }
     
-        $res = @exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"");
+        $res = @exec('mysql -u' . EF_DB_USER . '  -p' . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"");
         // Премахваме всички табулации, нови редове и шпации - server_id 1
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
         if ($res != 'server_id1') {
-
             return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
         }
-        
-        return NULL;
     }
     
     
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

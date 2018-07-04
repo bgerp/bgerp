@@ -13,31 +13,31 @@
  */
 class embed_DriverIntf
 {
-	
-	/**
-	 * Инстанция на класа имплементиращ интерфейса
-	 */
-	public $class;
-	
+    
+    /**
+     * Инстанция на класа имплементиращ интерфейса
+     */
+    public $class;
+    
 
-	/**
-	 * Добавя полетата на драйвера към Fieldset
-	 * 
-	 * @param core_Fieldset $fieldset
-	 */
-	public function addFields(core_Fieldset &$fieldset)
-	{
-		return $this->class->addFields($fieldset);
-	}
-	
-	
-	
-	
-	/**
-	 * Може ли вградения обект да се избере
-	 */
-	public function canSelectDriver($userId = NULL)
-	{
-		return $this->class->canSelectDriver($userId = NULL);
-	}
+    /**
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        return $this->class->addFields($fieldset);
+    }
+    
+    
+    
+    
+    /**
+     * Може ли вградения обект да се избере
+     */
+    public function canSelectDriver($userId = null)
+    {
+        return $this->class->canSelectDriver($userId = null);
+    }
 }

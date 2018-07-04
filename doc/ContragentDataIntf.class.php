@@ -34,7 +34,7 @@ class doc_ContragentDataIntf
      * $obj->tel        - Телефон
      * $obj->fax        - Факс
      * $obj->address    - Адрес
-     * 
+     *
      * $obj->name       - Име на физическо лице
      * $obj->personId   - ИД на лице - key(mvc=crm_Persons)
      * $obj->pTel       - Персонален телефон
@@ -43,30 +43,30 @@ class doc_ContragentDataIntf
      * $obj->pAddress   - Персонален адрес
      * $obj->pEmail     - Персонален имейл
      */
-    function getContragentData($id)
+    public function getContragentData($id)
     {
         return $this->class->getContragentData($id);
     }
     
     
-	/**
+    /**
      * Връща пълния конкатениран адрес на контрагента
-     * 
-     * @param int $id - ид на контрагент
-     * @param boolean $translitarate - дали да се транслитерира адреса
-     * @param boolean|NULL $showCountry - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
-     * @return core_ET $tpl - адреса
+     *
+     * @param  int          $id            - ид на контрагент
+     * @param  boolean      $translitarate - дали да се транслитерира адреса
+     * @param  boolean|NULL $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     * @return core_ET      $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL)
+    public function getFullAdress($id, $translitarate = false, $showCountry = null)
     {
         return $this->class->getFullAdress($id, $translitarate);
     }
     
     
-	/**
+    /**
      * Връща дали на контрагента се начислява ДДС
      */
-    function shouldChargeVat($id)
+    public function shouldChargeVat($id)
     {
         return $this->class->shouldChargeVat($id);
     }
@@ -74,12 +74,12 @@ class doc_ContragentDataIntf
     
     /**
      * Форсира контрагент в дадена група
-     * 
-     * @param int $id -ид на продукт
+     *
+     * @param int    $id         -ид на продукт
      * @param string $groupSysId - sysId на група
      */
     public function forceGroup($id, $groupSysId)
     {
-    	return $this->class->forceGroup($id, $groupSysId);
+        return $this->class->forceGroup($id, $groupSysId);
     }
 }

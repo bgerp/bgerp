@@ -20,50 +20,50 @@ class acc_Items extends core_Manager
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf';
+    public $interfaces = 'acc_RegisterIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, editwatch_Plugin, plg_Search,
+    public $loadList = 'plg_Created, plg_State2, editwatch_Plugin, plg_Search,
                      plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists, plg_Sorting';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, num';
+    public $searchFields = 'title, num';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Пера';
+    public $title = 'Пера';
     
     
     /**
      * Активен таб на менюто
      */
-    var $menuPage = 'Счетоводство:Настройки';
+    public $menuPage = 'Счетоводство:Настройки';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = 'Перо';
+    public $singleTitle = 'Перо';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
@@ -75,13 +75,13 @@ class acc_Items extends core_Manager
     /**
      * @var acc_Lists
      */
-    var $Lists;
+    public $Lists;
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,titleLink=Наименование,num,uomId,lastUseOn,createdBy,createdOn,state,closedOn,earliestUsedOn';
+    public $listFields = 'id,titleLink=Наименование,num,uomId,lastUseOn,createdBy,createdOn,state,closedOn,earliestUsedOn';
     
     
     /**
@@ -116,10 +116,10 @@ class acc_Items extends core_Manager
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         // Разпознаваем от човек код на перото.
-        $this->FLD('num', 'varchar(64)', "caption=Код,mandatory,remember=info,notNull");
+        $this->FLD('num', 'varchar(64)', 'caption=Код,mandatory,remember=info,notNull');
         
         // Заглавие
         $this->FLD('title', 'varchar', 'caption=Наименование,mandatory,remember=info');
@@ -128,16 +128,22 @@ class acc_Items extends core_Manager
         $this->FLD('lists', 'keylist(mvc=acc_Lists,select=nameLink)', 'caption=Номенклатури,input');
         
         // Външен ключ към модела (класа), генерирал това перо. Този клас трябва да реализира
-        // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists 
-        $this->FLD('classId', 'class(interface=acc_RegisterIntf,select=title,allowEmpty)',
-            'caption=Регистър,input=hidden,silent');
+        // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists
+        $this->FLD(
+ 
+            'classId',
+ 
+            'class(interface=acc_RegisterIntf,select=title,allowEmpty)',
+            'caption=Регистър,input=hidden,silent'
+ 
+        );
         
         // Външен ключ към обекта, чиято сянка е това перо. Този обект е от класа, посочен в
-        // полето `classId` 
-        $this->FLD('objectId', 'int', "input=hidden,silent,column=none,caption=Обект");
+        // полето `classId`
+        $this->FLD('objectId', 'int', 'input=hidden,silent,column=none,caption=Обект');
         
-        // Мярка на перото. Има смисъл само ако мастър номенклатурата е отбелязана като 
-        // "оразмерима" (acc_Lists::isDimensional == true). Мярката се показва и въвежда само 
+        // Мярка на перото. Има смисъл само ако мастър номенклатурата е отбелязана като
+        // "оразмерима" (acc_Lists::isDimensional == true). Мярката се показва и въвежда само
         // ако има смисъл.
         $this->FLD('uomId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,remember,tdClass=centerCol');
         
@@ -166,11 +172,11 @@ class acc_Items extends core_Manager
      */
     protected static function on_CalcTitleNum($mvc, $rec)
     {
-    	if(strpos($rec->title, '||') !== FALSE){
-    		$rec->title = tr($rec->title);
-    	}
-    	
-    	$rec->titleNum = $rec->title . " ({$rec->num})";
+        if (strpos($rec->title, '||') !== false) {
+            $rec->title = tr($rec->title);
+        }
+        
+        $rec->titleNum = $rec->title . " ({$rec->num})";
     }
     
     
@@ -181,13 +187,13 @@ class acc_Items extends core_Manager
      */
     protected static function on_CalcTitleLink($mvc, $rec)
     {
-    	if(strpos($rec->title, '||') !== FALSE){
-    		$rec->title = tr($rec->title);
-    	}
-    	
-    	$title = $mvc->getVerbal($rec, 'title');
+        if (strpos($rec->title, '||') !== false) {
+            $rec->title = tr($rec->title);
+        }
+        
+        $title = $mvc->getVerbal($rec, 'title');
         $num = $mvc->getVerbal($rec, 'num');
-        $rec->titleLink = $title . " ($num)";
+        $rec->titleLink = $title . " (${num})";
     }
     
     
@@ -196,22 +202,21 @@ class acc_Items extends core_Manager
      */
     protected static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
     {
-        if($part == 'titleLink'){
-        	
-        	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('text', 'plain')){
-        		
-        		// Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
-        		$mvc->unique ++;
-        		$unique = $mvc->unique . rand(1, 10000);
-        		
-        		$id = (is_object($rec)) ? $rec->id : $rec;
-        		$tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');
+        if ($part == 'titleLink') {
+            if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('text', 'plain')) {
+                
+                // Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
+                $mvc->unique ++;
+                $unique = $mvc->unique . rand(1, 10000);
+                
+                $id = (is_object($rec)) ? $rec->id : $rec;
+                $tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');
 
-                $arrowImg = ht::createElement("img", array("src" => sbf("img/16/anchor-image.png", "")));
-        		$arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => tr('Информация за перото')), $arrowImg, TRUE);
-        		$arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='info{$unique}'></span>{$arrow}</span>";
-        		$num .= "&nbsp;{$arrow}";
-        	}
+                $arrowImg = ht::createElement('img', array('src' => sbf('img/16/anchor-image.png', '')));
+                $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => tr('Информация за перото')), $arrowImg, true);
+                $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='info{$unique}'></span>{$arrow}</span>";
+                $num .= "&nbsp;{$arrow}";
+            }
         }
     }
     
@@ -221,17 +226,17 @@ class acc_Items extends core_Manager
      */
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if($rec->id){
+        if ($rec->id) {
             // Запомняне на старите номенклатури
             $rec->oldLists = $mvc->fetchField($rec->id, 'lists');
         }
         
-        if($rec->state == 'closed'){
-        	$oRec = cls::get($rec->classId)->fetch($rec->objectId);
-        	$closedOn = (isset($oRec->closedOn)) ? $oRec->closedOn : dt::today();
-        	$rec->closedOn = dt::verbal2mysql($closedOn, FALSE);
-        } elseif($rec->state == 'active'){
-        	$rec->closedOn = NULL;
+        if ($rec->state == 'closed') {
+            $oRec = cls::get($rec->classId)->fetch($rec->objectId);
+            $closedOn = (isset($oRec->closedOn)) ? $oRec->closedOn : dt::today();
+            $rec->closedOn = dt::verbal2mysql($closedOn, false);
+        } elseif ($rec->state == 'active') {
+            $rec->closedOn = null;
         }
     }
     
@@ -250,14 +255,14 @@ class acc_Items extends core_Manager
         }
         
         // Ако няма информация за мениджър, acc_Items става мениджър
-        if(empty($rec->classId) && empty($rec->objectId)){
+        if (empty($rec->classId) && empty($rec->objectId)) {
             $rec->classId = $mvc->getClassId();
             $rec->objectId = $rec->id;
             $mvc->save($rec);
         }
         
         // Ако няма номенклатури, и перото е активно - затваряме го
-        if(empty($rec->lists) && $rec->state == 'active'){
+        if (empty($rec->lists) && $rec->state == 'active') {
             $rec->state = 'closed';
             $mvc->save($rec);
         }
@@ -276,7 +281,7 @@ class acc_Items extends core_Manager
         $tmpQuery = clone($query);
         $query->_listsForUpdate = array();
         
-        while($rec = $tmpQuery->fetch($cond)) {
+        while ($rec = $tmpQuery->fetch($cond)) {
             $query->_listsForUpdate += keylist::toArray($rec->lists);
         }
     }
@@ -288,8 +293,8 @@ class acc_Items extends core_Manager
      */
     protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
-        if(count($query->_listsForUpdate)) {
-            foreach($query->_listsForUpdate as $listId) {
+        if (count($query->_listsForUpdate)) {
+            foreach ($query->_listsForUpdate as $listId) {
                 $mvc->Lists->updateSummary($listId);
             }
         }
@@ -306,7 +311,7 @@ class acc_Items extends core_Manager
         
         $data->title = "Пера в номенклатурата|* <span class=\"green\"> {$listRec->caption} </span>";
         
-        return FALSE;
+        return false;
     }
     
     
@@ -318,11 +323,11 @@ class acc_Items extends core_Manager
         $listId = $mvc->getCurrentListId();
         $listRec = $mvc->Lists->fetch($listId);
         
-        if($listRec->isDimensional == 'no') {
+        if ($listRec->isDimensional == 'no') {
             unset($data->listFields['uomId']);
         }
         
-        if($listRec->regInterfaceId) {
+        if ($listRec->regInterfaceId) {
             unset($data->listFields['tools']);
         }
     }
@@ -332,15 +337,15 @@ class acc_Items extends core_Manager
      * Добавя филтър към перата
      *
      * @param acc_Items $mvc
-     * @param stdClass $data
+     * @param stdClass  $data
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('listId', 'varchar', 'input,caption=Номенклатура,autoFilter,placeholder=Номенклатура');
-        $listOptions = acc_Lists::makeArray4Select('name', "");
-        if(haveRole('admin,ceo,debug')){
-        	$listOptions+= array('-1' => '[Без номенклатури]');
+        $listOptions = acc_Lists::makeArray4Select('name', '');
+        if (haveRole('admin,ceo,debug')) {
+            $listOptions += array('-1' => '[Без номенклатури]');
         }
         
         $data->listFilter->setOptions('listId', array('' => '') + $listOptions);
@@ -352,16 +357,16 @@ class acc_Items extends core_Manager
         // Показваме само това поле. Иначе и другите полета на модела ще се появят
         $data->listFilter->showFields = 'listId, search';
         $filter = $data->listFilter->input();
-        if(!$filter->listId){
-        	$filter->listId = $mvc->getCurrentListId();
+        if (!$filter->listId) {
+            $filter->listId = $mvc->getCurrentListId();
         }
         
         expect($filter->listId);
         
-        if($filter->listId == -1){
-        	$data->query->where("#lists IS NULL OR #lists = ''");
+        if ($filter->listId == -1) {
+            $data->query->where("#lists IS NULL OR #lists = ''");
         } else {
-        	$data->query->where("#lists LIKE '%|{$filter->listId}|%'");
+            $data->query->where("#lists LIKE '%|{$filter->listId}|%'");
         }
         
         $data->query->orderBy('#num');
@@ -371,51 +376,53 @@ class acc_Items extends core_Manager
     /**
      * След подготовка на ролите
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-        if(($action == 'add' || $action == 'edit') && isset($rec->classId)){
-            if(cls::load($rec->classId, TRUE)){
+        if (($action == 'add' || $action == 'edit') && isset($rec->classId)) {
+            if (cls::load($rec->classId, true)) {
                 $Class = cls::get($rec->classId);
                 
-                if(!$Class->haveRightFor('edit', (object)array('id' => $rec->objectId))){
+                if (!$Class->haveRightFor('edit', (object) array('id' => $rec->objectId))) {
                     $res = 'no_one';
                 } else {
-                	
-                	// Ако перото е документ, то то не трябва да е чернова
-                	if(cls::haveInterface('doc_DocumentIntf', $rec->classId)){
-                		$state = cls::get($rec->classId)->fetchField($rec->objectId, 'state');
-                		if($state == 'draft'){
-                			$res = 'no_one';
-                		}
-                	}
+                    
+                    // Ако перото е документ, то то не трябва да е чернова
+                    if (cls::haveInterface('doc_DocumentIntf', $rec->classId)) {
+                        $state = cls::get($rec->classId)->fetchField($rec->objectId, 'state');
+                        if ($state == 'draft') {
+                            $res = 'no_one';
+                        }
+                    }
                 }
             }
         }
         
-        if($action == 'add' && isset($rec->lists)){
-            if(!is_array($rec->lists)) return;
+        if ($action == 'add' && isset($rec->lists)) {
+            if (!is_array($rec->lists)) {
+                return;
+            }
             
             // Ако избраната номенклатура има изискване за интерфейси
             $listRec = acc_Lists::fetch(reset($rec->lists));
-            if(!$listRec){
-            	$res = 'no_one';
+            if (!$listRec) {
+                $res = 'no_one';
             }
             
-            if($listRec->regInterfaceId){
+            if ($listRec->regInterfaceId) {
                 $intName = core_Interfaces::fetchField($listRec->regInterfaceId, 'name');
                 $options = core_Classes::getOptionsByInterface($intName);
                 
                 // Ако е само един наличния мениджър и той има 'autoList' с тази
                 // номенклатура, не може да се добавя перо от тук.
-                if(count($options) == 1){
+                if (count($options) == 1) {
                     $Class = cls::get(reset($options));
                     
-                    if(isset($Class->autoList) && $Class->autoList == $listRec->systemId){
+                    if (isset($Class->autoList) && $Class->autoList == $listRec->systemId) {
                         $res = 'no_one';
                     }
                 }
             } else {
-                if(!empty($listRec->systemId)){
+                if (!empty($listRec->systemId)) {
                     
                     // Ако няма интерфейс и има систем ид, не може да се добавя от интерфейса
                     $res = 'no_one';
@@ -424,12 +431,12 @@ class acc_Items extends core_Manager
         }
         
         // Дали може да се импортират данни от мениджъри отговарящи на наличния интерфейс
-        if($action == 'insert' && isset($rec->listId)){
-            $res = $mvc->getRequiredRoles('add', (object)array('lists' => arr::make($rec->listId, TRUE)));
+        if ($action == 'insert' && isset($rec->listId)) {
+            $res = $mvc->getRequiredRoles('add', (object) array('lists' => arr::make($rec->listId, true)));
             $listRec = acc_Lists::fetch($rec->listId);
             
             // Ако избраната номенклатура, няма интерфейс - не може
-            if(empty($listRec->regInterfaceId)){
+            if (empty($listRec->regInterfaceId)) {
                 $res = 'no_one';
             }
         }
@@ -446,24 +453,26 @@ class acc_Items extends core_Manager
     protected function getCurrentListId()
     {
         $listId = Request::get('listId', 'int');
-        if($listId == -1) return $listId;
+        if ($listId == -1) {
+            return $listId;
+        }
         
-        if(!$listId) {
+        if (!$listId) {
             $listId = Mode::get('currentListId');
         }
         
-        if($listId){
-        	expect(acc_Lists::fetch($listId));
+        if ($listId) {
+            expect(acc_Lists::fetch($listId));
         }
         
-        if(!$listId) {
+        if (!$listId) {
             $listQuery = $this->Lists->getQuery();
             $listQuery->orderBy('num');
             $listRec = $listQuery->fetch('1=1');
             $listId = $listRec->id;
         }
         
-        if($listId) {
+        if ($listId) {
             Mode::setPermanent('currentListId', $listId);
         } else {
             redirect(array('acc_Lists'));
@@ -482,16 +491,16 @@ class acc_Items extends core_Manager
         
         $listId = $this->getCurrentListId();
         
-        if($listId){
+        if ($listId) {
             // Проверка може ли да добавяме записи пък това перо
-            if ($this->haveRightFor('add', (object)array('lists' => arr::make($listId, TRUE)))) {
+            if ($this->haveRightFor('add', (object) array('lists' => arr::make($listId, true)))) {
                 $data->toolbar->addBtn('Нов запис', array($this, 'add', 'listId' => $listId), 'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
             }
             
             // Може ли да импортираме от модел, ако да махаме бутона за нормално добавяне
-            if($this->haveRightFor('insert', (object)array('listId' => $listId))){
+            if ($this->haveRightFor('insert', (object) array('listId' => $listId))) {
                 $data->toolbar->removeBtn('btnAdd');
-                $data->toolbar->addBtn("Добавяне на пера||Add items", array($this, 'Insert', 'listId' => $listId, 'ret_url' => TRUE), 'ef_icon=img/16/table-import-icon.png,title=Бърз избор на пера');
+                $data->toolbar->addBtn('Добавяне на пера||Add items', array($this, 'Insert', 'listId' => $listId, 'ret_url' => true), 'ef_icon=img/16/table-import-icon.png,title=Бърз избор на пера');
             }
         }
         
@@ -505,7 +514,7 @@ class acc_Items extends core_Manager
     protected static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         if (!empty($data->form->toolbar->buttons['saveAndNew'])) {
-            if($data->form->rec->classId && $data->form->rec->objectId){
+            if ($data->form->rec->classId && $data->form->rec->objectId) {
                 $data->form->toolbar->removeBtn('saveAndNew');
             }
         }
@@ -515,24 +524,24 @@ class acc_Items extends core_Manager
     /**
      * Помощен метод за извличане на перо със зададени регистър и ключ в регистъра
      *
-     * @param int $class
-     * @param int $objectId
+     * @param int     $class
+     * @param int     $objectId
      * @param boolean $useCachedItems - дали да се използва кеширане на информацията за перата
      */
-    public static function fetchItem($class, $objectId, $useCachedItems = FALSE)
+    public static function fetchItem($class, $objectId, $useCachedItems = false)
     {
         $Class = cls::get($class);
         $self = cls::get(get_called_class());
         $objectId = $Class->fetchRec($objectId)->id;
         
-        if($useCachedItems === TRUE){
-        	$index = $Class->getClassId() . "|" . $objectId;
-        	$cache = $self->getCachedItems();
-        	
-        	return $cache['indexedItems'][$index];
-        } else {
-        	return static::fetch("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'");
+        if ($useCachedItems === true) {
+            $index = $Class->getClassId() . '|' . $objectId;
+            $cache = $self->getCachedItems();
+            
+            return $cache['indexedItems'][$index];
         }
+
+        return static::fetch("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'");
     }
     
     
@@ -540,8 +549,8 @@ class acc_Items extends core_Manager
      * Синхронизира запис-перо с автентични данни извлечени от регистъра.
      *
      * @param acc_RegisterIntf $register
-     * @param int $objectId
-     * @param stdClass $itemRec
+     * @param int              $objectId
+     * @param stdClass         $itemRec
      */
     public static function syncItemRec(&$itemRec, $register, $objectId)
     {
@@ -551,14 +560,14 @@ class acc_Items extends core_Manager
         
         core_Lg::push(EF_DEFAULT_LANGUAGE);
         if (!$regRec = $register->getItemRec($objectId)) {
-            return FALSE;
+            return false;
         }
         core_Lg::pop();
         
         if ($regRec) {
-            $itemRec->num      = $regRec->num;
-            $itemRec->title    = $regRec->title;
-            $itemRec->uomId    = $regRec->uomId;
+            $itemRec->num = $regRec->num;
+            $itemRec->title = $regRec->title;
+            $itemRec->uomId = $regRec->uomId;
             $itemRec->features = $regRec->features;
             
             if (!empty($register->autoList)) {
@@ -568,23 +577,23 @@ class acc_Items extends core_Manager
             }
         }
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Създава (ако липсва) перо, добавя го в номенклатира (ако не е) и го маркира като използвано
      *
-     * @param int $classId
-     * @param int $objectId
-     * @param int $listId
+     * @param  int $classId
+     * @param  int $objectId
+     * @param  int $listId
      * @return int ИД на перото
      */
-    public static function force($classId, $objectId, $listId, $useCachedItems = FALSE)
+    public static function force($classId, $objectId, $listId, $useCachedItems = false)
     {
         $Class = cls::get($classId);
         $classId = $Class->getClassId();
-    	$rec = self::fetchItem($classId, $objectId, $useCachedItems);
+        $rec = self::fetchItem($classId, $objectId, $useCachedItems);
         
         if (empty($rec)) {
             // Няма такова перо - създаваме ново и го добавяме в номенклатурата $listId
@@ -592,14 +601,14 @@ class acc_Items extends core_Manager
             $register = core_Cls::getInterface('acc_RegisterIntf', $classId);
             self::syncItemRec($rec, $register, $objectId);
             
-            if(haveRole('debug')){
-            	$title = $Class->getTitleById($objectId);
-            	$listName = acc_Lists::fetchField($listId, 'name');
-            	core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$listName}'");
+            if (haveRole('debug')) {
+                $title = $Class->getTitleById($objectId);
+                $listName = acc_Lists::fetchField($listId, 'name');
+                core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$listName}'");
             }
         }
         
-        $rec->classId  = $classId;
+        $rec->classId = $classId;
         $rec->objectId = $objectId;
         
         if (!empty($rec->id) && keylist::isIn($listId, $rec->lists)) {
@@ -610,9 +619,9 @@ class acc_Items extends core_Manager
             
             // Ако перото не е в номенкл. $listId (независимо дали се създава за пръв път или
             // вече го има), добавяме го и записваме на момента.
-            $rec->lists      = keylist::addKey($rec->lists, $listId);
-            $rec->state      = 'active';
-            $rec->lastUseOn  = dt::now();
+            $rec->lists = keylist::addKey($rec->lists, $listId);
+            $rec->state = 'active';
+            $rec->lastUseOn = dt::now();
             
             self::save($rec);
         }
@@ -655,10 +664,10 @@ class acc_Items extends core_Manager
      */
     public function flushTouched()
     {
-        if(count($this->touched)){
-        	$timeLimit = count($this->touched) * 2;
-        	core_App::setTimeLimit($timeLimit);
-        	
+        if (count($this->touched)) {
+            $timeLimit = count($this->touched) * 2;
+            core_App::setTimeLimit($timeLimit);
+            
             foreach ($this->touched as $rec) {
                 $this->save_($rec, 'lastUseOn');
             }
@@ -669,7 +678,7 @@ class acc_Items extends core_Manager
     /**
      * Метод пораждащ събитие 'AfterJournalItemAffect'в мениджъра на перото
      *
-     * @param mixed $id - обект или запис на перо
+     * @param  mixed $id - обект или запис на перо
      * @return void
      */
     public static function notifyObject($id)
@@ -677,7 +686,7 @@ class acc_Items extends core_Manager
         $rec = static::fetchRec($id);
         
         // Опитваме се да заредим класа на перото
-        if($rec && cls::load($rec->classId, TRUE)){
+        if ($rec && cls::load($rec->classId, true)) {
             $Class = cls::get($rec->classId);
             $objectRec = $Class->fetch($rec->objectId);
             $Class->invoke('AfterJournalItemAffect', array($objectRec, $rec));
@@ -691,7 +700,7 @@ class acc_Items extends core_Manager
     public function act_Insert()
     {
         expect($listId = Request::get('listId', 'int'));
-        $this->requireRightFor('insert', (object)array('listId' => $listId));
+        $this->requireRightFor('insert', (object) array('listId' => $listId));
         expect($listRec = acc_Lists::fetch($listId));
         
         $intName = core_Interfaces::fetchField($listRec->regInterfaceId, 'name');
@@ -705,29 +714,29 @@ class acc_Items extends core_Manager
         
         $form->input();
        
-        if($form->isSubmitted()){
+        if ($form->isSubmitted()) {
             $count = 0;
             $rec = $form->rec;
             $Class = cls::get($rec->classId);
             
             // Ако има избрани обекти, те се добавят към номенклатурата
             $items = keylist::toArray($form->rec->objects);
-            if(count($items)){
-            	foreach($items as $id){
-            		acc_Lists::addItem($listId, $Class->className, $id);
-            		$count++;
-            	}
+            if (count($items)) {
+                foreach ($items as $id) {
+                    acc_Lists::addItem($listId, $Class->className, $id);
+                    $count++;
+                }
             }
             
             // Ако всичко е наред, редирект и съобщение
-            if(!$form->gotErrors()){
-            	$listName = acc_Lists::getVerbal($listId, 'name');
-            	$title = ($count == 1) ? $Class->singleTitle : $Class->title;
-            	$title = mb_strtolower($title);
-            	
-            	$this->logWrite("Добавяне на обекти, като пера", $rec->id);
-            	
-                return followRetUrl(NULL, "Добавяне на|* {$count} |{$title}|* |в номенклатура|* '{$listName}'");
+            if (!$form->gotErrors()) {
+                $listName = acc_Lists::getVerbal($listId, 'name');
+                $title = ($count == 1) ? $Class->singleTitle : $Class->title;
+                $title = mb_strtolower($title);
+                
+                $this->logWrite('Добавяне на обекти, като пера', $rec->id);
+                
+                return followRetUrl(null, "Добавяне на|* {$count} |{$title}|* |в номенклатура|* '{$listName}'");
             }
         }
        
@@ -736,7 +745,7 @@ class acc_Items extends core_Manager
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->logInfo("Разглеждане на формата за добавяне на пера към номенклатура");
+        $this->logInfo('Разглеждане на формата за добавяне на пера към номенклатура');
        
         return $this->renderWrapping($form->renderHtml());
     }
@@ -744,103 +753,105 @@ class acc_Items extends core_Manager
     
     /**
      * Подготовка на полетата на формата за избиране на записи от мениджър, които ще стават пера
-     * 
-     * @param core_Form $form - форма
-     * @param array $options - опции
-     * @param int $listId - ид на наменклатура
+     *
+     * @param core_Form $form    - форма
+     * @param array     $options - опции
+     * @param int       $listId  - ид на наменклатура
      */
     private function prepareInsertForm(core_Form &$form, $options, $listId)
     {
-		// Ако номенклатурата е 'Разходни обекти' оставяме само документите с допустимия интерфейс
-    	$costObjectListId = acc_Lists::fetchBySystemId('costObjects')->id;
-		if($costObjectListId == $listId){
-			$allowed = type_Keylist::toArray(acc_Setup::get('COST_OBJECT_DOCUMENTS'));
-			$options = array_intersect_key($options, $allowed);
-		}
-    	
-		// Поле за избор на клас
-    	$form->FLD('classId', 'int', 'caption=Мениджър,mandatory,silent,removeAndRefreshForm=objects');
-    	
-    	if(count($options) > 1){
-    		$options = array('' => '') + $options;
-    	}
-		
-    	// Задаване на опции
-		$form->setOptions('classId', $options);
-		
-		// Ако е само една опцията, тя е избрана по дефолт
-		if(count($options) == 1){
-			$form->setDefault('classId', key($options));
-		}
-		
-		// Инпут на 'тихите' полета
-		$form->input(NULL, 'silent');
-		$rec = $form->rec;
-		
-		// Ако има избран клас
-		if(isset($rec->classId)){
-			core_Debug::$isLogging = FALSE;
-			
-			// Добавяне на поле за избор на обекти от класа
-			$Class = cls::get($rec->classId);
-			$form->FLD('objects', "keylist(mvc={$Class->className})", "caption=Избор");
-			
-			// Намиране на перата от този, клас които са вече част от номенклатурата
-			$items = static::getClassItems($Class, $listId);
-			$query = $Class->getQuery();
-			
-			// Пропускат се оттеглените и затворените обекти, както и тези които вече са в номенклатурата
-			$query->where("#state != 'rejected' AND #state != 'closed'");
-			if(count($items)){
-				$query->notIn('id', $items);
-			}
-			
-			// Дали е документ
-			$isDoc = cls::haveInterface('doc_DocumentIntf', $Class);
-			
-			$count = $query->count();
-			if($count > 500){
-				core_App::setTimeLimit($count * 0.015);
-			}
-			
-			$suggestions = array();
-			core_Mode::push('text', 'plain');
-        	while ($cRec = $query->fetch()){
+        // Ако номенклатурата е 'Разходни обекти' оставяме само документите с допустимия интерфейс
+        $costObjectListId = acc_Lists::fetchBySystemId('costObjects')->id;
+        if ($costObjectListId == $listId) {
+            $allowed = type_Keylist::toArray(acc_Setup::get('COST_OBJECT_DOCUMENTS'));
+            $options = array_intersect_key($options, $allowed);
+        }
+        
+        // Поле за избор на клас
+        $form->FLD('classId', 'int', 'caption=Мениджър,mandatory,silent,removeAndRefreshForm=objects');
+        
+        if (count($options) > 1) {
+            $options = array('' => '') + $options;
+        }
+        
+        // Задаване на опции
+        $form->setOptions('classId', $options);
+        
+        // Ако е само една опцията, тя е избрана по дефолт
+        if (count($options) == 1) {
+            $form->setDefault('classId', key($options));
+        }
+        
+        // Инпут на 'тихите' полета
+        $form->input(null, 'silent');
+        $rec = $form->rec;
+        
+        // Ако има избран клас
+        if (isset($rec->classId)) {
+            core_Debug::$isLogging = false;
             
-            	// Ако е документ и е чернова, не може да стане перо
-            	if($isDoc && $cRec->state != 'active') continue;
-            	$suggestions[$cRec->id] = $Class->getRecTitle($cRec);
-        	}
-        	core_Mode::pop('text');
-        	
-        	$form->setSuggestions('objects', $suggestions);
-        	core_Debug::$isLogging = TRUE;
-		}
+            // Добавяне на поле за избор на обекти от класа
+            $Class = cls::get($rec->classId);
+            $form->FLD('objects', "keylist(mvc={$Class->className})", 'caption=Избор');
+            
+            // Намиране на перата от този, клас които са вече част от номенклатурата
+            $items = static::getClassItems($Class, $listId);
+            $query = $Class->getQuery();
+            
+            // Пропускат се оттеглените и затворените обекти, както и тези които вече са в номенклатурата
+            $query->where("#state != 'rejected' AND #state != 'closed'");
+            if (count($items)) {
+                $query->notIn('id', $items);
+            }
+            
+            // Дали е документ
+            $isDoc = cls::haveInterface('doc_DocumentIntf', $Class);
+            
+            $count = $query->count();
+            if ($count > 500) {
+                core_App::setTimeLimit($count * 0.015);
+            }
+            
+            $suggestions = array();
+            core_Mode::push('text', 'plain');
+            while ($cRec = $query->fetch()) {
+            
+                // Ако е документ и е чернова, не може да стане перо
+                if ($isDoc && $cRec->state != 'active') {
+                    continue;
+                }
+                $suggestions[$cRec->id] = $Class->getRecTitle($cRec);
+            }
+            core_Mode::pop('text');
+            
+            $form->setSuggestions('objects', $suggestions);
+            core_Debug::$isLogging = true;
+        }
     }
     
     
     /**
      * Помощен метод за намиране на всички записи от даден мениджър,
      * които са пера в определена номенклатура
-     * @param mixed $class - име на клас
-     * @param int $listId - ид на намонклатура
+     * @param  mixed $class  - име на клас
+     * @param  int   $listId - ид на намонклатура
      * @return array $items - списък с ид-та на обектите, които са пера
      */
     public static function getClassItems($class, $listId)
     {
-    	$items = array();
-    	expect($Class = cls::get($class));
+        $items = array();
+        expect($Class = cls::get($class));
     
-    	$itemsQuery = static::getQuery();
-    	$itemsQuery->like('lists', "|{$listId}|");
-    	$itemsQuery->where("#classId = {$Class->getClassId()}");
-    	$itemsQuery->show('objectId');
+        $itemsQuery = static::getQuery();
+        $itemsQuery->like('lists', "|{$listId}|");
+        $itemsQuery->where("#classId = {$Class->getClassId()}");
+        $itemsQuery->show('objectId');
     
-    	while($itemRec = $itemsQuery->fetch()){
-    		$items[] = $itemRec->objectId;
-    	}
+        while ($itemRec = $itemsQuery->fetch()) {
+            $items[] = $itemRec->objectId;
+        }
     
-    	return $items;
+        return $items;
     }
     
     
@@ -851,10 +862,10 @@ class acc_Items extends core_Manager
     public static function getItemRec($objectId)
     {
         $self = cls::get(__CLASS__);
-        $result = NULL;
+        $result = null;
         
         if ($rec = $self->fetch($objectId)) {
-            $result = (object)array(
+            $result = (object) array(
                 'num' => $rec->objectId,
                 'title' => $rec->title,
             );
@@ -868,8 +879,8 @@ class acc_Items extends core_Manager
      * Форсира системно перо, такова което не идва от мениджър,
      * уникалноста на перото е името и номенклатурите му
      *
-     * @param string $title - име на перото
-     * @param string $num - номер на перото
+     * @param string $title     - име на перото
+     * @param string $num       - номер на перото
      * @param string $listSysId - систем ид на номенклатура
      */
     public static function forceSystemItem($title, $num, $listSysId)
@@ -880,7 +891,7 @@ class acc_Items extends core_Manager
         $item = static::fetch("#title = '{$title}' AND #lists LIKE '%{$lists}%'");
         
         // Ако няма го създаваме
-        if(empty($item)){
+        if (empty($item)) {
             $item = new stdClass();
             $item->title = $title;
             $item->num = $num;
@@ -888,10 +899,10 @@ class acc_Items extends core_Manager
             
             static::save($item);
         } else {
-        	if($item->num != $num){
-        		$item->num = $num;
-        		static::save($item, 'num');
-        	}
+            if ($item->num != $num) {
+                $item->num = $num;
+                static::save($item, 'num');
+            }
         }
         
         return $item;
@@ -905,8 +916,8 @@ class acc_Items extends core_Manager
     {
         $numRows = $this->delete("#state = 'closed' AND #lastUseOn IS NULL");
         
-        if($numRows){
-            $this->logWrite("Изтрити неизползвани, затворени пера");
+        if ($numRows) {
+            $this->logWrite('Изтрити неизползвани, затворени пера');
             $this->logInfo("Изтрити са {$numRows} неизползвани, затворени пера");
         }
     }
@@ -924,35 +935,35 @@ class acc_Items extends core_Manager
         $row = $this->recToVerbal($rec);
         $row->state = $this->getVerbal($rec, 'state');
         
-        $cantShow = FALSE;
+        $cantShow = false;
         
-        if ($rec->classId && cls::load($rec->classId, TRUE)) {
+        if ($rec->classId && cls::load($rec->classId, true)) {
             $AccRegister = cls::get($rec->classId);
             
             // Ако го има интерфейсния метод
-            if(method_exists($AccRegister, 'act_Single')) {
-                $row->link = $AccRegister->getHyperLink($rec->objectId, TRUE);
+            if (method_exists($AccRegister, 'act_Single')) {
+                $row->link = $AccRegister->getHyperLink($rec->objectId, true);
             } else {
-            	$row->link = "<div style='color:darkgreen'>" . tr('Не е обвързан с обект') . "</div>";
+                $row->link = "<div style='color:darkgreen'>" . tr('Не е обвързан с обект') . '</div>';
             }
         } else {
-            $cantShow = TRUE;
+            $cantShow = true;
         }
         
         $features = acc_Features::getFeaturesByItems(array($rec->id));
         $features = $features[$rec->id];
         
-        if(is_array($features)){
-        	$row->features = '';
-        	foreach ($features as $key => $value){
-        		$row->features .= "{$key}: <b><i class='quiet'>{$value}</i></b><br>";
-        	}
+        if (is_array($features)) {
+            $row->features = '';
+            foreach ($features as $key => $value) {
+                $row->features .= "{$key}: <b><i class='quiet'>{$value}</i></b><br>";
+            }
         }
         
         // Ако има проблем при извличането на записа показваме съобщение
-        if($cantShow){
+        if ($cantShow) {
             $row = new stdClass();
-            $row->link = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
+            $row->link = "<span style='color:red'>" . tr('Проблем с показването') . '</span>';
         }
        
         $tpl = getTplFromFile('acc/tpl/ItemTooltip.shtml');
@@ -960,99 +971,97 @@ class acc_Items extends core_Manager
         
         if (Request::get('ajax_mode')) {
             $resObj = new stdClass();
-            $resObj->func = "html";
-            $resObj->arg = array('id' => "info{$unique}", 'html' => $tpl->getContent(), 'replace' => TRUE);
+            $resObj->func = 'html';
+            $resObj->arg = array('id' => "info{$unique}", 'html' => $tpl->getContent(), 'replace' => true);
             
             return array($resObj);
-        } else {
-            return $tpl;
         }
+
+        return $tpl;
     }
     
     
     /**
      * Кешира всички пера в модела в два масива, единия е с индекс ид-то на перото другия е с индекс класа и ид-то на обекта
-     * 
+     *
      * @return array - масив с кешираните пера
-     * 
+     *
      * 		['items'] - масив с записите на перата с индекс ид-то им
      * 		['indexedItems'] - масив с записите на перата с индекс classId им и objectId
      */
     public function getCachedItems()
     {
-    	$cache = new stdClass();
-    	if(!count($this->cache)){
-    		$query = $this->getQuery();
-    		$query->show('title,num,classId,objectId,lists,state');
-    		while($rec = $query->fetch()){
-    			$this->cache['items'][$rec->id] = $rec;
-    			$this->cache['indexedItems'][$rec->classId . "|" . $rec->objectId] = $rec;
-    		}
-    	}
-    	
-    	return $this->cache;
+        $cache = new stdClass();
+        if (!count($this->cache)) {
+            $query = $this->getQuery();
+            $query->show('title,num,classId,objectId,lists,state');
+            while ($rec = $query->fetch()) {
+                $this->cache['items'][$rec->id] = $rec;
+                $this->cache['indexedItems'][$rec->classId . '|' . $rec->objectId] = $rec;
+            }
+        }
+        
+        return $this->cache;
     }
     
     
     /**
      * Обновява датата на най-ранно използване на перото, като по-малката от
      * текущата спрямо датата за сравняване
-     * 
-     * @param mixed $id - ид или запис
-     * @param date $dateToCompare - Дата
+     *
+     * @param  mixed $id            - ид или запис
+     * @param  date  $dateToCompare - Дата
      * @return void
      */
     public static function updateEarliestUsedOn($id, $dateToCompare)
     {
-    	$Items = cls::get(get_called_class());
-    	expect($rec = $Items->fetchRec($id));
-    	
-    	$colName = str::phpToMysqlName('earliestUsedOn');
-    	$query = "UPDATE {$Items->dbTableName} SET {$colName} = IF ({$colName} < '{$dateToCompare}', $colName, '{$dateToCompare}') WHERE id = {$rec->id}";
-    	
-    	// Инвалидираме кешираните записи, за да няма обърквания по-нататък
-    	$Items->_cachedRecords = array();
-    	
-    	$Items->db->query($query);
+        $Items = cls::get(get_called_class());
+        expect($rec = $Items->fetchRec($id));
+        
+        $colName = str::phpToMysqlName('earliestUsedOn');
+        $query = "UPDATE {$Items->dbTableName} SET {$colName} = IF ({$colName} < '{$dateToCompare}', ${colName}, '{$dateToCompare}') WHERE id = {$rec->id}";
+        
+        // Инвалидираме кешираните записи, за да няма обърквания по-нататък
+        $Items->_cachedRecords = array();
+        
+        $Items->db->query($query);
     }
 
 
     /**
-     * Извлича перата с които може да са правени счетоводни операции в посочения  
+     * Извлича перата с които може да са правени счетоводни операции в посочения
      * интервал дати и евентуално са от определена номенклатура
-     * 
+     *
      * @param string $fromDate начало на период
      * @param string $toDate   край на период
      * @param string $listId   id на номенклатура. Ало липсва - всички
      */
-    public static function fetchUsedItems($fromDate = NULL, $toDate = NULL, $listId = NULL)
+    public static function fetchUsedItems($fromDate = null, $toDate = null, $listId = null)
     {
-
         $query = self::getQuery();
         
-        if(isset($toDate)) {
+        if (isset($toDate)) {
             $cond = "(#createdOn <= '{$toDate}')";
         }
 
-        if(isset($fromDate)) {
-            if(!strpos($toDate, ' ')) {
+        if (isset($fromDate)) {
+            if (!strpos($toDate, ' ')) {
                 $fromDate .= ' 23:59:59';
             }
-            $cond .= ($cond ? " OR " : '') . "('$fromDate' <= #lastUseOn)";
-
+            $cond .= ($cond ? ' OR ' : '') . "('${fromDate}' <= #lastUseOn)";
         }
 
-        if($cond) {
+        if ($cond) {
             $query->where($cond);
         }
 
-        if(isset($listId)) {
+        if (isset($listId)) {
             $query->like('lists', '|' . $listId . '|');
         }
 
         $query->show('id,title');
         $res = array();
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec->title;
         }
 
@@ -1062,25 +1071,25 @@ class acc_Items extends core_Manager
     
     /**
      * Проверява дали даден обект е перо в дадена номенклатура
-     * 
-     * @param mixed $class          - клас
-     * @param int $objectId         - ид на обект
-     * @param string $listSystemId  - систем ид на номенклатура
+     *
+     * @param  mixed   $class        - клас
+     * @param  int     $objectId     - ид на обект
+     * @param  string  $listSystemId - систем ид на номенклатура
      * @return boolean $res         - резултат
      */
     public static function isItemInList($class, $objectId, $listSystemId)
     {
-    	$Class = cls::get($class);
-    	$query = self::getQuery();
-    	$query->where("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'");
-    	
-    	$listId = acc_Lists::fetchField("#systemId = '{$listSystemId}'", 'id');
-    	$query->like('lists', "|{$listId}|");
-    	$query->show('id');
-    	$query->limit(1);
-    	
-    	$res = ($query->fetch()) ? TRUE : FALSE;
-    	
-    	return $res;
+        $Class = cls::get($class);
+        $query = self::getQuery();
+        $query->where("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'");
+        
+        $listId = acc_Lists::fetchField("#systemId = '{$listSystemId}'", 'id');
+        $query->like('lists', "|{$listId}|");
+        $query->show('id');
+        $query->limit(1);
+        
+        $res = ($query->fetch()) ? true : false;
+        
+        return $res;
     }
 }

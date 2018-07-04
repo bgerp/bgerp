@@ -17,7 +17,7 @@ class doc_SharablePlg extends core_Plugin
     
     /**
      * След дефиниране на полетата на модела - добавя поле за споделените потребители.
-     * 
+     *
      * @param core_Mvc $mvc
      */
     public static function on_AfterDescription(core_Mvc $mvc)
@@ -26,56 +26,61 @@ class doc_SharablePlg extends core_Plugin
         expect(cls::haveInterface('doc_DocumentIntf', $mvc), 'doc_SharablePlg е приложим само към документи');
         
         // Поле за потребителите, с които е споделен документа (ако няма)
-        if (!$mvc->getField('sharedUsers', FALSE)) {
+        if (!$mvc->getField('sharedUsers', false)) {
             $mvc->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
         }
 
         // Поле за потребителите, с които е споделен документа (ако няма)
-        if (!$mvc->getField('priority', FALSE)) {
-        	$columns = (Mode::is('screenMode', 'narrow')) ? 2 : 4;
-            $mvc->FLD('priority', 'enum(normal=Нормален,
+        if (!$mvc->getField('priority', false)) {
+            $columns = (Mode::is('screenMode', 'narrow')) ? 2 : 4;
+            $mvc->FLD(
+                'priority',
+                'enum(normal=Нормален,
                                      low=Нисък,
                                      high=Спешен,
                                      critical=Критичен)',
-            "caption=Споделяне->Приоритет,maxRadio=4,columns={$columns},notNull,value=normal,autohide,changable");
+            "caption=Споделяне->Приоритет,maxRadio=4,columns={$columns},notNull,value=normal,autohide,changable"
+            );
         }
 
         // Поле за първите виждания на документа от потребителите с които той е споделен
-        if (!$mvc->getField('sharedViews', FALSE)) {
+        if (!$mvc->getField('sharedViews', false)) {
             // Стойността на полето е сериализиран масив с ключ - потребител и стойност - дата
             // на първо виждане от потребителя
             $mvc->FLD('sharedViews', 'blob', 'caption=Споделяне->Виждания,input=none');
         }
         
         // Дали да са споделени потребителите от оригиналния документ (ако създателят е един и същи)
-        setIfNot($mvc->autoShareOriginShared, TRUE);
-        setIfNot($mvc->autoShareOriginCreator, FALSE);
+        setIfNot($mvc->autoShareOriginShared, true);
+        setIfNot($mvc->autoShareOriginCreator, false);
     }
     
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
-            
             $rec = &$form->rec;
             
             $sharedUsersArrAll = array();
             
             // Обхождаме всички полета от модела, за да разберем кои са ричтекст
-            foreach ((array)$mvc->fields as $name => $field) {
+            foreach ((array) $mvc->fields as $name => $field) {
                 if ($field->type instanceof type_Richtext) {
-                    
-                    if ($field->type->params['nickToLink'] == 'no') continue;
+                    if ($field->type->params['nickToLink'] == 'no') {
+                        continue;
+                    }
                     
                     // Вземаме споделените потребители
                     $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name);
-                    if (empty($sharedUsersArr)) continue;
+                    if (empty($sharedUsersArr)) {
+                        continue;
+                    }
                     
                     // Обединяваме всички потребители от споделянията
                     $sharedUsersArrAll = array_merge($sharedUsersArrAll, $sharedUsersArr);
@@ -86,12 +91,14 @@ class doc_SharablePlg extends core_Plugin
             if (!empty($sharedUsersArrAll)) {
                 
                 // Добавяме id-тата на споделените потребители
-                foreach ((array)$sharedUsersArrAll as $nick) {
+                foreach ((array) $sharedUsersArrAll as $nick) {
                     $nick = strtolower($nick);
                     $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
                     
                     // Партнюрите да не са споделение
-                    if (core_Users::haveRole('partner', $id)) continue;
+                    if (core_Users::haveRole('partner', $id)) {
+                        continue;
+                    }
                     
                     $rec->sharedUsers = type_Keylist::addKey($rec->sharedUsers, $id);
                 }
@@ -102,22 +109,21 @@ class doc_SharablePlg extends core_Plugin
     
     /**
      * След рендиране на документ отбелязва акта на виждането му от тек. потребител
-     * 
-     * @param core_Mvc $mvc
-     * @param core_ET $tpl
+     *
+     * @param core_Mvc     $mvc
+     * @param core_ET      $tpl
      * @param unknown_type $data
      */
     public static function on_AfterRenderSingle(core_Mvc $mvc, &$tpl, $data)
     {
         if (Request::get('Printing')) {
             // В режим на печат, маркираме документа като видян.
-            // Ако не сме в режим печат, маркирането става в on_AfterRenderDocument() 
+            // Ако не сме в режим печат, маркирането става в on_AfterRenderDocument()
             static::markViewed($mvc, $data);
-        }  
+        }
         
         // Ако не сме в xhtml режим
         if (!Mode::is('text', 'xhtml')) {
-            
             $data->rec->sharedUsers = $mvc->getShared($data->rec->id);
             $history = static::prepareHistory($data->rec);
                     
@@ -131,9 +137,9 @@ class doc_SharablePlg extends core_Plugin
     
     /**
      * След рендиране на документ отбелязва акта на виждането му от тек. потребител
-     * 
-     * @param core_Mvc $mvc
-     * @param core_ET $tpl
+     *
+     * @param core_Mvc     $mvc
+     * @param core_ET      $tpl
      * @param unknown_type $data
      */
     public static function on_AfterRenderDocument(core_Mvc $mvc, &$tpl, $id, $data)
@@ -144,7 +150,7 @@ class doc_SharablePlg extends core_Plugin
     
     /**
      * Помощен метод: маркиране на споделен док. като видян от тек. потребител
-     * 
+     *
      * @param stdClass $data
      */
     protected static function markViewed($mvc, $data)
@@ -171,7 +177,7 @@ class doc_SharablePlg extends core_Plugin
         
         if (!isset($viewedBy[$userId])) {
             // Първо виждане на документа от страна на $userId
-            $viewedBy[$userId] = dt::now(TRUE);
+            $viewedBy[$userId] = dt::now(true);
             $rec->sharedViews = serialize($viewedBy);
             
             if ($mvc->save_($rec, 'sharedViews')) {
@@ -185,16 +191,16 @@ class doc_SharablePlg extends core_Plugin
     
     /**
      * Помощен метод: подготовка на информацията за споделяне на документ
-     * 
-     * @param stdClass $rec обект-контейнер
-     * @return array масив с ключове - потребителите, с които е споделен документа и стойност
-     *                 датата, на която съотв. потребител е видял документа за пръв път (или
-     *                 NULL, ако не го е виждал никога)
+     *
+     * @param  stdClass $rec обект-контейнер
+     * @return array    масив с ключове - потребителите, с които е споделен документа и стойност
+     *                      датата, на която съотв. потребител е видял документа за пръв път (или
+     *                      NULL, ако не го е виждал никога)
      */
     protected static function prepareHistory($rec)
     {
         $history = keylist::toArray($rec->sharedUsers);
-        $history = array_fill_keys($history, NULL);
+        $history = array_fill_keys($history, null);
         
         if (!empty($rec->sharedViews)) {
             $history = unserialize($rec->sharedViews) + $history;
@@ -207,7 +213,7 @@ class doc_SharablePlg extends core_Plugin
     /**
      * Помощен метод: рендира историята на споделянията и вижданията
      *
-     * @param array $sharedWith масив с ключ ИД на потребител и стойност - дата
+     * @param  array  $sharedWith масив с ключ ИД на потребител и стойност - дата
      * @return string
      */
     public static function renderSharedHistory($sharedWith)
@@ -229,7 +235,7 @@ class doc_SharablePlg extends core_Plugin
         
         $htmlStr = implode(', ', $html);
         
-        $htmlStr = "$htmlStr";
+        $htmlStr = "${htmlStr}";
         
         return $htmlStr;
     }
@@ -238,7 +244,7 @@ class doc_SharablePlg extends core_Plugin
     /**
      * Реализация по подразбиране на интерфейсния метод ::getShared()
      */
-    function on_AfterGetShared($mvc, &$shared, $id)
+    public function on_AfterGetShared($mvc, &$shared, $id)
     {
         // Потребители на коит е споделен документа
         $sharedInDocs = $mvc->fetchField($id, 'sharedUsers');
@@ -248,18 +254,16 @@ class doc_SharablePlg extends core_Plugin
     }
     
     
-    /**
-     * 
-     */
+    
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	$form = &$data->form;
+        $form = &$data->form;
         
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
             
             // Да има само 2 колони
-            $data->form->setField('sharedUsers', array('maxColumns' => 2));    
+            $data->form->setField('sharedUsers', array('maxColumns' => 2));
         }
         
         // изчисляваме колко са потребителите със съответните роли
@@ -272,24 +276,24 @@ class doc_SharablePlg extends core_Plugin
         $allUsers = core_Users::getRolesWithUsers();
         $users = array();
 
-        foreach($roles as $rId) {
-            if(is_array($allUsers[$rId])) {
+        foreach ($roles as $rId) {
+            if (is_array($allUsers[$rId])) {
                 $users += $allUsers[$rId];
             }
         }
    
-        if(count($users) > core_Setup::get('AUTOHIDE_SHARED_USERS')) {
-            $data->form->setField('sharedUsers', 'autohide');    
+        if (count($users) > core_Setup::get('AUTOHIDE_SHARED_USERS')) {
+            $data->form->setField('sharedUsers', 'autohide');
         }
 
-        if(isset($mvc->shareUserRoles)){
-        	$sharedRoles = arr::make($mvc->shareUserRoles, TRUE);
-        	$sharedRoles = implode(',', $sharedRoles);
-        	
-        	// Ако има зададени роли за търсене
-        	if($form->getField('sharedUsers', FALSE)){
-        		$form->setFieldTypeParams('sharedUsers', array('roles' => $sharedRoles));
-        	}
+        if (isset($mvc->shareUserRoles)) {
+            $sharedRoles = arr::make($mvc->shareUserRoles, true);
+            $sharedRoles = implode(',', $sharedRoles);
+            
+            // Ако има зададени роли за търсене
+            if ($form->getField('sharedUsers', false)) {
+                $form->setFieldTypeParams('sharedUsers', array('roles' => $sharedRoles));
+            }
         }
     }
     
@@ -297,18 +301,22 @@ class doc_SharablePlg extends core_Plugin
     /**
      * Прихваща извикването на AfterSaveLogChange в change_Plugin
      * Добавя нотификация след промяна на документа
-     * 
+     *
      * @param core_MVc $mvc
-     * @param array $recsArr - Масив със записаните данни
+     * @param array    $recsArr - Масив със записаните данни
      */
-    function on_AfterSaveLogChange($mvc, $recsArr)
+    public function on_AfterSaveLogChange($mvc, $recsArr)
     {
         $mvcClassId = core_Classes::getId($mvc);
         foreach ($recsArr as $rec) {
-            if ($mvcClassId != $rec->docClass) continue;
+            if ($mvcClassId != $rec->docClass) {
+                continue;
+            }
             $mRec = $mvc->fetch($rec->docId);
             
-            if (!$mRec->threadId || !$mRec->containerId) continue;
+            if (!$mRec->threadId || !$mRec->containerId) {
+                continue;
+            }
             
             $cRec = doc_Containers::fetch($mRec->containerId);
             
@@ -320,7 +328,7 @@ class doc_SharablePlg extends core_Plugin
             // Вземаме, ако има приоритета от документа
             $priority = ($mRec && $mRec->priority) ? $mRec->priority : 'normal';
 
-            doc_Containers::addNotifications($subscribedArr, $mvc, $cRec, 'промени', TRUE, $priority);
+            doc_Containers::addNotifications($subscribedArr, $mvc, $cRec, 'промени', true, $priority);
             
             break;
         }
@@ -329,31 +337,35 @@ class doc_SharablePlg extends core_Plugin
     
     /**
      * Прихваща извикването на AfterInputChanges в change_Plugin
-     * 
+     *
      * @param core_MVc $mvc
-     * @param object $oldRec - Стария запис
-     * @param object $newRec - Новия запис
+     * @param object   $oldRec - Стария запис
+     * @param object   $newRec - Новия запис
      */
-    function on_AfterInputChanges($mvc, $oldRec, $newRec)
+    public function on_AfterInputChanges($mvc, $oldRec, $newRec)
     {
         doc_Containers::changeNotifications($newRec, $oldRec->sharedUsers, $newRec->sharedUsers);
     }
     
     
     /**
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param core_Mvc   $mvc
      * @param NULL|array $res
-     * @param stdClass $rec
-     * @param array $otherParams
+     * @param stdClass   $rec
+     * @param array      $otherParams
      */
-    function on_AfterGetDefaultData($mvc, &$res, $rec, $otherParams = array())
+    public function on_AfterGetDefaultData($mvc, &$res, $rec, $otherParams = array())
     {
         $res = arr::make($res);
         
-        if (!core_Users::isPowerUser()) return ;
+        if (!core_Users::isPowerUser()) {
+            return ;
+        }
         
-        if (!$mvc->autoShareOriginShared && !$mvc->autoShareOriginCreator) return ;
+        if (!$mvc->autoShareOriginShared && !$mvc->autoShareOriginCreator) {
+            return ;
+        }
         
         setIfNot($res['sharedUsers'], array());
         
@@ -367,7 +379,7 @@ class doc_SharablePlg extends core_Plugin
             
             $dRec = $document->fetch();
             
-            $createdBy = NULL;
+            $createdBy = null;
             
             if ($dRec->createdBy > 0) {
                 $createdBy = $dRec->createdBy;
@@ -379,21 +391,20 @@ class doc_SharablePlg extends core_Plugin
             if (isset($createdBy)) {
                 $currUserId = core_Users::getCurrent();
                 if ($createdBy == $currUserId) {
-                    
                     if ($mvc->autoShareOriginShared) {
                         if ($dRec->sharedUsers) {
                             $sharedArr = type_Keylist::toArray($dRec->sharedUsers);
                             unset($sharedArr[$currUserId]);
-                            $res['sharedUsers'] += (array)$sharedArr;
+                            $res['sharedUsers'] += (array) $sharedArr;
                         }
                         
                         // Предотвратяване на евентуално зацикляне
                         static $originArr = array();
                         
                         if ($dRec->originId && !$originArr[$dRec->originId]) {
-                            $originArr[$dRec->originId] = TRUE;
+                            $originArr[$dRec->originId] = true;
                             $sharedArr = $mvc->getDefaultData($dRec);
-                            $res['sharedUsers'] += (array)$sharedArr['sharedUsers'];
+                            $res['sharedUsers'] += (array) $sharedArr['sharedUsers'];
                         }
                     }
                 } else {
@@ -413,14 +424,14 @@ class doc_SharablePlg extends core_Plugin
     
     /**
      * Преди записване на клонирания запис
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param object $rec
-     * @param object $nRec
-     * 
+     * @param object   $rec
+     * @param object   $nRec
+     *
      * @see plg_Clone
      */
-    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    public function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
         // Премахваме ненужните полета
         unset($nRec->sharedViews);

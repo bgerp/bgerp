@@ -22,43 +22,43 @@ class doc_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на опаковката от табове
      */
-    function description()
-    {        
+    public function description()
+    {
         $this->TAB('doc_Folders', 'Папки', 'powerUser');
         
         // Зареждаме няколко променливи, определящи треда и папката от рекуеста
-        $originId    = Request::get('originId', 'int');
+        $originId = Request::get('originId', 'int');
         $containerId = Request::get('containerId', 'int');
-        $threadId    = Request::get('threadId', 'int');
-        $folderId    = Request::get('folderId', 'key(mvc=doc_Folders,select=title)');
+        $threadId = Request::get('threadId', 'int');
+        $folderId = Request::get('folderId', 'key(mvc=doc_Folders,select=title)');
         
-        if(!$threadId) {
+        if (!$threadId) {
             $threadId = $invoker->threadId;
         }
         
-        if($originId && !$threadId) {
+        if ($originId && !$threadId) {
             $threadId = doc_Containers::fetchField($originId, 'threadId');
         }
         
         // Ако е указан контейнера, опитваме се да определим нишката
-        if($containerId && !$threadId) {
+        if ($containerId && !$threadId) {
             $threadId = doc_Containers::fetchField($containerId, 'threadId');
         }
         
         // Определяме папката от треда
-        if($threadId) {
+        if ($threadId) {
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
         }
         
         // Вадим или запомняме последния отворен тред в сесията
-        if(!$threadId) {
+        if (!$threadId) {
             $threadId = Mode::get('lastThreadId');
         } else {
             Mode::setPermanent('lastThreadId', $threadId);
         }
         
         // Вадим или запомняме последната отворена папка в сесията
-        if(!$folderId) {
+        if (!$folderId) {
             $folderId = Mode::get('lastfolderId');
         } else {
             Mode::setPermanent('lastfolderId', $folderId);
@@ -66,7 +66,7 @@ class doc_Wrapper extends plg_ProtoWrapper
         
         $threadsUrl = array();
         
-        if($folderId && (doc_Folders::haveRightFor('single', $folderId))) {
+        if ($folderId && (doc_Folders::haveRightFor('single', $folderId))) {
             $threadsUrl = array('doc_Threads', 'list', 'folderId' => $folderId);
             
             // Записите за папката
@@ -84,8 +84,8 @@ class doc_Wrapper extends plg_ProtoWrapper
         
         $containersUrl = array();
         
-        if($threadId) {
-            if(doc_Threads::haveRightFor('single', $threadId)) {
+        if ($threadId) {
+            if (doc_Threads::haveRightFor('single', $threadId)) {
                 $folderId = Request::get('folderId', 'key(mvc=doc_Folders,select=title)');
                 $containersUrl = array('doc_Containers', 'list', 'threadId' => $threadId, 'folderId' => $folderId);
             }
@@ -122,6 +122,5 @@ class doc_Wrapper extends plg_ProtoWrapper
         $this->TAB('doc_DocumentCache', 'Дебъг->Кеш', 'debug');
         $this->TAB('doc_Prototypes', 'Дебъг->Шаблони', 'debug');
         $this->TAB('doc_Linked', 'Дебъг->Връзки', 'debug');
-
     }
 }

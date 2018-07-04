@@ -46,7 +46,7 @@ class barcode_Generator extends core_Manager
     /**
      * Масив с поддържаните баркодове и вербалните им стойности
      */
-    static $barcodeTypesArr = array(
+    public static $barcodeTypesArr = array(
         'qr' => 'QR',
         'ean8' => 'EAN-8',
         'ean13' => 'EAN-13',
@@ -64,12 +64,12 @@ class barcode_Generator extends core_Manager
     /**
      * Размер на шрифта
      */
-    static $fontSize = 11;
+    public static $fontSize = 11;
     
     /**
      * Път до шрифта
      */
-    static $font = 'barcode/fonts/FreeSans.ttf';
+    public static $font = 'barcode/fonts/FreeSans.ttf';
     
     
     /**
@@ -77,9 +77,8 @@ class barcode_Generator extends core_Manager
      *
      * @return array -
      */
-    static function getAllowedBarcodeTypesArr()
+    public static function getAllowedBarcodeTypesArr()
     {
-        
         return self::$barcodeTypesArr;
     }
     
@@ -90,7 +89,7 @@ class barcode_Generator extends core_Manager
      * @param string $type    - Типа на баркода, който ще се генерира - Пример: QR, EAN13, EAN8 и т.н.
      * @param string $content - Съдържанието на баркода
      * @param mixed  $size    - Масив с широчината width и височината height на изображенията. Съща така може да приема и стринг
-     * (small, medium, large), които са размери зададени по подразбиране спрямо типа на баркода.
+     *                        (small, medium, large), които са размери зададени по подразбиране спрямо типа на баркода.
      * @param array  $params  - Други параметри.
      *
      * За QR:
@@ -112,7 +111,7 @@ class barcode_Generator extends core_Manager
      *
      * @return resource gdRes
      */
-    static function getImg($type, $content, $size = NULL, $params = array(), &$output = array())
+    public static function getImg($type, $content, $size = null, $params = array(), &$output = array())
     {
         $type = strtolower($type);
         
@@ -127,10 +126,10 @@ class barcode_Generator extends core_Manager
             
             // Ако не се зададени параметрите, използваме по подразбиране
             $pixelPerPoint = $params['pixelPerPoint'] ? $params['pixelPerPoint'] : 3;
-            $outFileName = $params['outFileName'] ? $params['outFileName'] : FALSE;
+            $outFileName = $params['outFileName'] ? $params['outFileName'] : false;
             $quality = $params['quality'] ? $params['quality'] : 'l';
             $outerFrame = $params['outerFrame'] ? $params['outerFrame'] : 0;
-            $params['saveAndPrint'] = $outFileName ? $params['saveAndPrint'] : FALSE;
+            $params['saveAndPrint'] = $outFileName ? $params['saveAndPrint'] : false;
             
             // Генерира QR изображение
             $im = QRcode::png($content, $outFileName, $quality, $pixelPerPoint, $outerFrame, $params['saveAndPrint']);
@@ -222,7 +221,7 @@ class barcode_Generator extends core_Manager
             $x2 = $width;
             
             // Височина на квадрата
-            $y1 = $height-$f - $marginTop;
+            $y1 = $height - $f - $marginTop;
             $y2 = $height + $f;
             
             // Ако е зададено да се отрязва само колкото е дълъг текста
@@ -258,10 +257,10 @@ class barcode_Generator extends core_Manager
     /**
      * Връща новия размер в зависимост от съотношението
      *
-     * @param number $size - Размер
+     * @param number  $size  - Размер
      * @param integer $ratio - Съотношение
      */
-    static function getNewSize($size, $ratio)
+    public static function getNewSize($size, $ratio)
     {
         // Ако има размер и не е 1
         if ($ratio && $ratio != 1) {
@@ -280,7 +279,7 @@ class barcode_Generator extends core_Manager
      * @param string $type    - Типа на баркода, който ще се генерира - Пример: QR, EAN13, EAN8 и т.н.
      * @param string $content - Съдържанието на баркода
      * @param mixed  $size    - Масив с широчината width и височината height на изображенията. Съща така може да приема и стринг
-     * (small, medium, large), които са размери зададени по подразбиране спрямо типа на баркода.
+     *                        (small, medium, large), които са размери зададени по подразбиране спрямо типа на баркода.
      * @param array  $params  - Други параметри.
      *
      * За QR:
@@ -295,7 +294,7 @@ class barcode_Generator extends core_Manager
      *
      * Показва изображението и спира изпълнението на скрипта
      */
-    static function printImg($type, $content, $size, $params = array())
+    public static function printImg($type, $content, $size, $params = array())
     {
         // Вземаме изображението
         $im = self::getImg($type, $content, $size, $params);
@@ -322,7 +321,7 @@ class barcode_Generator extends core_Manager
      *
      * @param array - img таг с линка
      */
-    static function getLink($type, $content, $size = NULL, $params = array())
+    public static function getLink($type, $content, $size = null, $params = array())
     {
         $attr = array();
         
@@ -337,21 +336,21 @@ class barcode_Generator extends core_Manager
         switch ($params['angle']) {
             
             // Ако е 0 или 180
-            case 0 :
-            case 180 :
+            case 0:
+            case 180:
                 $attr['width'] = $size['width'];
                 $attr['height'] = $size['height'];
                 break;
                 
                 // Ако е 90 или 270
                 // Да се разменят местата на размерите
-            case 90 :
-            case 270 :
+            case 90:
+            case 270:
                 $attr['width'] = $size['height'];
                 $attr['height'] = $size['width'];
                 break;
             
-            default :
+            default:
             ;
             break;
         }
@@ -372,7 +371,7 @@ class barcode_Generator extends core_Manager
      *
      * @param core_Et - Линк
      */
-    static function getUrl($type, $content, $size = NULL, $params = array())
+    public static function getUrl($type, $content, $size = null, $params = array())
     {
         // Ако е зададен да е абсолют
         if ($params['absolute']) {
@@ -405,7 +404,7 @@ class barcode_Generator extends core_Manager
      *
      * @return string - Ключ за кодиране
      */
-    static function getCryptKey()
+    public static function getCryptKey()
     {
         $key = sha1(EF_SALT . self::KEY_SALT);
         
@@ -416,7 +415,7 @@ class barcode_Generator extends core_Manager
     /**
      * Екшън за показване на баркод
      */
-    function act_S()
+    public function act_S()
     {
         // Параметрите
         $t = Request::get('t');
@@ -441,7 +440,7 @@ class barcode_Generator extends core_Manager
      *
      * @access private
      */
-    static function getMinWidthAndHeight($type, $text)
+    public static function getMinWidthAndHeight($type, $text)
     {
         // Типа да е с малки букви
         $type = strtolower($type);
@@ -449,68 +448,68 @@ class barcode_Generator extends core_Manager
         // Височината е различна само при квадратните баркодове - QR и codabar
         $height = 1;
 
-        $text = (string)$text;
+        $text = (string) $text;
         // Опредяляме минималната дъжина и широчина
         switch ($type) {
             
-            case 'codabar' :
+            case 'codabar':
                 $width = strlen(BarcodeCodabar::getDigit($text));
                 break;
             
-            case 'code11' :
+            case 'code11':
                 $width = strlen(Barcode11::getDigit($text));
                 break;
             
-            case 'code39' :
+            case 'code39':
                 $width = strlen(Barcode39::getDigit($text));
                 break;
             
-            case 'code93' :
-                $width = strlen(Barcode93::getDigit($text, TRUE));
+            case 'code93':
+                $width = strlen(Barcode93::getDigit($text, true));
                 break;
             
-            case 'code128' :
+            case 'code128':
                 $width = strlen(Barcode128::getDigit($text));
                 break;
             
-            case 'ean8' :
+            case 'ean8':
                 $width = strlen(BarcodeEAN::getDigit($text, 'ean8'));
                 break;
             
-            case 'ean13' :
+            case 'ean13':
                 $width = strlen(BarcodeEAN::getDigit($text, 'ean13'));
                 break;
             
-            case 'std25' :
-                $width = strlen(BarcodeI25::getDigit($text, TRUE, 'std25'));
+            case 'std25':
+                $width = strlen(BarcodeI25::getDigit($text, true, 'std25'));
                 break;
             
-            case 'int25' :
-                $width = strlen(BarcodeI25::getDigit($text, TRUE, 'int25'));
+            case 'int25':
+                $width = strlen(BarcodeI25::getDigit($text, true, 'int25'));
                 break;
             
-            case 'msi' :
-                $width = strlen(BarcodeMSI::getDigit($text, TRUE));
+            case 'msi':
+                $width = strlen(BarcodeMSI::getDigit($text, true));
                 break;
             
-            case 'datamatrix' :
-                $width = count(BarcodeDatamatrix::getDigit($text, FALSE));
+            case 'datamatrix':
+                $width = count(BarcodeDatamatrix::getDigit($text, false));
                 $height = &$width;
                 break;
             
-            case 'qr' :
+            case 'qr':
                 $width = $height;
                 break;
             
-            default :
-            expect(FALSE, "Типа '{$type}' не е дефиниран.");
+            default:
+            expect(false, "Типа '{$type}' не е дефиниран.");
             break;
         }
         
         // Очакваме да може да се определят размерите
         if ($text && (!$width || !$height)) {
             self::logWarning("Проблем при генериране на баркод с текст '{$text}' в тип '{$type}'");
-            expect(FALSE, 'Проблем при генериране на баркод', $text, $type);
+            expect(false, 'Проблем при генериране на баркод', $text, $type);
         }
         
         // Ако широчината не е четно число, тогава му добавяме единица
@@ -530,7 +529,7 @@ class barcode_Generator extends core_Manager
     /**
      * Определяме
      */
-    static function getBarcodeRatio($type, $size, $minWidthAndHeight)
+    public static function getBarcodeRatio($type, $size, $minWidthAndHeight)
     {
         //intval->round
         // Определяме съотношениет на баркода, за да няма разтягане на баркода
@@ -545,34 +544,34 @@ class barcode_Generator extends core_Manager
     /**
      * Проверява въведени данни дали са коректни. Ако има грешка, throw' а грешка.
      *
-     * @param string $type - Типа, за който ще се проверява
+     * @param string $type    - Типа, за който ще се проверява
      * @param string $content - Съдържаниете, което ще се проверява
      */
-    static function checkContent($type, $content)
+    public static function checkContent($type, $content)
     {
         // Типа да е с малки букви
         $type = strtolower($type);
         
         switch ($type) {
             
-            case 'ean8' :
-                expect(preg_match("/^[0-9]{7,8}$/", $content), "Типа '{$type}' позволява само числа с дължина 7 или 8 цифри. Въвели сте " . mb_strlen($content) . " символа.");
+            case 'ean8':
+                expect(preg_match('/^[0-9]{7,8}$/', $content), "Типа '{$type}' позволява само числа с дължина 7 или 8 цифри. Въвели сте " . mb_strlen($content) . ' символа.');
                 break;
             
-            case 'ean13' :
-                expect(preg_match("/^[0-9]{12,13}$/", $content), "Типа '{$type}' позволява само числа с дължина 12 или 13 цифри. Въвели сте " . mb_strlen($content) . " символа.");
+            case 'ean13':
+                expect(preg_match('/^[0-9]{12,13}$/', $content), "Типа '{$type}' позволява само числа с дължина 12 или 13 цифри. Въвели сте " . mb_strlen($content) . ' символа.');
                 break;
             
-            case 'codabar' :
-            case 'msi' :
-                expect(preg_match("/^[0-9]+$/", $content), "Типа '{$type}' позволява само цифри.");
+            case 'codabar':
+            case 'msi':
+                expect(preg_match('/^[0-9]+$/', $content), "Типа '{$type}' позволява само цифри.");
                 break;
             
-            case 'code11' :
+            case 'code11':
                 expect(preg_match("/^[0-9\-]+$/", $content), "Типа '{$type}' позволява само цифри и '-'.");
                 break;
             
-            default :
+            default:
             
             break;
         }
@@ -587,7 +586,7 @@ class barcode_Generator extends core_Manager
      *
      * @return array $sizeArr - Масив с височина и широчина за съответния тип
      */
-    static function getSizeFromText($type, $size)
+    public static function getSizeFromText($type, $size)
     {
         $sizeArr = array();
         
@@ -596,16 +595,16 @@ class barcode_Generator extends core_Manager
         
         // В зависимост от размера и типа връщаме размерите
         switch ($size) {
-            case 'small' :
+            case 'small':
                 
                 switch ($type) {
-                    case 'datamatrix' :
-                    case 'qr' :
+                    case 'datamatrix':
+                    case 'qr':
                         $sizeArr['width'] = 50;
                         $sizeArr['height'] = 50;
                         break;
                     
-                    default :
+                    default:
                     $sizeArr['width'] = 100;
                     $sizeArr['height'] = 20;
                     break;
@@ -613,16 +612,16 @@ class barcode_Generator extends core_Manager
                 
                 break;
             
-            case 'medium' :
+            case 'medium':
                 
                 switch ($type) {
-                    case 'datamatrix' :
-                    case 'qr' :
+                    case 'datamatrix':
+                    case 'qr':
                         $sizeArr['width'] = 100;
                         $sizeArr['height'] = 100;
                         break;
                     
-                    default :
+                    default:
                     $sizeArr['width'] = 200;
                     $sizeArr['height'] = 50;
                     break;
@@ -630,16 +629,16 @@ class barcode_Generator extends core_Manager
                 
                 break;
             
-            case 'large' :
+            case 'large':
                 
                 switch ($type) {
-                    case 'datamatrix' :
-                    case 'qr' :
+                    case 'datamatrix':
+                    case 'qr':
                         $sizeArr['width'] = 150;
                         $sizeArr['height'] = 150;
                         break;
                     
-                    default :
+                    default:
                     $sizeArr['width'] = 300;
                     $sizeArr['height'] = 100;
                     break;
@@ -647,9 +646,9 @@ class barcode_Generator extends core_Manager
                 
                 break;
             
-            default :
+            default:
             // Очакваме да има текст, който да отговаря на размерите
-            expect(FALSE, "Размера трябва да е масив с 'width' и 'height' или стринг от изброените: small, medium, large. Въвели сте '{$size}'.");
+            expect(false, "Размера трябва да е масив с 'width' и 'height' или стринг от изброените: small, medium, large. Въвели сте '{$size}'.");
             break;
         }
         
@@ -661,20 +660,20 @@ class barcode_Generator extends core_Manager
      * Проверява размерите дали са въведени коректно
      *
      * @param string $type - Типа на баркода
-     * @param array $size - Масив с височината и широчината на баркода
+     * @param array  $size - Масив с височината и широчината на баркода
      */
-    static function checkSizes($type, $size, $minWidthAndHeightArr)
+    public static function checkSizes($type, $size, $minWidthAndHeightArr)
     {
         $type = strtolower($type);
         
         // В зависимост от размера и типа връщаме размерите
         switch ($type) {
-            case 'datamatrix' :
-            case 'qr' :
+            case 'datamatrix':
+            case 'qr':
                 expect($size['width'] == $size['height'], "За типа '{$type}' височината и широчината трябва да са равни");
                 break;
             
-            default :
+            default:
             expect($size['width'], 'Не сте въвели широчина на баркода');
             expect($size['height'], 'Не сте въвели височина на баркода');
             break;
@@ -688,14 +687,13 @@ class barcode_Generator extends core_Manager
     
     /**
      * Връща линк към подадения обект
-     * 
+     *
      * @param integer $objId
-     * 
+     *
      * @return core_ET
      */
     public static function getLinkForObject($objId)
     {
-        
         return ht::createLink(get_called_class(), array());
     }
 }

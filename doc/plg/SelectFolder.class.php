@@ -16,24 +16,24 @@ class doc_plg_SelectFolder extends core_Plugin
 {
     
     
-	/**
-	 * След инициализирането на модела
-	 *
-	 * @param core_Mvc $mvc
-	 * @param core_Mvc $data
-	 */
-	public static function on_AfterDescription(core_Mvc $mvc)
-	{
-		setIfNot($mvc->alwaysForceFolderIfEmpty, FALSE);
-	}
-	
-	
+    /**
+     * След инициализирането на модела
+     *
+     * @param core_Mvc $mvc
+     * @param core_Mvc $data
+     */
+    public static function on_AfterDescription(core_Mvc $mvc)
+    {
+        setIfNot($mvc->alwaysForceFolderIfEmpty, false);
+    }
+    
+    
     /**
      * Преди всеки екшън на мениджъра-домакин
      *
      * @param core_Manager $mvc
-     * @param core_Et $tpl
-     * @param core_Mvc $data
+     * @param core_Et      $tpl
+     * @param core_Mvc     $data
      */
     public static function on_BeforeAction(core_Mvc $mvc, &$tpl, $action)
     {
@@ -42,7 +42,7 @@ class doc_plg_SelectFolder extends core_Plugin
             return;
         }
         
-        // Ако нямаме сесия - да създадем 
+        // Ако нямаме сесия - да създадем
         requireRole('user');
         
         if (!$mvc->haveRightFor($action)) {
@@ -50,35 +50,35 @@ class doc_plg_SelectFolder extends core_Plugin
             return;
         }
         
-    	if (Request::get('folderId', 'key(mvc=doc_Folders)') ||
+        if (Request::get('folderId', 'key(mvc=doc_Folders)') ||
             Request::get('threadId', 'key(mvc=doc_Threads)') ||
             Request::get('cloneId', 'key(mvc=doc_Containers)') ||
-    		($mvc->alwaysForceFolderIfEmpty === FALSE && Request::get('originId', 'key(mvc=doc_Containers)'))) {
+            ($mvc->alwaysForceFolderIfEmpty === false && Request::get('originId', 'key(mvc=doc_Containers)'))) {
             // Има основание - не правим нищо
-    		
-    		$fId = Request::get('folderId', 'key(mvc=doc_Folders)');
-    		if(!empty($fId)){
-    			if(!$mvc->haveRightFor('add', (object)array('folderId' => $fId))){
-    				followRetUrl(array($mvc, 'list'), 'Документа не може да бъде създаден в папката', 'error');
-    			}
-    		}	
-    			
+            
+            $fId = Request::get('folderId', 'key(mvc=doc_Folders)');
+            if (!empty($fId)) {
+                if (!$mvc->haveRightFor('add', (object) array('folderId' => $fId))) {
+                    followRetUrl(array($mvc, 'list'), 'Документа не може да бъде създаден в папката', 'error');
+                }
+            }
+                
             return;
         }
 
-        if($_companyId = Request::get('_companyId', 'key2(mvc=crm_Companies)')) {
+        if ($_companyId = Request::get('_companyId', 'key2(mvc=crm_Companies)')) {
             $cRec = crm_Companies::fetch($_companyId);
-            if($cRec) {
+            if ($cRec) {
                 $folderId = crm_Companies::forceCoverAndFolder($cRec);
             }
-        } elseif($_personId = Request::get('_personId', 'key2(mvc=crm_Persons)')) {
+        } elseif ($_personId = Request::get('_personId', 'key2(mvc=crm_Persons)')) {
             $pRec = crm_Persons::fetch($_personId);
-            if($pRec) {
+            if ($pRec) {
                 $folderId = crm_Persons::forceCoverAndFolder($pRec);
             }
-        } elseif($_projectId = Request::get('_projectId', 'key2(mvc=doc_UnsortedFolders)')) {
+        } elseif ($_projectId = Request::get('_projectId', 'key2(mvc=doc_UnsortedFolders)')) {
             $pRec = doc_UnsortedFolders::fetch($_projectId);
-            if($pRec) {
+            if ($pRec) {
                 $folderId = doc_UnsortedFolders::forceCoverAndFolder($pRec);
             }
         }
@@ -91,45 +91,50 @@ class doc_plg_SelectFolder extends core_Plugin
         
         // Добавяме не-котнролните променливи
         $allParams = Request::getParams();
-        if($allParams) {
-            foreach($allParams as $name => $value) {
-                if(strpos($name, '_') === FALSE && ucfirst($name{0}) != $name{0}) {
+        if ($allParams) {
+            foreach ($allParams as $name => $value) {
+                if (strpos($name, '_') === false && ucfirst($name{0}) != $name{0}) {
                     $form->setHidden($name, $value);
                 }
             }
         }
         
-        if($folderId) {
+        if ($folderId) {
             $allParams['folderId'] = $folderId;
             
            
             $tpl = new Redirect(
-                	// Редирект към създаването на документа в ясната папка
-                    toUrl($allParams));
+                    // Редирект към създаването на документа в ясната папка
+                    toUrl($allParams)
+            
+           
+            );
                 
-            return FALSE;
+            return false;
         }
  
 
         // Ако няма форма - не правим нищо
-        if(!$form) return;
+        if (!$form) {
+            return;
+        }
         
 
         $form = $form->renderHtml();
         $tpl = $mvc->renderWrapping($form);
         
         // ВАЖНО: спираме изпълнението на евентуални други плъгини
-        return FALSE;
+        return false;
     }
 
 
     /**
      * Подготвя формата за избор на папка, за новия документ от клас $mvc
      */
-    static function on_AfterPrepareSelectForm($mvc, &$res, &$form)
+    public static function on_AfterPrepareSelectForm($mvc, &$res, &$form)
     {
         // Вземаме масив с възможноите корици, които могат да приемат документ от дадения $mvc
-    	$coverArr = self::getAllowedCovers($mvc);
+        $coverArr = self::getAllowedCovers($mvc);
         
         $coverKeys = implode(',', array_keys($coverArr));
         
@@ -143,22 +148,22 @@ class doc_plg_SelectFolder extends core_Plugin
         $retUrlOrg = Request::getParams();
         unset($retUrlOrg['virtual_url']);
 
-        if(in_array('crm_Companies', $coverArr)) {
+        if (in_array('crm_Companies', $coverArr)) {
             $form->FLD('_companyId', 'key2(mvc=crm_Companies, allowEmpty, restrictViewAccess=yes)', 'caption=Фирма,class=w100 clearSelect');
             $form->setField('_companyId', array('attr' => array('onchange' => 'clearSelect(this, "clearSelect");')));
 
             $retUrl = $retUrlOrg;
             $retUrl['_companyId'] = crm_Companies::getUrlPlaceholder('id');
-            $form->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => $retUrl), "ef_icon =img/16/office-building-add.png, title=В папка на нова фирма");
+            $form->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => $retUrl), 'ef_icon =img/16/office-building-add.png, title=В папка на нова фирма');
         }
         
-        if(in_array('crm_Persons', $coverArr)) {
+        if (in_array('crm_Persons', $coverArr)) {
             $form->FLD('_personId', 'key2(mvc=crm_Persons, allowEmpty, restrictViewAccess=yes)', 'caption=Лице,class=w100 clearSelect');
             $form->setField('_personId', array('attr' => array('onchange' => 'clearSelect(this, "clearSelect");')));
             
             $retUrl = $retUrlOrg;
             $retUrl['_personId'] = crm_Persons::getUrlPlaceholder('id');
-            $form->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => $retUrl), "ef_icon =img/16/vcard-add.png, title=В папка на ново лице");
+            $form->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => $retUrl), 'ef_icon =img/16/vcard-add.png, title=В папка на ново лице');
         }
         
         /*
@@ -170,11 +175,11 @@ class doc_plg_SelectFolder extends core_Plugin
 
         $defaultFolderId = Request::get('defaultFolderId');
         
-        if(!$defaultFolderId) {
+        if (!$defaultFolderId) {
             $defaultFolderId = $mvc->getDefaultFolder();
         }
         
-        if($defaultFolderId && $mvc->canAddToFolder($defaultFolderId)) {
+        if ($defaultFolderId && $mvc->canAddToFolder($defaultFolderId)) {
             $form->setDefault('folderId', $defaultFolderId);
         }
         
@@ -184,10 +189,10 @@ class doc_plg_SelectFolder extends core_Plugin
     }
     
     
-	/**
+    /**
      * Помощен метод за определяне на URL при успешен запис или отказ
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param  core_Mvc $mvc
      * @return array
      */
     protected static function getRetUrl(core_Mvc $mvc)
@@ -198,7 +203,7 @@ class doc_plg_SelectFolder extends core_Plugin
             if ($mvc->haveRightFor('list')) {
                 $retUrl = array($mvc, 'list');
             } else {
-                $retUrl = FALSE;
+                $retUrl = false;
             }
         }
         
@@ -208,48 +213,52 @@ class doc_plg_SelectFolder extends core_Plugin
     
     /**
      * Връща масив с допустимите корици, където може да се добави документа
-     * @param core_Mvc $mvc
+     * @param  core_Mvc $mvc
      * @return array
      */
     public static function getAllowedCovers(core_Mvc $mvc)
     {
-    	// Между какви корици трябва да се избира
-    	$interfaces = arr::make($mvc::getCoversAndInterfacesForNewDoc());
-    	
-    	// Ако няма корици се прескача плъгина
-    	if(!count($interfaces)) return NULL;
-    	 
-    	// Ако има '*' се показват всички класове които могат да са корици
-    	if(in_array('*', $interfaces)){
-    		$interfaces = array('doc_FolderIntf');
-    	}
-    	
-    	// Намират се всички класове отговарящи на тези интерфейси
-    	$coversArr = array();
-    	foreach ($interfaces as $index => $int){
-    		
-    		// Ако иднекса е число и името съдържа `Intf` приемаме, че е зададен интерфейс, 
+        // Между какви корици трябва да се избира
+        $interfaces = arr::make($mvc::getCoversAndInterfacesForNewDoc());
+        
+        // Ако няма корици се прескача плъгина
+        if (!count($interfaces)) {
+            return;
+        }
+         
+        // Ако има '*' се показват всички класове които могат да са корици
+        if (in_array('*', $interfaces)) {
+            $interfaces = array('doc_FolderIntf');
+        }
+        
+        // Намират се всички класове отговарящи на тези интерфейси
+        $coversArr = array();
+        foreach ($interfaces as $index => $int) {
+            
+            // Ако иднекса е число и името съдържа `Intf` приемаме, че е зададен интерфейс,
             // иначе приемаме, че е име на клас
-    		if(is_numeric($index) && stripos($int, 'Intf')){
-    			$coversArr +=  core_Classes::getOptionsByInterface($int);
-    		} else {
-    			$clsRec = core_Classes::fetch("#name = '{$int}'", 'id,name');
-    			$coversArr +=  array($clsRec->id => $clsRec->name);
-    		}
-    	}
-    	
-    	return $coversArr;
+            if (is_numeric($index) && stripos($int, 'Intf')) {
+                $coversArr += core_Classes::getOptionsByInterface($int);
+            } else {
+                $clsRec = core_Classes::fetch("#name = '{$int}'", 'id,name');
+                $coversArr += array($clsRec->id => $clsRec->name);
+            }
+        }
+        
+        return $coversArr;
     }
     
 
     /**
      * Дефолтен метод, който разрешава документа да се слага в производлни папки
      */
-    static function on_AfterGetCoversAndInterfacesForNewDoc($mvc, &$res)
+    public static function on_AfterGetCoversAndInterfacesForNewDoc($mvc, &$res)
     {
-        if($res) return;
+        if ($res) {
+            return;
+        }
 
-        if($mvc->coversAndInterfacesForNewDoc) {
+        if ($mvc->coversAndInterfacesForNewDoc) {
             $res = $mvc->coversAndInterfacesForNewDoc;
         } else {
             $res = 'crm_Persons,crm_Companies,doc_UnsortedFolders';
@@ -262,17 +271,16 @@ class doc_plg_SelectFolder extends core_Plugin
      * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()
      *
      */
-    function on_AfterCanAddToFolder($mvc, &$res, $folderId)
+    public function on_AfterCanAddToFolder($mvc, &$res, $folderId)
     {
-        if($res !== FALSE) {
+        if ($res !== false) {
             $allowedCovers = self::getAllowedCovers($mvc);
             $fRec = doc_Folders::fetch($folderId);
-            if(!$allowedCovers[$fRec->coverClass]) {
-                $res = FALSE;
+            if (!$allowedCovers[$fRec->coverClass]) {
+                $res = false;
 
-                return FALSE;
+                return false;
             }
         }
     }
-
 }

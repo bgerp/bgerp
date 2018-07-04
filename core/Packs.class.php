@@ -138,7 +138,9 @@ class core_Packs extends core_Manager
         $haveRoleDebug = haveRole('debug');
         
         $res = $this->setupPack($pack, 0, true, true, $haveRoleDebug);
-        
+        $res .= core_Classes::rebuild();
+        $res .= core_Cron::cleanRecords();
+
         $pack = strtolower($pack);
         $rec = $this->fetch(array("LOWER(#name) = '[#1#]'", $pack));
         $this->logWrite('Инсталиране на пакета', $rec->id);

@@ -22,7 +22,7 @@ class doc_DocumentIntf
      * Намира най-подходящите $rec->folderId (папка)
      * и $rec->threadId за дадения документ
      */
-    function route($rec)
+    public function route($rec)
     {
         $this->class->route($rec);
     }
@@ -31,7 +31,7 @@ class doc_DocumentIntf
     /**
      * Връща манипулатор на документа
      */
-    function getHandle($id)
+    public function getHandle($id)
     {
         return $this->class->getHandle($id);
     }
@@ -46,7 +46,7 @@ class doc_DocumentIntf
      * - $docRow->authorEmail - името на автора на документа
      * - $docRow->state - състояние на документа
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         return $this->class->getDocumentRow($id);
     }
@@ -55,7 +55,7 @@ class doc_DocumentIntf
     /**
      * Връща заглавието на документа, като хипервръзка, сочеща към самия документ
      */
-    function getLink($id)
+    public function getLink($id)
     {
         return $this->class->getLink($id);
     }
@@ -64,7 +64,7 @@ class doc_DocumentIntf
     /**
      * Връща визуалното представяне на документа
      */
-    function getDocumentBody($id, $mode = 'html', $options = NULL)
+    public function getDocumentBody($id, $mode = 'html', $options = null)
     {
         return $this->class->getDocumentBody($id, $mode, $options);
     }
@@ -75,7 +75,7 @@ class doc_DocumentIntf
      * Външните документи правят нишката в състояние "отворено",
      * а всички останали - в "затворено"
      */
-    function getThreadState($id)
+    public function getThreadState($id)
     {
         return $this->class->getThreadState($id);
     }
@@ -86,13 +86,13 @@ class doc_DocumentIntf
      *
      * @return string keylist(mvc=core_Users)
      */
-    function getShared($id)
+    public function getShared($id)
     {
         return $this->class->getShared($id);
     }
     
     
-    function getContainer($id)
+    public function getContainer($id)
     {
         return $this->class->getContainer($id);
     }
@@ -104,7 +104,7 @@ class doc_DocumentIntf
      *
      * @param $folderId int ид на папката
      */
-    function canAddToFolder($folderId)
+    public function canAddToFolder($folderId)
     {
         return $this->class->canAddToFolder($folderId);
     }
@@ -113,10 +113,10 @@ class doc_DocumentIntf
     /**
      * Проверка дали нов документ може да бъде добавен в посочената нишка
      *
-     * @param int $threadId key(mvc=doc_Threads)
+     * @param  int     $threadId key(mvc=doc_Threads)
      * @return boolean
      */
-    function canAddToThread($threadId)
+    public function canAddToThread($threadId)
     {
         return $this->class->canAddToThread($threadId);
     }
@@ -125,22 +125,22 @@ class doc_DocumentIntf
     /**
      * Връща възможните типове за файлови формати, към които може да се конвертира дадения документ
      *
-     * @return array $res - Масив с типа (разширението) на файла и стойност указваща дали е избрана 
-     *                      по подразбиране
+     * @return array $res - Масив с типа (разширението) на файла и стойност указваща дали е избрана
+     *               по подразбиране
      */
-    function getPossibleTypeConvertings()
+    public function getPossibleTypeConvertings()
     {
         return $this->class->getPossibleTypeConvertings();
     }
     
     
-	/**
+    /**
      * Връща възможните типове за файлови формати, в зависимост от класа
      *
-     * @return array $res - Масив с типа (разширението) на файла и стойност указваща дали е избрана 
-     *                      по подразбиране
+     * @return array $res - Масив с типа (разширението) на файла и стойност указваща дали е избрана
+     *               по подразбиране
      */
-    function getTypeConvertingsByClass()
+    public function getTypeConvertingsByClass()
     {
         return $this->class->getTypeConvertingsByClass();
     }
@@ -156,7 +156,7 @@ class doc_DocumentIntf
      * @deprecated
      * @see doc_DocumentIntf::convertTo()
      */
-    function convertDocumentAsFile($fileName, $type)
+    public function convertDocumentAsFile($fileName, $type)
     {
         return $this->class->convertDocumentAsFile($fileName, $type);
     }
@@ -167,25 +167,24 @@ class doc_DocumentIntf
      *
      * @param string $type     - Разширението на файла
      * @param string $fileName - Името на файла; ако не е зададено се определя автоматично -
-     *                             {ABBR}{id}.{type}
+     *                         {ABBR}{id}.{type}
      *
      * return array $res - масив с манипулатора на генерирания файл
      */
-    function convertTo($type, $fileName = NULL)
+    public function convertTo($type, $fileName = null)
     {
         return $this->class->convertTo($type, $fileName);
     }
     
     /**
      * Връша прикачените файлове в документите
-     * 
+     *
      * @param mixed $rec - id' то на документа или записа на документа
-     * 
+     *
      * @return array $files - Масив с ключ манипулатора на файла и стойност	името на файла
      */
-    function getAttachments($rec)
+    public function getAttachments($rec)
     {
-        
         return $this->class->getAttachments($rec);
     }
     
@@ -193,26 +192,26 @@ class doc_DocumentIntf
     /**
      * Връща масив от използваните документи в даден документ (като цитат или
      * са включени в детайлите му)
-     * @param int $id - ид на документ
+     * @param  int   $id - ид на документ
      * @return param $res - масив с използваните документи
-     * 					['class'] - инстанция на документа
-     * 					['id'] - ид на документа
+     *                  ['class'] - инстанция на документа
+     *                  ['id'] - ид на документа
      */
-    function getUsedDocs($id)
+    public function getUsedDocs($id)
     {
-    	return $this->class->getUsedDocs($id);
+        return $this->class->getUsedDocs($id);
     }
     
     
     /**
      * Метод филтриращ заявка към doc_Folders
-     * Добавя условия в заявката, така, че да останат само тези папки, 
+     * Добавя условия в заявката, така, че да останат само тези папки,
      * в които може да бъде добавен документ от типа на $mvc
-     * 
-     * @param core_Query $query   Заявка към doc_Folders
-     * @param boolean $viewAccess
+     *
+     * @param core_Query $query      Заявка към doc_Folders
+     * @param boolean    $viewAccess
      */
-    function restrictQueryOnlyFolderForDocuments($query, $viewAccess = FALSE)
+    public function restrictQueryOnlyFolderForDocuments($query, $viewAccess = false)
     {
         return $this->class->restrictQueryOnlyFolderForDocuments($query, $viewAccess);
     }
@@ -220,65 +219,61 @@ class doc_DocumentIntf
     
     /**
      * Записва подадения обект
-     * 
+     *
      * @param object $rec - Обект, който ще се записва
      */
-    function createNew($rec)
+    public function createNew($rec)
     {
-    	return $this->class->createNew($rec);
+        return $this->class->createNew($rec);
     }
     
     
     /**
      * Генерираме ключа за кеша
-     * 
-     * @param object $rec
+     *
+     * @param object               $rec
      * @param core_ObjectReference $document
-     * 
+     *
      * @return FALSE|string
      */
-    function generateCacheKey($rec, $document)
+    public function generateCacheKey($rec, $document)
     {
-        
         return $this->class->generateCacheKey($rec, $document);
     }
     
     
     /**
      * Връща антетката на документа
-     * 
+     *
      * @param stdClass $rec
      * @param stdClass $row
      */
-    function getLetterHead($rec, $row)
+    public function getLetterHead($rec, $row)
     {
-        
         return $this->class->getLetterHead($rec, $row);
     }
     
     
     /**
      * Връща масив с възможните формати
-     * 
+     *
      * @return array
      */
-    function getExportFormats()
+    public function getExportFormats()
     {
-        
         return $this->class->getExportFormats();
     }
     
     
     /**
      * Връща хеша на подадения документ
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return string|NULL
      */
-    function getDocContentHash($id)
+    public function getDocContentHash($id)
     {
-        
         return $this->class->getExportFormats($id);
     }
     
@@ -287,13 +282,12 @@ class doc_DocumentIntf
      * Връща дефолтни стойности за попълване на река
      *
      * @param stdClass $rec
-     * @param array $otherParams
+     * @param array    $otherParams
      *
      * @return array
      */
-    function getDefaultData($rec, $otherParams = array())
+    public function getDefaultData($rec, $otherParams = array())
     {
-        
         return $this->class->getDefaultData($rec, $otherParams);
     }
     
@@ -302,13 +296,12 @@ class doc_DocumentIntf
      * Връща дефолтни стойности за попълване на река за коментара
      *
      * @param stdClass $rec
-     * @param array $otherParams
+     * @param array    $otherParams
      *
      * @return array
      */
-    function getDefaultDataForComment($rec, $otherParams = array())
+    public function getDefaultDataForComment($rec, $otherParams = array())
     {
-        
         return $this->class->getDefaultDataForComment($rec, $otherParams);
     }
 }

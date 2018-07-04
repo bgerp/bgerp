@@ -20,31 +20,31 @@ class accda_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'accda_Da';
+    public $startCtr = 'accda_Da';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Дълготрайни активи: регистър, документи и счетоводни операции";
+    public $info = 'Дълготрайни активи: регистър, документи и счетоводни операции';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
         'accda_Da',
         'accda_Documents',
     );
@@ -53,21 +53,21 @@ class accda_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'accda';
+    public $roles = 'accda';
     
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-        array(2.2, 'Счетоводство', 'ДА', 'accda_Da', 'default', "accda, ceo"),
+    public $menuItems = array(
+        array(2.2, 'Счетоводство', 'ДА', 'accda_Da', 'default', 'accda, ceo'),
     );
     
     
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

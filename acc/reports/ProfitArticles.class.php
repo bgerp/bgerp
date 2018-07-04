@@ -18,12 +18,12 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
 {
 
 
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'acc_ProfitArticlesReport';
-	
-	
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'acc_ProfitArticlesReport';
+    
+    
     /**
      * Кой може да избира драйвъра
      */
@@ -93,10 +93,10 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
         $form->setDefault('orderBy', 'DESC');
         
         $form->setDefault('orderField', 'blAmount');
-        $form->setOptions('orderField', array('blAmount' => "Сума"));
+        $form->setOptions('orderField', array('blAmount' => 'Сума'));
         
-        $form->setField('from','refreshForm,silent');
-        $form->setField('to','refreshForm,silent');
+        $form->setField('from', 'refreshForm,silent');
+        $form->setField('to', 'refreshForm,silent');
     }
     
     
@@ -107,9 +107,9 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
      */
     public function checkEmbeddedForm(core_Form &$form)
     {
-    	// Размяна, ако периодите са объркани
-        if($form->isSubmitted()){
-            if($form->rec->to < $form->rec->from){
+        // Размяна, ако периодите са объркани
+        if ($form->isSubmitted()) {
+            if ($form->rec->to < $form->rec->from) {
                 $form->setError('to, from', 'Началната дата трябва да е по-малка от крайната');
             }
         }
@@ -121,41 +121,38 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
      */
     public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
     {
-        $form->setOptions('orderField', array('blAmount' => "Сума"));
+        $form->setOptions('orderField', array('blAmount' => 'Сума'));
         
-    	foreach (range(1, 3) as $i) {
-    	
-    		$form->setHidden("feat{$i}");
-    	
-    	}
-    	
-    	$contragentPositionId = acc_Lists::getPosition($mvc->baseAccountId, 'cat_ProductAccRegIntf');
-    	
-    	$form->setDefault("feat{$contragentPositionId}", "*");
-    	
-    	// Поставяме удобни опции за избор на период
-    	$query = acc_Periods::getQuery();
-    	$query->where("#state = 'closed'");
-    	$query->orderBy("#end", "DESC");
-    	
-    	$yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);
-    	$daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
-    	$optionsFrom = $optionsTo = array();
-    	$optionsFrom[dt::today()] = 'Днес';
-    	$optionsFrom[$yesterday] = 'Вчера';
-    	$optionsFrom[$daybefore] = 'Завчера';
-    	$optionsTo[dt::today()] = 'Днес';
-    	$optionsTo[$yesterday] = 'Вчера';
-    	$optionsTo[$daybefore] = 'Завчера';
-    	
-    	while ($op = $query->fetch()) {
-    		$optionsFrom[$op->start] = $op->title;
-    		$optionsTo[$op->end] = $op->title;
-    	}
-    	
-    	$form->setSuggestions('from', array('' => '') + $optionsFrom);
-    	$form->setSuggestions('to', array('' => '') + $optionsTo);
-
+        foreach (range(1, 3) as $i) {
+            $form->setHidden("feat{$i}");
+        }
+        
+        $contragentPositionId = acc_Lists::getPosition($mvc->baseAccountId, 'cat_ProductAccRegIntf');
+        
+        $form->setDefault("feat{$contragentPositionId}", '*');
+        
+        // Поставяме удобни опции за избор на период
+        $query = acc_Periods::getQuery();
+        $query->where("#state = 'closed'");
+        $query->orderBy('#end', 'DESC');
+        
+        $yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), false);
+        $daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), false);
+        $optionsFrom = $optionsTo = array();
+        $optionsFrom[dt::today()] = 'Днес';
+        $optionsFrom[$yesterday] = 'Вчера';
+        $optionsFrom[$daybefore] = 'Завчера';
+        $optionsTo[dt::today()] = 'Днес';
+        $optionsTo[$yesterday] = 'Вчера';
+        $optionsTo[$daybefore] = 'Завчера';
+        
+        while ($op = $query->fetch()) {
+            $optionsFrom[$op->start] = $op->title;
+            $optionsTo[$op->end] = $op->title;
+        }
+        
+        $form->setSuggestions('from', array('' => '') + $optionsFrom);
+        $form->setSuggestions('to', array('' => '') + $optionsTo);
     }
     
     
@@ -164,9 +161,9 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
      */
     protected function prepareFilterQuery(&$query, $form)
     {
-    	acc_JournalDetails::filterQuery($query, $form->from, $form->to);
+        acc_JournalDetails::filterQuery($query, $form->from, $form->to);
 
-	    $query->where("(#debitAccId = {$form->baseAccountId} OR 
+        $query->where("(#debitAccId = {$form->baseAccountId} OR 
 	    					#debitAccId = {$this->account703Id} OR 
 	    					#debitAccId = {$this->account704Id} OR 
 	    					#debitAccId = {$this->account705Id} OR 
@@ -174,13 +171,12 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
 	    	               )
 	    				  AND 
 	    				  #creditAccId = {$form->corespondentAccountId}");
-	    	
-	    $query->orWhere("#debitAccId = {$form->corespondentAccountId} AND 
+            
+        $query->orWhere("#debitAccId = {$form->corespondentAccountId} AND 
 		    	               (#creditAccId = {$this->account703Id} OR 
 						    	#creditAccId = {$this->account704Id} OR 
 						    	#creditAccId = {$this->account705Id} OR 
 						    	#creditAccId = {$this->account706Id})");
-
     }
 
 
@@ -189,8 +185,7 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
      */
     public static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-
-		unset($data->listFields['debitQuantity']);
+        unset($data->listFields['debitQuantity']);
         unset($data->listFields['debitAmount']);
         unset($data->listFields['creditQuantity']);
         unset($data->listFields['creditAmount']);
@@ -202,24 +197,22 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
         unset($data->listFields['blQuantityCompare']);
 
         // Кои полета ще се показват
-        if($mvc->innerForm->compare != 'no'){
+        if ($mvc->innerForm->compare != 'no') {
             $fromVerbalOld = dt::mysql2verbal($data->fromOld, 'd.m.Y');
             $toVerbalOld = dt::mysql2verbal($data->toOld, 'd.m.Y');
-            $prefixOld = (string) $fromVerbalOld . " - " . $toVerbalOld;
+            $prefixOld = (string) $fromVerbalOld . ' - ' . $toVerbalOld;
         
             $fromVerbal = dt::mysql2verbal($mvc->innerForm->from, 'd.m.Y');
             $toVerbal = dt::mysql2verbal($mvc->innerForm->to, 'd.m.Y');
-            $prefix = (string) $fromVerbal . " - " . $toVerbal;
+            $prefix = (string) $fromVerbal . ' - ' . $toVerbal;
 
-            $fields = arr::make("id=№,item3=Артикули,blAmount={$prefix}->Сума,delta={$prefix}->Дял,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", TRUE);
+            $fields = arr::make("id=№,item3=Артикули,blAmount={$prefix}->Сума,delta={$prefix}->Дял,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", true);
             $data->listFields = $fields;
         } else {
-    
-            $data->listFields['blAmount'] = str_replace("->Остатък", "", $data->listFields['blAmount']);
-            $data->listFields['blAmount'] = str_replace("Остатък->", "", $data->listFields['blAmount']);
-            $data->listFields['blAmountCompare'] = str_replace("->Остатък", "", $data->listFields['blAmountCompare']);
+            $data->listFields['blAmount'] = str_replace('->Остатък', '', $data->listFields['blAmount']);
+            $data->listFields['blAmount'] = str_replace('Остатък->', '', $data->listFields['blAmount']);
+            $data->listFields['blAmountCompare'] = str_replace('->Остатък', '', $data->listFields['blAmountCompare']);
         }
-        
     }
     
 
@@ -242,7 +235,7 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
     public function getEarlyActivation()
     {
         $today = dt::today();
-    	$activateOn = "{$this->innerForm->to} 13:59:59";
+        $activateOn = "{$this->innerForm->to} 13:59:59";
 
         return $activateOn;
     }
@@ -253,12 +246,11 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
      */
     public function getReportTitle()
     {
+        $explodeTitle = explode(' » ', $this->title);
+         
+        $title = tr("|{$explodeTitle[1]}|*");
     
-    	$explodeTitle = explode(" » ", $this->title);
-    	 
-    	$title = tr("|{$explodeTitle[1]}|*");
-    
-    	return $title;
+        return $title;
     }
 
 
@@ -268,14 +260,12 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
      *
      * @return array
      */
-    public function getExportFields ()
+    public function getExportFields()
     {
-
-        $exportFields['item3']  = "Артикули";
-        $exportFields['blAmount']  = "Сума";
-        $exportFields['delta']  = "Дял";
+        $exportFields['item3'] = 'Артикули';
+        $exportFields['blAmount'] = 'Сума';
+        $exportFields['delta'] = 'Дял';
 
         return $exportFields;
     }
-
 }
