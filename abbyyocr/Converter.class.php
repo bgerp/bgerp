@@ -18,25 +18,25 @@ class abbyyocr_Converter extends core_Manager
     /**
      * Интерфейсни методи
      */
-    var $interfaces = 'fileman_OCRIntf, fileman_FileActionsIntf';
+    public $interfaces = 'fileman_OCRIntf, fileman_FileActionsIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = 'abbyy';
+    public $title = 'abbyy';
     
     
     /**
      * Кои потребители имат права за OCR на докуемент
      */
-    static $canOCR = 'powerUser';
+    public static $canOCR = 'powerUser';
     
     
     /**
      * Позволените разширения
-     */ 
-    static $allowedExt = array('pdf', 'bmp', 'pcx', 'dcx', 'jpeg', 'jpg', 'tiff', 'tif', 'gif', 'png');
+     */
+    public static $allowedExt = array('pdf', 'bmp', 'pcx', 'dcx', 'jpeg', 'jpg', 'tiff', 'tif', 'gif', 'png');
     
     
     /**
@@ -51,9 +51,7 @@ class abbyyocr_Converter extends core_Manager
     public $fconvLineExec = 'abbyyocr9 -rl [#LANGUAGE#] -if [#INPUTF#] -tet UTF8 -f Text -of [#OUTPUTF#]';
 
 
-    /**
-     *
-     */
+    
     public $canOcr = 'powerUser';
     
     
@@ -65,16 +63,15 @@ class abbyyocr_Converter extends core_Manager
      * @param stdClass $fRec - Обект са данни от модела
      *
      * @return array|NULL $arr - Масив с данните
-     * $arr['url'] - array URL на действието
-     * $arr['title'] - Заглавието на бутона
-     * $arr['icon'] - Иконата
+     *                    $arr['url'] - array URL на действието
+     *                    $arr['title'] - Заглавието на бутона
+     *                    $arr['icon'] - Иконата
      */
-    static function getActionsForFile_($fRec)
+    public static function getActionsForFile_($fRec)
     {
-        $arr = NULL;
+        $arr = null;
         
         if (self::haveRightFor('ocr') && self::canExtract($fRec)) {
-    		
             $btnParams = array();
     
             $btnParams['order'] = 70;
@@ -89,21 +86,20 @@ class abbyyocr_Converter extends core_Manager
             }
             
             $arr = array();
-            $arr['abbyyocr']['url'] = array(get_called_class(), 'getTextByOcr', $fRec->fileHnd, 'ret_url' => TRUE);
+            $arr['abbyyocr']['url'] = array(get_called_class(), 'getTextByOcr', $fRec->fileHnd, 'ret_url' => true);
             $arr['abbyyocr']['title'] = 'OCR';
             $arr['abbyyocr']['icon'] = 'img/16/scanner.png';
             $arr['abbyyocr']['btnParams'] = $btnParams;
         }
     
         return $arr;
-    
     }
     
     
-	/**
+    /**
      * Екшъна за извличане на текст чрез OCR
      */
-    function act_getTextByOcr()
+    public function act_getTextByOcr()
     {
         // Манипулатора на файла
         $fh = Request::get('id');
@@ -139,15 +135,15 @@ class abbyyocr_Converter extends core_Manager
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param stdClass|string $fRec
-     * 
+     *
      * @return string|NULL
-     * 
+     *
      * @see fileman_OCRIntf
      */
-    function getTextByOcr($fRec)
+    public function getTextByOcr($fRec)
     {
         // Инстанция на класа
         $me = get_called_class();
@@ -161,11 +157,11 @@ class abbyyocr_Converter extends core_Manager
         
         if (is_object($fRec)) {
             $params['dataId'] = $fRec->dataId;
-            $params['asynch'] = TRUE;
+            $params['asynch'] = true;
             $file = $fRec->fileHnd;
         } else {
-            $params['asynch'] = FALSE;
-            $params['isPath'] = TRUE;
+            $params['asynch'] = false;
+            $params['isPath'] = true;
             $file = $fRec;
         }
         
@@ -176,7 +172,6 @@ class abbyyocr_Converter extends core_Manager
         
         // Проверявама дали няма извлечена информация или не е заключен
         if (core_Locks::isLocked($params['lockId'])) {
-            
             if ($params['asynch']) {
                 // Добавяме съобщение
                 status_Messages::newStatus('|В момента се прави тази обработка');
@@ -184,8 +179,7 @@ class abbyyocr_Converter extends core_Manager
         } else {
         
             // Заключваме процеса за определено време
-            if (core_Locks::get($params['lockId'], 300, 0, FALSE)) {
-				
+            if (core_Locks::get($params['lockId'], 300, 0, false)) {
                 fileman_Data::logWrite('OCR обработка на файл с ABBYY', $fRec->dataId);
                 fileman_Files::logWrite('OCR обработка на файл с ABBYY', $fRec->id);
                 
@@ -198,11 +192,11 @@ class abbyyocr_Converter extends core_Manager
     
     /**
      * Вземаме текстова част от подадения файл
-     * 
+     *
      * @param fileHnd $fileHnd - Манипулатора на файла
-     * @param array $params - Допълнителни параметри
+     * @param array   $params  - Допълнителни параметри
      */
-    static function getText($fileHnd, $params)
+    public static function getText($fileHnd, $params)
     {
         if (!$params['isPath']) {
             // Вземам записа за файла
@@ -228,7 +222,7 @@ class abbyyocr_Converter extends core_Manager
         $Script->setFile('OUTPUTF', $textPath);
         
         // Задаваме параметрите
-        $Script->setParam('LANGUAGE', abbyyocr_Setup::get('LANGUAGES'), TRUE);
+        $Script->setParam('LANGUAGE', abbyyocr_Setup::get('LANGUAGES'), true);
         
         // Заместваме програмата с пътя от конфига
         $Script->setProgram('abbyyocr9', abbyyocr_Setup::get('PATH'));
@@ -255,7 +249,7 @@ class abbyyocr_Converter extends core_Manager
         
         $Script->setCheckProgramsArr('abbyyocr9');
         // Стартираме скрипта Aсинхронно
-        if ($Script->run($params['asynch']) === FALSE) {
+        if ($Script->run($params['asynch']) === false) {
             fileman_Indexes::createError($params);
         }
         
@@ -280,12 +274,12 @@ class abbyyocr_Converter extends core_Manager
     
     /**
      * Изпълнява се след приключване на обработката
-     * 
+     *
      * @param fconv_Script $script - Обект с данние
-     * 
+     *
      * @param boolean
      */
-    function afterGetTextByAbbyyOcr($script)
+    public function afterGetTextByAbbyyOcr($script)
     {
         // Десериализираме нужните помощни данни
         $params = $script->params;
@@ -296,7 +290,7 @@ class abbyyocr_Converter extends core_Manager
             // Отключваме процеса
             core_Locks::release($params['lockId']);
             
-            return FALSE;
+            return false;
         }
         
         // Вземаме съдържанието на файла
@@ -312,25 +306,25 @@ class abbyyocr_Converter extends core_Manager
         
         if ($saveId) {
 
-            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
             // и записа от таблицата fconv_Process
-            return TRUE;
+            return true;
         }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Проверява дали файл с даденото име може да се екстрактва
-     * 
+     *
      * @param stdClass|string $fRec
-     * 
+     *
      * @return boolean - Дали може да се екстрактва от файла
-     * 
+     *
      * @see fileman_OCRIntf
      */
-    static function canExtract($fRec)
+    public static function canExtract($fRec)
     {
         $name = $fRec;
         if (is_object($fRec)) {
@@ -344,10 +338,10 @@ class abbyyocr_Converter extends core_Manager
         if ($ext && in_array($ext, self::$allowedExt)) {
             
             // Ако всичко е OK връщаме TRUE
-            return TRUE;
+            return true;
         }
         
-        return FALSE;
+        return false;
     }
     
 
@@ -355,34 +349,33 @@ class abbyyocr_Converter extends core_Manager
      * Бърза проврка дали има смисъл от OCR-ване на текста
      *
      * @param stdClass|string $fRec
-     * 
+     *
      * @see fileman_OCRIntf
      */
     public static function haveTextForOcr($fRec)
     {
-    
-        return TRUE;
+        return true;
     }
     
     
     /**
      * След началното установяване на този мениджър
      */
-    static function loadSetupData()
+    public static function loadSetupData()
     {
         // Вземаме конфига
-    	$conf = core_Packs::getConfig('fileman');
-    	
-    	$data = array();
-    	
-    	// Ако няма запис в модела
-    	if (!$conf->_data['FILEMAN_OCR']) {
-    	    
+        $conf = core_Packs::getConfig('fileman');
+        
+        $data = array();
+        
+        // Ако няма запис в модела
+        if (!$conf->_data['FILEMAN_OCR']) {
+            
             // Да използваме текущия клас
-	        $data['FILEMAN_OCR'] = core_Classes::getId(get_called_class());
+            $data['FILEMAN_OCR'] = core_Classes::getId(get_called_class());
 
-	        // Добавяме в записите
+            // Добавяме в записите
             core_Packs::setConfig('fileman', $data);
-    	}
+        }
     }
 }
