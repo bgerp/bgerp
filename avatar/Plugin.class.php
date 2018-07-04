@@ -20,9 +20,9 @@ class avatar_Plugin extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$mvc)
+    public function on_AfterDescription(&$mvc)
     {
-        if(!$mvc->fields['avatar']) {
+        if (!$mvc->fields['avatar']) {
             $mvc->FLD('avatar', 'fileman_FileType(bucket=Avatars)', 'caption=Лице->Аватар,after=email');
         }
     }
@@ -31,12 +31,12 @@ class avatar_Plugin extends core_Plugin
     /**
      * Извиква се преди извличането на вербална стойност за поле от запис
      */
-    function on_BeforeGetVerbal($mvc, &$avatar, $rec, $field)
+    public function on_BeforeGetVerbal($mvc, &$avatar, $rec, $field)
     {
-        if($field == 'avatar') {
+        if ($field == 'avatar') {
             $avatar = self::getImg($rec->id);
             
-            return FALSE;
+            return false;
         }
     }
     
@@ -44,7 +44,7 @@ class avatar_Plugin extends core_Plugin
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    function on_AfterPrepareListFields($mvc, $data)
+    public function on_AfterPrepareListFields($mvc, $data)
     {
         $data->listFields = array('avatar' => 'Аватар') + $data->listFields;
     }
@@ -53,7 +53,7 @@ class avatar_Plugin extends core_Plugin
     /**
      * Връща html <img> елемент, отговарящ на аватара на потребителя
      */
-    static function getImg($userId, $email = NULL, $width = NULL, $minHeight = NULL)
+    public static function getImg($userId, $email = null, $width = null, $minHeight = null)
     {
         if (!$width) {
             $width = Mode::is('screenMode', 'narrow') ? 60 : 100;
@@ -69,15 +69,15 @@ class avatar_Plugin extends core_Plugin
         $attr['style'] = "min-height: {$minHeight}";
         
         $url = self::getUrl($userId, $email, $width);
-        $attr['src']   = $url;
+        $attr['src'] = $url;
         
         // За случаите, когато имаме дисплей с по-висока плътност
-        if(log_Browsers::isRetina()) {
+        if (log_Browsers::isRetina()) {
             $urlX2 = self::getUrl($userId, $email, $width * 2);
-            $attr['srcset']   = "{$urlX2} 2x";
+            $attr['srcset'] = "{$urlX2} 2x";
         }
 
-        $attr['alt']   = '';
+        $attr['alt'] = '';
         unset($attr['baseName']);
         
         unset($attr['isAbsolute']);
@@ -91,27 +91,27 @@ class avatar_Plugin extends core_Plugin
     /**
      * Връща URL към аватара с посочените параметри
      */
-    public static function  getUrl($userId, $email = NULL, $width = NULL)
+    public static function getUrl($userId, $email = null, $width = null)
     {
-        if($userId < 0) {
+        if ($userId < 0) {
             // Ако става дума за системния потребител
             $imgUrl = sbf('img/100/system.png', '');
-        } elseif($userId > 0) {
+        } elseif ($userId > 0) {
             // Ако се търси аватара на потребител на системата
             $userRec = core_Users::fetch($userId);
             
-            if($userRec->avatar) {
-                $key = md5($userId . "@/@" . EF_SALT) . "_{$width}.png";
-                $imgInst = new thumb_Img(array($userRec->avatar, $width, round($width * 1.5), 'fileman', 'isAbsolute' => FALSE, 'mode' => 'small-no-change', 'verbalName' => $key));
+            if ($userRec->avatar) {
+                $key = md5($userId . '@/@' . EF_SALT) . "_{$width}.png";
+                $imgInst = new thumb_Img(array($userRec->avatar, $width, round($width * 1.5), 'fileman', 'isAbsolute' => false, 'mode' => 'small-no-change', 'verbalName' => $key));
                 $imgUrl = $imgInst->getUrl('forced');
             } else {
                 $imgUrl = avatar_Gravatar::getUrl($userRec->email, $width);
             }
-        } elseif($email = strtolower(trim($email))) {
+        } elseif ($email = strtolower(trim($email))) {
             $imgUrl = avatar_Gravatar::getUrl($email, $width);
         }
         
-        if(!$imgUrl) {
+        if (!$imgUrl) {
             $imgUrl = sbf('img/100/noavatar.png', '');
         }
 
@@ -123,13 +123,13 @@ class avatar_Plugin extends core_Plugin
     /**
      * Изпълнява се след създаване на формата за добавяне/редактиране
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
         // При добавяне на първия потребител в core_Users
-        if(($mvc->className == 'core_Users') && (!$mvc->fetch('1=1'))) {
+        if (($mvc->className == 'core_Users') && (!$mvc->fetch('1=1'))) {
             
             // Да не се показва полето за аватар
-            $data->form->setField("avatar", 'input=none');
+            $data->form->setField('avatar', 'input=none');
         }
     }
 }

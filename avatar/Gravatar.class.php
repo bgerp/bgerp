@@ -15,25 +15,26 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class avatar_Gravatar extends core_Manager {
+class avatar_Gravatar extends core_Manager
+{
     
     
     /**
      * Заглавие на модула
      */
-    var $title = 'Аватари от Gravatar';
+    public $title = 'Аватари от Gravatar';
     
     
     /**
      * Списък плъгини за зареждане
      */
-    var $loadList = 'plg_Created';
+    public $loadList = 'plg_Created';
     
     
     /**
      * Връща URL към аватара на посочения имейл
      */
-    static function getUrl($email, $width = 100)
+    public static function getUrl($email, $width = 100)
     {
         $md5 = md5(strtolower(trim($email)));
         
@@ -48,7 +49,7 @@ class avatar_Gravatar extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function act_Avatarco()
+    public function act_Avatarco()
     {
         expect($name = Request::get('name', 'identifier'));
         

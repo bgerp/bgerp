@@ -58,15 +58,15 @@ class avatar_Avatarco
      * @private $_shapesCenter stores arrays with coords of patterns to draw on squares in the middle area of userpic
      * @todo Generate more patterns. Up to 16.
      */
-    private $_shapesCenter    = Array(
+    private $_shapesCenter = array(
         
-        Array( // small square rotated
+        array( // small square rotated
             0.2, 0.5,
             0.5, 0.2,
             0.8, 0.5,
             0.5, 0.8
         ),
-        Array( //small star
+        array( //small star
             0.1, 0.5,
             0.4, 0.4,
             0.5, 0.1,
@@ -76,13 +76,13 @@ class avatar_Avatarco
             0.5, 0.9,
             0.4, 0.6
         ),
-        Array( // small square
+        array( // small square
             0.33, 0.33,
             0.67, 0.33,
             0.67, 0.67,
             0.33, 0.67
         ),
-        Array( // cross
+        array( // cross
             0.25, 0,
             0.75, 0,
             0.5, 0.5,
@@ -96,7 +96,7 @@ class avatar_Avatarco
             0, 0.25,
             0.5, 0.5
         ),
-        Array( // empty square rotated
+        array( // empty square rotated
             0, 0,
             1, 0,
             1, 1,
@@ -107,13 +107,13 @@ class avatar_Avatarco
             0.5, 0,
             0, 0.5
         ),
-        Array( // filled square rotated
+        array( // filled square rotated
             0.5, 0,
             1, 0.5,
             0.5, 1,
             0, 0.5
         ),
-        Array( // star rotated
+        array( // star rotated
             0, 0,
             0.5, 0.25,
             1, 0,
@@ -123,7 +123,7 @@ class avatar_Avatarco
             0, 1,
             0.25, 0.5
         ),
-        Array( // bigger square
+        array( // bigger square
             0.2, 0.8,
             0.2, 0.2,
             0.8, 0.2,
@@ -135,8 +135,8 @@ class avatar_Avatarco
      * @private $_shapesCenter stores arrays with coords of patterns to draw on squares in the corners of userpic
      * @todo Generate more patterns. Up to 16.
      */
-    private $_shapesCorner    = Array(
-        Array(
+    private $_shapesCorner = array(
+        array(
             0, 0,
             0.5, 0,
             1, 0.5,
@@ -144,14 +144,14 @@ class avatar_Avatarco
             0, 1,
             0.5, 0.5
         ),
-        Array(
+        array(
             0, 0.5,
             0.5, 0,
             1, 0.5,
             0.5, 1,
             0.5, 0.5
         ),
-        Array(
+        array(
             0.5, 1,
             0, 0.5,
             0, 0,
@@ -159,7 +159,7 @@ class avatar_Avatarco
             1, 0,
             1, 0.5,
         ),
-        Array(
+        array(
             0.5, 0,
             0.5, 0.5,
             1, 0.5,
@@ -168,7 +168,7 @@ class avatar_Avatarco
             0.5, 0.5,
             0, 0.5
         ),
-        Array(
+        array(
             0, 0.4,
             0.4, 0,
             1, 1,
@@ -176,7 +176,7 @@ class avatar_Avatarco
             0.4, 0.7,
             1, 1
         ),
-        Array(
+        array(
             0.25, 0,
             0.75, 0,
             0.5, 0.5,
@@ -196,8 +196,8 @@ class avatar_Avatarco
      * @private $_shapesCenter stores arrays with coords of patterns to draw on squares on the sides of userpic
      * @todo Generate more patterns. Up to 16.
      */
-    private $_shapesSide    = Array(
-        Array(
+    private $_shapesSide = array(
+        array(
             0.5, 0,
             0, 0.8,
             0, 1,
@@ -207,7 +207,7 @@ class avatar_Avatarco
             1, 1,
             1, 0.8
         ),
-        Array(
+        array(
             0, 0.5,
             0.8, 1,
             1, 1,
@@ -217,25 +217,25 @@ class avatar_Avatarco
             1, 0,
             0.8, 0
         ),
-        Array( // bigger square
+        array( // bigger square
             0.2, 0.8,
             0.2, 0.2,
             0.8, 0.2,
             0.8, 0.8
         ),
-        Array( // small square
+        array( // small square
             0.33, 0.33,
             0.67, 0.33,
             0.67, 0.67,
             0.33, 0.67
         ),
-        Array( // small square rotated
+        array( // small square rotated
             0.2, 0.5,
             0.5, 0.2,
             0.8, 0.5,
             0.5, 0.8
         ),
-        Array( // empty square rotated
+        array( // empty square rotated
             0, 0.5,
             0, 0,
             0.5, 0,
@@ -268,9 +268,9 @@ class avatar_Avatarco
      * @access public
      *
      * @var string $string    - user's email or other person's personalized data
-     * @var int $size    - size for the output picture in pixels
-     * @var int sprites    - number of elements for each side of userpic
-     * @var bool $alpha - if set to True, white color in created images is replaced with transparent
+     * @var int    $size    - size for the output picture in pixels
+     * @var int    sprites    - number of elements for each side of userpic
+     * @var bool   $alpha - if set to True, white color in created images is replaced with transparent
      */
     public function init($string, $size = 100, $sprites = 0, $alpha = false)
     {
@@ -292,15 +292,14 @@ class avatar_Avatarco
         
         $image = imageCreateTrueColor($size, $size);
         
-        for($i = 1; $i <= 4; $i++) {
-            
+        for ($i = 1; $i <= 4; $i++) {
             $side = $this->CreateSide();
             $image = imageRotate($image, ($i - 1) * 90, 0);
             imagecopy($image, $side, 0, 0, 0, 0, imagesx($side), imagesy($side));
             imageDestroy($side);
         }
         
-        if($this->_side > 2) {
+        if ($this->_side > 2) {
             $center = $this->createCenter($this->_side - 2);
             imageCopy($image, $center, self::SPRITE_SIZE, self::SPRITE_SIZE, 0, 0, imagesx($center), imagesy($center));
             imageDestroy($center);
@@ -308,7 +307,7 @@ class avatar_Avatarco
         $this->_avatarco = imageCreateTrueColor($this->_size, $this->_size);
         imageCopyResampled($this->_avatarco, $image, 0, 0, 0, 0, $this->_size, $this->_size, $size, $size);
         
-        if($this->_alpha) {
+        if ($this->_alpha) {
             $white = imageColorAllocate($this->_avatarco, 255, 255, 255);
             imagecolortransparent($this->_avatarco, $white);
         }
@@ -322,12 +321,12 @@ class avatar_Avatarco
      */
     private function CreateCorner()
     {
-        $this->_cornerFgColor = Array(
+        $this->_cornerFgColor = array(
             hexdec(substr($this->_hash, 1, 2)),
             hexdec(substr($this->_hash, 3, 2)),
             hexdec(substr($this->_hash, 5, 2))
         );
-        $corner = $this->CreateSquare(Array(255, 255, 255));
+        $corner = $this->CreateSquare(array(255, 255, 255));
         $this->DrawPattern($corner, 'corner', $this->_cornerFgColor);
         
         return $corner;
@@ -339,13 +338,13 @@ class avatar_Avatarco
      */
     private function CreateSide()
     {
-        $this->_sideBgColor = Array(
+        $this->_sideBgColor = array(
             hexdec(substr($this->_hash, 6, 2)),
             hexdec(substr($this->_hash, 8, 2)),
             hexdec(substr($this->_hash, 10, 2))
         );
         
-        $this->_sideFgColor = Array(
+        $this->_sideFgColor = array(
             hexdec(substr($this->_hash, 0, 2)),
             hexdec(substr($this->_hash, 2, 2)),
             hexdec(substr($this->_hash, 4, 2))
@@ -357,10 +356,9 @@ class avatar_Avatarco
         imageCopy($side, $corner, 0, 0, 0, 0, self::SPRITE_SIZE, self::SPRITE_SIZE);
         imageDestroy($corner);
         
-        for($i = 1; $i <= $this->_side - 2; $i++)
-        {
+        for ($i = 1; $i <= $this->_side - 2; $i++) {
             $fgcolor = ($i % 2 == 0 && hexdec(substr($this->_hash, 27, 1)) % 2 == 0) ? $this->_sideBgColor : $this->_sideFgColor;
-            $sprite = $this->CreateSquare(Array(255, 255, 255));
+            $sprite = $this->CreateSquare(array(255, 255, 255));
             $this->DrawPattern($sprite, 'side', $fgcolor);
             imageCopy($side, $sprite, $i * self::SPRITE_SIZE, 0, 0, 0, self::SPRITE_SIZE, self::SPRITE_SIZE);
             imagedestroy($sprite);
@@ -375,21 +373,20 @@ class avatar_Avatarco
      */
     private function CreateCenter($sqSide = 1)
     {
-        
-        $this->_centerBgColor = Array(
+        $this->_centerBgColor = array(
             hexdec(substr($this->_hash, 10, 2)),
             hexdec(substr($this->_hash, 12, 2)),
             hexdec(substr($this->_hash, 14, 2))
         );
         
-        $this->_centerFgColor = Array(
+        $this->_centerFgColor = array(
             hexdec(substr($this->_hash, 16, 2)),
             hexdec(substr($this->_hash, 18, 2)),
             hexdec(substr($this->_hash, 20, 2))
         );
         
-        if($sqSide == 1) {
-            $sq = $this->CreateSquare(Array(255, 255, 255));
+        if ($sqSide == 1) {
+            $sq = $this->CreateSquare(array(255, 255, 255));
             $this->DrawPattern($sq, 'center', $this->_cornerFgColor);
             
             return $sq;
@@ -398,15 +395,15 @@ class avatar_Avatarco
         $sqSize = $sqSide * self::SPRITE_SIZE;
         $center = imagecreatetruecolor($sqSize, $sqSize);
         
-        for($i = 1; $i <= 4; $i++) {
+        for ($i = 1; $i <= 4; $i++) {
             $side = imagecreatetruecolor($sqSize - self::SPRITE_SIZE, self::SPRITE_SIZE);
             
-            for($j = 1; $j <= $sqSide - 1; $j++) {
+            for ($j = 1; $j <= $sqSide - 1; $j++) {
                 $bgcolor = ($j == 1 && hexdec(substr($this->_hash, 25, 1)) % 2 == 0) ? $this->_centerFgColor : $this->_centerBgColor;
                 $fgcolor = ($j == 1 && hexdec(substr($this->_hash, 25, 1)) % 2 == 0) ? $this->_centerBgColor : $this->_centerFgColor;
-                $sprite = $this->CreateSquare(Array(255, 255, 255));
+                $sprite = $this->CreateSquare(array(255, 255, 255));
                 $this->DrawPattern($sprite, 'center', $fgcolor);
-                imageCopy($side, $sprite, ($j-1) * self::SPRITE_SIZE, 0, 0, 0, self::SPRITE_SIZE, self::SPRITE_SIZE);
+                imageCopy($side, $sprite, ($j - 1) * self::SPRITE_SIZE, 0, 0, 0, self::SPRITE_SIZE, self::SPRITE_SIZE);
                 imagedestroy($sprite);
             }
             
@@ -415,7 +412,7 @@ class avatar_Avatarco
             imageDestroy($side);
         }
         
-        if($sqSide - 2 > 0) {
+        if ($sqSide - 2 > 0) {
             $deeper = $this->CreateCenter($sqSide - 2);
             imageCopy($center, $deeper, self::SPRITE_SIZE, self::SPRITE_SIZE, 0, 0, imagesx($deeper), imagesy($deeper));
             imageDestroy($deeper);
@@ -428,7 +425,7 @@ class avatar_Avatarco
     /**
      * @todo Чака за документация...
      */
-    private function CreateSquare($colors = Array(255, 255, 255))
+    private function CreateSquare($colors = array(255, 255, 255))
     {
         $square = imageCreateTrueColor(self::SPRITE_SIZE, self::SPRITE_SIZE);
         $background = imagecolorallocate($square, $colors[0], $colors[1], $colors[2]);
@@ -441,7 +438,7 @@ class avatar_Avatarco
     /**
      * @todo Чака за документация...
      */
-    private function DrawPattern($resourse = null, $type, $colors = Array(0, 0, 0))
+    private function DrawPattern($resourse = null, $type, $colors = array(0, 0, 0))
     {
         $shape = $this->GetShape($type);
         $color = imagecolorallocate($resourse, $colors[0], $colors[1], $colors[2]);
@@ -454,25 +451,27 @@ class avatar_Avatarco
      */
     private function GetShape($type)
     {
-        switch($type) {
-            case 'side' :
+        switch ($type) {
+            case 'side':
                 $shape_id = hexdec(substr($this->_hash, 22, 1)) & (sizeof($this->_shapesSide) - 1);
                 $shapes = $this->_shapesSide;
                 break;
-            case 'center' :
+            case 'center':
                 $shape_id = hexdec(substr($this->_hash, 23, 1)) & (sizeof($this->_shapesCenter) - 1);
                 $shapes = $this->_shapesCenter;
                 break;
-            case 'corner' :
+            case 'corner':
                 $shape_id = hexdec(substr($this->_hash, 24, 1)) & (sizeof($this->_shapesCorner) - 1);
                 $shapes = $this->_shapesCorner;
-            default :
+                // no break
+            default:
             break;
         }
         $shape = $shapes[$shape_id];
         
-        array_walk($shape, function(&$coord, $index, $mult) { $coord *= $mult;
-            }, self::SPRITE_SIZE);
+        array_walk($shape, function (&$coord, $index, $mult) {
+            $coord *= $mult;
+        }, self::SPRITE_SIZE);
         
         return $shape;
     }
@@ -494,7 +493,9 @@ class avatar_Avatarco
      */
     public function SavePicture($path)
     {
-        if(!is_dir($path) || !is_writeable($path)) return false;
+        if (!is_dir($path) || !is_writeable($path)) {
+            return false;
+        }
         
         $path = rtrim($path, '/') . '/' . $this->_hash . '.jpg';
         imagejpg($this->CreatePicture(), $path, 0);
