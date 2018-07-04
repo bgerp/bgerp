@@ -26,7 +26,7 @@ class barcode_Qr extends core_Manager
     /**
      * Екшън за генериране на QR изображения
      */
-    function act_Generate()
+    public function act_Generate()
     {
         //Текстова част
         $text = Request::get('text');
@@ -53,7 +53,7 @@ class barcode_Qr extends core_Manager
     /**
      * Връща QR изображението
      */
-    static function getImg($text, $pixelPerPoint = 3, $outerFrame = 0, $quality = 'L', $outFileName = NULL)
+    public static function getImg($text, $pixelPerPoint = 3, $outerFrame = 0, $quality = 'L', $outFileName = null)
     {
         // Параметри за генериране на QR изображение
         $params = array(
@@ -64,14 +64,14 @@ class barcode_Qr extends core_Manager
         );
         
         //Генерира QR изображение
-        barcode_Generator::printImg('qr', $text, NULL, $params);
+        barcode_Generator::printImg('qr', $text, null, $params);
     }
     
     
     /**
      * Връща ключа за защита
      */
-    static function getProtectSalt($text, $pixelPerPoint = NULL, $outerFrame = NULL)
+    public static function getProtectSalt($text, $pixelPerPoint = null, $outerFrame = null)
     {
         // "Почистваме" текста от pid, за да не зависи от него солта.
         $text = preg_replace('/[&\?]pid=[^&]+/i', '', $text);
@@ -103,16 +103,16 @@ class barcode_Qr extends core_Manager
      *
      * Оригиналната идея е на: http://sstaynov.com/posts/image-2-html-browser-abuse/
      */
-    function img2html($image, $zoom = 3)
+    public function img2html($image, $zoom = 3)
     {
         $imgWidth = imagesx($image);
         $imgHeight = imagesy($image);
         
-        $html .=  '<table border="0" cellpadding="0" cellspacing="0">';
+        $html .= '<table border="0" cellpadding="0" cellspacing="0">';
         
         for ($y = 0; $y < $imgHeight; $y++) {
-            $html .=   '<tr>';
-            $haveTd = FALSE;
+            $html .= '<tr>';
+            $haveTd = false;
             $counter = 0;
             
             for ($x = 0; $x < $imgWidth; $x++) {
@@ -121,9 +121,9 @@ class barcode_Qr extends core_Manager
                 
                 $color =
                 
-                str_pad(dechex($rgbArr['red']), 2, "0", STR_PAD_LEFT) .
-                str_pad(dechex($rgbArr['green']), 2, "0", STR_PAD_LEFT) .
-                str_pad(dechex($rgbArr['blue']), 2, "0", STR_PAD_LEFT);
+                str_pad(dechex($rgbArr['red']), 2, '0', STR_PAD_LEFT) .
+                str_pad(dechex($rgbArr['green']), 2, '0', STR_PAD_LEFT) .
+                str_pad(dechex($rgbArr['blue']), 2, '0', STR_PAD_LEFT);
                 
                 $c = round(($rgbArr['red'] + $rgbArr['red'] + $rgbArr['red']) / 3);
                 
@@ -136,7 +136,7 @@ class barcode_Qr extends core_Manager
                     if ($prev_color == $color) {
                         $counter++;
                     } else {
-                        $haveTd = TRUE;
+                        $haveTd = true;
                         $html .= '<td width="' . $zoom . '" height="' . 0 . '" style="border-bottom:' . $zoom . 'px solid #' .
                         $prev_color . '"' . ($counter > 1 ? ' colspan="' . $counter . '"' : '') . '></td>';
                         $prev_color = $color;
@@ -146,18 +146,18 @@ class barcode_Qr extends core_Manager
             }
             
             if ($counter) {
-                $haveTd = TRUE;
+                $haveTd = true;
                 $html .= '<td width="' . $zoom . '" height="' . 0 . '" style="border-bottom:' . $zoom . 'px solid #' . $color . '"' . ($counter > 1 ? ' colspan="' . $counter  . '"' : '') . '></td>';
             }
             
-            if(!$haveTd) {
+            if (!$haveTd) {
                 $html .= '<td width="' . $zoom . '" height="' . 0 . '" style="border-bottom:' . $zoom . 'px solid #' . $color . '"' .  ' colspan="' . $imgWidth  . '"'   . '></td>';
             }
             
             $html .= '</tr>';
         }
         
-        $html .=   '</table>';
+        $html .= '</table>';
         
         return $html;
     }
