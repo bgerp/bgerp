@@ -350,6 +350,27 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
+     * Връщане на сметките, по които може да се създава ФД
+     * 
+     * @return array $options
+     */
+    public static function getDefaultAccountOptions()
+    {
+    	$me = cls::get(get_called_class());
+    	$options = acc_Accounts::getOptionsByListInterfaces($me->accountListInterfaces);
+    	 
+    	// Премахваме от избора упоменатите сметки, които трябва да се изключат
+    	$except = arr::make(static::$exceptAccSysIds);
+    	foreach ($except as $sysId){
+    		$accId = acc_Accounts::getRecBySystemId($sysId)->id;
+    		unset($options[$accId]);
+    	}
+    	
+    	return $options;
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
@@ -359,15 +380,8 @@ class findeals_Deals extends deals_DealBase
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	$options = acc_Accounts::getOptionsByListInterfaces($mvc->accountListInterfaces);
     	
-    	// Премахваме от избора упоменатите сметки, които трябва да се изключат
-    	$except = arr::make(static::$exceptAccSysIds);
-    	foreach ($except as $sysId){
-    		$accId = acc_Accounts::getRecBySystemId($sysId)->id;
-    		unset($options[$accId]);
-    	}
-    	
+    	$options = static::getDefaultAccountOptions();
     	$form->setOptions('accountId', $options);
     	
     	if(count($options) == 2){
