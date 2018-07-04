@@ -855,22 +855,24 @@ class eshop_Carts extends core_Master
     {
     	$rec = self::fetchRec($id);
     	$shopUrl = cls::get('eshop_Groups')->getUrlByMenuId(NULL);
-    	
-    	if(!empty($rec->productCount) && eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
-    		$emptyUrl = array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => $shopUrl);
-    		$btn = ht::createLink(tr('Изчисти'), $emptyUrl, 'Сигурни ли сте, че искате да изчистите артикулите?', 'title=Изчистване на всички артикули,class=eshop-link,ef_icon=img/16/deletered.png');
-    		$tpl->append($btn, 'EMPTY_CART');
-    	}
-    	
+
+		$btn = ht::createLink(tr('Назад към магазина'), $shopUrl, NULL, 'title=Връщане в онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
+		$tpl->append($btn, 'CART_TOOLBAR_TOP');
+
+		$wideSpan = Mode::is('screenMode', 'wide') ? "<span>|</span>" : "";
+
     	if(eshop_CartDetails::haveRightFor('add', (object)array('cartId' => $rec->id))){
     		$addUrl = array('eshop_CartDetails', 'add', 'cartId' => $rec->id, 'external' => TRUE, 'ret_url' => TRUE);
     		$btn = ht::createLink(tr('Добавяне на артикул'), $addUrl, NULL, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
-    		$tpl->append($btn, 'CART_TOOLBAR_TOP');
+    		$tpl->append($wideSpan . $btn, 'CART_TOOLBAR_TOP');
     	}
-    	
-    	$btn = ht::createLink(tr('Назад към магазина'), $shopUrl, NULL, 'title=Връщане в онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
-    	$tpl->append($btn, 'CART_TOOLBAR_TOP');
-    	
+
+		if(!empty($rec->productCount) && eshop_CartDetails::haveRightFor('removeexternal', (object)array('cartId' => $rec->id))){
+			$emptyUrl = array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => $shopUrl);
+			$btn = ht::createLink(tr('Премахване на артикулите'), $emptyUrl, 'Сигурни ли сте, че искате да изчистите артикулите?', 'title=Изчистване на всички артикули,class=eshop-link,ef_icon=img/16/deletered.png');
+			$tpl->append($wideSpan . $btn, 'CART_TOOLBAR_TOP');
+		}
+
     	$checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array(eshop_Carts, 'order', $rec->id, 'ret_url' => TRUE) : array();
     	if(empty($rec->personNames) && count($checkoutUrl)){
     		$btn = ht::createBtn(tr('Данни за поръчката') . ' »', $checkoutUrl, NULL, NULL, "title=Поръчване на артикулите,class=order-btn eshop-btn {$disabledClass}");
