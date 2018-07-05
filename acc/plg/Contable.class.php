@@ -156,15 +156,14 @@ class acc_plg_Contable extends core_Plugin
             
             if ($rec->isContable == 'activate') {
                 $caption = 'Активиране';
-                $action = 'активиран';
             } else {
                 $caption = 'Контиране';
-                $action = 'контиран';
             }
            
             // Урл-то за контиране
             $contoUrl = $mvc->getContoUrl($rec->id);
-            $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документът да бъде {$action}?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+            $warning = $mvc->getContoWarning($rec->id, $rec->isContable);
+            $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning={$warning}{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
         }
         
         // Бутон за заявка
@@ -213,6 +212,18 @@ class acc_plg_Contable extends core_Plugin
                 $data->toolbar->setError("btnRestore{$rec->containerId}", $error);
             }
         }
+    }
+    
+    
+    /**
+     * Уорнинг на бутона за контиране/активиранe
+     */
+    public static function on_AfterGetContoWarning($mvc, &$res, $id, $isContable)
+    {
+    	if(!isset($res)){
+    		$action = ($isContable == 'activate') ? 'активиран' : 'контиран';
+    		$res = "|Наистина ли желаете документът да бъде {$action}|*?";
+    	}
     }
     
     
