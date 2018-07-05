@@ -14,15 +14,14 @@
  */
 class cms_FeedsSourceIntf
 {
-	
-	/**
-	 * Интерфейсен метод за извличане на елементите за четене от хранилката
-	 * @param int $itemsCnt
-	 * @param int $domainId
-	 */
-    function getItems($itemsCnt, $domainId)
+    
+    /**
+     * Интерфейсен метод за извличане на елементите за четене от хранилката
+     * @param int $itemsCnt
+     * @param int $domainId
+     */
+    public function getItems($itemsCnt, $domainId)
     {
-        
         return $this->class->getItems($itemsCnt, $domainId);
     }
 }

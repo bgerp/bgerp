@@ -23,7 +23,7 @@ class sens_DriverIntf
     /**
      * Връща измерените параметри
      */
-    function loadState()
+    public function loadState()
     {
         return $this->class->loadState();
     }
@@ -35,7 +35,7 @@ class sens_DriverIntf
      * Този html може да използва красиво визуално оформление,
      * използвайки vendors/jsgauge
      */
-    function getBlock()
+    public function getBlock()
     {
         return $this->class->getBlock();
     }
@@ -44,7 +44,7 @@ class sens_DriverIntf
     /**
      * По подадени параметри връща HTML блок, показващ вербално състоянието на сензора
      */
-    function renderHtml($params = NULL)
+    public function renderHtml($params = null)
     {
         return $this->class->renderHtml($params);
     }

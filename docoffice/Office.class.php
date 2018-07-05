@@ -31,7 +31,7 @@ class docoffice_Office
     /**
      * Стартира офис пакета
      */
-    static function startOffice()
+    public static function startOffice()
     {
         // Заключваме офис пакета
         static::lockOffice(20, 10);
@@ -43,7 +43,7 @@ class docoffice_Office
         $port = static::getOfficePort();
         
 //        pclose(popen(OFFICE_PACKET_PATH . "2>&1 >/dev/null &", "r"));
-        @pclose(popen("nohup `" . OFFICE_PACKET_PATH . " -headless -accept='socket,host=localhost,port={$port};urp;StarOffice.ServiceManager' -nofirststartwizard -nologo` &", "r"));
+        @pclose(popen('nohup `' . OFFICE_PACKET_PATH . " -headless -accept='socket,host=localhost,port={$port};urp;StarOffice.ServiceManager' -nofirststartwizard -nologo` &", 'r'));
         
         // Ако е стартиран успешно
         if (static::getStartedOfficePid()) {
@@ -51,26 +51,26 @@ class docoffice_Office
             // Нулираме брояча за конвертиранията
             static::emptyConvertCount();
             
-            log_System::add('docoffice_Office', OFFICE_PACKET_PATH . ' е стартиран на порт ' . $port, NULL, 'info');
+            log_System::add('docoffice_Office', OFFICE_PACKET_PATH . ' е стартиран на порт ' . $port, null, 'info');
             
             // Отключваме процеса
             static::unlockOffice();
             
-            return TRUE;
-        } else {
-            
-            // Ако има грешка при стартирането
-            log_System::add('docoffice_Office', "Грешка при стартирането на " . OFFICE_PACKET_PATH, NULL, 'info');
+            return true;
         }
+            
+        // Ако има грешка при стартирането
+        log_System::add('docoffice_Office', 'Грешка при стартирането на ' . OFFICE_PACKET_PATH, null, 'info');
         
-        return FALSE;
+        
+        return false;
     }
     
     
     /**
      * Проверява и ако има нужда рестартира офис пакета
-     */    
-    static function checkRestartOffice()
+     */
+    public static function checkRestartOffice()
     {
         // Броя на направените обработки след последното нулиране на брояча
         $count = static::getConvertedCount();
@@ -87,7 +87,7 @@ class docoffice_Office
     /**
      * Рестартира офис пакета
      */
-    static function restartOffice()
+    public static function restartOffice()
     {
         // Убиваме офис пакета
         static::killOffice();
@@ -100,12 +100,15 @@ class docoffice_Office
     /**
      * Убива процеса на офис пакета
      */
-    static function killOffice()
+    public static function killOffice()
     {
         // Вземаме process id' то на офис пакета
         $pid = static::getStartedOfficePid();
 
-        if (!$pid) return ;
+        if (!$pid) {
+            
+            return ;
+        }
         
         $pid = escapeshellarg($pid);
         
@@ -129,23 +132,23 @@ class docoffice_Office
             // Отключваме процеса
             static::unlockOffice();
             
-            log_System::add('docoffice_Office', OFFICE_PACKET_PATH . ' е спрян', NULL, 'info');
+            log_System::add('docoffice_Office', OFFICE_PACKET_PATH . ' е спрян', null, 'info');
             
-            return TRUE;
-        } else {
-            
-            // Ако има грешка при спирането
-            log_System::add('docoffice_Office', "Грешка при спирането на " . OFFICE_PACKET_PATH, NULL, 'warning');
+            return true;
         }
+            
+        // Ако има грешка при спирането
+        log_System::add('docoffice_Office', 'Грешка при спирането на ' . OFFICE_PACKET_PATH, null, 'warning');
         
-        return FALSE;
+        
+        return false;
     }
     
     
-	/**
+    /**
      * Вземаме process id' то на стартирания процес
      */
-    static function getStartedOfficePid()
+    public static function getStartedOfficePid()
     {
         // Заключваме офис пакета
         static::lockOffice(20, 10);
@@ -167,7 +170,7 @@ class docoffice_Office
     /**
      * Увеличаваме с единица броя на обработените документи
      */
-    static function increaseConvertCount()
+    public static function increaseConvertCount()
     {
         // Вземаме броя на обаработени документи
         $data = static::getConvertedCount();
@@ -180,9 +183,9 @@ class docoffice_Office
     /**
      * Връща броя на обработените документи
      */
-    static function getConvertedCount()
+    public static function getConvertedCount()
     {
-        $data = (int)permanent_Data::read('countOfficeProccess');
+        $data = (int) permanent_Data::read('countOfficeProccess');
         
         return $data;
     }
@@ -191,7 +194,7 @@ class docoffice_Office
     /**
      * Изпразваме брояча за обработените документи
      */
-    static function emptyConvertCount()
+    public static function emptyConvertCount()
     {
         permanent_Data::write('countOfficeProccess', 0);
     }
@@ -199,20 +202,20 @@ class docoffice_Office
     
     /**
      * Заключваме офис пакета
-     * 
+     *
      * @param int $maxDuration - Максималното време за което ще се опитаме да заключим
-     * @param int $maxTray - Максималният брой опити, за заключване
+     * @param int $maxTray     - Максималният брой опити, за заключване
      */
-    static function lockOffice($maxDuration=20, $maxTray=10)
+    public static function lockOffice($maxDuration = 20, $maxTray = 10)
     {
-        core_Locks::get('OfficePacket', $maxDuration, $maxTray, FALSE);
+        core_Locks::get('OfficePacket', $maxDuration, $maxTray, false);
     }
     
     
     /**
      * Отключваме офис пакета
      */
-    static function unlockOffice()
+    public static function unlockOffice()
     {
         core_Locks::release('OfficePacket');
     }
@@ -221,16 +224,16 @@ class docoffice_Office
     /**
      * Стартираме или рестартираме офис пакета в зависимост от състоянието му
      */
-    static function prepareOffice()
+    public static function prepareOffice()
     {
         // Process id' то на office пакета
         $officePid = static::getStartedOfficePid();
 
         // Ако не е стартиране
-        if (!$officePid) {    
+        if (!$officePid) {
             
             // Стартираме офис пакета
-            static::startOffice();        
+            static::startOffice();
         } else {
             
             // Ако е стартиран проверяваме дали не трябва да се рестартира
@@ -242,7 +245,7 @@ class docoffice_Office
     /**
      * Сетва порта на който ще слуша офис пакета
      */
-    static function setOfficePort()
+    public static function setOfficePort()
     {
         // Намираме свободен порт
         $port = static::findEmptyPort();
@@ -255,7 +258,7 @@ class docoffice_Office
     /**
      * Намира свободния порт
      */
-    static function findEmptyPort()
+    public static function findEmptyPort()
     {
         // Порта по подразбиране
         $port = 8100;
@@ -268,7 +271,9 @@ class docoffice_Office
             // Увеличаваме с единица
             $port++;
             
-            if (!$maxTrays--) break;
+            if (!$maxTrays--) {
+                break;
+            }
         }
         
         return $port;
@@ -278,7 +283,7 @@ class docoffice_Office
     /**
      * Връща порта на който слуша офис пакета
      */
-    static function getOfficePort()
+    public static function getOfficePort()
     {
         return permanent_Data::read('officePort');
     }
@@ -286,14 +291,14 @@ class docoffice_Office
     
     /**
      * Конвертира подададени HTML стринг в doc файл
-     * 
-     * @param string $htmlStr
-     * @param string $htmlName
+     *
+     * @param string      $htmlStr
+     * @param string      $htmlName
      * @param string|NULL $bucket
-     * 
+     *
      * @return string
      */
-    public static function htmlToDoc($htmlStr, $htmlName = 'html.html', $bucket = NULL)
+    public static function htmlToDoc($htmlStr, $htmlName = 'html.html', $bucket = null)
     {
         $htmlFile = fileman::addStrToFile($htmlStr, $htmlName);
         

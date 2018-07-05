@@ -3,7 +3,7 @@
 
 /**
  * Изключения за EGN-та
- * 
+ *
  * @category  bgerp
  * @package   bglocal
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -13,5 +13,4 @@
  */
 class bglocal_exception_EGN extends Exception
 {
-    
 }

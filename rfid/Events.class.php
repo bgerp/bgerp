@@ -19,73 +19,74 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class rfid_Events extends core_Manager {
+class rfid_Events extends core_Manager
+{
     
     
     /**
      * Заглавие
      */
-    var $title = 'Събития';
+    public $title = 'Събития';
     
     
     /**
      * Време за опресняване информацията при лист на събитията
      */
-    var $refreshRowsTime = 5000;
+    public $refreshRowsTime = 5000;
 
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,admin,rfid';
+    public $canRead = 'ceo,admin,rfid';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,admin,rfid';
+    public $canEdit = 'ceo,admin,rfid';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,admin,rfid';
+    public $canAdd = 'ceo,admin,rfid';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo,admin,rfid';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,admin,rfid';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,admin,rfid';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,admin,rfid';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,admin,rfid';
+    public $canView = 'ceo,admin,rfid';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,admin,rfid';
+    public $canDelete = 'ceo,admin,rfid';
     
     
     /**
      * Необходими плъгини и външни мениджъри
      */
-    var $loadList = 'rfid_Tags,rfid_Readers,plg_RefreshRows,rfid_Wrapper,plg_Created';
+    public $loadList = 'rfid_Tags,rfid_Readers,plg_RefreshRows,rfid_Wrapper,plg_Created';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         // Обща информация
         $this->FLD('holderId', 'key(mvc=rfid_Holders,select=objectId)', 'caption=Картодържател');
@@ -100,9 +101,9 @@ class rfid_Events extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    static function on_AfterPrepareData($mvc, &$res, $data)
+    public static function on_AfterPrepareData($mvc, &$res, $data)
     {
         $data->query->orderBy('#createdOn', 'DESC');
-        $data->toolbar = NULL;
+        $data->toolbar = null;
     }
 }

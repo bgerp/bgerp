@@ -15,35 +15,36 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class wund_Forecasts extends core_Manager {
+class wund_Forecasts extends core_Manager
+{
     
     
     /**
      * Заглавие на модула
      */
-    var $title = 'Прогнози за времето от Wunderground.com';
+    public $title = 'Прогнози за времето от Wunderground.com';
     
         
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         // Дата на прогнозата
-        $this->FLD("date", "date", array('caption' => 'Дата'));
+        $this->FLD('date', 'date', array('caption' => 'Дата'));
         
-        // Максимална температура 
-        $this->FLD("location", "varchar(64)", 'caption=Място,hint=Country/City');
+        // Максимална температура
+        $this->FLD('location', 'varchar(64)', 'caption=Място,hint=Country/City');
         
         // Минимална температура
-        $this->FLD("low", "double", 'caption=Температура->Мин.');
+        $this->FLD('low', 'double', 'caption=Температура->Мин.');
         
         // Максимална температура
-        $this->FLD("high", "double", 'caption=Температура->Макс.');
+        $this->FLD('high', 'double', 'caption=Температура->Макс.');
         
         // Максимална температура
-        $this->FLD("iconUrl", "varchar(128)", 'caption=Икона');
+        $this->FLD('iconUrl', 'varchar(128)', 'caption=Икона');
        
         $this->setDbUnique('date,location');
     }
@@ -52,16 +53,16 @@ class wund_Forecasts extends core_Manager {
     /**
      * Връща прогнозата за времето
      */
-    static function getForecast($date, $location = NULL)
+    public static function getForecast($date, $location = null)
     {
-        if(!$location) {
+        if (!$location) {
             $conf = core_Packs::getConfig('wund');
             $location = $conf->WUND_DEFAULT_LOCATION;
         }
         
-        if(!$location) {
-
-            return FALSE;
+        if (!$location) {
+            
+            return false;
         }
 
         $rec = self::fetch(array("#date = '[#1#]' && #location = '[#2#]'", $date, $location));
@@ -70,15 +71,12 @@ class wund_Forecasts extends core_Manager {
     }
 
 
-    /**
-     *
-     */
-    function cron_Update()
+    
+    public function cron_Update()
     {
- 
         $conf = core_Packs::getConfig('wund');
         $location = $conf->WUND_DEFAULT_LOCATION;
-        $apiKey   = $conf->WUND_API_KEY;
+        $apiKey = $conf->WUND_API_KEY;
         
         $locationEsc = str_replace(' ', '%20', $location);
         $jsonRes = file_get_contents("http://api.wunderground.com/api/{$apiKey}/forecast/q/{$locationEsc}.json");
@@ -87,26 +85,24 @@ class wund_Forecasts extends core_Manager {
 
         $forecastday = $weather->forecast->simpleforecast->forecastday;
 
-        if(is_array($forecastday)){
-        	foreach($forecastday as $day) {
-        	
-        		$date = "{$day->date->year}-{$day->date->month}-{$day->date->day}";
-        	
-        		$rec = self::fetch(array("#date = '[#1#]' && #location = '[#2#]'", $date, $location));
-        	
-        		if(!$rec) {
-        			$rec = new stdClass();
-        			$rec->date = $date;
-        			$rec->location = $location;
-        			 
-        		}
-        	
-        		$rec->low     = $day->low->celsius;
-        		$rec->high    = $day->high->celsius;
-        		$rec->iconUrl = $day->icon_url;
-        	
-        		self::save($rec);
-        	}
+        if (is_array($forecastday)) {
+            foreach ($forecastday as $day) {
+                $date = "{$day->date->year}-{$day->date->month}-{$day->date->day}";
+            
+                $rec = self::fetch(array("#date = '[#1#]' && #location = '[#2#]'", $date, $location));
+            
+                if (!$rec) {
+                    $rec = new stdClass();
+                    $rec->date = $date;
+                    $rec->location = $location;
+                }
+            
+                $rec->low = $day->low->celsius;
+                $rec->high = $day->high->celsius;
+                $rec->iconUrl = $day->icon_url;
+            
+                self::save($rec);
+            }
         }
     }
 }

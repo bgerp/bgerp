@@ -220,18 +220,22 @@ class core_SearchMysql extends core_BaseClass
         );
         
         if (isset($weights[$word])) {
+            
             return $weights[$word];
         }
         
         if (strlen($word) < 3) {
+            
             return 0.4;
         }
         
         if (strlen($word) < 4) {
+            
             return 0.6;
         }
         
         if (strlen($word) < 6) {
+            
             return 0.8;
         }
         
@@ -348,6 +352,7 @@ class core_SearchMysql extends core_BaseClass
     public function getChar($str, $pos)
     {
         if ($pos < 0 || $pos >= strlen($str)) {
+            
             return '';
         }
         
@@ -371,6 +376,7 @@ class core_SearchMysql extends core_BaseClass
         }
         
         if ($begin >= $end) {
+            
             return '';
         }
         

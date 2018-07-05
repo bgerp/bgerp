@@ -22,7 +22,7 @@ defIfNot('XMPPHP_USER', '');
 defIfNot('XMPPHP_PASSWORD', '');
 
 /**
- * Домейн 
+ * Домейн
  */
 defIfNot('XMPPHP_DOMAIN', 'gmail.com');
 
@@ -48,48 +48,48 @@ class xmpphp_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'xmpphp_Sender';
+    public $startCtr = 'xmpphp_Sender';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "XMPP известяване";
+    public $info = 'XMPP известяване';
 
 
     /**
      * Необходими пакети
      */
-    var $depends = '';
+    public $depends = '';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
         
                
-           'XMPPHP_SERVER'   => array ('varchar', 'caption=XMPP чат сървър->URL адрес'),
+           'XMPPHP_SERVER' => array('varchar', 'caption=XMPP чат сървър->URL адрес'),
     
-           'XMPPHP_PORT'   => array ('int', 'caption=XMPP чат сървър->Порт'),
+           'XMPPHP_PORT' => array('int', 'caption=XMPP чат сървър->Порт'),
      
-           'XMPPHP_DOMAIN'   => array ('varchar', 'caption=XMPP чат сървър->Домейн'),
+           'XMPPHP_DOMAIN' => array('varchar', 'caption=XMPP чат сървър->Домейн'),
     
-           'XMPPHP_USER'   => array ('nick(64, ci)', 'mandatory, class=w25,caption=Сметка->Ник'),
+           'XMPPHP_USER' => array('nick(64, ci)', 'mandatory, class=w25,caption=Сметка->Ник'),
     
-           'XMPPHP_PASSWORD'   => array ('password', 'mandatory, caption=Сметка->Парола')
+           'XMPPHP_PASSWORD' => array('password', 'mandatory, caption=Сметка->Парола')
     
     
         );
@@ -98,7 +98,7 @@ class xmpphp_Setup extends core_ProtoSetup
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'xmpphp_Sender'
         );
     
@@ -106,9 +106,9 @@ class xmpphp_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	// Изтриване на пакета от менюто
+        // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
         
         return $res;

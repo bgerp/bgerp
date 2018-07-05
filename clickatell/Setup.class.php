@@ -34,7 +34,7 @@ defIfNot('CLICKATELL_PASSWORD', '');
 /**
  * Дали поддържа UTF-8
  */
-defIfNot('CLIKATELL_SUPPORT_UTF8', FALSE);
+defIfNot('CLIKATELL_SUPPORT_UTF8', false);
 
 
 /**
@@ -60,25 +60,23 @@ defIfNot('CLIKATELL_ALLOWED_USER_NAMES', '');
  * @since     v 0.1
  */
 class clickatell_Setup extends core_ProtoSetup
-{ 
+{
     
     
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "SMS изпращане чрез Clickatell";
+    public $info = 'SMS изпращане чрез Clickatell';
     
     
-    /**
-     * 
-     */
-    var $configDescription = array (
+    
+    public $configDescription = array(
         'CLICKATELL_URL' => array('url', 'caption=Адрес за изпращане на SMS-и->URL адрес'),
         'CLICKATELL_CHECK_URL' => array('url', 'caption=Адрес за проверка на връзката с clickatell->URL адрес'),
         'CLICKATELL_APIID' => array('varchar', 'mandatory, caption=Идентификатор на приложението->API_ID'),
@@ -94,7 +92,7 @@ class clickatell_Setup extends core_ProtoSetup
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'clickatell_SMS',
         );
    
@@ -102,7 +100,7 @@ class clickatell_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

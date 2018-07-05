@@ -21,50 +21,50 @@ class sens_Sensors extends core_Master
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2,plg_Rejected,
+    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2,plg_Rejected,
                      Params=sens_Params, sens_Wrapper';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Сензори';
+    public $title = 'Сензори';
     
     
     /**
      * Права за писане
      */
-    var $canWrite = 'ceo,sens, admin';
+    public $canWrite = 'ceo,sens, admin';
     
     
     /**
      * Права за запис
      */
-    var $canRead = 'ceo,sens, admin';
+    public $canRead = 'ceo,sens, admin';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo,admin,sens';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,admin,sens';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,admin,sens';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,admin,sens';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('title', 'varchar(255)', 'caption=Заглавие, mandatory');
         $this->FNC('indications', 'varchar(255)', 'caption=Показания');
@@ -77,11 +77,11 @@ class sens_Sensors extends core_Master
     /**
      * Преди изтриване на запис
      */
-    static function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    public static function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
         // Изтриваме перманентните данни за драйвера
         $rec = $query->fetch($cond);
-        $driver = cls::get($rec->driver, array('id'=>$rec->id));
+        $driver = cls::get($rec->driver, array('id' => $rec->id));
         permanent_Settings::purge($driver);
     }
     
@@ -91,7 +91,7 @@ class sens_Sensors extends core_Master
      * @param object $mvc
      * @param object $data
      */
-    static function on_AfterPrepareRetUrl($mvc, $data)
+    public static function on_AfterPrepareRetUrl($mvc, $data)
     {
         if ($data->form->isSubmitted()) {
             $url = array('permanent_Settings', 'Ajust',
@@ -100,7 +100,7 @@ class sens_Sensors extends core_Master
                 'wrapper' => 'sens_Sensors',
                 'ret_url' => toUrl($data->retUrl, 'local')
             );
-            $data->retUrl = $url;  
+            $data->retUrl = $url;
             Request::setProtected('objCls, objId, wrapper');
         }
     }
@@ -110,14 +110,14 @@ class sens_Sensors extends core_Master
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
-    static function on_AfterPrepareEditform($mvc, &$data)
-    { 
-        $form = $data->form; 
+    public static function on_AfterPrepareEditform($mvc, &$data)
+    {
+        $form = $data->form;
         $rec = $form->rec;
        
-        if($rec->id) {   
+        if ($rec->id) {
             $form->setReadonly('driver');
         }
     }
@@ -128,7 +128,7 @@ class sens_Sensors extends core_Master
      * @param stdClass $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         $driver = cls::get($data->rec->driver, (array) $data->rec);
         
@@ -136,7 +136,7 @@ class sens_Sensors extends core_Master
             'objCls' => $data->rec->driver,
             'objId' => $data->rec->id,
             'wrapper' => 'sens_Sensors',
-            'ret_url' => TRUE
+            'ret_url' => true
         );
         
         Request::setProtected('objCls, objId, wrapper');
@@ -152,11 +152,9 @@ class sens_Sensors extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        
-        if(!cls::load($rec->driver, TRUE)) {
-            
+        if (!cls::load($rec->driver, true)) {
             $className = cls::getClassName($rec->driver) ? : $rec->driver;
             $row->driver = "<span class='red'>{$className}</span>";
             
@@ -164,9 +162,9 @@ class sens_Sensors extends core_Master
         }
         
         // Инициализираме драйвера
-        $driver = cls::get($rec->driver, array('id'=>$rec->id, 'readonly' => TRUE)); 
+        $driver = cls::get($rec->driver, array('id' => $rec->id, 'readonly' => true));
         
-        $settingsArr = (array)$driver->settings;
+        $settingsArr = (array) $driver->settings;
         
         // Тези не са интересни
         unset($settingsArr['objCls']);
@@ -174,32 +172,34 @@ class sens_Sensors extends core_Master
         unset($settingsArr['wrapper']);
         
         // Махаме незададените аларми
-        for($i = 1; $i <= $driver->alarmCnt; $i++) {
+        for ($i = 1; $i <= $driver->alarmCnt; $i++) {
             switch ($settingsArr["alarm_{$i}_cond"]) {
-                case "nothing" :
-                	unset($settingsArr["alarm_{$i}_message"]);
-                	unset($settingsArr["alarm_{$i}_cond"]);
-                	unset($settingsArr["alarm_{$i}_severity"]);
-                	unset($settingsArr["alarm_{$i}_value"]);
-                	unset($settingsArr["alarm_{$i}_param"]);
-                	unset($settingsArr["OutD1_{$i}"]);
-                	unset($settingsArr["OutD2_{$i}"]);
-                	break;
+                case 'nothing':
+                    unset($settingsArr["alarm_{$i}_message"]);
+                    unset($settingsArr["alarm_{$i}_cond"]);
+                    unset($settingsArr["alarm_{$i}_severity"]);
+                    unset($settingsArr["alarm_{$i}_value"]);
+                    unset($settingsArr["alarm_{$i}_param"]);
+                    unset($settingsArr["OutD1_{$i}"]);
+                    unset($settingsArr["OutD2_{$i}"]);
+                    break;
             }
         }
 
-        $row->settings = "<table colspan=0 rowspan=0>";
-        foreach ($settingsArr as $name =>$value) {
-        	// Празните параметри не ги показваме
-            if (empty($value) && !is_numeric($value)) continue;
-        	
-            $row->settings .= "<tr><td>" .$name . "</td><td>= " . $value . "</td></tr>";
+        $row->settings = '<table colspan=0 rowspan=0>';
+        foreach ($settingsArr as $name => $value) {
+            // Празните параметри не ги показваме
+            if (empty($value) && !is_numeric($value)) {
+                continue;
+            }
+            
+            $row->settings .= '<tr><td>' .$name . '</td><td>= ' . $value . '</td></tr>';
         }
-        $row->settings .= "</table>";
+        $row->settings .= '</table>';
         
         $row->indications = $driver->renderHtml();
 
-        if($driver->title) {
+        if ($driver->title) {
             $row->driver = $driver->title;
         }
     }
@@ -208,7 +208,7 @@ class sens_Sensors extends core_Master
     /**
      * Стартира функцията за крона през ВЕБ
      */
-    function act_Cron()
+    public function act_Cron()
     {
         return $this->cron_Process();
     }
@@ -220,17 +220,17 @@ class sens_Sensors extends core_Master
      * за всеки 1 драйвер като предава id и key - ключ,
      * базиран на id на драйвера и сол
      */
-    function cron_Process()
+    public function cron_Process()
     {
         $querySensors = sens_Sensors::getQuery();
         $querySensors->where("#state='active'");
-        $querySensors->show("id");
+        $querySensors->show('id');
         
         while ($sensorRec = $querySensors->fetch()) {
             $url = toUrl(array($this->className, 'Process', str::addHash($sensorRec->id)), 'absolute');
             
             //return file_get_contents($url,FALSE,NULL,0,2);
-            @file_get_contents($url, FALSE, NULL, 0, 2);
+            @file_get_contents($url, false, null, 0, 2);
         }
     }
     
@@ -241,7 +241,7 @@ class sens_Sensors extends core_Master
      * Инициализира обект $driver
      * и извиква $driver->process().
      */
-    function act_Process()
+    public function act_Process()
     {
         // Затваряме връзката с извикване
         
@@ -252,9 +252,9 @@ class sens_Sensors extends core_Master
         header("Connection: close\r\n");
         header("Content-Encoding: none\r\n");
         ob_start();
-        echo "OK";
+        echo 'OK';
         $size = ob_get_length();
-        header("Content-Length: $size");
+        header("Content-Length: ${size}");
         ob_end_flush();
         flush();
         ob_end_clean();
@@ -262,14 +262,14 @@ class sens_Sensors extends core_Master
         $id = str::checkHash(Request::get('id', 'varchar'));
         
 //      $id = 5;
-        if (FALSE === $id) {
+        if (false === $id) {
             
             /**
              * @todo Логва се съобщение за неоторизирано извикване
              */
             exit(1);
         }
-        $rec = $this->fetch("#id = $id");
+        $rec = $this->fetch("#id = ${id}");
         $driver = cls::get($rec->driver, (array) $rec);
         $driver->process();
         shutdown();

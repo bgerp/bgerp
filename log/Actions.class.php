@@ -2,7 +2,7 @@
 
 
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   logs
@@ -24,7 +24,7 @@ class log_Actions extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Действия";
+    public $title = 'Действия';
     
     
     /**
@@ -75,9 +75,7 @@ class log_Actions extends core_Manager
     public $searchFields = 'action';
     
     
-    /**
-     * 
-     */
+    
     public static $actionsArr = array();
     
     
@@ -95,14 +93,17 @@ class log_Actions extends core_Manager
     
     /**
      * Връща crc32 стойността на стринга
-     * 
+     *
      * @param string $action
-     * 
+     *
      * @return integer
      */
     public static function getActionCrc($action)
     {
-        if (!$action) return ;
+        if (!$action) {
+            
+            return ;
+        }
         
         $actionCrc = crc32($action);
         
@@ -119,24 +120,25 @@ class log_Actions extends core_Manager
      */
     public static function saveActions()
     {
-       foreach (self::$actionsArr as $crc => $action) {
+        foreach (self::$actionsArr as $crc => $action) {
+            if (self::fetch("#crc = {$crc}")) {
+                continue;
+            }
 
-           if(self::fetch("#crc = {$crc}")) continue;
-
-           $rec = new stdClass();
-           $rec->crc = $crc;
-           $rec->action = $action;
+            $rec = new stdClass();
+            $rec->crc = $crc;
+            $rec->action = $action;
            
-           self::save($rec, NULL, 'IGNORE');
-       }
+            self::save($rec, null, 'IGNORE');
+        }
     }
     
     
     /**
      * Връща действието от crc стойността
-     * 
+     *
      * @param integer $crc
-     * 
+     *
      * @return string
      */
     public static function getActionFromCrc($crc)

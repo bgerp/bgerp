@@ -4,7 +4,7 @@
 
 /**
  * Интерфейс за добавяне на файлове от документи в диструбутив
- * 
+ *
  * @category  bgerp
  * @package   distro
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -19,14 +19,13 @@ class distro_AddFilesIntf
     /**
      * Функция, която връща масив с манипулаторите на всички файлове,
      * които ще се добавят в диструбутива
-     * 
+     *
      * @param integer id - id на записа от модела
-     * 
+     *
      * @return array - Масив с ключ манипулатора на файла
      */
-    function getFilesArr($id)
+    public function getFilesArr($id)
     {
-        
         return $this->class->getFilesArr($id);
     }
 }

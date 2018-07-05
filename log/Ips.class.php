@@ -2,7 +2,7 @@
 
 
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   logs
@@ -24,7 +24,7 @@ class log_Ips extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "IP-та";
+    public $title = 'IP-та';
     
     
     /**
@@ -69,9 +69,7 @@ class log_Ips extends core_Manager
     public $loadList = 'plg_SystemWrapper, log_Wrapper';
     
     
-    /**
-     * 
-     */
+    
     public static $ipsArr = array();
     
     
@@ -80,26 +78,26 @@ class log_Ips extends core_Manager
      */
     public function description()
     {
-         $this->FLD('ip', 'ip', 'caption=IP');
-         $this->FLD('country2', 'varchar(2)', 'caption=Код на държавата');
+        $this->FLD('ip', 'ip', 'caption=IP');
+        $this->FLD('country2', 'varchar(2)', 'caption=Код на държавата');
          
-         $this->setDbUnique('ip');
+        $this->setDbUnique('ip');
     }
     
     
     /**
      * Връща id за съответния запис на IP
-     * 
+     *
      * @param IP $ip
-     * 
+     *
      * @return integer
      */
-    public static function getIpId($ip = NULL)
+    public static function getIpId($ip = null)
     {
-        $haveSession = FALSE;
+        $haveSession = false;
         $Session = cls::get('core_Session');
         if ($Session->isStarted()) {
-            $haveSession = TRUE;
+            $haveSession = true;
         }
         
         if (!$ip) {
@@ -117,12 +115,11 @@ class log_Ips extends core_Manager
         // Ако в сесията нямада id-то на IP-то, определяме го, записваме в модела и в сесията
         if (!isset(self::$ipsArr[$ip])) {
             if (!($id = self::fetchField(array("#ip = '[#1#]'", $ip), 'id'))) {
-                
                 $rec = new stdClass();
                 $rec->ip = $ip;
                 $rec->country2 = drdata_IpToCountry::get($ip); // TODO така ли трябва да е?
                 
-                $id = self::save($rec, NULL, 'IGNORE');
+                $id = self::save($rec, null, 'IGNORE');
             }
             
             if ($id) {

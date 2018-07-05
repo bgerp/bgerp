@@ -25,7 +25,7 @@ class markdown_Render
     /**
      * Конвертира посочени markdown текст в HTML формат
      */
-    static function Convert($html)
+    public static function Convert($html)
     {
         //Пътя до файла на markdown
         $filePath = MARKDOWN_VERSION . '/' . 'markdown.php';

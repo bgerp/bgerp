@@ -163,6 +163,7 @@ class acc_journal_Transaction
         $this->check();
         
         if (!$this->begin()) {
+            
             return false;
         }
         
@@ -202,6 +203,7 @@ class acc_journal_Transaction
     {
         // Ако транзакцията е празна не се записва в журнала
         if ($this->isEmpty()) {
+            
             return true;
         }
         
@@ -230,6 +232,7 @@ class acc_journal_Transaction
         
         // Ако транзакцията е празна не се записва в журнала
         if ($this->isEmpty()) {
+            
             return true;
         }
         

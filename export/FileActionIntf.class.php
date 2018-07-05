@@ -3,7 +3,7 @@
 
 /**
  * Интерфейс за обработка на експортираните файлове
- * 
+ *
  * @category  bgerp
  * @package   export
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -24,12 +24,11 @@ class export_FileActionIntf
     
     /**
      * Добавя бутон за обработка на файла
-     * 
+     *
      * @param core_Form $form
      */
-    function addActionBtn($form, $fileHnd)
+    public function addActionBtn($form, $fileHnd)
     {
-        
         return $this->class->addActionBtn($form, $fileHnd);
     }
 }

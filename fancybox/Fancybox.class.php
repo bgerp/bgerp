@@ -17,18 +17,25 @@
  * @todo:     Да се документира този клас
  * @link      http://fancybox.net/
  */
-class fancybox_Fancybox extends core_Manager {
+class fancybox_Fancybox extends core_Manager
+{
     
     
     /**
      * @todo Чака за документация...
      */
-    static function getImage_($fh, $thumbSize, $maxSize, $baseName = NULL, $imgAttr = array(), $aAttr = array())
+    public static function getImage_($fh, $thumbSize, $maxSize, $baseName = null, $imgAttr = array(), $aAttr = array())
     {
         // Ако е текстов режим, да не сработва
-        if (Mode::is('text', 'plain')) return '';
+        if (Mode::is('text', 'plain')) {
+            
+            return '';
+        }
         
-        if (!$fh) return ;
+        if (!$fh) {
+            
+            return ;
+        }
         
         // Ако е зададено да е абсолютен линк
         $isAbsolute = $imgAttr['isAbsolute'];
@@ -41,19 +48,18 @@ class fancybox_Fancybox extends core_Manager {
         }
         
         // Създаваме изображението
-        if(is_int($thumbSize)) {
+        if (is_int($thumbSize)) {
             $thumbWidth = $thumbHeight = $thumbSize;
-        } elseif(is_array($thumbSize)) {
+        } elseif (is_array($thumbSize)) {
             setIfNot($thumbWidth, $thumbSize['width'], $thumbSize[0]);
             setIfNot($thumbHeight, $thumbSize['height'], $thumbSize[1]);
         } else {
-            expect(FALSE, $thumbSize);
+            expect(false, $thumbSize);
         }
 
         $thumb = new thumb_Img(array($fh, $thumbWidth, $thumbHeight, 'fileman', 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => $baseName));
         
-        if($thumbSize[0] >= $maxSize[0] && $thumbSize[1] >= $maxSize[1]) {
-  
+        if ($thumbSize[0] >= $maxSize[0] && $thumbSize[1] >= $maxSize[1]) {
             $imgTpl = $thumb->createImg($imgAttr);
             
             return $imgTpl;
@@ -64,13 +70,13 @@ class fancybox_Fancybox extends core_Manager {
         $imgTpl = $thumb->createImg($attr);
 
         // Създаваме хипервръзката
-        if(is_int($maxSize)) {
+        if (is_int($maxSize)) {
             $bigWidth = $bigHeight = $maxSize;
-        } elseif(is_array($thumbSize)) {
+        } elseif (is_array($thumbSize)) {
             setIfNot($bigWidth, $maxSize['width'], $maxSize[0]);
             setIfNot($bigHeight, $maxSize['height'], $maxSize[1]);
         } else {
-            expect(FALSE, $maxSize);
+            expect(false, $maxSize);
         }
 
         $bigImg = new thumb_Img(array($fh, $bigWidth, $bigHeight, 'fileman', 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => $baseName));
@@ -86,7 +92,7 @@ class fancybox_Fancybox extends core_Manager {
             $aAttr['href'] = $bigImg->getUrl();
         }
         
-        setIfNot($aAttr['rel'], $maxSize[0] . "_" . $maxSize[1]);
+        setIfNot($aAttr['rel'], $maxSize[0] . '_' . $maxSize[1]);
         $aAttr['class'] .= 'fancybox';
         $tpl = ht::createElement('a', $aAttr, $imgTpl);
         
@@ -97,7 +103,7 @@ class fancybox_Fancybox extends core_Manager {
             $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.css', 'CSS');
             $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.js', 'JS');
             
-            jquery_Jquery::run($tpl, "$('a.fancybox').fancybox();", TRUE);
+            jquery_Jquery::run($tpl, "$('a.fancybox').fancybox();", true);
         }
         
         return $tpl;

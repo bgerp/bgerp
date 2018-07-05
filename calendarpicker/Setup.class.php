@@ -14,53 +14,49 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class calendarpicker_Setup extends core_ProtoSetup 
+class calendarpicker_Setup extends core_ProtoSetup
 {
     
     
-    /**
-     * 
-     */
+    
 //    var $commonCSS = 'calendarpicker/skins/aqua/theme.css';
     
     
-    /**
-     * 
-     */
+    
 //    var $commonJS = 'calendarpicker/calendar.js, calendarpicker/lang/calendar-[#CORE::EF_DEFAULT_LANGUAGE#].js, calendarpicker/calendar-setup.js';
     
     
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Добавя изскачащ календар в полетата за въвеждане на дата";
+    public $info = 'Добавя изскачащ календар в полетата за въвеждане на дата';
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -74,10 +70,10 @@ class calendarpicker_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

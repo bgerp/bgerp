@@ -60,45 +60,45 @@ class callcenter_Setup extends core_ProtoSetup
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'ssh=0.1';
+    public $depends = 'ssh=0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'callcenter_Talks';
+    public $startCtr = 'callcenter_Talks';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Център за телефонни обаждания. Връзка с тел. централа Asterisk";
+    public $info = 'Център за телефонни обаждания. Връзка с тел. централа Asterisk';
     
     
     /**
      * Описание на системните действия
      */
-    var $systemActions = array(
-        array('title' => 'Актуализиране', 'url' => array('callcenter_Numbers', 'update', 'ret_url' => TRUE), 'params' => array('title' => 'Актуализиране на номерата'))
+    public $systemActions = array(
+        array('title' => 'Актуализиране', 'url' => array('callcenter_Numbers', 'update', 'ret_url' => true), 'params' => array('title' => 'Актуализиране на номерата'))
     );
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
        'CALLCENTER_PROTECT_KEY' => array('varchar', 'caption=Защитен ключ за регистриране на обаждания->Ключ, width=100%'),
        'CALLCENTER_DRAFT_TO_NOANSWER' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=След колко време да се промени от празно състояние в без отговор->Време, width=100px'),
        'CALLCENTER_MAX_CALL_DURATION' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=Максимално време на продължителност на разговорите->Време, width=100px'),
@@ -112,15 +112,15 @@ class callcenter_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(2.04, 'Обслужване', 'Централа', 'callcenter_Talks', 'default', "user"),
+    public $menuItems = array(
+            array(2.04, 'Обслужване', 'Централа', 'callcenter_Talks', 'default', 'user'),
         );
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'callcenter_Talks',
             'callcenter_Fax',
             'callcenter_SMS',
@@ -135,10 +135,10 @@ class callcenter_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-      	$html = parent::install();
-      	
+        $html = parent::install();
+          
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -156,7 +156,7 @@ class callcenter_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);
@@ -167,17 +167,23 @@ class callcenter_Setup extends core_ProtoSetup
 
     /**
      * Проверява дали услугата позволява съответния изпращач
-     * 
+     *
      * @return string
      */
-    function checkConfig()
+    public function checkConfig()
     {
         $conf = core_Packs::getConfig('callcenter');
         
         // Ако не е зададена услуга или изпращач
-        if ((!$conf->CALLCENTER_SMS_SERVICE) || (!$conf->CALLCENTER_SMS_SENDER)) return ;
+        if ((!$conf->CALLCENTER_SMS_SERVICE) || (!$conf->CALLCENTER_SMS_SENDER)) {
+            
+            return ;
+        }
         
-        if (!cls::load($conf->CALLCENTER_SMS_SERVICE, TRUE)) return ;
+        if (!cls::load($conf->CALLCENTER_SMS_SERVICE, true)) {
+            
+            return ;
+        }
         
         // Инстанция на услугата
         $inst = cls::get($conf->CALLCENTER_SMS_SERVICE);
@@ -186,7 +192,10 @@ class callcenter_Setup extends core_ProtoSetup
         $paramsArr = $inst->getParams();
         
         // Ако не са зададени позволение имена за изпращач
-        if (!$paramsArr['allowedUserNames']) return ;
+        if (!$paramsArr['allowedUserNames']) {
+            
+            return ;
+        }
         
         // Ако изпращача не е в допустимите
         if (!$paramsArr['allowedUserNames'][$conf->CALLCENTER_SMS_SENDER]) {
@@ -202,7 +211,7 @@ class callcenter_Setup extends core_ProtoSetup
     /**
      * Миграция за премахване на записите с `0000-00-00 00:00:00`
      */
-    static function nullWrongAnswerAndEndTime()
+    public static function nullWrongAnswerAndEndTime()
     {
         $cnt = 0;
         $cQuery = callcenter_Talks::getQuery();
@@ -211,11 +220,11 @@ class callcenter_Setup extends core_ProtoSetup
         $cQuery->orWhere("#endTime = '{$zeroTime}'");
         while ($rec = $cQuery->fetch()) {
             if ($rec->answerTime == $zeroTime) {
-                $rec->answerTime = NULL;
+                $rec->answerTime = null;
             }
             
             if ($rec->endTime == $zeroTime) {
-                $rec->endTime = NULL;
+                $rec->endTime = null;
             }
             
             callcenter_Talks::save($rec);
@@ -223,6 +232,7 @@ class callcenter_Setup extends core_ProtoSetup
         }
         
         if ($cnt) {
+            
             return "<li class='green'>Оправени записи за времена на разговорите на {$cnt} записа</li>";
         }
     }
@@ -231,13 +241,15 @@ class callcenter_Setup extends core_ProtoSetup
     /**
      * Миграция за добавяне на продължителност на разговорите
      */
-    static function fixDurationField()
+    public static function fixDurationField()
     {
         $cQuery = callcenter_Talks::getQuery();
-        $cQuery->where("#duration IS NULL");
+        $cQuery->where('#duration IS NULL');
         while ($rec = $cQuery->fetch()) {
             $rec->duration = callcenter_Talks::getDuration($rec->answerTime, $rec->endTime);
-            if (!$rec->duration) continue;
+            if (!$rec->duration) {
+                continue;
+            }
             callcenter_Talks::save($rec);
         }
     }

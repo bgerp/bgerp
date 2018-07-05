@@ -24,7 +24,7 @@ class type_Group extends type_Key
     /**
      * Инициализиране на обекта
      */
-    function init($params = array())
+    public function init($params = array())
     {
         parent::init($params);
         
@@ -43,7 +43,7 @@ class type_Group extends type_Key
      * Ако е посочен суфикс, извеждате се само интерфейсите
      * чието име завършва на този суфикс
      */
-    public function prepareOptions($value = NULL)
+    public function prepareOptions($value = null)
     {
         expect($base = $this->params['base']);     // Базов модел
         expect($keylist = $this->params['keylist']);     // Името на keylist полето
@@ -56,17 +56,17 @@ class type_Group extends type_Key
         $baseQuery = $baseMvc->getQuery();
         $baseQuery->show($keylist);
         
-        while($baseRec = $baseQuery->fetch()) {
+        while ($baseRec = $baseQuery->fetch()) {
             $arr = keylist::toArray($baseRec->{$keylist});
             
-            foreach($arr as $id => $dummy) {
+            foreach ($arr as $id => $dummy) {
                 $groups[$id]++;
             }
         }
         
         if (is_array($groups)) {
-            foreach($groups as $id => $cnt) {
-                $this->options[$id] = $mvc->getTitleById($id, FALSE) . " ({$cnt})";
+            foreach ($groups as $id => $cnt) {
+                $this->options[$id] = $mvc->getTitleById($id, false) . " ({$cnt})";
             }
         }
         
@@ -81,7 +81,7 @@ class type_Group extends type_Key
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
         $this->prepareOptions();
         
@@ -92,7 +92,7 @@ class type_Group extends type_Key
     /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
-    function fromVerbal_($value)
+    public function fromVerbal_($value)
     {
         $this->prepareOptions();
         

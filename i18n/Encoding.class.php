@@ -15,19 +15,20 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class i18n_Encoding {
+class i18n_Encoding
+{
     
     
     /**
      *  Mасив с ключове - алиас-и на  и стойности - официални имена на кодировки за двоични данни
      */
-    static $encodingsMatchs = array();
+    public static $encodingsMatchs = array();
 
 
     /**
      * Резултат - aSCII, 8bit-non-latin, 8bit-latin, utf8
      */
-    function getPossibleEncodings($text)
+    public function getPossibleEncodings($text)
     {
         $encodings = array('BASE64' => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r\t",
             'QUOTED-PRINTABLE' => '',
@@ -36,36 +37,35 @@ class i18n_Encoding {
         );
         
         // Проверка за BinHex4
-        $pos = stripos($text, "BinHex 4");
+        $pos = stripos($text, 'BinHex 4');
         
-        if(0 < $pos && $pos  < 40) {
+        if (0 < $pos && $pos < 40) {
+            
             return array('BINHEX');
         }
         
         $len = strlen($text);
         
-        for($i = 0; $i < $len; $i++) {
-            
+        for ($i = 0; $i < $len; $i++) {
             $c = $text{$i};
             $cOrd = ord($c);
             
-            foreach($encodings as $name => $allowedChars) {
-                if ($name == '7BIT')  {
-                    if($cOrd > 127) {
+            foreach ($encodings as $name => $allowedChars) {
+                if ($name == '7BIT') {
+                    if ($cOrd > 127) {
                         
                         return '8BIT';
                     }
                 } elseif ($name == 'QUOTED-PRINTABLE') {
-                    if(!(($cOrd >= 32 && $cOrd <= 126) || $cOrd == 9 || $cOrd == 10 || $cOrd == 13)) {
-                        
+                    if (!(($cOrd >= 32 && $cOrd <= 126) || $cOrd == 9 || $cOrd == 10 || $cOrd == 13)) {
                         unset($encodings[$name]);
                     }
-                } elseif(strpos($allowedChars, $c) === FALSE) {
+                } elseif (strpos($allowedChars, $c) === false) {
                     unset($encodings[$name]);
                 }
             }
             
-            foreach($encodings as $name => $chars) {
+            foreach ($encodings as $name => $chars) {
                 $res[] = $name;
             }
             
@@ -78,19 +78,21 @@ class i18n_Encoding {
      * Опитва се да извлече име на познато кодиране на
      * двоични данни от зададения стринг
      */
-    static function getCanonical($encoding)
+    public static function getCanonical($encoding)
     {
         $encoding = strtoupper(trim($encoding));
         
-        if(!$encoding) return NULL;
+        if (!$encoding) {
+            return;
+        }
         
         self::prepareEncodingMatchs();
         
-        if(self::$encodingsMatchs[$encoding]) {
+        if (self::$encodingsMatchs[$encoding]) {
             $findEncoding = $encoding;
         } else {
-            foreach(self::$encodingsMatchs as $key => $name) {
-                if(strpos($encoding, (string) $key) !== FALSE) {
+            foreach (self::$encodingsMatchs as $key => $name) {
+                if (strpos($encoding, (string) $key) !== false) {
                     $findEncoding = $name;
                     break;
                 }
@@ -107,7 +109,7 @@ class i18n_Encoding {
      */
     private static function prepareEncodingMatchs()
     {
-        if(count(self::$encodingsMatchs)) {
+        if (count(self::$encodingsMatchs)) {
             return;
         }
         
@@ -121,17 +123,18 @@ class i18n_Encoding {
             'BINHEX'
         );
         
-        foreach($encodings as $name => $al) {
-            
-            if(is_int($name)) $name = $al;
+        foreach ($encodings as $name => $al) {
+            if (is_int($name)) {
+                $name = $al;
+            }
             
             $name = strtoupper(trim($name));
             expect(!self::$encodingsMatchs[$name]);
             self::$encodingsMatchs[$name] = $name;
             
-            $alArr = explode(",", $al);
+            $alArr = explode(',', $al);
             
-            foreach($alArr as $a) {
+            foreach ($alArr as $a) {
                 $a = strtoupper(trim($a));
                 
                 if ($a != $name) {

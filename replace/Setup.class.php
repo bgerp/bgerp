@@ -18,31 +18,31 @@ class replace_Setup extends core_ProtoSetup
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Заместване на текст в richtext";
+    public $info = 'Заместване на текст в richtext';
     
 
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'replace_Dictionary';
+    public $startCtr = 'replace_Dictionary';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
 
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
         
           // 'OEMBED_MAX_WIDTH' => array ('int', 'caption=Максимална широчина на вградените елементи->Размер в пиксели'),
              );
@@ -50,7 +50,7 @@ class replace_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
         
@@ -71,17 +71,17 @@ class replace_Setup extends core_ProtoSetup
     }
     
     
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме плъгина за работа с документи от системата
         // Замества handle' ите на документите с линк към документа
         $Plugins->deinstallPlugin('replace_Plugin');
-        $html .= "<li>Деинсталиране на replace_Plugin";
+        $html .= '<li>Деинсталиране на replace_Plugin';
         
         return $html;
     }

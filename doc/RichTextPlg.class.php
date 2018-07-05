@@ -78,6 +78,7 @@ class doc_RichTextPlg extends core_Plugin
     {
         // Във външната част и при принтиране да не сработва
         if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
+            
             return $html;
         }
         
@@ -85,6 +86,7 @@ class doc_RichTextPlg extends core_Plugin
         $hideLen = $conf->DOC_HIDE_TEXT_AFTER_LENGTH;
         
         if (mb_strlen($html) <= $hideLen) {
+            
             return $html;
         }
         
@@ -92,6 +94,7 @@ class doc_RichTextPlg extends core_Plugin
         $cHtmlArr = explode("\n", $cHtml, 2);
         
         if (!$cHtmlArr[1]) {
+            
             return $html;
         }
         
@@ -116,6 +119,7 @@ class doc_RichTextPlg extends core_Plugin
     public function _catchFile($match)
     {
         if (!$doc = doc_Containers::getDocumentByHandle($match)) {
+            
             return $match[0];
         }
         
@@ -197,6 +201,7 @@ class doc_RichTextPlg extends core_Plugin
         preg_match(self::$pattern, $handle, $matches);
         
         if (!$matches) {
+            
             return ;
         }
         
@@ -265,6 +270,7 @@ class doc_RichTextPlg extends core_Plugin
     {
         // Ако не е подадено нищо
         if (!trim($fileName)) {
+            
             return ;
         }
         
@@ -306,6 +312,7 @@ class doc_RichTextPlg extends core_Plugin
             // core_master::getSingleUrlArray връща празен масив ако потребителя няма достъп
             $singleUrl = $className::getSingleUrlArray($rec);
             if (is_array($singleUrl) && count($singleUrl)) {
+                
                 return $handleInfo;
             }
         }
@@ -323,6 +330,7 @@ class doc_RichTextPlg extends core_Plugin
     public function on_AfterCatchBQuote($mvc, &$quote, $hnd)
     {
         if (!trim($hnd)) {
+            
             return ;
         }
         
@@ -330,6 +338,7 @@ class doc_RichTextPlg extends core_Plugin
         $fileInfo = static::getFileInfo($hnd);
         
         if (!$fileInfo) {
+            
             return ;
         }
         
@@ -342,6 +351,7 @@ class doc_RichTextPlg extends core_Plugin
         $cRec = $class->getContainer($rec->id);
         
         if (!$cRec) {
+            
             return ;
         }
         
@@ -489,6 +499,7 @@ class doc_RichTextPlg extends core_Plugin
             $callback = "function {$callbackName}(docHnd) {
                 var ta = get$('{$id}');
                 rp(docHnd, ta, 1);
+                
                 return true;
             }";
             
@@ -510,6 +521,7 @@ class doc_RichTextPlg extends core_Plugin
     {
         // Да не сработва в текстов режим
         if (Mode::is('text', 'plain') || Mode::is('text', 'xhtml')) {
+            
             return $match[0];
         }
         
@@ -519,6 +531,7 @@ class doc_RichTextPlg extends core_Plugin
         $id = core_Users::fetchField(array("LOWER (#nick) = '[#1#]'", $nick));
         
         if (!$id) {
+            
             return $match[0];
         }
         

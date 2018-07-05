@@ -3,7 +3,7 @@
 
 /**
  * Помощен клас за обединяване на старите и новите отчети
- * 
+ *
  * @category  bgerp
  * @package   frame2
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -24,7 +24,7 @@ class frame2_AllReports extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Справки и отчети";
+    public $title = 'Справки и отчети';
     
     
     /**
@@ -46,27 +46,27 @@ class frame2_AllReports extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'no_one';
-	
-	
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'no_one';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'no_one';
     
     
-	/**
-	 * Кой може да добавя?
-	 */
-	public $canAdd = 'powerUser';
-	
-	
-	/**
-	 * Детайла, на модела
-	 */
-	public $details = 'frame2_ReportVersions';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'no_one';
+    
+    
+    /**
+     * Кой може да добавя?
+     */
+    public $canAdd = 'powerUser';
+    
+    
+    /**
+     * Детайла, на модела
+     */
+    public $details = 'frame2_ReportVersions';
     
     
     /**
@@ -78,7 +78,7 @@ class frame2_AllReports extends core_Master
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "1.6|Общи";
+    public $newBtnGroup = '1.6|Общи';
     
     
     /**
@@ -96,7 +96,7 @@ class frame2_AllReports extends core_Master
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FNC('source', 'class(allowEmpty, select=title)', 'caption=Вид, allowempty, mandatory, input, refreshForm, silent');
         $this->FNC('folderId', 'key(mvc=doc_Folders)', 'input=hidden, silent');
@@ -107,15 +107,14 @@ class frame2_AllReports extends core_Master
     
     /**
      * Проверка дали нов документ може да бъде добавен в посочената папка като начало на нишка
-     * 
+     *
      * @param $folderId int - key(mvc=doc_Folders)
-     * 
+     *
      * @return boolean
      */
     public static function canAddToFolder($folderId)
     {
-        
-        return (boolean)(frame2_Reports::canAddToFolder($folderId) || frame_Reports::canAddToFolder($folderId));
+        return (boolean) (frame2_Reports::canAddToFolder($folderId) || frame_Reports::canAddToFolder($folderId));
     }
     
     
@@ -123,13 +122,12 @@ class frame2_AllReports extends core_Master
      * Проверка дали нов документ може да бъде добавен в посочената нишка
      *
      * @param int $threadId - key(mvc=doc_Threads)
-     * 
+     *
      * @return boolean
      */
     public static function canAddToThread($threadId)
     {
-        
-        return (boolean)(frame2_Reports::canAddToThread($threadId) || frame_Reports::canAddToThread($threadId));
+        return (boolean) (frame2_Reports::canAddToThread($threadId) || frame_Reports::canAddToThread($threadId));
     }
     
     
@@ -145,27 +143,27 @@ class frame2_AllReports extends core_Master
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
             $title = tr(mb_strtolower($mvc->singleTitle));
-            if(core_Users::getCurrent('id', FALSE)){
-                list($t,) = explode('<div', doc_Folders::recToVerbal($fRec)->title);
+            if (core_Users::getCurrent('id', false)) {
+                list($t, ) = explode('<div', doc_Folders::recToVerbal($fRec)->title);
                 $title .= ' |в|* ' . $t;
             }
         }
         
         $rec = $form->rec;
         
-        if($rec->threadId) {
+        if ($rec->threadId) {
             $form->title = 'Добавяне на|* ';
         } else {
             $form->title = 'Създаване на|* ';
         }
         
-        if($rec->threadId) {
+        if ($rec->threadId) {
             $thRec = doc_Threads::fetch($form->rec->threadId);
             setIfNot($data->singleTitle, $mvc->singleTitle);
             
-            if($thRec->firstContainerId != $form->rec->containerId) {
+            if ($thRec->firstContainerId != $form->rec->containerId) {
                 $firstDoc = doc_Containers::getDocument($thRec->firstContainerId);
-                $form->title = core_Detail::getEditTitle($firstDoc->getInstance(), $firstDoc->that, $data->singleTitle, $rec->id, NULL, 50);
+                $form->title = core_Detail::getEditTitle($firstDoc->getInstance(), $firstDoc->that, $data->singleTitle, $rec->id, null, 50);
                 unset($title);
             }
         }
@@ -178,7 +176,7 @@ class frame2_AllReports extends core_Master
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
@@ -194,14 +192,15 @@ class frame2_AllReports extends core_Master
         if (frame_Reports::haveRightFor('add', $data->form->rec)) {
             $interfaces = core_Classes::getOptionsByInterface(cls::get('frame_Reports')->innerObjectInterface, 'title');
             
-            foreach ((array)$interfaces as $id => $int){
-                if(!cls::load($id, TRUE)) continue;
+            foreach ((array) $interfaces as $id => $int) {
+                if (!cls::load($id, true)) {
+                    continue;
+                }
                 
                 $Driver = cls::get($id);
                 
                 // Ако има права за добавяне на поне 1 отчет
-                if(!$Driver->canSelectInnerObject()){
-                    
+                if (!$Driver->canSelectInnerObject()) {
                     unset($interfaces[$id]);
                 }
             }
@@ -235,9 +234,9 @@ class frame2_AllReports extends core_Master
             $rec->folderId = $oRec->folderId;
         }
         
-        if($rec->threadId) {
+        if ($rec->threadId) {
             $threadRec = doc_Threads::fetch($rec->threadId);
-            if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
+            if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner')) {
                 colab_Threads::requireRightFor('single', $threadRec);
             } else {
                 if (!$mvc->haveRightFor('psingle', $rec)) {
@@ -248,11 +247,11 @@ class frame2_AllReports extends core_Master
             $rec->folderId = $threadRec->folderId;
         }
         
-        if(!$rec->threadId && $rec->folderId && !doc_Folders::haveRightToFolder($rec->folderId)) {
+        if (!$rec->threadId && $rec->folderId && !doc_Folders::haveRightToFolder($rec->folderId)) {
             if (core_Packs::isInstalled('colab') && haveRole('partner')) {
                 $userId = core_Users::getCurrent();
                 $colabFolders = colab_Folders::getSharedFolders($userId);
-                if(!in_array($rec->folderId, $colabFolders)){
+                if (!in_array($rec->folderId, $colabFolders)) {
                     error('403 Недостъпен ресурс');
                 }
             } else {
@@ -273,21 +272,22 @@ class frame2_AllReports extends core_Master
     {
         $newOptions = array();
         
-        if (!$options) return $newOptions;
-        
-        foreach ($options as $index => $opt){
+        if (!$options) {
             
-            if(!is_object($opt)) {
+            return $newOptions;
+        }
+        
+        foreach ($options as $index => $opt) {
+            if (!is_object($opt)) {
                 
                 // Ако в името на класа има '->' то приемаме, че стринга преди знака е името на групата
                 $optArr = explode('»', $opt);
                 
                 // Ако стринга е разделен на точно две части (име на група и име на клас)
-                if(count($optArr) == 2){
-                    
-                    $newOptions[$optArr[0]] = (object)array(
+                if (count($optArr) == 2) {
+                    $newOptions[$optArr[0]] = (object) array(
                             'title' => trim($optArr[0]),
-                            'group' => TRUE,
+                            'group' => true,
                     );
                     $newOptions[$index] = trim($optArr[1]);
                 } else {
@@ -305,17 +305,16 @@ class frame2_AllReports extends core_Master
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param core_Mvc $mvc
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted() || $form->cmd == 'refresh') {
             if ($form->rec->source) {
-                
                 $clsInst = cls::get($form->rec->source);
                 
-                $intfArr = arr::make($clsInst->interfaces, TRUE);
+                $intfArr = arr::make($clsInst->interfaces, true);
                 
                 if ($intfArr['frame2_ReportIntf']) {
                     $urlArr = array('frame2_Reports', 'add', 'driverClass' => $form->rec->source);
@@ -353,16 +352,15 @@ class frame2_AllReports extends core_Master
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'add' && $requiredRoles != 'no_one') {
             if (!frame2_Reports::haveRightFor('add', $rec, $userId) && !frame_Reports::haveRightFor('add', $rec, $userId)) {
-                
                 $requiredRoles = 'no_one';
             }
         }

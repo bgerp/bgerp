@@ -23,14 +23,11 @@ class myself_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
-     
-        
         $this->TAB('myself_Codebase', 'Анализ', 'powerUser');
 
         
         $this->title = 'Анализи';
-    
     }
 }

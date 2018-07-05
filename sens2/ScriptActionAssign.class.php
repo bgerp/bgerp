@@ -18,13 +18,13 @@ class sens2_ScriptActionAssign
     /**
      * Поддържани интерфейси
      */
-    var $interfaces ="sens2_ScriptActionIntf";
+    public $interfaces = 'sens2_ScriptActionIntf';
 
 
     /**
      * Наименование на действието
      */
-    var $title = 'Задаване на променлива';
+    public $title = 'Задаване на променлива';
 
 
     /**
@@ -32,27 +32,27 @@ class sens2_ScriptActionAssign
      *
      * @param core_Form форма на която трябва да се поставят полетата с конфигурацията на контролера (IP, port, pass, ...)
      */
-    function prepareActionForm(&$form)
+    public function prepareActionForm(&$form)
     {
         $form->FLD('varId', 'varchar', 'caption=Променлива,mandatory,oldFieldName=var,silent');
         $form->FLD('expr', 'text(rows=2)', 'caption=Нова стойност на променливата->Израз,width=100%,mandatory');
         $form->FLD('cond', 'text(rows=2)', 'caption=Условие за да се присвои->Израз,width=100%');
         
         $vars = sens2_ScriptDefinedVars::getContex($form->rec->scriptId);
-        foreach($vars as $i => $v) {
+        foreach ($vars as $i => $v) {
             $suggestions[$i] = $i;
             $opt[$i] = $i;
         }
         
         $inds = sens2_Indicators::getContex();
-        foreach($inds as $i => $v) {
+        foreach ($inds as $i => $v) {
             $suggestions[$i] = $i;
         }
 
-        if(!count($opt)) {
-            redirect(array('sens2_Scripts', 'single', $vars), FALSE, '|Моля, дефинирайте поне една променлива');
+        if (!count($opt)) {
+            redirect(array('sens2_Scripts', 'single', $vars), false, '|Моля, дефинирайте поне една променлива');
         }
-        $form->setOptions('varId', $opt); 
+        $form->setOptions('varId', $opt);
         asort($suggestions);
         $form->setSuggestions('expr', $suggestions);
         $form->setSuggestions('cond', $suggestions);
@@ -61,28 +61,28 @@ class sens2_ScriptActionAssign
     
     /**
      * Проверява след  субмитване формата с настройки на контролера
-     * Тук контролера може да зададе грешки и предупреждения, в случай на 
+     * Тук контролера може да зададе грешки и предупреждения, в случай на
      * некоректни конфигурационни данни използвайки $form->setError() и $form->setWarning()
      *
-     * @param   core_Form   форма с въведени данни от заявката (след $form->input)
+     * @param core_Form   форма с въведени данни от заявката (след $form->input)
      */
-    function checkActionForm($form)
+    public function checkActionForm($form)
     {
     }
 
-    function toVerbal($rec)
-    { 
-        $varId  = sens2_Scripts::highliteExpr($rec->varId, $rec->scriptId);
-        $expr   = sens2_Scripts::highliteExpr($rec->expr, $rec->scriptId);
-        $cond   = sens2_Scripts::highliteExpr($rec->cond, $rec->scriptId);
+    public function toVerbal($rec)
+    {
+        $varId = sens2_Scripts::highliteExpr($rec->varId, $rec->scriptId);
+        $expr = sens2_Scripts::highliteExpr($rec->expr, $rec->scriptId);
+        $cond = sens2_Scripts::highliteExpr($rec->cond, $rec->scriptId);
 
         $res = "{$output} = {$expr}";
-        if($rec->cond) {
+        if ($rec->cond) {
             $res .= ", ако {$cond}";
         }
      
         $res = "{$varId} = {$expr}";
-        if($rec->cond) {
+        if ($rec->cond) {
             $res .= ", ако {$cond}";
         }
 
@@ -92,37 +92,36 @@ class sens2_ScriptActionAssign
     /**
      * Извършва действието, с параметрите, които са в $rec
      */
-    function run($rec)
+    public function run($rec)
     {
         // Ако има условие и то не е изпълнено - не правим нищо
-        if(trim($rec->cond)) {
+        if (trim($rec->cond)) {
             $cond = sens2_Scripts::calcExpr($rec->cond, $rec->scriptId);
-            if($cond === sens2_Scripts::CALC_ERROR) {
-
+            if ($cond === sens2_Scripts::CALC_ERROR) {
+                
                 return 'stopped';
             }
-            if(!$cond) {
-
+            if (!$cond) {
+                
                 return 'closed';
             }
         }
 
         // Изчисляваме израза
         $value = sens2_Scripts::calcExpr($rec->expr, $rec->scriptId);
-        if($value  === sens2_Scripts::CALC_ERROR) {
-
+        if ($value === sens2_Scripts::CALC_ERROR) {
+            
             return 'stopped';
         }
 
         // Задаваме го на изхода
         $res = sens2_ScriptDefinedVars::setValue($rec->scriptId, $rec->varId, $value);
         
-        if($res !== FALSE) {
-
+        if ($res !== false) {
+            
             return 'active';
-        } else {
-
-            return 'stopped';
         }
+
+        return 'stopped';
     }
 }

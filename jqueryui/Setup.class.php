@@ -10,7 +10,7 @@ defIfNot(JQUERYUI_VERSION, '1.11.3');
 /**
  * Клас 'jqueryui_Ui' - Работа с JQuery UI библиотеката
  *
- * 
+ *
  * @category  bgerp
  * @package   jqueryui
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -31,21 +31,21 @@ class jqueryui_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "JQueryUI";
+    public $info = 'JQueryUI';
     
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'JQUERYUI_VERSION' => array ('enum(1.8.2, 1.11.3)', 'caption=Версия на JQueryUI->Версия'), 
+        'JQUERYUI_VERSION' => array('enum(1.8.2, 1.11.3)', 'caption=Версия на JQueryUI->Версия'),
     );
     
     
     /**
      * Пакет без инсталация
      */
-    public $noInstall = TRUE;
+    public $noInstall = true;
     
     
     /**

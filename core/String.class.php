@@ -186,6 +186,7 @@ class core_String
         $begin = mb_strpos($sample, $beginMark, $offset);
         
         if ($begin === false) {
+            
             return false;
         }
         
@@ -195,6 +196,7 @@ class core_String
             $end = mb_strpos($sample, $endMark, $begin);
             
             if ($end === false) {
+                
                 return false;
             }
             
@@ -219,14 +221,17 @@ class core_String
         $find = mb_strpos($str, $match);
         
         if ($find === false) {
+            
             return false;
         }
         
         if ($until < 0) {
+            
             return true;
         }
         
         if ($find <= $until) {
+            
             return true;
         }
 
@@ -240,10 +245,12 @@ class core_String
     public static function contained($str1, $str2)
     {
         if (strlen($str1) == 0 || strlen($str2) == 0) {
+            
             return false;
         }
 
         if (strpos($str1, $str2) !== false || strpos($str2, $str1) !== false) {
+            
             return true;
         }
 
@@ -281,6 +288,7 @@ class core_String
         $oStr = substr($str, 0, strlen($str) - $length - 1);
         
         if ($str == str::addHash($oStr, $length, $moreSalt) && substr($str, -1 - $length, 1) == '_') {
+            
             return $oStr;
         }
         
@@ -346,6 +354,7 @@ class core_String
     public static function convertToFixedKey($str, $length = 64, $md5Len = 32, $separator = '_')
     {
         if (strlen($str) <= $length) {
+            
             return $str;
         }
         
@@ -450,6 +459,7 @@ class core_String
         $strLength = mb_strlen($str);
 
         if ($strLength <= $length) {
+            
             return $str;
         }
 
@@ -947,9 +957,11 @@ class core_String
     public static function matchPatterns($str, $negativePattern = null, $positivePattern = null)
     {
         if ($negativePattern && preg_match($negativePattern, $str)) {
+            
             return false;
         }
         if ($positivePattern && !preg_match($positivePattern, $str)) {
+            
             return false;
         }
 
@@ -1046,11 +1058,13 @@ class core_String
     public static function replaceLastOccurence($string, $search, $replace)
     {
         if ((($stringLen = strlen($string)) == 0) || (($searchLen = strlen($search)) == 0)) {
+            
             return $string;
         }
         $pos = strrpos($string, $search);
     
         if ($pos > 0) {
+            
             return substr($string, 0, $pos) . $replace . substr($string, $pos + $searchLen, max(0, $stringLen - ($pos + $searchLen)));
         }
     
@@ -1128,6 +1142,7 @@ class core_String
         $UrlType = core_Type::getByName('url');
 
         return preg_replace_callback(type_Richtext::URL_PATTERN, function ($matches) use ($UrlType) {
+            
             return $UrlType->toVerbal($matches[0])->getContent();
         }, $text);
     }
@@ -1142,6 +1157,7 @@ class core_String
     public static function nonCyrillic2Ascii($string)
     {
         $res = preg_replace_callback("/[^\p{Cyrillic}]+/u", function ($matches) {
+            
             return str::utf2ascii($matches[0]);
         }, $string);
     

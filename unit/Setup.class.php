@@ -27,34 +27,32 @@ defIfNot('UNIT_DEFAULT_HOST', 'http://localhost');
  */
 class unit_Setup extends core_ProtoSetup
 {
-	
-	
-	/**
-	 * Версия на пакета
-	 */
-	public $version = '0.1';
-	
-	
-	/**
-	 * Описание на модула
-	 */
-	public $info = "Пакет за автоматично тестване на класове";
+    
+    
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
+    
+    
+    /**
+     * Описание на модула
+     */
+    public $info = 'Пакет за автоматично тестване на класове';
 
-	
-	/**
-	 * Пакет без инсталация
-	 */
-	public $noInstall = TRUE;
-	
-	/**
-	 * Описание на конфигурационните константи
-	 */
-	var $configDescription = array(
-	  'UNIT_DEFAULT_USER' => array("varchar", "caption=Потребител по подразбиране->Ник"),
-	  'UNIT_DEFAULT_USER_NAME' => array("varchar", "caption=Потребител по подразбиране->Име"),
-	  'UNIT_DEFAULT_USER_PASS' => array("varchar", "caption=Потребител по подразбиране->Парола"),
-	  'UNIT_DEFAULT_HOST' => array("varchar", "caption=Сървър по подразбиране->Име"),
-	);
-	
+    
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = true;
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+      'UNIT_DEFAULT_USER' => array('varchar', 'caption=Потребител по подразбиране->Ник'),
+      'UNIT_DEFAULT_USER_NAME' => array('varchar', 'caption=Потребител по подразбиране->Име'),
+      'UNIT_DEFAULT_USER_PASS' => array('varchar', 'caption=Потребител по подразбиране->Парола'),
+      'UNIT_DEFAULT_HOST' => array('varchar', 'caption=Сървър по подразбиране->Име'),
+    );
 }
-

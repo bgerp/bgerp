@@ -3,25 +3,26 @@
 /**
  * Чертае Елипса
  */
-class cad2_Ellipse  extends cad2_Shape {
+class cad2_Ellipse extends cad2_Shape
+{
     
     /**
      * Задължителен интерфейс, който фигурите трябва да имат
      */
-    var $interfaces = 'cad2_ShapeIntf';
+    public $interfaces = 'cad2_ShapeIntf';
     
     
     /**
      * Наименование на фигурата
      */
-    var $title = 'Елементи » Елипса';
+    public $title = 'Елементи » Елипса';
     
     
     /**
      * Допълва дадената форма с параметрите на фигурата
      * Връща масив от имената на параметрите
      */
-    static function addFields(&$form)
+    public static function addFields(&$form)
     {
         $form->FLD('x', 'float', 'caption=X');
         $form->FLD('y', 'float', 'caption=Y');
@@ -39,21 +40,21 @@ class cad2_Ellipse  extends cad2_Shape {
     /**
      * Метод за изрисуване на фигурата
      */
-    function render($svg, $p = array())
-    { 
+    public function render($svg, $p = array())
+    {
         extract($p);
         
-        if(!$notStartNewPath) {
+        if (!$notStartNewPath) {
             $svg->startPath(
                 array(
                 'stroke' => $stroke,
-                'fill' => $fill, 
-                'stroke-width' => $strokeWidth, 
+                'fill' => $fill,
+                'stroke-width' => $strokeWidth,
                 'fill-opacity' => $opacity)
                 );
         }
 
-        $svg->moveTo($x, $y - $r1, TRUE);
+        $svg->moveTo($x, $y - $r1, true);
 
         self::draw($svg, $x, $y, $r1, $r1);
     }
@@ -64,13 +65,13 @@ class cad2_Ellipse  extends cad2_Shape {
      */
     public static function draw($svg, $x, $y, $r1, $r2)
     {
-        $rRatio = $r1/$r2;
+        $rRatio = $r1 / $r2;
 
-        for($angle=0;  $angle < 2*pi();  $angle+=0.01) {
+        for ($angle = 0;  $angle < 2 * pi();  $angle += 0.01) {
             $x1 = $x + $r1 * cos($angle);
-            $y1 = $y - $rRatio * $r1 *sin($angle);
+            $y1 = $y - $rRatio * $r1 * sin($angle);
 
-            $svg->lineTo($x1, $y1, TRUE);
+            $svg->lineTo($x1, $y1, true);
         }
     }
 
@@ -80,13 +81,13 @@ class cad2_Ellipse  extends cad2_Shape {
      */
     public static function drawArcOfEllipse($svg, $x, $y, $r1, $r2, $angle1, $angle2)
     {
-        $rRatio = $r1/$r2;
+        $rRatio = $r1 / $r2;
 
-        for($angle=$angle1;  $angle > $angle2;  $angle-=0.01) {
+        for ($angle = $angle1;  $angle > $angle2;  $angle -= 0.01) {
             $x1 = $x + $r1 * cos($angle);
-            $y1 = $y - $rRatio * $r1 *sin($angle);
+            $y1 = $y - $rRatio * $r1 * sin($angle);
 
-            $svg->lineTo($x1, $y1, TRUE);
+            $svg->lineTo($x1, $y1, true);
         }
     }
 }

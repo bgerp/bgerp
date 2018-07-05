@@ -24,7 +24,7 @@ defIfNot('PROSMS_PASS', '');
 /**
  * Дали поддържа UTF-8
  */
-defIfNot('PROSMS_SUPPORT_UTF8', FALSE);
+defIfNot('PROSMS_SUPPORT_UTF8', false);
 
 
 /**
@@ -59,16 +59,16 @@ class prosms_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "SMS изпращане чрез prosms";
+    public $info = 'SMS изпращане чрез prosms';
     
 
-    var $configDescription = array (
+    public $configDescription = array(
         'PROSMS_URL' => array('url', 'mandatory, caption=Данни за сметката за изпращане на SMS->URL'),
         'PROSMS_USER' => array('identifier', 'mandatory, caption=Данни за сметката за изпращане на SMS->Потребителско име'),
         'PROSMS_PASS' => array('password', 'mandatory, caption=Данни за сметката за изпращане на SMS->Парола'),
@@ -82,7 +82,7 @@ class prosms_Setup extends core_ProtoSetup
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'prosms_SMS',
         );
 
@@ -90,7 +90,7 @@ class prosms_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

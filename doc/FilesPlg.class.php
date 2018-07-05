@@ -21,11 +21,13 @@ class doc_FilesPlg extends core_Plugin
     public function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = null)
     {
         if ($data->action != 'single') {
+            
             return ;
         }
         
         // Ако нямам права за файла
         if (!doc_Files::haveRightFor('list')) {
+            
             return ;
         }
         

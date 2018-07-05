@@ -72,6 +72,7 @@ class core_Array
     public static function make($mixed, $noIntKeys = false, $sep = null)
     {
         if (!$mixed) {
+            
             return array();
         } elseif (is_array($mixed)) {
             $p = $mixed;
@@ -140,17 +141,20 @@ class core_Array
         $arr2 = arr::make($arr2, true);
 
         if ((count($arr1) == 0) || (count($arr2) == 0)) {
+            
             return true;
         }
 
         foreach ($arr1 as $key => $value) {
             if (isset($arr2[$key])) {
+                
                 return true;
             }
         }
 
         foreach ($arr2 as $key => $value) {
             if (isset($arr1[$key])) {
+                
                 return true;
             }
         }
@@ -165,6 +169,7 @@ class core_Array
     public static function getMaxValueKey($arr)
     {
         if (count($arr)) {
+            
             return array_search(max($arr), $arr);
         }
     }
@@ -181,6 +186,7 @@ class core_Array
                 $b = (object) $b;
                     
                 if ($a->{$field} == $b->{$field}) {
+                    
                     return 0;
                 }
 
@@ -192,6 +198,7 @@ class core_Array
                 $b = (object) $b;
                 
                 if ($a->{$field} == $b->{$field}) {
+                    
                     return 0;
                 }
 
@@ -211,6 +218,7 @@ class core_Array
             // Ако липсва да се подредят най накрая
             // Ако има 2 елемента с еднакви стойности, първия срещнат да си остане първи
             if ($a->{$field} == $b->{$field}) {
+                
                 return 1;
             }
 
@@ -246,6 +254,7 @@ class core_Array
         // Ако има такива сортираме ги по име
         uasort($array, function ($a, $b) use ($field) {
             if ($a->{$field} == $b->{$field}) {
+                
                 return 0;
             }
 
@@ -549,6 +558,7 @@ class core_Array
     public static function count($arr)
     {
         if (is_array($arr)) {
+            
             return count($arr);
         }
         // Очаква се или масив или == FALSE
@@ -592,6 +602,7 @@ class core_Array
     {
         expect(is_array($arr));
         $result = array_values(array_map(function ($obj) use ($field) {
+            
             return (is_object($obj)) ? $obj->{$field} : $obj[$field];
         }, $arr));
         $result = array_values($result);

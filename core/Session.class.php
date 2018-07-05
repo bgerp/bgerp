@@ -110,6 +110,7 @@ class core_Session
         }
 
         if (isset($sid)) {
+            
             return $sid;
         }
         
@@ -163,12 +164,15 @@ class core_Session
                 
                 if ($part) {
                     if (is_array($var)) {
+                        
                         return $var[$part];
                     } elseif (is_object($var)) {
+                        
                         return $var->{$part};
                     }
                     error('@Опит за прочитане на част от скаларна сесийна променлива', $varName, $part);
                 } else {
+                    
                     return $var;
                 }
             }

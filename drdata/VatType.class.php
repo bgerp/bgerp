@@ -21,20 +21,20 @@ class drdata_VatType extends type_Varchar
     /**
      * Колко символа е дълго полето в базата
      */
-    var $dbFieldLen = 18;
+    public $dbFieldLen = 18;
 
     
     /**
      * Описание на различните видове статуси за VAT номера
      */
-    var $statuses = array (
+    public $statuses = array(
                         'not_vat' => array('Липсва двубуквен префикс', 'red'),
                         'bulstat' => array('Валиден ЕИК, но липсва BG в началото', 'red'),
-                        'syntax'  => array('Невалидна дължина на цифрите', 'red'),
+                        'syntax' => array('Невалидна дължина на цифрите', 'red'),
                         'invalid' => array('Невалиден VAT номер', 'red'),
                         'unknown' => array('VAT номер с неизвестна валидност', 'quiet'),
-                        'valid'   => array('Валиден VAT номер', ''),
-                        ''        => array('Грешка при определяне на валидността', 'red')
+                        'valid' => array('Валиден VAT номер', ''),
+                        '' => array('Грешка при определяне на валидността', 'red')
                     );
 
     
@@ -47,7 +47,7 @@ class drdata_VatType extends type_Varchar
     /**
      * Инициализиране на дължината
      */
-    function init($params = array())
+    public function init($params = array())
     {
         parent::init($params);
         setIfNot($this->params['size'], $this->dbFieldLen);
@@ -57,12 +57,14 @@ class drdata_VatType extends type_Varchar
     
     /**
      * Проверка за валидност на VAT номер
-     * 
+     *
      * Ако проверката е неуспешна - връща само предупреждение
      */
-    function isValid($value)
+    public function isValid($value)
     {
-        if(!$value) return NULL;
+        if (!$value) {
+            return;
+        }
         
         $Vats = cls::get('drdata_Vats');
         
@@ -90,31 +92,36 @@ class drdata_VatType extends type_Varchar
     /**
      * Преобразува във вербален изглед посочения VAT номер
      */
-    function toVerbal_($value)
+    public function toVerbal_($value)
     {
-        if(!$value) return NULL;
+        if (!$value) {
+            return;
+        }
         
         $value = parent::escape($value);
          
-        if(Mode::is('text', 'plain')) return $value;
+        if (Mode::is('text', 'plain')) {
+            
+            return $value;
+        }
 
         $Vats = cls::get('drdata_Vats');
-        if(!array_key_exists($value, static::$cache)){
-        	static::$cache[$value] = $Vats->check($value);
+        if (!array_key_exists($value, static::$cache)) {
+            static::$cache[$value] = $Vats->check($value);
         }
         
         list($status, $info) = static::$cache[$value];
 
         $status = $this->statuses[$status];
         
-        if(!$status) {
+        if (!$status) {
             $status = $this->statuses[''];
         }
         $attr = array();
         $attr['title'] = $status[0];
         
-        if(trim($info)) {
-            $attr['title'] .= "|*\n" . $info;  
+        if (trim($info)) {
+            $attr['title'] .= "|*\n" . $info;
         }
         $attr['class'] = $status[1];
  

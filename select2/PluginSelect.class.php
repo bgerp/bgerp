@@ -3,7 +3,7 @@
 
 /**
  * Плъгин за превръщане на key полетата в select2
- * 
+ *
  * @category  bgerp
  * @package   selec2
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -18,7 +18,7 @@ class select2_PluginSelect extends core_Plugin
     /**
      * Дали може да се изчистват всичките записи едновременно
      */
-    protected static $allowClear = FALSE;
+    protected static $allowClear = false;
     
     
     /**
@@ -30,17 +30,17 @@ class select2_PluginSelect extends core_Plugin
     /**
      * Броя на опциите, преди обработка
      */
-    protected static $optCnt = NULL;
+    protected static $optCnt = null;
     
     
     /**
      * Изпълнява се преди рендирането на input
-     * 
-     * @param type_Key $invoker
-     * @param core_ET $tpl
-     * @param string $name
+     *
+     * @param type_Key          $invoker
+     * @param core_ET           $tpl
+     * @param string            $name
      * @param string|array|NULL $value
-     * @param array $attr
+     * @param array             $attr
      */
     public static function on_BeforeRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
@@ -73,23 +73,26 @@ class select2_PluginSelect extends core_Plugin
                 }
             }
             
-            $invoker->options = array_slice($invoker->options, 0, $maxSuggestions, TRUE);
+            $invoker->options = array_slice($invoker->options, 0, $maxSuggestions, true);
         }
     }
     
     
     /**
      * Изпълнява се след рендирането на input
-     * 
-     * @param type_Key $invoker
-     * @param core_ET $tpl
-     * @param string $name
+     *
+     * @param type_Key          $invoker
+     * @param core_ET           $tpl
+     * @param string            $name
      * @param string|array|NULL $value
-     * @param array $attr
+     * @param array             $attr
      */
     public static function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
-        if ($invoker->params['isReadOnly']) return ;
+        if ($invoker->params['isReadOnly']) {
+            
+            return ;
+        }
         
         // Ако все още няма id
         if (!$attr['id']) {
@@ -101,13 +104,17 @@ class select2_PluginSelect extends core_Plugin
         $optionsCnt = isset(self::$optCnt) ? self::$optCnt : count($invoker->options);
 
         // Ако опциите са под минималното - нищо не правим
-        if($optionsCnt <= $minItems) return;
+        if ($optionsCnt <= $minItems) {
+            return;
+        }
         
         // Ако имаме комбо - не правим select2
         // if(count($invoker->suggestions)) return;
         
         // Ако няма JS нищо не правим
-        if (Mode::is('javascript', 'no')) return;
+        if (Mode::is('javascript', 'no')) {
+            return;
+        }
         
         $select = ($attr['placeholder']) ? ($attr['placeholder']) : '';
         
@@ -126,22 +133,28 @@ class select2_PluginSelect extends core_Plugin
         }
         
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, NULL, $ajaxUrl);
+        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, $ajaxUrl);
     }
     
     
     /**
-    * Отпечатва резултата от опциите в JSON формат
-    * 
-    * @param type_Key $invoker
-    * @param string|NULL|core_ET $res
-    * @param string $action
-    */
-    function on_BeforeAction($invoker, &$res, $action)
+     * Отпечатва резултата от опциите в JSON формат
+     *
+     * @param type_Key            $invoker
+     * @param string|NULL|core_ET $res
+     * @param string              $action
+     */
+    public function on_BeforeAction($invoker, &$res, $action)
     {
-        if ($action != 'getoptions') return ;
+        if ($action != 'getoptions') {
+            
+            return ;
+        }
         
-        if (!Request::get('ajax_mode')) return ;
+        if (!Request::get('ajax_mode')) {
+            
+            return ;
+        }
         $hnd = Request::get('hnd');
         
         $maxSuggestions = Request::get('maxSugg', 'int');
@@ -153,21 +166,20 @@ class select2_PluginSelect extends core_Plugin
         
         select2_Adapter::getAjaxRes($invoker->selectOpt, $hnd, $q, $maxSuggestions);
         
-        return FALSE;
+        return false;
     }
     
     
     /**
-    * 
-    * 
-    * @param type_Key $invoker
-    * @param integer|NULL $res
-    */
-    function on_AfterGetMaxSuggestions($invoker, &$res)
+     *
+     *
+     * @param type_Key     $invoker
+     * @param integer|NULL $res
+     */
+    public function on_AfterGetMaxSuggestions($invoker, &$res)
     {
-       if (!isset($res)) {
-           
-           $res = 1000;
-       }
+        if (!isset($res)) {
+            $res = 1000;
+        }
     }
 }

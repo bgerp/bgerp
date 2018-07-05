@@ -13,31 +13,24 @@
  */
 class docoffice_Unoconv extends core_Manager
 {
+    public $interfaces = 'docoffice_ConverterIntf';
     
     
-    /**
-     * 
-     */
-    var $interfaces = 'docoffice_ConverterIntf';
     
-    
-    /**
-     * 
-     */
-    var $title = 'Unoconv';
+    public $title = 'Unoconv';
     
     
     /**
      * Конвертиране на офис документи с помощта на unoconv
-     * 
+     *
      * @param fileHandler $fileHnd - Манупулатора на файла, който ще се конвертира
-     * @param string $toExt - Разширението, в което ще се конвертира
-     * @param array $params - Други параметри
-     * 				$params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането
-     * 				$params['fileInfoId'] - id към bgerp_FileInfo
-     * 				$params['asynch'] - Дали скрипта да се стартира асинхронно или не
+     * @param string      $toExt   - Разширението, в което ще се конвертира
+     * @param array       $params  - Други параметри
+     *                             $params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането
+     *                             $params['fileInfoId'] - id към bgerp_FileInfo
+     *                             $params['asynch'] - Дали скрипта да се стартира асинхронно или не
      */
-    static function convertDoc($fileHnd, $toExt, $params=array())
+    public static function convertDoc($fileHnd, $toExt, $params = array())
     {
         // Разширението да е в дония регистър
         $toExt = strtolower($toExt);
@@ -61,26 +54,26 @@ class docoffice_Unoconv extends core_Manager
         
         // Задаваме файловете и параметрите
         $Script->setFile('INPUTF', $fileHnd);
-        $Script->setParam('TOEXT', $toExt, TRUE);
-        $Script->setParam('UNOCONV', $unoconv, TRUE);
-        $Script->setParam('PORT', $port, TRUE);
+        $Script->setParam('TOEXT', $toExt, true);
+        $Script->setParam('UNOCONV', $unoconv, true);
+        $Script->setParam('PORT', $port, true);
         
         // Ако има зададен порт
         if ($port) {
             
             // Добавяме към изпълнимия скрипт
-            $lineExecStr = "[#UNOCONV#] -f [#TOEXT#] -p [#PORT#] [#INPUTF#]";    
+            $lineExecStr = '[#UNOCONV#] -f [#TOEXT#] -p [#PORT#] [#INPUTF#]';
         } else {
             
             // Добавяме към изпълнимия скрипт
-            $lineExecStr = "[#UNOCONV#] -f [#TOEXT#] [#INPUTF#]";  
+            $lineExecStr = '[#UNOCONV#] -f [#TOEXT#] [#INPUTF#]';
         }
         
         // Ако е дефиниранеп пътя до PYTHON
         if ($pythonPath) {
             
             // Задаваме параметъра за питон
-            $Script->setParam('PYTHON', $pythonPath, TRUE);
+            $Script->setParam('PYTHON', $pythonPath, true);
             
             // Добавяме в началото на изпълнимия скрипт placeHolder за питон
             $lineExecStr = "[#PYTHON#] {$lineExecStr}";
@@ -113,13 +106,13 @@ class docoffice_Unoconv extends core_Manager
         $Script->setCheckProgramsArr($unoconv);
         
         // Стартираме скрипта синхронно
-        if ($Script->run($params['asynch']) === FALSE) {
+        if ($Script->run($params['asynch']) === false) {
             if ($params['outType']) {
                 $params['type'] = $params['outType'];
             }
             fileman_Indexes::createError($params);
             
-            return NULL;
+            return;
         }
         
         return $Script->outFilePath;
@@ -128,12 +121,12 @@ class docoffice_Unoconv extends core_Manager
     
     /**
      * Получава управелението след приключване на конвертирането.
-     * 
+     *
      * @param fconv_Script $script - Парамтри
-     * 
+     *
      * @return boolean
      */
-    static function afterConvertDoc($script)
+    public static function afterConvertDoc($script)
     {
         // Отключва офис пакета
         docoffice_Office::unlockOffice();
@@ -157,32 +150,31 @@ class docoffice_Unoconv extends core_Manager
             $method = $funcArr[1];
             
             // Извикваме callBack функцията и връщаме резултата
-            $result = call_user_func_array(array($object, $method), array($script)); 
+            $result = call_user_func_array(array($object, $method), array($script));
             
             return $result;
         }
     }
 
-	
-	
-	/**
+    
+    
+    /**
      * Заключваме UNOCONV
-     * 
+     *
      * @param int $maxDuration - Максималното време за което ще се опитаме да заключим
-     * @param int $maxTray - Максималният брой опити, за заключване
+     * @param int $maxTray     - Максималният брой опити, за заключване
      */
-    static function lockUnoconv($maxDuration=50, $maxTray=30)
+    public static function lockUnoconv($maxDuration = 50, $maxTray = 30)
     {
-        core_Locks::get('unoconv', $maxDuration, $maxTray, FALSE);
+        core_Locks::get('unoconv', $maxDuration, $maxTray, false);
     }
     
     
     /**
      * Отключваме UNOCONV
      */
-    static function unlockUnoconv()
+    public static function unlockUnoconv()
     {
         core_Locks::release('unoconv');
     }
-    
 }

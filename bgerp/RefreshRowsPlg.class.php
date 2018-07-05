@@ -89,6 +89,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
     {
         // Ако няма да се рендира
         if ($action != 'render') {
+            
             return ;
         }
         
@@ -96,6 +97,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
         
         // Ако заявката не е по ajax
         if (!$ajaxMode) {
+            
             return ;
         }
         
@@ -114,6 +116,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
         
         // Ако липсва шаблона, да не се изпълнява
         if (!$tpl) {
+            
             return false;
         }
         
@@ -210,6 +213,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
     {
         // Ако не е обект или няма съдържание
         if (!$tpl instanceof core_ET || !$tpl) {
+            
             return $tpl;
         }
         

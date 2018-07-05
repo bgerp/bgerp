@@ -3,7 +3,7 @@
 
 /**
  * Драйвер за работа с .webp файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -17,18 +17,18 @@ class fileman_webdrv_Webp extends fileman_webdrv_ImageT
     
     /**
      * Стартира конвертиране към JPG формат
-     * 
-     * @param object $fRec - Записите за файла
-     * @param array $params - Допълнителни параметри
+     *
+     * @param object $fRec   - Записите за файла
+     * @param array  $params - Допълнителни параметри
      */
-    static function startConvertingToJpg($fRec, $params)
+    public static function startConvertingToJpg($fRec, $params)
     {
         // Инстанция на класа
         $Script = cls::get(fconv_Script);
         
         // Вземаме името на файла без разширението
         $name = fileman_Files::getFileNameWithoutExt($fRec->fileHnd);
-		
+        
         // Задаваме пътя до изходния файла
         $outFilePath = $Script->tempDir . $name . '-0.jpg';
         
@@ -51,10 +51,10 @@ class fileman_webdrv_Webp extends fileman_webdrv_ImageT
         $Script->fName = $name;
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fRec->fileHnd;
-		
+        
         $Script->setCheckProgramsArr('dwebp');
         // Стартираме скрипта Aсинхронно
-        if ($Script->run() === FALSE) {
+        if ($Script->run() === false) {
             fileman_Indexes::createError($params);
         }
     }

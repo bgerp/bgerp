@@ -670,6 +670,7 @@ class acc_CostAllocations extends core_Manager
         // Ако артикула е складируем, се пропуска
         $pInfo = cat_Products::getProductInfo($productId);
         if (isset($pInfo->meta['canStore'])) {
+            
             return $res;
         }
          
@@ -694,6 +695,7 @@ class acc_CostAllocations extends core_Manager
         } else {
             $dRecs = self::getRecsWithAllocatedAmount($docClassId, $docRecId, $productId, $quantity, $amount);
             if (count($dRecs)) {
+                
                 return $dRecs;
             }
     
@@ -758,6 +760,7 @@ class acc_CostAllocations extends core_Manager
         
         $wh = $eQuery->getWhereAndHaving();
         if (empty($wh->w)) {
+            
             return $result;
         }
         
@@ -838,6 +841,7 @@ class acc_CostAllocations extends core_Manager
         
         $containers = self::getLastModifiedContainers($timeline);
         if (!count($containers)) {
+            
             return $eQuery;
         }
         

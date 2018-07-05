@@ -13,7 +13,8 @@
  * @since     v 0.1
  * @link
  */
-class ical_Parser extends core_Mvc {
+class ical_Parser extends core_Mvc
+{
     
     /**
      * Парсира и извлича събитията от текста в iCalendar (.ics) формат
@@ -30,53 +31,52 @@ class ical_Parser extends core_Mvc {
         $events = $ical->events();
 
  
-        foreach($events as $id => $e) { 
-
-            if($e->dtstart) {
+        foreach ($events as $id => $e) {
+            if ($e->dtstart) {
                 $e->dtstart = dt::timestamp2mysql(strtotime($e->dtstart));
                 $e->dtstartVrb = dt::mysql2verbal($e->dtstart, $dtFormat);
             }
             
-            if($e->dtend) {
-                $e->dtend  = dt::timestamp2mysql(strtotime($e->dtend));
+            if ($e->dtend) {
+                $e->dtend = dt::timestamp2mysql(strtotime($e->dtend));
                 $e->dtendVrb = dt::mysql2verbal($e->dtend, $dtFormat);
             }
             
-            if($e->dtstamp) {
-                $e->dtstamp  = dt::timestamp2mysql(strtotime($e->dtstamp));
+            if ($e->dtstamp) {
+                $e->dtstamp = dt::timestamp2mysql(strtotime($e->dtstamp));
                 $e->dtstampVrb = dt::mysql2verbal($e->dtstamp, $dtFormat);
             }
             
-            if($e->created) {
-                $e->created  = dt::timestamp2mysql(strtotime($e->created));
+            if ($e->created) {
+                $e->created = dt::timestamp2mysql(strtotime($e->created));
                 $e->createdVrb = dt::mysql2verbal($e->created, $dtFormat);
             }
             
-            if($e->lastmodified) {
-                $e->lastmodified  = dt::timestamp2mysql(strtotime($e->lastmodified));
+            if ($e->lastmodified) {
+                $e->lastmodified = dt::timestamp2mysql(strtotime($e->lastmodified));
                 $e->lastmodifiedVrb = dt::mysql2verbal($e->lastmodified, $dtFormat);
             }
 
-            if($e->duration) {
+            if ($e->duration) {
                 $d = new \DateInterval($e->duration);
-                if($d->y) {
+                if ($d->y) {
                     $t .= $d->y . ' years ';
                 }
-                if($d->m) {
+                if ($d->m) {
                     $t .= $d->m . ' monts ';
                 }
-                if($d->d) {
+                if ($d->d) {
                     $t .= $d->d . ' days ';
                 }
-                if($d->h) {
+                if ($d->h) {
                     $t .= $d->h . ' hours ';
                 }
 
-                if($d->i) {
+                if ($d->i) {
                     $t .= $d->i . ' minutes ';
                 }
                 
-                if($d->s) {
+                if ($d->s) {
                     $t .= $d->i . ' secs ';
                 }
                 
@@ -87,8 +87,8 @@ class ical_Parser extends core_Mvc {
                 $e->durationVrb = $tt->toVerbal_($e->duration);
             }
             
-            if(!$e->summary) {
-                $e->summary = tr('Събитие') . ' ' . ($id+1);
+            if (!$e->summary) {
+                $e->summary = tr('Събитие') . ' ' . ($id + 1);
             }
             $e->summary = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->summary);
             $e->summaryVrb = str_replace("\n", "\n<br>", type_Varchar::escape($e->summary));
@@ -105,38 +105,38 @@ class ical_Parser extends core_Mvc {
             $e->attendee = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->attendee);
             $e->attendeeVrb = self::getPersons($e->attendee_array);
 
-            switch($e->status) {
-                case "TENTATIVE":
-                    $e->statusVrb = tr("ПРЕДВАРИТЕЛНО||" . $e->status);
+            switch ($e->status) {
+                case 'TENTATIVE':
+                    $e->statusVrb = tr('ПРЕДВАРИТЕЛНО||' . $e->status);
                     break;
-                case "CONFIRMED":
-                    $e->statusVrb = tr("ПОТВЪРДЕНО||" . $e->status);
+                case 'CONFIRMED':
+                    $e->statusVrb = tr('ПОТВЪРДЕНО||' . $e->status);
                     break;
-                case "NEEDS-ACTION":
-                    $e->statusVrb = tr("НЕОБХОДИМО ДЕЙСТВИЕ||" . $e->status);
+                case 'NEEDS-ACTION':
+                    $e->statusVrb = tr('НЕОБХОДИМО ДЕЙСТВИЕ||' . $e->status);
                     break;
-                case "COMPLETED":
-                    $e->statusVrb = tr("ИЗПЪЛЕНО||" . $e->status);
+                case 'COMPLETED':
+                    $e->statusVrb = tr('ИЗПЪЛЕНО||' . $e->status);
                     break;
-                case "IN-PROCESS":
-                    $e->statusVrb = tr("В ПРОЦЕС||" . $e->status);
+                case 'IN-PROCESS':
+                    $e->statusVrb = tr('В ПРОЦЕС||' . $e->status);
                     break;
-                case "DRAFT":
-                    $e->statusVrb = tr("ЧЕРНОВА||" . $e->status);
+                case 'DRAFT':
+                    $e->statusVrb = tr('ЧЕРНОВА||' . $e->status);
                     break;
-                case "FINAL":
-                    $e->statusVrb = tr("ФИНАЛНО||" . $e->status);
+                case 'FINAL':
+                    $e->statusVrb = tr('ФИНАЛНО||' . $e->status);
                     break;
-                case "CANCELLED":
-                    $e->statusVrb = tr("ОТКАЗАНО||" . $e->status);
+                case 'CANCELLED':
+                    $e->statusVrb = tr('ОТКАЗАНО||' . $e->status);
                     break;
             }
 
-            if(isset($e->statusVrb)) { 
+            if (isset($e->statusVrb)) {
                 $e->statusVrb = str::mbUcfirst(mb_strtolower($e->statusVrb));
             }
             
-            if($e->transp == 'TRANSPARENT') {
+            if ($e->transp == 'TRANSPARENT') {
                 $e->statusVrb .= ($e->statusVrb ? ', ' : '') . tr('Не ангажира време');
             }
         }
@@ -148,20 +148,20 @@ class ical_Parser extends core_Mvc {
     /**
      * Извлича информация за лице
      */
-    private static function getPersons($p) 
-    { 
+    private static function getPersons($p)
+    {
         $res = '';
  
-        if(is_array($p)) {
+        if (is_array($p)) {
             $tE = cls::get('type_Email');
-            foreach($p as $el) {
-                if(is_array($el) && $el['CN']) {
+            foreach ($p as $el) {
+                if (is_array($el) && $el['CN']) {
                     $res .= ($res ? "\n<br>" : '') . $el['CN'];
-                } elseif(is_string($el) && stripos($el, 'mailto:') !== FALSE) {
+                } elseif (is_string($el) && stripos($el, 'mailto:') !== false) {
                     $eml = type_Email::extractEmails($el);
-                    if(is_array($eml)) {
-                        foreach($eml as $email) {
-                            if($res) {
+                    if (is_array($eml)) {
+                        foreach ($eml as $email) {
+                            if ($res) {
                                 $res .= ' (' . $tE->toVerbal($email) . ')';
                             } else {
                                 $res .= $tE->toVerbal($email);
@@ -185,9 +185,9 @@ class ical_Parser extends core_Mvc {
  
         $res = new ET();
 
-        if(is_array($events)) {
-            foreach($events as $e) {  
-                $tpl = new ET (tr('|*' . getFileContent('ical/tpl/Event.shtml')));
+        if (is_array($events)) {
+            foreach ($events as $e) {
+                $tpl = new ET(tr('|*' . getFileContent('ical/tpl/Event.shtml')));
                 $tpl->placeObject($e);
                 $tpl->removeBlocks();
                 $res->append($tpl);
@@ -200,9 +200,9 @@ class ical_Parser extends core_Mvc {
  
 
 
-    function act_Test()
+    public function act_Test()
     {
-        $str = file_get_contents("c:/temp/Denmark-Holidays.ics");
+        $str = file_get_contents('c:/temp/Denmark-Holidays.ics');
  
  
         $events = self::renderEvents($str);

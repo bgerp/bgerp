@@ -15,29 +15,29 @@
  */
 class cond_TransportCalc
 {
-	
-	
-	/**
+    
+    
+    /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     public $oldClassName = 'tcost_CostCalcIntf';
     
     
-	/**
-	 * Инстанция на мениджъра имащ интерфейса
-	 */
-	public $class;
-	
-	
-	/**
-	 * Стойността, която ще се върне ако е не може да се намери зона
-	 */
-	const ZONE_FIND_ERROR = -2;
-	
-	
-	/**
-	 * Стойността, която ще се върне ако има грешка при деление
-	 */
+    /**
+     * Инстанция на мениджъра имащ интерфейса
+     */
+    public $class;
+    
+    
+    /**
+     * Стойността, която ще се върне ако е не може да се намери зона
+     */
+    const ZONE_FIND_ERROR = -2;
+    
+    
+    /**
+     * Стойността, която ще се върне ако има грешка при деление
+     */
     const DELIMITER_ERROR = -4;
     
     
@@ -45,15 +45,15 @@ class cond_TransportCalc
      * Стойността, която ще се върне ако артикула няма тегло
      */
     const EMPTY_WEIGHT_ERROR = -8;
-	
-	
+    
+    
     /**
      * Определяне на обемното тегло, на база на обема на товара
-     * 
-     * @param double $weight  - Тегло на товара
-     * @param double $volume  - Обем  на товара
      *
-     * @return double         - Обемно тегло на товара  
+     * @param double $weight - Тегло на товара
+     * @param double $volume - Обем  на товара
+     *
+     * @return double - Обемно тегло на товара
      */
     public function getVolumicWeight($weight, $volume)
     {
@@ -64,16 +64,16 @@ class cond_TransportCalc
     /**
      * Определяне цената за транспорт при посочените параметри
      *
-     * @param int $deliveryTermId    - условие на доставка
+     * @param int    $deliveryTermId - условие на доставка
      * @param double $singleWeight   - тегло
      * @param double $singleVolume   - обем
-     * @param int $totalWeight       - Общо тегло на товара
-     * @param int $totalVolume       - Общ обем на товара
-     * @param array $params          - Други параметри
+     * @param int    $totalWeight    - Общо тегло на товара
+     * @param int    $totalVolume    - Общ обем на товара
+     * @param array  $params         - Други параметри
      *
      * @return array
-     * 			['fee']              - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
-     * 			['deliveryTime']     - срока на доставка в секунди ако го има
+     *               ['fee']              - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
+     *               ['deliveryTime']     - срока на доставка в секунди ако го има
      */
     public function getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $totalVolume, $params)
     {
@@ -83,14 +83,14 @@ class cond_TransportCalc
     
     /**
      * Добавя полета за доставка към форма
-     * 
-     * @param core_FieldSet $form
-     * @param string|NULL $userId
+     *
+     * @param  core_FieldSet $form
+     * @param  string|NULL   $userId
      * @return void
      */
-    public function addFields(core_FieldSet &$form, $userId = NULL)
+    public function addFields(core_FieldSet &$form, $userId = null)
     {
-    	return $this->class->addFields($form, $userId);
+        return $this->class->addFields($form, $userId);
     }
     
     
@@ -101,19 +101,19 @@ class cond_TransportCalc
      */
     public function getFields()
     {
-    	return $this->class->getFields();
+        return $this->class->getFields();
     }
     
     
     /**
      * Проверява форма
      *
-     * @param core_FieldSet $form
+     * @param  core_FieldSet $form
      * @return void
      */
     public function checkForm(core_FieldSet &$form)
     {
-    	return $this->class->checkForm($form);
+        return $this->class->checkForm($form);
     }
     
     
@@ -125,6 +125,6 @@ class cond_TransportCalc
      */
     public function renderDeliveryInfo($rec)
     {
-    	return $this->class->renderDeliveryInfo($rec);
+        return $this->class->renderDeliveryInfo($rec);
     }
 }

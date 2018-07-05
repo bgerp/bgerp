@@ -22,7 +22,7 @@ class pallet_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('pallet_Movements', 'Движения');
         $this->TAB('pallet_Pallets', 'Палети');

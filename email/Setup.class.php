@@ -22,7 +22,7 @@ defIfNot('EMAIL_MAX_FILELEN_FOR_BARCOCE', 250000);
 /**
  * Разширения, в които ще се търси баркод при сваляне на имейл
  */
-defIfNot('EMAIL_ALLOWED_EXT_FOR_BARCOCE', "pdf,tif,tiff,jpg,jpeg");
+defIfNot('EMAIL_ALLOWED_EXT_FOR_BARCOCE', 'pdf,tif,tiff,jpg,jpeg');
 
 
 /**
@@ -58,8 +58,8 @@ defIfNot('EMAIL_MAXIMUM_CID_LEN', 10240);
 
 
 /**
- * След колко време (в секунди) след първото изпращане към един имейл да се взема в предвид, че е изпратено преди (Повторно изпращане) 
- * 
+ * След колко време (в секунди) след първото изпращане към един имейл да се взема в предвид, че е изпратено преди (Повторно изпращане)
+ *
  * По подразбиране 12 часа
  */
 defIfNot('EMAIL_RESENDING_TIME', '43200');
@@ -99,8 +99,8 @@ defIfNot('EMAIL_THREAD_HANDLE_TYPE', 'type1');
 
 
 /**
- * Какъв какви типове манипулатори за събджект на имейл се 
- * с минали периоди 
+ * Какъв какви типове манипулатори за събджект на имейл се
+ * с минали периоди
  * t0 - <123456> (номер на нишка)
  * t1 - EML234SGR (манипулатор на документ + защита)
  * t2 - #123496 (номер на нишка + защита)
@@ -130,13 +130,13 @@ defIfNot('EMAIL_AUTO_FILL_EMAILS_FROM_CC', 0);
 /**
  * Хедъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл
  */
-defIfNot('EMAIL_OUTGOING_HEADER_TEXT', "[#hello#] [#salutation#] [#name#]");
+defIfNot('EMAIL_OUTGOING_HEADER_TEXT', '[#hello#] [#salutation#] [#name#]');
 
 
 /**
  * Хедъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл - на английски
  */
-defIfNot('EMAIL_OUTGOING_HEADER_TEXT_EN', "[#hello#] [#salutation#] [#name#]");
+defIfNot('EMAIL_OUTGOING_HEADER_TEXT_EN', '[#hello#] [#salutation#] [#name#]');
 
 
 /**
@@ -154,25 +154,25 @@ defIfNot('EMAIL_OUTGOING_FOOTER_TEXT_EN', "Best regards,\n[#name#]\n[#company#]\
 /**
  * Текст по подразбиране при отговор на имейл
  */
-defIfNot('EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY', "Благодаря за имейла от [#DATETIME#]");
+defIfNot('EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY', 'Благодаря за имейла от [#DATETIME#]');
 
 
 /**
  * Текст по подразбиране при отговор на имейл - на английски
  */
-defIfNot('EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY_EN', "Thanks for the email on [#DATETIME#]");
+defIfNot('EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY_EN', 'Thanks for the email on [#DATETIME#]');
 
 
 /**
  * Текст по подразбиране при препращане на имейл
  */
-defIfNot('EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING', "Моля запознайте се с препратения имейл [#MSG#]");
+defIfNot('EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING', 'Моля запознайте се с препратения имейл [#MSG#]');
 
 
 /**
  * Текст по подразбиране при препращане на имейл - на английски
  */
-defIfNot('EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN', "Please read the forwarded email [#MSG#]");
+defIfNot('EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN', 'Please read the forwarded email [#MSG#]');
 
 
 /**
@@ -226,115 +226,115 @@ class email_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'email_Incomings';
+    public $startCtr = 'email_Incomings';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Управление на входящи имeйл сметки и вътрешни кутии";
+    public $info = 'Управление на входящи имeйл сметки и вътрешни кутии';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'fileman=0.1,doc=0.1';
+    public $depends = 'fileman=0.1,doc=0.1';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
                 
             // Максимално време за еднократно фетчване на писма
-            'EMAIL_MAX_FETCHING_TIME' => array ('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Максимално време за получаване на имейли в една сесия->Време'),
+            'EMAIL_MAX_FETCHING_TIME' => array('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Максимално време за получаване на имейли в една сесия->Време'),
     
             // Максималното време за изчакване на буфера
-            'EMAIL_POP3_TIMEOUT'  => array ('time(suggestions=1 сек.|2 сек.|3 сек.)', 'mandatory, caption=Таймаут на POP3 сокета->Време'),
+            'EMAIL_POP3_TIMEOUT' => array('time(suggestions=1 сек.|2 сек.|3 сек.)', 'mandatory, caption=Таймаут на POP3 сокета->Време'),
 
             // Максималната разрешена памет за използване
-            'EMAIL_MAX_ALLOWED_MEMORY' => array ('fileman_FileSize', 'mandatory, caption=Максималната разрешена памет за използване при парсиране на имейли->Размер, suggestions=100 MB|200 MB|400 MB|800 MB|1200 MB'),
+            'EMAIL_MAX_ALLOWED_MEMORY' => array('fileman_FileSize', 'mandatory, caption=Максималната разрешена памет за използване при парсиране на имейли->Размер, suggestions=100 MB|200 MB|400 MB|800 MB|1200 MB'),
 
             // Шаблон за име на папки
-            'EMAIL_UNSORTABLE_COUNTRY' => array ('varchar', 'mandatory, caption=Шаблон за име на папки с несортирани имейли->Шаблон'),
+            'EMAIL_UNSORTABLE_COUNTRY' => array('varchar', 'mandatory, caption=Шаблон за име на папки с несортирани имейли->Шаблон'),
             
             // Потребител, който ще е отговорник на несортираните имейли
-            'EMAIL_UNSORTABLE_INCHARGE' => array ('user(roles=powerUser, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Потребител|*&comma;| който ще е отговорник на несортираните имейли->Потребител'),
+            'EMAIL_UNSORTABLE_INCHARGE' => array('user(roles=powerUser, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Потребител|*&comma;| който ще е отговорник на несортираните имейли->Потребител'),
 
             // Максималната големина на файловете, които ще се приемат за CID
-            'EMAIL_MAXIMUM_CID_LEN' => array ('int', 'caption=Максималната големина на файловете|*&comma;| които ще се приемат за вградени изображения->Размер'),
+            'EMAIL_MAXIMUM_CID_LEN' => array('int', 'caption=Максималната големина на файловете|*&comma;| които ще се приемат за вградени изображения->Размер'),
             
-            // След колко време (в секунди) след първото изпращане към един имейл да се взема в предвид, че е изпратено преди (Повторно изпращане) 
-            'EMAIL_RESENDING_TIME' => array ('time(suggestions=1 часа|2 часа|3 часа|5 часа|7 часа|10 часа|12 часа)', 'caption=Време от първото изпращане на имейл|*&comma;| след което се маркира "Преизпращане"->Време'),
+            // След колко време (в секунди) след първото изпращане към един имейл да се взема в предвид, че е изпратено преди (Повторно изпращане)
+            'EMAIL_RESENDING_TIME' => array('time(suggestions=1 часа|2 часа|3 часа|5 часа|7 часа|10 часа|12 часа)', 'caption=Време от първото изпращане на имейл|*&comma;| след което се маркира "Преизпращане"->Време'),
             
             // Максимален брой символи в текстовата част на входящите имейли
-            'EMAIL_MAX_TEXT_LEN' => array ('int', 'caption=Максимален брой символи в текстовата част на входящите имейли->Символи'),
+            'EMAIL_MAX_TEXT_LEN' => array('int', 'caption=Максимален брой символи в текстовата част на входящите имейли->Символи'),
             
             // Тип на манипулатора в събджекта
-            'EMAIL_THREAD_HANDLE_POS' => array ('enum(BEFORE_SUBJECT=Преди събджекта,AFTER_SUBJECT=След събджекта)', 'caption=Манипулатор на нишка в събджект на имейл->Позиция'),
+            'EMAIL_THREAD_HANDLE_POS' => array('enum(BEFORE_SUBJECT=Преди събджекта,AFTER_SUBJECT=След събджекта)', 'caption=Манипулатор на нишка в събджект на имейл->Позиция'),
             
             // Позиция на манипулатора в събджекта
-            'EMAIL_THREAD_HANDLE_TYPE' => array ('enum(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Тип'),
+            'EMAIL_THREAD_HANDLE_TYPE' => array('enum(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Тип'),
             
             // Позиция на манипулатора в събджекта
-            'EMAIL_THREAD_HANDLE_LEGACY_TYPES' => array ('set(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Наследени,columns=1'),
+            'EMAIL_THREAD_HANDLE_LEGACY_TYPES' => array('set(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Наследени,columns=1'),
             
             // Домейни за заменяне
-            'EMAIL_REPLACE_DOMAINS' => array ('varchar', 'caption=Домейни за заменяне->Списък,columns=1', array('hint' => 'OldDomain1=NewDomain1,OldDomain2=NewDomain2,...')),
+            'EMAIL_REPLACE_DOMAINS' => array('varchar', 'caption=Домейни за заменяне->Списък,columns=1', array('hint' => 'OldDomain1=NewDomain1,OldDomain2=NewDomain2,...')),
 
             // Максимален размер на прикачените файлове и документи
-            'EMAIL_MAX_ATTACHED_FILE_LIMIT' => array ('fileman_FileSize', 'caption=Максимален размер на прикачените файлове/документи в имейла->Размер, suggestions=10 MB|20 MB|30 MB'),
+            'EMAIL_MAX_ATTACHED_FILE_LIMIT' => array('fileman_FileSize', 'caption=Максимален размер на прикачените файлове/документи в имейла->Размер, suggestions=10 MB|20 MB|30 MB'),
             
-            'EMAIL_DEFAULT_SENT_INBOX' => array ('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращач на изходящите имейли->От, placeholder=Автоматично,customizeBy=powerUser, optionsFunc=email_Inboxes::getAllowedFromEmailOptions'),
+            'EMAIL_DEFAULT_SENT_INBOX' => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращач на изходящите имейли->От, placeholder=Автоматично,customizeBy=powerUser, optionsFunc=email_Inboxes::getAllowedFromEmailOptions'),
             
-            'EMAIL_AUTO_FILL_EMAILS_FROM_CC' => array ('int', 'caption=Автоматично попълване на имейлите в полето копие|*&comma; |когато са до->Брой, customizeBy=powerUser'),
+            'EMAIL_AUTO_FILL_EMAILS_FROM_CC' => array('int', 'caption=Автоматично попълване на имейлите в полето копие|*&comma; |когато са до->Брой, customizeBy=powerUser'),
             
-            'EMAIL_RESTRICT_ROUTE' => array ('enum(yes=Да, no=Не)', 'caption=Ограничаване на рутурането по папки->Избор'),
+            'EMAIL_RESTRICT_ROUTE' => array('enum(yes=Да, no=Не)', 'caption=Ограничаване на рутурането по папки->Избор'),
             
-            'EMAIL_OUTGOING_HEADER_TEXT' => array ('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На български, customizeBy=powerUser'),
+            'EMAIL_OUTGOING_HEADER_TEXT' => array('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На български, customizeBy=powerUser'),
     
-            'EMAIL_OUTGOING_HEADER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На английски, customizeBy=powerUser'),
+            'EMAIL_OUTGOING_HEADER_TEXT_EN' => array('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На английски, customizeBy=powerUser'),
     
-            'EMAIL_OUTGOING_FOOTER_TEXT' => array ('richtext(rows=5,bucket=Postings)', 'caption=Подпис за изходящите имейли->На български, customizeBy=powerUser'),
+            'EMAIL_OUTGOING_FOOTER_TEXT' => array('richtext(rows=5,bucket=Postings)', 'caption=Подпис за изходящите имейли->На български, customizeBy=powerUser'),
     
-            'EMAIL_OUTGOING_FOOTER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Подпис за изходящите имейли->На английски, customizeBy=powerUser'),
+            'EMAIL_OUTGOING_FOOTER_TEXT_EN' => array('richtext(rows=5,bucket=Postings)', 'caption=Подпис за изходящите имейли->На английски, customizeBy=powerUser'),
     
-            'EMAIL_SALUTATION_EMAIL_TIME_LIMIT' => array ('time(suggestions=30 дни|90 дни|180 дни)', 'caption=След колко време да не се използват обръщенията по имейл за нова нишка->Време'),
+            'EMAIL_SALUTATION_EMAIL_TIME_LIMIT' => array('time(suggestions=30 дни|90 дни|180 дни)', 'caption=След колко време да не се използват обръщенията по имейл за нова нишка->Време'),
             
-            'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY' => array ('varchar', 'caption=Текст по подразбиране при отговор на имейл->На български, customizeBy=powerUser'),
+            'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY' => array('varchar', 'caption=Текст по подразбиране при отговор на имейл->На български, customizeBy=powerUser'),
             
-            'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY_EN' => array ('varchar', 'caption=Текст по подразбиране при отговор на имейл->На английски, customizeBy=powerUser'),
+            'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY_EN' => array('varchar', 'caption=Текст по подразбиране при отговор на имейл->На английски, customizeBy=powerUser'),
     
-            'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING' => array ('varchar', 'caption=Текст по подразбиране при препращане на имейл->На български, customizeBy=powerUser'),
+            'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING' => array('varchar', 'caption=Текст по подразбиране при препращане на имейл->На български, customizeBy=powerUser'),
     
-            'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN' => array ('varchar', 'caption=Текст по подразбиране при препращане на имейл->На английски, customizeBy=powerUser'),
+            'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN' => array('varchar', 'caption=Текст по подразбиране при препращане на имейл->На английски, customizeBy=powerUser'),
             
-            'EMAIL_STOP_SEND_TO' => array ('varchar', 'caption=Шаблон за имейли до които няма да се праща->Шаблон'),
+            'EMAIL_STOP_SEND_TO' => array('varchar', 'caption=Шаблон за имейли до които няма да се праща->Шаблон'),
             
-            'EMAIL_CHECK_SPAM_SCORE_HEADERS' => array ('varchar', 'caption=Проверка на СПАМ рейтинг->Хедъри'),
+            'EMAIL_CHECK_SPAM_SCORE_HEADERS' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Хедъри'),
             
-            'EMAIL_HARD_SPAM_SCORE' => array ('varchar', 'caption=Проверка на СПАМ рейтинг->Твърд спам'),
+            'EMAIL_HARD_SPAM_SCORE' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Твърд спам'),
             
-            'EMAIL_REJECT_SPAM_SCORE' => array ('varchar', 'caption=Проверка на СПАМ рейтинг->Оттегляне'),
+            'EMAIL_REJECT_SPAM_SCORE' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Оттегляне'),
         );
         
         
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'email_Incomings',
             'email_Outgoings',
             'email_Inboxes',
@@ -369,33 +369,32 @@ class email_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "email_reports_Spam";
+    public $defClasses = 'email_reports_Spam';
 
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'email, fax';
+    public $roles = 'email, fax';
     
 
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', "admin, email, fax, user"),
+    public $menuItems = array(
+            array(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', 'admin, email, fax, user'),
         );
         
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-       
         $html = parent::install();
             
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('Email', 'Прикачени файлове в имейлите', NULL, '104857600', 'user', 'user');
+        $html .= $Bucket->createBucket('Email', 'Прикачени файлове в имейлите', null, '104857600', 'user', 'user');
              
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
@@ -418,7 +417,7 @@ class email_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);
@@ -428,26 +427,26 @@ class email_Setup extends core_ProtoSetup
 
 
     /**
-     * Миграция, която прехвърля манипулаторите на нишки от модел doc_Threads 
+     * Миграция, която прехвърля манипулаторите на нишки от модел doc_Threads
      * в email_ThreadHandles
      */
-    function transferThreadHandles()
+    public function transferThreadHandles()
     {
         $docThreads = cls::get('doc_Threads');
         
-        if($docThreads->db->isFieldExists($docThreads->dbTableName, 'handle')) {
+        if ($docThreads->db->isFieldExists($docThreads->dbTableName, 'handle')) {
             // Манипулатор на нишката (thread handle)
             $docThreads->FLD('handle', 'varchar(32)', 'caption=Манипулатор');
 
             $tQuery = $docThreads->getQuery();
 
-            while($rec = $tQuery->fetch("#handle IS NOT NULL")) {
+            while ($rec = $tQuery->fetch('#handle IS NOT NULL')) {
                 $rec->handle = strtoupper($rec->handle);
-                if($rec->handle{0} >= 'A' && $rec->handle{0} <= 'Z') {
-                    email_ThreadHandles::save( (object) array('threadId' => $rec->id, 'handle' => '#' . $rec->handle), NULL, 'IGNORE');
+                if ($rec->handle{0} >= 'A' && $rec->handle{0} <= 'Z') {
+                    email_ThreadHandles::save((object) array('threadId' => $rec->id, 'handle' => '#' . $rec->handle), null, 'IGNORE');
                 }
             }
-        } 
+        }
     }
     
     
@@ -496,7 +495,6 @@ class email_Setup extends core_ProtoSetup
         $systemArr = array();
         
         while ($rec = $query->fetch()) {
-            
             foreach ($condFieldArr as $field) {
                 $rec->$field = str_replace('%', '*', $rec->$field);
             }
@@ -504,7 +502,6 @@ class email_Setup extends core_ProtoSetup
             $systemId = email_Filters::getSystemId($rec);
             
             if ($systemArr[$systemId]) {
-                
                 email_Filters::delete($rec->id);
                 continue;
             }
@@ -525,7 +522,9 @@ class email_Setup extends core_ProtoSetup
     {
         $query = email_SendOnTime::getQuery();
         while ($rec = $query->fetch()) {
-            if (!cls::load($rec->class, TRUE)) continue;
+            if (!cls::load($rec->class, true)) {
+                continue;
+            }
             $clsInst = cls::get($rec->class);
             
             $rec->class = core_Cls::getClassName($clsInst);
@@ -541,14 +540,14 @@ class email_Setup extends core_ProtoSetup
     public static function updateUserInboxesD()
     {
         $callOn = dt::addSecs(120);
-        core_CallOnTime::setOnce('email_Setup', 'migrateEmails', NULL, $callOn);
+        core_CallOnTime::setOnce('email_Setup', 'migrateEmails', null, $callOn);
     }
     
     
     /**
      * Извиква се от core_CallOnTime
      * Прави миграцията на updateUserInboxesD - добавя стойности за userInboxes и toAndCc
-     * 
+     *
      * @see core_CallOnTime
      */
     public static function callback_migrateEmails()
@@ -556,23 +555,22 @@ class email_Setup extends core_ProtoSetup
         $isLogging = core_Debug::$isLogging;
         
         try {
-            core_Debug::$isLogging = FALSE;
+            core_Debug::$isLogging = false;
             
             $inst = cls::get('email_Incomings');
             
             $query = $inst->getQuery();
-            $query->where("#headers IS NOT NULL");
-            $query->orWhere("#emlFile IS NOT NULL");
+            $query->where('#headers IS NOT NULL');
+            $query->orWhere('#emlFile IS NOT NULL');
             
-            $query->where("#userInboxes IS NULL");
-            $query->orWhere("#toAndCc IS NULL");
+            $query->where('#userInboxes IS NULL');
+            $query->orWhere('#toAndCc IS NULL');
             
             $query->limit(1000);
             $query->orderBy('createdOn', 'DESC');
             
             while ($rec = $query->fetch()) {
-                
-                $haveRec = TRUE;
+                $haveRec = true;
                 
                 $inst->calcAllToAndCc($rec);
                 
@@ -581,13 +579,13 @@ class email_Setup extends core_ProtoSetup
             
             if ($haveRec) {
                 $callOn = dt::addSecs(120);
-                core_CallOnTime::setCall('email_Setup', 'migrateEmails', NULL, $callOn);
+                core_CallOnTime::setCall('email_Setup', 'migrateEmails', null, $callOn);
             }
         } catch (core_exception_Expect $e) {
             reportException($e);
             
             $callOn = dt::addSecs(300);
-            core_CallOnTime::setCall('email_Setup', 'migrateEmails', NULL, $callOn);
+            core_CallOnTime::setCall('email_Setup', 'migrateEmails', null, $callOn);
         }
         
         core_Debug::$isLogging = $isLogging;
@@ -613,7 +611,7 @@ class email_Setup extends core_ProtoSetup
     public function repairSalutations()
     {
         $query = email_Salutations::getQuery();
-        $query->where("#userId IS NULL");
+        $query->where('#userId IS NULL');
         $query->orWhere("#userId = '0' || #userId = '-1'");
         
         while ($rec = $query->fetch()) {
@@ -633,18 +631,21 @@ class email_Setup extends core_ProtoSetup
         $cls = cls::get('email_SendOnTime');
         $cls->db->connect();
         $delayField = str::phpToMysqlName('delay');
-        if (!$cls->db->isFieldExists($cls->dbTableName, $delayField)) return ;
+        if (!$cls->db->isFieldExists($cls->dbTableName, $delayField)) {
+            
+            return ;
+        }
         
         $eQuery = $cls->getQuery();
         
         unset($eQuery->fields['delay']);
         $eQuery->FLD('delay', 'time');
         
-        $eQuery->where("#delaySendOn IS NULL");
-        $eQuery->where("#delay IS NOT NULL");
-        $eQuery->where("#delay != 0");
+        $eQuery->where('#delaySendOn IS NULL');
+        $eQuery->where('#delay IS NOT NULL');
+        $eQuery->where('#delay != 0');
         
-        while($eRec = $eQuery->fetch()) {  
+        while ($eRec = $eQuery->fetch()) {
             $eRec->delaySendOn = dt::addSecs($eRec->delay, $eRec->createdOn);
             
             $cls->save($eRec, 'delaySendOn');
@@ -655,17 +656,19 @@ class email_Setup extends core_ProtoSetup
     /**
      * Миграция за полето deleteAfterPeriod
      */
-    function fieldDeleteAfterRetrieval()
+    public function fieldDeleteAfterRetrieval()
     {
         $accMvc = cls::get('email_Accounts');
 
-        if(!$accMvc->db->isFieldExists($accMvc->dbTableName, 'delete_after_retrieval')) return;
+        if (!$accMvc->db->isFieldExists($accMvc->dbTableName, 'delete_after_retrieval')) {
+            return;
+        }
 
         $query = $accMvc->getQuery();
         $query->FLD('deleteAfterRetrieval', 'enum(no=Не,yes=Да)', 'caption=Изтриване?,hint=Дали писмото да бъде изтрито от IMAP кутията след получаване в системата?');
 
-        while($rec = $query->fetch()) {
-            if($rec->deleteAfterRetrieval == 'yes' && empty($rec->deleteAfterPeriod)) {
+        while ($rec = $query->fetch()) {
+            if ($rec->deleteAfterRetrieval == 'yes' && empty($rec->deleteAfterPeriod)) {
                 $rec->deleteAfterPeriod = 7 * 24 * 60 * 60;
                 $accMvc->save_($rec, 'deleteAfterPeriod');
             }
@@ -676,7 +679,7 @@ class email_Setup extends core_ProtoSetup
     /**
      * Зареждане на данни
      */
-    function loadSetupData($itr = '')
+    public function loadSetupData($itr = '')
     {
         $res = parent::loadSetupData($itr);
         
@@ -712,12 +715,13 @@ class email_Setup extends core_ProtoSetup
         $accQuery->orderBy('#order');
         
         while (($accRec = $accQuery->fetch("#state = 'active'"))) {
-            
             $pKey = 'checkMailBox|' . $accRec->id;
             
             $emlStatus = core_Permanent::get($pKey);
             
-            if ($emlStatus) continue;
+            if ($emlStatus) {
+                continue;
+            }
             
             $lockKey = 'Inbox:' . $accRec->id;
             
@@ -726,7 +730,7 @@ class email_Setup extends core_ProtoSetup
             // Връзка по IMAP към сървъра на посочената сметка
             $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
             
-            expect($imapConn->connect() !== FALSE);
+            expect($imapConn->connect() !== false);
             
             // Получаваме броя на писмата в INBOX папката
             $numMsg = $imapConn->getStatistic('messages');
@@ -734,7 +738,9 @@ class email_Setup extends core_ProtoSetup
             // Махаме заключването от кутията
             core_Locks::release($lockKey);
             
-            if (!$numMsg) continue;
+            if (!$numMsg) {
+                continue;
+            }
             
             $emlStatus = $accRec->id . '|0|' . $numMsg;
             
@@ -754,7 +760,7 @@ class email_Setup extends core_ProtoSetup
     /**
      * Функция за проверка на свалените имейли
      * Ако хеша го няма - предизвиква сваляне
-     * 
+     *
      * @param string $emlStatus
      */
     public static function callback_checkMailBox($emlStatus)
@@ -764,7 +770,10 @@ class email_Setup extends core_ProtoSetup
         
         list($accId, $begin, $end) = explode('|', $emlStatus);
         
-        if (!$accId) return ;
+        if (!$accId) {
+            
+            return ;
+        }
         
         if (!$begin) {
             $begin = 1;
@@ -773,7 +782,6 @@ class email_Setup extends core_ProtoSetup
         $pKey = 'checkMailBox|' . $accId;
         
         if ($begin >= $end) {
-            
             email_Accounts::logNotice('Приключи проверката на имейл кутията', $accId);
             
             core_Permanent::remove($pKey);
@@ -783,7 +791,10 @@ class email_Setup extends core_ProtoSetup
         
         $accRec = email_Accounts::fetch($accId);
         
-        if ($accRec->state != 'active') return ;
+        if ($accRec->state != 'active') {
+            
+            return ;
+        }
         
         sleep(7);
         
@@ -792,21 +803,18 @@ class email_Setup extends core_ProtoSetup
         $lockKey = 'Inbox:' . $accRec->id;
         
         if (core_Locks::get($lockKey, 55, 30)) {
-            
             $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
             
-            if ($imapConn->connect() !== FALSE) {
+            if ($imapConn->connect() !== false) {
                 
-				// За да не гърми с warning при надвишаване на броя имейли
+                // За да не гърми с warning при надвишаване на броя имейли
                 $numMsg = $imapConn->getStatistic('messages');
                 if (isset($numMsg) && $end != $numMsg) {
-                    
                     email_Accounts::logDebug("Променен брой имейли за проверка от {$end} на {$numMsg}", $accId);
                     
                     $end = $numMsg;
                 }
                 if ($begin >= $end) {
-                    
                     email_Accounts::logNotice('Приключи проверката на имейл кутията', $accId);
                     
                     core_Permanent::remove($pKey);
@@ -882,7 +890,7 @@ class email_Setup extends core_ProtoSetup
             $nRec->createdBy = $fRec->createdBy;
             $nRec->points = email_Setup::get('HARD_SPAM_SCORE') + 1;
             
-            email_SpamRules::save($nRec, NULL, 'IGNORE');
+            email_SpamRules::save($nRec, null, 'IGNORE');
             
             email_Filters::delete($fRec->id);
         }

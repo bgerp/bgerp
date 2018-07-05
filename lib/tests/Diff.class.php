@@ -12,7 +12,7 @@
  * @since     v 0.1
  * @link
  */
-class lib_tests_Diff extends unit_Class 
+class lib_tests_Diff extends unit_Class
 {
     
     
@@ -22,7 +22,7 @@ class lib_tests_Diff extends unit_Class
      * @param old string star HTML
      * @param new string нов HTML
      */
-    static function test_getDiff($mvc)
+    public static function test_getDiff($mvc)
     {
         // Масив с старите стойности
         $oldArr = array();
@@ -38,7 +38,7 @@ class lib_tests_Diff extends unit_Class
         $newArr[0] = 'Text текст';
         $expectArr[0] = '<span class="ins">Text текст</span>';
         
-        $oldArr[1] = NULL;
+        $oldArr[1] = null;
         $newArr[1] = 'Text текст';
         $expectArr[1] = '<span class="ins">Text текст</span>';
         
@@ -59,7 +59,7 @@ class lib_tests_Diff extends unit_Class
         $expectArr[5] = '<span class="del">Text текст</span>';
         
         $oldArr[6] = 'Text текст';
-        $newArr[6] = NULL;
+        $newArr[6] = null;
         $expectArr[6] = '<span class="del">Text текст</span>';
         
         $oldArr[7] = 'Text текст';
@@ -94,8 +94,8 @@ class lib_tests_Diff extends unit_Class
         $newArr[14] = 'All Changed';
         $expectArr[14] = '<span title="Text text" class="cng">All Changed</span>';
         
-        $oldArr[15] = NULL;
-        $newArr[15] = NULL;
+        $oldArr[15] = null;
+        $newArr[15] = null;
         $expectArr[15] = '';
         
         $oldArr[16] = '';
@@ -104,10 +104,10 @@ class lib_tests_Diff extends unit_Class
         // Край на масивите
         
         // Отварящ таг
-        $tagOpen = "<div>";
+        $tagOpen = '<div>';
         
         // Затварящ таг
-        $tagClose = "</div>";
+        $tagClose = '</div>';
         
         // Обхождаме масива
         foreach ($oldArr as $key => $old) {
@@ -133,4 +133,4 @@ class lib_tests_Diff extends unit_Class
             ut::expectEqual($expectDiv, $resDiv);
         }
     }
- }
+}

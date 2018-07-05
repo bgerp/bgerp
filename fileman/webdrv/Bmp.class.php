@@ -2,7 +2,7 @@
 
 /**
  * Драйвер за работа с .bmp файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>

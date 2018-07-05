@@ -13,35 +13,28 @@
  */
 class csstoinline_Emogrifier extends core_Manager
 {
+    public $interfaces = 'csstoinline_ConverterIntf';
     
     
-    /**
-     * 
-     */
-    var $interfaces = 'csstoinline_ConverterIntf';
     
-    
-    /**
-     * 
-     */
-    var $title = 'Emogrifier';
+    public $title = 'Emogrifier';
     
     
     /**
      * Вкарва външния CSS, като inline стил
-     * 
+     *
      * @param string $html - HTML текста
-     * @param string $css - CSS текста
-     * 
+     * @param string $css  - CSS текста
+     *
      * @return string @processedHTML - Обработения HTML
      */
-    static function convert($html, $css)
+    public static function convert($html, $css)
     {
         // Вземаме конфигурационните константи
         $conf = core_Packs::getConfig('csstoinline');
         
         // Пътя до кода
-        $path = "csstoinline/emogrifier/". $conf->CSSTOINLINE_EMOGRIFIER_VERSION . "/Emogrifier.php";
+        $path = 'csstoinline/emogrifier/'. $conf->CSSTOINLINE_EMOGRIFIER_VERSION . '/Emogrifier.php';
         
         // Вкарваме пакета
         require_once getFullPath($path);

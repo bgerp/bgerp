@@ -276,6 +276,7 @@ class core_Users extends core_Manager
         static $res;
 
         if ($res) {
+            
             return $res;
         }
 
@@ -414,6 +415,7 @@ class core_Users extends core_Manager
         }
         
         if (is_null($rec)) {
+            
             return false;
         }
         
@@ -422,6 +424,7 @@ class core_Users extends core_Manager
         }
         
         if (!$force && (!$rec || ($rec->id < 1))) {
+            
             return false;
         }
         
@@ -443,6 +446,7 @@ class core_Users extends core_Manager
         }
         
         if (is_null($rec)) {
+            
             return false;
         }
         
@@ -523,6 +527,7 @@ class core_Users extends core_Manager
         $nick = mb_strtolower($nick);
         
         if ($fNicksArr[$nick]) {
+            
             return true;
         }
         
@@ -753,6 +758,7 @@ class core_Users extends core_Manager
     {
         //Ако не сме субмитнали формата връщаме управлението
         if (!$form->isSubmitted()) {
+            
             return ;
         }
         
@@ -883,6 +889,7 @@ class core_Users extends core_Manager
         // и се намираме в дебъг режим, то тогава редиректваме
         // към вкарването на първия потребител (admin)
         if (self::isUsersEmpty()) {
+            
             return new Redirect(array(
                     $this,
                     'add',
@@ -1264,6 +1271,7 @@ class core_Users extends core_Manager
         $cRec = Mode::get('currentUserRec');
         
         if (is_null($cRec) && $part == 'nick') {
+            
             return '@anonymous';
         }
         
@@ -1483,6 +1491,7 @@ class core_Users extends core_Manager
     {
         // Ако не се логва, а се рефрешва потребителя
         if ($refresh) {
+            
             return ;
         }
         
@@ -1614,6 +1623,7 @@ class core_Users extends core_Manager
         
         // Ако има права за този екшън
         if (core_LoginLog::haveRightFor('list')) {
+            
             return array('core_LoginLog', 'list', 'userId' => $userIdWithTeam);
         }
     }
@@ -1686,6 +1696,7 @@ class core_Users extends core_Manager
         }
         
         if ($currentUserRec->_isSudo) {
+            
             return ;
         }
         
@@ -1715,6 +1726,7 @@ class core_Users extends core_Manager
         $Users = cls::get('core_Users');
         
         if ($userId > 0) {
+            
             return $Users->fetchField($userId, 'roles');
         }
 
@@ -1831,6 +1843,7 @@ class core_Users extends core_Manager
 
         foreach ($rangs as $role => $roleId) {
             if ($rolesArr[$roleId]) {
+                
                 return $role;
             }
         }
@@ -1849,6 +1862,7 @@ class core_Users extends core_Manager
         static $subordinatesArr = array();
         
         if (self::isContractor($userId)) {
+            
             return array();
         }
         
@@ -1889,6 +1903,7 @@ class core_Users extends core_Manager
         
         // По-бърз отговор, ако двата потребителя съвпадат
         if ($user1 == $user2) {
+            
             return true;
         }
 
@@ -1962,6 +1977,7 @@ class core_Users extends core_Manager
                 
                 // Всеки потребител има роля 'every_one'
                 if ($role == 'every_one') {
+                    
                     return true;
                 }
                 
@@ -1972,11 +1988,13 @@ class core_Users extends core_Manager
                 
                 // Системният потребител има роля system
                 if ($role == 'system' && core_Users::getCurrent() == core_Users::SYSTEM_USER) {
+                    
                     return true;
                 }
                 
                 // Анонимният потребител има роля anonym
                 if ($role == 'anonym' && core_Users::getCurrent() == 0) {
+                    
                     return true;
                 }
   
@@ -1984,6 +2002,7 @@ class core_Users extends core_Manager
                 
                 // Съдържа ли се ролята в keylist-а от роли на потребителя?
                 if (keylist::isIn($roleId, $userRoles)) {
+                    
                     return true;
                 }
             }
@@ -2258,6 +2277,7 @@ class core_Users extends core_Manager
         $fAdmin = trim($fAdmin);
         
         if ($fAdmin) {
+            
             return $fAdmin;
         }
         
@@ -2326,6 +2346,7 @@ class core_Users extends core_Manager
         // Ако е обект
         if (is_object($userId)) {
             if ($userId->nick) {
+                
                 return $userId->nick;
             }
             
@@ -2470,6 +2491,7 @@ class core_Users extends core_Manager
         }
         
         if (!$rec) {
+            
             return '??????????????';
         }
         
@@ -2497,6 +2519,7 @@ class core_Users extends core_Manager
         
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
+                
                 return array();
             }
             

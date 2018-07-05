@@ -12,33 +12,34 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_Mimes extends core_Mvc {
+class fileman_Mimes extends core_Mvc
+{
     
     
     /**
      * Заглавие на модула
      */
-    var $title = 'MIME <=> файлови разширения';
+    public $title = 'MIME <=> файлови разширения';
     
     
     /**
      * Масив със съответствие на разширения към mime типове
      */
-    static $ext2mime;
+    public static $ext2mime;
     
 
     /**
      * Масив със съответствие на mime типове към разширения
      */
-    static $mime2ext;
+    public static $mime2ext;
 
     
     /**
      * Зареждане на self::$ext2mime, ако не е зареден
      */
-    static function loadExt2Mime()
+    public static function loadExt2Mime()
     {
-        if(!self::$ext2mime) {
+        if (!self::$ext2mime) {
             //Вземаме цялото име на файла
             $inc = getFullPath('fileman/data/ext2mime.inc.php');
             
@@ -54,7 +55,7 @@ class fileman_Mimes extends core_Mvc {
     /**
      * Зареждане на self::$mime2ext, ако не е зареден
      */
-    static function loadMime2Ext()
+    public static function loadMime2Ext()
     {
         if (!self::$mime2ext) {
             //Вземаме цялото име на файла
@@ -72,9 +73,11 @@ class fileman_Mimes extends core_Mvc {
     /**
      * Връща най-подходящия mime тип за даденото разширение
      */
-    static function getMimeByExt($ext)
+    public static function getMimeByExt($ext)
     {
-        if (!$ext) return;
+        if (!$ext) {
+            return;
+        }
 
         self::loadExt2Mime();
 
@@ -87,16 +90,16 @@ class fileman_Mimes extends core_Mvc {
     /**
      * регенериране на ext2mime
      */
-    function act_Ext()
+    public function act_Ext()
     {
         requireRole('admin,debug');
 
         self::loadExt2Mime();
         self::loadMime2Ext();
 
-        foreach(self::$mime2ext as $mime => $exts) {
-            foreach(explode(' ', $exts) as $ext) {
-                if(!isset(self::$ext2mime[$ext])) {
+        foreach (self::$mime2ext as $mime => $exts) {
+            foreach (explode(' ', $exts) as $ext) {
+                if (!isset(self::$ext2mime[$ext])) {
                     self::$ext2mime[$ext] = $mime;
                 }
             }
@@ -104,7 +107,7 @@ class fileman_Mimes extends core_Mvc {
         
         ksort(self::$ext2mime);
 
-        foreach(self::$ext2mime as $ext => $mime) {
+        foreach (self::$ext2mime as $ext => $mime) {
             $res .= "    \"{$ext}\" => \"{$mime}\",<br>";
         }
         
@@ -116,9 +119,11 @@ class fileman_Mimes extends core_Mvc {
      * Връща масив с файловите разширения за даден mime тип
      * Първия елемент на масива е най-подходящото разширение
      */
-    static function getExtByMime($mime)
+    public static function getExtByMime($mime)
     {
-        if (!$mime) return;
+        if (!$mime) {
+            return;
+        }
 
         self::loadMime2Ext();
 
@@ -126,7 +131,10 @@ class fileman_Mimes extends core_Mvc {
 
         $exts = self::$mime2ext[$mime];
 
-        if(!$exts) return array();
+        if (!$exts) {
+            
+            return array();
+        }
 
         return explode(' ', $exts);
     }
@@ -135,23 +143,25 @@ class fileman_Mimes extends core_Mvc {
     /**
      * Добавя коректното разшитение на файл, като отчита неговия mime тип
      */
-    static function addCorrectFileExt($fileName, $mime)
+    public static function addCorrectFileExt($fileName, $mime)
     {
         expect($fileName);
 
-        if(!$mime) return $fileName;
+        if (!$mime) {
+            
+            return $fileName;
+        }
 
         $extArr = self::getExtByMime($mime);
         
-        if(count($extArr)) {
-            
+        if (count($extArr)) {
             $oFileName = $fileName;
             
             $ext = fileman_Files::getExt($fileName);
             
             $ext = mb_strtolower($ext);
 
-            if(!$ext || !in_array($ext, $extArr)) {
+            if (!$ext || !in_array($ext, $extArr)) {
                 
                 // TODO става много сложно
                 // Може да се направи само ако няма разширение да се променя, но това ще позволи качването на файлове със сгрешени разширения
@@ -162,9 +172,8 @@ class fileman_Mimes extends core_Mvc {
                 // Масив с mime типове
                 $noTrustMimeArr = array('application/octet-stream', 'application/x-httpd-php', 'text/x-c', 'text/x-c++', 'text/plain', 'application/zip');
                 
-                if (!$ext || (!in_array($mime, $noTrustMimeArr)) && (!in_array($ext, $trustExtArr)) ) {
-                    
-                    $useOldName = FALSE;
+                if (!$ext || (!in_array($mime, $noTrustMimeArr)) && (!in_array($ext, $trustExtArr))) {
+                    $useOldName = false;
                     
                     if ($ext) {
                         // Миме типовете на разширенията
@@ -173,12 +182,12 @@ class fileman_Mimes extends core_Mvc {
                         
                         // Ако новото разширение няма mime или и на двете разширения е text, да не се променя
                         if (!$newExtMime) {
-                            $useOldName = TRUE;
+                            $useOldName = true;
                         } elseif ($extMime && $newExtMime) {
                             list($extMimePart) = explode('/', $extMime);
                             list($newExtMimePart) = explode('/', $newExtMime);
                             if (($extMimePart == 'text') && ($extMimePart == $newExtMimePart)) {
-                                $useOldName = TRUE;
+                                $useOldName = true;
                             }
                         }
                     }
@@ -186,7 +195,7 @@ class fileman_Mimes extends core_Mvc {
                     if ($useOldName) {
                         $fileName = $oFileName;
                     } else {
-                        $fileName .= '.' . $extArr[0];  
+                        $fileName .= '.' . $extArr[0];
                     }
                 }
             }
@@ -198,16 +207,19 @@ class fileman_Mimes extends core_Mvc {
     
     /**
      * Проверява, дали разширението на файла е в допустимите за миме типа
-     * 
+     *
      * @param string $mimeType - Миме типа на файла
-     * @param string $ext - Разширението на файла
-     * 
+     * @param string $ext      - Разширението на файла
+     *
      * @return boolean
      */
-    static function isCorrectExt($mimeType, $ext)
+    public static function isCorrectExt($mimeType, $ext)
     {
         // Ако един от параметрите липсва
-        if (!trim($mimeType) || !trim($ext)) return ;
+        if (!trim($mimeType) || !trim($ext)) {
+            
+            return ;
+        }
         
         // Параметрите в долен регистър
         $ext = strtolower($ext);
@@ -219,9 +231,9 @@ class fileman_Mimes extends core_Mvc {
         // Ако е в масива с позволени разширения
         if (in_array($ext, $extArr)) {
             
-            return TRUE;
+            return true;
         }
         
-        return FALSE;
+        return false;
     }
 }

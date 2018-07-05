@@ -18,10 +18,10 @@ class tracking_TrackerIntf
     /**
      *  Информация за свободни тракери
      *
-     * @return  array   Масив с ключове номерата на незаетите тракери
-     *                   или празен стринг, ако такива няма
+     * @return array Масив с ключове номерата на незаетите тракери
+     *               или празен стринг, ако такива няма
      */
-    function getFreeTrackers()
+    public function getFreeTrackers()
     {
         return $this->class->getFreeTrackers();
     }
@@ -30,11 +30,11 @@ class tracking_TrackerIntf
     /**
      * Освобождава тракер
      *
-     * @param   string  $trackerId        системният номер на тракера
-     * @return  bool    TRUE - при успех FALSE при грешка   
+     * @param  string $trackerId системният номер на тракера
+     * @return bool   TRUE - при успех FALSE при грешка
      *
      */
-    function releaseTracker($trackerId)
+    public function releaseTracker($trackerId)
     {
         return $this->class->releaseTracker($trackerId);
     }
@@ -43,13 +43,12 @@ class tracking_TrackerIntf
     /**
      * Заема тракер за обект за проследяване
      *
-     * @param   string  $trackerId       системният номер на тракера
-     * @return  bool    TRUE - при успех FALSE при грешка   
-     * 
+     * @param  string $trackerId системният номер на тракера
+     * @return bool   TRUE - при успех FALSE при грешка
+     *
      */
-    function occupyTracker($trackerId)
+    public function occupyTracker($trackerId)
     {
         return $this->class->occupyTracker($inputs, $config, $persistentState);
     }
-
 }

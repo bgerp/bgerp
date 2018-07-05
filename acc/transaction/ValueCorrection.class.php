@@ -342,6 +342,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
         
         $errorMsg = acc_ValueCorrections::allocateAmount($products, $value, $allocateBy);
         if (!empty($errorMsg)) {
+            
             return $entries;
         }
         $itemRec = acc_Items::fetch($expenseItemId);
@@ -371,6 +372,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                 if (count($storesArr) > 1) {
                     $errorMsg2 = acc_ValueCorrections::allocateAmount($storesArr, $p->allocated, $allocateBy);
                     if (!empty($errorMsg2)) {
+                        
                         return $entries;
                     }
                 } else {

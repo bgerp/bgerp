@@ -711,6 +711,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     private function sortRecs($a, $b)
     {
         if ($a->sortField == $b->sortField) {
+            
             return 0;
         }
     
@@ -1207,6 +1208,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         }
         
         usort($dArr, function ($a, $b) {
+            
             return ($a->value > $b->value) ? -1 : 1;
         });
 

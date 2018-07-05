@@ -16,11 +16,14 @@
  */
 class conversejs_Plugin extends core_Plugin
 {
-    
-    function on_Output(&$invoker)
+    public function on_Output(&$invoker)
     {
-        $chat = ht::createLink(tr("Чат"), array('conversejs_Adapter', 'show'), NULL, 
-            array('target' => 'conversejs', 'ef_icon' => 'conversejs/img/16/converse.png', 'title' => 'Отваряне на прозорец за чат'));
+        $chat = ht::createLink(
+            tr('Чат'),
+            array('conversejs_Adapter', 'show'),
+            null,
+            array('target' => 'conversejs', 'ef_icon' => 'conversejs/img/16/converse.png', 'title' => 'Отваряне на прозорец за чат')
+        );
         
         $invoker->append($chat, 'PROFILE_MENU_ITEM');
     }

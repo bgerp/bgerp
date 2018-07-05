@@ -494,6 +494,7 @@ class avatar_Avatarco
     public function SavePicture($path)
     {
         if (!is_dir($path) || !is_writeable($path)) {
+            
             return false;
         }
         

@@ -118,6 +118,7 @@ class core_Mode
                 if ($r->name == $name) {
                     $offset++;
                     if ($offset == 0) {
+                        
                         return $r->value;
                     }
                 }
@@ -209,6 +210,7 @@ class core_Mode
     {
         // Ако режима е xhtml, printing, pdf, inlineDocument
         if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf') || Mode::is('inlineDocument')) {
+            
             return true;
         }
         

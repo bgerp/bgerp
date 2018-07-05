@@ -260,12 +260,14 @@ class core_DateTime
         $conf = core_Packs::getConfig('core');
         
         if ($conf->EF_DATE_USE_TIMEOFFSET != 'yes') {
+            
             return $mysqlDate;
         }
         
         $timeZoneDiff = self::getTimezoneDiff();
 
         if (!$timeZoneDiff) {
+            
             return $mysqlDate;
         }
         
@@ -311,6 +313,7 @@ class core_DateTime
         }
 
         if (!$mysqlDate || $mysqlDate == '0000-00-00' || $mysqlDate == '0000-00-00 00:00:00') {
+            
             return false;
         }
         
@@ -471,6 +474,7 @@ class core_DateTime
 
         for ($i = -2; $i <= 2; $i++) {
             if (date('Y-m-d', time() + $i * 24 * 60 * 60) == $date) {
+                
                 return $relNames[$i];
             }
         }
@@ -719,6 +723,7 @@ class core_DateTime
         
         // Ако добавяме точно количество дни
         if ($secs % (24 * 60 * 60) == 0) {
+            
             return self::addDays($secs / (24 * 60 * 60), $date, $full);
         }
         
@@ -727,6 +732,7 @@ class core_DateTime
 
         // Ако добавяме точно количество месеци
         if ($resDays % (24 * 60 * 60) == 0) {
+            
             return self::addDays(floor($resDays / (24 * 60 * 60)), self::addMonths(floor($secs / core_DateTime::SECONDS_IN_MONTH), $date, $full), $full);
         }
 
@@ -760,6 +766,7 @@ class core_DateTime
         $dayOfWeek = dt::mysql2verbal($date, 'w');
         
         if ($dayOfWeek == 0 || $dayOfWeek == 6) {
+            
             return true;
         }
         
@@ -931,6 +938,7 @@ class core_DateTime
         
         // Проверяваме дали датата отговаря на формата
         if (!preg_match("/^{$expr}$/", $date, $matches)) {
+            
             return false;
         }
         
@@ -952,6 +960,7 @@ class core_DateTime
         
         // Ако успешно е инстанциран датата се обръща във mysql-ски формат
         if (is_object($timeFormat)) {
+            
             return $timeFormat->format('Y-m-d');
         }
         

@@ -6,8 +6,8 @@
  * Клас 'plg_StructureAndOrder' - Поддръжка на потеребителско подреждане на модел
  *
  * Очаква се в модела да има следните полета:
- * о 
- * 
+ * о
+ *
  * Очаква се в модела да има следните методи:
  * о ->getAllSaoItems($rec = NULL) - връща всички структурни елементи, сред които може да се подреди посочения запис
  * о ->getSaoTitle($rec) - връща заглавието на посочения запис
@@ -22,20 +22,19 @@
  */
 class plg_StructureAndOrder extends core_Plugin
 {
-    
     const PADDING = '&nbsp;&nbsp;» ';
 
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$mvc)
+    public function on_AfterDescription(&$mvc)
     {
         $mvc->FNC('saoPosition', 'enum(next=След,prev=Преди,subLevel=Под ниво)', 'caption=Структура и подредба->Положение,input=none,column=none,order=100000,maxRadio=3,columns=3');
         $mvc->FNC('saoRelative', 'int', 'caption=Структура и подредба->Спрямо,input=none,column=none,order=100000,class=w100');
 
         $mvc->FLD('saoParentId', 'int', 'caption=Структура и подредба->Родител,input=none,column1=none,order=100000');
-        $mvc->FLD('saoOrder',    'double', 'caption=Структура и подредба->Подредба,input=none,column1=none,order=100000');
-        $mvc->FLD('saoLevel',    'int', 'caption=Структура и подредба->Ниво,input=none,column1=none,order=100000');
+        $mvc->FLD('saoOrder', 'double', 'caption=Структура и подредба->Подредба,input=none,column1=none,order=100000');
+        $mvc->FLD('saoLevel', 'int', 'caption=Структура и подредба->Ниво,input=none,column1=none,order=100000');
         
         $mvc->listItemsPerPage = max($mvc->listItemsPerPage, 1000);
         //expect($mvc->posTitleField);
@@ -48,12 +47,12 @@ class plg_StructureAndOrder extends core_Plugin
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = $data->form;
-        $rec  = $form->rec;
+        $rec = $form->rec;
 
         // По подразбиране задаваме позиция след
         $form->setDefault('saoPosition', 'next');
         
-        if($rec->id) {
+        if ($rec->id) {
             $id = $rec->id;
         } else {
             $id = self::getOrSetLastId($mvc->className);
@@ -63,22 +62,22 @@ class plg_StructureAndOrder extends core_Plugin
 
         $options = self::getOptiopns($mvc, $rec);
 
-        if(count($options)) {
+        if (count($options)) {
             $form->setField('saoPosition', 'input');
             $form->setField('saoRelative', 'input');
             
             // Задаваме елементите като опции
             $form->setOptions('saoRelative', array('' => '') + $options);
             
-            $canHaveSublevel = FALSE;
-            foreach($options as $id => $title) {
+            $canHaveSublevel = false;
+            foreach ($options as $id => $title) {
                 $r = $mvc->fetch($id);
-                if($mvc->saoCanHaveSublevel($r, $rec)) {
-                    $canHaveSublevel = TRUE; 
+                if ($mvc->saoCanHaveSublevel($r, $rec)) {
+                    $canHaveSublevel = true;
                 }
             }
 
-            if(!$canHaveSublevel) {
+            if (!$canHaveSublevel) {
                 $form->setOptions('saoPosition', array('next' => 'След','prev' => 'Преди'));
             }
         }
@@ -99,10 +98,10 @@ class plg_StructureAndOrder extends core_Plugin
         
         $items = $mvc->getSaoItems($rec);
         $items = self::orderItems($items);
-        if(is_array($items)) {
-            foreach($items as $iRec) {
-                if(count($removeIds)) {
-                    if($removeIds[$iRec->saoParentId]) {
+        if (is_array($items)) {
+            foreach ($items as $iRec) {
+                if (count($removeIds)) {
+                    if ($removeIds[$iRec->saoParentId]) {
                         $removeIds[$iRec->id] = $iRec->id;
                         continue;
                     }
@@ -120,7 +119,7 @@ class plg_StructureAndOrder extends core_Plugin
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
-        if($form->isSubmitted()) {
+        if ($form->isSubmitted()) {
             $rec = $form->rec;
             
             $items = $mvc->getSaoItems($rec);
@@ -129,28 +128,30 @@ class plg_StructureAndOrder extends core_Plugin
             setIfNot($rec->saoPosition, 'next');
 
             // Ако нямаме никакви елементи правим дефолти
-            if(!count($items) || (!$rec->saoRelative && $rec->saoPosition != 'subLevel')) {
-                $rec->saoParentId = NULL;
-                $rec->saoOrder = NULL;
+            if (!count($items) || (!$rec->saoRelative && $rec->saoPosition != 'subLevel')) {
+                $rec->saoParentId = null;
+                $rec->saoOrder = null;
                 $rec->saoLevel = 1;
-            } elseif($rec->saoPosition == 'subLevel') {
-                if(!$rec->saoRelative || !$items[$rec->saoRelative]) {
+            } elseif ($rec->saoPosition == 'subLevel') {
+                if (!$rec->saoRelative || !$items[$rec->saoRelative]) {
                     $form->setError('saoRelative', 'Не е посочен родителски елемент');
+
                     return;
                 }
-                if(!$mvc->saoCanHaveSublevel($items[$rec->saoRelative], $rec)) {
+                if (!$mvc->saoCanHaveSublevel($items[$rec->saoRelative], $rec)) {
                     $form->setError('saoRelative', 'Този елемент не може да има подниво');
+
                     return;
                 }
 
                 $rec->saoParentId = $rec->saoRelative;
-                $rec->saoOrder = NULL;
+                $rec->saoOrder = null;
                 $rec->saoLevel = $items[$rec->saoRelative]->level + 1;
-            }  elseif($rec->saoPosition == 'prev') {
+            } elseif ($rec->saoPosition == 'prev') {
                 $prevRec = $items[$rec->saoRelative];
                 $rec->saoParentId = $prevRec->saoParentId;
                 $rec->saoOrder = $prevRec->saoOrder - 0.5;
-            } elseif($rec->saoPosition == 'next') {
+            } elseif ($rec->saoPosition == 'next') {
                 $prevRec = $items[$rec->saoRelative];
                 $rec->saoParentId = $prevRec->saoParentId;
                 $rec->saoOrder = $prevRec->saoOrder + 0.5;
@@ -164,12 +165,14 @@ class plg_StructureAndOrder extends core_Plugin
      */
     public function on_AfterSaoCanHaveSublevel($mvc, &$res, $rec)
     {
-        if($res !== NULL) return;
+        if ($res !== null) {
+            return;
+        }
 
-        if($rec->saoLevel > 3) {
-            $res = FALSE;
+        if ($rec->saoLevel > 3) {
+            $res = false;
         } else {
-            $res = TRUE;
+            $res = true;
         }
     }
 
@@ -177,12 +180,14 @@ class plg_StructureAndOrder extends core_Plugin
     /**
      * Дефолтна имплементация на saoCanHaveSublevel
      */
-    public function on_AfterSaoGetTitle($mvc, &$res, $rec, $title = NULL)
+    public function on_AfterSaoGetTitle($mvc, &$res, $rec, $title = null)
     {
-        if($res !== NULL) return;
+        if ($res !== null) {
+            return;
+        }
         
-        if(!$title) {
-            $title = $mvc->getTitleById($rec, FALSE);
+        if (!$title) {
+            $title = $mvc->getTitleById($rec, false);
         }
 
         $res = self::padOpt($title, $rec->saoLevel);
@@ -192,11 +197,11 @@ class plg_StructureAndOrder extends core_Plugin
     /**
      * Връща или записва в сесията id-то на последния добавен запис
      */
-    private static function getOrSetLastId($className, $id = NULL)
+    private static function getOrSetLastId($className, $id = null)
     {
         $key = 'lastAddId_' . $className;
         
-        if($id) {
+        if ($id) {
             Mode::setPermanent($key, $id);
         } else {
             $id = Mode::get($key);
@@ -207,7 +212,7 @@ class plg_StructureAndOrder extends core_Plugin
 
 
     /**
-     * Запомня в сесията последно създадения запис, за да може да 
+     * Запомня в сесията последно създадения запис, за да може да
      * предложи следващия да е след него
      */
     public static function on_AfterCreate($mvc, $rec)
@@ -218,31 +223,31 @@ class plg_StructureAndOrder extends core_Plugin
 
     /**
      * Преподрежда записите от същото ниво, в случай, че току-що записания обект има същия
-     * $pLevel като някой друг. Всички с номера на $pLevel по-големи или равни на текущия се 
+     * $pLevel като някой друг. Всички с номера на $pLevel по-големи или равни на текущия се
      * подреждат след него с нарасващи номера
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
+    public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
-        if($fields === NULL || $fields === '*') {
+        if ($fields === null || $fields === '*') {
             $items = $mvc->getSaoItems($rec);
           
             // Подредба
             $items1 = self::orderItems($items);
 
             // Преномериране
-            $i = 1; 
-            foreach($items1 as &$r) {
-                if($r->saoOrder != $i) {
+            $i = 1;
+            foreach ($items1 as &$r) {
+                if ($r->saoOrder != $i) {
                     $r->saoOrder = $i;
-                    $r->_mustSave = TRUE;
+                    $r->_mustSave = true;
                 }
                 $i++;
             }
    
             // Записваме само променените елементи
             reset($items1);
-            foreach($items1 as $i1 => $r1) {
-                if($r1->_mustSave) {
+            foreach ($items1 as $i1 => $r1) {
+                if ($r1->_mustSave) {
                     expect($r1->id);
                     $i = $mvc->save_($r1, 'saoOrder,saoLevel,saoParentId');
                     $res[$i] = $r1;
@@ -256,15 +261,14 @@ class plg_StructureAndOrder extends core_Plugin
      * Забранява изтриването, ако в елемента има деца
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'delete' || $action == 'changestate') {
- 
             if ($rec->id && $mvc->fetch("#saoParentId = {$rec->id}")) {
                 $requiredRoles = 'no_one';
             }
@@ -275,7 +279,7 @@ class plg_StructureAndOrder extends core_Plugin
     /**
      * След като се поготви заявката за модела
      */
-    function on_AfterGetQuery($mvc, $query)
+    public function on_AfterGetQuery($mvc, $query)
     {
         $query->orderBy('#saoOrder', 'ASC', -100);
     }
@@ -286,18 +290,24 @@ class plg_StructureAndOrder extends core_Plugin
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-        if(is_array($data->rows)) {
-            foreach($data->rows as $id => &$row) {
-                $rec = $data->recs[$id]; 
-                if($f = $mvc->saoTitleField) {
+        if (is_array($data->rows)) {
+            foreach ($data->rows as $id => &$row) {
+                $rec = $data->recs[$id];
+                if ($f = $mvc->saoTitleField) {
                     $row->{$f} = $mvc->saoGetTitle($rec, $row->{$f});
                 }
                 $ddTools = $row->_rowTools;
-                if($lastRec && $rec->saoLevel == $lastRec->saoLevel && $mvc->haveRightFor('edit', $rec)) {
-                    $row->_rowTools->addLink('Нагоре', array($mvc, 'SaoMove', $rec->id, 'direction' => 'up', 'rId' => $lastRec->id, 'ret_url' => TRUE), 
-                        "ef_icon=img/16/arrow_up.png,title=Преместване на елемента нагоре,id=saoup{$rec->id}");
-                    $lastRow->_rowTools->addLink('Надолу', array($mvc, 'SaoMove', $lastRec->id, 'direction' => 'down', 'rId' => $rec->id, 'ret_url' => TRUE), 
-                        "ef_icon=img/16/arrow_down.png,title=Преместване на елемента нагоре,id=saoup{$rec->id}");
+                if ($lastRec && $rec->saoLevel == $lastRec->saoLevel && $mvc->haveRightFor('edit', $rec)) {
+                    $row->_rowTools->addLink(
+                        'Нагоре',
+                        array($mvc, 'SaoMove', $rec->id, 'direction' => 'up', 'rId' => $lastRec->id, 'ret_url' => true),
+                        "ef_icon=img/16/arrow_up.png,title=Преместване на елемента нагоре,id=saoup{$rec->id}"
+                    );
+                    $lastRow->_rowTools->addLink(
+                        'Надолу',
+                        array($mvc, 'SaoMove', $lastRec->id, 'direction' => 'down', 'rId' => $rec->id, 'ret_url' => true),
+                        "ef_icon=img/16/arrow_down.png,title=Преместване на елемента нагоре,id=saoup{$rec->id}"
+                    );
                 }
                 $lastRec = $rec;
                 $lastRow = $row;
@@ -310,21 +320,22 @@ class plg_StructureAndOrder extends core_Plugin
      * Преди изпълнението на контролерен екшън
      *
      * @param core_Manager $mvc
-     * @param core_ET $res
-     * @param string $action
+     * @param core_ET      $res
+     * @param string       $action
      */
     public static function on_BeforeAction(core_Manager $mvc, &$res, $action)
     {
-        if(strtolower($action) == strtolower('saomove')) {
-
-            if (!$mvc->haveRightFor('edit')) return;
+        if (strtolower($action) == strtolower('saomove')) {
+            if (!$mvc->haveRightFor('edit')) {
+                return;
+            }
 
             expect($id = Request::get('id', 'int'));
             expect($rec = $mvc->fetch($id));
             
             expect($direction = Request::get('direction'));
 
-            if($direction == 'up') {
+            if ($direction == 'up') {
                 $rec->saoOrder -= 1.5;
             } else {
                 $rec->saoOrder += 1.5;
@@ -333,11 +344,11 @@ class plg_StructureAndOrder extends core_Plugin
             expect($rId = Request::get('rId', 'int'));
             expect($rRec = $mvc->fetch($rId));
             
-            if($rRec && abs($rec->saoOrder - $rRec->saoOrder) == 0.5) {
+            if ($rRec && abs($rec->saoOrder - $rRec->saoOrder) == 0.5) {
                 $mvc->save($rec);
                 followRetUrl();
             } else {
-                followRetUrl(NULL, 'Неуспешно преместване', 'error');
+                followRetUrl(null, 'Неуспешно преместване', 'error');
             }
         }
     }
@@ -348,7 +359,7 @@ class plg_StructureAndOrder extends core_Plugin
      * Поставя изискване да се селектират само активните записи
      */
     public static function on_BeforePrepareQuery4Select($mvc, &$res, $query)
-    { 
+    {
         $query->orderBy('#saoOrder');
     }
 
@@ -357,8 +368,8 @@ class plg_StructureAndOrder extends core_Plugin
      * Помощна функция за падване на стринг
      */
     private static function padOpt($title, $level)
-    {   
-        $title = str_repeat(html_entity_decode(self::PADDING) , max(0, $level-1)) . $title; 
+    {
+        $title = str_repeat(html_entity_decode(self::PADDING), max(0, $level - 1)) . $title;
 
         return $title;
     }
@@ -367,30 +378,32 @@ class plg_StructureAndOrder extends core_Plugin
     /**
      * Подрежда масива с елементи
      */
-    private static function orderItems($items, $level = 1, $parentId = NULL, &$orderedItems = array())
+    private static function orderItems($items, $level = 1, $parentId = null, &$orderedItems = array())
     {
         $selArr = array();
         
         if ($items) {
             reset($items);
-            foreach($items as $rec) {
-                if($rec->saoParentId == $parentId) {
-                    if($rec->saoLevel != $level) {
+            foreach ($items as $rec) {
+                if ($rec->saoParentId == $parentId) {
+                    if ($rec->saoLevel != $level) {
                         $rec->saoLevel = $level;
-                        $rec->_mustSave = TRUE;
+                        $rec->_mustSave = true;
                     }
                     $selArr[$rec->id] = $rec;
                 }
             }
         }
 
-        if(!count($selArr)) return;
+        if (!count($selArr)) {
+            return;
+        }
 
         // Подредба на подмножеството с еднакъв родител
         self::sortItems($selArr);
    
         // Добавяне в резултата, с рекурсивно извикване за потенциалните наследници
-        foreach($selArr as $rec) {
+        foreach ($selArr as $rec) {
             $orderedItems[$rec->id] = $rec;
             self::orderItems($items, $level + 1, $rec->id, $orderedItems);
         }
@@ -404,15 +417,20 @@ class plg_StructureAndOrder extends core_Plugin
      */
     private static function sortItems(&$items)
     {
-        uasort($items, function($a, $b) {
-                            if($a->saoOrder == $b->saoOrder)  return 0;
+        uasort($items, function ($a, $b) {
+            if ($a->saoOrder == $b->saoOrder) {
+                
+                return 0;
+            }
                             
-                            if(!$a->saoOrder || $a->saoOrder > $b->saoOrder)  return 1;
-                            if(!$b->saoOrder || $a->saoOrder < $b->saoOrder)  return -1;
-
-                            
-                        });
-
+            if (!$a->saoOrder || $a->saoOrder > $b->saoOrder) {
+                
+                return 1;
+            }
+            if (!$b->saoOrder || $a->saoOrder < $b->saoOrder) {
+                
+                return -1;
+            }
+        });
     }
-
 }

@@ -3,7 +3,7 @@
 
 /**
  * Плъгин за превръщане на keylist полетата в select2
- * 
+ *
  * @category  bgerp
  * @package   selec2
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -24,7 +24,7 @@ class select2_Plugin extends core_Plugin
     /**
      * Дали да може да се въвежда повече от 1 елемент
      */
-    protected static $isMultiple = TRUE;
+    protected static $isMultiple = true;
     
     
     /**
@@ -36,7 +36,7 @@ class select2_Plugin extends core_Plugin
     /**
      * Дали може да се изчистват всичките записи едновременно
      */
-    protected static $allowClear = TRUE;
+    protected static $allowClear = true;
     
     
     /**
@@ -48,25 +48,25 @@ class select2_Plugin extends core_Plugin
     /**
      * Броя на опциите, преди обработка
      */
-    protected static $suggCnt = NULL;
+    protected static $suggCnt = null;
     
     
     /**
      * Изпълнява се преди рендирането на input
-     * 
-     * @param type_Keylist $invoker
-     * @param core_ET $tpl
-     * @param string $name
+     *
+     * @param type_Keylist      $invoker
+     * @param core_ET           $tpl
+     * @param string            $name
      * @param string|array|NULL $value
-     * @param array $attr
+     * @param array             $attr
      */
-    function on_BeforeRenderInput(&$invoker, &$tpl, $name, &$value, &$attr = array())
+    public function on_BeforeRenderInput(&$invoker, &$tpl, $name, &$value, &$attr = array())
     {
         // Премамахваме от масива елемента от hidden полето
-        if(is_array($value) && isset($value[self::$hiddenName])) {
+        if (is_array($value) && isset($value[self::$hiddenName])) {
             unset($value[self::$hiddenName]);
             $value1 = array();
-            foreach($value as $id => $v) {
+            foreach ($value as $id => $v) {
                 $value1[$v] = $v;
             }
             $value = $value1;
@@ -97,7 +97,6 @@ class select2_Plugin extends core_Plugin
             // Ако има избрани стойности, винаги да са включени в опциите и да се показват най-отгоре
             $sValArr = array();
             if (isset($value)) {
-                
                 $vArr = $invoker->toArray($value);
                 
                 foreach ($vArr as $v) {
@@ -113,7 +112,7 @@ class select2_Plugin extends core_Plugin
                 $rSugg = $maxSuggestions;
             }
             
-            $invoker->suggestions = array_slice($invoker->suggestions, 0, $rSugg, TRUE);
+            $invoker->suggestions = array_slice($invoker->suggestions, 0, $rSugg, true);
             
             // Ако последният елемент е група, премахваме от списъка
             $endElement = end($invoker->suggestions);
@@ -130,19 +129,22 @@ class select2_Plugin extends core_Plugin
     
     /**
      * Изпълнява се след рендирането на input
-     * 
-     * @param type_Keylist $invoker
-     * @param core_ET $tpl
-     * @param string $name
+     *
+     * @param type_Keylist      $invoker
+     * @param core_ET           $tpl
+     * @param string            $name
      * @param string|array|NULL $value
-     * @param array $attr
+     * @param array             $attr
      */
-    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
+    public function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
-        if ($invoker->params['isReadOnly']) return ;
+        if ($invoker->params['isReadOnly']) {
+            
+            return ;
+        }
         
         $minItems = isset($invoker->params['select2MinItems']) ? $invoker->params['select2MinItems'] : self::$minItems;
-    	
+        
         $optArr = isset($invoker->suggestions) ? $invoker->suggestions : $invoker->options;
         
         $cnt = self::$suggCnt;
@@ -167,26 +169,24 @@ class select2_Plugin extends core_Plugin
         }
         
         $options = new ET();
-        $mustCloseGroup = FALSE;
+        $mustCloseGroup = false;
         
         // Преобразуваме опциите в селекти
-        foreach ((array)$optArr as $key => $val) {
-            
+        foreach ((array) $optArr as $key => $val) {
             $optionsAttrArr = array();
                         
             if (is_object($val)) {
                 if ($val->group) {
-                    if($mustCloseGroup) {
+                    if ($mustCloseGroup) {
                         $options->append("</optgroup>\n");
                     }
                     $val->title = htmlspecialchars($val->title);
-                    $options->append("<optgroup label=\"$val->title\">\n");
-                    $mustCloseGroup = TRUE;
+                    $options->append("<optgroup label=\"{$val->title}\">\n");
+                    $mustCloseGroup = true;
                     continue;
-                } else {
-                    $optionsAttrArr = $val->attr;
-                    $val  = $val->title;
                 }
+                $optionsAttrArr = $val->attr;
+                $val = $val->title;
             }
             
             $newKey = "|{$key}|";
@@ -195,7 +195,6 @@ class select2_Plugin extends core_Plugin
                 if ($value[$key]) {
                     $optionsAttrArr['selected'] = 'selected';
                 }
-
             } else {
                 if (strstr($value, $newKey)) {
                     $optionsAttrArr['selected'] = 'selected';
@@ -216,10 +215,8 @@ class select2_Plugin extends core_Plugin
         if (isset($invoker->params['select2Multiple'])) {
             if ($invoker->params['select2Multiple']) {
                 $selectAttrArray['multiple'] = 'multiple';
-                       
-
             }
-        } else if (self::$isMultiple) {
+        } elseif (self::$isMultiple) {
             $selectAttrArray['multiple'] = 'multiple';
         }
          
@@ -248,28 +245,30 @@ class select2_Plugin extends core_Plugin
         $ajaxUrl = '';
         
         if ($cnt > $maxSuggestions) {
-            
             self::setHandler($invoker, $value);
             
             $ajaxUrl = toUrl(array($invoker, 'getOptions', 'hnd' => $invoker->handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1));
         }
         
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, NULL, $ajaxUrl);
+        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, $ajaxUrl);
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Задава манипулатор, който ще се използва за кеширане
-     * 
-     * @param type_Keylist $invoker
+     *
+     * @param type_Keylist      $invoker
      * @param string|array|NULL $val
      */
     protected static function setHandler(&$invoker, $val)
     {
-        if (isset($invoker->handler)) return ;
+        if (isset($invoker->handler)) {
+            
+            return ;
+        }
         
         $invoker->handler = md5(serialize($invoker->suggestions) . '|' . serialize($val) . '|' . core_Lg::getCurrent());
     }
@@ -278,7 +277,7 @@ class select2_Plugin extends core_Plugin
     /**
      * Подготвяме опциите за кеширане
      * Нормализира текста, в който ще се търси
-     * 
+     *
      * @param type_Keylist $invoker
      */
     protected static function prepareSuggestionsForCache(&$invoker)
@@ -301,65 +300,74 @@ class select2_Plugin extends core_Plugin
     
     /**
      * Преди преобразуване данните от вербална стойност
-     * 
+     *
      * @param core_Type $type
-     * @param string $res
-     * @param array $value
+     * @param string    $res
+     * @param array     $value
      */
-    function on_BeforeFromVerbal($type, &$res, $value)
+    public function on_BeforeFromVerbal($type, &$res, $value)
     {
-        if (!is_array($value)) return ;
+        if (!is_array($value)) {
+            
+            return ;
+        }
         
         // Преобразуваме масива с данни в keylist поле
         $valCnt = count($value);
         if (($valCnt > 1) && (isset($value[self::$hiddenName]))) {
             unset($value[self::$hiddenName]);
             
-            foreach($value as $id => $val){
+            foreach ($value as $id => $val) {
                 if (!ctype_digit(trim($id))) {
-                    $type->error = "Некоректен списък $id ";
+                    $type->error = "Некоректен списък ${id} ";
                     
-                    return FALSE;
+                    return false;
                 }
                 
-                $res .= "|" . $val;
+                $res .= '|' . $val;
             }
-            $res = $res . "|";
+            $res = $res . '|';
             
-            return FALSE;
+            return false;
         }
         
         if (($valCnt == 1) && (isset($value[self::$hiddenName]))) {
             
-            return FALSE;
+            return false;
         }
     }
    
    
     /**
      * Връща максималния брой на опциите, които може да се избере
-     * 
-     * @param type_Key $invoker
+     *
+     * @param type_Key     $invoker
      * @param integer|NULL $res
      */
-    function on_AfterGetMaxSuggestions($invoker, &$res)
+    public function on_AfterGetMaxSuggestions($invoker, &$res)
     {
-        setIfNot($res, $invoker->params['maxSuggestions'], core_Setup::get('TYPE_KEY_MAX_SUGGESTIONS', TRUE), 1000);
+        setIfNot($res, $invoker->params['maxSuggestions'], core_Setup::get('TYPE_KEY_MAX_SUGGESTIONS', true), 1000);
     }
     
     
     /**
-    * Отпечатва резултата от опциите в JSON формат
-    * 
-    * @param type_Key $invoker
-    * @param string|NULL|core_ET $res
-    * @param string $action
-    */
-    function on_BeforeAction($invoker, &$res, $action)
+     * Отпечатва резултата от опциите в JSON формат
+     *
+     * @param type_Key            $invoker
+     * @param string|NULL|core_ET $res
+     * @param string              $action
+     */
+    public function on_BeforeAction($invoker, &$res, $action)
     {
-        if ($action != 'getoptions') return ;
+        if ($action != 'getoptions') {
+            
+            return ;
+        }
         
-        if (!Request::get('ajax_mode')) return ;
+        if (!Request::get('ajax_mode')) {
+            
+            return ;
+        }
         $hnd = Request::get('hnd');
         
         $maxSuggestions = Request::get('maxSugg', 'int');
@@ -371,6 +379,6 @@ class select2_Plugin extends core_Plugin
         
         select2_Adapter::getAjaxRes('keylist', $hnd, $q, $maxSuggestions);
         
-        return FALSE;
+        return false;
     }
 }

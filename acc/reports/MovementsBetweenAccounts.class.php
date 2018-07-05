@@ -271,6 +271,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         foreach (array('debitItem1' => 'dFeat1', 'debitItem2' => 'dFeat2', 'debitItem3' => 'dFeat3', 'creditItem1' => 'cFeat1', 'creditItem2' => 'cFeat2', 'creditItem3' => 'cFeat3') as $partItem => $partFeat) {
             $p[] = $r = self::getPeroKey($rec, $partItem, $partFeat);
             if ($r === false) {
+                
                 return false;
             }
         }
@@ -289,10 +290,12 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $formRec = $this->innerForm;
  
         if (!($itemId = $rec->{$partItem})) {
+            
             return '';
         }
 
         if (!($featTitle = $formRec->{$partFeat})) {
+            
             return '';
         }
         
@@ -350,9 +353,11 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     public function idToVerbal($id)
     {
         if ($id < 0) {
+            
             return array_search(-$id, $this->features) ;
         } elseif ($id == 0) {
             if ($id === '') {
+                
                 return '';
             }
 
@@ -728,6 +733,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     private function sortRecs($a, $b)
     {
         if ($a->sortField == $b->sortField) {
+            
             return 0;
         }
     
@@ -1195,6 +1201,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         }
         
         usort($dArr, function ($a, $b) {
+            
             return ($a->value > $b->value) ? -1 : 1;
         });
         

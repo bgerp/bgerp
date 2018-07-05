@@ -20,35 +20,35 @@ class workpreff_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'workpreff_WorkPreff';
+    public $startCtr = 'workpreff_WorkPreff';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "";
+    public $info = '';
 
 
-/**
-* Списък с мениджърите, които съдържа пакета
-*/
-    var $managers = array(
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    public $managers = array(
 
         'workpreff_WorkPreff',
         'workpreff_FormCv',
-    	'workpreff_WorkPreffDetails',
+        'workpreff_WorkPreffDetails',
     );
     
 

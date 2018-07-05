@@ -19,7 +19,7 @@ class cms_DomainPlg extends core_Plugin
     /**
      * Изпълнява се след подготовката на формата за филтриране
      */
-    function on_AfterPrepareListFilter($mvc, &$res, $data)
+    public function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $form = $data->listFilter;
    
@@ -32,13 +32,13 @@ class cms_DomainPlg extends core_Plugin
         // Автоматично обовяване
         $form->setField('domainId', 'autoFilter');
 
-        // Показваме само това поле. Иначе и другите полета 
+        // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $form->showFields = 'domainId';
         
         $form->input();
 
-        if($form->isSubmitted() && $domainId = Request::get('domainId', 'int')) {
+        if ($form->isSubmitted() && $domainId = Request::get('domainId', 'int')) {
             cms_Domains::selectCurrent($domainId);
         }
 
@@ -53,18 +53,16 @@ class cms_DomainPlg extends core_Plugin
     /**
      * Дава възможност за избор само между достъпните домейни
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    public function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         cms_Domains::setFormField($data->form);
     }
 
 
-    /**
-     *
-     */
+    
     public static function on_AfterInputEditForm($mvc, $form)
     {
-        if($form->isSubmitted() && $domainId = $form->rec->domainId) {
+        if ($form->isSubmitted() && $domainId = $form->rec->domainId) {
             cms_Domains::selectCurrent($domainId);
         }
     }

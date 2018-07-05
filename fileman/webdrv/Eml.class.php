@@ -2,7 +2,7 @@
 
 /**
  * Драйвер за работа с .eml файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -12,5 +12,4 @@
  */
 class fileman_webdrv_Eml extends fileman_webdrv_Email
 {
-    
 }

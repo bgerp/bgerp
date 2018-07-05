@@ -69,10 +69,12 @@ class acc_journal_Item
     public function implementsInterface($iface)
     {
         if (empty($iface)) {
+            
             return empty($this->classId);
         }
         
         if (empty($this->classId)) {
+            
             return false;
         }
         
@@ -82,6 +84,7 @@ class acc_journal_Item
        
         // Ако перото е системно (класа му е acc_Items) то винаги отговаря на интерфейса
         if ($this->classId == acc_Items::getClassId()) {
+            
             return true;
         }
         
@@ -114,6 +117,7 @@ class acc_journal_Item
     public function className()
     {
         if (empty($this->classId)) {
+            
             return 'Неизвестен клас';
         }
         

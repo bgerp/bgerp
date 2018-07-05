@@ -397,6 +397,7 @@ class core_Query extends core_FieldSet
     {
         $values = arr::make($values);
         if (!$values) {
+            
             return ;
         }
         
@@ -539,10 +540,12 @@ class core_Query extends core_FieldSet
     public function getLimit()
     {
         if ($this->limit === null && $this->start === null) {
+            
             return '';
         }
         
         if ($this->limit >= 0 && $this->start === null) {
+            
             return "\nLIMIT {$this->limit}";
         }
         
@@ -560,6 +563,7 @@ class core_Query extends core_FieldSet
     public function select()
     {
         if ($this->mvc->invoke('BeforeSelect', array(&$numRows, &$this)) === false) {
+            
             return $numRows;
         }
         
@@ -638,6 +642,7 @@ class core_Query extends core_FieldSet
     public function count($cond = null, $limit = 0)
     {
         if ($this->mvc->invoke('BeforeCount', array(&$res, &$this, &$cond)) === false) {
+            
             return $res;
         }
         
@@ -700,6 +705,7 @@ class core_Query extends core_FieldSet
     public function delete($cond = null)
     {
         if ($this->mvc->invoke('BeforeDelete', array(&$numRows, &$this, $cond)) === false) {
+            
             return $numRows;
         }
         // Запазваме "важните" данни на записите, които ще бъдат изтрити, за да бъдат те
@@ -884,6 +890,7 @@ class core_Query extends core_FieldSet
     public function numRec()
     {
         if (is_object($this->dbRes) && $this->executed) {
+            
             return $this->dbRes->num_rows;
         }
     }

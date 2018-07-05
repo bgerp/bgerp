@@ -2,7 +2,7 @@
 
 
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   distro
@@ -18,61 +18,61 @@ class distro_Automation extends core_Manager
     /**
      * Заглавие на модела
      */
-    var $title = 'Правила за автоматизация';
+    public $title = 'Правила за автоматизация';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin';
+    public $canEdit = 'admin';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin';
+    public $canAdd = 'admin';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin';
+    public $canView = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
+    public $canList = 'admin';
     
     
     /**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'admin';
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'admin';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'admin';
+    public $canReject = 'admin';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'distro_Wrapper';
+    public $loadList = 'distro_Wrapper';
     
     
     /**
@@ -87,9 +87,7 @@ class distro_Automation extends core_Manager
 //    var $listFields = '';
     
     
-    /**
-     * 
-     */
+    
 //    var $rowToolsField = 'id';
 
     
@@ -105,10 +103,10 @@ class distro_Automation extends core_Manager
 //    var $details = '';
     
     
-	/**
+    /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('type', 'enum(state=Състояние, created=Създадено)', 'caption=Тип, width=100%');

@@ -14,11 +14,12 @@
  * @since     v 0.1
  * @link
  */
-class type_Float extends type_Double {
+class type_Float extends type_Double
+{
     
     
     /**
      * MySQL тип на полето в базата данни
      */
-    var $dbFieldType = 'float';
+    public $dbFieldType = 'float';
 }

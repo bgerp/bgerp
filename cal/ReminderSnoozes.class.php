@@ -3,7 +3,7 @@
 
 /**
  * Клас 'cal_ReminderSnoozes'
- * 
+ *
  * @title Отлагане на напомняне
  *
  *
@@ -32,7 +32,7 @@ class cal_ReminderSnoozes extends core_Detail
     /**
      * Заглавие
      */
-    public $title = "Отлагане на напомняне";
+    public $title = 'Отлагане на напомняне';
     
     
     /**
@@ -60,7 +60,7 @@ class cal_ReminderSnoozes extends core_Detail
     
     
     /**
-     * 
+     *
      * @var unknown
      */
     public $canAdd = 'powerUser';
@@ -84,7 +84,7 @@ class cal_ReminderSnoozes extends core_Detail
         $this->FLD('timeStart', 'time(suggestions=1 час|3 часа|5 часа|8 часа|10 часа|1 ден|2 дена|3 дена|4 дена|5 денa|6 дена|7 дена)', 'caption=Време->Начало, silent,changable');
 
         // Статус съобщение
-        $this->FLD('message',    'richtext(rows=5, bucket=calReminders)', 'caption=Съобщение');
+        $this->FLD('message', 'richtext(rows=5, bucket=calReminders)', 'caption=Съобщение');
     }
 
 
@@ -92,54 +92,54 @@ class cal_ReminderSnoozes extends core_Detail
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
-    {   
-    	expect($data->form->rec->remId);
+    {
+        expect($data->form->rec->remId);
 
         $masterRec = cal_Reminders::fetch($data->form->rec->remId);
         
         if ($masterRec->timeStart) {
-        	$data->form->setDefault('timeStart', "1 ден");
+            $data->form->setDefault('timeStart', '1 ден');
         }
     }
     
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
-    	expect($form->rec->remId);
-    	
-    	$masterRec = cal_Reminders::fetch($form->rec->remId);
-    	
-    	// ако формата е събмитната
-    	if ($form->isSubmitted()){
-        	if ($masterRec->timeStart > $form->rec->timeStart) {
-        		$form->setWarning('timeStart', "|Въвели сте дата по-малка от началната. Сигурни ли сте, че искате да продължите?");
-        	} elseif ($masterRec->timeStart == $form->rec->timeStart) {
-        		$form->setWarning('timeStart', "|Въвели сте дата равен на предишната. Сигурни ли сте, че искате да продължите?");
-        	}
-    	}
+        expect($form->rec->remId);
+        
+        $masterRec = cal_Reminders::fetch($form->rec->remId);
+        
+        // ако формата е събмитната
+        if ($form->isSubmitted()) {
+            if ($masterRec->timeStart > $form->rec->timeStart) {
+                $form->setWarning('timeStart', '|Въвели сте дата по-малка от началната. Сигурни ли сте, че искате да продължите?');
+            } elseif ($masterRec->timeStart == $form->rec->timeStart) {
+                $form->setWarning('timeStart', '|Въвели сте дата равен на предишната. Сигурни ли сте, че искате да продължите?');
+            }
+        }
     }
 
 
     /**
      * Изпълнява се след опаковане на детайла от мениджъра
-     * 
+     *
      * @param stdClass $data
      */
-    function renderDetail($data)
+    public function renderDetail($data)
     {
-        if(!count($data->recs)) {
-            return NULL;
+        if (!count($data->recs)) {
+            return;
         }
-    	
+        
         $tpl = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
 	                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">Отлагане</div>
 	                                <div class="listRows">
@@ -148,8 +148,8 @@ class cal_ReminderSnoozes extends core_Detail
 	                            </div>
 	                        </div>           
 	                ');
-	        $tpl->replace($this->renderListTable($data), 'TABLE');
-		
+        $tpl->replace($this->renderListTable($data), 'TABLE');
+        
         return $tpl;
     }
     
@@ -161,9 +161,8 @@ class cal_ReminderSnoozes extends core_Detail
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_BeforeRenderListTable($mvc, &$res, $data)
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-
     }
     
     
@@ -174,14 +173,14 @@ class cal_ReminderSnoozes extends core_Detail
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_AfterRenderListTable($mvc, &$res, $data)
-	{
-        if(!count($data->recs)) {
-            return NULL;
+    public static function on_AfterRenderListTable($mvc, &$res, $data)
+    {
+        if (!count($data->recs)) {
+            return;
         }
         
-    	if(Mode::is('screenMode', 'narrow')){
-			$res = new ET(' <table class="listTable snooz-table"> 
+        if (Mode::is('screenMode', 'narrow')) {
+            $res = new ET(' <table class="listTable snooz-table"> 
 									<!--ET_BEGIN COMMENT_LI-->
 										<tr>
 	                               			<td>
@@ -197,17 +196,16 @@ class cal_ReminderSnoozes extends core_Detail
 									<!--ET_END COMMENT_LI-->
 								</table>
                 ');
-			
-			foreach($data->recs as $rec){
-				
-				$row = $mvc->recToVerbal($rec);
-				
-				$cTpl = $res->getBlock("COMMENT_LI");
-				$cTpl->placeObject($row);
-				$cTpl->removeBlocks();
-				$cTpl->append2master();
-			}
-    	}
+            
+            foreach ($data->recs as $rec) {
+                $row = $mvc->recToVerbal($rec);
+                
+                $cTpl = $res->getBlock('COMMENT_LI');
+                $cTpl->placeObject($row);
+                $cTpl->removeBlocks();
+                $cTpl->append2master();
+            }
+        }
     }
 
     
@@ -215,17 +213,16 @@ class cal_ReminderSnoozes extends core_Detail
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
+     * @param int      $id  първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
     {
         $remRec = cal_Reminders::fetch($rec->remId, 'timeStart, state, title, threadId, createdBy');
         $now = dt::now();
         
         // Определяне на времето за отлагане
-        if(isset($rec->timeStart)) {
-            
+        if (isset($rec->timeStart)) {
             $time = dt::mysql2timestamp($remRec->timeStart) + $rec->timeStart;
             $remRec->timeStart = dt::timestamp2Mysql($time);
             $remRec->state = 'active';

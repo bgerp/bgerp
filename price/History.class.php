@@ -27,7 +27,7 @@ class price_History extends core_Manager
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Кеширана цена";
+    public $singleTitle = 'Кеширана цена';
     
     
     /**
@@ -66,24 +66,24 @@ class price_History extends core_Manager
     public $canWrite = 'ceo';
     
     
-     /**
+    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'admin,debug';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'admin,debug';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'priceMaster,ceo';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'priceMaster,ceo';
 
-	
+    
     /**
      * Масив с всички ремена, които имат отношение към историята на цените
      */
@@ -99,7 +99,7 @@ class price_History extends core_Manager
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис, autoFilter');
         $this->FLD('validFrom', 'datetime', 'caption=В сила от');
@@ -123,22 +123,21 @@ class price_History extends core_Manager
         // Добавяме бутон
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        // Показваме само това поле. Иначе и другите полета 
+        // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $form->showFields = 'listId, productId';
         
-        $form->fields['productId']->mandatory = FALSE;
+        $form->fields['productId']->mandatory = false;
         
         $form->input('listId, productId', 'silent');
-		
-        if($form->rec->listId){
-        	$data->query->where(array("#listId = '{$form->rec->listId}'"));
+        
+        if ($form->rec->listId) {
+            $data->query->where(array("#listId = '{$form->rec->listId}'"));
         }
         
-        if($form->rec->productId){
-        	$data->query->where(array("#productId = '{$form->rec->productId}'"));
+        if ($form->rec->productId) {
+            $data->query->where(array("#productId = '{$form->rec->productId}'"));
         }
-        
     }
     
     
@@ -146,40 +145,39 @@ class price_History extends core_Manager
      * Връща началото на най-близкия исторически интервал до посоченото време
      */
     public static function canonizeTime($datetime)
-    {   
+    {
         $timeline = &self::$timeline;
         
         // Ако тази стойност вече е извлечена, директно я връщаме
-        if(self::$cache[$datetime]) {
-
+        if (self::$cache[$datetime]) {
+            
             return self::$cache[$datetime];
         }
 
         // Ако времевата линия липсва, опитваме се да я извадим от кеша
-        if(!count($timeline)) {
+        if (!count($timeline)) {
             self::$timeline = core_Cache::get('price_History', 'timeline');
         }
         
         // Ако времевата линия пак липсва, генерираме я и я записваме в кеша
-        if(!is_array($timeline) || !count($timeline)) {
-            
+        if (!is_array($timeline) || !count($timeline)) {
             $timeline = array();
             
             // Вземаме всички времена от правилата
             $query = price_ListRules::getQuery();
             $query->show('validFrom,validUntil');
-            while($rec = $query->fetch()) {  
-                $timeline[$rec->validFrom] = TRUE;
-                if($rec->validUntil) {
-                    $timeline[$rec->validUntil] = TRUE;
+            while ($rec = $query->fetch()) {
+                $timeline[$rec->validFrom] = true;
+                if ($rec->validUntil) {
+                    $timeline[$rec->validUntil] = true;
                 }
             }
 
             // Вземаме всички времена от ценоразписите на клиентите
             $query = price_ListToCustomers::getQuery();
             $query->show('validFrom');
-            while($rec = $query->fetch()) {
-                $timeline[$rec->validFrom] = TRUE;
+            while ($rec = $query->fetch()) {
+                $timeline[$rec->validFrom] = true;
             }
   
             // Сортираме обратно масива, защото очакваме да търсим предимно съвременни цени
@@ -189,8 +187,8 @@ class price_History extends core_Manager
         }
        
         // Връщаме първото срещнато време, което е по-малко от аргумента
-        foreach($timeline as $t) {
-            if($datetime >= $t) {
+        foreach ($timeline as $t) {
+            if ($datetime >= $t) {
                 self::$cache[$datetime] = $t;
 
                 return $t;
@@ -206,17 +204,18 @@ class price_History extends core_Manager
     {
         // Изтриваме кеша
         core_Cache::remove('price_History', 'timeline');
-
     }
 
 
     /**
      * Връща кешираната цена за продукта
      */
-    public static function getPrice($listId, $datetime, $productId, $packagingId = NULL)
+    public static function getPrice($listId, $datetime, $productId, $packagingId = null)
     {
         $validFrom = self::canonizeTime($datetime);
-        if(!$validFrom) return;
+        if (!$validFrom) {
+            return;
+        }
         
         $cond = "#listId = {$listId} AND #validFrom = '{$validFrom}' AND #productId = {$productId}";
 
@@ -233,14 +232,16 @@ class price_History extends core_Manager
     {
         $validFrom = self::canonizeTime($datetime);
         
-        if(!$validFrom) return;
+        if (!$validFrom) {
+            return;
+        }
         
         $rec = new stdClass();
-        $rec->listId      = $listId;
-        $rec->validFrom   = $validFrom;
-        $rec->productId   = $productId;
-        $rec->price       = $price;
-        self::save($rec, NULL, 'REPLACE');
+        $rec->listId = $listId;
+        $rec->validFrom = $validFrom;
+        $rec->productId = $productId;
+        $rec->price = $price;
+        self::save($rec, null, 'REPLACE');
 
         return $rec;
     }
@@ -251,9 +252,9 @@ class price_History extends core_Manager
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-    	if(haveRole('admin,debug')){
-    		$data->toolbar->addBtn('Изтриване', array($mvc, 'Truncate', 'ret_url' => TRUE), 'ef_icon=img/16/sport_shuttlecock.png, title=Премахване на кешираните записи');
-    	}
+        if (haveRole('admin,debug')) {
+            $data->toolbar->addBtn('Изтриване', array($mvc, 'Truncate', 'ret_url' => true), 'ef_icon=img/16/sport_shuttlecock.png, title=Премахване на кешираните записи');
+        }
     }
     
     
@@ -262,11 +263,11 @@ class price_History extends core_Manager
      */
     public function act_Truncate()
     {
-    	requireRole('admin,debug');
-    	
-    	self::truncate();
-    	core_Statuses::newStatus('Кешираните цени са изтрити');
-    	
-    	followRetUrl();
+        requireRole('admin,debug');
+        
+        self::truncate();
+        core_Statuses::newStatus('Кешираните цени са изтрити');
+        
+        followRetUrl();
     }
- }
+}

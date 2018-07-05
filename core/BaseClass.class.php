@@ -225,6 +225,7 @@ class core_BaseClass
 
             foreach ($this->_listenerCache[$method] as $subject) {
                 if (call_user_func_array(array($subject, $method), $args1) === false) {
+                    
                     return false;
                 }
             }
@@ -312,6 +313,7 @@ class core_BaseClass
         $this->interfaces = arr::make($this->interfaces, true);
         
         if (!isset($this->interfaces[$interface])) {
+            
             return false;
         }
         

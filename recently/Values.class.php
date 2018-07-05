@@ -23,18 +23,18 @@ class recently_Values extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Последно въвеждани стойности';
+    public $title = 'Последно въвеждани стойности';
     
     /**
      * @todo Чака за документация...
      */
-    var $loadList = 'plg_Created,plg_RowTools2,recently_Wrapper';
+    public $loadList = 'plg_Created,plg_RowTools2,recently_Wrapper';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име');
         $this->FLD('value', 'varchar', 'caption=Стойност');
@@ -48,20 +48,20 @@ class recently_Values extends core_Manager
      */
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	$data->form->title = (isset($data->form->rec->id)) ? 'Редактиране на опция' : 'Добавяне на опция';
+        $data->form->title = (isset($data->form->rec->id)) ? 'Редактиране на опция' : 'Добавяне на опция';
     }
     
     
     /**
      * Връща предложенията за посоченото поле
      */
-    function getSuggestions($name)
+    public function getSuggestions($name)
     {
         $conf = core_Packs::getConfig('recently');
 
         $query = $this->getQuery();
         
-        $query->orderBy("#createdOn=DESC");
+        $query->orderBy('#createdOn=DESC');
         
         $query->limit($conf->RECENTLY_MAX_SUGGESTION);
         
@@ -69,13 +69,12 @@ class recently_Values extends core_Manager
         
         $opt = array('' => '');
         
-        if($cu = core_Users::getCurrent()) {
+        if ($cu = core_Users::getCurrent()) {
             while ($rec = $query->fetch(array(
-                                "#name = '[#1#]' AND #createdBy = [#2#]", 
-                                $name, 
+                                "#name = '[#1#]' AND #createdBy = [#2#]",
+                                $name,
                                 $cu
                             ))) {
-                
                 $value = $rec->value;
                 
                 $opt[$value] = $value;
@@ -89,7 +88,7 @@ class recently_Values extends core_Manager
     /**
      * Добавя стойност към определено име и потребител
      */
-    function add($name, $value)
+    public function add($name, $value)
     {
         $cu = core_Users::getCurrent();
         $value = mb_substr($value, 0, 255);
@@ -117,8 +116,8 @@ class recently_Values extends core_Manager
      * Преди да се извлекат записите за листови изглед,
      * задава подреждане от най-новите към по-старите
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->query->orderBy("#createdOn=DESC");
+        $data->query->orderBy('#createdOn=DESC');
     }
 }

@@ -102,6 +102,7 @@ class doc_LikesPlg extends core_Plugin
         }
         
         if (($action != 'likedocument') && ($action != 'dislikedocument') && ($action != 'showlikes')) {
+            
             return ;
         }
         
@@ -190,6 +191,7 @@ class doc_LikesPlg extends core_Plugin
     public static function on_AfterNotifyUsersForLike($mvc, &$res, $rec)
     {
         if (!$rec->containerId) {
+            
             return ;
         }
         
@@ -197,6 +199,7 @@ class doc_LikesPlg extends core_Plugin
         
         // Ако само текущия потребител е харесал документа
         if (!$likedArr) {
+            
             return ;
         }
         
@@ -258,6 +261,7 @@ class doc_LikesPlg extends core_Plugin
             $noNotifyArr = core_Settings::fetchUsers($sKey, 'newDoc', 'no');
             
             if ($noNotifyArr[$userId]) {
+                
                 return ;
             }
         }
@@ -268,6 +272,7 @@ class doc_LikesPlg extends core_Plugin
             $noNotifyArr = core_Settings::fetchUsers($sKey, 'notify', 'no');
             
             if ($noNotifyArr[$userId]) {
+                
                 return ;
             }
         }
@@ -389,6 +394,7 @@ class doc_LikesPlg extends core_Plugin
     public function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
     {
         if (Mode::is('inlineDocument')) {
+            
             return ;
         }
         

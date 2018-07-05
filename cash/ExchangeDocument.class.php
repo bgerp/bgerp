@@ -27,13 +27,13 @@ class cash_ExchangeDocument extends core_Master
      *
      * @see acc_plg_DocumentSummary
      */
-    public $amountIsInNotInBaseCurrency = TRUE;
+    public $amountIsInNotInBaseCurrency = true;
     
     
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Касови обмени на валути";
+    public $title = 'Касови обмени на валути';
     
     
     /**
@@ -47,7 +47,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "valior, title=Документ, reason, folderId, creditCurrency=Обменени->Валута, creditQuantity=Обменени->Сума, debitCurrency=Получени->Валута, debitQuantity=Получени->Сума, state, createdOn, createdBy";
+    public $listFields = 'valior, title=Документ, reason, folderId, creditCurrency=Обменени->Валута, creditQuantity=Обменени->Сума, debitCurrency=Получени->Валута, debitQuantity=Получени->Сума, state, createdOn, createdBy';
     
     
     /**
@@ -69,21 +69,21 @@ class cash_ExchangeDocument extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo,cash';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,cash';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'ceo,cash';
-	
-	
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,cash';
+    
+    
     /**
      * Абревиатура
      */
-    public $abbr = "Ced";
+    public $abbr = 'Ced';
     
     
     /**
@@ -119,7 +119,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "4.8|Финанси";
+    public $newBtnGroup = '4.8|Финанси';
     
     
     /**
@@ -140,25 +140,25 @@ class cash_ExchangeDocument extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, valior,modifiedOn';
-	
-	
-	/**
+    
+    
+    /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
-    	$this->FLD('reason', 'varchar(255)', 'caption=Основание,input,mandatory');
-    	$this->FLD('peroFrom', 'key(mvc=cash_Cases, select=name)','caption=От->Каса');
-    	$this->FLD('creditCurrency', 'key(mvc=currency_Currencies, select=code)','caption=От->Валута');
-    	$this->FLD('creditPrice', 'double(smartRound)', 'input=none');
-    	$this->FLD('creditQuantity', 'double(smartRound)', 'caption=От->Сума');
-        $this->FLD('peroTo', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса');
-        $this->FLD('debitCurrency', 'key(mvc=currency_Currencies, select=code)','caption=Към->Валута');
+        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+        $this->FLD('reason', 'varchar(255)', 'caption=Основание,input,mandatory');
+        $this->FLD('peroFrom', 'key(mvc=cash_Cases, select=name)', 'caption=От->Каса');
+        $this->FLD('creditCurrency', 'key(mvc=currency_Currencies, select=code)', 'caption=От->Валута');
+        $this->FLD('creditPrice', 'double(smartRound)', 'input=none');
+        $this->FLD('creditQuantity', 'double(smartRound)', 'caption=От->Сума');
+        $this->FLD('peroTo', 'key(mvc=cash_Cases, select=name)', 'caption=Към->Каса');
+        $this->FLD('debitCurrency', 'key(mvc=currency_Currencies, select=code)', 'caption=Към->Валута');
         $this->FLD('debitQuantity', 'double(smartRound)', 'caption=Към->Сума');
-       	$this->FLD('debitPrice', 'double(smartRound)', 'input=none');
+        $this->FLD('debitPrice', 'double(smartRound)', 'input=none');
         $this->FLD('equals', 'double(smartRound)', 'input=none,caption=Общо,summary=amount');
-       	$this->FLD('rate', 'double(decimals=5)', 'input=none');
+        $this->FLD('rate', 'double(decimals=5)', 'input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
         $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
     }
@@ -167,38 +167,41 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-    	if($requiredRoles == 'no_one') return;
-    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'peroFrom')){
-    		$requiredRoles = 'no_one';
-    	}
+        if ($requiredRoles == 'no_one') {
+            return;
+        }
+        if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'peroFrom')) {
+            $requiredRoles = 'no_one';
+        }
     }
     
     
-	/**
-	 *  Подготовка на филтър формата
-	 */
-	public static function on_AfterPrepareListFilter($mvc, $data)
-	{
-		// Добавяме към формата за търсене търсене по Каса
-		cash_Cases::prepareCaseFilter($data, array('peroFrom', 'peroTo'));
-	}
+    /**
+     *  Подготовка на филтър формата
+     */
+    public static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        // Добавяме към формата за търсене търсене по Каса
+        cash_Cases::prepareCaseFilter($data, array('peroFrom', 'peroTo'));
+    }
     
     
-	/**
+    /**
      *  Добавяме помощник за избиране на сч. операция
      */
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
-    	if ($action != 'add') {
+        if ($action != 'add') {
             return;
         }
         
-        if($folderId = Request::get('folderId', 'int')){
-	        if($folderId != cash_Cases::fetchField(cash_Cases::getCurrent(), 'folderId')){
-	        	return redirect(array('cash_Cases', 'list'), FALSE, "|Документът не може да се създаде в папката на неактивна каса");
-	        }
+        if ($folderId = Request::get('folderId', 'int')) {
+            if ($folderId != cash_Cases::fetchField(cash_Cases::getCurrent(), 'folderId')) {
+                
+                return redirect(array('cash_Cases', 'list'), false, '|Документът не може да се създаде в папката на неактивна каса');
+            }
         }
     }
     
@@ -207,69 +210,70 @@ class cash_ExchangeDocument extends core_Master
      * Подготовка на формата за добавяне
      */
     public static function on_AfterPrepareEditForm($mvc, $res, $data)
-    { 
-    	$form = &$data->form;
-    	$cCase = cash_Cases::getCurrent();
-    	$form->rec->folderId = cash_Cases::forceCoverAndFolder($cCase);
-    	$today = dt::verbal2mysql();
+    {
+        $form = &$data->form;
+        $cCase = cash_Cases::getCurrent();
+        $form->rec->folderId = cash_Cases::forceCoverAndFolder($cCase);
+        $today = dt::verbal2mysql();
         $currencyId = acc_Periods::getBaseCurrencyId($today);
         
         $form->setReadOnly('peroFrom', $cCase);
         $form->setDefault('creditCurrency', $currencyId);
         $form->setDefault('debitCurrency', $currencyId);
         $form->setDefault('valior', $today);
-	}
+    }
     
     
     /**
      * Проверка след изпращането на формата
      */
     public static function on_AfterInputEditForm($mvc, $form)
-    { 
-    	if ($form->isSubmitted()){
-    		
-    		$rec = &$form->rec;
-    		
-    		if(!$rec->creditQuantity || !$rec->debitQuantity) {
-    			$form->setError("creditQuantity, debitQuantity", "Трябва да са въведени и двете суми !!!");
-    			return;
-    		} 
-    		
-    		if($rec->creditCurrency == $rec->debitCurrency) {
-		    	$form->setWarning('creditCurrency, debitCurrency', 'Валутите са едни и същи, няма смяна на валута !!!');
-		    	return;
-    		}
-		    	
-		    // Изчисляваме курса на превалутирането спрямо входните данни
-		    $cCode = currency_Currencies::getCodeById($rec->creditCurrency);
-		    $dCode = currency_Currencies::getCodeById($rec->debitCurrency);
-		    $cRate = currency_CurrencyRates::getRate($rec->valior, $cCode, acc_Periods::getBaseCurrencyCode($rec->valior));
-		    currency_CurrencyRates::checkRateAndRedirect($cRate);
-		    $rec->creditPrice = $cRate;
-		    $rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
-		    $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
-		   
-		    $fromCode = currency_Currencies::getCodeById($rec->creditCurrency);
-		    $toCode = currency_Currencies::getCodeById($rec->debitCurrency);
-		    
-		    // Проверка на сумите
-		    if($msg = currency_CurrencyRates::checkAmounts($rec->creditQuantity, $rec->debitQuantity, $rec->valior, $fromCode, $toCode)){
-		    	$form->setError('debitQuantity', $msg);
-		    }
-		    
-		    // Каква е равностойноста на обменената сума в основната валута за периода
-		    if($dCode == acc_Periods::getBaseCurrencyCode($rec->valior)){
-		    	$rec->equals = $rec->creditQuantity * $rec->rate;
-		    } else {
-		    	$rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, NULL);
-		    }
-		    
-		    $caseRec = cash_Cases::fetch($rec->peroTo);
-    		if($caseRec->autoShare == 'yes'){
-    			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
-    			$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
-    		}
-    	}
+    {
+        if ($form->isSubmitted()) {
+            $rec = &$form->rec;
+            
+            if (!$rec->creditQuantity || !$rec->debitQuantity) {
+                $form->setError('creditQuantity, debitQuantity', 'Трябва да са въведени и двете суми !!!');
+
+                return;
+            }
+            
+            if ($rec->creditCurrency == $rec->debitCurrency) {
+                $form->setWarning('creditCurrency, debitCurrency', 'Валутите са едни и същи, няма смяна на валута !!!');
+
+                return;
+            }
+                
+            // Изчисляваме курса на превалутирането спрямо входните данни
+            $cCode = currency_Currencies::getCodeById($rec->creditCurrency);
+            $dCode = currency_Currencies::getCodeById($rec->debitCurrency);
+            $cRate = currency_CurrencyRates::getRate($rec->valior, $cCode, acc_Periods::getBaseCurrencyCode($rec->valior));
+            currency_CurrencyRates::checkRateAndRedirect($cRate);
+            $rec->creditPrice = $cRate;
+            $rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
+            $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
+           
+            $fromCode = currency_Currencies::getCodeById($rec->creditCurrency);
+            $toCode = currency_Currencies::getCodeById($rec->debitCurrency);
+            
+            // Проверка на сумите
+            if ($msg = currency_CurrencyRates::checkAmounts($rec->creditQuantity, $rec->debitQuantity, $rec->valior, $fromCode, $toCode)) {
+                $form->setError('debitQuantity', $msg);
+            }
+            
+            // Каква е равностойноста на обменената сума в основната валута за периода
+            if ($dCode == acc_Periods::getBaseCurrencyCode($rec->valior)) {
+                $rec->equals = $rec->creditQuantity * $rec->rate;
+            } else {
+                $rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, null);
+            }
+            
+            $caseRec = cash_Cases::fetch($rec->peroTo);
+            if ($caseRec->autoShare == 'yes') {
+                $rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
+                $rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+            }
+        }
     }
     
     
@@ -278,17 +282,16 @@ class cash_ExchangeDocument extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->title = $mvc->getLink($rec->id, 0);
-    	
-    	if($fields['-single']) {
-		    
-		    $row->peroTo = cash_Cases::getHyperLink($rec->peroTo, TRUE);
-		    $row->peroFrom = cash_Cases::getHyperLink($rec->peroFrom, TRUE);
-    	}
+        $row->title = $mvc->getLink($rec->id, 0);
+        
+        if ($fields['-single']) {
+            $row->peroTo = cash_Cases::getHyperLink($rec->peroTo, true);
+            $row->peroFrom = cash_Cases::getHyperLink($rec->peroFrom, true);
+        }
     }
     
     
-	/**
+    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
@@ -296,26 +299,25 @@ class cash_ExchangeDocument extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        return core_Cache::getOrCalc('CashExchDocCanAddToFolder', $folderId, function($folderId)
-        {
+        return core_Cache::getOrCalc('CashExchDocCanAddToFolder', $folderId, function ($folderId) {
             $Ce = cls::get('cash_ExchangeDocument');
-            if($folderId == cash_ExchangeDocument::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'cash_Cases') {
+            if ($folderId == cash_ExchangeDocument::getDefaultFolder(null, false) || doc_Folders::fetchCoverClassName($folderId) == 'cash_Cases') {
                 
-                return TRUE;
+                return true;
             }
 
-            return FALSE;
+            return false;
         });
     }
     
-	/**
+    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
-     * 
-     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @param  int     $threadId key(mvc=doc_Threads)
      * @return boolean
      */
-	public static function canAddToThread($threadId)
+    public static function canAddToThread($threadId)
     {
         $threadRec = doc_Threads::fetch($threadId);
 
@@ -323,19 +325,19 @@ class cash_ExchangeDocument extends core_Master
     }
     
     
-	/**
+    /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
     public function getDocumentRow($id)
     {
-    	$rec = $this->fetch($id);
+        $rec = $this->fetch($id);
         $row = new stdClass();
         $row->title = $this->singleTitle . " №{$id}";
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
-		$row->recTitle = $rec->reason;
-		
+        $row->recTitle = $rec->reason;
+        
         return $row;
     }
 }

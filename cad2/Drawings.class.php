@@ -4,30 +4,31 @@
 /**
  * Контролер за изчертаване на геометрични фигури
  */
-class cad2_Drawings extends embed_Manager {
+class cad2_Drawings extends embed_Manager
+{
 
     
     
     /**
-	 * Свойство, което указва интерфейса на вътрешните обекти
-	 */
-	public $driverInterface = 'cad2_ShapeIntf';
+     * Свойство, което указва интерфейса на вътрешните обекти
+     */
+    public $driverInterface = 'cad2_ShapeIntf';
 
 
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Clone, plg_Created, cad2_Wrapper, plg_Search';  
+    public $loadList = 'plg_RowTools2, plg_Clone, plg_Created, cad2_Wrapper, plg_Search';
                     
 
     
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Фигура";
+    public $singleTitle = 'Фигура';
     
 
-    public $title = "Фигури";
+    public $title = 'Фигури';
     
     /**
      * Икона за единичния изглед
@@ -83,7 +84,7 @@ class cad2_Drawings extends embed_Manager {
     public $canWrite = 'cad,ceo,admin';
     
     
-	
+    
     /**
      * Нов темплейт за показване
      */
@@ -95,47 +96,47 @@ class cad2_Drawings extends embed_Manager {
      */
     public $canSingle = 'cad,ceo,admin';
     
-	
-   	
+    
+    
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, remember=info,width=100%');
-        $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input=hidden,silent,refreshForm,placeholder=Популярни продукти");
-	}
+        $this->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Прототип,input=hidden,silent,refreshForm,placeholder=Популярни продукти');
+    }
 
     
-	/**
-	 * След преобразуване на записа в четим за хора вид.
-	 *
-	 * @param core_Mvc $mvc
-	 * @param stdClass $row Това ще се покаже
-	 * @param stdClass $rec Това е записа в машинно представяне
-	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-	{
-		$exp = explode('»', $row->driverClass);
-		
-		if(count($exp) == 2){
-			$row->driverClass = tr(trim($exp[0])) . " » " . tr(trim($exp[1]));
-		} else {
-			$row->driverClass = tr($row->driverClass);
-		}
-		
-		if(isset($fields['-list'])){
-			$row->driverClass = ht::createLink($row->driverClass, self::getSingleUrlArray($rec->id));
-		}
-	}
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        $exp = explode('»', $row->driverClass);
+        
+        if (count($exp) == 2) {
+            $row->driverClass = tr(trim($exp[0])) . ' » ' . tr(trim($exp[1]));
+        } else {
+            $row->driverClass = tr($row->driverClass);
+        }
+        
+        if (isset($fields['-list'])) {
+            $row->driverClass = ht::createLink($row->driverClass, self::getSingleUrlArray($rec->id));
+        }
+    }
     
     
     /**
      * След рендиране на сингъла
      */
     protected static function on_AfterRenderSingle($mvc, $tpl, $data)
-    { 
-    	$driver = cls::get($data->rec->driverClass);
+    {
+        $driver = cls::get($data->rec->driverClass);
         $svg = $driver->getCanvas();
         $driver->render($svg, (array) $data->rec);
         $tpl->append('<div class="clearfix21"></div>');
@@ -152,12 +153,12 @@ class cad2_Drawings extends embed_Manager {
      * След подготвяне на формата за филтриране
      *
      * @param blast_EmailSend $mvc
-     * @param stdClass $data
+     * @param stdClass        $data
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         // Подреждаме записите, като неизпратените да се по-нагоре
-        $data->query->orderBy("createdOn", 'DESC');
+        $data->query->orderBy('createdOn', 'DESC');
        
         $data->listFilter->showFields = 'search';
         $data->listFilter->view = 'horizontal';
@@ -167,7 +168,7 @@ class cad2_Drawings extends embed_Manager {
 
     public static function on_AfterRead($mvc, $rec)
     {
-        if(!$rec->name) {
+        if (!$rec->name) {
             $rec->name = tr($mvc->getVerbal($rec, 'driverClass')) . "({$rec->id})";
         }
     }
@@ -175,14 +176,14 @@ class cad2_Drawings extends embed_Manager {
 
     protected static function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
-        if(TRUE || $mvc->haveRightFor('update', $data->rec)) {
-            $data->toolbar->addBtn('SVG', array($mvc, 'DownloadSvg', $data->rec->id), NULL, 'ef_icon=fileman/icons/16/svg.png');
-            $data->toolbar->addBtn('PDF', array($mvc, 'DownloadPdf', $data->rec->id), NULL, 'ef_icon=fileman/icons/16/pdf.png');
+        if (true || $mvc->haveRightFor('update', $data->rec)) {
+            $data->toolbar->addBtn('SVG', array($mvc, 'DownloadSvg', $data->rec->id), null, 'ef_icon=fileman/icons/16/svg.png');
+            $data->toolbar->addBtn('PDF', array($mvc, 'DownloadPdf', $data->rec->id), null, 'ef_icon=fileman/icons/16/pdf.png');
         }
     }
 
 
-    function act_DownloadSvg()
+    public function act_DownloadSvg()
     {
         requireRole('ceo,admin,cad');
         $id = Request::get('id', 'int');
@@ -192,10 +193,10 @@ class cad2_Drawings extends embed_Manager {
         $driver->render($svg, (array) $rec);
         $fileName = trim(fileman_Files::normalizeFileName($rec->name), '_') . '';
 
-    	header("Content-type: application/svg");
-    	header("Content-Disposition: attachment; filename={$fileName}.svg");
-    	header("Pragma: no-cache");
-    	header("Expires: 0");
+        header('Content-type: application/svg');
+        header("Content-Disposition: attachment; filename={$fileName}.svg");
+        header('Pragma: no-cache');
+        header('Expires: 0');
 
         echo $svg->render();
         shutdown();
@@ -205,7 +206,7 @@ class cad2_Drawings extends embed_Manager {
     /**
      * Сваляне на PDF
      */
-    function act_DownloadPdf()
+    public function act_DownloadPdf()
     {
         requireRole('ceo,admin,cad');
         $id = Request::get('id', 'int');
@@ -221,14 +222,14 @@ class cad2_Drawings extends embed_Manager {
         $fh = fileman::absorbStr($fileContent, 'archive', $fileName . '.svg');
 
         // Конвертираме
-        $pdfFn = fileman_webdrv_Inkscape::toPdf($fh, TRUE);
+        $pdfFn = fileman_webdrv_Inkscape::toPdf($fh, true);
         
         echo fileman_Files::getContent($pdfFn);
 
-    	header("Content-type: application/pdf");
-    	header("Content-Disposition: attachment; filename={$fileName}.pdf");
-    	header("Pragma: no-cache");
-    	header("Expires: 0");
+        header('Content-type: application/pdf');
+        header("Content-Disposition: attachment; filename={$fileName}.pdf");
+        header('Pragma: no-cache');
+        header('Expires: 0');
 
         shutdown();
     }

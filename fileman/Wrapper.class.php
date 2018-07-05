@@ -21,7 +21,7 @@ class fileman_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('fileman_Files', 'Файлове');
         $this->TAB('fileman_Log', 'Последни', 'debug');
@@ -33,6 +33,5 @@ class fileman_Wrapper extends plg_ProtoWrapper
         $this->TAB('fileman_Repositories', 'Хранилища', 'admin, debug');
         
         $this->title = 'Файлове';
-       
     }
 }

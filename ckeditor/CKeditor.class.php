@@ -23,23 +23,24 @@ class ckeditor_CKeditor extends core_BaseClass
      *
      * @return string
      */
-    function renderHtml($tpl, $attr = array(), $options = array())
+    public function renderHtml($tpl, $attr = array(), $options = array())
     {
-        
         $id = $attr['id'];
         
-        if(!$tpl) {
-            $tpl = ht::createElement('textarea', $attr, $value, TRUE);
+        if (!$tpl) {
+            $tpl = ht::createElement('textarea', $attr, $value, true);
         }
         
-        if($attr['style']) {
+        if ($attr['style']) {
             $tpl->prepend("<div style=\"{$attr['style']}\">");
-            $tpl->append("</div");
+            $tpl->append('</div');
         }
         
         $tpl->appendOnce(
-            "<script type=\"text/javascript\" src=" . sbf("ckeditor/ckeditor.js") . "></script>\n",
-            'HEAD');
+            '<script type="text/javascript" src=' . sbf('ckeditor/ckeditor.js') . "></script>\n",
+            'HEAD'
+        
+        );
         
         // $tpl->appendOnce(
         // "<script type=\"text/javascript\" src=" . sbf("ckeditor/_samples/sample.js") . "></script>\n",
@@ -58,7 +59,7 @@ class ckeditor_CKeditor extends core_BaseClass
             CKEDITOR.replace( '{$id}', {$init} );
         </script>\n");
         
-        if(isDebug()) {
+        if (isDebug()) {
             $tpl->prepend("\n<!-- Начало на CKEDITOR редактора за полето '{$id}' -->\n");
             $tpl->append("<!-- Край на CKEDITOR редактора за полето '{$id}' -->\n");
         }

@@ -20,7 +20,7 @@ class email_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на опаковката
      */
-    function description()
+    public function description()
     {
         //Показва таба за постинги, само ако имаме права за листване
         $this->TAB('email_Outgoings', 'Изходящи', 'ceo, admin, powerUser');
@@ -29,7 +29,7 @@ class email_Wrapper extends plg_ProtoWrapper
         // Да е първия таб
         if (haveRole('ceo')) {
             $this->TAB('email_Incomings', 'Входящи->Съобщения', 'ceo');
-        } 
+        }
         if (haveRole('admin,email')) {
             $this->TAB('email_Returned', 'Входящи->Върнати', 'admin,email');
             $this->TAB('email_Receipts', 'Входящи->Разписки', 'admin,email');

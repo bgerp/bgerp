@@ -90,6 +90,7 @@ class core_Plugins extends core_Manager
     public static function installPlugin($name, $plugin, $class, $cover = 'family', $state = 'active', $force = false)
     {
         if ($res = static::stopUnusedPlugin($plugin, $class)) {
+            
             return $res;
         }
         
@@ -123,6 +124,7 @@ class core_Plugins extends core_Manager
     {
         // Ако плъгина е вече инсталиран - на правим нищо
         if (static::fetch(array("#name = '[#1#]' AND #state = '{$state}' AND #plugin = '{$plugin}' AND #class = '{$class}' AND #cover = '{$cover}'", $name))) {
+            
             return 0;
         }
 
@@ -131,6 +133,7 @@ class core_Plugins extends core_Manager
         
         // Ако има друг плъгин със същото име и не се изисква форсиране на този - излизаме
         if (!$force && static::fetch(array("#name = '[#1#]' AND #state = 'active'", $name))) {
+            
             return -1;
         }
 

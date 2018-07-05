@@ -24,15 +24,14 @@ class plg_RemoveCache extends core_Plugin
         $rem = $mvc->removeCache($rec);
         $key = implode('|', $rem);
         $mvc->removeCache[$key] = $rem;
-
     }
 
 
-	/**
-	 * Извиква се след успешен запис в модела
-	 */
-	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
-	{
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
+    {
         self::setToRemove($mvc, $rec);
     }
     
@@ -54,8 +53,8 @@ class plg_RemoveCache extends core_Plugin
      */
     public static function on_Shutdown($mvc)
     {
-        if(is_array($mvc->removeCache)) {
-            foreach($mvc->removeCache as $rem) {
+        if (is_array($mvc->removeCache)) {
+            foreach ($mvc->removeCache as $rem) {
                 core_Cache::remove($rem[0], $rem[1]);
             }
         }

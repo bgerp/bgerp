@@ -5,7 +5,7 @@
  * Клас 'phpcolor_Setup'
  *
  * Исталиране/деинсталиране на phpcolor
- * 
+ *
  * @category  bgerp
  * @package   phpcolor
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
@@ -15,16 +15,15 @@
  */
 class phpcolor_Setup extends core_ProtoSetup
 {
-	
-	/**
-	 * Описание на модула
-	 */
-	public $info = "Библиотека за работа с цветове";
-	
+    
+    /**
+     * Описание на модула
+     */
+    public $info = 'Библиотека за работа с цветове';
+    
 
-	/**
-	 * Пакет без инсталация
-	 */
-	public $noInstall = TRUE;
-	
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = true;
 }

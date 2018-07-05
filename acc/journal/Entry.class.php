@@ -191,10 +191,12 @@ class acc_journal_Entry
     public function amount()
     {
         if (isset($this->amount)) {
+            
             return $this->amount;
         }
         
         if (isset($this->debit->amount)) {
+            
             return $this->debit->amount;
         }
         

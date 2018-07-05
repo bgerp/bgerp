@@ -13,34 +13,37 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class type_Url extends type_Varchar {
+class type_Url extends type_Varchar
+{
     
     
     /**
      * Дължина на полето в mySql таблица
      */
-    var $dbFieldLen = 255;
+    public $dbFieldLen = 255;
     
     
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
-    function toVerbal($value)
+    public function toVerbal($value)
     {
         // Когато стойността е празна, трябва да върнем NULL
         $value = trim($value);
         
-        if(empty($value)) return NULL;
+        if (empty($value)) {
+            return;
+        }
         
         $attr = array();
         $attr['target'] = '_blank';
         $attr['class'] = 'out';
-        if(!strpos($value, '://')) {
+        if (!strpos($value, '://')) {
             $url = 'http://' . $value;
         } else {
             $url = $value;
         }
-        $value = HT::createLink($value, $url, FALSE, $attr);
+        $value = HT::createLink($value, $url, false, $attr);
         
         return $value;
     }
@@ -49,9 +52,8 @@ class type_Url extends type_Varchar {
     /**
      * Добавя атрибут за тип = url, ако изгледа е мобилен
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
-        
         return parent::renderInput_($name, $value, $attr);
     }
     
@@ -59,11 +61,13 @@ class type_Url extends type_Varchar {
     /**
      * Превръща URL-то от вербално представяне, към вътрешно представяне
      */
-    function fromVerbal($value)
+    public function fromVerbal($value)
     {
-        if(!trim($value)) return NULL;
+        if (!trim($value)) {
+            return;
+        }
 
-        if(strpos($value, '://') === FALSE) {
+        if (strpos($value, '://') === false) {
             $value = 'http://' . $value;
         }
 
@@ -76,13 +80,14 @@ class type_Url extends type_Varchar {
     /**
      * Проверява и коригира въведеното URL
      */
-    function isValid($value)
+    public function isValid($value)
     {
-        
         $value = trim($value);
         $value = strtolower($value);
         
-        if(!$value) return NULL;
+        if (!$value) {
+            return;
+        }
         
         $value = $this->findScheme($value);
         
@@ -94,7 +99,7 @@ class type_Url extends type_Varchar {
         }
         
         if (!URL::isValidUrl($value)) {
-            $res['error'] = "Невалидно URL.";
+            $res['error'] = 'Невалидно URL.';
             
             return $res;
         }
@@ -104,7 +109,7 @@ class type_Url extends type_Varchar {
     /**
      * Връща цялото URL
      */
-    function findScheme($value)
+    public function findScheme($value)
     {
         $pattern = '/^\b[a-z]*\b:\/\//';
         preg_match($pattern, $value, $match);
@@ -132,22 +137,22 @@ class type_Url extends type_Varchar {
     /**
      * Ако е зададен параметър, тогава валидираме URL-to
      */
-    function validate($url, &$result)
+    public function validate($url, &$result)
     {
         //Проверяваме дали URL' то е ftp
-        if (stripos($url, 'ftp://') !== FALSE) {
+        if (stripos($url, 'ftp://') !== false) {
             
-            //Правим опит да се свържем с FTP акаунта. 
+            //Правим опит да се свържем с FTP акаунта.
             $parsedFtp = parse_url($url);
             $ftp = $parsedFtp['scheme'] . '://' . $parsedFtp['host'];
-            $ftpId = @ftp_connect($parsedFtp['host'], FALSE, 3);
+            $ftpId = @ftp_connect($parsedFtp['host'], false, 3);
         } else {
             
             //Правим опит да се свържем с http акаунта
             $arr = array('http' => array(
                     'timeout' => 2)
             );
-            stream_context_set_default ($arr);
+            stream_context_set_default($arr);
             $headers = @get_headers($url);
         }
         
@@ -165,7 +170,7 @@ class type_Url extends type_Varchar {
         $number = substr(trim($explode[1]), 0, 1);
         
         if ($number == 4) {
-            $result['warning'] = "Възможен проблем с това URL.";
+            $result['warning'] = 'Възможен проблем с това URL.';
         }
     }
 }

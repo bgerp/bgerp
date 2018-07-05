@@ -86,7 +86,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     public $rowToolsField = 'RowNumb';
     
     
-	/**
+    /**
      * Полета свързани с цени
      */
     public $priceFields = 'price, amount, discount, packPrice';
@@ -109,7 +109,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     /**
      * Да се показва ли кода като в отделна колона
      */
-    public $showCodeColumn = TRUE;
+    public $showCodeColumn = true;
     
     
     /**
@@ -128,7 +128,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
         $this->FLD('receiptId', 'key(mvc=store_Receipts)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setDocumentFields($this);
         $this->FLD('baseQuantity', 'double(minDecimals=2)', 'after=showMode,caption=Допълнителна мярка->Засклаждане,input=hidden,autohide');
-        $this->setFieldTypeParams('packQuantity', "min=0");
+        $this->setFieldTypeParams('packQuantity', 'min=0');
     }
 
     
@@ -137,25 +137,25 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     protected function getProducts($masterRec)
     {
-    	$property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
-    	$property .= ',canStore';
-    	
-    	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
-    	
-    	return $products;
+        $property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
+        $property .= ',canStore';
+        
+        // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
+        $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
+        
+        return $products;
     }
 
 
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param core_Mvc $mvc
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
-    	parent::inputDocForm($mvc, $form);
+        parent::inputDocForm($mvc, $form);
     }
     
     
@@ -164,15 +164,15 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-    	$date = ($data->masterData->rec->state == 'draft') ? NULL : $data->masterData->rec->modifiedOn;
-    	if(count($data->rows)) {
-    		foreach ($data->rows as $i => &$row) {
-    			$rec = &$data->recs[$i];
+        $date = ($data->masterData->rec->state == 'draft') ? null : $data->masterData->rec->modifiedOn;
+        if (count($data->rows)) {
+            foreach ($data->rows as $i => &$row) {
+                $rec = &$data->recs[$i];
     
-    			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'public', $data->masterData->rec->tplLang, 1, FALSE);
-    			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
-    		}
-    	}
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'public', $data->masterData->rec->tplLang, 1, false);
+                deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
+            }
+        }
     }
     
     
@@ -181,11 +181,11 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterGetRowInfo($mvc, &$res, $rec)
     {
-    	$rec = $mvc->fetchRec($rec);
-    	$masterRec = store_Receipts::fetch($rec->receiptId, 'isReverse,storeId');
-    	if($masterRec->isReverse == 'yes'){
-    		$res->operation['in'] = $masterRec->storeId;
-    		unset($res->operation['out']);
-    	}
+        $rec = $mvc->fetchRec($rec);
+        $masterRec = store_Receipts::fetch($rec->receiptId, 'isReverse,storeId');
+        if ($masterRec->isReverse == 'yes') {
+            $res->operation['in'] = $masterRec->storeId;
+            unset($res->operation['out']);
+        }
     }
 }

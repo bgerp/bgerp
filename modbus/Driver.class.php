@@ -13,31 +13,32 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class modbus_Driver extends core_BaseClass {
+class modbus_Driver extends core_BaseClass
+{
     
     
     /**
      * IP на устройството
      */
-    var $ip;
+    public $ip;
     
     
     /**
      * Порт за Modbus протокола
      */
-    var $port = 502;
+    public $port = 502;
     
     
     /**
      * id на устройството
      */
-    var $id;
+    public $id;
     
     
     /**
      * Чете от посочения адрес определен брой данни
      */
-    function read($startAddr, $quantity)
+    public function read($startAddr, $quantity)
     {
         $Plc = $this->getAndInitPlc();
         
@@ -51,7 +52,7 @@ class modbus_Driver extends core_BaseClass {
     /**
      * Чете група от регистри
      */
-    function readArr($regArr)
+    public function readArr($regArr)
     {
         $Plc = $this->getAndInitPlc();
         
@@ -64,13 +65,13 @@ class modbus_Driver extends core_BaseClass {
     /**
      * Създава и зарежда комуникатора с PLC-то
      */
-    function getAndInitPlc()
+    public function getAndInitPlc()
     {
-        require_once(dirname(__FILE__) . "/_lib/ClassModbusTcp.php");
+        require_once(dirname(__FILE__) . '/_lib/ClassModbusTcp.php');
         
         $Plc = new ModbusTcp;
         
-        if($this->ip{0} == 's') {
+        if ($this->ip{0} == 's') {
             $Plc->SetSimulation();
         }
         
@@ -80,17 +81,17 @@ class modbus_Driver extends core_BaseClass {
         
         $Plc->Unit = $this->unit;
         
-        if($this->type == 'float') {
+        if ($this->type == 'float') {
             $Plc->SetTypeFloat();
-        } elseif($this->type == 'double') {
+        } elseif ($this->type == 'double') {
             $Plc->SetTypeDouble();
         }
         
-        if($this->mode == 'debug') {
+        if ($this->mode == 'debug') {
             $Plc->SetDebug();
         }
         
-        if($this->mode == 'simulation') {
+        if ($this->mode == 'simulation') {
             $Plc->SetSimulation();
         }
         
@@ -103,7 +104,7 @@ class modbus_Driver extends core_BaseClass {
     /**
      * Инициализира драйвера
      */
-    function init($params = array())
+    public function init($params = array())
     {
         $this->unit = 0;
         

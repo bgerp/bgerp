@@ -19,7 +19,7 @@ class editwatch_Plugin extends core_Plugin
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm(&$mvc, $data)
+    public function on_AfterPrepareEditForm(&$mvc, $data)
     {
         if (isset($data->form->rec->id) && haveRole('user')) {
             $data->editedBy = editwatch_Editors::getAndSetCurrentEditors($mvc, $data->form->rec->id);
@@ -30,7 +30,7 @@ class editwatch_Plugin extends core_Plugin
     /**
      * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
      */
-    function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    public function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         $recId = $data->form->rec->id;
         
@@ -76,21 +76,21 @@ class editwatch_Plugin extends core_Plugin
     
     /**
      * HTML стринг с хората, които редактират записа, освен текущия потребител
-     * 
+     *
      * @param NULL|array $editedBy
-     * 
+     *
      * @return string
      */
-    static function renderStatus($editedBy)
+    public static function renderStatus($editedBy)
     {
         $info = '<span></span>';
         
         if (isset($editedBy) && count($editedBy)) {
-            $info = tr("Този запис се редактира също и от|*: ");
+            $info = tr('Този запис се редактира също и от|*: ');
             $sign = '';
             
             // Всички потребители, които в момента редактират
-            foreach((array)$editedBy as $userId => $last) {
+            foreach ((array) $editedBy as $userId => $last) {
                 
                 // Линкове към профилите
                 $nick = crm_Profiles::createLink($userId);
@@ -108,13 +108,18 @@ class editwatch_Plugin extends core_Plugin
     /**
      * Извиква се преди изпълняването на екшън
      */
-    function on_BeforeAction($mvc, &$res, $act)
+    public function on_BeforeAction($mvc, &$res, $act)
     {
-        if ($act != 'showeditwatchstatus') return;
+        if ($act != 'showeditwatchstatus') {
+            return;
+        }
         
         $res = array();
         
-        if (!Request::get('ajax_mode')) return ;
+        if (!Request::get('ajax_mode')) {
+            
+            return ;
+        }
         
         $hitTime = Request::get('hitTime', 'int');
         
@@ -122,18 +127,17 @@ class editwatch_Plugin extends core_Plugin
         
         $recId = Request::get('id', 'int');
         
-        $forceLogin = FALSE;
+        $forceLogin = false;
         
         // Ако не е логнат потребител
         // Понякога и every_one може да редактира запис
         if (isset($recId) && !haveRole('user') && !$mvc->haveRightFor('edit', $recId)) {
             $status = tr('Трябва да сте логнати, за да редактирате този запис') . '.';
-            $js = "w=window.open(\"" . toUrl(array('core_Users', 'login', 'popup' => 1)) . "\",\"Login\",\"width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0\"); if(w) w.focus();";
-            $status = "<div class='formError'>$status <a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}'>" . tr("Логнете се сега...||Login now...") . "</a></div>";
+            $js = 'w=window.open("' . toUrl(array('core_Users', 'login', 'popup' => 1)) . '","Login","width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0"); if(w) w.focus();';
+            $status = "<div class='formError'>${status} <a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}'>" . tr('Логнете се сега...||Login now...') . '</a></div>';
             
-            $forceLogin = TRUE;
+            $forceLogin = true;
         } else {
-            
             $editedBy = array();
             
             if (isset($recId)) {
@@ -152,7 +156,9 @@ class editwatch_Plugin extends core_Plugin
         // Вземаме съдържанието от предишния запис
         $savedHash = Mode::get($nameHash);
         
-        if(empty($savedHash)) $savedHash = md5($savedHash);
+        if (empty($savedHash)) {
+            $savedHash = md5($savedHash);
+        }
         
         // Ако са различни
         if ($statusHash != $savedHash) {
@@ -163,7 +169,7 @@ class editwatch_Plugin extends core_Plugin
             // Добавяме резултата
             $resObj = new stdClass();
             $resObj->func = 'html';
-            $resObj->arg = array('id'=>'editStatus', 'html' => $status, 'replace' => TRUE);
+            $resObj->arg = array('id' => 'editStatus', 'html' => $status, 'replace' => true);
             
             $resObj2 = new stdClass();
             $resObj2->func = 'forceLoginToSubmit';
@@ -172,23 +178,23 @@ class editwatch_Plugin extends core_Plugin
             $res = array($resObj, $resObj2);
         }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Връща хеша от URL-то и времето на извикване на страницата
-     * 
-     * @param array $refreshUrl
+     *
+     * @param array   $refreshUrl
      * @param integer $hitTime
      */
-    static function getNameHash($refreshUrl, $hitTime)
+    public static function getNameHash($refreshUrl, $hitTime)
     {
         // От URL-то и hitTime генерираме хеша за името
         $nameHash = md5(toUrl($refreshUrl) . $hitTime);
         
         // Името на хеша, с който е записан в сесията
-        $nameHash = "REFRESH_ROWS_" . $nameHash;
+        $nameHash = 'REFRESH_ROWS_' . $nameHash;
         
         return $nameHash;
     }
@@ -196,14 +202,13 @@ class editwatch_Plugin extends core_Plugin
     
     /**
      * Връща хеша за съответния текст
-     * 
+     *
      * @param string $status
-     * 
+     *
      * @return string
      */
-    static function getStatusHash($status)
+    public static function getStatusHash($status)
     {
-        
         return md5($status);
     }
 }

@@ -258,6 +258,7 @@ class doc_PdfCreator extends core_Manager
     {
         if ($matches[0]) {
             if (!preg_match('/class\s*=\s*(\'|\")staticFormView(\'|\")/i', $matches[0], $m)) {
+                
                 return '';
             }
         }
@@ -280,6 +281,7 @@ class doc_PdfCreator extends core_Manager
             
             //Ако разширението е pdf връщаме
             if ($ext == 'pdf') {
+                
                 return $name;
             }
         }

@@ -33,6 +33,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         
         // Ако няма резултат, връщаме
         if ($params === false) {
+            
             return ;
         }
         

@@ -528,6 +528,7 @@ class doc_FolderPlg extends core_Plugin
         // Ако текущия потребител е ceo или admin той е отговорник на папката
         if ($cu = core_Users::getCurrent('id', false)) {
             if (haveRole('ceo,admin', $cu)) {
+                
                 return $cu;
             }
         }

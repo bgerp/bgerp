@@ -420,14 +420,17 @@ class acc_Journal extends core_Master
     public static function rejectTransaction($docClassId, $docId)
     {
         if (!($rec = self::fetchByDoc($docClassId, $docId))) {
+            
             return false;
         }
         
         if (!($periodRec = acc_Periods::fetchByDate($rec->valior))) {
+            
             return false;
         }
         
         if ($periodRec->state == 'closed') {
+            
             return acc_Articles::createReverseArticle($rec);
         }
 
@@ -595,6 +598,7 @@ class acc_Journal extends core_Master
         $jQuery->where("#valior >= '{$fromDate}'");
         
         if ($showAllRecs === false) {
+            
             return $jQuery->fetchAll();
         }
         
@@ -773,6 +777,7 @@ class acc_Journal extends core_Master
             
             // Трябва баланса да е преизчислен за да продължим
             if (core_Locks::isLocked(acc_Balances::saveLockKey)) {
+                
                 return followRetUrl(null, tr('Балансът се преизчислява в момента. Моля, изчакайте!'));
             }
             

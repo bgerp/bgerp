@@ -57,15 +57,15 @@ class hr_Payroll extends core_Manager
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo,hrMaster';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,hrMaster';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'ceo,hrMaster';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,hrMaster';
     
     
     /**
@@ -85,15 +85,15 @@ class hr_Payroll extends core_Manager
      */
     public function description()
     {
-         // Ключ към мастъра
-    	 $this->FLD('periodId',    'key(mvc=acc_Periods, select=title, where=#state !\\= \\\'closed\\\', allowEmpty=true)', 'caption=Период,tdClass=nowrap');
-    	 $this->FLD('personId',    'key(mvc=crm_Persons,select=name)', 'caption=Лице,tdClass=nowrap');
-    	 $this->FLD('indicators',    'blob(serialize)', 'caption=Индикатори');
-    	 $this->FLD('formula',    'text', 'caption=Формула');
-    	 $this->FLD('salary',    'double', 'caption=Заплата,width=100%');
-   	     $this->FLD('status',    'varchar', 'caption=Статус,mandatory');
+        // Ключ към мастъра
+        $this->FLD('periodId', 'key(mvc=acc_Periods, select=title, where=#state !\\= \\\'closed\\\', allowEmpty=true)', 'caption=Период,tdClass=nowrap');
+        $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Лице,tdClass=nowrap');
+        $this->FLD('indicators', 'blob(serialize)', 'caption=Индикатори');
+        $this->FLD('formula', 'text', 'caption=Формула');
+        $this->FLD('salary', 'double', 'caption=Заплата,width=100%');
+        $this->FLD('status', 'varchar', 'caption=Статус,mandatory');
 
-    	 $this->setDbUnique('periodId,personId');
+        $this->setDbUnique('periodId,personId');
     }
     
 
@@ -105,23 +105,22 @@ class hr_Payroll extends core_Manager
      * @param stdClass $rec Това е записа в машинно представяне
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {   
-        if(is_array($rec->indicators)) {
-            foreach($rec->indicators as $name => $value) {
+    {
+        if (is_array($rec->indicators)) {
+            foreach ($rec->indicators as $name => $value) {
                 $row->data .= ($row->data ? ', ' : '') . $name . '=' . '<strong>' . $value . '</strong>';
             }
             $row->data = "<div style='font-size:0.9em;'>{$row->data}</div>";
         }
         
-        if(!empty($rec->formula)) {
-            $row->data .= "<div>" . $mvc->getVerbal($rec, 'formula') . "</div";
-        } 
+        if (!empty($rec->formula)) {
+            $row->data .= '<div>' . $mvc->getVerbal($rec, 'formula') . '</div';
+        }
         
-        if(!empty($rec->status)) {
+        if (!empty($rec->status)) {
             $row->data .= "<div>{$rec->status}</div>";
         }
         
-        $row->personId = crm_Persons::getHyperlink($rec->personId, TRUE);
+        $row->personId = crm_Persons::getHyperlink($rec->personId, true);
     }
-
 }

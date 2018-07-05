@@ -15,10 +15,10 @@
  */
 class sales_FiscPrinterIntf
 {
-	
+    
     /**
      * Форсира изтегляне на файла за фискалния принтер
-     * 
+     *
      * 	[products] = array(
      * 		'id'        => ид на продукт
      * 		'managerId' => ид на мениджър на продукт
@@ -34,13 +34,13 @@ class sales_FiscPrinterIntf
      *  	'type' => код за начина на плащане в фискалния принтер
      *  	'amount => сума в основна валута без ддс
      *  );
-     * 
-     * 
-     * @param int $id - ид на бележка
+     *
+     *
+     * @param  int  $id - ид на бележка
      * @return void
      */
-    function createFile($id)
+    public function createFile($id)
     {
-    	return $this->class->createFile($id);
+        return $this->class->createFile($id);
     }
 }

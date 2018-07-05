@@ -361,6 +361,7 @@ class doc_Search extends core_Manager
         
         // Ако не е начало на манипулатор на документ
         if ($search{0} != '#') {
+            
             return ;
         }
         
@@ -438,6 +439,7 @@ class doc_Search extends core_Manager
     public function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if (!$mvc->isFiltered) {
+            
             return false;
         }
     }

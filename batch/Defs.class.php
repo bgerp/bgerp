@@ -194,6 +194,7 @@ class batch_Defs extends core_Manager
     {
         // Имали кеширана стойност
         if (array_key_exists($productId, self::$cache)) {
+            
             return self::$cache[$productId];
         }
         self::$cache[$productId] = false;
@@ -252,6 +253,7 @@ class batch_Defs extends core_Manager
         
         // Ако има съществуваща дефиниция, не създаваме нова
         if ($id = static::fetchField("#productId = {$productRec->id}", 'id')) {
+            
             return $id;
         }
         
@@ -288,6 +290,7 @@ class batch_Defs extends core_Manager
         
         // Ако има запис, записва се
         if (is_object($nRec)) {
+            
             return self::save($nRec);
         }
     }

@@ -2,7 +2,7 @@
 
 /**
  * Клас 'page_Dialog' - Страница за диалогови прозорци
- * 
+ *
  * @category  ef
  * @package   page
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -17,10 +17,10 @@ class page_Dialog extends page_Html
     /**
      * Конструктор
      */
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
-        $this->replace("UTF-8", 'ENCODING');
+        $this->replace('UTF-8', 'ENCODING');
         $this->push('css/common.css', 'CSS');
         $this->push('css/dialog.css', 'CSS');
         $this->push('css/default-theme.css', 'CSS');

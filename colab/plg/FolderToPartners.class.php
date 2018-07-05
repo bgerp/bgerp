@@ -19,22 +19,22 @@
  */
 class colab_plg_FolderToPartners extends core_Plugin
 {
-	
-	
-	/**
-	 * След подготовка на таба със правата
-	 */
-	public static function on_AfterPrepareRights($mvc, $res, $data)
-	{
-		colab_FolderToPartners::preparePartners($data);
-	}
-	
-	
-	/**
-	 * След рендиране на таба със правата
-	 */
-	public static function on_AfterRenderRights($mvc, &$tpl, $data)
-	{
-		colab_FolderToPartners::renderPartners($data, $tpl);
-	}
+    
+    
+    /**
+     * След подготовка на таба със правата
+     */
+    public static function on_AfterPrepareRights($mvc, $res, $data)
+    {
+        colab_FolderToPartners::preparePartners($data);
+    }
+    
+    
+    /**
+     * След рендиране на таба със правата
+     */
+    public static function on_AfterRenderRights($mvc, &$tpl, $data)
+    {
+        colab_FolderToPartners::renderPartners($data, $tpl);
+    }
 }

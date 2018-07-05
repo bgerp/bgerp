@@ -3,7 +3,7 @@
 
 /**
  * Клас 'fileman_SetExtensionPlg2' - Проверка и коригиране на разширението на файла
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -18,16 +18,22 @@ class fileman_SetExtensionPlg2 extends core_Plugin
     /**
      * Подготвя името на файла
      */
-    function on_PrepareFileName($mvc, &$inputFileName, $dataId)
+    public function on_PrepareFileName($mvc, &$inputFileName, $dataId)
     {
         // Ако няма подадено име или id за данни на файла
-        if (!$dataId || !$inputFileName) return ;
+        if (!$dataId || !$inputFileName) {
+            
+            return ;
+        }
         
         // Записа за данните
         $dataRec = fileman_Data::fetch($dataId);
         
         // Очакваме да е валиден път иначе се отказваме
-        if(!fileman::isCorrectPath($dataRec->path)) return FALSE;
+        if (!fileman::isCorrectPath($dataRec->path)) {
+            
+            return false;
+        }
 
         // Вземаме mime типа на данните
         $fileMimeType = fileman::getMimeTypeFromFilePath($dataRec->path);

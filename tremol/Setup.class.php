@@ -58,45 +58,45 @@ class tremol_Setup extends core_ProtoSetup
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Фискален принтер на Тремол";
+    public $info = 'Фискален принтер на Тремол';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-    		'TREMOL_BASE_GROUP_WITH_ZERO_VAT' => array("customKey(mvc=acc_VatGroups,key=sysId,select=title,allowEmpty)", 'caption=Дефолт за артикули с нулева ставка на ДДС->Група'),
-    		'TREMOL_BASE_GROUP_WITH_VAT'      => array("customKey(mvc=acc_VatGroups,key=sysId,select=title,allowEmpty)", 'caption=Дефолт за артикули с  ДДС->Група'),
-    		'TREMOL_GROUP_A'                  => array("int", 'caption=Кодове за синхронизация с фискалния принтер->Група "А"'),
-    		'TREMOL_GROUP_B'  				  => array("int", 'caption=Кодове за синхронизация с фискалния принтер->Група "Б"'),
-    		'TREMOL_GROUP_V'  				  => array("int", 'caption=Кодове за синхронизация с фискалния принтер->Група "В"'),
-    		'TREMOL_GROUP_G'  				  => array("int", 'caption=Кодове за синхронизация с фискалния принтер->Група "Г"'),
+    public $configDescription = array(
+            'TREMOL_BASE_GROUP_WITH_ZERO_VAT' => array('customKey(mvc=acc_VatGroups,key=sysId,select=title,allowEmpty)', 'caption=Дефолт за артикули с нулева ставка на ДДС->Група'),
+            'TREMOL_BASE_GROUP_WITH_VAT' => array('customKey(mvc=acc_VatGroups,key=sysId,select=title,allowEmpty)', 'caption=Дефолт за артикули с  ДДС->Група'),
+            'TREMOL_GROUP_A' => array('int', 'caption=Кодове за синхронизация с фискалния принтер->Група "А"'),
+            'TREMOL_GROUP_B' => array('int', 'caption=Кодове за синхронизация с фискалния принтер->Група "Б"'),
+            'TREMOL_GROUP_V' => array('int', 'caption=Кодове за синхронизация с фискалния принтер->Група "В"'),
+            'TREMOL_GROUP_G' => array('int', 'caption=Кодове за синхронизация с фискалния принтер->Група "Г"'),
     );
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
-    { 
+    public function install()
+    {
         $html = parent::install();
         
         // Добавяме драйвъра в core_Classes

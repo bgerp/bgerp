@@ -20,22 +20,22 @@ defIfNot('CANVASGAUGE_VERSION', '2.1.4');
  */
 class canvasgauge_Setup extends core_ProtoSetup
 {
-	
-	
-	/**
-	 * Версия на пакета
-	 */
-	public $version = '0.1';
-	
-	
-	/**
-	 * Описание на модула
-	 */
-	public $info = "Пакет за визуализация на gauge-индикатори с canvas";
     
-	
-	/**
-	 * Пакет без инсталация
-	 */
-	public $noInstall = TRUE;
+    
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
+    
+    
+    /**
+     * Описание на модула
+     */
+    public $info = 'Пакет за визуализация на gauge-индикатори с canvas';
+    
+    
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = true;
 }

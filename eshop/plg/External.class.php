@@ -4,7 +4,7 @@
 
 /**
  * Плъгин за разширяване на външната част на е-магазина
- * 
+ *
  * @category  bgerp
  * @package   eshop
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
@@ -15,17 +15,17 @@
  */
 class eshop_plg_External extends core_Plugin
 {
-	
-	
-	/**
-	 * След подготовка на страницата за външната част
-	 */
-	public static function on_AfterPrepareExternalPage($mvc, &$res)
-	{
-		$res->replace(eshop_Carts::getStatus(), 'USERCART');
-		
-		$res->push(('eshop/js/Scripts.js'), 'JS');
-		jquery_Jquery::run($res, "eshopActions();");
-		jqueryui_Ui::enable($res);
-	}
+    
+    
+    /**
+     * След подготовка на страницата за външната част
+     */
+    public static function on_AfterPrepareExternalPage($mvc, &$res)
+    {
+        $res->replace(eshop_Carts::getStatus(), 'USERCART');
+        
+        $res->push(('eshop/js/Scripts.js'), 'JS');
+        jquery_Jquery::run($res, 'eshopActions();');
+        jqueryui_Ui::enable($res);
+    }
 }

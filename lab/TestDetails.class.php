@@ -18,24 +18,24 @@ class lab_TestDetails extends core_Detail
     /**
      * Заглавие
      */
-    var $title = "Детайли на тест";
+    public $title = 'Детайли на тест';
 
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, plg_RowNumbering,
+    public $loadList = 'plg_Created, plg_RowTools2, plg_RowNumbering,
                           plg_Printing, lab_Wrapper, plg_Sorting, 
                           Tests=lab_Tests, Params=lab_Parameters, Methods=lab_Methods,plg_PrevAndNext, plg_SaveAndNew';
 
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'testId';
+    public $masterKey = 'testId';
 
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'methodId,paramName,value,comment=@Коментар';
+    public $listFields = 'methodId,paramName,value,comment=@Коментар';
 
     /**
      * Кой има право да добавя?
@@ -59,12 +59,12 @@ class lab_TestDetails extends core_Detail
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
      */
-    var $tabName = "lab_Tests";
+    public $tabName = 'lab_Tests';
 
     /**
      * Роли, които могат да записват
      */
-    var $canWrite = 'ceo,masterLab';
+    public $canWrite = 'ceo,masterLab';
 
     /**
      * Преди подготовката на полетата за листовия изглед
@@ -79,25 +79,43 @@ class lab_TestDetails extends core_Detail
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-        $this->FLD('testId', 'key(mvc=lab_Tests, select=title)', 
-            'caption=Тест, input=hidden, silent,mandatory,smartCenter');
-        $this->FLD('paramName', 'key(mvc=lab_Parameters, select=name, allowEmpty)', 
-            'caption=Параметър, notSorting,smartCenter,silent,refreshForm');
-        $this->FLD('methodId', 'key(mvc=lab_Methods, select=name)', 
-            'caption=Метод, notSorting,mandatory,smartCenter,silent,refreshForm');
+        $this->FLD(
+            'testId',
+            'key(mvc=lab_Tests, select=title)',
+            'caption=Тест, input=hidden, silent,mandatory,smartCenter'
+        );
+        $this->FLD(
+            'paramName',
+            'key(mvc=lab_Parameters, select=name, allowEmpty)',
+            'caption=Параметър, notSorting,smartCenter,silent,refreshForm'
+        );
+        $this->FLD(
+            'methodId',
+            'key(mvc=lab_Methods, select=name)',
+            'caption=Метод, notSorting,mandatory,smartCenter,silent,refreshForm'
+        );
         $this->FLD('value', 'varchar(64)', 'caption=Стойност, notSorting, input=none,smartCenter');
         $this->FLD('refValue', 'varchar(64)', 'caption=Реф.Стойност, notSorting, input=none,smartCenter');
         $this->FLD('error', 'percent(decimals=2)', 'caption=Отклонение, notSorting,input=none,smartCenter');
         $this->FLD('formula', 'text', 'caption=Формула,input=hidden');
-        $this->FLD('comment', 'varchar', 
-            'caption=Коментари, notSorting,after=results, column=none,class=" w50, rows= 1"');
+        $this->FLD(
+            'comment',
+            'varchar',
+            'caption=Коментари, notSorting,after=results, column=none,class=" w50, rows= 1"'
+        );
         
         $this->FLD('better', 'enum(up=по-големия,down=по-малкия)', 'caption=По-добрия е,unit= резултат,after=title');
         
-        $this->FLD('results', 'table(columns= value ,captions=Стойност,widths=8em)', 
-            "caption=Измервания||Additional,autohide,advanced,after=title,single=none");
+        $this->FLD(
+        
+            'results',
+        
+            'table(columns= value ,captions=Стойност,widths=8em)',
+            'caption=Измервания||Additional,autohide,advanced,after=title,single=none'
+        
+        );
         
         $this->setDbUnique('testId, methodId');
     }
@@ -105,36 +123,32 @@ class lab_TestDetails extends core_Detail
     /**
      * Променя заглавието и добавя стойност по default в селекта за избор на тест
      *
-     * @param core_Mvc $mvc            
-     * @param stdClass $res            
-     * @param stdClass $data            
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = $data->form;
         $rec = $form->rec;
         $type = $form->getFieldType('results');
         
         if ($rec->methodId && lab_Methods::fetchField($rec->methodId, 'formula')) {
-            
             if (! $rec->formula) {
-                
                 $rec->formula = lab_Methods::fetchField($rec->methodId, 'formula');
             }
             
             $formula = $rec->formula;
             
             if ($formula !== lab_Methods::fetchField($rec->methodId, 'formula')) {
-                
                 $form->setWarning('methodId', 'Има промяна във формулата, която няма бъде отчетена.');
             }
             
             $matches = array();
             
-            preg_match_all("/\\$[_a-z][a-z0-9_]*/i", $formula, $matches);
+            preg_match_all('/\$[_a-z][a-z0-9_]*/i', $formula, $matches);
             
             foreach ($matches[0] as $var) {
-                
                 $params .= $var . '|';
                 $widths .= '8em' . '|';
                 $type->params['columns'] = trim($params, '|');
@@ -177,17 +191,13 @@ class lab_TestDetails extends core_Detail
         } else {
             if (! $data->form->rec->paramName) {
                 $data->form->setField('methodId', 'input=none');
-                ;
             }
             
             if (empty($methodIdSelectArr) && !empty($data->form->rec->paramName)) {
                 $data->form->setError('paramName', 'За този параметър няма регистрирани методи.');
-                 $data->form->setField('methodId', 'input=none');
-                
+                $data->form->setField('methodId', 'input=none');
             } else {
-               
-                $data->form->setOptions('methodId',array(' '=>'избери метод ')+$methodIdSelectArr);
-                
+                $data->form->setOptions('methodId', array(' ' => 'избери метод ') + $methodIdSelectArr);
             }
         }
     }
@@ -202,28 +212,27 @@ class lab_TestDetails extends core_Detail
         $testHandler = lab_Tests::getHandle($data->masterId) . lab_Tests::fetchField($data->form->rec->testId, 'title');
         
         if ($data->form->rec->id) {
-            $data->form->title = "Редактиране за тест|* \"" . $testHandler . "\",";
-            $data->form->title .= "|*<br/>|метод|* \"" . $data->allMethodsArr[$data->form->rec->methodId] . "\"";
+            $data->form->title = 'Редактиране за тест|* "' . $testHandler . '",';
+            $data->form->title .= '|*<br/>|метод|* "' . $data->allMethodsArr[$data->form->rec->methodId] . '"';
         } else {
-            $data->form->title = "Добавяне на метод за тест|* \"" . $testHandler . "\"";
+            $data->form->title = 'Добавяне на метод за тест|* "' . $testHandler . '"';
         }
     }
 
     /**
      * Обработка на Master детайлите
      *
-     * @param core_Mvc $mvc            
-     * @param stdClass $row            
-     * @param stdClass $rec            
+     * @param core_Mvc $mvc
+     * @param stdClass $row
+     * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         
         // $row->value
         if (is_numeric($row->value)) {
-          // $row->value = "<div style='float: right'>" . number_format($row->value, 2, ',', ' ') . "</div>";
+            // $row->value = "<div style='float: right'>" . number_format($row->value, 2, ',', ' ') . "</div>";
             $row->value = core_Type::getByName('double(decimals=2)')->toVerbal($rec->value);
-            
         } else {
             $row->value = cls::get('type_Text')->toVerbal($rec->results);
         }
@@ -250,7 +259,6 @@ class lab_TestDetails extends core_Detail
         
         $compTest = Mode::get('testCompare_' . lab_Tests::getHandle($data->masterId));
         if ($compTest) {
-            
             array(
                 $data->listFields['refValue'] = 'Реф.Стойност'
             );
@@ -262,16 +270,11 @@ class lab_TestDetails extends core_Detail
             $dQuery->where("#testId = {$compTest}");
             
             while ($testsDet = $dQuery->fetch()) {
-                
-           
                 foreach ($rows as $key => $row) {
-                    
                     if ($compTest) {
-                       
                         if ($recs[$key]->methodId == $testsDet->methodId) {
-                             
                             $row->refValue = "<div style='float: right'>" . number_format($testsDet->value, 2, ',', ' ') .
-                                 "</div>";
+                                 '</div>';
                             
                             
                             $recs[$key]->refValue = $testsDet->value;
@@ -279,46 +282,39 @@ class lab_TestDetails extends core_Detail
                             
                             if ($recs[$key]->refValue) {
                                 $deviation = core_Type::getByName('percent')->toVerbal(
-                                    ($recs[$key]->value - $recs[$key]->refValue) / $recs[$key]->refValue);
-                                 
-                              
+                                    ($recs[$key]->value - $recs[$key]->refValue) / $recs[$key]->refValue
+                                );
                             } else {
                                 $deviation = '---';
                             }
                         
                             if ($testsDet->better) {
-                                
                                 $recs[$key]->better = $testsDet->better;
                                 
                                 if ($recs[$key]->better == 'up' && $recs[$key]->value >= $recs[$key]->refValue) {
                                     // $row->error = ht::styleIfNegative($deviation, $deviation);
                                     $row->error = "<div style='float: right;color: green'>" .
-                                         number_format($deviation, 2, ',', ' ') . "%" . "</div>";
+                                         number_format($deviation, 2, ',', ' ') . '%' . '</div>';
                                 }
                                 if ($recs[$key]->better == 'up' && $recs[$key]->value < $recs[$key]->refValue) {
-                                    
                                     $row->error = "<div style='float: right;color: red'>" .
-                                         number_format($deviation, 2, ',', ' ') . "%" . "</div>";
+                                         number_format($deviation, 2, ',', ' ') . '%' . '</div>';
                                 }
                                 
                                 
                                 if ($recs[$key]->better == 'down' && $recs[$key]->value <= $recs[$key]->refValue) {
-                                    
                                     $row->error = "<div style='float: right;color: green'>" .
-                                         number_format($deviation, 2, ',', ' ') . "%" . "</div>";
+                                         number_format($deviation, 2, ',', ' ') . '%' . '</div>';
                                 }
                                
                                 
                                 if ($recs[$key]->better == 'down' && $recs[$key]->value > $recs[$key]->refValue) {
-                                    
                                     $row->error = "<div style='float: right;color: red'>" .
-                                         number_format($deviation, 2, ',', ' ') . "%" . "</div>";
-                                   
-                                    
+                                         number_format($deviation, 2, ',', ' ') . '%' . '</div>';
                                 }
                             } else {
                                 $row->error = "<div style='float: right;color: black'>" .
-                                     number_format($deviation, 2, ',', ' ') . "%" . "</div>";
+                                     number_format($deviation, 2, ',', ' ') . '%' . '</div>';
                             }
                         }
                     }
@@ -330,11 +326,11 @@ class lab_TestDetails extends core_Detail
     /**
      * Създаване $rec->value, $rec->error и запис на lastChangeOn в 'lab_Tests'
      *
-     * @param core_Mvc $mvc            
-     * @param int $id            
-     * @param stdClass $rec            
+     * @param core_Mvc $mvc
+     * @param int      $id
+     * @param stdClass $rec
      */
-    static function on_BeforeSave($mvc, &$id, $rec)
+    public static function on_BeforeSave($mvc, &$id, $rec)
     {
         
         // Подготовка на масива за резултатите ($rec->results)
@@ -343,13 +339,12 @@ class lab_TestDetails extends core_Detail
        
         
         if ($rec->methodId && lab_Methods::fetchField($rec->methodId, 'formula')) {
-            
             $resArr = $resultsArr;
             $resultsArr = array();
             
             $formula = $rec->formula;
             
-            preg_match_all("/\\$[_a-z][a-z0-9_]*/i", $formula, $matches);
+            preg_match_all('/\$[_a-z][a-z0-9_]*/i', $formula, $matches);
             
             $check = $matches[0][0];
             $i = 0;
@@ -358,22 +353,19 @@ class lab_TestDetails extends core_Detail
                 $contex = array();
                 
                 foreach ($matches[0] as $v) {
-                	
-                	$contex += array(
+                    $contex += array(
                         $v => $resArr->{$v}[$i]
                     );
-                   
                 }
                 
-                if (($expr = str::prepareMathExpr($formula, $contex)) !== FALSE) {
-                    
+                if (($expr = str::prepareMathExpr($formula, $contex)) !== false) {
                     $value = str::calcMathExpr(str::prepareMathExpr($expr, $contex), $success);
                     
-                    if ($success === FALSE) {
-                        $value = tr("Невъзможно изчисление");
+                    if ($success === false) {
+                        $value = tr('Невъзможно изчисление');
                     }
                 } else {
-                    $value = tr("Некоректна формула");
+                    $value = tr('Некоректна формула');
                 }
                 
                 $resultsArr[] = $value;
@@ -381,7 +373,6 @@ class lab_TestDetails extends core_Detail
                 $i ++;
             } while ($resArr->{$check}[$i]);
         } else {
-            
             $resultsArr = $resultsArr->value;
         }
        
@@ -397,43 +388,40 @@ class lab_TestDetails extends core_Detail
         
         // BEGIN Обработки в зависимост от типа на параметъра
         if ($parametersRec->type == 'number') {
-        	// намираме средното аритметично
-        	$sum = 0;
-        	$totalResults = 0;
+            // намираме средното аритметично
+            $sum = 0;
+            $totalResults = 0;
         
-        	$resCnt = count($resultsArr);
+            $resCnt = count($resultsArr);
          
-        	for ($i = 0; $i < $resCnt; $i ++) {
-        		if (trim($resultsArr[$i])) {
-        			$sum += trim($resultsArr[$i]);
-        			$totalResults ++;
-        		}
-        	}
+            for ($i = 0; $i < $resCnt; $i ++) {
+                if (trim($resultsArr[$i])) {
+                    $sum += trim($resultsArr[$i]);
+                    $totalResults ++;
+                }
+            }
        
-        	$rec->value = 0;
-        	if (! empty($totalResults)) {
-        		$rec->value = $sum / $totalResults;
-        	} else {
-        		$rec->value = '---';
-        	}
-        
-        
+            $rec->value = 0;
+            if (! empty($totalResults)) {
+                $rec->value = $sum / $totalResults;
+            } else {
+                $rec->value = '---';
+            }
         } elseif ($parametersRec->type == 'bool') {
-        	$rec->value = $resultsArr[0];
-        	$rec->error = NULL;
+            $rec->value = $resultsArr[0];
+            $rec->error = null;
         } elseif ($parametersRec->type == 'text') {
-        	$rec->value = $resultsArr[0];
-        	$rec->error = NULL;
+            $rec->value = $resultsArr[0];
+            $rec->error = null;
         }
         
         // END Обработки в зависимост от типа на параметъра
-        
     }
 
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, $data, $rec)
+    public static function on_AfterPrepareListToolbar($mvc, $data, $rec)
     {
         $options = array(
             '' => 'избери параметър'
@@ -446,7 +434,6 @@ class lab_TestDetails extends core_Detail
         $parameters = keylist::toArray(lab_Tests::fetch($data->masterId)->parameters);
         
         foreach ($parameters as $key => $v) {
-            
             $paramName = lab_Parameters::getTitleById($parameters[$v]);
             
             $url = toUrl(
@@ -455,22 +442,22 @@ class lab_TestDetails extends core_Detail
                     'add',
                     'testId' => $data->masterId,
                     'paramName' => $v
-                ));
+                )
+            
+            );
             
             $options[$url] = $paramName;
         }
         
         if (core_Users::haveRole('masterLab,ceo')) {
-            
             if ($data->masterData->rec->state == 'pending') {
-                
                 $data->toolbar->addSelectBtn($options);
             }
         }
         // Count all methods
         $allMethodsQuery = $mvc->Methods->getQuery();
         
-        $allMethodsQuery->where("1=1");
+        $allMethodsQuery->where('1=1');
         
         $methodsAllCounter = 0;
         
@@ -497,12 +484,10 @@ class lab_TestDetails extends core_Detail
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'edit' || $action == 'add') {
-            
             if (is_object($rec) && $rec->testId) {
-                
                 $state = lab_Tests::fetchField("#id = {$rec->testId}", 'state');
                 
                 if ($state != 'pending') {
@@ -519,13 +504,13 @@ class lab_TestDetails extends core_Detail
      *
      * @param  $expr
      *            - формулата
-     * @param array $params
-     *            - параметрите
+     * @param  array  $params
+     *                        - параметрите
      * @return string $res - изчисленото количество
      */
     public static function calcExpr($expr, $params)
     {
-        $expr = lab_Methods::fetchField($rec->methodId, 'formula'); 
+        $expr = lab_Methods::fetchField($rec->methodId, 'formula');
         
         $contex = array(
             $width => 1,
@@ -533,11 +518,11 @@ class lab_TestDetails extends core_Detail
             $weight => 1
         );
         
-        if (str::prepareMathExpr($expr) === FALSE) {
+        if (str::prepareMathExpr($expr) === false) {
             $res = self::CALC_ERROR;
         } else {
             $res = str::calcMathExpr($expr, $success);
-            if ($success === FALSE) {
+            if ($success === false) {
                 $res = self::CALC_ERROR;
             }
         }
@@ -545,4 +530,3 @@ class lab_TestDetails extends core_Detail
         return $res;
     }
 }
-

@@ -2,8 +2,8 @@
 
 
 /**
- * 
- * 
+ *
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -13,5 +13,4 @@
  */
 class fileman_webdrv_Media extends fileman_webdrv_Generic
 {
-    
 }

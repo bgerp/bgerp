@@ -238,6 +238,7 @@ class acc_BalanceHistory extends core_Manager
         $bQuery->orderBy('id', 'ASC');
         
         if ($balanceId = $bQuery->fetch()->id) {
+            
             return acc_Balances::fetch($balanceId);
         }
         

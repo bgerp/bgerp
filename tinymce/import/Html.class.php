@@ -3,7 +3,7 @@
 
 /**
  * Редактиране на HTML
- * 
+ *
  * @category  bgerp
  * @package   tinymce
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -24,33 +24,45 @@ class tinymce_import_Html extends core_Mvc
     /**
      * Заглавие на модела
      */
-    var $title = '';
+    public $title = '';
     
     
     /**
      * Добавя бутон за обработка на файла
      *
      * @param core_Form $form
-     * @param string $fileHnd
-     * 
+     * @param string    $fileHnd
+     *
      * @see export_FileActionIntf
      */
-    function addActionBtn($form, $fileHnd)
+    public function addActionBtn($form, $fileHnd)
     {
-        if (!haveRole('user')) return ;
+        if (!haveRole('user')) {
+            
+            return ;
+        }
         
-        if (!$fileHnd) return ;
+        if (!$fileHnd) {
+            
+            return ;
+        }
         
-        if (!is_string($fileHnd)) return ;
+        if (!is_string($fileHnd)) {
+            
+            return ;
+        }
         
         $fRec = fileman::fetchByFh($fileHnd);
         
-        if (!$fRec) return ;
+        if (!$fRec) {
+            
+            return ;
+        }
         
         $ext = fileman::getExt($fRec->name);
         
         if ($ext == 'html' || $ext == 'xhtml') {
-            $form->toolbar->addBtn('Редакция', array($this, 'editHtml', 'fileHnd' => $fileHnd, 'ret_url' => TRUE), "target=_blank, ef_icon = img/16/edit.png, title=Редакция на HTML файла");
+            $form->toolbar->addBtn('Редакция', array($this, 'editHtml', 'fileHnd' => $fileHnd, 'ret_url' => true), 'target=_blank, ef_icon = img/16/edit.png, title=Редакция на HTML файла');
         }
     }
     
@@ -59,14 +71,14 @@ class tinymce_import_Html extends core_Mvc
      * Обработките на данните, за файла
      *
      * @param string $data
-     * 
+     *
      * @see fileman_ConvertDataIntf
-     * 
+     *
      * @return string
      */
-    function convertData($data)
+    public function convertData($data)
     {
-        $data = "<!DOCTYPE html><html><head><title>Document</title><meta charset=\"UTF-8\"></head><body style='font-family: Arial'>" . $data . "</body></html>";
+        $data = "<!DOCTYPE html><html><head><title>Document</title><meta charset=\"UTF-8\"></head><body style='font-family: Arial'>" . $data . '</body></html>';
         
         return $data;
     }
@@ -77,7 +89,7 @@ class tinymce_import_Html extends core_Mvc
      *
      * @return Redirect|core_ET
      */
-    function act_editHtml()
+    public function act_editHtml()
     {
         requireRole('user');
         
@@ -97,7 +109,7 @@ class tinymce_import_Html extends core_Mvc
         
         $form = cls::get('core_Form');
         
-        $html = "html(tinyToolbars=fullscreen print, tinyFullScreen)";
+        $html = 'html(tinyToolbars=fullscreen print, tinyFullScreen)';
         
         if (fileman_Buckets::canAddFileToBucket($fRec->bucketId)) {
             $urlArr = array('fileman_Files', 'updateFile', 'fileHnd' => $fh, 'dataType' => $this->className);
@@ -111,7 +123,7 @@ class tinymce_import_Html extends core_Mvc
         $fContent = fileman::extractStr($fh);
         $form->setDefault('html', $fContent);
         
-        $form->toolbar->addBtn('Файл', array('fileman_Files', 'single', $fh, 'ret_url' => TRUE), "ef_icon = fileman/icons/16/html.png, title=Преглед на файла");
+        $form->toolbar->addBtn('Файл', array('fileman_Files', 'single', $fh, 'ret_url' => true), 'ef_icon = fileman/icons/16/html.png, title=Преглед на файла');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         $form->title = 'Редактиране на HTML файл';

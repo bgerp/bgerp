@@ -34,47 +34,47 @@ class frame_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * От кои други пакети зависи
      */
-    var $depends = '';
+    public $depends = '';
     
     
     /**
      * Начален контролер на пакета за връзката в core_Packs
      */
-    var $startCtr = 'frame_Reports';
+    public $startCtr = 'frame_Reports';
     
     
     /**
      * Начален екшън на пакета за връзката в core_Packs
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Отчети и табла";
+    public $info = 'Отчети и табла';
 
 
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
 
-        'FRAME_TYPE_DECIMALS_SEP'   => array ('enum(dot=точка,comma=запетая)', 'caption=Десетичен разделител на числата при експорт в csv->Символ'),
-    	'FRAME_FORMAT_DATE'   => array ('enum(dot=точка (дд.мм.гггг),slash=наклонена черта (мм/дд/гг))', 'caption=Формат на датата->Формат с'),
+        'FRAME_TYPE_DECIMALS_SEP' => array('enum(dot=точка,comma=запетая)', 'caption=Десетичен разделител на числата при експорт в csv->Символ'),
+        'FRAME_FORMAT_DATE' => array('enum(dot=точка (дд.мм.гггг),slash=наклонена черта (мм/дд/гг))', 'caption=Формат на датата->Формат с'),
     );
 
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'frame_Reports',
     
         );
@@ -83,29 +83,29 @@ class frame_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'report,dashboard';
+    public $roles = 'report,dashboard';
     
     
     /**
      * Настройки за Cron
      */
-    var $cronSettings = array(
-    		array(
-    				'systemId' => "Activate Pending Reports",
-    				'description' => "Активиране на чакащи отчети",
-    				'controller' => "frame_Reports",
-    				'action' => "ActivateEarlyOn",
-    				'period' => 1440,
-    				'offset' => 60,
-    				'timeLimit' => 50
-    		),
+    public $cronSettings = array(
+            array(
+                    'systemId' => 'Activate Pending Reports',
+                    'description' => 'Активиране на чакащи отчети',
+                    'controller' => 'frame_Reports',
+                    'action' => 'ActivateEarlyOn',
+                    'period' => 1440,
+                    'offset' => 60,
+                    'timeLimit' => 50
+            ),
     );
     
     
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

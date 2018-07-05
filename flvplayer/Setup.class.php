@@ -18,23 +18,21 @@
 class flvplayer_Setup extends core_ProtoSetup
 {
 
-	
-	/**
-	 * Версия на пакета
-	 */
-	public $version = '0.1';
-	
-	
-	/**
-	 * Описание на модула
-	 */
-	public $info = "Флаш видео плеър";
-	
-	
-	/**
-	 * Пакет без инсталация
-	 */
-	public $noInstall = TRUE;
-	
+    
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
+    
+    
+    /**
+     * Описание на модула
+     */
+    public $info = 'Флаш видео плеър';
+    
+    
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = true;
 }
-

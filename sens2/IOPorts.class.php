@@ -61,7 +61,7 @@ class sens2_IOPorts extends embed_Detail
     /**
      * Добавя задължителни полета към модела
      *
-     * @param bgerp_ProtoParam $mvc
+     * @param  bgerp_ProtoParam $mvc
      * @return void
      */
     public function description()
@@ -79,14 +79,14 @@ class sens2_IOPorts extends embed_Detail
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
-        $rec  = $form->rec;
+        $rec = $form->rec;
  
-        if($rec->driverClass) {
+        if ($rec->driverClass) {
             $driver = sens2_Controllers::getDriver($rec->controllerId);
             $portClass = cls::get($rec->driverClass);
  
@@ -95,8 +95,8 @@ class sens2_IOPorts extends embed_Detail
             
             // Добавяме индикация след името на слота, колко пъти е използван до сега
             $usedSlots = self::getUsedSlots($rec->controllerId);
-            foreach($usedSlots as $slot => $cnt) {
-                if($opt[$slot]) {
+            foreach ($usedSlots as $slot => $cnt) {
+                if ($opt[$slot]) {
                     $opt[$slot] = $slot . ' (' . $cnt . ')';
                 }
             }
@@ -117,11 +117,10 @@ class sens2_IOPorts extends embed_Detail
     {
         $pQuery = sens2_IOPorts::getQuery();
         $res = array();
-        while($pRec = $pQuery->fetch("#controllerId = {$controllerId}")) {
+        while ($pRec = $pQuery->fetch("#controllerId = {$controllerId}")) {
             $res[$pRec->slot]++;
         }
 
         return $res;
     }
-
 }

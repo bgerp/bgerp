@@ -24,7 +24,7 @@ class type_Key extends type_Int
     
     /**
      * Хендлър на класа
-     * 
+     *
      * @var string
      */
     public $handler;
@@ -39,7 +39,7 @@ class type_Key extends type_Int
     /**
      * Дали да се подготвят SelectOpt
      */
-    protected $prepareSelOpt = TRUE;
+    protected $prepareSelOpt = true;
     
     
     /**
@@ -51,7 +51,7 @@ class type_Key extends type_Int
     /**
      * Инициализиране на типа
      */
-    function init($params = array())
+    public function init($params = array())
     {
         parent::init($params);
         
@@ -64,57 +64,66 @@ class type_Key extends type_Int
     /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
-    function toVerbal_($value)
+    public function toVerbal_($value)
     {
-        if ($value === NULL || $value === '') return NULL;
+        if ($value === null || $value === '') {
+            return;
+        }
         
         if ($this->params['mvc']) {
             $mvc = &cls::get($this->params['mvc']);
             
-            if(($part = $this->getSelectFld()) && $part != '*') {
-                
+            if (($part = $this->getSelectFld()) && $part != '*') {
                 $rec = $this->fetchVal($value);
                 
-                if (!$rec && $value == 0) return NULL;
+                if (!$rec && $value == 0) {
+                    return;
+                }
                 
-                if(!$rec) return '??????????????';
+                if (!$rec) {
+                    
+                    return '??????????????';
+                }
                 
                 $v = $mvc->getVerbal($rec, $part);
                 
                 // Ако е указано - правим превод
-                if($this->params['translate']) {
-                    $v = tr($v); 
+                if ($this->params['translate']) {
+                    $v = tr($v);
                 }
 
-                if(isset($this->params['makeLink'])){
-                	if(method_exists($mvc, 'getSingleUrlArray')){
-                		$v = ht::createLink($v, $mvc->getSingleUrlArray($rec->id), FALSE, "ef_icon={$mvc->singleIcon}");
-                	}
+                if (isset($this->params['makeLink'])) {
+                    if (method_exists($mvc, 'getSingleUrlArray')) {
+                        $v = ht::createLink($v, $mvc->getSingleUrlArray($rec->id), false, "ef_icon={$mvc->singleIcon}");
+                    }
                 }
                 
                 return $v;
-            } else {
-                if($this->params['title']) {
-                    $field = $this->params['title'];
-                    $value = $mvc->fetch($value)->{$field};
+            }
+            if ($this->params['title']) {
+                $field = $this->params['title'];
+                $value = $mvc->fetch($value)->{$field};
                     
-                    if(!$value) return '??????????????';
+                if (!$value) {
                     
-                    $value = $mvc->fields[$field]->type->toVerbal($value);
-                } else {
-                	if(isset($this->params['makeLink'])){
-                		if(method_exists($mvc, 'getHyperlink')){
-                			return $mvc->getHyperlink($value, TRUE);
-                		}
-                	}
-                	
-                    $value = $mvc->getTitleById($value);
+                    return '??????????????';
                 }
+                    
+                $value = $mvc->fields[$field]->type->toVerbal($value);
+            } else {
+                if (isset($this->params['makeLink'])) {
+                    if (method_exists($mvc, 'getHyperlink')) {
+                        
+                        return $mvc->getHyperlink($value, true);
+                    }
+                }
+                    
+                $value = $mvc->getTitleById($value);
             }
         }
         
-        // Ако е указано - правим превод  
-        if($this->params['translate']) {
+        // Ако е указано - правим превод
+        if ($this->params['translate']) {
             $value = tr($value);
         }
 
@@ -125,16 +134,17 @@ class type_Key extends type_Int
     /**
      * Връща вътрешното представяне на вербалната стойност
      */
-    function fromVerbal_($value)
+    public function fromVerbal_($value)
     {
-        if(empty($value)) return NULL;
+        if (empty($value)) {
+            return;
+        }
         
         $key = self::getKeyFromTitle($value);
         
         $oValue = $value;
         
         if (!isset($key)) {
-         
             $mvc = &cls::get($this->params['mvc']);
             
             $maxSuggestions = $this->getMaxSuggestions();
@@ -143,7 +153,7 @@ class type_Key extends type_Int
             
             $selOptCache = unserialize(core_Cache::get($this->selectOpt, $this->handler));
             
-            if ($selOptCache === FALSE) {
+            if ($selOptCache === false) {
                 $options = $this->prepareOptions();
                 $selOptCache = unserialize(core_Cache::get($this->selectOpt, $this->handler));
             }
@@ -152,11 +162,10 @@ class type_Key extends type_Int
                 $options = $this->prepareOptions();
             }
             
-            $value = NULL;
+            $value = null;
 
-            if (($selOptCache !== FALSE) && count((array)$selOptCache)) {
-                foreach((array)$selOptCache as $id => $titleArr) {
-                    
+            if (($selOptCache !== false) && count((array) $selOptCache)) {
+                foreach ((array) $selOptCache as $id => $titleArr) {
                     if ($value == $titleArr['title']) {
                         $value = $id;
                         break;
@@ -173,26 +182,25 @@ class type_Key extends type_Int
             if (($this->params['allowEmpty']) && ($oValue == ' ')) {
                 
                 return $value;
-            } else {
-                
-                Mode::setPermanent('keyStopAutocomplete', TRUE);
-                
-                $this->error = 'Несъществуващ обект';
             }
+                
+            Mode::setPermanent('keyStopAutocomplete', true);
+                
+            $this->error = 'Несъществуващ обект';
             
-            return FALSE;
-        } else {
- 
-            return $value;
+            
+            return false;
         }
+ 
+        return $value;
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param string|int|NULL $key
-     * 
+     *
      * @return string
      */
     public function prepareKey($key)
@@ -209,28 +217,27 @@ class type_Key extends type_Int
      */
     protected function getSelectFld()
     {
-        if(core_Lg::getCurrent() == 'bg' && $this->params['selectBg']) {
+        if (core_Lg::getCurrent() == 'bg' && $this->params['selectBg']) {
             
             return $this->params['selectBg'];
-        } else {
-
-            return $this->params['select'];
         }
+
+        return $this->params['select'];
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param integer $value
-     * 
+     *
      * @return object
      */
     protected function fetchVal(&$value)
     {
         $mvc = &cls::get($this->params['mvc']);
         
-        $rec = $mvc->fetch((int)$value);
+        $rec = $mvc->fetch((int) $value);
         
         return $rec;
     }
@@ -238,14 +245,13 @@ class type_Key extends type_Int
     
     /**
      * Връща възможните стойности за ключа
-     * 
+     *
      * @param string $value
-     * 
+     *
      * @return array
      */
-    function getAllowedKeyVal($id)
+    public function getAllowedKeyVal($id)
     {
-        
         return array($id => $id);
     }
     
@@ -253,17 +259,16 @@ class type_Key extends type_Int
     /**
      * Подготвя масив с опциите
      */
-    public function prepareOptions($value = NULL)
+    public function prepareOptions($value = null)
     {
         Mode::push('text', 'plain');
         
         // Ако опциите вече са генерирани - не ги подготвяме отново
         if (!is_array($this->options) || !count($this->options)) {
-    
             $mvc = cls::get($this->params['mvc']);
 
-            if($this->getSelectFld() == '*') {
-                $field = NULL;
+            if ($this->getSelectFld() == '*') {
+                $field = null;
             } else {
                 $field = $this->getSelectFld();
             }
@@ -276,7 +281,6 @@ class type_Key extends type_Int
             
             // Ако е зададено поле group='sysId'
             if ($this->params['group']) {
-                
                 $fWhere = $this->filterByGroup($mvc);
                 
                 if ($fWhere) {
@@ -291,49 +295,49 @@ class type_Key extends type_Int
             $mvc->invoke('BeforePrepareKeyOptions', array(&$options, $this, $where));
  
             if (!count($options)) {
-                
                 if (!is_array($this->options)) {
-                    
                     $keyIndex = $this->getKeyField();
                     
                     $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex, $this->params['orderBy']);
 
-                    if($value && !isset($arrForSelect[$value]) && get_class($this) == 'type_Key') {
-                        $arrForSelect[$value] = $mvc->gettitleById($value, FALSE);
+                    if ($value && !isset($arrForSelect[$value]) && get_class($this) == 'type_Key') {
+                        $arrForSelect[$value] = $mvc->gettitleById($value, false);
                     }
 
-                    foreach($arrForSelect as $id => $v) {
+                    foreach ($arrForSelect as $id => $v) {
                         $options[$id] = $v;
                     }
-                    $this->handler = md5($field . $where . $this->params['mvc'] . $keyIndex . '|' . core_Lg::getCurrent());  
+                    $this->handler = md5($field . $where . $this->params['mvc'] . $keyIndex . '|' . core_Lg::getCurrent());
                 } else {
-                    foreach($this->options as $id => $v) {
+                    foreach ($this->options as $id => $v) {
                         $options[$id] = $v;
-                    }  
+                    }
                 }
             }
             
             // Правим титлите на опциите да са уникални и изчисляваме най-дългото заглавие
-            if(is_array($options)) {
-                
+            if (is_array($options)) {
                 $titles = array();
                 
                 $i = 1;
 
-                foreach($options as $id => $title) {
-                    
-                    if(is_object($title)) continue;
+                foreach ($options as $id => $title) {
+                    if (is_object($title)) {
+                        continue;
+                    }
                     
                     if ($titles[$title]) {
                         $title = self::getUniqTitle($title, $id);
                     }
-                    $titles[$title] = TRUE;
+                    $titles[$title] = true;
                     $options[$id] = $title;
 
                     list($title1, ) = explode('||', $title);
                     $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title1));
 
-                    if($i++ > 100) break;
+                    if ($i++ > 100) {
+                        break;
+                    }
                 }
             }
             
@@ -344,14 +348,14 @@ class type_Key extends type_Int
             $options = $this->options;
         }
         
-        if(!$this->handler) {
+        if (!$this->handler) {
             $this->handler = md5(implode(',', array_keys($this->options)) . '|' . core_Lg::getCurrent());
         }
         
-        if($optSz = core_Cache::get($this->selectOpt, $this->handler, 60, array($this->params['mvc']))) {
+        if ($optSz = core_Cache::get($this->selectOpt, $this->handler, 60, array($this->params['mvc']))) {
             $cacheOpt = unserialize($optSz);
             $options = array();
-            foreach($cacheOpt as $id => $obj) {
+            foreach ($cacheOpt as $id => $obj) {
                 $options[$id] = $obj['title'];
             }
         } else {
@@ -362,8 +366,8 @@ class type_Key extends type_Int
         
         Mode::pop('text');
 
-        if($this->params['translate']) { 
-            $options = self::translateOptions($options);  
+        if ($this->params['translate']) {
+            $options = self::translateOptions($options);
         }
         
         $this->options = $options;
@@ -374,19 +378,25 @@ class type_Key extends type_Int
     
     /**
      * Подготвя опциите за селект, ако условията са изпълнени
-     * 
+     *
      * @param array $options
      */
     protected function prepareSelectOpt(&$options)
     {
-        if (!$this->prepareSelOpt) return ;
+        if (!$this->prepareSelOpt) {
+            
+            return ;
+        }
         
         $maxSuggestions = $this->getMaxSuggestions();
         
         // Ако трябва да показваме combo-box
-        if (count($options) <= $maxSuggestions) return ;
+        if (count($options) <= $maxSuggestions) {
+            
+            return ;
+        }
         
-        if(is_object($options[''])) {
+        if (is_object($options[''])) {
             $options['']->title = '';
         }
         
@@ -396,8 +406,7 @@ class type_Key extends type_Int
         
         $isInstalled = core_Packs::isInstalled('select2');
         
-        foreach($options as $key => $v) {
-            
+        foreach ($options as $key => $v) {
             $title = self::getOptionTitle($v);
             
             // Ако вече е добавено id-то след края на текста, да не се добавя повторвно
@@ -418,7 +427,7 @@ class type_Key extends type_Int
                 $title = self::getUniqTitle($title, $key);
             }
             
-            $titles[$title] = TRUE;
+            $titles[$title] = true;
         
             $vNorm = trim(preg_replace('/[^a-z0-9\*]+/', ' ', strtolower(str::utf2ascii($title))));
             
@@ -437,8 +446,8 @@ class type_Key extends type_Int
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @return string
      */
     protected function getKeyField()
@@ -455,7 +464,7 @@ class type_Key extends type_Int
     
     /**
      * Връща броя на максимално допуситимите опции за показване
-     * 
+     *
      * @return integer
      */
     public function getMaxSuggestions()
@@ -469,26 +478,25 @@ class type_Key extends type_Int
     
     
     /**
-     * 
-     * 
-     * @param string $title
+     *
+     *
+     * @param string  $title
      * @param integer $id
-     * 
+     *
      * @return string
      */
     protected static function getUniqTitle($title, $id)
     {
-        
         return $title . " ({$id})";
     }
     
     
     /**
      * Проверява дали има 'id' в края на стринга
-     * 
-     * @param string $title
+     *
+     * @param string  $title
      * @param integer $id
-     * 
+     *
      * @return NULL|boolean
      */
     protected static function haveId($title, $id)
@@ -496,51 +504,69 @@ class type_Key extends type_Int
         $nKey = " ({$id})";
         $pos = mb_strrpos($title, $nKey);
         
-        if ($pos === FALSE) return FALSE;
+        if ($pos === false) {
+            
+            return false;
+        }
         
         $len = mb_strlen($title);
         $keyLen = mb_strlen($nKey);
         
-        if (($pos+$keyLen) == $len) return TRUE;
+        if (($pos + $keyLen) == $len) {
+            
+            return true;
+        }
     }
     
     
     /**
      * Опитва се да извлече ключа от текста
-     * 
+     *
      * @param string $title
-     * 
+     *
      * return integer|NULL
      */
     protected static function getKeyFromTitle($title)
     {
-        if (is_numeric($title) || !isset($title)) return $title;
+        if (is_numeric($title) || !isset($title)) {
+            
+            return $title;
+        }
         
         $len = mb_strlen($title);
         
         $lastCloseBracketPos = mb_strrpos($title, ')');
         
-        if (!$lastCloseBracketPos) return $title;
+        if (!$lastCloseBracketPos) {
+            
+            return $title;
+        }
         
-        if ($len != ($lastCloseBracketPos+1)) return $title;
+        if ($len != ($lastCloseBracketPos + 1)) {
+            
+            return $title;
+        }
         
         $lastOpenBracketPos = mb_strrpos($title, ' (');
         
-        if (!$lastOpenBracketPos) return $title;
+        if (!$lastOpenBracketPos) {
+            
+            return $title;
+        }
         
         $lastOpenBracketPos += 2;
         
-        $key = mb_substr($title, $lastOpenBracketPos, $lastCloseBracketPos-$lastOpenBracketPos);
+        $key = mb_substr($title, $lastOpenBracketPos, $lastCloseBracketPos - $lastOpenBracketPos);
         
         return $key;
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param string $val
-     * 
+     *
      * @return string
      */
     protected static function normalizeKey($val)
@@ -554,7 +580,7 @@ class type_Key extends type_Int
     /**
      * Рендира HTML поле за въвеждане на данни чрез форма
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
         expect($this->params['mvc']);
         $selOpt = array();
@@ -566,24 +592,23 @@ class type_Key extends type_Int
         
         $options = $this->options;
 
-        if(!is_array($options) || !count($options)) {
+        if (!is_array($options) || !count($options)) {
             $options = $this->prepareOptions($value);
         }
         
-        if(($div = $this->params['groupByDiv'])) {
+        if (($div = $this->params['groupByDiv'])) {
             $options = ht::groupOptions($options, $div);
         }
 
         if ($this->getSelectFld() || count($options)) {
-            
             $optionsCnt = count($options);
 
-            if($this->params['allowEmpty']) {
-                $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : ' ', 'attr' => 
+            if ($this->params['allowEmpty']) {
+                $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : ' ', 'attr' =>
                     array('style' => 'color:#777;')));
                 $options = arr::combine($placeHolder, $options);
-            } elseif($attr['placeholder'] && $optionsCnt != 1) {
-                $placeHolder = array('' => (object) array('title' => $attr['placeholder'], 'attr' => 
+            } elseif ($attr['placeholder'] && $optionsCnt != 1) {
+                $placeHolder = array('' => (object) array('title' => $attr['placeholder'], 'attr' =>
                     array('style' => 'color:#777;', 'disabled' => 'disabled')));
                 $options = arr::combine($placeHolder, $options);
             }
@@ -593,21 +618,19 @@ class type_Key extends type_Int
             parent::setFieldWidth($attr);
         
             if (($optionsCnt > $maxSuggestions) && (!core_Packs::isInstalled('select2'))) {
-                
                 if ($this->params['autocomplete']) {
                     $attr['autocomplete'] = $this->params['autocomplete'];
                 }
                 
                 $selOptCache = (array) unserialize(core_Cache::get($this->selectOpt, $this->handler));
                 
-                if($this->suggestions) {
+                if ($this->suggestions) {
                     $suggestions = $this->suggestions;
                 } else {
-                    $suggestions = array_slice($options, 0, $maxSuggestions, TRUE);
+                    $suggestions = array_slice($options, 0, $maxSuggestions, true);
                 }
                 
-                foreach((array)$suggestions as $key => $v) {
-                   
+                foreach ((array) $suggestions as $key => $v) {
                     $key = self::getOptionTitle($v);
                     
                     $selOpt[trim($key)] = $v;
@@ -615,14 +638,14 @@ class type_Key extends type_Int
                 
                 $this->options = $selOpt;
                 
-                $attr['ajaxAutoRefreshOptions'] = "{Ctr:\"type_Key\"" .
+                $attr['ajaxAutoRefreshOptions'] = '{Ctr:"type_Key"' .
                 ", Act:\"ajax_GetOptions\", hnd:\"{$this->handler}\", maxSugg:\"{$maxSuggestions}\", ajax_mode:1}";
                 
                 // Ако е id определяме стойността която ще се показва, като вербализираме
                 // Иначе - запазваме предходния вариянт. Работил ли е някога?
                 $setVal = self::getOptionTitle($selOptCache[$value]['title']);
                 
-                if(!$setVal && is_numeric($value)) {
+                if (!$setVal && is_numeric($value)) {
                     $setVal = $this->toVerbal($value);
                 }
                 
@@ -636,45 +659,51 @@ class type_Key extends type_Int
                 
                 $tpl = ht::createCombo($name, $setVal, $attr, $selOpt);
             } else {
-                
                 $optionsCnt = count($options);
                 
                 if (($optionsCnt == 0 || ($optionsCnt == 1 && isset($options['']) && $this->params['mandatory']))) {
-                    
                     $msg = tr('Липсва избор за');
                     
                     $title = tr($mvc->title);
 
-                    if($mvc->haveRightFor('list')) {
+                    if ($mvc->haveRightFor('list')) {
                         $url = array($mvc, 'list');
-                        $title = ht::createLink($title, $url, FALSE, 'style=font-weight:bold;');
+                        $title = ht::createLink($title, $url, false, 'style=font-weight:bold;');
                     }
 
                     $cssClass = $this->params['mandatory'] ? 'inputLackOfChoiceMandatory' : 'inputLackOfChoice';
 
                     $tpl = new ET("<span class='{$cssClass}'>[#1#] [#2#]</div>", $msg, $title);
-
                 } else {
                 
                     // Ако полето е задължително и имаме само една не-празна опция - тя да е по подразбиране
-                    if($this->params['mandatory'] && $optionsCnt == 2 && empty($value) && $options[key($options)] === '') {
+                    if ($this->params['mandatory'] && $optionsCnt == 2 && empty($value) && $options[key($options)] === '') {
                         list($o1, $o2) = array_keys($options);
-                        if(!empty($o2)) {
+                        if (!empty($o2)) {
                             $value = $o2;
-                        } elseif(!empty($o1)) {
+                        } elseif (!empty($o1)) {
                             $value = $o1;
                         }
                     }
                     
-                    $tpl = ht::createSmartSelect($options, $name, $value, $attr,
+                    $tpl = ht::createSmartSelect(
+                    
+                        $options,
+                    
+                        $name,
+                    
+                        $value,
+                    
+                        $attr,
                         $this->params['maxRadio'],
                         $this->params['maxColumns'],
-                        $this->params['columns']);
+                        $this->params['columns']
+                    
+                    );
                 }
             }
         } else {
-            
-            error(NULL, $this);
+            error(null, $this);
         }
         
         return $tpl;
@@ -684,7 +713,7 @@ class type_Key extends type_Int
     /**
      * Връща списък е елементи <option> при ajax заявка
      */
-    function act_ajax_GetOptions()
+    public function act_ajax_GetOptions()
     {
         // Приключваме, ако няма заявка за търсене
         $hnd = Request::get('hnd');
@@ -696,6 +725,7 @@ class type_Key extends type_Int
         $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
         
         if (!$hnd) {
+            
             return array(
                 'error' => 'Липсват допълнителни опции'
             );
@@ -712,26 +742,28 @@ class type_Key extends type_Int
         $cnt = 0;
         
         if (is_array($options)) {
-            
-            $openGroup = FALSE;
+            $openGroup = false;
             
             foreach ($options as $key => $titleArr) {
-                
                 $title = $titleArr['title'];
                 $id = $titleArr['id'];
                 
                 $attr = array();
                 
-                if ($key == '') continue;
+                if ($key == '') {
+                    continue;
+                }
                 
-                if(!isset($title->group) && $q && (!preg_match($q, ' ' . $id)) ) continue;
+                if (!isset($title->group) && $q && (!preg_match($q, ' ' . $id))) {
+                    continue;
+                }
                 
                 $element = 'option';
                 
                 if (is_object($title)) {
                     if ($title->group) {
                         if ($openGroup) {
-                            // затваряме групата                
+                            // затваряме групата
                             $select->append('</optgroup>');
                         }
                         $element = 'optgroup';
@@ -739,20 +771,19 @@ class type_Key extends type_Int
                         $attr['label'] = $title->title;
                         $newGroup = ht::createElement($element, $attr);
                         continue;
-                    } else {
-                        if($newGroup) {
-                            $select->append($newGroup);
-                            $newGroup = NULL;
-                            $openGroup = TRUE;
-                        }
-                        $attr = $title->attr;
-                        $title = $title->title;
                     }
-                } else {
-                    if($newGroup) {
+                    if ($newGroup) {
                         $select->append($newGroup);
-                        $newGroup = NULL;
-                        $openGroup = TRUE;
+                        $newGroup = null;
+                        $openGroup = true;
+                    }
+                    $attr = $title->attr;
+                    $title = $title->title;
+                } else {
+                    if ($newGroup) {
+                        $select->append($newGroup);
+                        $newGroup = null;
+                        $openGroup = true;
                     }
                 }
                 
@@ -765,7 +796,9 @@ class type_Key extends type_Int
                     $cnt++;
                 }
                 
-                if($cnt >= $maxSuggestions) break;
+                if ($cnt >= $maxSuggestions) {
+                    break;
+                }
             }
         }
         
@@ -783,32 +816,32 @@ class type_Key extends type_Int
     
     /**
      * Добавя филтриране на резултатите по група зададена с нейно sysId
-     * @param core_Mvc $mvc - мениджър на ключа
-     * @return string - 'where' клауза за филтриране по Ид на група
+     * @param  core_Mvc $mvc - мениджър на ключа
+     * @return string   - 'where' клауза за филтриране по Ид на група
      */
     private function filterByGroup(core_Mvc $mvc)
     {
         // Ако не е посочено 'groupsField', приемаме че то се казва "groups"
         setIfNot($mvc->groupsField, 'groups');
-		$fieldParams = $mvc->getField($mvc->groupsField)->type->params;
+        $fieldParams = $mvc->getField($mvc->groupsField)->type->params;
         $GroupManager = cls::get($fieldParams['mvc']);
 
         // Проверяваме дали мениджъра има поле sysId или systemId
         $groupQuery = $GroupManager->getQuery();
         
-        if($sysIdField = $GroupManager->fields['sysId']){
+        if ($sysIdField = $GroupManager->fields['sysId']) {
             $sysIdField = 'sysId';
-        } elseif($GroupManager->fields['systemId']) {
+        } elseif ($GroupManager->fields['systemId']) {
             $sysIdField = 'systemId';
         }
-            	
+                
         // Очакваме мениджъра да поддържа или sysId или systemId
         expect($sysIdField, 'Мениджъра не поддържа sysId-та');
         $groupQuery->where("#{$sysIdField} = '{$this->params['group']}'");
-            	
+                
         // Очакваме да има запис зад това sysId
         expect($groupRec = $groupQuery->fetch(), 'Няма група с това sysId');
-            	
+                
         // Модифицираме заявката като добавяме филтриране по група, която
         // е зададена с нейно Id - отговарящо на посоченото systemId
         return "#{$mvc->groupsField} LIKE '%|{$groupRec->id}|%'";
@@ -818,13 +851,13 @@ class type_Key extends type_Int
     /**
      * Връща заглавието на опцията, независимо от това дали тя е стринг или обект
      */
-    static function getOptionTitle($v)
+    public static function getOptionTitle($v)
     {
-        if($v == NULL || is_string($v)) {
+        if ($v == null || is_string($v)) {
             $title = $v;
         } else {
             $title = $v->title;
-        } 
+        }
 
         return $title;
     }
@@ -833,10 +866,10 @@ class type_Key extends type_Int
     /**
      * Транслитерира масив с опции, като запазва възможността някои от тях да са обекти
      */
-    static function transliterateOptions($options)
+    public static function transliterateOptions($options)
     {
-        foreach($options as &$opt) {
-            if(is_object($opt)) {
+        foreach ($options as &$opt) {
+            if (is_object($opt)) {
                 $opt->title = transliterate($opt->title);
             } else {
                 $opt = transliterate($opt);
@@ -847,13 +880,13 @@ class type_Key extends type_Int
     }
     
     
-	/**
+    /**
      * Превежда масив с опции, като запазва възможността някои от тях да са обекти
      */
-    static function translateOptions($options)
+    public static function translateOptions($options)
     {
-        foreach($options as &$opt) {
-            if(is_object($opt)) {
+        foreach ($options as &$opt) {
+            if (is_object($opt)) {
                 $opt->title = tr($opt->title);
             } else {
                 $opt = tr($opt);

@@ -762,6 +762,7 @@ class core_App
                 }
             }
         } else {
+            
             return $arr;
         }
 
@@ -802,6 +803,7 @@ class core_App
 
         // Ако параметъра е стринг - нищо не правим
         if (is_string($params)) {
+            
             return $params;
         }
 
@@ -872,6 +874,7 @@ class core_App
 
         // Ако е необходимо локално URL, то то се генерира с помощна функция
         if ($type == 'local') {
+            
             return static::toLocalUrl($params);
         }
 
@@ -1047,6 +1050,7 @@ class core_App
         expect(!preg_match('/\.\.(\\\|\/)/', $shortPath));
 
         if (@is_readable($shortPath)) {
+            
             return $shortPath;
         }
 
@@ -1060,6 +1064,7 @@ class core_App
             $fullPath = $base . '/' . $shortPath;
  
             if (@is_readable($fullPath)) {
+                
                 return $fullPath;
             }
         }
@@ -1110,6 +1115,7 @@ class core_App
                 if (!isset($p1)) {
                     $p1 = $new;
                 } else {
+                    
                     return $p1;
                 }
             }
@@ -1148,6 +1154,7 @@ class core_App
                 return true;
             }
         } else {
+            
             return core_Cls::load($className, true);
         }
     }

@@ -3,7 +3,7 @@
 
 /**
  * Детайл на файловете.
- * 
+ *
  * Държи всички версии на файлове, които са създадени от даден файл
  *
  * @category  vendors
@@ -20,56 +20,44 @@ class fileman_FileDetails extends core_Detail
     /**
      * Заглавие
      */
-    var $title = "Версии на файловете";
+    public $title = 'Версии на файловете';
     
     
-    /**
-     * 
-     */
-    var $canAdd = 'no_one';
+    
+    public $canAdd = 'no_one';
     
     
-    /**
-     * 
-     */
-    var $canEdit = 'no_one';
+    
+    public $canEdit = 'no_one';
     
     
-    /**
-     * 
-     */
-    var $canDelete = 'no_one';
+    
+    public $canDelete = 'no_one';
     
     
-    /**
-     * 
-     */
-    var $canSingle = 'no_one';
+    
+    public $canSingle = 'no_one';
     
     
-    /**
-     * 
-     */
-    var $canList = 'no_one';
+    
+    public $canList = 'no_one';
     
     
-    /**
-     * 
-     */
-    var $canView = 'no_one';
+    
+    public $canView = 'no_one';
     
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'fileId';
+    public $masterKey = 'fileId';
     
 //    /**
 //     * Плъгини за зареждане
 //     */
 //    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_RowNumbering, plg_AlignDecimals,
 //        Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items, plg_AlignDecimals, plg_SaveAndNew';
-    var $loadList = 'plg_Created';
+    public $loadList = 'plg_Created';
     
 //    /**
 //     * Полета, които ще се показват в листов изглед
@@ -80,7 +68,7 @@ class fileman_FileDetails extends core_Detail
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('fileId', 'key(mvc=fileman_Files, select=name)', 'column=none,input=hidden,silent');
         $this->FLD('firstFileVersionId', 'key(mvc=fileman_Files, select=name)', 'column=none,input=hidden,silent');
@@ -92,12 +80,12 @@ class fileman_FileDetails extends core_Detail
     
     /**
      * Връща масив с всички версии на файла.
-     * 
+     *
      * @param numeric $fileId - id' то на файла, за който ще се търсят версиите
-     * 
+     *
      * @return array $fileVersionsArr - Масив с всички версии на съответния файл
      */
-    static function getFileVersionsArr($fileId)
+    public static function getFileVersionsArr($fileId)
     {
         // Масив с всички версии на файла
         $fileVersionsArr = array();
@@ -125,10 +113,10 @@ class fileman_FileDetails extends core_Detail
             $fh = fileman_Files::fetchField($rec->fileId, 'fileHnd');
             
             // Информация за версията
-            $fileVersionsArr[$fh]['versionInfo'] = self::getVerbal($rec,'versionInfo');  
+            $fileVersionsArr[$fh]['versionInfo'] = self::getVerbal($rec, 'versionInfo');
 
             // Вербалното име на файла
-            $fileVersionsArr[$fh]['fileName'] = fileman_Files::getVerbal($rec->fileId,'name');
+            $fileVersionsArr[$fh]['fileName'] = fileman_Files::getVerbal($rec->fileId, 'name');
         }
         
         // Ако текущия файл е версия на друг
@@ -138,10 +126,10 @@ class fileman_FileDetails extends core_Detail
             $fh = fileman_Files::fetchField($cRec->firstFileVersionId, 'fileHnd');
             
             // Информация за файла
-            $fileVersionsArr[$fh]['versionInfo'] = "Оригинален файл"; 
+            $fileVersionsArr[$fh]['versionInfo'] = 'Оригинален файл';
 
             // Вербалното име на файла
-            $fileVersionsArr[$fh]['fileName'] = fileman_Files::getVerbal($cRec->firstFileVersionId,'name');
+            $fileVersionsArr[$fh]['fileName'] = fileman_Files::getVerbal($cRec->firstFileVersionId, 'name');
         }
 
         return $fileVersionsArr;

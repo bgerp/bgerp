@@ -18,14 +18,14 @@ class page_Waiting extends page_Empty
     
     /**
      * Интерфейсен метод
-     * 
+     *
      * @see core_page_WrapperIntf
      */
-    function prepare()
+    public function prepare()
     {
         $this->appendOnce('Моля изчакайте...', 'PAGE_CONTENT');
         
-        $this->appendOnce("\n" . '<meta http-equiv="refresh" content="3">', "HEAD");
+        $this->appendOnce("\n" . '<meta http-equiv="refresh" content="3">', 'HEAD');
         
         parent::prepare();
     }

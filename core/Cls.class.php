@@ -44,6 +44,7 @@ class core_Cls
     {
         if (is_object($className)) {
             if (isset($className->className)) {
+                
                 return $className->className;
             }
 
@@ -65,6 +66,7 @@ class core_Cls
                 $className = core_Classes::getName($className);
                 
                 if (!$className) {
+                    
                     return false;
                 }
             }
@@ -116,6 +118,7 @@ class core_Cls
         
         // Проверяваме дали класа вече не съществува, и ако е така не правим нищо
         if (class_exists($fullClassName, false)) {
+            
             return true;
         }
         
@@ -193,6 +196,7 @@ class core_Cls
         }
 
         if (isset($obj->newClassName)) {
+            
             return self::get($obj->newClassName, $initArr);
         }
         
@@ -230,6 +234,7 @@ class core_Cls
             // Ако в резултат на инициализацията е върнат
             // обект, то той се връща като резултат
             if (is_object($res)) {
+                
                 return $res;
             }
         }
@@ -273,6 +278,7 @@ class core_Cls
         
         do {
             if ($parrentClassLw === $className) {
+                
                 return true;
             }
         } while (false != ($className = strtolower(get_parent_class($className))));
@@ -320,6 +326,7 @@ class core_Cls
         } elseif (!$silent) {
             expect(false, "Адаптера за интерфейса {$interface} не се поддържа от класа " . cls::getClassName($class));
         } else {
+            
             return false;
         }
         
@@ -408,12 +415,14 @@ class core_Cls
         }
         
         if (isset($titleLine)) {
+            
             return $titleLine;
         }
         
         $obj = cls::get($class);
         
         if ($obj->title) {
+            
             return $obj->title;
         }
         
@@ -461,11 +470,13 @@ class core_Cls
         
         // Ако има такъв метод в класа или неговото име с долна черта
         if (method_exists($classObj, $methodName) || method_exists($classObj, "{$methodName}_")) {
+            
             return true;
         }
         
         // Ако има on_After метод по подразбиране
         if (method_exists($classObj, "on_After{$methodName}")) {
+            
             return true;
         }
         
@@ -475,6 +486,7 @@ class core_Cls
             if (count($plugins)) {
                 foreach ($plugins as $name) {
                     if (method_exists($name, "on_After{$methodName}")) {
+                        
                         return true;
                     }
                 }

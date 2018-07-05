@@ -3,7 +3,7 @@
 
 /**
  * Драйвер за работа с .dat файлове.
- * 
+ *
  * @category  bgerp
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -13,5 +13,4 @@
  */
 class fileman_webdrv_Dat extends fileman_webdrv_Tnef
 {
-    
 }

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * 
+ *
  *
  * @category  vendors
  * @package   fileman
@@ -17,61 +17,61 @@ class fileman_Log extends core_Manager
     /**
      * Заглавие на таблицата
      */
-    var $title = "Последни файлове";
+    public $title = 'Последни файлове';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'user';
+    public $canRead = 'user';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'user';
+    public $canView = 'user';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'user';
+    public $canList = 'user';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'no_one';
+    public $canReject = 'no_one';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'fileman_Wrapper, fileman_DialogWrapper, plg_Sorting';
+    public $loadList = 'fileman_Wrapper, fileman_DialogWrapper, plg_Sorting';
     
     
     /**
      * Името на полито, по което плъгина GroupByDate ще групира редовете
      */
-    var $groupByDateField = 'lastOn';
+    public $groupByDateField = 'lastOn';
     
     
     /**
@@ -80,25 +80,23 @@ class fileman_Log extends core_Manager
     const DIALOG_LIST_ITEMS_PER_PAGE = 5;
     
     
-    /**
-     * 
-     */
-    var $listFields = 'fileId=Линк, action, lastOn';
+    
+    public $listFields = 'fileId=Линк, action, lastOn';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('fileId', 'key(mvc=fileman_Files, select=fileHnd)', 'caption=Манипулатор,notNull');
         $this->FLD('fileName', 'varchar', 'caption=Файл');
-        $this->FLD('fileSize', "fileman_FileSize", 'caption=Размер');
+        $this->FLD('fileSize', 'fileman_FileSize', 'caption=Размер');
         $this->FLD('action', 'enum(upload=Качване, preview=Разглеждане, rename=Преименуване)', 'caption=Действие');
         $this->FLD('userId', 'user', 'caption=Потребител');
         $this->FLD('lastOn', 'datetime(format=smartTime)', 'caption=Последно');
         
-        $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни');
+        $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Данни');
         
         $this->setDbUnique('dataId,userId');
         
@@ -109,12 +107,12 @@ class fileman_Log extends core_Manager
     
     /**
      * Обновява информацията за използването на файла
-     * 
-     * @param mixed $fileHnd - Запис от fileman_Files или манипулатор на файла
-     * @param string $action - Съответнотното действие: upload, preview
-     * @param integer $userId - id на потребитля
+     *
+     * @param mixed   $fileHnd - Запис от fileman_Files или манипулатор на файла
+     * @param string  $action  - Съответнотното действие: upload, preview
+     * @param integer $userId  - id на потребитля
      */
-    static function updateLogInfo($fileHnd, $action, $userId=NULL)
+    public static function updateLogInfo($fileHnd, $action, $userId = null)
     {
         // Ако не е подадено id на потребител
         if (!$userId) {
@@ -140,10 +138,16 @@ class fileman_Log extends core_Manager
         fileman_Data::updateLastUse($fRec->dataId);
 
         // Ако системния потребител, връщаме
-        if ($userId < 1) return FALSE;
+        if ($userId < 1) {
+            
+            return false;
+        }
         
         // Ако няма манипулатор на файла
-        if (!$fRec->fileHnd) return FALSE;
+        if (!$fRec->fileHnd) {
+            
+            return false;
+        }
         
         // Вземаме предишния запис
         $nRec = static::fetch(array("#dataId = '[#1#]' AND #userId=[#2#]", $fRec->dataId, $userId));
@@ -188,9 +192,9 @@ class fileman_Log extends core_Manager
     
     
     /**
-     * Екшъна за показване на диалоговия прозорец за добавяне на файл 
+     * Екшъна за показване на диалоговия прозорец за добавяне на файл
      */
-    function act_Dialog()
+    public function act_Dialog()
     {
         // Вземаме id' то на кофата
         $bucketId = Request::get('bucketId', 'int');
@@ -199,7 +203,7 @@ class fileman_Log extends core_Manager
         $callback = Request::get('callback', 'identifier');
         
         // Сетваме нужните променливи
-        Mode::set('dialogOpened', TRUE);
+        Mode::set('dialogOpened', true);
         Mode::set('callback', $callback);
         Mode::set('bucketId', $bucketId);
         
@@ -216,12 +220,11 @@ class fileman_Log extends core_Manager
     
     /**
      * Връща шаблона за диалоговия прозорец
-     * 
+     *
      * @param Core_Et $tpl
      */
-    function renderDialog_($tpl)
+    public function renderDialog_($tpl)
     {
-        
         return $tpl;
     }
     
@@ -229,7 +232,7 @@ class fileman_Log extends core_Manager
     /**
      * Връща шаблона за добавяне на файл
      */
-    function getTpl()
+    public function getTpl()
     {
         // Вземаме шаблона за листовия изглед
         return $this->act_List();
@@ -238,12 +241,12 @@ class fileman_Log extends core_Manager
     
     /**
      * Извиква се преди подготовката на колоните ($data->listFields)
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param object $res
-     * @param object $data
+     * @param object   $res
+     * @param object   $data
      */
-    static function on_BeforePrepareListFields($mvc, &$res, $data)
+    public static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         // Ако е отворен в диалоговия прозорец
         if (Mode::get('dialogOpened')) {
@@ -256,23 +259,22 @@ class fileman_Log extends core_Manager
             $data->listFields['Name'] = 'Име';
             
             // Да не се извикат останалите
-            return FALSE;
-        } else {
-            
-            // Ако сме в листовия изглед
-            // Добавяме плъгина
-            $mvc->load('plg_GroupByDate');
+            return false;
         }
+            
+        // Ако сме в листовия изглед
+        // Добавяме плъгина
+        $mvc->load('plg_GroupByDate');
     }
     
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param object $data
+     * @param object   $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    public function on_AfterPrepareListFilter($mvc, $data)
     {
         $query = $data->query;
         
@@ -284,7 +286,7 @@ class fileman_Log extends core_Manager
         }
         
         // По - новите да са по - напред
-        $query->orderBy("#lastOn", 'DESC');
+        $query->orderBy('#lastOn', 'DESC');
         
         // Ако е отворен в диалоговия прозорец
         if (Mode::get('dialogOpened')) {
@@ -308,10 +310,10 @@ class fileman_Log extends core_Manager
                     if ($extArr) {
                         
                         // Флаг, който указва, че за първи път сме в цикъла
-                        $first = TRUE;
+                        $first = true;
                         
                         // Обхождаме масива
-                        foreach ((array)$extArr as $ext) {
+                        foreach ((array) $extArr as $ext) {
                             
                             // Добавяме условие, да се вземат всички файлове, които завършавт с посоченото разширение
                             $query->where(array("LOWER(#fileName) LIKE '%.[#1#]'", $ext), !$first);
@@ -320,7 +322,7 @@ class fileman_Log extends core_Manager
                             if ($first) {
                                 
                                 // Сваляме флага
-                                $first = FALSE;
+                                $first = false;
                             }
                         }
                     }
@@ -362,7 +364,7 @@ class fileman_Log extends core_Manager
             }
             
             // Ако има текст за търсене
-            if($search = trim($form->rec->search)) {
+            if ($search = trim($form->rec->search)) {
                 $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
                 plg_Search::applySearch($search, $data->query, 'searchKeywords');
             }
@@ -372,12 +374,12 @@ class fileman_Log extends core_Manager
     
     /**
      * Изпълнява се преди подготвяне на страниците
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param object $res
-     * @param object $data
+     * @param object   $res
+     * @param object   $data
      */
-    function on_BeforePrepareListPager($mvc, &$res, $data)
+    public function on_BeforePrepareListPager($mvc, &$res, $data)
     {
         // Ако е отворен в диалоговия прозорец
         if (Mode::get('dialogOpened')) {
@@ -390,12 +392,12 @@ class fileman_Log extends core_Manager
     
     /**
      * Изпълнява се преди подготвяне на страниците
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param object $res
-     * @param object $data
+     * @param object   $res
+     * @param object   $data
      */
-    function on_AfterPrepareListPager($mvc, &$res, $data)
+    public function on_AfterPrepareListPager($mvc, &$res, $data)
     {
         // Ако е отворен в диалоговия прозорец
         if (Mode::get('dialogOpened')) {
@@ -419,11 +421,11 @@ class fileman_Log extends core_Manager
     
     /**
      * След преобразуване на записа в четим за хора вид.
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param object $data
+     * @param object   $data
      */
-    static function on_AfterPrepareListRows($mvc, $res, &$data)
+    public static function on_AfterPrepareListRows($mvc, $res, &$data)
     {
         // Ако е отворен в диалоговия прозорец
         if (Mode::get('dialogOpened')) {
@@ -434,7 +436,7 @@ class fileman_Log extends core_Manager
             $callback = Mode::get('callback');
             
             // Обхождаме записите
-            foreach ((array)$data->recs as $key => $rec) {
+            foreach ((array) $data->recs as $key => $rec) {
                 
                 // Взеамем текста на съответното действие
                 $action = tr($actionArr[$data->recs[$key]->action]);
@@ -464,22 +466,22 @@ class fileman_Log extends core_Manager
                 ht::setUniqId($attrId);
                 
                 // Атрибутите на линковете
-                $attr = array('onclick' => "flashDocInterpolation('{$attrId['id']}'); if(window.opener.{$callback}('{$fh}','{$fileName}') != true) self.close(); else self.focus();", "class" => "file-log-link");
+                $attr = array('onclick' => "flashDocInterpolation('{$attrId['id']}'); if(window.opener.{$callback}('{$fh}','{$fileName}') != true) self.close(); else self.focus();", 'class' => 'file-log-link');
                 
                 // Името на файла да е линк с посочените атрибути
-                $fileNameLink = ht::createLink($fileNameVerb, '#', NULL, $attr); 
+                $fileNameLink = ht::createLink($fileNameVerb, '#', null, $attr);
                 
                 // Взеамаме иконата с линка за съответния файл
                 $img = static::getIcon($fh);
                 
                 // Добавяме иконата
-                $data->rows[$key]->FileIcon = ht::createLink($img, '#', NULL, $attr);
+                $data->rows[$key]->FileIcon = ht::createLink($img, '#', null, $attr);
                 
                 // Взeмаме иконата с линка към сингъла на файла
-                $nameStr = $fileNameLink . "<br /><span class='fileman-log-action-date'>" . $action . ' ' . $date . "</span>";
+                $nameStr = $fileNameLink . "<br /><span class='fileman-log-action-date'>" . $action . ' ' . $date . '</span>';
                 
                 // Взemame иконата с линка към сингъл на файла
-                $nameLink = ht::createLinkRef($nameStr, array('fileman_Files', 'single', $fh), NULL, array('target' => '_blank', 'title' => 'Към изгледа на файла'));
+                $nameLink = ht::createLinkRef($nameStr, array('fileman_Files', 'single', $fh), null, array('target' => '_blank', 'title' => 'Към изгледа на файла'));
                 
                 // Добавяме името на файла
                 $data->rows[$key]->Name = $nameLink;
@@ -489,28 +491,27 @@ class fileman_Log extends core_Manager
             }
             
             // Да не се извикат останалите
-            return FALSE;
-        } else {
+            return false;
+        }
             
-            // Обхождаме масива
-            foreach ((array)($data->recs) as $id => $rec) {
-            	
+        // Обхождаме масива
+        foreach ((array) ($data->recs) as $id => $rec) {
+                
                 // Вземаме линка към сингъла на файла
-                $data->rows[$id]->fileId = fileman_Files::getLinkById($rec->fileId);
-            }
+            $data->rows[$id]->fileId = fileman_Files::getLinkById($rec->fileId);
         }
     }
 
 
     /**
      * Връща иконата за подадения файл
-     * 
-     * @param fileHnd $fh - Манупулатор на файла
+     *
+     * @param fileHnd $fh   - Манупулатор на файла
      * @param integer $size - Размер на файла
      */
-    static function getIcon($fh, $size=48)
+    public static function getIcon($fh, $size = 48)
     {
-         // Вземаме записа за файла
+        // Вземаме записа за файла
         $fRec = fileman_Files::fetchByFh($fh);
         
         // Вземаме името на файла
@@ -521,7 +522,6 @@ class fileman_Log extends core_Manager
         
         // Ако може да се генерира thumbnail
         if (thumb_Img::isAllowedForThumb($fh)) {
-            
             $imgInst = new thumb_Img($fh, $size, $size, 'fileman');
             
             // Вземаме файла
@@ -539,7 +539,7 @@ class fileman_Log extends core_Manager
             }
             
             // Вземаме изображението
-            $img = ht::createElement('img', array('src' => sbf($icon, '', TRUE), 'width' => $size, 'height' => $size));
+            $img = ht::createElement('img', array('src' => sbf($icon, '', true), 'width' => $size, 'height' => $size));
         }
         
         return $img;
@@ -548,12 +548,12 @@ class fileman_Log extends core_Manager
     
     /**
      * Извиква се преди подготовката на титлата в списъчния изглед
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param core_Et $tpl
-     * @param object $data
+     * @param core_Et  $tpl
+     * @param object   $data
      */
-    static function on_BeforeRenderListTitle($mvc, &$tpl, $data)
+    public static function on_BeforeRenderListTitle($mvc, &$tpl, $data)
     {
         // Ако е отворен в диалоговия прозорец
         if (Mode::get('dialogOpened')) {
@@ -561,19 +561,19 @@ class fileman_Log extends core_Manager
             // Да не се слага заглавието
             
             // Да не се извикат останалите
-            return FALSE;
+            return false;
         }
     }
     
     
     /**
      * След рендиране на шаблона
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param core_Et $tpl
-     * @param object $data
+     * @param core_Et  $tpl
+     * @param object   $data
      */
-    static function on_AfterRenderListLayout($mvc, $tpl, $data)
+    public static function on_AfterRenderListLayout($mvc, $tpl, $data)
     {
         // Ако е отворен в диалоговия прозорец
         if (Mode::get('dialogOpened')) {
@@ -586,14 +586,14 @@ class fileman_Log extends core_Manager
     
     /**
      * Извиква се преди рендирането на 'опаковката' на мениджъра
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param string $res
-     * @param core_Et $tpl
-     * @param object $data
+     * @param string   $res
+     * @param core_Et  $tpl
+     * @param object   $data
      */
-    function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data=NULL)
-    { 
+    public function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = null)
+    {
         // Ако е отворен в диалоговия прозорец
         if (Mode::get('dialogOpened')) {
             
@@ -601,28 +601,28 @@ class fileman_Log extends core_Manager
             $res = $mvc->renderDialog($tpl);
             
             // Да не се извикат останалите и да не се рендира "опаковката"
-            return FALSE;
+            return false;
         }
     }
     
     
     /**
      * Извиква се след SetUp-а на таблицата за модела
-     * 
+     *
      * За съвместимост със стари бази
      * @todo Може да се премахне
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
         // Вземаме всички записи, които няма dataId
         $query = $mvc->getQuery();
-        $query->where("#dataId IS NULL");
+        $query->where('#dataId IS NULL');
         
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {
             
             // Флаг, дали да се премахне
-            $delete = FALSE;
+            $delete = false;
             
             // Ако има fileId вземаме dataId
             if (($rec->fileId) && ($dataId = fileman_Files::fetchField($rec->fileId, 'dataId'))) {
@@ -639,12 +639,12 @@ class fileman_Log extends core_Manager
                 } else {
                     
                     // Да се изтрие ако записа няма да е уникален
-                    $delete = TRUE;
+                    $delete = true;
                 }
             } else {
                 
                 // Да се изтрие, ако няма да има такива данни
-                $delete = TRUE;
+                $delete = true;
             }
             
             // Ако флага е вдигнат
@@ -662,5 +662,4 @@ class fileman_Log extends core_Manager
             $res .= "<li>Добавени {$cnt} 'dataId'";
         }
     }
- }
- 
+}

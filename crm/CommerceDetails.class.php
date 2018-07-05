@@ -15,70 +15,74 @@
  */
 class crm_CommerceDetails extends core_Manager
 {
-	
-	
-	/**
-	 * Подготвя ценовата информация за артикула
-	 */
-	public function prepareCommerceDetails($data)
-	{
-		if(haveRole('sales,purchase,ceo')){
-			$data->TabCaption = 'Търговия';
-		}
+    
+    
+    /**
+     * Подготвя ценовата информация за артикула
+     */
+    public function prepareCommerceDetails($data)
+    {
+        if (haveRole('sales,purchase,ceo')) {
+            $data->TabCaption = 'Търговия';
+        }
 
-		if($data->isCurrent === FALSE) return;
-		
-		$data->Lists = cls::get('price_ListToCustomers');
-		$data->Conditions = cls::get('cond_ConditionsToCustomers');
-		$data->Cards = cls::get('pos_Cards');
-		
-		$data->listData = clone $data;
-		$data->condData = clone $data;
-		$data->cardData = clone $data;
-		
-		// Подготвяме данни за ценовите листи
-		$data->Lists->preparePricelists($data->listData);
-		
-		// Подготвяме търговските условия
-		$data->Conditions->prepareCustomerSalecond($data->condData);
-		
-		// Подготвяме клиентските карти
-		$data->Cards->prepareCards($data->cardData);
-	}
-	
-	
-	/**
-	 * Рендира ценовата информация за артикула
-	 */
-	public function renderCommerceDetails($data)
-	{
-		if($data->prepareTab === FALSE || $data->renderTab === FALSE) return;
-		
-		// Взимаме шаблона
-		$tpl = getTplFromFile('crm/tpl/CommerceDetails.shtml');
-		$tpl->replace(tr('Търговия'), 'title');
-		
-		// Рендираме ценовата информация
-		if(!empty($data->Lists)){
-			$listsTpl = $data->Lists->renderPricelists($data->listData);
-			$listsTpl->removeBlocks();
-			$tpl->append($listsTpl, 'LISTS');
-		}
-		
-		// Рендираме търговските условия
-		if(!empty($data->Conditions)){
-			$condTpl = $data->Conditions->renderCustomerSalecond($data->condData);
-			$condTpl->removeBlocks();
-			$tpl->append($condTpl, 'CONDITIONS');
-		}
-		
-		// Рендираме клиентските карти
-		if(!empty($data->Cards)){
-			$cardTpl = $data->Cards->renderCards($data->cardData);
-			$cardTpl->removeBlocks();
-			$tpl->append($cardTpl, 'CARDS');
-		}
-		
-		return $tpl;
-	}
+        if ($data->isCurrent === false) {
+            return;
+        }
+        
+        $data->Lists = cls::get('price_ListToCustomers');
+        $data->Conditions = cls::get('cond_ConditionsToCustomers');
+        $data->Cards = cls::get('pos_Cards');
+        
+        $data->listData = clone $data;
+        $data->condData = clone $data;
+        $data->cardData = clone $data;
+        
+        // Подготвяме данни за ценовите листи
+        $data->Lists->preparePricelists($data->listData);
+        
+        // Подготвяме търговските условия
+        $data->Conditions->prepareCustomerSalecond($data->condData);
+        
+        // Подготвяме клиентските карти
+        $data->Cards->prepareCards($data->cardData);
+    }
+    
+    
+    /**
+     * Рендира ценовата информация за артикула
+     */
+    public function renderCommerceDetails($data)
+    {
+        if ($data->prepareTab === false || $data->renderTab === false) {
+            return;
+        }
+        
+        // Взимаме шаблона
+        $tpl = getTplFromFile('crm/tpl/CommerceDetails.shtml');
+        $tpl->replace(tr('Търговия'), 'title');
+        
+        // Рендираме ценовата информация
+        if (!empty($data->Lists)) {
+            $listsTpl = $data->Lists->renderPricelists($data->listData);
+            $listsTpl->removeBlocks();
+            $tpl->append($listsTpl, 'LISTS');
+        }
+        
+        // Рендираме търговските условия
+        if (!empty($data->Conditions)) {
+            $condTpl = $data->Conditions->renderCustomerSalecond($data->condData);
+            $condTpl->removeBlocks();
+            $tpl->append($condTpl, 'CONDITIONS');
+        }
+        
+        // Рендираме клиентските карти
+        if (!empty($data->Cards)) {
+            $cardTpl = $data->Cards->renderCards($data->cardData);
+            $cardTpl->removeBlocks();
+            $tpl->append($cardTpl, 'CARDS');
+        }
+        
+        return $tpl;
+    }
 }

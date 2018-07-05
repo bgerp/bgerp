@@ -16,17 +16,17 @@
 class pallet_ArrangeStrategyTop
 {
     
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'store_ArrangeStrategyTop';
-	
-	
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'store_ArrangeStrategyTop';
+    
+    
     /**
      * Какви интерфeйси поддържа този мениджър
      */
-    var $interfaces = 'pallet_ArrangeStrategyIntf';
+    public $interfaces = 'pallet_ArrangeStrategyIntf';
     
     
     /**
@@ -34,11 +34,12 @@ class pallet_ArrangeStrategyTop
      *
      * @param int $palletId
      */
-    function getAutoPalletPlace($productId) {
+    public function getAutoPalletPlace($productId)
+    {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
         
-        $palletPlaceAuto = "6-G-22";
+        $palletPlaceAuto = '6-G-22';
         
         return $palletPlaceAuto;
     }

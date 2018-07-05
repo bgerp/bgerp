@@ -686,6 +686,7 @@ class bgerp_Recently extends core_Manager
         // $res = self::delete("#last < '{$lastRecently}'");
 
         if ($res) {
+            
             return "Бяха изтрити {$res} записа от " . $this->className;
         }
     }

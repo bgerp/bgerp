@@ -14,39 +14,39 @@
  */
 class frame_ReportSourceIntf extends core_InnerObjectIntf
 {
-	
-	
-	/**
-	 * Инстанция на класа имплементиращ интерфейса
-	 */
-	public $class;
-	
-	
-	/**
-	 * Скрива полетата, които потребител с ниски права не може да вижда
-	 * 
-	 * @param stdClass $data
-	 */
-	public function hidePriceFields(&$data)
-	{
-		return $this->class->hidePriceFields($data);
-	}
-	
-	
-	/**
-	 * Връща дефолт заглавието на репорта
-	 */
-	public function getReportTitle()
-	{
-		return $this->class->getReportTitle();
-	}
-	
-	
-	/**
-	 * Връща най-ранната дата, когато отчета може да се активира
-	 */
-	public function getEarlyActivation()
-	{
-		return $this->class->getEarlyActivation();
-	}
+    
+    
+    /**
+     * Инстанция на класа имплементиращ интерфейса
+     */
+    public $class;
+    
+    
+    /**
+     * Скрива полетата, които потребител с ниски права не може да вижда
+     *
+     * @param stdClass $data
+     */
+    public function hidePriceFields(&$data)
+    {
+        return $this->class->hidePriceFields($data);
+    }
+    
+    
+    /**
+     * Връща дефолт заглавието на репорта
+     */
+    public function getReportTitle()
+    {
+        return $this->class->getReportTitle();
+    }
+    
+    
+    /**
+     * Връща най-ранната дата, когато отчета може да се активира
+     */
+    public function getEarlyActivation()
+    {
+        return $this->class->getEarlyActivation();
+    }
 }

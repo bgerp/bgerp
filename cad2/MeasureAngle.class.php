@@ -3,25 +3,26 @@
 /**
  * Чертае Оразмеряване на ъгъл
  */
-class cad2_MeasureAngle  extends cad2_Shape {
+class cad2_MeasureAngle extends cad2_Shape
+{
     
     /**
      * Задължителен интерфейс, който фигурите трябва да имат
      */
-    var $interfaces = 'cad2_ShapeIntf';
+    public $interfaces = 'cad2_ShapeIntf';
     
     
     /**
      * Наименование на фигурата
      */
-    var $title = 'Елементи » Оразмеряване на ъгъл';
+    public $title = 'Елементи » Оразмеряване на ъгъл';
     
     
     /**
      * Допълва дадената форма с параметрите на фигурата
      * Връща масив от имената на параметрите
      */
-    static function addFields(&$form)
+    public static function addFields(&$form)
     {
         $form->FLD('Ax', 'float', 'caption=Ax');
         $form->FLD('Ay', 'float', 'caption=Ay');
@@ -35,8 +36,8 @@ class cad2_MeasureAngle  extends cad2_Shape {
     /**
      * Метод за изрисуване на фигурата
      */
-    static function render($svg, $p = array())
-    { 
+    public static function render($svg, $p = array())
+    {
         extract($p);
         self::draw($svg, $Ax, $Ay, $Bx, $By, $Cx, $Cy);
     }
@@ -50,12 +51,12 @@ class cad2_MeasureAngle  extends cad2_Shape {
         $svg->openGroup();
 
         $AB = new cad2_Vector($Bx - $Ax, $By - $Ay);
-        $CB = new cad2_Vector($Bx - $Cx,  $By - $Cy);
+        $CB = new cad2_Vector($Bx - $Cx, $By - $Cy);
 
         //ъгъла на линията
         $vectorAngle = abs($AB->a - $CB->a);
         $angleGrad = rad2deg($vectorAngle);
 
-        expect(FALSE, $angleGrad);
+        expect(false, $angleGrad);
     }
 }

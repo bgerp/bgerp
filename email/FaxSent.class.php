@@ -18,86 +18,85 @@ class email_FaxSent extends core_Manager
     /**
      * Заглавие
      */
-    var $title = "Факс";
+    public $title = 'Факс';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Факс";
+    public $singleTitle = 'Факс';
     
     
     /**
      * Кой има право да го чете?
      */
-    var $canSingle = 'no_one';
+    public $canSingle = 'no_one';
     
     
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'no_one';
+    public $canView = 'no_one';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'no_one';
+    public $canList = 'no_one';
     
     
     /**
      * Кой може да изпраща факс?
      */
-    var $canSend = 'fax, admin, ceo';
+    public $canSend = 'fax, admin, ceo';
     
     
     /**
      * Кой има право да изтрива?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Кой има права за
      */
-    var $canFax = 'no_one';
+    public $canFax = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'email_Wrapper';
+    public $loadList = 'email_Wrapper';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
-        
     }
     
     
     /**
      * Връща имейла на факс номера
-     * 
+     *
      * @param string $number
-     * 
+     *
      * @return string
      */
-    static function getFaxMail($number)
+    public static function getFaxMail($number)
     {
         $faxMail = $number . '@fax.man';
         
@@ -107,12 +106,12 @@ class email_FaxSent extends core_Manager
     
     /**
      * URL, което ще се използва за създаване на факс
-     * 
+     *
      * @param string $fax
-     * 
+     *
      * @return array - Масив s URL-то, което ще се използва за създаване на факс
      */
-    static function getAddFaxUrl($fax)
+    public static function getAddFaxUrl($fax)
     {
         $urlArr = array('email_Outgoings', 'add', 'faxto' => $fax);
         
@@ -123,7 +122,7 @@ class email_FaxSent extends core_Manager
     /**
      * Екшън за изпращане на факс
      */
-    function act_Send()
+    public function act_Send()
     {
         // Проверяваме дали има права за изпращане
         $this->requireRightFor('send');
@@ -138,7 +137,7 @@ class email_FaxSent extends core_Manager
         expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
         
         // Подготвяме адреса за връщане, ако потребителя не е логнат.
-        // Ресурса, който ще се зареди след логване обикновено е страницата, 
+        // Ресурса, който ще се зареди след логване обикновено е страницата,
         // от която се извиква екшън-а act_Manage
         $retUrl = getRetUrl();
         
@@ -156,7 +155,7 @@ class email_FaxSent extends core_Manager
         $this->invoke('AfterInputSendForm', array($data->form));
 
         // Дали имаме права за това действие към този запис?
-        $this->requireRightFor('send', $data->rec, NULL, $retUrl);
+        $this->requireRightFor('send', $data->rec, null, $retUrl);
         
         $lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId, $data->rec->body);
         
@@ -174,27 +173,25 @@ class email_FaxSent extends core_Manager
         
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
-            
             static::send($data->rec, $data->form->rec, $lg);
             
-            // Подготвяме адреса, към който трябва да редиректнем,  
+            // Подготвяме адреса, към който трябва да редиректнем,
             // при успешно записване на данните от формата
             $data->form->rec->id = $data->rec->id;
             $this->prepareRetUrl($data);
             
             return new Redirect($data->retUrl);
-            
-        } else {
-            // Подготвяме адреса, към който трябва да редиректнем,  
-            // при успешно записване на данните от формата
-            $this->prepareRetUrl($data);
         }
+        // Подготвяме адреса, към който трябва да редиректнем,
+        // при успешно записване на данните от формата
+        $this->prepareRetUrl($data);
+        
                 
         // Получаваме изгледа на формата
         $tpl = $data->form->renderHtml();
         
         // Добавяме превю на факса, който ще изпратим
-        $preview = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Факс") . "</b></div><div class='scrolling-holder'>[#FAX_HTML#]<pre class=\"document\">[#FAX_TEXT#]</pre></div></div>");
+        $preview = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Факс') . "</b></div><div class='scrolling-holder'>[#FAX_HTML#]<pre class=\"document\">[#FAX_TEXT#]</pre></div></div>");
         
         //Добавяме към шаблона
         $preview->append($faxHtml, 'FAX_HTML');
@@ -209,14 +206,17 @@ class email_FaxSent extends core_Manager
     
     /**
      * Изпраща факс
-     * 
+     *
      * @param object $rec
      * @param object $options
      * @param string $lg
      */
     public static function send($rec, $options, $lg)
     {
-        if (email_Outgoings::checkAndAddForLateSending($rec, $options, $lg)) return ;
+        if (email_Outgoings::checkAndAddForLateSending($rec, $options, $lg)) {
+            
+            return ;
+        }
         
         // Инстанция на класа
         $Email = cls::get('email_Outgoings');
@@ -247,7 +247,7 @@ class email_FaxSent extends core_Manager
         $faxToArr = static::faxToArray($options->faxTo);
         
         // Списъци с изпратени и проблемни получатели
-        $success  = $failure = array();
+        $success = $failure = array();
         
         // Инстанция на doclog_Documents за да работи on_Shutdown
         cls::get('doclog_Documents');
@@ -265,18 +265,18 @@ class email_FaxSent extends core_Manager
             doclog_Documents::pushAction(
                 array(
                     'containerId' => $rec->containerId,
-                    'threadId'    => $rec->threadId,
-                    'action'      => doclog_Documents::ACTION_FAX, 
-                    'data'        => (object)array(
+                    'threadId' => $rec->threadId,
+                    'action' => doclog_Documents::ACTION_FAX,
+                    'data' => (object) array(
                         'service' => $service,
-                        'faxTo'   => $originalFaxTo,
-                        'sendedBy'   => core_Users::getCurrent(),
+                        'faxTo' => $originalFaxTo,
+                        'sendedBy' => core_Users::getCurrent(),
                     )
                 )
             );
             
             // Подготовка на текста на писмото (HTML & plain text)
-            $rec->__mid = NULL;
+            $rec->__mid = null;
             
             //Текстовата част на факса
             $faxText = core_ET::unEscape($Email->getEmailText($rec, $lg));
@@ -306,7 +306,7 @@ class email_FaxSent extends core_Manager
                 $rec->documents = keylist::fromArray($documents);
             }
             
-            // ... и накрая - изпращане. 
+            // ... и накрая - изпращане.
             $status = $instance->sendFax($rec, $faxTo);
             
             if ($status) {
@@ -341,7 +341,7 @@ class email_FaxSent extends core_Manager
     
     /**
      * Връща интерфейс, който ще се ползва за изпращане на факс
-     * 
+     *
      * @return integer
      */
     public static function getAutoSendIntf()
@@ -356,12 +356,12 @@ class email_FaxSent extends core_Manager
     
     /**
      * Подготовка на формата за изпращане
-     * 
+     *
      * @param stdClass $data - Данните за формата
-     * 
+     *
      * @return stdClass $data - Променените данни на формата
      */
-    function prepareSendForm_($data)
+    public function prepareSendForm_($data)
     {
         $id = Request::get('id', 'int');
         
@@ -377,30 +377,30 @@ class email_FaxSent extends core_Manager
         $data->form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
         
         // Подготвяме лентата с инструменти на формата
-        $data->form->toolbar->addSbBtn('Изпрати', 'send', NULL, array('id'=>'save', 'ef_icon'=>'img/16/move.png', 'title'=>'Изпращане на факса'));
+        $data->form->toolbar->addSbBtn('Изпрати', 'send', null, array('id' => 'save', 'ef_icon' => 'img/16/move.png', 'title' => 'Изпращане на факса'));
         
         // Ако има права за ипзващане на имейл
         if (email_Outgoings::haveRightFor('send')) {
 
             // Показваме бутона за изпращане на имейл
-            $data->form->toolbar->addBtn('Имейл', array('email_Outgoings', 'send', $id, 'ret_url'=>getRetUrl()), 'ef_icon = img/16/email_go.png', 'title=Обратно към имейла');    
+            $data->form->toolbar->addBtn('Имейл', array('email_Outgoings', 'send', $id, 'ret_url' => getRetUrl()), 'ef_icon = img/16/email_go.png', 'title=Обратно към имейла');
         }
         
-        $data->form->toolbar->addBtn('Отказ', getRetUrl(),  'ef_icon = img/16/close-red.png', 'title=Прекратяване на изпращането');
+        $data->form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png', 'title=Прекратяване на изпращането');
 
-        $data->form->input(NULL, 'silent');
+        $data->form->input(null, 'silent');
 
         return $data;
     }
 
     
-	/**
+    /**
      * Извиква се след подготовката на формата за изпращане
-     * 
-     * @param core_Manager $mvc  - 
+     *
+     * @param core_Manager $mvc  -
      * @param stdClass     $data - Данните от формата
      */
-    function on_AfterPrepareSendForm($mvc, &$data)
+    public function on_AfterPrepareSendForm($mvc, &$data)
     {
         expect($data->rec = email_Outgoings::fetch($data->form->rec->id));
 
@@ -415,10 +415,10 @@ class email_FaxSent extends core_Manager
         $currEmailPdf[$Email->getHandle($data->form->rec->id) . '.pdf'] = 'on';
         
         //Обединяваме двата масива
-        $docHandlesArr = array_merge((array)$currEmailPdf, (array)$possibleTypeConv);
+        $docHandlesArr = array_merge((array) $currEmailPdf, (array) $possibleTypeConv);
         
-        if(count($docHandlesArr) > 0) {
-            $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4'); 
+        if (count($docHandlesArr) > 0) {
+            $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4');
             
             $suggestion = array();
             $setDef = array();
@@ -440,15 +440,15 @@ class email_FaxSent extends core_Manager
             $data->form->setSuggestions('documentsSet', $suggestion);
             
             //Задаваме, кои полета да са избрани по подразбиране
-            $data->form->setDefault('documentsSet', $setDef); 
+            $data->form->setDefault('documentsSet', $setDef);
         }
         
         // Добавяне на предложения за прикачени файлове
         $filesArr = $Email->getAttachments($data->rec);
         
-        if(count($filesArr) > 0) {
+        if (count($filesArr) > 0) {
             $data->form->FNC('attachmentsSet', 'set', 'input,caption=Файлове,columns=4');
-            $data->form->setSuggestions('attachmentsSet', $filesArr);   
+            $data->form->setSuggestions('attachmentsSet', $filesArr);
         }
         
         // Масив с всички факсове и имейли
@@ -476,12 +476,12 @@ class email_FaxSent extends core_Manager
     }
     
     
- 	/**
+    /**
      * Изпълнява се след подготвяне на факс формата
-     * 
+     *
      * Проверява дали сме въвели коректен факс
      */
-    function on_AfterInputSendForm($mvc, &$form)
+    public function on_AfterInputSendForm($mvc, &$form)
     {
         // Ако формата е изпратена успешно
         if ($form->isSubmitted()) {
@@ -490,7 +490,7 @@ class email_FaxSent extends core_Manager
             if (!count(drdata_PhoneType::toArray($form->rec->faxTo))) {
                 
                 // Добавяме съобщение за грешка
-                $form->setError('faxTo', "Не сте въвели валиден факс номер.");
+                $form->setError('faxTo', 'Не сте въвели валиден факс номер.');
             }
         }
     }
@@ -498,13 +498,13 @@ class email_FaxSent extends core_Manager
     
     /**
      * Преобразува подадения стринг от факсове в масив
-     * 
+     *
      * @param string $faxTo - Стринг от факсове
-     * 
+     *
      * @return array $toFaxArr - Масив с факсове
      */
-    static function faxToArray($faxTo)
-    {   
+    public static function faxToArray($faxTo)
+    {
         // Преобразуваме стринга в масив с факс номера
         $faxesArr = drdata_PhoneType::toArray($faxTo);
         
@@ -531,12 +531,12 @@ class email_FaxSent extends core_Manager
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако изпращаме
         if ($action == 'send') {

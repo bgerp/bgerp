@@ -32,6 +32,7 @@ class bgerp_plg_Fancybox extends core_Plugin
     {
         // Да сработва само за plain режим
         if (!Mode::is('text', 'plain')) {
+            
             return ;
         }
         

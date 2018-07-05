@@ -16,47 +16,47 @@
  */
 class store_DocumentPackagingDetail extends store_InternalDocumentDetail
 {
-	
-	
-	/**
-	 * Заглавие
-	 */
-	public $title = 'Амбалажи към складови документи';
-	
-	
-	/**
-	 * Име на поле от модела, външен ключ към мастър записа
-	 */
-	public $masterKey = 'documentId';
-	
-	
-	/**
-	 * Дали в листовия изглед да се показва бутона за добавяне
-	 */
-	public $listAddBtn = FALSE;
-	
-	
-	/**
-	 * Заглавие в единствено число
-	 */
-	public $singleTitle = 'Амбалаж';
-	
-	
-	/**
-	 * Плъгини за зареждане
-	 */
-	public $loadList = 'plg_RowTools2, store_Wrapper, plg_SaveAndNew,plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy';
-	
-	
-	/**
-	 * Полета, които ще се показват в листов изглед
-	 */
-	public $listFields = 'productId=Артикул, packagingId, packQuantity,type,packPrice, amount';
-	
-	
-	/**
+    
+    
+    /**
+     * Заглавие
+     */
+    public $title = 'Амбалажи към складови документи';
+    
+    
+    /**
+     * Име на поле от модела, външен ключ към мастър записа
+     */
+    public $masterKey = 'documentId';
+    
+    
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = false;
+    
+    
+    /**
+     * Заглавие в единствено число
+     */
+    public $singleTitle = 'Амбалаж';
+    
+    
+    /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_RowTools2, store_Wrapper, plg_SaveAndNew,plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy';
+    
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'productId=Артикул, packagingId, packQuantity,type,packPrice, amount';
+    
+    
+    /**
      * Кой има право да добавя?
-     * 
+     *
      * @var string|array
      */
     public $canAdd = 'ceo,store,sales,purchase';
@@ -78,24 +78,24 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     public $canList = 'ceo,store,sales,purchase';
     
     
-	/**
-	 * Описание на модела (таблицата)
-	 */
-	public function description()
-	{
-		$this->FLD('documentClassId', 'class', 'column=none,notNull,silent,input=hidden,mandatory');
-		$this->FLD('documentId', 'int', 'column=none,notNull,silent,input=hidden,mandatory');
-		parent::setFields($this);
-		$this->setField('amount', 'smartCenter');
-		$this->FLD('type', 'enum(in=Приемане,out=Предаване)', 'column=none,notNull,silent,mandatory,caption=Действие,after=productId,input=hidden');
-		$this->setDbUnique('documentClassId,documentId,productId,packagingId,type');
-	}
-	
-	
-	/**
+    /**
+     * Описание на модела (таблицата)
+     */
+    public function description()
+    {
+        $this->FLD('documentClassId', 'class', 'column=none,notNull,silent,input=hidden,mandatory');
+        $this->FLD('documentId', 'int', 'column=none,notNull,silent,input=hidden,mandatory');
+        parent::setFields($this);
+        $this->setField('amount', 'smartCenter');
+        $this->FLD('type', 'enum(in=Приемане,out=Предаване)', 'column=none,notNull,silent,mandatory,caption=Действие,after=productId,input=hidden');
+        $this->setDbUnique('documentClassId,documentId,productId,packagingId,type');
+    }
+    
+    
+    /**
      * Подготвя заявката за данните на детайла
      */
-    function prepareDetailQuery_($data)
+    public function prepareDetailQuery_($data)
     {
         // Създаваме заявката
         $data->query = $this->getQuery();
@@ -107,198 +107,204 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     
     /**
      * Взима наличните записи за модела
-     * 
+     *
      * @param mixed $mvc
-     * @param int $id
+     * @param int   $id
      */
     public static function getRecs($mvc, $id)
     {
-    	$class = cls::get($mvc);
-    	$query = self::getQuery();
-    	$query->where("#documentId = '{$id}' AND #documentClassId = {$class->getClassId()}");
-    	
-    	return $query->fetchAll();
+        $class = cls::get($mvc);
+        $query = self::getQuery();
+        $query->where("#documentId = '{$id}' AND #documentClassId = {$class->getClassId()}");
+        
+        return $query->fetchAll();
     }
     
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-    	if($action == 'add'){
-    		if((empty($rec->documentClassId) || empty($rec->documentId))){
-    			$requiredRoles = 'no_one';
-    		} elseif(isset($rec->documentClassId) && isset($rec->documentId)){
-    			$Document = new core_ObjectReference($rec->documentClassId, $rec->documentId);
-    			$dRec = $Document->fetch('state,contragentClassId,contragentId,folderId');
-    			$isCons = cond_Parameters::getParameter($dRec->contragentClassId, $dRec->contragentId, 'consignmentContragents');
-    			
-    			if(!$Document->isInstanceOf('store_DocumentMaster')){
-    				$requiredRoles = 'no_one';
-    			} elseif($isCons !== 'yes'){
-    				$requiredRoles = 'no_one';
-    			} elseif($dRec->state != 'draft'){
-    				$requiredRoles = 'no_one';
-    			} elseif(!self::getPackagingProducts($dRec->folderId, TRUE)){
-    				$requiredRoles = 'no_one';
-    			}
-    		}
-    	}
-    	
-    	// Да не може да се променя ако документа не е чернова
-    	if(($action == 'edit' || $action == 'delete') && isset($rec->documentClassId) && isset($rec->documentId)){
-    		$Document = new core_ObjectReference($rec->documentClassId, $rec->documentId);
-    		if($Document->fetchField('state') != 'draft'){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
+        if ($action == 'add') {
+            if ((empty($rec->documentClassId) || empty($rec->documentId))) {
+                $requiredRoles = 'no_one';
+            } elseif (isset($rec->documentClassId, $rec->documentId)) {
+                $Document = new core_ObjectReference($rec->documentClassId, $rec->documentId);
+                $dRec = $Document->fetch('state,contragentClassId,contragentId,folderId');
+                $isCons = cond_Parameters::getParameter($dRec->contragentClassId, $dRec->contragentId, 'consignmentContragents');
+                
+                if (!$Document->isInstanceOf('store_DocumentMaster')) {
+                    $requiredRoles = 'no_one';
+                } elseif ($isCons !== 'yes') {
+                    $requiredRoles = 'no_one';
+                } elseif ($dRec->state != 'draft') {
+                    $requiredRoles = 'no_one';
+                } elseif (!self::getPackagingProducts($dRec->folderId, true)) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+        
+        // Да не може да се променя ако документа не е чернова
+        if (($action == 'edit' || $action == 'delete') && isset($rec->documentClassId, $rec->documentId)) {
+            $Document = new core_ObjectReference($rec->documentClassId, $rec->documentId);
+            if ($Document->fetchField('state') != 'draft') {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
     /**
-	 * Рендиране на детайла
-	 */
-	public function renderDetail_($data)
-	{
-		if(!count($data->recs)) return new core_ET('');
-		
-		return parent::renderDetail_($data);
-	}
-	
-	
-	/**
-	 * Връща съответния мастер
-	 */
-	function getMasterMvc_($rec)
-	{
-		return cls::get($rec->documentClassId);
-	}
-	
-	
-	/**
-	 * Връща наличния Амбалаж за предаване
-	 * 
-	 * @param string $onlyCount - само бройка или не
-	 * @return int|array
-	 */
-	private static function getPackagingProducts($folderId, $onlyCount = FALSE)
-	{
-		$groupId = cat_Groups::fetchField("#sysId = 'packagings'", 'id');
-		$pQuery = cat_Products::getQuery();
-		$pQuery->where("LOCATE('|{$groupId}|', #groups) AND #state = 'active' AND #canStore = 'yes'");
-		cat_products_SharedInFolders::limitQuery($pQuery, $folderId);
-		$pQuery->show('id,name,isPublic,code');
-		
-		if($onlyCount === TRUE) return $pQuery->count();
-		
-		$options = array();
-		while($pRec = $pQuery->fetch()){
-			$options[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
-		}
-		
-		return $options;
-	}
-	
-	
-	/**
-	 * Достъпните продукти
-	 */
-	protected function getProducts($masterRec)
-	{
-		// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-		$products = self::getPackagingProducts($masterRec->folderId);
-	
-		return $products;
-	}
-	
-	
-	/**
-	 * Преди подготовка на заглавието на формата
-	 */
-	protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
-	{
-		$rec = &$data->form->rec;
-		$data->singleTitle = ($rec->type == 'out') ? 'предаден амбалаж' : 'приет амбалаж';
-	}
-	
-	
-	/**
-	 * Преди показване на форма за добавяне/промяна.
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $data
-	 */
-	public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
-	{
-		$form = &$data->form;
-		
-		if(isset($form->rec->id)){
-			$form->setField('type', 'input');
-		}
-	}
-	
-	
-	/**
-	 * Метод по реализация на определянето на движението генерирано от реда
-	 *
-	 * @param stdClass $rec
-	 * @return string
-	 */
-	public function getBatchMovementDocument($rec)
-	{
-		return isset($rec->type) ? $rec->type : 'out';
-	}
-	
-	
-	/**
-	 * Подготвя записите
-	 *
-	 * За предадените артикули:
-	 * 		Dt: 323. СМЗ на отговорно пазене				    (Контрагенти, Артикули)
-	 *      Ct: 321. Суровини, материали, продукция, стоки	    (Складове, Артикули)
-	 *
-	 * За върнатите артикули:
-	 * 		Dt: 321. Суровини, материали, продукция, стоки		(Складове, Артикули)
-	 *      Ct: 323. СМЗ на отговорно пазене					(Контрагенти, Артикули)
-	 */
-	public static function getEntries($mvc, $rec, $isReverse = FALSE)
-	{
-		$entries = array();
-		$sign = 1;//($isReverse) ? -1 : 1;
-		
-		$recs = self::getRecs($mvc->getClassId(), $rec->id);
-		
-		$dQuery = store_DocumentPackagingDetail::getQuery();
-		$dQuery->where("#documentClassId = {$mvc->getClassId()} AND #documentId = {$rec->id}");
-		while($dRec = $dQuery->fetch()){
-			$quantity = $dRec->quantityInPack * $dRec->packQuantity;
-			$arr323 = array('323', array($rec->contragentClassId, $rec->contragentId),
-								   array('cat_Products', $dRec->productId),
-							       'quantity' => $sign * $quantity);
-			
-			$arr321 = array('321', array('store_Stores', $rec->storeId),
-								   array('cat_Products', $dRec->productId),
-							       'quantity' => $sign * $quantity);
-			
-			if($dRec->type == 'in'){
-				$entry = array('debit' => $arr321, 'credit' => $arr323);
-			} else {
-				$entry = array('debit' => $arr323, 'credit' => $arr321);
-			}
-			
-			$entries[] = $entry;
-		}
-	
-		return $entries;
-	}
-	
-	
-	/**
-	 * След преобразуване на записа в четим за хора вид
-	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-	{
-		$row->type = "<div class='centered'>{$row->type}</div>";
-	}
+     * Рендиране на детайла
+     */
+    public function renderDetail_($data)
+    {
+        if (!count($data->recs)) {
+            
+            return new core_ET('');
+        }
+        
+        return parent::renderDetail_($data);
+    }
+    
+    
+    /**
+     * Връща съответния мастер
+     */
+    public function getMasterMvc_($rec)
+    {
+        return cls::get($rec->documentClassId);
+    }
+    
+    
+    /**
+     * Връща наличния Амбалаж за предаване
+     *
+     * @param  string    $onlyCount - само бройка или не
+     * @return int|array
+     */
+    private static function getPackagingProducts($folderId, $onlyCount = false)
+    {
+        $groupId = cat_Groups::fetchField("#sysId = 'packagings'", 'id');
+        $pQuery = cat_Products::getQuery();
+        $pQuery->where("LOCATE('|{$groupId}|', #groups) AND #state = 'active' AND #canStore = 'yes'");
+        cat_products_SharedInFolders::limitQuery($pQuery, $folderId);
+        $pQuery->show('id,name,isPublic,code');
+        
+        if ($onlyCount === true) {
+            
+            return $pQuery->count();
+        }
+        
+        $options = array();
+        while ($pRec = $pQuery->fetch()) {
+            $options[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+        }
+        
+        return $options;
+    }
+    
+    
+    /**
+     * Достъпните продукти
+     */
+    protected function getProducts($masterRec)
+    {
+        // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
+        $products = self::getPackagingProducts($masterRec->folderId);
+    
+        return $products;
+    }
+    
+    
+    /**
+     * Преди подготовка на заглавието на формата
+     */
+    protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
+    {
+        $rec = &$data->form->rec;
+        $data->singleTitle = ($rec->type == 'out') ? 'предаден амбалаж' : 'приет амбалаж';
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
+    {
+        $form = &$data->form;
+        
+        if (isset($form->rec->id)) {
+            $form->setField('type', 'input');
+        }
+    }
+    
+    
+    /**
+     * Метод по реализация на определянето на движението генерирано от реда
+     *
+     * @param  stdClass $rec
+     * @return string
+     */
+    public function getBatchMovementDocument($rec)
+    {
+        return isset($rec->type) ? $rec->type : 'out';
+    }
+    
+    
+    /**
+     * Подготвя записите
+     *
+     * За предадените артикули:
+     * 		Dt: 323. СМЗ на отговорно пазене				    (Контрагенти, Артикули)
+     *      Ct: 321. Суровини, материали, продукция, стоки	    (Складове, Артикули)
+     *
+     * За върнатите артикули:
+     * 		Dt: 321. Суровини, материали, продукция, стоки		(Складове, Артикули)
+     *      Ct: 323. СМЗ на отговорно пазене					(Контрагенти, Артикули)
+     */
+    public static function getEntries($mvc, $rec, $isReverse = false)
+    {
+        $entries = array();
+        $sign = 1;//($isReverse) ? -1 : 1;
+        
+        $recs = self::getRecs($mvc->getClassId(), $rec->id);
+        
+        $dQuery = store_DocumentPackagingDetail::getQuery();
+        $dQuery->where("#documentClassId = {$mvc->getClassId()} AND #documentId = {$rec->id}");
+        while ($dRec = $dQuery->fetch()) {
+            $quantity = $dRec->quantityInPack * $dRec->packQuantity;
+            $arr323 = array('323', array($rec->contragentClassId, $rec->contragentId),
+                                   array('cat_Products', $dRec->productId),
+                                   'quantity' => $sign * $quantity);
+            
+            $arr321 = array('321', array('store_Stores', $rec->storeId),
+                                   array('cat_Products', $dRec->productId),
+                                   'quantity' => $sign * $quantity);
+            
+            if ($dRec->type == 'in') {
+                $entry = array('debit' => $arr321, 'credit' => $arr323);
+            } else {
+                $entry = array('debit' => $arr323, 'credit' => $arr321);
+            }
+            
+            $entries[] = $entry;
+        }
+    
+        return $entries;
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        $row->type = "<div class='centered'>{$row->type}</div>";
+    }
 }

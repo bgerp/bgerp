@@ -31,7 +31,7 @@ class fconv_Remote extends core_Manager
     /**
      * Заглавие на модула
      */
-    public $title = "Отдалечени системи за конвертиране";
+    public $title = 'Отдалечени системи за конвертиране';
     
     
     /**
@@ -43,7 +43,7 @@ class fconv_Remote extends core_Manager
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('command', 'varchar(ci)', 'caption=Команда, mandatory');
         $this->FLD('address', 'url', 'caption=Адрес, mandatory');
@@ -55,42 +55,42 @@ class fconv_Remote extends core_Manager
     /**
      * Проверва дали програмта може да се пусне отдалечено
      * Дали текущия хост не е в частна мрежа и дали има такава команда и адрес
-     * 
+     *
      * @param string $commandName
-     * 
+     *
      * return boolean
      */
     public static function canRunRemote($commandName)
     {
-        
-        return (boolean)(fconv_Remote::getRemoteCommand($commandName));
+        return (boolean) (fconv_Remote::getRemoteCommand($commandName));
     }
     
     
     /**
      * Връща запис за отдалечената команда
-     * 
+     *
      * @param string $commandName
-     * 
+     *
      * @return FALSE|stdClass
      */
     public static function getRemoteCommand($commandName)
     {
-        
         return self::fetch(array("#command = '[#1#]'", $commandName));
     }
     
     
     /**
      * Подготвя файловете, които ще се използват при отдалечено конвертиране
-     * 
+     *
      * @param unknown $scriptInst
      */
     public static function prepareFiles(&$scriptInst)
     {
         foreach ($scriptInst->files as $key => &$file) {
             if (strstr($file, '/')) {
-                if (!is_file($file)) continue;
+                if (!is_file($file)) {
+                    continue;
+                }
                 
                 $scriptInst->fileName[$key] = basename($file);
                 $file = fileman_Download::getDownloadUrl($file, '1', 'path');
@@ -105,9 +105,9 @@ class fconv_Remote extends core_Manager
     /**
      * Callback функция, която се вика след приключване на конвертирането
      * Подготвя конвертираните файлове за сваляне и извиква URL към инициатора на събонитето с подадените файлове
-     * 
+     *
      * @param stdClass $script
-     * 
+     *
      * @return string
      */
     public static function afterRemoteConv($script)
@@ -123,7 +123,7 @@ class fconv_Remote extends core_Manager
     
     /**
      * Сваля подадения файл от URL-то във файла
-     * 
+     *
      * @param string $fPath
      * @param string $url
      */
@@ -134,14 +134,14 @@ class fconv_Remote extends core_Manager
         $dir = dirname($fPath);
         
         if (!is_dir($dir)) {
-            mkdir($dir, 0777, TRUE);
+            mkdir($dir, 0777, true);
         }
         
         expect(is_dir($dir) && is_writable($dir));
         
         core_App::setTimeLimit(300);
         $fp = fopen($fPath, 'w+'); // Отваряме файл във временната директория където ще се копира
-        $curl = curl_init(str_replace(" ","%20", $url));
+        $curl = curl_init(str_replace(' ', '%20', $url));
         curl_setopt($curl, CURLOPT_TIMEOUT, 50);
         curl_setopt($curl, CURLOPT_FILE, $fp); // записваме отговора във временния файл
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
@@ -153,12 +153,11 @@ class fconv_Remote extends core_Manager
     
     /**
      * Връща пътя до директорията, където ще се свалят файловете преди конвертиране
-     * 
+     *
      * @return string
      */
     protected static function getRemoteDownloadedPath()
     {
-        
         return fconv_Setup::get('TEMP_PATH') . '/' . self::$remoteDownloadedFilesDir;
     }
     
@@ -166,7 +165,7 @@ class fconv_Remote extends core_Manager
     /**
      * Подготвя отдалечените файлове
      * Сваля файловете в директотирията и ги сетва в новия скрипт
-     * 
+     *
      * @param stdClass $scripInst
      * @param stdClass $nScript
      */
@@ -189,7 +188,7 @@ class fconv_Remote extends core_Manager
     
     /**
      * Подготвя пътищата до изпълнимите програми
-     * 
+     *
      * @param stdClass $scriptObj
      * @param stdClass $nScriptObj
      */
@@ -198,17 +197,20 @@ class fconv_Remote extends core_Manager
         $resArr = array();
         
         foreach ($scriptObj->programPaths as $clsName => $paramName) {
-            
             $clsInst = cls::get($clsName);
             
-            foreach ((array)$clsInst->$paramName as $name => $path) {
+            foreach ((array) $clsInst->$paramName as $name => $path) {
                 list($cls, $val) = explode('::', $path);
-                if (!cls::load($cls, TRUE)) continue;
+                if (!cls::load($cls, true)) {
+                    continue;
+                }
                 
                 $clsInst = cls::get($cls);
-                $bPath = $clsInst->get($val, TRUE);
+                $bPath = $clsInst->get($val, true);
                 
-                if (!$bPath) continue;
+                if (!$bPath) {
+                    continue;
+                }
                 
                 $nScriptObj->setProgram($name, $bPath);
             }
@@ -218,7 +220,7 @@ class fconv_Remote extends core_Manager
     
     /**
      * Подготвя папките
-     * 
+     *
      * @param stdClass $scriptObj
      * @param stdClass $nScriptObj
      */
@@ -232,7 +234,7 @@ class fconv_Remote extends core_Manager
     
     /**
      * Подготвя параметрите за програмата
-     * 
+     *
      * @param stdClass $scriptObj
      * @param stdClass $nScriptObj
      */
@@ -246,7 +248,7 @@ class fconv_Remote extends core_Manager
     
     /**
      * Подготвя реда, който ще се стартира
-     * 
+     *
      * @param stdClass $scriptObj
      * @param stdClass $nScriptObj
      */
@@ -255,9 +257,11 @@ class fconv_Remote extends core_Manager
         foreach ($scriptObj->cmdLine as $key => $val) {
             
             // Ако няма да се добавя при отдалечено стартиране
-            if ($scriptObj->lineParams[$key]['skipOnRemote']) continue;
+            if ($scriptObj->lineParams[$key]['skipOnRemote']) {
+                continue;
+            }
             
-            $val = $nScriptObj->getCmdLine($val, FALSE);
+            $val = $nScriptObj->getCmdLine($val, false);
             
             $lineParam = str_replace($scriptObj->tempDir, $nScriptObj->tempDir, $scriptObj->lineParams[$key]);
             $nScriptObj->lineExec($val, $lineParam);
@@ -267,9 +271,9 @@ class fconv_Remote extends core_Manager
     
     /**
      * Подготвя конвертираните файлове, като връща името и линк за сваляне
-     * 
+     *
      * @param stdClass $script
-     * 
+     *
      * @return array
      */
     protected static function prepareConvertedFiles($script)
@@ -283,7 +287,6 @@ class fconv_Remote extends core_Manager
             // RecursiveIteratorIterator::SELF_FIRST - Служи за вземане и на директориите
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($tempDir), RecursiveIteratorIterator::SELF_FIRST);
         } catch (ErrorException $e) {
-        
             reportException($e);
         
             return $res;
@@ -299,7 +302,7 @@ class fconv_Remote extends core_Manager
         $tempDir = rtrim($tempDir, '/');
 
         // Обхождаме итератора
-        while($iterator->valid()) {
+        while ($iterator->valid()) {
         
             // Вземаме името на файла
             $fileName = $iterator->key();
@@ -325,7 +328,6 @@ class fconv_Remote extends core_Manager
             
             // Ако е директория
             if (!$iterator->isDir()) {
-                
                 $fPath = $path . '/' . $fileName;
                 
                 // Ако е зададено да се прескача и да не се връща файла обратно към инициатора
@@ -349,7 +351,7 @@ class fconv_Remote extends core_Manager
      * Стартира конвертирането на файла
      * Вика се отдалечено (автоматично) от инициатора на конвертирането
      */
-    function act_Convert()
+    public function act_Convert()
     {
         $script = Request::get('script');
         
@@ -384,7 +386,7 @@ class fconv_Remote extends core_Manager
      * Сваля файловете в директорията и извиква първоначалната callback функция,
      * която знае какво да прави с файловете
      */
-    function act_AfterConvertCallback()
+    public function act_AfterConvertCallback()
     {
         $pid = Request::get('pid');
         $files = Request::get('files');
@@ -397,20 +399,18 @@ class fconv_Remote extends core_Manager
         
         $filesArr = core_Crypt::decodeVar($files, fconv_Setup::get('SALT'));
         
-        expect($filesArr !== FALSE);
+        expect($filesArr !== false);
         
         $scriptObj = unserialize($rRec->script);
         
         // Създаваме същата директория (и свяля файловете), които биха се получили при локална обработка
         // Това е с цел callBack функцията да работи коректно
         foreach ($filesArr as $dir => $files) {
-            
             $path = rtrim($scriptObj->tempDir, '/');
             $path .= $dir;
-            expect(mkdir($path, 0777, TRUE));
+            expect(mkdir($path, 0777, true));
             
             foreach ($files as $fName => $fUrl) {
-                
                 $path = rtrim($path, '/');
                 $fPath = $path . '/' . $fName;
                 self::downloadFilesFromUrl($fPath, $fUrl);
@@ -426,25 +426,30 @@ class fconv_Remote extends core_Manager
     
     /**
      * Функция, която се изпълнява от крона и изтрива старите свалени файлове
-     * 
+     *
      * @return void|string
      */
-    function cron_DeleteOldDir()
+    public function cron_DeleteOldDir()
     {
         $dirName = self::getRemoteDownloadedPath();
         
-        if (!is_dir($dirName) || !is_readable($dirName)) return ;
+        if (!is_dir($dirName) || !is_readable($dirName)) {
+            
+            return ;
+        }
         
         $delCnt = core_Os::deleteOldFiles($dirName, 2 * 60 * 60);
         
-        if($delCnt) {
+        if ($delCnt) {
             $res = "<li class=\"green\">Изтрити са {$delCnt} файла в {$dirName}</li>";
             
             // След изтвиване, ако има директории без файлове - премахваме ги
             $allFiles = core_Os::listFiles($dirName);
-            foreach ((array)$allFiles['dirs'] as $dPath) {
+            foreach ((array) $allFiles['dirs'] as $dPath) {
                 $dPathList = core_Os::listFiles($dPath);
-                if (!empty($dPathList['files'])) continue;
+                if (!empty($dPathList['files'])) {
+                    continue;
+                }
                 
                 core_Os::deleteDir($dPath);
             }
@@ -456,11 +461,11 @@ class fconv_Remote extends core_Manager
     
     /**
      * Изпълнява се след създаването на модела
-     * 
+     *
      * @param fconv_Remote $mvc
-     * @param string $res
+     * @param string       $res
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         //Данни за работата на cron
         $rec = new stdClass();

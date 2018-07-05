@@ -3,8 +3,8 @@
 
 
 /**
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   googlecharts
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
@@ -23,14 +23,13 @@ class googlecharts_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "Изчертаване на графики във вид на торти, линии и барове. Поддържат се и серии за сравнения";
+    public $info = 'Изчертаване на графики във вид на торти, линии и барове. Поддържат се и серии за сравнения';
 
 
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
         'googlecharts_Adapter'
     );
-
 }

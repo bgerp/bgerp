@@ -1,30 +1,29 @@
 <?php
 
-require "File/IMC.php";
+require 'File/IMC.php';
 
 ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . __DIR__);
 
 class pear_Vcard
 {
-
     protected static $partMaps = array(
 
         'ADR' => array(
-            'pobox'    => 0,
-            'ext'      => 1,
-            'street'   => 2,
+            'pobox' => 0,
+            'ext' => 1,
+            'street' => 2,
             'locality' => 3,
-            'region'   => 4,
-            'code'     => 5,
-            'country'  => 6,
+            'region' => 4,
+            'code' => 5,
+            'country' => 6,
         ),
 
         'N' => array(
-            'surname'    => 0,
-            'given'      => 1,
+            'surname' => 0,
+            'given' => 1,
             'additional' => 2,
-            'prefix'     => 3,
-            'suffix'     => 4,
+            'prefix' => 3,
+            'suffix' => 4,
         ),
 
     );
@@ -133,12 +132,12 @@ class pear_Vcard
     /**
      * Структурирано име на лицето
      *
-     * @param string $part 'surname' | 'given' | 'additional' | 'prefix' | 'suffix' | NULL
-     *                 Ако е NULL връща всички полета на структурата
+     * @param  string       $part 'surname' | 'given' | 'additional' | 'prefix' | 'suffix' | NULL
+     *                            Ако е NULL връща всички полета на структурата
      * @return string|array Ако $part е NULL - масив от всички полета; иначе стринг със
-     *                         стойността на полето $part
+     *                           стойността на полето $part
      */
-    public function getName($part = NULL)
+    public function getName($part = null)
     {
         $name = $this->getStructProp('N', $part);
 
@@ -174,7 +173,7 @@ class pear_Vcard
     /**
      * Дата на раждане
      *
-     * @param string $format PHP date() формат на датата
+     * @param  string $format PHP date() формат на датата
      * @return string YYYY-mm-dd
      */
     public function getBday($format = 'Y-m-d')
@@ -189,7 +188,7 @@ class pear_Vcard
 
             $bday = date($format, strtotime($bday));
         } else {
-            $bday = NULL;
+            $bday = null;
         }
 
         return $bday;
@@ -200,17 +199,17 @@ class pear_Vcard
      * Телефоните на лицето групирани по тип
      *
      * @param array|string $types списък от типове телефони, които се търсят.
-     *                             Възможните стойности за тип са 'home', 'msg', 'work', 'pref',
-     *                             'voice', 'fax', 'cell', 'video', 'pager', 'bbs', 'modem',
-     *                             'car', 'isdn', 'pcs'
-     *                             Ако е NULL - метода връща телефоните от всички типове налични
-     *                             във визитката.
+     *                            Възможните стойности за тип са 'home', 'msg', 'work', 'pref',
+     *                            'voice', 'fax', 'cell', 'video', 'pager', 'bbs', 'modem',
+     *                            'car', 'isdn', 'pcs'
+     *                            Ако е NULL - метода връща телефоните от всички типове налични
+     *                            във визитката.
      * @link http://tools.ietf.org/html/rfc2426#section-3.3.1
      * @return array ако е зададен точно един тип, масива съдържа всички налични телефони от
-     *                 този тип; в противен случай - масив с ключ тип и стойност - масив от
-     *                 телефони от този тип.
+     *               този тип; в противен случай - масив с ключ тип и стойност - масив от
+     *               телефони от този тип.
      */
-    public function getTel($types = NULL)
+    public function getTel($types = null)
     {
         return $this->getScalarProp('TEL', $types);
     }
@@ -238,13 +237,13 @@ class pear_Vcard
     /**
      * Части от или целите структурирани адреси, групирани по тип
      *
-     * @param string $part - коя част от структурата? Възможностите са
-     *                         'pobox' | 'ext' | 'street' | 'locality' | 'region' | 'code' |
-     *                         'country' | NULL
-     * @param array|string $types
-     * @return Ambigous <NULL, multitype:, mixed>
+     * @param  string       $part  - коя част от структурата? Възможностите са
+     *                             'pobox' | 'ext' | 'street' | 'locality' | 'region' | 'code' |
+     *                             'country' | NULL
+     * @param  array|string $types
+     * @return Ambigous     <NULL, multitype:, mixed>
      */
-    public function getAddress($part = NULL, $types = NULL)
+    public function getAddress($part = null, $types = null)
     {
         return $this->getStructProp('ADR', $part, $types);
     }
@@ -253,10 +252,10 @@ class pear_Vcard
     /**
      * Адресите на лицето в свободен текст, групирани по тип
      *
-     * @param array|string $types
+     * @param  array|string $types
      * @return array
      */
-    public function getAddressLabel($types = NULL)
+    public function getAddressLabel($types = null)
     {
         return $this->getScalarProp('LABEL', $types);
     }
@@ -265,11 +264,11 @@ class pear_Vcard
     /**
      * Организацията (фирмата) на лицето.
      *
-     * @param boolean $bFull
+     * @param  boolean      $bFull
      * @return string|array ако $bFull == FALSE - връща стринг с името на организацията;
-     *                      ако $bFull == TRUE  - връща масив с името и евентуални подразделения
+     *                            ако $bFull == TRUE  - връща масив с името и евентуални подразделения
      */
-    public function getOrganisation($bFull = FALSE)
+    public function getOrganisation($bFull = false)
     {
         $org = $this->getStructProp('ORG');
 
@@ -396,7 +395,7 @@ class pear_Vcard
 
         $str = is_array($str) ? array_values($str) : array($str);
 
-        foreach ($str as $i=>$val) {
+        foreach ($str as $i => $val) {
             $this->builder->setValue('ORG', 0, $i, $val);
         }
     }
@@ -429,20 +428,20 @@ class pear_Vcard
     }
 
 
-    protected function getScalarProp($name, $types = NULL)
+    protected function getScalarProp($name, $types = null)
     {
-        $name   = strtoupper($name);
+        $name = strtoupper($name);
 
         if (!isset($this->data[$name])) {
-            return NULL;
+            return;
         }
 
         $result = array();
 
-        $types = arr::make($types, TRUE);
+        $types = arr::make($types, true);
 
         foreach ($this->data[$name] as $entry) {
-            $value  = implode(', ', $entry['value'][0]);
+            $value = implode(', ', $entry['value'][0]);
 
             if (empty($entry['param']['TYPE'])) {
                 if (empty($types)) {
@@ -451,7 +450,7 @@ class pear_Vcard
                     continue;
                 }
             } else {
-                foreach ($entry['param']['TYPE'] as $i=>$t) {
+                foreach ($entry['param']['TYPE'] as $i => $t) {
                     $t = strtolower($t);
                     if (empty($types) || isset($types[$t])) {
                         $result[$t][] = $value;
@@ -468,12 +467,12 @@ class pear_Vcard
     }
 
 
-    protected function getStructProp($name, $part = NULL, $types = NULL)
+    protected function getStructProp($name, $part = null, $types = null)
     {
         $name = strtoupper($name);
 
         if (!isset($this->data[$name])) {
-            return NULL;
+            return;
         }
 
         // Или се искат всички части на структурата или часта, която се иска задължително
@@ -481,10 +480,9 @@ class pear_Vcard
         expect(!isset($part) || isset(static::$partMaps[$name][$part]));
 
         $result = array();
-        $types = arr::make($types, TRUE);
+        $types = arr::make($types, true);
 
         foreach ($this->data[$name] as $i => $entry) {
-
             $vtypes = array();
 
             if (empty($entry['param']['TYPE'])) {
@@ -511,13 +509,13 @@ class pear_Vcard
                 $value = implode(',', $values[$partsMap[$part]]);
             } else {
                 $value = array();
-                $pm    = array_flip($partsMap);
-                foreach ($values as $i=>$v) {
+                $pm = array_flip($partsMap);
+                foreach ($values as $i => $v) {
                     $value[$pm[$i]] = implode(',', $v);
                 }
             }
 
-            foreach ($vtypes as $i=>$t) {
+            foreach ($vtypes as $i => $t) {
                 $t = strtolower($t);
                 if (empty($types) || isset($types[$t])) {
                     $result[$t][] = $value;
@@ -543,8 +541,8 @@ class pear_Vcard
     /**
      * Зарежда една или повече виз. карт. от файл
      *
-     * @param string $fileName
-     * @return array масив от pear_Vcard-обекти
+     * @param  string $fileName
+     * @return array  масив от pear_Vcard-обекти
      */
     public static function parseFile($fileName)
     {
@@ -555,7 +553,7 @@ class pear_Vcard
         try {
             $cardinfo = $parse->fromFile($fileName);
         } catch (core_exception_Expect $e) {
-            expect(FALSE, 'VCF файлът не може да бъде парсиран');
+            expect(false, 'VCF файлът не може да бъде парсиран');
         }
 
         return static::initFromParsed($cardinfo);
@@ -565,8 +563,8 @@ class pear_Vcard
     /**
      * Зарежда една или повече виз. карт. от стринг
      *
-     * @param string $str
-     * @return array масив от pear_Vcard-обекти
+     * @param  string $str
+     * @return array  масив от pear_Vcard-обекти
      */
     public static function parseString($str)
     {
@@ -585,7 +583,7 @@ class pear_Vcard
         $out = array();
 
         foreach ($vcards as $vcard) {
-            $out[] = (string)$vcard;
+            $out[] = (string) $vcard;
         }
 
         $out = implode("\n\n", $out);
@@ -599,13 +597,13 @@ class pear_Vcard
     }
 
 
-    protected function __construct($parsed = NULL)
+    protected function __construct($parsed = null)
     {
         $this->builder = File_IMC::build('vCard');
-        $this->data    = &$this->builder->value;
+        $this->data = &$this->builder->value;
 
         if (isset($parsed)) {
-            foreach ($parsed as $n=>$v) {
+            foreach ($parsed as $n => $v) {
                 $this->data[$n] = $v;
             }
         }
@@ -613,7 +611,7 @@ class pear_Vcard
 
 
     /**
-     * @param array $cardinfo резултат от парсиране
+     * @param  array $cardinfo резултат от парсиране
      * @return array масив от pear_Vcard-обекти
      */
     protected static function initFromParsed($cardinfo)
@@ -621,7 +619,7 @@ class pear_Vcard
         $vcards = array();
         
         if ($cardinfo['VCARD']) {
-            foreach ((array)$cardinfo['VCARD'] as $c) {
+            foreach ((array) $cardinfo['VCARD'] as $c) {
                 $vcards[] = new self($c);
             }
         }
@@ -633,7 +631,7 @@ class pear_Vcard
     /**
      * Конвертира дата-време към TIMESTAMP
      *
-     * @param string $str
+     * @param  string $str
      * @return int
      */
     protected static function toTimestamp($str)
@@ -648,7 +646,7 @@ class pear_Vcard
 
     protected function addBuildParams($params)
     {
-        foreach ($params as $name=>$vals) {
+        foreach ($params as $name => $vals) {
             if (is_array($vals)) {
                 $vals = array_unique($vals);
                 foreach ($vals as $val) {

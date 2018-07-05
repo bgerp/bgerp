@@ -2,8 +2,8 @@
 
 
 /**
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   doc
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -16,7 +16,7 @@ class cal_LinkedPostponed extends core_Mvc
     
     
     /**
-     * 
+     *
      * @var string
      */
     public $interfaces = 'doc_LinkedIntf';
@@ -25,7 +25,7 @@ class cal_LinkedPostponed extends core_Mvc
     /**
      * Заглавие
      */
-    public $title = "Създаване на отложена задача от връзка";
+    public $title = 'Създаване на отложена задача от връзка';
     
     
     /**
@@ -35,9 +35,8 @@ class cal_LinkedPostponed extends core_Mvc
      *
      * @return array
      */
-    function getActivitiesForDocument($cId)
+    public function getActivitiesForDocument($cId)
     {
-        
         return $this->getActivitiesFor();
     }
     
@@ -49,9 +48,8 @@ class cal_LinkedPostponed extends core_Mvc
      *
      * @return array
      */
-    function getActivitiesForFile($cId)
+    public function getActivitiesForFile($cId)
     {
-        
         return $this->getActivitiesFor('file');
     }
     
@@ -60,12 +58,11 @@ class cal_LinkedPostponed extends core_Mvc
      * Подготвяне на формата за документ
      *
      * @param core_Form $form
-     * @param integer $cId
-     * @param string $activity
+     * @param integer   $cId
+     * @param string    $activity
      */
-    function prepareFormForDocument(&$form, $cId, $activity)
+    public function prepareFormForDocument(&$form, $cId, $activity)
     {
-        
         return $this->prepareFormFor($form, $cId, $activity);
     }
     
@@ -74,12 +71,11 @@ class cal_LinkedPostponed extends core_Mvc
      * Подготвяне на формата за файл
      *
      * @param core_Form $form
-     * @param integer $cId
-     * @param string $activity
+     * @param integer   $cId
+     * @param string    $activity
      */
-    function prepareFormForFile(&$form, $cId, $activity)
+    public function prepareFormForFile(&$form, $cId, $activity)
     {
-        
         return $this->prepareFormFor($form, $cId, $activity, 'file');
     }
     
@@ -88,14 +84,13 @@ class cal_LinkedPostponed extends core_Mvc
      * След субмитване на формата за документ
      *
      * @param core_Form $form
-     * @param integer $cId
-     * @param string $activity
-     * 
+     * @param integer   $cId
+     * @param string    $activity
+     *
      * @return mixed
      */
-    function doActivityForDocument(&$form, $cId, $activity)
+    public function doActivityForDocument(&$form, $cId, $activity)
     {
-        
         return $this->doActivityFor($form, $cId, $activity, 'doc');
     }
     
@@ -104,29 +99,27 @@ class cal_LinkedPostponed extends core_Mvc
      * След субмитване на формата за файл
      *
      * @param core_Form $form
-     * @param integer $cId
-     * @param string $activity
-     * 
+     * @param integer   $cId
+     * @param string    $activity
+     *
      * @return mixed
      */
-    function doActivityForFile(&$form, $cId, $activity)
+    public function doActivityForFile(&$form, $cId, $activity)
     {
-        
         return $this->doActivityFor($form, $cId, $activity, 'file');
     }
     
     
     /**
      * Помощна функция за вземане на шаблоните
-     * 
-     * @param core_Query $query
+     *
+     * @param core_Query   $query
      * @param NULL|integer $userId
-     * 
+     *
      * @return array
      */
     protected function getActivitiesFor($type = 'doc')
     {
-        
         return array(get_called_class() => 'Отложена задача');
     }
     
@@ -135,79 +128,90 @@ class cal_LinkedPostponed extends core_Mvc
      * Подготвяне на формата за документ
      *
      * @param core_Form $form
-     * @param integer $cId
-     * @param string $activity
+     * @param integer   $cId
+     * @param string    $activity
      */
     protected function prepareFormFor(&$form, $cId, $activity, $type = 'doc')
     {
-        if ($activity != get_called_class()) return ;
+        if ($activity != get_called_class()) {
+            
+            return ;
+        }
         
         $key = $cId . '|' . $activity;
         
         static $preparedArr = array();
         
-        if ($preparedArr[$key]) return ;
+        if ($preparedArr[$key]) {
+            
+            return ;
+        }
         
         $form->FNC('date', 'date', 'caption=Дата,class=w100, input=input, silent');
         $form->setDefault('date', cal_Calendar::nextWorkingDay());
         
-        $form->FNC('folderId', "key2(mvc=doc_Folders, restrictViewAccess=yes, allowEmpty)", 'caption=Папка,class=w100, input=input, silent');
+        $form->FNC('folderId', 'key2(mvc=doc_Folders, restrictViewAccess=yes, allowEmpty)', 'caption=Папка,class=w100, input=input, silent');
         $form->setDefault('folderId', doc_Folders::getDefaultFolder(core_Users::getCurrent()));
         
-        $preparedArr[$key] = TRUE;
+        $preparedArr[$key] = true;
     }
     
     
     /**
      * Помощна функця за след субмитване на формата
-     * 
+     *
      * @param core_Form $form
-     * @param integer $cId
-     * @param string $activity
-     * @param string $type
-     * 
+     * @param integer   $cId
+     * @param string    $activity
+     * @param string    $type
+     *
      * @return mixed
      */
     protected function doActivityFor(&$form, $cId, $activity, $type = 'doc')
     {
-        if ($activity != get_called_class()) return ;
+        if ($activity != get_called_class()) {
+            
+            return ;
+        }
         
-        if (!$form->isSubmitted()) return ;
+        if (!$form->isSubmitted()) {
+            
+            return ;
+        }
         
         $cu = core_Users::getCurrent();
         
         $rec = $form->rec;
         
-        $redirectUrl = array('cal_Tasks', 'add', 'foreignId' => $cId, 'ret_url' => TRUE);
+        $redirectUrl = array('cal_Tasks', 'add', 'foreignId' => $cId, 'ret_url' => true);
         
         try {
             $document = doc_Containers::getDocument($cId);
             $dRow = $document->getDocumentRow();
             $title = $dRow->recTitle ? $dRow->recTitle : $dRow->title;
             
-            $redirectUrl['title'] = tr("За") . ': ' . $title;
+            $redirectUrl['title'] = tr('За') . ': ' . $title;
         } catch (core_exception_Expect $e) {
             reportException($e);
         }
         
-        $haveFolder = FALSE;
+        $haveFolder = false;
         
         if ($rec->folderId) {
             $redirectUrl['folderId'] = $rec->folderId;
-            $haveFolder = TRUE;
+            $haveFolder = true;
         }
         
         // Ако има дата
         if ($rec->date) {
-            
             Mode::push('text', 'plain');
             $date = dt::mysql2verbal($rec->date, 'd.m.Y');
             $wDay = dt::mysql2verbal($rec->date, 'N');
-            $wDayStr = tr(core_DateTime::$weekDays[$wDay-1]);
+            $wDayStr = tr(core_DateTime::$weekDays[$wDay - 1]);
             $nick = core_Users::getCurrent('nick');
             Mode::pop('text');
             
-            $redirectUrl['title'] = tr("Задачи за") . ' ' . $date . '/' . $wDayStr . '/' . $nick;
+            $redirectUrl['title'] = tr('Задачи за') . ' ' . $date . '/' . $wDayStr . '/' . $nick;
             $redirectUrl['timeStart'] = dt::verbal2mysql($date . ' 08:00:00');
             
             // Проверяваме дали същата задача не е създадена
@@ -222,7 +226,7 @@ class cal_LinkedPostponed extends core_Mvc
             
             $query->orderBy('createdOn', 'DESC');
             
-            $lastRec = NULL;
+            $lastRec = null;
             while ($oRec = $query->fetch()) {
                 // Ако към същата задача се добавя същия документ
                 if (doc_Linked::fetch(array("#outType = 'doc' AND #outVal = '[#1#]' AND #inType = 'doc' AND #inVal = '[#2#]'", $cId, $oRec->containerId))) {
@@ -246,7 +250,6 @@ class cal_LinkedPostponed extends core_Mvc
                 $Linked->onSubmitFormForAct($form, 'linkDoc', 'doc', $cId, $form->rec->act, $redirectUrl);
                 
                 if ($form->isSubmitted()) {
-                    
                     $retUrl = getRetUrl();
                     if (empty($retUrl)) {
                         $retUrl = $document->getSingleUrlArray();
@@ -262,7 +265,7 @@ class cal_LinkedPostponed extends core_Mvc
                 
                 if ($dRec) {
                     $redirectUrl['threadId'] = $dRec->threadId;
-                    $haveFolder = TRUE;
+                    $haveFolder = true;
                 }
             }
         }

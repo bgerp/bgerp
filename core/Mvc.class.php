@@ -141,7 +141,7 @@ class core_Mvc extends core_FieldSet
      * е вече свързан към базата.
      */
     public function init($params = array())
-    {   
+    {
         // Сетваме параметрите по родителския начин
         parent::init($params);
 
@@ -266,6 +266,7 @@ class core_Mvc extends core_FieldSet
 
             if (isset($me->_cachedRecords[$cacheKey])) {
                 if (is_object($me->_cachedRecords[$cacheKey])) {
+                    
                     return clone ($me->_cachedRecords[$cacheKey]);
                 }
 
@@ -416,6 +417,7 @@ class core_Mvc extends core_FieldSet
         }
 
         if (!$this->db->query($query)) {
+            
             return false;
         }
          
@@ -439,6 +441,7 @@ class core_Mvc extends core_FieldSet
     {
         // Ако нямаме какво да записваме - връщаме TRUE, в знак, че операцията е завършила успешно
         if (!$recs || !count($recs)) {
+            
             return true;
         }
         
@@ -481,6 +484,7 @@ class core_Mvc extends core_FieldSet
             if (strlen($row) + strlen($query) >= $maxLen) {
                 // Изпълняваме заявката
                 if (!$this->db->query($queryBegin . rtrim($query, ',') . $queryEnd)) {
+                    
                     return false;
                 }
                 $query = '';
@@ -491,6 +495,7 @@ class core_Mvc extends core_FieldSet
         // Ако имаме някакви натрупани стойности - записваме ги и тях
         if ($query) {
             if (!$this->db->query($queryBegin . rtrim($query, ',') . $queryEnd)) {
+                
                 return false;
             }
         }
@@ -610,6 +615,7 @@ class core_Mvc extends core_FieldSet
 
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
+                
                 return array();
             }
 
@@ -770,6 +776,7 @@ class core_Mvc extends core_FieldSet
         }
 
         if (!is_object($rec)) {
+            
             return '?????';
         }
 
@@ -854,6 +861,7 @@ class core_Mvc extends core_FieldSet
         }
         
         if (!$rec) {
+            
             return '??????????????';
         }
         
@@ -1365,6 +1373,7 @@ class core_Mvc extends core_FieldSet
     public function protectId($id)
     {
         if (!$this->protectId) {
+            
             return $id;
         }
 
@@ -1382,6 +1391,7 @@ class core_Mvc extends core_FieldSet
         $id = $this->db->escape($id);
 
         if (!$this->protectId) {
+            
             return $id;
         }
 
@@ -1389,6 +1399,7 @@ class core_Mvc extends core_FieldSet
         $idProt = $this->protectId($idStrip);
 
         if ($id == $idProt) {
+            
             return $idStrip;
         }
         sleep(2);
@@ -1559,6 +1570,7 @@ class core_Mvc extends core_FieldSet
         $dbName = $db->escape($db->dbName);
         $dbRes = $db->query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = '{$dbName}'");
         if (!is_object($dbRes)) {
+            
             return false;
         }
         

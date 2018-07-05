@@ -75,7 +75,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     public $rowToolsField = 'RowNumb';
     
     
-	/**
+    /**
      * Полета свързани с цени
      */
     public $priceFields = 'price,amount,discount,packPrice';
@@ -95,7 +95,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
         $this->FLD('shipmentId', 'key(mvc=sales_Services)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setDocumentFields($this);
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short');
-        $this->setFieldTypeParams('packQuantity', "Min=0");
+        $this->setFieldTypeParams('packQuantity', 'Min=0');
     }
     
     
@@ -104,24 +104,24 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
      */
     protected function getProducts($masterRec)
     {
-    	$property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
-    	
-    	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
-    	
-    	return $products;
+        $property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
+        
+        // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
+        $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
+        
+        return $products;
     }
 
 
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param core_Mvc $mvc
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
-    	parent::inputDocForm($mvc, $form);
+        parent::inputDocForm($mvc, $form);
     }
     
     
@@ -130,17 +130,17 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-    	core_Lg::push($data->masterData->rec->tplLang);
-    	$date = ($data->masterData->rec->state == 'draft') ? NULL : $data->masterData->rec->modifiedOn;
-    	
-    	if(count($data->rows)) {
-    		foreach ($data->rows as $i => &$row) {
-    			$rec = &$data->recs[$i];
+        core_Lg::push($data->masterData->rec->tplLang);
+        $date = ($data->masterData->rec->state == 'draft') ? null : $data->masterData->rec->modifiedOn;
+        
+        if (count($data->rows)) {
+            foreach ($data->rows as $i => &$row) {
+                $rec = &$data->recs[$i];
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
                 deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
-    		}
-    	}
-    	
-    	core_Lg::pop();
+            }
+        }
+        
+        core_Lg::pop();
     }
 }

@@ -18,31 +18,31 @@ class vkeyboard_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
 
 
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
 
 
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
 
 
     /**
      * Описание на модула
      */
-    var $info = "Виртуална клавиатура ";
+    public $info = 'Виртуална клавиатура ';
 
 
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
 
@@ -60,7 +60,7 @@ class vkeyboard_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         $html = parent::deinstall();
 
@@ -68,8 +68,7 @@ class vkeyboard_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
 
         $Plugins->deinstallPlugin('vkeyboard_Plugin');
+
         return $html;
     }
-
-
 }

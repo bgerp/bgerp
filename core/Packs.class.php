@@ -104,6 +104,7 @@ class core_Packs extends core_Manager
         // Дали в момента не се инсталира?
         if ($rightNow) {
             if ($this->alreadySetup[$name . true] || $this->alreadySetup[$name . true]) {
+                
                 return true;
             }
         }
@@ -146,6 +147,7 @@ class core_Packs extends core_Manager
         $this->logWrite('Инсталиране на пакета', $rec->id);
         
         if ($haveRoleDebug) {
+            
             return $this->renderWrapping($res);
         }
         
@@ -734,6 +736,7 @@ class core_Packs extends core_Manager
         $me = cls::get('core_Packs');
 
         if (isset($res)) {
+            
             return $res;
         }
       
@@ -791,6 +794,7 @@ class core_Packs extends core_Manager
         // Проверка дали Setup класа съществува
         if (!cls::load($pack . '_Setup', true)) {
             if ($verbose) {
+                
                 return "<h4>Невъзможност да се инсталира <span class=\"debug-error\">{$pack}</span>. " .
                     'Липсва <span class="debug-error">Setup</span> клас.</h4>';
             }
@@ -925,6 +929,7 @@ class core_Packs extends core_Manager
         }
         
         if ($verbose) {
+            
             return $res;
         }
 
@@ -1257,11 +1262,13 @@ class core_Packs extends core_Manager
     {
         // Ако е масив
         if (is_array($conf)) {
+            
             return $conf;
         }
         
         // Ако е празен стринг
         if (empty($conf)) {
+            
             return array();
         }
         

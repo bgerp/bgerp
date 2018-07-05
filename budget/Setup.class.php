@@ -20,31 +20,31 @@ class budget_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'budget_Assets';
+    public $startCtr = 'budget_Assets';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Финансово бюджетиране";
+    public $info = 'Финансово бюджетиране';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'budget_Assets',
             'budget_IncomeExpenses',
             'budget_Balances',
@@ -54,21 +54,21 @@ class budget_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'budget'; 
+    public $roles = 'budget';
   
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(2.2, 'Финанси', 'Бюджет', 'budget_Assets', 'default', "budget, ceo"),
-        );    
+    public $menuItems = array(
+            array(2.2, 'Финанси', 'Бюджет', 'budget_Assets', 'default', 'budget, ceo'),
+        );
 
     
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

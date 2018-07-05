@@ -16,7 +16,7 @@ defIfNot('NETFINITY_APIKEY', '');
 /**
  * Дали поддържа UTF-8
  */
-defIfNot('NETFINITY_SUPPORT_UTF8', FALSE);
+defIfNot('NETFINITY_SUPPORT_UTF8', false);
 
 
 /**
@@ -49,19 +49,17 @@ class netfinity_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "SMS изпращане чрез Нетфинити";
+    public $info = 'SMS изпращане чрез Нетфинити';
     
     
-    /**
-     * 
-     */
-    var $configDescription = array (
+    
+    public $configDescription = array(
         'NETFINITY_URL' => array('url', 'mandatory, caption=Адрес за изпращане на SMS-и през Нетфинити->URL адрес'),
         'NETFINITY_APIKEY' => array('varchar', 'mandatory, caption=Ключ за достъп до услугата->Стринг'),
         'NETFINITY_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)', 'caption=Дали поддържа UTF-8->Избор'),
@@ -73,7 +71,7 @@ class netfinity_Setup extends core_ProtoSetup
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
         'netfinity_SMS',
     );
 }

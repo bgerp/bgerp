@@ -27,51 +27,51 @@ defIfNot('GDOCS_DEFAULT_HEIGHT', 480);
  * @license   GPL 3
  * @since     v 0.1
  */
-class gdocs_Setup  extends core_ProtoSetup 
+class gdocs_Setup extends core_ProtoSetup
 {
     
     
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Преглед на документи с docs.google.com";
+    public $info = 'Преглед на документи с docs.google.com';
     
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-		'GDOCS_DEFAULT_WIDTH' => array ('int', 'caption=Широчина по подразбиране->Размер в пиксели'),
-		'GDOCS_DEFAULT_HEIGHT' => array ('int', 'caption=Височина по подразбиране->Размер в пиксели'),
+    public $configDescription = array(
+        'GDOCS_DEFAULT_WIDTH' => array('int', 'caption=Широчина по подразбиране->Размер в пиксели'),
+        'GDOCS_DEFAULT_HEIGHT' => array('int', 'caption=Височина по подразбиране->Размер в пиксели'),
      );
              
              
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -85,10 +85,10 @@ class gdocs_Setup  extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

@@ -20,7 +20,7 @@ class marketing_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('marketing_Inquiries2', 'Запитвания', 'ceo,marketing');
         $this->TAB('marketing_Bulletins', 'Бюлетин', 'ceo,marketing');

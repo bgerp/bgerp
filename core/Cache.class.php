@@ -369,6 +369,7 @@ class core_Cache extends core_Manager
         }
 
         if ($res) {
+            
             return $res;
         }
  
@@ -419,6 +420,7 @@ class core_Cache extends core_Manager
     public function setData($key, $data, $keepMinutes)
     {
         if (self::$stopCaching) {
+            
             return false;
         }
 

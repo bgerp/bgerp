@@ -17,8 +17,8 @@ class callcenter_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на опаковката от табове
      */
-    function description()
-    {        
+    public function description()
+    {
         $this->TAB('callcenter_Talks', 'Разговори');
         $this->TAB('callcenter_Fax', 'Факсове');
         $this->TAB('callcenter_SMS', 'SMS-и');

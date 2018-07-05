@@ -1032,8 +1032,14 @@ class core_Html
      */
     public static function createHint($body, $hint, $icon = 'notice', $appendToEnd = true, $iconAttr = array(), $elementArr = array())
     {
-        if (empty($hint)) return $body;
-        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return $body;
+        if (empty($hint)) {
+            
+            return $body;
+        }
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+            
+            return $body;
+        }
         
         $hint = strip_tags(tr($hint));
  

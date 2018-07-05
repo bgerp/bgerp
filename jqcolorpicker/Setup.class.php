@@ -15,27 +15,27 @@
  */
 class jqcolorpicker_Setup extends core_ProtoSetup
 {
-	
-	
-	/**
-	 * Версия на пакета
-	 */
-	public $version = '0.1';
-	
-	
-	/**
-	 * Описание на модула
-	 */
-	public $info = "Палитра за избор на цяват";
-	
+    
+    
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
+    
+    
+    /**
+     * Описание на модула
+     */
+    public $info = 'Палитра за избор на цяват';
+    
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -50,7 +50,6 @@ class jqcolorpicker_Setup extends core_ProtoSetup
      */
     public function getCommonJs()
     {
-        
         return 'jqcolorpicker/2.0/jquery.colourPicker.js';
     }
     
@@ -60,7 +59,6 @@ class jqcolorpicker_Setup extends core_ProtoSetup
      */
     public function getCommonCss()
     {
-        
         return 'jqcolorpicker/2.0/jquery.colourPicker.css';
     }
 }

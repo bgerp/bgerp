@@ -3,7 +3,7 @@
 
 /**
  * Модел за думи/шаблони, които ще се използват за правопис
- * 
+ *
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -59,7 +59,7 @@ class spcheck_Dictionary extends core_Manager
     
     /**
      * Кой може да променя състоянието на документите
-     * 
+     *
      * @see plg_State2
      */
     public $canChangestate = 'powerUser';
@@ -82,7 +82,7 @@ class spcheck_Dictionary extends core_Manager
      */
     protected static $minLen = 1;
     
-	
+    
     /**
      * Кой има право да променя системните данни?
      */
@@ -91,7 +91,7 @@ class spcheck_Dictionary extends core_Manager
     
     /**
      * Думи, които ще се игнорират и няма да се проверяват
-     * 
+     *
      * [0] - думи с цифри
      * [1] - думи с две или повече главни букви
      * [2] - думи, които след малка буква имат главна
@@ -102,10 +102,10 @@ class spcheck_Dictionary extends core_Manager
     protected static $ignorePatternArr = array('/[0-9]/', '/\p{Lu}{2}/u', '/\p{Ll}+\p{Lu}/u', '/nbsp/i', '/^lt$/i', '/\@/');
     
     
-	/**
+    /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('pattern', 'varchar(128, ci)', 'caption=Шаблон->Дума');
         $this->FLD('isCorrect', 'enum(yes=Да, no=Не)', 'caption=Шаблон->Състояние, notNull');
@@ -118,22 +118,22 @@ class spcheck_Dictionary extends core_Manager
     
     /**
      * Проверява дали подадена дума е коректна
-     * 
-     * @param string $word
+     *
+     * @param string      $word
      * @param string|NULL $lg
-     * 
+     *
      * @return boolean
      */
-    public static function checkWord($word, $lg = NULL)
+    public static function checkWord($word, $lg = null)
     {
         static $wArr = array();
         
-        static $defNon7BitLg = NULL;
-        $isCLg = FALSE;
+        static $defNon7BitLg = null;
+        $isCLg = false;
         
         if (!isset($lg)) {
             $lg = core_Lg::getCurrent();
-            $isCLg = TRUE;
+            $isCLg = true;
         }
         
         // Ако е подадена дума на кирилица, но езикът не е
@@ -141,7 +141,7 @@ class spcheck_Dictionary extends core_Manager
         if ($isCLg && !$cLgArr[$lg]) {
             if (!i18n_Charset::is7Bit($word)) {
                 if (!isset($defNon7BitLg)) {
-                    $langArr = arr::make(EF_LANGUAGES, TRUE);
+                    $langArr = arr::make(EF_LANGUAGES, true);
                     foreach ($cLgArr as $cLg) {
                         if ($langArr[$cLg]) {
                             $defNon7BitLg = $cLg;
@@ -157,16 +157,19 @@ class spcheck_Dictionary extends core_Manager
         
         $key = $word . '|' . $lg;
         
-        if (isset($wArr[$key])) return $wArr[$key];
+        if (isset($wArr[$key])) {
+            
+            return $wArr[$key];
+        }
         
         // Ако е зададено в модела
         $rec = self::fetch(array("#pattern = '[#1#]' AND #state = 'active' AND #lg = '[#2#]'", $word, $lg));
         
         if ($rec) {
             if ($rec->isCorrect == 'no') {
-                $wArr[$key] = FALSE;
+                $wArr[$key] = false;
             } else {
-                $wArr[$key] = TRUE;
+                $wArr[$key] = true;
             }
         } else {
             if (function_exists('pspell_new')) {
@@ -174,19 +177,19 @@ class spcheck_Dictionary extends core_Manager
             } else {
                 self::logErr("Не е инсталиран PHP модулът 'pspell'");
                 
-                return TRUE;
+                return true;
             }
             
             if (!$pspellLink) {
                 self::logWarning('Не е инсталиран речник за езика - ' . $lg);
                 
-                return TRUE;
+                return true;
             }
             
             if (pspell_check($pspellLink, $word)) {
-                $wArr[$key] = TRUE;
+                $wArr[$key] = true;
             } else {
-                $wArr[$key] = FALSE;
+                $wArr[$key] = false;
             }
         }
         
@@ -196,18 +199,18 @@ class spcheck_Dictionary extends core_Manager
     
     /**
      * Обхожда всички думи и маркира грешните
-     * 
+     *
      * @param string|core_Et $html
-     * @param string|NULL $lg
-     * 
+     * @param string|NULL    $lg
+     *
      * @return string
      */
-    public static function highliteWrongWord($html, $lg = NULL)
+    public static function highliteWrongWord($html, $lg = null)
     {
         $string = $html;
         
         if ($html instanceof core_ET) {
-            $string = $html->getContent(NULL, 'CONTENT', FALSE, FALSE);
+            $string = $html->getContent(null, 'CONTENT', false, false);
         }
         
         if (isset($lg)) {
@@ -232,30 +235,30 @@ class spcheck_Dictionary extends core_Manager
     
     /**
      * Колбек функция, която ако е необходимо проверява и маркира стринга
-     * 
-     * @param string $out
+     *
+     * @param string  $out
      * @param integer $len
-     * @param string $lastTag
+     * @param string  $lastTag
      */
     public static function getWord(&$out, $len, $lastTag)
     {
         $w = substr($out, $len);
         
-        $check = TRUE;
+        $check = true;
         
         if (mb_strlen($w) <= self::$minLen) {
-            $check = FALSE;
+            $check = false;
         }
         
         // Ако в обграждащия таг има class=no-spell-check|linkWithIcon
         if ($check && $lastTag) {
             if (preg_match('/class\s*=\s*("|\')\s*(.+?|"|\')(no-spell-check|linkWithIcon)/i', $lastTag)) {
-                $check = FALSE;
+                $check = false;
             }
             
             if ($check) {
                 if (preg_match('/^(\s*\<)a\s+.*?href\s*=\s*.*?(\>\s*)$/i', $lastTag)) {
-                    $check = FALSE;
+                    $check = false;
                 }
             }
         }
@@ -264,7 +267,7 @@ class spcheck_Dictionary extends core_Manager
         if ($check) {
             foreach (self::$ignorePatternArr as $pattern) {
                 if (preg_match($pattern, $w)) {
-                    $check = FALSE;
+                    $check = false;
                     break;
                 }
             }
@@ -273,7 +276,7 @@ class spcheck_Dictionary extends core_Manager
         if ($check) {
             // Опитваме се да не проверяваме имената
             if (preg_match('/^\p{Lu}/u', $w)) {
-                $l = $len-1;
+                $l = $len - 1;
                 while ($l) {
                     $p = $l;
                     $b = str::nextChar($out, $p);
@@ -281,18 +284,21 @@ class spcheck_Dictionary extends core_Manager
                     
                     $ord = ord($b);
                     if ($ord > 127) {
-                        
-                        $check = FALSE;
+                        $check = false;
                         
                         break;
                     }
                     
-                    if ($b == ' ') continue;
+                    if ($b == ' ') {
+                        continue;
+                    }
                     
-                    if ($b == "\n") break;
+                    if ($b == "\n") {
+                        break;
+                    }
                     
                     if (($b != '.') && ($b != '!') && ($b != '?')) {
-                        $check = FALSE;
+                        $check = false;
                     }
                     
                     break;
@@ -307,52 +313,52 @@ class spcheck_Dictionary extends core_Manager
         
         $out = substr($out, 0, $len) . $w;
     }
-	
-	
-	/**
-	 * Екшън за промяна на състоянието
-	 * 
-	 * @return Redirect
-	 */
-	function act_ChangeCorrect()
-	{
-	    $id = Request::get('id', 'int');
-	    
-	    expect($id);
-	    
-	    expect($rec = $this->fetch($id));
-	    
-	    $this->requireRightFor('edit', $rec);
-	    
-	    if ($rec->isCorrect == 'no') {
-	        $rec->isCorrect = 'yes';
-	    } else {
-	        $rec->isCorrect = 'no';
-	    }
-	    $this->save($rec, 'isCorrect');
-	    
-	    $this->logWrite('Смяна на коректност', $rec->id);
-	    
-	    $retUrl = getRetUrl();
-	    
-	    if (empty($retUrl)) {
-	        $retUrl = array($this, 'list');
-	    }
-	    
-	    return new Redirect($retUrl);
-	}
+    
+    
+    /**
+     * Екшън за промяна на състоянието
+     *
+     * @return Redirect
+     */
+    public function act_ChangeCorrect()
+    {
+        $id = Request::get('id', 'int');
+        
+        expect($id);
+        
+        expect($rec = $this->fetch($id));
+        
+        $this->requireRightFor('edit', $rec);
+        
+        if ($rec->isCorrect == 'no') {
+            $rec->isCorrect = 'yes';
+        } else {
+            $rec->isCorrect = 'no';
+        }
+        $this->save($rec, 'isCorrect');
+        
+        $this->logWrite('Смяна на коректност', $rec->id);
+        
+        $retUrl = getRetUrl();
+        
+        if (empty($retUrl)) {
+            $retUrl = array($this, 'list');
+        }
+        
+        return new Redirect($retUrl);
+    }
     
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param spcheck_Dictionary $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
+     * @param string             $requiredRoles
+     * @param string             $action
+     * @param stdClass           $rec
+     * @param int                $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($rec) {
             if ($action == 'edit' || $action == 'delete') {
@@ -368,11 +374,11 @@ class spcheck_Dictionary extends core_Manager
     
     /**
      * Подготовка на филтър формата
-     * 
+     *
      * @param spcheck_Dictionary $mvc
-     * @param stdClass $data
+     * @param stdClass           $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->showFields = 'lg, search';
         
@@ -389,8 +395,12 @@ class spcheck_Dictionary extends core_Manager
         $cQuery->orderBy('createdOn');
         $langArr = array('' => '');
         while ($rec = $cQuery->fetch()) {
-            if (isset($langArr[$rec->lg])) continue;
-            if (!$rec->lg) continue;
+            if (isset($langArr[$rec->lg])) {
+                continue;
+            }
+            if (!$rec->lg) {
+                continue;
+            }
             $langArr[$rec->lg] = $rec->lg;
         }
         
@@ -404,34 +414,34 @@ class spcheck_Dictionary extends core_Manager
             $data->query->where(array("#lg = '[#1#]'", $filterRec->lg));
         }
     }
-		
-	
-	/**
-	 * 
-	 * Добавя бутон на файловете, които са за клишета
-	 */
-	static function on_AfterRecToVerbal($mvc, &$row, $rec)
-	{
-	    if ($mvc->haveRightFor('edit', $rec)) {
-	        if ($rec->isCorrect == 'yes') {
-	            $btnName = 'Коректен';
-	            $efIcon = 'img/16/accept.png';
-	            $title = 'Отбелязване на думата като некоректна';
-	        } else {
-	            $btnName = 'Некоректен';
-	            $efIcon = 'img/16/red-back.png';
-	            $title = 'Отбелязване на думата като коректна';
-	        }
-	        
-	        $row->isCorrect = HT::createBtn($btnName, array($mvc, 'changeCorrect', $rec->id, 'ret_url' => TRUE), FALSE, FALSE, "ef_icon={$efIcon}, title={$title}");
-	    }
-	}
-	
-	
-	/**
-	 * Проверява коректността на думите в речника и ги добавя в модела
-	 */
-    static function cron_AddWordsToDict()
+        
+    
+    /**
+     *
+     * Добавя бутон на файловете, които са за клишета
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        if ($mvc->haveRightFor('edit', $rec)) {
+            if ($rec->isCorrect == 'yes') {
+                $btnName = 'Коректен';
+                $efIcon = 'img/16/accept.png';
+                $title = 'Отбелязване на думата като некоректна';
+            } else {
+                $btnName = 'Некоректен';
+                $efIcon = 'img/16/red-back.png';
+                $title = 'Отбелязване на думата като коректна';
+            }
+            
+            $row->isCorrect = HT::createBtn($btnName, array($mvc, 'changeCorrect', $rec->id, 'ret_url' => true), false, false, "ef_icon={$efIcon}, title={$title}");
+        }
+    }
+    
+    
+    /**
+     * Проверява коректността на думите в речника и ги добавя в модела
+     */
+    public static function cron_AddWordsToDict()
     {
         $cQuery = doc_Containers::getQuery();
         $before = dt::subtractSecs(3600);
@@ -466,9 +476,13 @@ class spcheck_Dictionary extends core_Manager
             foreach ($textArr as $str) {
                 $str = trim($str);
                 
-                if (!$str) continue;
+                if (!$str) {
+                    continue;
+                }
                 
-                if (mb_strlen($str) <= self::$minLen) continue;
+                if (mb_strlen($str) <= self::$minLen) {
+                    continue;
+                }
                 
                 if (i18n_Charset::is7Bit($str)) {
                     $lg = 'en';
@@ -485,7 +499,7 @@ class spcheck_Dictionary extends core_Manager
                         $rec->isCorrect = 'no';
                         $rec->pattern = $str;
                         $rec->cnt = 1;
-                        $saveF = NULL;
+                        $saveF = null;
                     } else {
                         $rec->cnt++;
                         $saveF = 'cnt';
@@ -502,9 +516,9 @@ class spcheck_Dictionary extends core_Manager
      * Преди запис на документ, изчислява стойността на полето `isContable`
      *
      * @param core_Manager $mvc
-     * @param stdClass $rec
-     * @param stdClass $res
-     * @param array $fields
+     * @param stdClass     $rec
+     * @param stdClass     $res
+     * @param array        $fields
      */
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec, $fields = array())
     {
@@ -516,11 +530,11 @@ class spcheck_Dictionary extends core_Manager
     
     /**
      * Изпълнява се след създаването на модела
-     * 
+     *
      * @param spcheck_Dictionary $mvc
-     * @param NULL|string $res
+     * @param NULL|string        $res
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         $rec = new stdClass();
         $rec->systemId = 'addWordsToDict';

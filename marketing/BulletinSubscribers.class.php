@@ -3,7 +3,7 @@
 
 /**
  * Детайл на бюлетените
- * 
+ *
  * @category  bgerp
  * @package   crm
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -18,13 +18,11 @@ class marketing_BulletinSubscribers extends core_Detail
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'bulletinId';
+    public $masterKey = 'bulletinId';
 
     
-    /**
-     * 
-     */
-    var $title = 'Абонати за бюлетин';
+    
+    public $title = 'Абонати за бюлетин';
     
 
     /**
@@ -36,56 +34,54 @@ class marketing_BulletinSubscribers extends core_Detail
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'plg_RowTools, plg_Created, marketing_Wrapper';
+    public $loadList = 'plg_RowTools, plg_Created, marketing_Wrapper';
     
     
     /**
      * Кой има право да го чете?
      */
-    var $canRead = 'ceo, marketing';
+    public $canRead = 'ceo, marketing';
     
     
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'ceo, marketing';
+    public $canEdit = 'ceo, marketing';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo, marketing';
+    public $canAdd = 'ceo, marketing';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'ceo, marketing';
+    public $canView = 'ceo, marketing';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo, marketing';
+    public $canList = 'ceo, marketing';
     
     
     /**
      * Кой има право да изтрива?
      */
-    var $canDelete = 'ceo, marketing';
+    public $canDelete = 'ceo, marketing';
     
     
     /**
      * Брой записи на страница
-     * 
+     *
      * @var integer
      */
     public $listItemsPerPage = 20;
     
     
-    /**
-     * 
-     */
+    
     public $listFields = 'id, email, ip, brid, createdOn, createdBy';
     
     
@@ -104,10 +100,10 @@ class marketing_BulletinSubscribers extends core_Detail
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param integer $bId
-     * @param string $email
+     * @param string  $email
      */
     public static function addData($bId, $email)
     {
@@ -143,33 +139,33 @@ class marketing_BulletinSubscribers extends core_Detail
 
     
     /**
-     * 
-     * 
+     *
+     *
      * @param marketing_BulletinSubscribers $mvc
-     * @param object $row
-     * @param object $rec
-     * @param array $fields
+     * @param object                        $row
+     * @param object                        $rec
+     * @param array                         $fields
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	// Оцветяваме BRID
-    	$row->brid = log_Browsers::getLink($rec->brid);
-    	
+        // Оцветяваме BRID
+        $row->brid = log_Browsers::getLink($rec->brid);
+        
         if ($rec->ip) {
-        	// Декорираме IP-то
-            $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, TRUE);
-    	}
+            // Декорираме IP-то
+            $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true);
+        }
     }
     
     
     /**
      * Проверява дали има регистрация от това IP
-     * 
+     *
      * @param IP|NULL $ip
-     * 
+     *
      * @return boolean
      */
-    public static function haveRecForIp($bId, $ip=NULL)
+    public static function haveRecForIp($bId, $ip = null)
     {
         if (!$ip) {
             $ip = core_Users::getRealIpAddr();
@@ -177,18 +173,18 @@ class marketing_BulletinSubscribers extends core_Detail
         
         $rec = self::fetch(array("#bulletinId = '[#1#]' AND #ip = '[#2#]'", $bId, $ip));
         
-        return (boolean)$rec;
+        return (boolean) $rec;
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param marketing_BulletinSubscribers $mvc
-     * @param object $data
-     * @param object $res
+     * @param object                        $data
+     * @param object                        $res
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->orderBy('createdOn', 'DESC');
     }

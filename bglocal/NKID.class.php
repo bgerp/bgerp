@@ -19,41 +19,41 @@ class bglocal_NKID extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Национална класификация на икономическите дейности";
+    public $title = 'Национална класификация на икономическите дейности';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "НКИД";
+    public $singleTitle = 'НКИД';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, bglocal_Wrapper, plg_Printing,
+    public $loadList = 'plg_RowTools2, bglocal_Wrapper, plg_Printing,
                        plg_SaveAndNew';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,hr';
+    public $canRead = 'admin,hr';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'admin,hr';
+    public $canWrite = 'admin,hr';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('key', 'varchar', 'caption=Код, mandatory');
-        $this->FLD('title', 'text', "caption=Наименование");
+        $this->FLD('title', 'text', 'caption=Наименование');
         
         $this->setDbUnique('key');
     }
@@ -62,10 +62,10 @@ class bglocal_NKID extends core_Master
     /**
      * Преди запис
      */
-    static function on_BeforeImportRec($mvc, $rec)
+    public static function on_BeforeImportRec($mvc, $rec)
     {
-        if(isset($rec->title)){
-            $rec->title = $rec->key . " " . $rec->title;
+        if (isset($rec->title)) {
+            $rec->title = $rec->key . ' ' . $rec->title;
         }
     }
     
@@ -73,10 +73,10 @@ class bglocal_NKID extends core_Master
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
-        $file = "bglocal/data/nkid.csv";
-        $fields = array(0 => "key", 1 => "title");
+        $file = 'bglocal/data/nkid.csv';
+        $fields = array(0 => 'key', 1 => 'title');
         $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
         $res .= $cntObj->html;
     }

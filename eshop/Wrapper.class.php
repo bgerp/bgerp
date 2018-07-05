@@ -23,7 +23,7 @@ class eshop_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('eshop_Groups', 'Групи', 'ceo,eshop');
         $this->TAB('eshop_Products', 'Продукти', 'ceo,eshop');

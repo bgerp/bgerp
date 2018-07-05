@@ -23,7 +23,7 @@ class tracking_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('tracking_Vehicles', 'Автомобили', 'ceo,admin,tracking');
         $this->TAB('tracking_Log', 'Лог', 'ceo,admin,tracking');

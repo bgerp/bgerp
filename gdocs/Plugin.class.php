@@ -21,7 +21,7 @@ class gdocs_Plugin extends core_Plugin
     /**
      * Добавя бутон за разглеждане на документи
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$res, &$data)
+    public function on_AfterPrepareSingleToolbar($mvc, &$res, &$data)
     {
         if ($mvc->haveRightFor('single', $data->rec)) {
             try {
@@ -30,41 +30,44 @@ class gdocs_Plugin extends core_Plugin
                 //Разширението на файла
                 $ext = fileman_Files::getExt($rec->name);
                 
-                if(in_array($ext, arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar,pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv'))) { 
-                    $url = "//docs.google.com/viewer?url=" . fileman_Download::getDownloadUrl($rec->fileHnd,  1);
+                if (in_array($ext, arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar,pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv'))) {
+                    $url = '//docs.google.com/viewer?url=' . fileman_Download::getDownloadUrl($rec->fileHnd, 1);
                     
                     // Добавяме бутона
-                    $data->toolbar->addBtn('gDocs', $url, 
-                        "id='btn-gdocs', checkPrivateHost, ef_icon=gdocs/img/google.png", 
-                        array('target'=>'_blank', 'order'=>'30')
-                    ); 
+                    $data->toolbar->addBtn(
+                        'gDocs',
+                        $url,
+                        "id='btn-gdocs', checkPrivateHost, ef_icon=gdocs/img/google.png",
+                        array('target' => '_blank', 'order' => '30')
+                    );
                 }
-            } catch (core_Exception_Expect $expect) {}
+            } catch (core_Exception_Expect $expect) {
+            }
         }
     }
     
     
     /**
      * Ембедва URL-то от параметрите в iframe
-     * 
+     *
      * @param array $params
-     * 
+     *
      * @return mixed
      */
-    static function getOembedRes($params)
+    public static function getOembedRes($params)
     {
         $url = $params['url'];
         
         if ($editPos = strripos($url, '/edit')) {
             $editLen = 5;
             $url = trim($url);
-            $replaceEdit = FALSE;
+            $replaceEdit = false;
             if (($editPos + $editLen) == strlen($url)) {
-                $replaceEdit = TRUE;
+                $replaceEdit = true;
             } else {
-                $afterEdit = $url{$editLen+$editPos};
+                $afterEdit = $url{$editLen + $editPos};
                 if ($afterEdit == '?' || $afterEdit == '/') {
-                    $replaceEdit = TRUE;
+                    $replaceEdit = true;
                 }
             }
             
@@ -79,25 +82,26 @@ class gdocs_Plugin extends core_Plugin
         if (strpos($url, '/presentation/')) {
             $url = str_replace('/pub', '/embed', $url);
         } elseif (strpos($url, '/drawings/') || strpos($url, '/file/') || ($isForm = strpos($url, '/forms/'))) {
-            
             $urlArr = parse_url($url);
             
             $urlPathArr = explode('/', $urlArr['path']);
             
-            $lastElementOfArray = array_slice($urlPathArr, -1, 1, TRUE);
+            $lastElementOfArray = array_slice($urlPathArr, -1, 1, true);
             
             $lastKey = key($lastElementOfArray);
             
             $lastKeyName = $isForm ? 'viewform' : 'preview';
             
             if (($lastKey == 4) && (
-                    ($urlPathArr[$lastKey] == 'preview') || 
-                    ($urlPathArr[$lastKey] == 'edit') || 
-                    ($urlPathArr[$lastKey] == 'view') || 
-                    ($urlPathArr[$lastKey] == 'viewform') || 
-                    ($urlPathArr[$lastKey] == 'prefill') || 
-                    ($urlPathArr[$lastKey] == 'pub') || 
-                    ($urlPathArr[$lastKey] == 'share'))
+                    ($urlPathArr[$lastKey] == 'preview') ||
+                    ($urlPathArr[$lastKey] == 'edit') ||
+                    ($urlPathArr[$lastKey] == 'view') ||
+                    ($urlPathArr[$lastKey] == 'viewform') ||
+                    ($urlPathArr[$lastKey] == 'prefill') ||
+                    ($urlPathArr[$lastKey] == 'pub') ||
+                    ($urlPathArr[$lastKey] == 'share')
+            
+            )
                 ) {
                 $urlPathArr[$lastKey] = $lastKeyName;
             } else {
@@ -132,7 +136,6 @@ class gdocs_Plugin extends core_Plugin
         
         // Ако трябва да се връща като JSON
         if ($params['format'] == 'json') {
-            
             $res = json_encode($res);
         }
         

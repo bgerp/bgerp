@@ -13,48 +13,48 @@
  */
 class crm_ext_CourtReg extends core_Detail
 {
-	
-	
+    
+    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'companyId';
+    public $masterKey = 'companyId';
 
     
     /**
      * Заглавие
      */
-    var $title = 'Съдебни регистрации';
+    public $title = 'Съдебни регистрации';
 
     
     /**
      * Единично заглавие
      */
-    var $singleTitle = 'Съдебна регистрация';
+    public $singleTitle = 'Съдебна регистрация';
     
     
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'crm_Wrapper,plg_RowTools2';
+    public $loadList = 'crm_Wrapper,plg_RowTools2';
     
     
     /**
      * Текущ таб
      */
-    var $currentTab = 'Фирми';
+    public $currentTab = 'Фирми';
     
    
     /**
      * Кой може да редактира
      */
-    var $canEdit = 'powerUser';
+    public $canEdit = 'powerUser';
 
 
-    /**  
-     * Предлог в формата за добавяне/редактиране  
-     */  
-    public $formTitlePreposition = 'на';  
+    /**
+     * Предлог в формата за добавяне/редактиране
+     */
+    public $formTitlePreposition = 'на';
     
     
     /**
@@ -83,18 +83,20 @@ class crm_ext_CourtReg extends core_Detail
     public static function prepareCourtReg($data)
     {
         $data->TabCaption = 'Регистрация';
-		
-        if($data->isCurrent === FALSE) return;
+        
+        if ($data->isCurrent === false) {
+            return;
+        }
 
         expect($data->masterId);
         
-        if(!$data->CourtReg) {
+        if (!$data->CourtReg) {
             $data->CourtReg = new stdClass();
         }
 
         $data->CourtReg->rec = static::fetch("#companyId = {$data->masterId}");
         if ($data->CourtReg->rec) {
-            $data->CourtReg->row = static::recToVerbal($data->CourtReg->rec);    
+            $data->CourtReg->row = static::recToVerbal($data->CourtReg->rec);
         }
         $data->canChange = static::haveRightFor('edit');
     }
@@ -107,30 +109,31 @@ class crm_ext_CourtReg extends core_Detail
     {
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
-        $tpl->append(tr('Съдебна регистрация'), 'title');        
+        $tpl->append(tr('Съдебна регистрация'), 'title');
 
         if ($data->canChange && !Mode::is('printing')) {
-            
             $rec = $data->CourtReg->rec;
 
             if ($rec->regCourt || $rec->regDecisionNumber || $rec->regDecisionDate || $rec->regCompanyFileNumber || $rec->regCompanyFileYear) {
-                $url = array(get_called_class(), 'edit', $rec->id, 'ret_url' => TRUE);
+                $url = array(get_called_class(), 'edit', $rec->id, 'ret_url' => true);
                 $courtRegTpl = new ET(getFileContent('crm/tpl/CourtReg.shtml'));
                 $courtRegTpl->placeObject($data->CourtReg->row);
             } else {
                 $courtRegTpl = new ET(tr('Няма данни'));
-                $url = array(get_called_class(), 'add', 'companyId' => $data->masterId, 'ret_url' => TRUE);
+                $url = array(get_called_class(), 'add', 'companyId' => $data->masterId, 'ret_url' => true);
             }
             
-            if($data->masterMvc->haveRightFor('edit', $data->masterId)){
-            	$img = "<img src=" . sbf('img/16/add.png') . " width='16' height='16'>";
-	            $tpl->append(
-	                ht::createLink(
-	                    $img, $url, FALSE,
-	                    'title=Промяна на данните'
-	                ),
-	                'title'
-	            );
+            if ($data->masterMvc->haveRightFor('edit', $data->masterId)) {
+                $img = '<img src=' . sbf('img/16/add.png') . " width='16' height='16'>";
+                $tpl->append(
+                    ht::createLink(
+                        $img,
+                        $url,
+                        false,
+                        'title=Промяна на данните'
+                    ),
+                    'title'
+                );
             }
         }
         
@@ -149,20 +152,22 @@ class crm_ext_CourtReg extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-    	$conf = core_Packs::getConfig('crm');
-    	
+        $conf = core_Packs::getConfig('crm');
+        
         $form = $data->form;
         
         // За да гарантираме релацията 1:1
         $form->rec->id = $mvc->fetchField("#companyId = {$form->rec->companyId}", 'id');
         
-        for($i = 1989; $i <= date('Y'); $i++) $years[$i] = $i;
+        for ($i = 1989; $i <= date('Y'); $i++) {
+            $years[$i] = $i;
+        }
         
         $form->setSuggestions('regCompanyFileYear', $years);
         
         $dcQuery = bglocal_DistrictCourts::getQuery();
         
-        while($dcRec = $dcQuery->fetch()) {
+        while ($dcRec = $dcQuery->fetch()) {
             $dcName = bglocal_DistrictCourts::getVerbal($dcRec, 'type');
             $dcName .= ' - ';
             $dcName .= bglocal_DistrictCourts::getVerbal($dcRec, 'city');
@@ -170,17 +175,17 @@ class crm_ext_CourtReg extends core_Detail
         }
         
         $form->setSuggestions('regCourt', $dcSug);
- 		$data->form->title = 'Съдебна регистрация на |*' .  $mvc->Master->getVerbal($data->masterRec, 'name');
+        $data->form->title = 'Съдебна регистрация на |*' .  $mvc->Master->getVerbal($data->masterRec, 'name');
     }
     
     
-	/**
+    /**
      * Изпълнява се след подготовката на ролите
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-    	if($action == 'edit' && isset($rec)){
-    		$res = $mvc->getRequiredRoles('add', $rec);
-    	}
+        if ($action == 'edit' && isset($rec)) {
+            $res = $mvc->getRequiredRoles('add', $rec);
+        }
     }
 }

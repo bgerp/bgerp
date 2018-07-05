@@ -20,8 +20,8 @@ defIfNot('SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT', 5);
 
 
 /**
- * 
- * 
+ *
+ *
  * @category  vendors
  * @package   chosen
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -30,49 +30,50 @@ defIfNot('SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT', 5);
  * @since     v 0.1
  * @link      https://select2.github.io/
  */
-class select2_Setup extends core_ProtoSetup {
+class select2_Setup extends core_ProtoSetup
+{
     
     
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Удобно избиране от множества със Select2";
+    public $info = 'Удобно избиране от множества със Select2';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
     
         // Минималния брой елементи, за които няма да сработи SELECT2
-        'SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT' => array ('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За широк екран, suggestions=5|10|20|50|100'),
-        'SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT' => array ('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За тесен екран, suggestions=5|10|20|50|100'),
-        'SELECT2_VERSION' => array ('enum(4.0rc2, 4.0, 4.0.1)', 'caption=Версия на Select2->Версия'),
+        'SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT' => array('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За широк екран, suggestions=5|10|20|50|100'),
+        'SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT' => array('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За тесен екран, suggestions=5|10|20|50|100'),
+        'SELECT2_VERSION' => array('enum(4.0rc2, 4.0, 4.0.1)', 'caption=Версия на Select2->Версия'),
     );
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
         'migrate::removeUserListPlugin',
     );
     
@@ -80,7 +81,7 @@ class select2_Setup extends core_ProtoSetup {
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = '';
         
@@ -89,8 +90,8 @@ class select2_Setup extends core_ProtoSetup {
             $html .= $packs->deinstall('chosen');
         }
         
-    	$html .= parent::install();
-    	
+        $html .= parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

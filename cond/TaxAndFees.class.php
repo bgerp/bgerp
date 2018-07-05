@@ -16,7 +16,7 @@
 class cond_TaxAndFees extends core_Manager
 {
     
-	
+    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -26,7 +26,7 @@ class cond_TaxAndFees extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Данъци и такси";
+    public $title = 'Данъци и такси';
     
     
     /**
@@ -78,7 +78,7 @@ class cond_TaxAndFees extends core_Manager
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('title', 'varchar(255)', 'caption=Наименование');
         $this->FLD('type', 'enum(local=Местен,republican=Републикански,another=Друг)', 'caption=Вид,value=local,tdClass=centerCol');
@@ -95,11 +95,11 @@ class cond_TaxAndFees extends core_Manager
     public static function getItemRec($objectId)
     {
         $self = cls::get(__CLASS__);
-        $result = NULL;
+        $result = null;
     
         if ($rec = $self->fetch($objectId)) {
-            $result = (object)array(
-                'num' => $rec->id . " tf",
+            $result = (object) array(
+                'num' => $rec->id . ' tf',
                 'title' => $rec->title,
             );
         }

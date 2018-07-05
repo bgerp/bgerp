@@ -566,6 +566,7 @@ class doc_Setup extends core_ProtoSetup
         $allowedRolesForInsiders = $roleTypes['rang'] + $roleTypes['job'] + $roleTypes['team'] + $roleTypes['system'] + $roleTypes['position'];
 
         if (!$contractorR) {
+            
             return '<li>Миграцията addPartnerRole не е необходима</li>';
         }
 
@@ -684,6 +685,7 @@ class doc_Setup extends core_ProtoSetup
             $companiesId = core_Classes::getId('crm_Companies');
             $personsId = core_Classes::getId('crm_Persons');
         } catch (core_exception_Expect $e) {
+            
             return ;
         }
 
@@ -922,12 +924,14 @@ class doc_Setup extends core_ProtoSetup
     {
         // Ако класа не съществува
         if (!cls::load('cal_TaskDocuments', true)) {
+            
             return ;
         }
         $tDocuments = cls::get('cal_TaskDocuments');
         
         // Ако таблицата не е създадена
         if (!$tDocuments->db->tableExists($tDocuments->dbTableName)) {
+            
             return ;
         }
         
@@ -981,6 +985,7 @@ class doc_Setup extends core_ProtoSetup
             
             $allReportsId = frame2_AllReports::getClassId();
         } else {
+            
             return ;
         }
         
@@ -1100,6 +1105,7 @@ class doc_Setup extends core_ProtoSetup
         $closeTime = str::phpToMysqlName('closeTime');
         
         if (!$Unsorted->db->isFieldExists($Unsorted->dbTableName, $closeTime)) {
+            
             return ;
         }
         

@@ -18,19 +18,20 @@ defIfNot('EF_PERCENT_DECIMALS', 2);
  * @since     v 0.1
  * @link
  */
-class type_Percent extends type_Double {
+class type_Percent extends type_Double
+{
     
 
     /**
      * Клас за <td> елемент, който показва данни от този тип
      */
-    var $tdClass = 'rightCol';
+    public $tdClass = 'rightCol';
     
 
     /**
      * Инициализиране на типа
      */
-    function init($params = array())
+    public function init($params = array())
     {
         parent::init($params);
         setIfNot($this->params['decimals'], EF_PERCENT_DECIMALS);
@@ -40,9 +41,11 @@ class type_Percent extends type_Double {
     /**
      * Преобразуване от вътрешно представяне към вербална стойност за проценти (0 - 100%)
      */
-    function toVerbal($value)
+    public function toVerbal($value)
     {
-        if(!strlen($value)) return NULL;
+        if (!strlen($value)) {
+            return;
+        }
         
         $value = $value * 100;
         
@@ -63,11 +66,10 @@ class type_Percent extends type_Double {
     /**
      * Преобразуване от вербална стойност, към вътрешно представяне за процент (0 - 1)
      */
-    function fromVerbal($value)
+    public function fromVerbal($value)
     {
-        if(!strlen($value)) {
-
-            return NULL;
+        if (!strlen($value)) {
+            return;
         }
         $value = str_replace('%', '', $value);
         $value = parent::fromVerbal($value);
@@ -80,7 +82,7 @@ class type_Percent extends type_Double {
     /**
      * Преобразуване от вътрешно представяне към вербална стойност за проценти при рендиране (0 - 100%)
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
         if (!($this->error) && isset($value)) {
             $value = (100 * $value) . ' %';
@@ -90,12 +92,11 @@ class type_Percent extends type_Double {
 
         // Възможност за задаване на предложения
         if (!$this->suggestions) {
-        	if(!empty($this->params['suggestions'])) {
-        		$this->suggestions = array('' => '') + arr::make(explode('|', $this->params['suggestions']), TRUE);
-        	}
+            if (!empty($this->params['suggestions'])) {
+                $this->suggestions = array('' => '') + arr::make(explode('|', $this->params['suggestions']), true);
+            }
         }
         
         return parent::renderInput_($name, $value, $attr);
     }
-    
 }

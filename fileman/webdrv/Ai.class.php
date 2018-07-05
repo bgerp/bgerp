@@ -3,7 +3,7 @@
 
 /**
  * Драйвер за работа с .ai файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -13,5 +13,4 @@
  */
 class fileman_webdrv_Ai extends fileman_webdrv_PostScript
 {
-    
 }

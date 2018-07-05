@@ -20,7 +20,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     /**
      * Заглавие
      */
-    public $title = "Детайли на фактурата";
+    public $title = 'Детайли на фактурата';
     
     
     /**
@@ -47,7 +47,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     /**
      * Кое е активното меню
      */
-    public $pageMenu = "Фактури";
+    public $pageMenu = 'Фактури';
     
     
     /**
@@ -77,7 +77,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Фактура, input=hidden, silent');
         parent::setInvoiceDetailFields($this);
@@ -90,12 +90,12 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	$form = &$data->form;
-    	$rec = &$data->form->rec;
-    	
-    	if(core_Packs::isInstalled('batch')){
-    		$form->setField('batches', 'input');
-    	}
+        $form = &$data->form;
+        $rec = &$data->form->rec;
+        
+        if (core_Packs::isInstalled('batch')) {
+            $form->setField('batches', 'input');
+        }
     }
     
     
@@ -104,29 +104,30 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-    	$containerId = sales_Invoices::fetchField($rec->invoiceId, 'threadId');
-    	
-    	// Ако е инсталиран пакета за партиди
-    	if(core_Packs::isInstalled('batch')){
-    		
-    		$cQuery = doc_Containers::getQuery();
-    		$cQuery->where("#threadId = {$containerId} AND #state != 'draft' AND #state != 'rejected'");
-    		$cQuery->show("id");
-    		$ids = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
-    		if(!count($ids)) retun;
-    		
-    		// Намират се всички партиди в документите от нишката на фактурата
-    		$bQuery = batch_BatchesInDocuments::getQuery();
-    		$bQuery->in("containerId", $ids);
-    		$bQuery->where("#productId = {$rec->productId}");
-    		$bQuery->show("batch");
-    		$batches = arr::extractValuesFromArray($bQuery->fetchAll(), 'batch');
-    		
-    		// И се попълват
-    		if(count($batches)){
-    			$rec->batches = implode(', ', $batches);
-    			$mvc->save_($rec, 'batches');
-    		}
-    	}
+        $containerId = sales_Invoices::fetchField($rec->invoiceId, 'threadId');
+        
+        // Ако е инсталиран пакета за партиди
+        if (core_Packs::isInstalled('batch')) {
+            $cQuery = doc_Containers::getQuery();
+            $cQuery->where("#threadId = {$containerId} AND #state != 'draft' AND #state != 'rejected'");
+            $cQuery->show('id');
+            $ids = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
+            if (!count($ids)) {
+                retun;
+            }
+            
+            // Намират се всички партиди в документите от нишката на фактурата
+            $bQuery = batch_BatchesInDocuments::getQuery();
+            $bQuery->in('containerId', $ids);
+            $bQuery->where("#productId = {$rec->productId}");
+            $bQuery->show('batch');
+            $batches = arr::extractValuesFromArray($bQuery->fetchAll(), 'batch');
+            
+            // И се попълват
+            if (count($batches)) {
+                $rec->batches = implode(', ', $batches);
+                $mvc->save_($rec, 'batches');
+            }
+        }
     }
 }

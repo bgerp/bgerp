@@ -4,7 +4,7 @@
 
 /**
  * Декодиране на tnef файлове
- * 
+ *
  * @category  bgerp
  * @package   bgerp
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -18,12 +18,12 @@ class tnef_FilesPlg extends core_Plugin
     
     /**
      * Преди записване на файловете
-     * 
+     *
      * @param core_Master $mvc
-     * @param array $res
-     * @param string $fileHnd
+     * @param array       $res
+     * @param string      $fileHnd
      */
-    function on_AfterGetFiles($mvc, &$res, $fileHnd)
+    public function on_AfterGetFiles($mvc, &$res, $fileHnd)
     {
         $res = tnef_Decode::decode($fileHnd);
     }

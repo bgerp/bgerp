@@ -3,7 +3,7 @@
 
 /**
  * Коментар от тип прогрес
- * 
+ *
  * @category  bgerp
  * @package   cal
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -13,17 +13,10 @@
  */
 class cal_Progresses extends core_Mvc
 {
-    
-    
-    /**
-     *
-     */
     public $interfaces = 'doc_ExpandCommentsIntf';
     
     
-    /**
-     *
-     */
+    
     public $title = 'Прогрес';
     
     
@@ -47,28 +40,26 @@ class cal_Progresses extends core_Mvc
      *
      * @return boolean
      */
-    public function canSelectDriver($userId = NULL)
+    public function canSelectDriver($userId = null)
     {
-        
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
-     * 
+     *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param stdClass $data
+     * @param doc_Comments   $mvc
+     * @param stdClass       $data
      */
-    static function on_AfterPrepareEditForm($Driver, $mvc, &$data)
+    public static function on_AfterPrepareEditForm($Driver, $mvc, &$data)
     {
         $data->singleTitle = 'Прогрес';
         
         $rec = $data->form->rec;
         
         if ($originId = $rec->originId) {
-            
             $doc = doc_Containers::getDocument($originId);
             $tRec = $doc->fetch();
             
@@ -111,25 +102,25 @@ class cal_Progresses extends core_Mvc
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param integer $id
-     * @param stdClass $rec
-     * @param NULL|array $saveFileds
+     * @param doc_Comments   $mvc
+     * @param integer        $id
+     * @param stdClass       $rec
+     * @param NULL|array     $saveFileds
      */
-    static function on_AfterSave($Driver, $mvc, &$id, $rec, $saveFileds = NULL)
+    public static function on_AfterSave($Driver, $mvc, &$id, $rec, $saveFileds = null)
     {
-        $touchRec = FALSE;
+        $touchRec = false;
         if ($rec->originId) {
             $tDoc = doc_Containers::getDocument($rec->originId);
             if ($tDoc->instance instanceof cal_Tasks) {
-                $touchRec = TRUE;
+                $touchRec = true;
             }
         }
         
-		// При промяна на прогрес
+        // При промяна на прогрес
         if ($rec->__isBeingChanged) {
             $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
             $Driver->updateTaskProgress($rec, $lGoodProgress);
@@ -149,7 +140,7 @@ class cal_Progresses extends core_Mvc
                     $query->where("#state != 'rejected'");
                     $query->XPR('workingTimeSum', 'int', 'sum(#workingTime)');
                     $query->show('workingTimeSum');
-                    $tRec->workingTime = (int)$query->fetch()->workingTimeSum;
+                    $tRec->workingTime = (int) $query->fetch()->workingTimeSum;
                 }
                 
                 // Да се вземе времената на новите прогреси
@@ -160,7 +151,9 @@ class cal_Progresses extends core_Mvc
                 $query->show('driverRec');
                 
                 while ($dRec = $query->fetch()) {
-                    if (!$dRec->driverRec['workingTime']) continue;
+                    if (!$dRec->driverRec['workingTime']) {
+                        continue;
+                    }
                     
                     $tRec->workingTime += $dRec->driverRec['workingTime'];
                 }
@@ -179,27 +172,27 @@ class cal_Progresses extends core_Mvc
      * Добавя допълнителни полетата в антетката
      *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param NULL|array $res
-     * @param object $rec
-     * @param object $row
+     * @param doc_Comments   $mvc
+     * @param NULL|array     $res
+     * @param object         $rec
+     * @param object         $row
      */
     public static function on_AfterGetFieldForLetterHead($Driver, $mvc, &$resArr, $rec, $row)
     {
         $resArr = arr::make($resArr);
         
         if ($row->progressBar || $row->progress) {
-            $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
+            $resArr['progressBar'] = array('name' => tr('Прогрес'), 'val' => '[#progressBar#] [#progress#]');
         }
         
         if ($row->workingTime) {
-            $resArr['workingTime'] =  array('name' => tr('Отработено време'), 'val' =>"[#workingTime#]");
+            $resArr['workingTime'] = array('name' => tr('Отработено време'), 'val' => '[#workingTime#]');
         }
         
         if ($rec->originId) {
             $tDoc = doc_Containers::getDocument($rec->originId);
             if ($tDoc->instance instanceof cal_Tasks) {
-                $resArr['originId'] =  array('name' => tr('Задача'), 'val' => $tDoc->getLinkToSingle());
+                $resArr['originId'] = array('name' => tr('Задача'), 'val' => $tDoc->getLinkToSingle());
             }
         }
     }
@@ -207,10 +200,10 @@ class cal_Progresses extends core_Mvc
     
     /**
      * Функция, която се извиква след активирането на документа
-     * 
+     *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param stdClass $rec
+     * @param doc_Comments   $mvc
+     * @param stdClass       $rec
      */
     public static function on_AfterActivation($Driver, $mvc, &$rec)
     {
@@ -229,9 +222,9 @@ class cal_Progresses extends core_Mvc
      * Възстановяване на оттеглен обект
      *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param mixed $res
-     * @param int|stdClass $id
+     * @param doc_Comments   $mvc
+     * @param mixed          $res
+     * @param int|stdClass   $id
      */
     public static function on_AfterRestore($Driver, $mvc, &$res, $id)
     {
@@ -249,9 +242,9 @@ class cal_Progresses extends core_Mvc
      * След оттегляне на обект
      *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param mixed $res
-     * @param int|stdClass $id
+     * @param doc_Comments   $mvc
+     * @param mixed          $res
+     * @param int|stdClass   $id
      */
     public static function on_AfterReject($Driver, $mvc, &$res, $id)
     {
@@ -268,13 +261,12 @@ class cal_Progresses extends core_Mvc
     /**
      * Обновява задачата след промяна на прогреса
      *
-     * @param stdClass $rec
+     * @param stdClass     $rec
      * @param NULL|integer $progress
      */
-    public static function updateTaskProgress($rec, $progress = NULL)
+    public static function updateTaskProgress($rec, $progress = null)
     {
         if ($rec->originId) {
-            
             $tDoc = doc_Containers::getDocument($rec->originId);
             
             $saveArr = array();
@@ -294,9 +286,11 @@ class cal_Progresses extends core_Mvc
                         
                         // Ако прогреса е 100%, тогава затваряме задачата
                         if ($tRec->progress == 1) {
+                            $tRec->brState = $tRec->state;
                             $tRec->state = 'closed';
                             
                             $saveArr['state'] = 'state';
+                            $saveArr['brState'] = 'state';
                             
                             $tRec->timeClosed = dt::now();
                             $saveArr['timeClosed'] = 'timeClosed';
@@ -304,8 +298,10 @@ class cal_Progresses extends core_Mvc
                         
                         // Ако връщаме прогреса - връщаме и предишното състояние
                         if ($oldProgress == 1) {
+                            $tRec->brState = $tRec->state;
                             $tRec->state = 'wakeup';
                             $saveArr['state'] = 'state';
+                            $saveArr['brState'] = 'state';
                         }
                     }
                     
@@ -320,14 +316,17 @@ class cal_Progresses extends core_Mvc
     
     /**
      * Връща най-новия активен прогрес
-     * 
+     *
      * @param integer $originId
-     * 
+     *
      * @return double
      */
     protected static function getLastGoodProgress($originId)
     {
-        if (!$originId) return ;
+        if (!$originId) {
+            
+            return ;
+        }
         
         $query = doc_Comments::getQuery();
         $query->where(array("#originId = '[#1#]'", $originId));
@@ -339,28 +338,29 @@ class cal_Progresses extends core_Mvc
         
         $rec = $query->fetch();
         
-        if (!$rec) return 0;
+        if (!$rec) {
+            
+            return 0;
+        }
         
         return $rec->driverRec['progress'];
-        
     }
     
     
     /**
      * Подготвяне на вербалните стойности
-     * 
+     *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
+     * @param doc_Comments   $mvc
+     * @param stdClass       $row
+     * @param stdClass       $rec
      */
-    function on_AfterRecToVerbal($Driver, $mvc, $row, $rec)
+    public function on_AfterRecToVerbal($Driver, $mvc, $row, $rec)
     {
         $row->singleTitle = tr('Прогрес');
         
         // Показване на типа на прогреса
         if ($rec->originId) {
-            
             $doc = doc_Containers::getDocument($rec->originId);
             $tRec = $doc->fetch();
             
@@ -389,15 +389,15 @@ class cal_Progresses extends core_Mvc
      * Връща състоянието на нишката
      *
      * @param cal_Progresses $Driver
-     * @param doc_Comments $mvc
-     * @param string|NULL $res
-     * @param integer $id
+     * @param doc_Comments   $mvc
+     * @param string|NULL    $res
+     * @param integer        $id
      *
      * @return string
      */
-    static function on_AfterGetThreadState($Driver, $mvc, &$res, $id)
+    public static function on_AfterGetThreadState($Driver, $mvc, &$res, $id)
     {
-        $res = NULL;
+        $res = null;
         
         $rec = $mvc->fetchRec($id);
         

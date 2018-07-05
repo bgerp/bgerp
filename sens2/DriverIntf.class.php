@@ -17,14 +17,14 @@ class sens2_DriverIntf
 
     /**
      * Информация за входните портове на устройството
-     * 
-     * @param   stdClass $config Конфигурация на контролера
      *
-     * @return  array   Масив с ключове - системните имена на входовете и стойности - обекти със следното описание:
-     *                      о ->uom      препоръчителна мярка или списък с мерки за дадената физ. величина
-     *                      о ->caption  заглавие на входната величнина
+     * @param stdClass $config Конфигурация на контролера
+     *
+     * @return array Масив с ключове - системните имена на входовете и стойности - обекти със следното описание:
+     *               о ->uom      препоръчителна мярка или списък с мерки за дадената физ. величина
+     *               о ->caption  заглавие на входната величнина
      */
-    function getInputPorts($config = NULL)
+    public function getInputPorts($config = null)
     {
         return $this->class->getInputPorts($config);
     }
@@ -33,13 +33,13 @@ class sens2_DriverIntf
     /**
      * Информация за изходните портове на устройството
      *
-     * @param   stdClass $config Конфигурация на контролера
+     * @param stdClass $config Конфигурация на контролера
      *
-     * @return  array   Mасив с ключове - системните имена на изходите и стойности - обекти със следното описание:
-     *                      о ->uom      препоръчителна мярка или списък с мерки за дадената физ. величина
-     *                      о ->caption  заглавие на входната величнина
+     * @return array Mасив с ключове - системните имена на изходите и стойности - обекти със следното описание:
+     *               о ->uom      препоръчителна мярка или списък с мерки за дадената физ. величина
+     *               о ->caption  заглавие на входната величнина
      */
-    function getOutputPorts($config = NULL)
+    public function getOutputPorts($config = null)
     {
         return $this->class->getOutputPorts($config);
     }
@@ -48,15 +48,15 @@ class sens2_DriverIntf
     /**
      * Прочита стойностите от сензорните входове
      *
-     * @param   array   $inputs             масив със системните имена на входовете, които трябва да бъдат прочетени
-     * @param   array   $config             конфигурациони параметри
-     * @param   array   $persistentState    персистентно състояние, от базата данни
-     * 
-     * @return  mixed                       Mасив със системните имена на входовете и стойностите, които са се 
-     *                                      получили при прочитането им. В случайн на грешка, стойността започва с #, 
-     *                                      последван от текстово описание на проблема
+     * @param array $inputs          масив със системните имена на входовете, които трябва да бъдат прочетени
+     * @param array $config          конфигурациони параметри
+     * @param array $persistentState персистентно състояние, от базата данни
+     *
+     * @return mixed Mасив със системните имена на входовете и стойностите, които са се
+     *               получили при прочитането им. В случайн на грешка, стойността започва с #,
+     *               последван от текстово описание на проблема
      */
-    function readInputs($inputs, $config, &$persistentState)
+    public function readInputs($inputs, $config, &$persistentState)
     {
         return $this->class->readInputs($inputs, $config, $persistentState);
     }
@@ -65,15 +65,15 @@ class sens2_DriverIntf
     /**
      * Записва стойностите на изходите на контролера
      *
-     * @param   array   $outputs            масив със системните имена на изходите и стойностите, които трябва да бъдат записани
-     * @param   array   $config             конфигурациони параметри
-     * @param   array   $persistentState    персистентно състояние на контролера от базата данни
+     * @param array $outputs         масив със системните имена на изходите и стойностите, които трябва да бъдат записани
+     * @param array $config          конфигурациони параметри
+     * @param array $persistentState персистентно състояние на контролера от базата данни
      *
-     * @return  array                       Mасив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
+     * @return array Mасив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
      */
-    function writeOutputs($outputs, $config, &$persistentState)
+    public function writeOutputs($outputs, $config, &$persistentState)
     {
-         return $this->class->writeOutputs($outputs, $config, $persistentState);
+        return $this->class->writeOutputs($outputs, $config, $persistentState);
     }
     
 
@@ -82,7 +82,7 @@ class sens2_DriverIntf
      *
      * @param core_Form форма на която трябва да се поставят полетата с конфигурацията на контролера (IP, port, pass, ...)
      */
-    function prepareConfigForm($form)
+    public function prepareConfigForm($form)
     {
         return $this->class->prepareConfigForm($form);
     }
@@ -90,12 +90,12 @@ class sens2_DriverIntf
     
     /**
      * Проверява след  субмитване формата с настройки на контролера
-     * Тук контролера може да зададе грешки и предупреждения, в случай на 
+     * Тук контролера може да зададе грешки и предупреждения, в случай на
      * некоректни конфигурационни данни използвайки $form->setError() и $form->setWarning()
      *
-     * @param   core_Form   форма с въведени данни от заявката (след $form->input)
+     * @param core_Form   форма с въведени данни от заявката (след $form->input)
      */
-    function checkConfigForm($form)
+    public function checkConfigForm($form)
     {
         return $this->class->checkConfigForm($form);
     }
@@ -104,8 +104,8 @@ class sens2_DriverIntf
     /**
      * Връща снимка на контролера
      *
-     * @param   stdClass     $config    конфигурацията на контролера
-     * @return  string|null
+     * @param  stdClass    $config конфигурацията на контролера
+     * @return string|null
      */
     public static function getPicture($config)
     {
@@ -115,13 +115,11 @@ class sens2_DriverIntf
 
     /**
      * Връща масив със портовете на устройството
-     * 
+     *
      * @return array
      */
     public function getSlots()
     {
         return $this->class->getSlots();
     }
-
-
 }

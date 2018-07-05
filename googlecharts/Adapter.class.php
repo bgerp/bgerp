@@ -2,8 +2,8 @@
 
 
 /**
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   googlecharts
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
@@ -11,15 +11,15 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class googlecharts_Adapter extends  core_Mvc
+class googlecharts_Adapter extends core_Mvc
 {
-	
-	
-	/**
-	 * Поддържани интерфейси
-	 *
-	 * var string|array
-	 */
+    
+    
+    /**
+     * Поддържани интерфейси
+     *
+     * var string|array
+     */
     public $interfaces = 'doc_chartAdapterIntf';
 
     
@@ -32,24 +32,24 @@ class googlecharts_Adapter extends  core_Mvc
     
     
     /**
-     * @param array $data - данните, които ще изчератаваме
-     * @param string $chartType - тип на диаграмата:  'line', 'bar', 'pie'
+     * @param  array   $data      - данните, които ще изчератаваме
+     * @param  string  $chartType - тип на диаграмата:  'line', 'bar', 'pie'
      * @return core_ET $tpl
      */
-    static function prepare_($data, $chartType)
+    public static function prepare_($data, $chartType)
     {
-
-
         $tpl = new ET();
         static $chartCnt;
-        if(!$chartCnt) $orgChartCnt = 0;
+        if (!$chartCnt) {
+            $orgChartCnt = 0;
+        }
         $chartCnt++;
         $idChart = 'myChart' . $chartCnt;
 
-        $chart = ht::createElement('div',  array('id' => $idChart, 'class' => "google-chart {$chartType}Chart"), $tpl);
-        $tpl->append("<div class='googleChartsHolder' style=' width: 100%; height: auto; overflow: hidden;'>" . $chart . "</div>");
+        $chart = ht::createElement('div', array('id' => $idChart, 'class' => "google-chart {$chartType}Chart"), $tpl);
+        $tpl->append("<div class='googleChartsHolder' style=' width: 100%; height: auto; overflow: hidden;'>" . $chart . '</div>');
 
-        if($chartType == 'bar') {
+        if ($chartType == 'bar') {
             $tpl->push("https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1.1','packages':['bar']}]}", 'JS');
         } else {
             $tpl->push("https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1.1','packages':['corechart']}]}", 'JS');
@@ -60,8 +60,8 @@ class googlecharts_Adapter extends  core_Mvc
 
         $data = json_encode($data);
 
-        jquery_Jquery::run($tpl, "prepareGoogleChart('$idChart', $data, '$chartType');", TRUE);
+        jquery_Jquery::run($tpl, "prepareGoogleChart('${idChart}', ${data}, '${chartType}');", true);
 
         return $tpl;
-	}
+    }
 }

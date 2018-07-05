@@ -18,38 +18,38 @@ defIfNot('JQDATEPICKER_VERSION', 'v5.0.0');
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class jqdatepick_Setup extends core_ProtoSetup 
+class jqdatepick_Setup extends core_ProtoSetup
 {
     
     
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Адаптер за JQDatepicker: Показва календар в полетата за избор на дата";
+    public $info = 'Адаптер за JQDatepicker: Показва календар в полетата за избор на дата';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
         
-           'JQDATEPICKER_VERSION' => array ('enum(v4.0.6, v5.0.0)', 'mandatory, caption=Версията на програмата->Версия')
+           'JQDATEPICKER_VERSION' => array('enum(v4.0.6, v5.0.0)', 'mandatory, caption=Версията на програмата->Версия')
     
              );
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -63,10 +63,10 @@ class jqdatepick_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -86,8 +86,8 @@ class jqdatepick_Setup extends core_ProtoSetup
         $conf = core_Packs::getConfig('jqdatepick');
         $confCore = core_Packs::getConfig('core');
         
-        return 'jqdatepick/' . $conf->JQDATEPICKER_VERSION . '/jquery.plugin.min.js, jqdatepick/' . 
-            $conf->JQDATEPICKER_VERSION . '/jquery.datepick.js, jqdatepick/' . 
+        return 'jqdatepick/' . $conf->JQDATEPICKER_VERSION . '/jquery.plugin.min.js, jqdatepick/' .
+            $conf->JQDATEPICKER_VERSION . '/jquery.datepick.js, jqdatepick/' .
             $conf->JQDATEPICKER_VERSION . '/jquery.datepick-' . $confCore->EF_DEFAULT_LANGUAGE . '.js';
     }
     

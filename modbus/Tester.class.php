@@ -13,25 +13,26 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class modbus_Tester extends core_Manager {
+class modbus_Tester extends core_Manager
+{
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools,plg_Sorting,recently_Plugin';
+    public $loadList = 'plg_RowTools,plg_Sorting,recently_Plugin';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Тестер за Modbus IP устройство';
+    public $title = 'Тестер за Modbus IP устройство';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('ip', 'varchar(16)', 'caption=IP,recently');
         $this->FLD('port', 'int', 'caption=Port,value=502');
@@ -42,23 +43,22 @@ class modbus_Tester extends core_Manager {
         $this->FLD('mode', 'enum(normal,debug,simulation)', 'caption=Режим');
         $this->FLD('data', 'text', 'caption=Данни');
         $this->FLD('note', 'varchar(256)', 'caption=Забележка');
-        
     }
     
     
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $data->form->setSuggestions('startAddr', ",400001,300001,100001,000001");
+        $data->form->setSuggestions('startAddr', ',400001,300001,100001,000001');
     }
     
     
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->data = new ET($row->data);
         $row->data->append(ht::createLink('Read', array($mvc, 'Read', $rec->id)));
@@ -68,7 +68,7 @@ class modbus_Tester extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function act_Read()
+    public function act_Read()
     {
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
@@ -77,7 +77,7 @@ class modbus_Tester extends core_Manager {
         
         $values = $driver->read($rec->startAddr, $rec->quantity);
         
-        foreach($values as $addr => $val) {
+        foreach ($values as $addr => $val) {
             $text .= "{$addr} : {$val}\n";
         }
         

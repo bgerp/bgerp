@@ -228,6 +228,7 @@ class batch_plg_InventoryNotes extends core_Plugin
     {
         $Def = batch_Defs::getBatchDef($productId);
         if (!$Def) {
+            
             return false;
         }
         
@@ -245,6 +246,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $quantity = $rec->quantity / count($batches);
             } else {
                 if ($count == 1 && $alwaysShowBatches !== true) {
+                    
                     return false;
                 }
                 $batches = array('' => '');
@@ -262,6 +264,7 @@ class batch_plg_InventoryNotes extends core_Plugin
         // Засичане на очакваните колчества с въведените
         if ($alwaysShowBatches !== true) {
             if (!count($batchesInDetail)) {
+                
                 return false;
             }
         }

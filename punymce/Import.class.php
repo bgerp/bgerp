@@ -14,7 +14,8 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class punymce_Import {
+class punymce_Import
+{
     
     
     /**
@@ -22,24 +23,23 @@ class punymce_Import {
      *
      * @return string
      */
-    function renderHtml_($tpl, $attr = array(), $options = array())
+    public function renderHtml_($tpl, $attr = array(), $options = array())
     {
-        
         ht::setUniqId($attr);
         $id = $attr['id'];
         
-        if(!$tpl) {
-            $tpl = ht::createElement('textarea', $attr, $value, TRUE);
+        if (!$tpl) {
+            $tpl = ht::createElement('textarea', $attr, $value, true);
         }
         
         $cfg = $attr['#PunyMCE'];
         
-        switch($attr['#config']) {
-            case 'simple1' :
+        switch ($attr['#config']) {
+            case 'simple1':
                 $config = array();
                 break;
-            default :
-            $config = array (
+            default:
+            $config = array(
                 'toolbar' => 'bold,italic,underline,strike,increasefontsize,decreasefontsize,ul,ol,indent,outdent,left,center,right,style,textcolor,removeformat,link,unlink,image,emoticons,editsource',
                 'plugins' => 'Paste,Image,Emoticons,Link,ForceBlocks,Protect,TextColor,EditSource,Safari2x',
                 'min_width' => 400,
@@ -53,7 +53,7 @@ class punymce_Import {
         
         $init = json_encode($config);
         
-        $tpl->appendOnce("<script type=\"text/javascript\" src=" . sbf("punymce/js/punymce/puny_mce_full_new.js") . "></script>\n", 'HEAD');
+        $tpl->appendOnce('<script type="text/javascript" src=' . sbf('punymce/js/punymce/puny_mce_full_new.js') . "></script>\n", 'HEAD');
         
         $tpl->append("
             <script type=\"text/javascript\">
@@ -61,7 +61,7 @@ class punymce_Import {
             </script>    
         ");
         
-        if(isDebug()) {
+        if (isDebug()) {
             $tpl->prepend("\n<!-- Начало на PunyMCE редактора за полето '{$id}' -->\n");
             $tpl->append("<!-- Край на PunyMCE редактора за полето '{$id}' -->\n");
         }

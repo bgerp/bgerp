@@ -19,7 +19,7 @@ class fileman_SetExtensionPlg extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSaveDataId($mvc, $rec)
+    public function on_BeforeSaveDataId($mvc, $rec)
     {
         $fileHnd = $rec->fileHnd;
         $name = $rec->name;
@@ -47,7 +47,7 @@ class fileman_SetExtensionPlg extends core_Plugin
 
         $newName = fileman_Mimes::addCorrectFileExt($name, $fileMimeType);
         
-        if($newName != $name) {
+        if ($newName != $name) {
             $newName = $mvc->getPossibleName($newName, $bucket);
         }
 

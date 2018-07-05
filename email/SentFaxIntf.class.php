@@ -1,6 +1,6 @@
 <?php
 
- /**
+/**
  * Интерфейс
  *
  * @category  bgerp
@@ -18,7 +18,7 @@ class email_SentFaxIntf
     /**
      * Метод за изпращане на факсове
      */
-    function sendFax($rec, $fax)
+    public function sendFax($rec, $fax)
     {
         return $this->class->sendFax($rec, $fax);
     }

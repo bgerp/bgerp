@@ -115,6 +115,7 @@ class doc_AssignPlg extends core_Plugin
         
         // Ако няма промяне, връщаме
         if (($oldRec->assign == $newRec->assign)) {
+            
             return ;
         }
         
@@ -183,6 +184,7 @@ class doc_AssignPlg extends core_Plugin
         unset($notifyUsersArr[$cu]);
         
         if (empty($notifyUsersArr)) {
+            
             return ;
         }
         

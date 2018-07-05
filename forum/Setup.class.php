@@ -12,7 +12,7 @@ defIfNot('FORUM_GREETING_MESSAGE', 'Добре дошли в нашия фору
 defIfNot('FORUM_POSTS_PER_PAGE', '10');
 
 /**
-  * class forum_Setup
+ * class forum_Setup
  *
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с Форума
@@ -29,93 +29,93 @@ class forum_Setup extends core_ProtoSetup
 {
 
 
-	/**
-	 * Версия на пакета
-	 */
-	var $version = '0.1';
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
 
 
-	/**
-	 * Мениджър - входна точка в пакета
-	 */
-	var $startCtr = 'forum_Boards';
+    /**
+     * Мениджър - входна точка в пакета
+     */
+    public $startCtr = 'forum_Boards';
 
 
-	/**
-	 * Екшън - входна точка в пакета
-	 */
-	var $startAct = 'default';
+    /**
+     * Екшън - входна точка в пакета
+     */
+    public $startAct = 'default';
 
 
-	/**
-	 * Описание на модула
-	 */
-	var $info = "Форум за сайта";
+    /**
+     * Описание на модула
+     */
+    public $info = 'Форум за сайта';
 
-	
-	/**
+    
+    /**
      * Описание на конфигурационните константи за този модул
      */
-    var $configDescription = array(
+    public $configDescription = array(
             
-            'FORUM_DEFAULT_THEME' => array ('class(interface=forum_ThemeIntf,select=title)', 'caption=Тема по подразбиране във форум->Тема'),
+            'FORUM_DEFAULT_THEME' => array('class(interface=forum_ThemeIntf,select=title)', 'caption=Тема по подразбиране във форум->Тема'),
          
-    		'FORUM_THEMES_PER_PAGE' => array ('int', 'caption=Tемите в една страница->Брой'),
+            'FORUM_THEMES_PER_PAGE' => array('int', 'caption=Tемите в една страница->Брой'),
     
-    		'FORUM_GREETING_MESSAGE' => array ('text', 'mandatory, caption=Съобщение за поздрав->Съобщение'),
+            'FORUM_GREETING_MESSAGE' => array('text', 'mandatory, caption=Съобщение за поздрав->Съобщение'),
          
-    		'FORUM_POSTS_PER_PAGE' => array ('int', 'mandatory, caption=Постовете на една страница->Брой'),
+            'FORUM_POSTS_PER_PAGE' => array('int', 'mandatory, caption=Постовете на една страница->Брой'),
         );
     
 
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-   var $managers = array(
-				'forum_Boards',
-				'forum_Postings',
-				'forum_Categories',
-		);
+    public $managers = array(
+                'forum_Boards',
+                'forum_Postings',
+                'forum_Categories',
+        );
     
 
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'forum';
+    public $roles = 'forum';
     
 
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.54, 'Сайт', 'Форум', 'forum_Boards', 'list', "cms,forum, admin, ceo"),
+    public $menuItems = array(
+            array(3.54, 'Сайт', 'Форум', 'forum_Boards', 'list', 'cms,forum, admin, ceo'),
         );
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
-    	// Добавяме класа връщащ темата в core_Classes
+        $html = parent::install();
+        
+        // Добавяме класа връщащ темата в core_Classes
         $html .= core_Classes::add('forum_DefaultTheme');
         
         return $html;
     }
     
     
-	/**
-	 * Де-инсталиране на пакета
-	 */
-	function deinstall()
-	{
-		// Изтриване на пакета от менюто
-		$res = bgerp_Menu::remove($this);
+    /**
+     * Де-инсталиране на пакета
+     */
+    public function deinstall()
+    {
+        // Изтриване на пакета от менюто
+        $res = bgerp_Menu::remove($this);
 
-		return $res;
-	}
+        return $res;
+    }
     
     
     /**
@@ -123,7 +123,6 @@ class forum_Setup extends core_ProtoSetup
      */
     public function getCommonCss()
     {
-        
         return 'forum/tpl/styles.css';
     }
 }

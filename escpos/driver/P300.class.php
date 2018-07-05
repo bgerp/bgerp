@@ -21,10 +21,10 @@ class escpos_driver_P300 extends escpos_driver_Ddp250
     public $title = 'P300';
     
     /**
-     * 
-     * 
+     *
+     *
      * @param core_Et $tpl
-     * 
+     *
      * @return core_Et
      */
     public function placePrintData($tpl)
@@ -49,9 +49,9 @@ class escpos_driver_P300 extends escpos_driver_Ddp250
     
     /**
      * Добавя необходимите настройки за преди текста за отпечатване
-     * 
+     *
      * @param string $res
-     * 
+     *
      * @return string
      */
     public function prepareTextSettings($res)

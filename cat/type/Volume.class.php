@@ -3,7 +3,7 @@
 
 
 /**
- * Клас  'cat_type_Volume' 
+ * Клас  'cat_type_Volume'
  * Тип за Обем
  *
  *
@@ -15,20 +15,21 @@
  * @since     v 0.1
  * @link
  */
-class cat_type_Volume extends cat_type_Uom {
+class cat_type_Volume extends cat_type_Uom
+{
     
     
-	/**
-	 * Параметър по подразбиране
-	 */
-	function init($params = array())
+    /**
+     * Параметър по подразбиране
+     */
+    public function init($params = array())
     {
-    	// Основната мярка на типа е кубични метра
-    	$this->params['unit'] = 'l';
-    	if(is_array($params['params'])){
-    		$this->params = array_merge($this->params, $params['params']);
-    	}
-    	
-    	parent::init($this->params);
+        // Основната мярка на типа е кубични метра
+        $this->params['unit'] = 'l';
+        if (is_array($params['params'])) {
+            $this->params = array_merge($this->params, $params['params']);
+        }
+        
+        parent::init($this->params);
     }
 }

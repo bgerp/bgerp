@@ -16,5 +16,4 @@
  */
 class marketing_InquiryEmbedderIntf
 {
-	
 }

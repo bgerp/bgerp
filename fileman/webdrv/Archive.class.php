@@ -3,7 +3,7 @@
 
 /**
  * Драйвер за работа с архиви.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -20,20 +20,20 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
      * @Override
      * @see fileman_webdrv_Generic::$defaultTab
      */
-    static $defaultTab = 'content';
+    public static $defaultTab = 'content';
     
     
     /**
      * Връща всички табове, които ги има за съответния файл
-     * 
+     *
      * @param object $fRec - Записите за файла
-     * 
+     *
      * @return array
-     * 
+     *
      * @Override
      * @see fileman_webdrv_Generic::getTabs
      */
-    static function getTabs($fRec)
+    public static function getTabs($fRec)
     {
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
@@ -45,13 +45,13 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         $contentStr = static::getArchiveContent($fRec, $path);
         
         // Таб за съдържанието
-		$tabsArr['content'] = (object) 
-			array(
-				'title'   => 'Съдържание',
-				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr("Съдържание") . "</div>{$contentStr}</div></div>",
-				'order' => 7,
-				'tpl' => $contentStr,
-			);
+        $tabsArr['content'] = (object)
+            array(
+                'title' => 'Съдържание',
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr('Съдържание') . "</div>{$contentStr}</div></div>",
+                'order' => 7,
+                'tpl' => $contentStr,
+            );
         
         return $tabsArr;
     }
@@ -59,10 +59,10 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
     
     /**
      * Връща инстанция на адаптера за работа с архиви
-     * 
+     *
      * @param object $fRec - Записите за файла
      */
-    static function getArchiveInst($fRec)
+    public static function getArchiveInst($fRec)
     {
         // Проверяваме големината на архива
         static::checkArchiveLen($fRec->dataId);
@@ -74,10 +74,10 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
     
     /**
      * Връща съдържанието на архива в дървовидна структура
-     * 
+     *
      * @param object $fRec - Записите за файла
      */
-    static function getArchiveContent($fRec, $path = NULL) 
+    public static function getArchiveContent($fRec, $path = null)
     {
         try {
             // Инстанция на класа
@@ -103,13 +103,13 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
     
     /**
      * Уплоадва файла от архива
-     * 
-     * @param object $fRec - Записите за файла
+     *
+     * @param object  $fRec  - Записите за файла
      * @param integer $index - Номера на файлам, който ще се екстрактва
-     * 
+     *
      * @return fileHandler - Манипулатор на файл
      */
-    static function uploadFileFromArchive($fRec, $index)
+    public static function uploadFileFromArchive($fRec, $index)
     {
         // Инстанция на класа
         $inst = static::getArchiveInst($fRec);
@@ -129,10 +129,10 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
      * Извлича текстовата част от файла
      *
      * @param object|string $fRec - Записите за файла
-     * 
+     *
      * @return string|NULL
      */
-    static function extractText($fRec)
+    public static function extractText($fRec)
     {
         core_App::setTimeLimit(300);
         
@@ -149,12 +149,15 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
             $params['dataId'] = $fRec->dataId;
         }
         
-        if (fileman_Indexes::isProcessStarted($params) || !core_Locks::get($params['lockId'], 1000, 0, FALSE)) return ;
+        if (fileman_Indexes::isProcessStarted($params) || !core_Locks::get($params['lockId'], 1000, 0, false)) {
+            
+            return ;
+        }
         
         // Дали ще се проверява съдържанието на архива
-        $checInnerArchive = TRUE;
+        $checInnerArchive = true;
         if (!is_object($fRec)) {
-            $checInnerArchive = FALSE;
+            $checInnerArchive = false;
         }
         
         if (is_object($fRec)) {
@@ -164,24 +167,23 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                 $dataRec = fileman_Data::fetch($params['dataId']);
                 $fLen = $dataRec->fileLen;
             } catch (ErrorException $e) {
-                $archiveInst = FALSE;
+                $archiveInst = false;
             }
         } else {
             try {
                 $archiveInst = cls::get('archive_Adapter', array('path' => $fRec));
                 $fLen = @filesize($fRec);
             } catch (ErrorException $e) {
-                $archiveInst = FALSE;
+                $archiveInst = false;
             }
         }
         
-        $maxArchiveLen = fileman_Setup::get('FILEINFO_MAX_ARCHIVE_LEN', TRUE);
+        $maxArchiveLen = fileman_Setup::get('FILEINFO_MAX_ARCHIVE_LEN', true);
         
         $text = '';
         
         // Ако не е над допустимия размер
         if ($archiveInst && ($maxArchiveLen > $fLen)) {
-
             try {
                 $entriesArr = $archiveInst->getEntries();
             } catch (ErrorException $e) {
@@ -198,14 +200,18 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                 
                 // Гледаме размера след разархивиране да не е много голям
                 // Защита от "бомби" - от препълване на сървъра
-                if ($size > ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT) continue;
+                if ($size > ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT) {
+                    continue;
+                }
                 
                 $path = $entry->getPath();
                 
                 $text .= ' ' . $path;
                 
                 // Ако достигнем лимита, останалите файлове да не се проверяват
-                if ($extractedCnt > $maxFileExtractCnt) continue;
+                if ($extractedCnt > $maxFileExtractCnt) {
+                    continue;
+                }
                 
                 try {
                     $extractedPath = $archiveInst->extractEntry($path);
@@ -216,23 +222,33 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                 $ext = fileman_Files::getExt($path);
             
                 $webdrvArr = fileman_Indexes::getDriver($ext);
-                if (empty($webdrvArr)) continue;
+                if (empty($webdrvArr)) {
+                    continue;
+                }
             
-                $drvInst = FALSE;
+                $drvInst = false;
                 foreach ($webdrvArr as $drv) {
-                    if (!$drv) continue;
+                    if (!$drv) {
+                        continue;
+                    }
                      
-                    if (!method_exists($drv, 'extractText')) continue;
+                    if (!method_exists($drv, 'extractText')) {
+                        continue;
+                    }
             
                     // За да не зацикля, когато има много архиви в самите архиви
-                    if (!$checInnerArchive && ($drv instanceof fileman_webdrv_Archive)) continue;
+                    if (!$checInnerArchive && ($drv instanceof fileman_webdrv_Archive)) {
+                        continue;
+                    }
             
                     $drvInst = $drv;
                      
                     break;
                 }
             
-                if (!$drvInst) continue;
+                if (!$drvInst) {
+                    continue;
+                }
                 
                 $eText = '';
                 try {
@@ -248,10 +264,9 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                     $minSize = fileman_Indexes::$ocrIndexArr[$ext];
                     $eFileLen = @filesize($extractedPath);
                     if (isset($minSize) && ($eFileLen > $minSize) && ($eFileLen < fileman_Indexes::$ocrMax)) {
-                        
                         $filemanOcr = fileman_Setup::get('OCR');
                         
-                        if ($filemanOcr && cls::load($filemanOcr, TRUE)) {
+                        if ($filemanOcr && cls::load($filemanOcr, true)) {
                             $intf = cls::getInterface('fileman_OCRIntf', $filemanOcr);
                             
                             if ($intf && $intf->canExtract($extractedPath) && $intf->haveTextForOcr($extractedPath)) {

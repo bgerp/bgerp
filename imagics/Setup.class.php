@@ -24,39 +24,39 @@ class imagics_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Адаптер за ImageMagick: конвертиране на графични формати";
+    public $info = 'Адаптер за ImageMagick: конвертиране на графични формати';
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме плъгина за аватари
-        $html .= $Plugins->installPlugin('IM identify', 'imagics_Identify', 'fileman_Files', 'private', 'active', TRUE);
+        $html .= $Plugins->installPlugin('IM identify', 'imagics_Identify', 'fileman_Files', 'private', 'active', true);
         
         return $html;
     }
@@ -65,10 +65,10 @@ class imagics_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

@@ -20,44 +20,44 @@ class currency_CurrencyGroups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, currency_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, currency_Wrapper';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, name";
+    public $listFields = 'id, name';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Валутни групи';
+    public $title = 'Валутни групи';
     
     
     /**
-	* Кой може да го разглежда?
-	*/
-	var $canList = 'ceo,currency';
-	
-	
-    /**
-	* Кой може да добавя?
-	*/
-	var $canAdd = 'ceo,currency';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,currency';
     
     
     /**
-	* Кой може да променя?
-	*/
-	var $canEdit = 'ceo,currency,admin';
+     * Кой може да добавя?
+     */
+    public $canAdd = 'ceo,currency';
+    
+    
+    /**
+     * Кой може да променя?
+     */
+    public $canEdit = 'ceo,currency,admin';
     
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Име, mandatory');
         
@@ -72,7 +72,7 @@ class currency_CurrencyGroups extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal ($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->name = Ht::createLink($row->name, array('currency_Currencies', 'list', 'groupId' => $rec->id));
     }
@@ -84,7 +84,7 @@ class currency_CurrencyGroups extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $res
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
         $data = array(
             array(
@@ -101,7 +101,7 @@ class currency_CurrencyGroups extends core_Manager
         $nAffected = 0;
         
         foreach ($data as $rec) {
-            $rec = (object)$rec;
+            $rec = (object) $rec;
             
             if (!$mvc->fetch("#name='{$rec->name}'")) {
                 if ($mvc->save($rec)) {

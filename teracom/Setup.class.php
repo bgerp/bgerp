@@ -4,7 +4,7 @@
 /**
  * class teracom_Setup
  *
- * Инсталиране/Деинсталиране на драйвери за устройствата на Тераком ООД - Русе 
+ * Инсталиране/Деинсталиране на драйвери за устройствата на Тераком ООД - Русе
  *
  * @category  bgerp
  * @package   teracom
@@ -20,25 +20,25 @@ class teracom_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * От кои други пакети зависи
      */
-    var $depends = '';
+    public $depends = '';
     
       
     /**
      * Описание на модула
      */
-    var $info = "Драйвери за контролери на Тераком ООД";
+    public $info = 'Драйвери за контролери на Тераком ООД';
     
             
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
                                  
@@ -56,5 +56,4 @@ class teracom_Setup extends core_ProtoSetup
          
         return $html;
     }
-    
 }

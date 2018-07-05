@@ -34,18 +34,18 @@ class plg_Created extends core_Plugin
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if($requiredRoles != 'no_one' && is_object($rec) && $rec->id && $rec->createdBy == core_Users::SYSTEM_USER) {
-            if($action == 'edit') { 
+        if ($requiredRoles != 'no_one' && is_object($rec) && $rec->id && $rec->createdBy == core_Users::SYSTEM_USER) {
+            if ($action == 'edit') {
                 $requiredRoles = $mvc->getRequiredRoles('editsysdata', $rec, $userId);
             }
-            if($action == 'delete') {
+            if ($action == 'delete') {
                 $requiredRoles = $mvc->getRequiredRoles('deletesysdata', $rec, $userId);
             }
         }
@@ -55,22 +55,21 @@ class plg_Created extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL, &$mode = NULL)
+    public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = null, &$mode = null)
     {
         // Записваме полетата, ако записът е нов и дали трябва да има createdOn и createdBy
         if (!$rec->id || strtolower($mode) == 'replace') {
-            if($fields) {
-                $fieldsArr = arr::make($fields, TRUE);
+            if ($fields) {
+                $fieldsArr = arr::make($fields, true);
                 $mustHaveCreatedBy = isset($fieldsArr['createdBy']);
                 $mustHaveCreatedOn = isset($fieldsArr['createdOn']);
             } else {
-                $mustHaveCreatedBy = TRUE;
-                $mustHaveCreatedOn = TRUE;
+                $mustHaveCreatedBy = true;
+                $mustHaveCreatedOn = true;
             }
             
             // Определяме кой е създал продажбата
             if (!isset($rec->createdBy) && $mustHaveCreatedBy) {
-                
                 $rec->createdBy = Users::getCurrent();
 
                 if (!$rec->createdBy) {
@@ -91,14 +90,14 @@ class plg_Created extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        if($data->form->rec->createdBy == core_Users::SYSTEM_USER && $mvc->protectedSystemFields) {
-            $mvc->protectedSystemFields = arr::make($mvc->protectedSystemFields, TRUE);
+        if ($data->form->rec->createdBy == core_Users::SYSTEM_USER && $mvc->protectedSystemFields) {
+            $mvc->protectedSystemFields = arr::make($mvc->protectedSystemFields, true);
             
-            foreach($data->form->fields as &$f) {
-                if($mvc->protectedSystemFields[$f->name]) {
+            foreach ($data->form->fields as &$f) {
+                if ($mvc->protectedSystemFields[$f->name]) {
                     $f->input = 'none';
                 }
             }
         }
     }
- }
+}

@@ -24,13 +24,13 @@ class hljs_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
         
     
     /**
      * Описание на модула
      */
-    var $info = "Адаптер за highlightjs: Оцветяване на програмен код";
+    public $info = 'Адаптер за highlightjs: Оцветяване на програмен код';
     
 
     /**
@@ -48,10 +48,10 @@ class hljs_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -61,22 +61,22 @@ class hljs_Setup extends core_ProtoSetup
         return $html;
     }
 
-	
-	/**
+    
+    /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
         // Деинсталираме highlight конвертора
-        if($delCnt = $Plugins->deinstallPlugin('hljs_RichTextPlg')) {
+        if ($delCnt = $Plugins->deinstallPlugin('hljs_RichTextPlg')) {
             $html .= "<li>Премахнати са {$delCnt} закачания на 'type_Richtext'";
         } else {
-            $html .= "<li>Не са премахнати закачания на плъгина";
+            $html .= '<li>Не са премахнати закачания на плъгина';
         }
         
         return $html;

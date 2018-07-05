@@ -72,6 +72,7 @@ class doc_plg_TplManager extends core_Plugin
     {
         // Прикачане е допустимо само към наследник на core_Manager ...
         if (!$mvc instanceof core_Manager) {
+            
             return false;
         }
         
@@ -79,6 +80,7 @@ class doc_plg_TplManager extends core_Plugin
         $plugins = arr::make($mvc->loadList);
 
         if (isset($plugins['doc_DocumentPlg'])) {
+            
             return false;
         }
         
@@ -505,6 +507,7 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_BeforeGetLetterHead($mvc, &$res, $rec, $row)
     {
         if (Request::get('asClient')) {
+            
             return false;
         }
     }

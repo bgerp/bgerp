@@ -112,8 +112,7 @@ class core_Classes extends core_Manager
      * Добавя информация за класа в регистъра
      */
     public static function add($class, $title = false)
-    {   
-
+    {
         $class = cls::get($class);
         
         /**
@@ -442,6 +441,7 @@ class core_Classes extends core_Manager
     {
         $verbalInterfaces = '';
         if (!cls::load($rec->name, true)) {
+            
             return "<span class='red'>Липсва кода на класа</span>";
         }
         

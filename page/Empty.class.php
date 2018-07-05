@@ -23,10 +23,10 @@ class page_Empty extends page_Html
     /**
      * Конструктор
      */
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
-        $this->replace("UTF-8", 'ENCODING');
+        $this->replace('UTF-8', 'ENCODING');
         $this->push('css/common.css', 'CSS');
         jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
@@ -35,10 +35,10 @@ class page_Empty extends page_Html
     
     /**
      * Интерфейсен метод
-     * 
+     *
      * @see core_page_WrapperIntf
      */
-    function prepare()
+    public function prepare()
     {
         parent::prepare();
     }

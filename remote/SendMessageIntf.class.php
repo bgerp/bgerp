@@ -16,9 +16,9 @@ class remote_SendMessageIntf extends embed_DriverIntf
 
     /**
      * Изпраща съобщение до потребителя, към който е закачена услугата
-	 *
      *
-     * @param object $rec запис от модела remote_Authorisations
+     *
+     * @param  object $rec запис от модела remote_Authorisations
      * @return state
      */
     public function sendMessage($rec, $msg)

@@ -19,13 +19,13 @@ class cms_Includes extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Добавки към публичната страница";
+    public $title = 'Добавки към публичната страница';
     
     
     /**
      * Заглавие в единично число
      */
-    public $singleTitle = "Добавка към публична статия";
+    public $singleTitle = 'Добавка към публична статия';
     
     
     /**
@@ -54,9 +54,9 @@ class cms_Includes extends core_Master
     {
         $query = self::getQuery();
         $query->where("#state = 'active'");
-        while($rec = $query->fetch()) { 
+        while ($rec = $query->fetch()) {
             $rec->code = "\n" . $rec->code;
-            switch($rec->mode) {
+            switch ($rec->mode) {
                 case 'append':
                     $tpl->append($rec->code, $rec->place);
                     break;
@@ -72,5 +72,4 @@ class cms_Includes extends core_Master
             }
         }
     }
-
 }

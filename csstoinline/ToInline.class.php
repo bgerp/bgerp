@@ -19,14 +19,14 @@ class csstoinline_ToInline
      * Вкарва CSS, който се намира в html файла между CSS таговете, като inline елементи
      * <style type=text/css> ... </style>
      */
-    static function inlineCssFromHtml($html)
+    public static function inlineCssFromHtml($html)
     {
         //Шаблона за намиране на CSS '<stle type=text/css> ... </style>' в html документа
         $pattern = '/\<style type=\"*\'*\s*text\/css\"*\'*\s*\>([.\w\W]*?)\<\/style\>/i';
         preg_match_all($pattern, $html, $match);
         
         //Ако иам намерени съвпадения от CSS в style type="text/css"
-        if(count($match[1])) {
+        if (count($match[1])) {
             $valueAllCss = '';
             
             foreach ($match[1] as $value) {
@@ -44,7 +44,7 @@ class csstoinline_ToInline
     /**
      * Вкарва CSS, който се намира в html файла, като линк към CSS файла
      */
-    static function inlineCssFromHtmlLink($html)
+    public static function inlineCssFromHtmlLink($html)
     {
         //Шаблона за намиране на CSS файл в html документа
         $pattern = '%<(link|style)(?=[^<>]*?(?:type="(text/css)"|>))(?=[^<>]*?(?:media="([^<>"]*)"|>))(?=[^<>]*?(?:href="(.*?)"|>))(?=[^<>]*(?:rel="([^<>"]*)"|>))(?:.*?</\1>|[^<>]*>)%si';
@@ -61,7 +61,7 @@ class csstoinline_ToInline
                 if (is_file($value) || (core_Url::isValidUrl($value))) {
                     
                     //Проверява разширението дали е CSS
-                    if (($dotPos = mb_strrpos($value, '.')) !== FALSE) {
+                    if (($dotPos = mb_strrpos($value, '.')) !== false) {
                         $ext = mb_strtolower(mb_substr($value, $dotPos + 1));
                         
                         if ($ext == 'css') {
@@ -84,7 +84,7 @@ class csstoinline_ToInline
     /**
      * Вкарва посочения css, в $html' а
      */
-    static function cssToInline($html, $css)
+    public static function cssToInline($html, $css)
     {
         // Вземаме пакета
         $conf = core_Packs::getConfig('csstoinline');

@@ -83,6 +83,7 @@ class core_SystemLock
             }
 
             if ($at >= 0 && $at < $lockTime) {
+                
                 return true;
             } elseif (abs($at) > BGERP_SYSTEM_LOCK_TIME * 30) {
                 self::remove();

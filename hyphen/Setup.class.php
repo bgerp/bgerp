@@ -18,22 +18,22 @@ class hyphen_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Хифенация за пренасяне на дълги думи в текстови документи";
+    public $info = 'Хифенация за пренасяне на дълги думи в текстови документи';
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -47,19 +47,20 @@ class hyphen_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
         // Деинсталираме toast съобщения
-        if($delCnt = $Plugins->deinstallPlugin('hyphen_Plugin')) {
+        if ($delCnt = $Plugins->deinstallPlugin('hyphen_Plugin')) {
             $html .= "<li>Премахнати са {$delCnt} закачания на 'type_Richtext'";
         } else {
-            $html .= "<li>Не са премахнати закачания на плъгина";
+            $html .= '<li>Не са премахнати закачания на плъгина';
         }
+
         return $res;
     }
 }

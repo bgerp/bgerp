@@ -16,13 +16,13 @@ class sens2_ScriptActionNotify
     /**
      * Поддържани интерфейси
      */
-    var $interfaces ="sens2_ScriptActionIntf";
+    public $interfaces = 'sens2_ScriptActionIntf';
 
 
     /**
      * Наименование на действието
      */
-    var $title = 'Известяване на потребители';
+    public $title = 'Известяване на потребители';
 
 
     /**
@@ -30,21 +30,20 @@ class sens2_ScriptActionNotify
      *
      * @param core_Form форма на която трябва да се поставят полетата с конфигурацията на контролера (IP, port, pass, ...)
      */
-    function prepareActionForm(&$form)
+    public function prepareActionForm(&$form)
     {
-        
         $form->FLD('message', 'varchar', 'caption=Известяване->Съобщение,mandatory');
         $form->FLD('priority', 'enum(normal=Нормален, warning=Неотложен, alert=Спешен)', 'caption=Известяване->Приоритет,mandatory');
         $form->FLD('users', 'userList', 'caption=Известяване->Потребители,mandatory');
-        $form->FLD('cond', 'text(rows=2)', 'caption=Условие за да се изпрати->Израз,mandatory,width=100%');        
+        $form->FLD('cond', 'text(rows=2)', 'caption=Условие за да се изпрати->Израз,mandatory,width=100%');
         
         $vars = sens2_ScriptDefinedVars::getContex($form->rec->scriptId);
-        foreach($vars as $i => $v) {
+        foreach ($vars as $i => $v) {
             $suggestions[$i] = $i;
         }
         
         $inds = sens2_Indicators::getContex();
-        foreach($inds as $i => $v) {
+        foreach ($inds as $i => $v) {
             $suggestions[$i] = $i;
         }
 
@@ -57,25 +56,25 @@ class sens2_ScriptActionNotify
     
     /**
      * Проверява след  субмитване формата с настройки на контролера
-     * Тук контролера може да зададе грешки и предупреждения, в случай на 
+     * Тук контролера може да зададе грешки и предупреждения, в случай на
      * некоректни конфигурационни данни използвайки $form->setError() и $form->setWarning()
      *
-     * @param   core_Form   форма с въведени данни от заявката (след $form->input)
+     * @param core_Form   форма с въведени данни от заявката (след $form->input)
      */
-    function checkActionForm($form)
+    public function checkActionForm($form)
     {
     }
 
 
-    function toVerbal($rec)
-    { 
-        $cond   = sens2_Scripts::highliteExpr($rec->cond, $rec->scriptId);
+    public function toVerbal($rec)
+    {
+        $cond = sens2_Scripts::highliteExpr($rec->cond, $rec->scriptId);
         $UL = cls::get('type_UserList');
         $users = $UL->toVerbal($rec->users);
 
         $message = type_Varchar::escape($rec->message);
         
-        $EN = core_Type::getByName("type_Enum(normal=Нормален, warning=Предупреждение, alert=Тревога)");
+        $EN = core_Type::getByName('type_Enum(normal=Нормален, warning=Предупреждение, alert=Тревога)');
         $priority = $EN->toVerbal($rec->priority);
      
         $res = "Известие ({$priority}) <span style=\"color:green\">`{$message}`</span> към {$users}, ако {$cond}";
@@ -88,17 +87,17 @@ class sens2_ScriptActionNotify
     /**
      * Извършва действието, с параметрите, които са в $rec
      */
-    function run($rec)
+    public function run($rec)
     {
         // Ако има условие и то не е изпълнено - не правим нищо
-        if(trim($rec->cond)) {
+        if (trim($rec->cond)) {
             $cond = sens2_Scripts::calcExpr($rec->cond, $rec->scriptId);
-            if($cond === sens2_Scripts::CALC_ERROR) {
-
+            if ($cond === sens2_Scripts::CALC_ERROR) {
+                
                 return 'stopped';
             }
-            if(!$cond) {
-
+            if (!$cond) {
+                
                 return 'closed';
             }
         }
@@ -108,17 +107,16 @@ class sens2_ScriptActionNotify
         // Задаваме го на изхода
         $userList = keylist::toArray($rec->users);
 
-        foreach($userList as $userId) {
+        foreach ($userList as $userId) {
             $res = bgerp_Notifications::add($rec->message, array('sens2_Scripts', 'Single', $rec->scriptId), $userId, $rec->priority);
         }
                 
          
-        if($res !== FALSE) {
-
+        if ($res !== false) {
+            
             return 'active';
-        } else {
-
-            return 'stopped';
         }
+
+        return 'stopped';
     }
 }

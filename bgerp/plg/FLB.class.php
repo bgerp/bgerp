@@ -107,17 +107,20 @@ class bgerp_plg_FLB extends core_Plugin
         
         // Ако потребителя е ceo винаги има достъп
         if (core_Users::haveRole('ceo', $userId)) {
+            
             return true;
         }
         
         // Отговорника на папката винаги може да прави всичко с нея
         if ($rec->inCharge == $userId) {
+            
             return true;
         }
         
         // Ако потребителя е изрично избран че може да селектира или активира
         if ($rec->{$userFld}) {
             if (keylist::isIn($userId, $rec->{$userFld})) {
+                
                 return true;
             }
         }
@@ -125,6 +128,7 @@ class bgerp_plg_FLB extends core_Plugin
         // Ако потребителя има роля която има достъп до действието
         if (isset($rec->{$roleFld})) {
             if (core_Users::haveRole($rec->{$roleFld}, $userId)) {
+                
                 return true;
             }
         }
@@ -132,6 +136,7 @@ class bgerp_plg_FLB extends core_Plugin
         // При проверка за избиране, ако потребителя не е оказан, се проверява дали може да активира обекта
         // Ако може да активира обекта той винаги може и да го избира
         if ($action == 'Select') {
+            
             return self::canUse($mvc, $rec, $userId, 'activate');
         }
         

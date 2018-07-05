@@ -171,6 +171,7 @@ class core_LoginLog extends core_Manager
         
         // Ако е в границите
         if ($maxDeviation > $diff) {
+            
             return true;
         }
         
@@ -206,6 +207,7 @@ class core_LoginLog extends core_Manager
         					(#status='success' OR #status='first_login')", $userId, $timestamp));
         
         if ($rec) {
+            
             return true;
         }
         
@@ -252,6 +254,7 @@ class core_LoginLog extends core_Manager
         
         // Ако няма записано
         if (!$brid) {
+            
             return false;
         }
         
@@ -285,6 +288,7 @@ class core_LoginLog extends core_Manager
                 $userId = $rec->userId;
             } else {
                 if ($userId != $rec->userId) {
+                    
                     return false;
                 }
             }
@@ -292,6 +296,7 @@ class core_LoginLog extends core_Manager
         
         // Ако има по - малко записи от лимита
         if ($cnt < (int) $conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE) {
+            
             return false;
         }
         
@@ -336,6 +341,7 @@ class core_LoginLog extends core_Manager
         
         // Ако има някакъв запис, следователно не е първо логване
         if ($rec) {
+            
             return false;
         }
         
@@ -377,6 +383,7 @@ class core_LoginLog extends core_Manager
         							#status = 'first_login' 
         							", $ip, $brid, $userId));
         if ($rec) {
+            
             return false;
         }
         
@@ -387,6 +394,7 @@ class core_LoginLog extends core_Manager
         							#status = 'success' 
         							", $ip, $brid, $userId));
         if ($rec) {
+            
             return true;
         }
         
@@ -438,6 +446,7 @@ class core_LoginLog extends core_Manager
         $rec = $query->fetch();
         
         if (!$rec) {
+            
             return ;
         }
         

@@ -13,25 +13,24 @@
  * @since     v 0.1
  * @link
  */
-class type_Bigint extends type_Int {
+class type_Bigint extends type_Int
+{
     
     
     /**
      * MySQL тип на полето в базата данни
      */
-    var $dbFieldType = 'bigint';
+    public $dbFieldType = 'bigint';
     
     
     /**
      * Дължина на полето в mySql таблица
      */
-    var $dbFieldLen = '21';
+    public $dbFieldLen = '21';
     
     
     /**
      * Параметър определящ максималната широчина на полето
      */
-    var $maxFieldSize = 21;
-    
-    
+    public $maxFieldSize = 21;
 }

@@ -206,6 +206,7 @@ class doc_Linked extends core_Manager
         }
         
         if (empty($rowArr)) {
+            
             return ;
         }
         
@@ -242,6 +243,7 @@ class doc_Linked extends core_Manager
     public static function showLinkedInForm(&$form, $outVal, $outType = 'doc')
     {
         if (!$outVal) {
+            
             return ;
         }
         
@@ -252,6 +254,7 @@ class doc_Linked extends core_Manager
         $rowArr = self::getListView($outType, $outVal, 'row', false, 10);
         
         if (!$rowArr) {
+            
             return ;
         }
         
@@ -568,6 +571,7 @@ class doc_Linked extends core_Manager
         }
         
         if ($res) {
+            
             return $res;
         }
         
@@ -927,6 +931,7 @@ class doc_Linked extends core_Manager
         
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
+                
                 return array();
             }
             
@@ -1077,6 +1082,7 @@ class doc_Linked extends core_Manager
         
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
+                
                 return array();
             }
             
@@ -1291,6 +1297,7 @@ class doc_Linked extends core_Manager
         
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
+                
                 return array();
             }
             

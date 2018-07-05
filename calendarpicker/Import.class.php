@@ -20,53 +20,54 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class calendarpicker_Import {
+class calendarpicker_Import
+{
     
     
     /**
      * @todo Чака за документация...
      */
-    var $calendarLibPath;
+    public $calendarLibPath;
     
     
     /**
      * @todo Чака за документация...
      */
-    var $calendarFile;
+    public $calendarFile;
     
     
     /**
      * @todo Чака за документация...
      */
-    var $calendarLangFile;
+    public $calendarLangFile;
     
     
     /**
      * @todo Чака за документация...
      */
-    var $calendarSetupFile;
+    public $calendarSetupFile;
     
     
     /**
      * @todo Чака за документация...
      */
-    var $calendarThemeFile;
+    public $calendarThemeFile;
     
     
     /**
      * @todo Чака за документация...
      */
-    var $calendarOptions;
+    public $calendarOptions;
     
     
     /**
      * @todo Чака за документация...
      */
-    function __construct(
+    public function __construct(
         $lang = 'auto',
         $theme = 'skins/aqua/theme',
-        $stripped = FALSE)
-    {
+        $stripped = false
+    ) {
         if ($stripped) {
             $this->calendarFile = 'calendar_stripped.js';
             $this->calendarSetupFile = 'calendar-setup_stripped.js';
@@ -75,22 +76,22 @@ class calendarpicker_Import {
             $this->calendarSetupFile = 'calendar-setup.js';
         }
         
-        if($lang == 'auto') {
+        if ($lang == 'auto') {
             $lg = Mode::get('lg');
             
-            if(!$lg || $lg == 'bg') {
+            if (!$lg || $lg == 'bg') {
                 $lg = 'bg-utf8';
             }
             $lang = "{$lg}";
         }
 
-        $this->calendarLibPath = "calendarpicker/";
+        $this->calendarLibPath = 'calendarpicker/';
 
         $this->includeCode = new ET();
-        $this->includeCode->push($this->calendarLibPath . $theme . ".css", 'CSS', TRUE);
-        $this->includeCode->push($this->calendarLibPath . $this->calendarFile, 'JS', TRUE);
-        $this->includeCode->push($this->calendarLibPath . "lang/calendar-" . $lang . ".js", 'JS', TRUE);
-        $this->includeCode->push($this->calendarLibPath . $this->calendarSetupFile, 'JS', TRUE);
+        $this->includeCode->push($this->calendarLibPath . $theme . '.css', 'CSS', true);
+        $this->includeCode->push($this->calendarLibPath . $this->calendarFile, 'JS', true);
+        $this->includeCode->push($this->calendarLibPath . 'lang/calendar-' . $lang . '.js', 'JS', true);
+        $this->includeCode->push($this->calendarLibPath . $this->calendarSetupFile, 'JS', true);
         $this->calendarOptions = array('ifFormat' => '%Y/%m/%d', 'daFormat' => '%Y/%m/%d');
     }
     
@@ -98,7 +99,8 @@ class calendarpicker_Import {
     /**
      * @todo Чака за документация...
      */
-    function setOption($name, $value) {
+    public function setOption($name, $value)
+    {
         $this->calendarOptions[$name] = $value;
     }
     
@@ -106,7 +108,8 @@ class calendarpicker_Import {
     /**
      * @todo Чака за документация...
      */
-    function loadFiles() {
+    public function loadFiles()
+    {
         return new ET($this->getLoadFilesCode());
     }
     
@@ -114,9 +117,9 @@ class calendarpicker_Import {
     /**
      * @todo Чака за документация...
      */
-    function makeCalendar($options = array())
+    public function makeCalendar($options = array())
     {
-        $jsOptions = str_replace("\"", "'", json_encode(array_merge($this->calendarOptions, $options)));
+        $jsOptions = str_replace('"', "'", json_encode(array_merge($this->calendarOptions, $options)));
         
         $tpl = new ET();
         
@@ -129,11 +132,11 @@ class calendarpicker_Import {
     /**
      * @todo Чака за документация...
      */
-    function makeInputField($options, $tpl, $attr)
+    public function makeInputField($options, $tpl, $attr)
     {
         ht::setUniqId($attr);
         
-        if(!$tpl) {
+        if (!$tpl) {
             $attr['type'] = $attr['type'] ? $attr['type'] : 'text';
             $attr['size'] = $attr['size'] ? $attr['size'] : '20';
             $tpl = ht::createElement('input', $attr);
@@ -143,10 +146,10 @@ class calendarpicker_Import {
         
         $btnAttr = array();
         $btnAttr['id'] = $attr['id'] . '_btn';
-        $btnImg = "<img style='vertical-align:top;min-height: 26px;' src=\"{$imgPath}\" alt=\"\" id=\"" . $attr['id'] . "_img\" >";
+        $btnImg = "<img style='vertical-align:top;min-height: 26px;' src=\"{$imgPath}\" alt=\"\" id=\"" . $attr['id'] . '_img" >';
         $btnAttr['href'] = '#';
-        $btnAttr['style'] = " visibility:hidden; padding:0px; margin:0px;";
-        $tpl->append(ht::createElement('a', $btnAttr, $btnImg, TRUE));
+        $btnAttr['style'] = ' visibility:hidden; padding:0px; margin:0px;';
+        $tpl->append(ht::createElement('a', $btnAttr, $btnImg, true));
         
         $options['inputField'] = $attr['id'];
         $options['button'] = $btnAttr['id'];
@@ -160,38 +163,50 @@ class calendarpicker_Import {
     /**
      * PRIVATE SECTION
      */
-    function _field_id($id) { return 'f-calendar-field-' . $id;
+    public function _field_id($id)
+    {
+        return 'f-calendar-field-' . $id;
     }
     
     
     /**
      * @todo Чака за документация...
      */
-    function _trigger_id($id) { return 'f-calendar-trigger-' . $id;
+    public function _trigger_id($id)
+    {
+        return 'f-calendar-trigger-' . $id;
     }
     
     
     /**
      * @todo Чака за документация...
      */
-    function _gen_id() { static $id = 0; return ++$id;
+    public function _gen_id()
+    {
+        static $id = 0;
+
+        return ++$id;
     }
     
     
     /**
      * @todo Чака за документация...
      */
-    function _make_js_hash($array) {
+    public function _make_js_hash($array)
+    {
         $jstr = '';
         reset($array);
         
         while (list($key, $val) = each($array)) {
-            if (is_bool($val))
-            $val = $val ? 'true' : 'false';
-            else if (!is_numeric($val))
-            $val = '"' . $val . '"';
+            if (is_bool($val)) {
+                $val = $val ? 'true' : 'false';
+            } elseif (!is_numeric($val)) {
+                $val = '"' . $val . '"';
+            }
             
-            if ($jstr) $jstr .= ',';
+            if ($jstr) {
+                $jstr .= ',';
+            }
             $jstr .= '"' . $key . '":' . $val;
         }
         
@@ -202,7 +217,8 @@ class calendarpicker_Import {
     /**
      * @todo Чака за документация...
      */
-    function _make_html_attr($array) {
+    public function _make_html_attr($array)
+    {
         $attrstr = '';
         reset($array);
         
@@ -217,19 +233,19 @@ class calendarpicker_Import {
     /**
      * @todo Чака за документация...
      */
-    function render($tpl, $attr)
+    public function render($tpl, $attr)
     {
         if (Mode::get('screenMode') == 'narrow') {
-            $df = core_Setup::get('EF_DATE_NARROW_FORMAT', TRUE);
+            $df = core_Setup::get('EF_DATE_NARROW_FORMAT', true);
         } else {
-            $df = core_Setup::get('EF_DATE_FORMAT', TRUE);
+            $df = core_Setup::get('EF_DATE_FORMAT', true);
         }
         
         $df = preg_replace('/([a-z])/i', '%${1}', $df);
         
-        $calOptions = array('ifFormat'=> $df, 'daFormat' => $df);
+        $calOptions = array('ifFormat' => $df, 'daFormat' => $df);
         
-        $tpl = new ET($this->makeInputField($calOptions , $tpl, $attr));
+        $tpl = new ET($this->makeInputField($calOptions, $tpl, $attr));
         $tpl->append($this->includeCode);
         
         return $tpl;

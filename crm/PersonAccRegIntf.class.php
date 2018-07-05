@@ -18,5 +18,4 @@
  */
 class crm_PersonAccRegIntf extends acc_RegisterIntf
 {
-
 }

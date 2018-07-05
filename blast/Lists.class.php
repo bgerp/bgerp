@@ -24,7 +24,7 @@ class blast_Lists extends core_Master
      * Име на папката по подразбиране при създаване на нови документи от този тип.
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
      */
-    var $defaultFolder = 'Списъци за разпращане';
+    public $defaultFolder = 'Списъци за разпращане';
     
     
     /**
@@ -44,116 +44,116 @@ class blast_Lists extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper,plg_RowTools2,doc_DocumentPlg, plg_Search, 
+    public $loadList = 'blast_Wrapper,plg_RowTools2,doc_DocumentPlg, plg_Search, 
                      bgerp_plg_Blank, plg_Clone';
     
     
     /**
      * Дали може да бъде само в началото на нишка
      */
-    var $onlyFirstInThread = TRUE;
+    public $onlyFirstInThread = true;
     
     
     /**
      * Заглавие
      */
-    var $title = "Списъци за изпращане на циркулярни имейли, писма, SMS-и, факсове и др.";
+    public $title = 'Списъци за изпращане на циркулярни имейли, писма, SMS-и, факсове и др.';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Списък с контакти';
+    public $singleTitle = 'Списък с контакти';
     
     
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'bgerp_PersonalizationSourceIntf, doc_DocumentIntf';
+    public $interfaces = 'bgerp_PersonalizationSourceIntf, doc_DocumentIntf';
     
     
     /**
      * Кой може да чете?
      */
-    var $canRead = 'blast,ceo,admin';
+    public $canRead = 'blast,ceo,admin';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'blast,ceo,admin';
+    public $canWrite = 'blast,ceo,admin';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'blast,ceo,admin';
+    public $canReject = 'blast,ceo,admin';
     
     
     /**
      * Кой може да го възстанови?
      */
-    var $canRestore = 'blast,ceo,admin';
+    public $canRestore = 'blast,ceo,admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'blast,ceo,admin';
+    public $canList = 'blast,ceo,admin';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'blast,ceo,admin';
+    public $canSingle = 'blast,ceo,admin';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'blast_ListDetails';
-	
-	
+    public $details = 'blast_ListDetails';
+    
+    
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/address-book.png';
+    public $singleIcon = 'img/16/address-book.png';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = 'Bls';
+    public $abbr = 'Bls';
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'blast/tpl/SingleLayoutLists.shtml';
+    public $singleLayoutFile = 'blast/tpl/SingleLayoutLists.shtml';
     
     
     /**
      * Поле за търсене
      */
-    var $searchFields = 'title, keyField, contactsCnt, folderId, threadId, containerId ';
+    public $searchFields = 'title, keyField, contactsCnt, folderId, threadId, containerId ';
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "2.1|Циркулярни";
+    public $newBtnGroup = '2.1|Циркулярни';
     
     
     /**
      * Да се показва антетка
      */
-    public $showLetterHead = TRUE;
+    public $showLetterHead = true;
     
 
     /**
@@ -165,10 +165,10 @@ class blast_Lists extends core_Master
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         // Информация за папката
-        $this->FLD('title' , 'varchar', 'caption=Заглавие,width=100%,mandatory');
+        $this->FLD('title', 'varchar', 'caption=Заглавие,width=100%,mandatory');
         $this->FLD('keyField', 'enum(email=Имейл,mobile=Мобилен,fax=Факс,names=Лице,company=Фирма,uniqId=№)', 'caption=Ключ,width=100%,mandatory,hint=Kлючовото поле за списъка');
         $this->FLD('fields', 'text', 'caption=Полета,width=100%,mandatory,hint=Напишете името на всяко поле на отделен ред,column=none');
         $this->FNC('allFields', 'text', 'column=none,input=none');
@@ -187,7 +187,7 @@ class blast_Lists extends core_Master
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
-     * @param int $folderId - id на папката
+     * @param  int     $folderId - id на папката
      * @return boolean
      */
     public static function canAddToFolder($folderId)
@@ -196,14 +196,17 @@ class blast_Lists extends core_Master
         $coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
         
         // Ако не е папка проект или контрагент, не може да се добави
-        if (($coverClassName != 'doc_unsortedfolders')) return FALSE;
+        if (($coverClassName != 'doc_unsortedfolders')) {
+            
+            return false;
+        }
     }
     
     
     /**
      * Прибавя ключовото поле към другите за да получи всичко
      */
-    static function on_CalcAllFields($mvc, $rec)
+    public static function on_CalcAllFields($mvc, $rec)
     {
         $rec->allFields = $rec->keyField . '=' . $mvc->getFieldType('keyField')->options[$rec->keyField] . "\n" . $mvc->clearFields($rec->fields);
     }
@@ -213,7 +216,7 @@ class blast_Lists extends core_Master
      * Изчиства празния ред.
      * Премахва едноредовите коментари.
      */
-    function clearFields($rec)
+    public function clearFields($rec)
     {
         $delimiter = '[#newLine#]';
         
@@ -231,7 +234,7 @@ class blast_Lists extends core_Master
             if ((strpos($value, '#') !== 0) && (strlen($value))) {
                 
                 //Разделяме стринга на части
-                $valueArr = explode("=", $value, 2);
+                $valueArr = explode('=', $value, 2);
                 
                 //Вземаме името на полето
                 $fieldName = $valueArr[0];
@@ -243,7 +246,7 @@ class blast_Lists extends core_Master
                 $fieldName = trim($fieldName);
                 
                 //Заместваме всички стойности различни от латински букви и цифри в долна черта
-                $fieldName = preg_replace("/[^a-z0-9]/", "_", $fieldName);
+                $fieldName = preg_replace('/[^a-z0-9]/', '_', $fieldName);
                 
                 //Премахваме празните интервали в края и в началото в заглавието на полето
                 $caption = trim($valueArr[1]);
@@ -278,15 +281,15 @@ class blast_Lists extends core_Master
 
     public static function on_Shutdown($mvc)
     {
-        if(count($mvc->mustUpdate)) {
-            foreach($mvc->mustUpdate as $id => $detailMvc) {
+        if (count($mvc->mustUpdate)) {
+            foreach ($mvc->mustUpdate as $id => $detailMvc) {
                 $rec = $mvc->fetch($id);
                 $dQuery = $detailMvc->getQuery();
-                $dQuery->where("#listId = $id");
+                $dQuery->where("#listId = ${id}");
                 $rec->contactsCnt = $dQuery->count();
                 
                 // Определяме състоянието на база на количеството записи (контакти)
-                if($rec->state == 'draft' && $rec->contactsCnt > 0) {
+                if ($rec->state == 'draft' && $rec->contactsCnt > 0) {
                     $rec->state = 'closed';
                 } elseif ($rec->state == 'closed' && $rec->contactsCnt == 0) {
                     $rec->state = 'draft';
@@ -295,16 +298,15 @@ class blast_Lists extends core_Master
                 $mvc->save($rec);
             }
         }
-
     }
     
     
     /**
      * Изпълнява се след подготовката на ролите, необходимо за това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = null, $userId = null)
     {
-        if(($action == 'edit' || $action == 'delete') && $rec->state != 'draft' && isset($rec->state)) {
+        if (($action == 'edit' || $action == 'delete') && $rec->state != 'draft' && isset($rec->state)) {
             $roles = 'no_one';
         }
     }
@@ -313,10 +315,10 @@ class blast_Lists extends core_Master
     /**
      * Добавя помощен шаблон за попълване на полетата
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
         if (!$data->form->rec->fields) {
-            $template = new ET (getFileContent("blast/tpl/ListsEditFormTemplates.txt"));
+            $template = new ET(getFileContent('blast/tpl/ListsEditFormTemplates.txt'));
             $data->form->rec->fields = $template->getContent();
         }
         
@@ -328,17 +330,16 @@ class blast_Lists extends core_Master
     
     /**
      * След подготовка на тулбара на единичен изглед.
-     * 
+     *
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if ($data->rec->keyField == 'email' && blast_Emails::haveRightFor('add') && $data->rec->state != 'draft' && $data->rec->state != 'rejected') {
-            
             Request::setProtected(array('perSrcObjectId', 'perSrcClassId'));
         
-            $data->toolbar->addBtn('Циркулярен имейл', array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($mvc), 'perSrcObjectId' => $data->rec->id, 'ret_url' => TRUE), 'id=btnEmails','ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
+            $data->toolbar->addBtn('Циркулярен имейл', array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($mvc), 'perSrcObjectId' => $data->rec->id, 'ret_url' => true), 'id=btnEmails', 'ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
         }
     }
     
@@ -346,7 +347,7 @@ class blast_Lists extends core_Master
     /**
      * Интерфейсен метод на doc_DocumentIntf
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         
@@ -373,7 +374,7 @@ class blast_Lists extends core_Master
     /**
      * Връща CSV представяне на данните в списъка
      */
-    static function importCsvFromLists($listId)
+    public static function importCsvFromLists($listId)
     {
         $rec = self::fetch($listId);
         $fieldsArr = blast_ListDetails::getFncFieldsArr($rec->allFields);
@@ -388,12 +389,12 @@ class blast_Lists extends core_Master
         $listDetails = cls::get('blast_ListDetails');
         $listDetails->addFNC($rec->allFields);
         
-        while($r = $dQuery->fetch()) {
+        while ($r = $dQuery->fetch()) {
             $data = unserialize($r->data);
             
             $row = array();
             
-            foreach($fieldsArr as $key => $caption) {
+            foreach ($fieldsArr as $key => $caption) {
                 $row[$key] = $data[$key];
             }
             
@@ -407,11 +408,11 @@ class blast_Lists extends core_Master
     /**
      * Добавя един ред в CSV структура
      */
-    static function addCsvRow(&$csv, $row)
+    public static function addCsvRow(&$csv, $row)
     {
         $div = '';
         
-        foreach($row as $value) {
+        foreach ($row as $value) {
             
             // escape
             if (preg_match('/\\r|\\n|,|"/', $value)) {
@@ -433,10 +434,10 @@ class blast_Lists extends core_Master
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Manager $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param stdClass     $row Това ще се покаже
+     * @param stdClass     $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $cnt = blast_ListDetails::getCnt($rec->id);
         
@@ -459,7 +460,7 @@ class blast_Lists extends core_Master
         $fields = str_replace(array("\n", "\r\n", "\n\r"), array(',', ',', ','), $fields);
         
         // Преобразуваме в масив
-        $fieldsArr = arr::make($fields, TRUE);
+        $fieldsArr = arr::make($fields, true);
         
         // Обхождаме масива и за всеки плейсхолдер, добавяме съответния му тип
         foreach ($fieldsArr as $name => $caption) {
@@ -468,31 +469,31 @@ class blast_Lists extends core_Master
             
             switch ($name) {
                 
-                case 'email' :
+                case 'email':
                     $type = 'type_Email';
                     break;
                 
-                case 'emails' :
+                case 'emails':
                     $type = 'type_Emails';
                     break;
                 
-                case 'vat' :
+                case 'vat':
                     $type = 'drdata_VatType';
                     break;
                 
-                case 'fax' :
-                case 'mobile' :
-                case 'tel' :
-                case 'phone' :
+                case 'fax':
+                case 'mobile':
+                case 'tel':
+                case 'phone':
                     $type = 'drdata_PhoneType';
                     break;
                 
-                case 'country' :
+                case 'country':
                     $type = 'type_Varchar';
                     $paramArr['remember'] = 'remember';
                     break;
                 
-                default :
+                default:
                 $type = 'type_Varchar';
                 break;
             }
@@ -516,7 +517,10 @@ class blast_Lists extends core_Master
         $fieldsArr = array();
         $rec = $this->fetch($id);
         
-        if (!$rec) return $fieldsArr;
+        if (!$rec) {
+            
+            return $fieldsArr;
+        }
         
         // Масив с ключове плейсхолдерите и стойности класовете им
         $fieldsArr = $this->getFieldsArr($rec->allFields);
@@ -563,11 +567,11 @@ class blast_Lists extends core_Master
      * @see bgerp_PersonalizationSourceIntf
      *
      * @param integer|object $id
-     * @param boolean $verbal
+     * @param boolean        $verbal
      *
      * @return string
      */
-    public function getPersonalizationTitle($id, $verbal = TRUE)
+    public function getPersonalizationTitle($id, $verbal = true)
     {
         if (is_object($id)) {
             $rec = $id;
@@ -595,12 +599,15 @@ class blast_Lists extends core_Master
      *
      * @return boolean
      */
-    public function canUsePersonalization($id, $userId = NULL)
+    public function canUsePersonalization($id, $userId = null)
     {
         // Всеки който има права до сингъла на записа, може да го използва
-        if (($id > 0) && ($this->haveRightFor('single', $id, $userId))) return TRUE;
+        if (($id > 0) && ($this->haveRightFor('single', $id, $userId))) {
+            
+            return true;
+        }
         
-        return FALSE;
+        return false;
     }
     
     
@@ -612,7 +619,7 @@ class blast_Lists extends core_Master
      *
      * @return array
      */
-    public function getPersonalizationOptions($userId = NULL)
+    public function getPersonalizationOptions($userId = null)
     {
         $resArr = array();
         
@@ -623,16 +630,18 @@ class blast_Lists extends core_Master
         //Добавя в лист само списъци с имейли
         $query = $this->getQuery();
         $query->where("#state != 'rejected'");
-        $query->orderBy("createdOn", 'DESC');
+        $query->orderBy('createdOn', 'DESC');
         
         // Обхождаме откритите резултати
         while ($rec = $query->fetch()) {
             
             // Ако няма права за персонализиране, да не се връща
-            if (!$this->canUsePersonalization($rec->id, $userId)) continue;
+            if (!$this->canUsePersonalization($rec->id, $userId)) {
+                continue;
+            }
             
             // Добавяме в масива
-            $resArr[$rec->id] = $this->getPersonalizationTitle($rec, FALSE);
+            $resArr[$rec->id] = $this->getPersonalizationTitle($rec, false);
         }
         
         return $resArr;
@@ -643,9 +652,9 @@ class blast_Lists extends core_Master
      * Връща масив за SELECT с всички възможни източници за персонализация от даден клас,
      * за съответния запис,
      * които са достъпни за посочения потребител
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return array
      */
     public function getPersonalizationOptionsForId($id)
@@ -667,7 +676,7 @@ class blast_Lists extends core_Master
     public function getPersonalizationSrcLink($id)
     {
         // Създаваме линк към сингъла листа
-        $title = $this->getPersonalizationTitle($id, TRUE);
+        $title = $this->getPersonalizationTitle($id, true);
         $link = ht::createLink($title, array($this, 'single', $id));
         
         return $link;
@@ -692,45 +701,45 @@ class blast_Lists extends core_Master
     
     /**
      * Добавя допълнителни полетата в антетката
-     * 
+     *
      * @param core_Master $mvc
-     * @param NULL|array $res
-     * @param object $rec
-     * @param object $row
+     * @param NULL|array  $res
+     * @param object      $rec
+     * @param object      $row
      */
     public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
         $resArr = arr::make($resArr);
         
         $allFieldsArr = array('title' => 'Заглавие',
-        						'keyField' => 'Ключово поле',
-        						'allFields' => 'Всички полета',
-        						'DetailsCnt' => 'Брой абонати',
-        						'lg' => 'Език',
-        						'lastUsedOn' => 'Последна употреба'
+                                'keyField' => 'Ключово поле',
+                                'allFields' => 'Всички полета',
+                                'DetailsCnt' => 'Брой абонати',
+                                'lg' => 'Език',
+                                'lastUsedOn' => 'Последна употреба'
                             );
         foreach ($allFieldsArr as $fieldName => $val) {
             if ($row->{$fieldName}) {
-                $resArr[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
+                $resArr[$fieldName] = array('name' => tr($val), 'val' => "[#{$fieldName}#]");
             }
         }
         
-        $resArr['created'] =  array('name' => tr('Създаване'), 'val' =>"[#createdBy#], [#createdOn#]");
+        $resArr['created'] = array('name' => tr('Създаване'), 'val' => '[#createdBy#], [#createdOn#]');
     }
     
     
     /**
      * Кои полета да са скрити във вътрешното показване
-     * 
+     *
      * @param core_Master $mvc
-     * @param NULL|array $res
-     * @param object $rec
-     * @param object $row
+     * @param NULL|array  $res
+     * @param object      $rec
+     * @param object      $row
      */
     public static function on_AfterGetHideArrForLetterHead($mvc, &$res, $rec, $row)
     {
         $res = arr::make($res);
         
-        $res['external']['created'] = TRUE;
+        $res['external']['created'] = true;
     }
 }
