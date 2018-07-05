@@ -557,4 +557,24 @@ class store_Transfers extends core_Master
         
         return $res;
     }
+    
+    
+    /**
+     * Какво да е предупреждението на бутона за контиране
+     *
+     * @param int $id            - ид
+     * @param string $isContable - какво е действието
+     * @return NULL|string       - текста на предупреждението или NULL ако няма
+     */
+    public function getContoWarning_($id, $isContable)
+    {
+    	$rec = $this->fetchRec($id);
+    	$dQuery = store_TransfersDetails::getQuery();
+    	$dQuery->where("#transferId = {$id}");
+    	$dQuery->show('newProductId, quantity');
+    	
+    	$warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->fromStore, 'newProductId');
+    
+    	return $warning;
+    }
 }

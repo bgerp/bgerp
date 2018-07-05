@@ -1608,4 +1608,51 @@ abstract class deals_Helper
             return 'Избран е режим за начисляване на ДДС, при очакван без ДДС';
         }
     }
+    
+    
+    /**
+     * Предупреждения за множеството артикули с отрицателн и количества в склада
+     * 
+     * @param array $arr
+     * @param int $storeId
+     * @param string $productFld
+     * @param string $quantityFld
+     * @return NULL|string
+     */
+    public static function getWarningForNegativeQuantitiesInStore($arr, $storeId, $productFld = 'productId', $quantityFld = 'quantity')
+    {
+    	$warning = NULL;
+    	$productsWithNegativeQuantity = array();
+    	if(!is_array($arr) || !count($arr)) return;
+    
+    	foreach ($arr as $obj){
+    		$available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, $obj->{$quantityFld});
+    		if($available < 0){
+    			$productsWithNegativeQuantity[] = cat_Products::getTitleById($obj->{$productFld}, FALSE);
+    		}
+    	}
+    
+    	if(count($productsWithNegativeQuantity)){
+    		$warning = 'Контирането на документа ще доведе до отрицателни количества по|*: ' . implode(', ', $productsWithNegativeQuantity) . ", |в склад|* " . store_Stores::getTitleById($storeId);
+    	}
+    
+    	return $warning;
+    }
+    
+    
+    /**
+     * Наличното к-во което ще остане в склада
+     * 
+     * @param int $productId
+     * @param int $storeId
+     * @param double $quantity
+     * @return double
+     */
+    public static function getAvailableQuantityAfter($productId, $storeId, $quantity)
+    {
+    	$stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}", 'quantity,reservedQuantity');
+    	$quantityInStore = $stRec->quantity - $stRec->reservedQuantity;
+    	
+    	return $quantityInStore - $quantity;
+    }
 }

@@ -207,4 +207,24 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
             $data->toolbar->addBtn('Връщане', array('planning_ReturnNotes', 'add', 'originId' => $rec->containerId, 'storeId' => $rec->storeId, 'ret_url' => true), null, 'ef_icon = img/16/produce_out.png,title=Връщане на артикули от производството');
         }
     }
+    
+    
+    /**
+     * Какво да е предупреждението на бутона за контиране
+     *
+     * @param int $id            - ид
+     * @param string $isContable - какво е действието
+     * @return NULL|string       - текста на предупреждението или NULL ако няма
+     */
+    public function getContoWarning_($id, $isContable)
+    {
+    	$rec = $this->fetchRec($id);
+    	$dQuery = planning_ConsumptionNoteDetails::getQuery();
+    	$dQuery->where("#noteId = {$id}");
+    	$dQuery->show('productId, quantity');
+    	 
+    	$warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId);
+    
+    	return $warning;
+    }
 }

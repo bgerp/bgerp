@@ -1008,4 +1008,39 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         
         planning_DirectProductNoteDetails::save($rec);
     }
+    
+    
+    /**
+     * Какво да е предупреждението на бутона за контиране
+     *
+     * @param int $id            - ид
+     * @param string $isContable - какво е действието
+     * @return NULL|string       - текста на предупреждението или NULL ако няма
+     */
+    public function getContoWarning_($id, $isContable)
+    {
+    	$warning = NULL;
+    	$rec = $this->fetchRec($id);
+    	$dQuery = planning_DirectProductNoteDetails::getQuery();
+    	$dQuery->where("#noteId = {$id} AND #storeId IS NOT NULL");
+    	
+    	$productsWithNegativeQuantity = array();
+    	while ($dRec = $dQuery->fetch()){
+    		$available = deals_Helper::getAvailableQuantityAfter($dRec->productId, $dRec->storeId, $dRec->quantity);
+    		if($available < 0){
+    			$productsWithNegativeQuantity[$dRec->storeId][] = cat_Products::getTitleById($dRec->productId, FALSE);
+    		}
+    	}
+    
+    	if(count($productsWithNegativeQuantity)){
+    		$warning = 'Контирането на документа ще доведе до отрицателни количества по|*: ';
+    		foreach ($productsWithNegativeQuantity as $storeId => $products){
+    			$warning .= implode(', ', $products) . ", |в склад|* " . store_Stores::getTitleById($storeId) . " |и|* ";
+    		}
+    		
+    		$warning = rtrim($warning, " |и|* ");
+    	}
+    	
+    	return $warning;
+    }
 }

@@ -499,4 +499,24 @@ class store_ShipmentOrders extends store_DocumentMaster
             }
         }
     }
+    
+    
+    /**
+     * Какво да е предупреждението на бутона за контиране
+     * 
+     * @param int $id            - ид
+     * @param string $isContable - какво е действието
+     * @return NULL|string       - текста на предупреждението или NULL ако няма
+     */
+    public function getContoWarning_($id, $isContable)
+    {
+    	$rec = $this->fetchRec($id);
+    	$dQuery = store_ShipmentOrderDetails::getQuery();
+    	$dQuery->where("#shipmentId = {$id}");
+    	$dQuery->show('productId, quantity');
+    	
+    	$warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId);
+    	
+    	return $warning;
+    }
 }
