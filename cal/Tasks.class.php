@@ -3051,6 +3051,19 @@ class cal_Tasks extends embed_Manager
         unset($nRec->workingTime);
         unset($nRec->timeCalc);
         $nRec->notifySent = 'no';
+        
+        if ($rec->__isReplicate) {
+            if ($rec->state == 'closed' || $rec->state == 'stopped') {
+                if (($rec->brState != 'draft') && ($rec->brState != 'rejected')) {
+                    $rec->state = $rec->brState;
+                } else {
+                    $rec->state = 'wakeup';
+                }
+            }
+            
+            $rec->progress = NULL;
+            $rec->brState = NULL;
+        }
     }
     
     
