@@ -96,18 +96,19 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
 
             $storesArr[$detail->ent1Id] = $detail->ent1Id;
 
-            if ($detail->blQuantity < 0) {
+            if (($detail->blQuantity < 0) && (abs($detail->blQuantity) > $rec->minval)) {
 
                 $articulsForCheck[$detail->ent2Id] = $detail->ent2Id;
             }
 
-            if (in_array($detail->ent2Id, $articulsForCheck)) {
+            if ((in_array($detail->ent2Id, $articulsForCheck)) && abs($detail->blQuantity) > $rec->minval) {
 
                 if (! array_key_exists($detail->ent2Id, $recs)) {
 
                     $recs[$detail->ent2Id] = (object) array(
 
                         'articulId' => $detail->ent2Id,
+                        'articulName' => cat_Products::getTitleById($detail->ent2Id),
                         'storeId' => $detail->ent1Id,
                         'quantity' => $detail->blQuantity
                     );
@@ -120,8 +121,6 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
                 }
             }
         }
-
-        asort($recs);
 
         return $recs;
     }
@@ -222,11 +221,11 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $res->absencesDays = ($dRec->numberOfTripsesDays + $dRec->numberOfSickdays + $dRec->numberOfLeavesDays);
+        // $res->absencesDays = ($dRec->numberOfTripsesDays + $dRec->numberOfSickdays + $dRec->numberOfLeavesDays);
 
-        $employee = crm_Persons::getContragentData($dRec->personId)->person;
+        // $employee = crm_Persons::getContragentData($dRec->personId)->person;
 
-        $res->employee = $employee;
+        // $res->employee = $employee;
     }
 }
 
