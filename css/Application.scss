@@ -3190,10 +3190,18 @@ fieldset.sharing-history {
 .cart-view-buttons-left {
 	float: left;
 	clear: both;
+	span {
+		display: inline-block;
+		margin: 0 10px;
+		color: #666;
+	}
 	a {
-		display: block;
+		display: inline-block;
 		margin-bottom: 10px;
 	}
+}
+.narrow .cart-view-buttons-left a{
+	display: block;
 }
 .eshop-link {
 	font-size: 16px;
@@ -3222,6 +3230,7 @@ fieldset.sharing-history {
 
 .narrow .half-width {
 	float: none !important;
+	width: 100%;
 	max-width: 100%;
 	margin: 5px 0;
 }
@@ -3380,7 +3389,9 @@ fieldset.sharing-history {
 		}
 	}
 }
-
+.narrow .quantity-input-column input {
+	height: 29px;
+}
 .narrow .optionsTable {
 	min-width: 320px;
 }

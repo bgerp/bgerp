@@ -2753,9 +2753,16 @@ span.sharing-history-title {
 .cart-view-buttons-left {
   float: left;
   clear: both; }
+  .cart-view-buttons-left span {
+    display: inline-block;
+    margin: 0 10px;
+    color: #666666; }
   .cart-view-buttons-left a {
-    display: block;
+    display: inline-block;
     margin-bottom: 10px; }
+
+.narrow .cart-view-buttons-left a {
+  display: block; }
 
 .eshop-link {
   font-size: 16px;
@@ -2780,6 +2787,7 @@ span.sharing-history-title {
 
 .narrow .half-width {
   float: none !important;
+  width: 100%;
   max-width: 100%;
   margin: 5px 0; }
 
@@ -2910,6 +2918,9 @@ span.sharing-history-title {
     border-radius: 0; }
     .quantity-input-column input.inputError {
       border-color: red; }
+
+.narrow .quantity-input-column input {
+  height: 29px; }
 
 .narrow .optionsTable {
   min-width: 320px; }
