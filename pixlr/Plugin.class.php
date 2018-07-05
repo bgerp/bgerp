@@ -21,7 +21,7 @@ class pixlr_Plugin extends core_Plugin
     /**
      * Добавя бутон за разглеждане на документи
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$res, &$data)
+    public function on_AfterPrepareSingleToolbar($mvc, &$res, &$data)
     {
         if ($mvc->haveRightFor('single', $data->rec)) {
             try {
@@ -30,16 +30,19 @@ class pixlr_Plugin extends core_Plugin
                 //Разширението на файла
                 $ext = fileman_Files::getExt($rec->name);
             
-                if(in_array($ext,  arr::make('jpg,jpeg,bmp,gif,png,psd,pxd'))) { 
-                    $url = "http://pixlr.com/editor/?s=c&image=" . fileman_Download::getDownloadUrl($rec->fileHnd, 1) . "&title=" . urlencode($rec->name) . "&target=" . '' . "&exit=" . '' . "";
+                if (in_array($ext, arr::make('jpg,jpeg,bmp,gif,png,psd,pxd'))) {
+                    $url = 'http://pixlr.com/editor/?s=c&image=' . fileman_Download::getDownloadUrl($rec->fileHnd, 1) . '&title=' . urlencode($rec->name) . '&target=' . '' . '&exit=' . '' . '';
                      
                     // Добавяме бутона
-                    $data->toolbar->addBtn('Pixlr', $url, 
-                    	"id='btn-pixlr', checkPrivateHost, ef_icon=pixlr/img/pixlr.png", 
-                        array('target'=>'_blank', 'order'=>'30')
-                    ); 
+                    $data->toolbar->addBtn(
+                        'Pixlr',
+                        $url,
+                        "id='btn-pixlr', checkPrivateHost, ef_icon=pixlr/img/pixlr.png",
+                        array('target' => '_blank', 'order' => '30')
+                    );
                 }
-            } catch (core_Exception_Expect $expect) {}
+            } catch (core_Exception_Expect $expect) {
+            }
         }
     }
 }

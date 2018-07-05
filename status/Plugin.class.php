@@ -17,16 +17,16 @@ class status_Plugin extends core_Plugin
     
     /**
      * Добавя статус съобщение към избрания потребител
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param integer $res
-     * @param string $text - Съобщение, което ще добавим
-     * @param enum $type - Типа на съобщението - success, notice, warning, error
-     * @param integer $userId - Потребителя, към когото ще се добавя. Ако не е подаден потребител, тогава взема текущия потребител.
-     * @param integer $lifeTime - След колко време да е неактивно
-     * @param string $hitId - Уникално ID на хита
+     * @param integer  $res
+     * @param string   $text     - Съобщение, което ще добавим
+     * @param enum     $type     - Типа на съобщението - success, notice, warning, error
+     * @param integer  $userId   - Потребителя, към когото ще се добавя. Ако не е подаден потребител, тогава взема текущия потребител.
+     * @param integer  $lifeTime - След колко време да е неактивно
+     * @param string   $hitId    - Уникално ID на хита
      */
-    function on_AfterNewStatus($mvc, &$res, $text, $type, $userId, $lifeTime, $hitId)
+    public function on_AfterNewStatus($mvc, &$res, $text, $type, $userId, $lifeTime, $hitId)
     {
         // Добавяме съобщението
         $res = status_Messages::newStatus($text, $type, $userId, $lifeTime, $hitId);
@@ -35,11 +35,11 @@ class status_Plugin extends core_Plugin
     
     /**
      * Абонира за извличане на статус съобщения
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param core_ET $tpl
+     * @param core_ET  $tpl
      */
-    function on_AfterSubscribe($mvc, &$tpl)
+    public function on_AfterSubscribe($mvc, &$tpl)
     {
         // Абонираме
         $tpl = status_Messages::subscribe();

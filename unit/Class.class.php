@@ -16,5 +16,4 @@
  */
 class unit_Class
 {
-
 }

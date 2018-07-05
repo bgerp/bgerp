@@ -157,6 +157,7 @@ class core_ET extends core_BaseClass
         $markerPos->beginStart = strpos($this->content, $beginMark);
         
         if ($markerPos->beginStart === false) {
+            
             return false;
         }
         
@@ -165,6 +166,7 @@ class core_ET extends core_BaseClass
         $markerPos->endStart = strpos($this->content, $endMark, $markerPos->beginStop);
         
         if ($markerPos->endStart === false) {
+            
             return false;
         }
         
@@ -180,6 +182,7 @@ class core_ET extends core_BaseClass
     public function getBlock($blockName)
     {
         if (is_object($this->blocks[$blockName])) {
+            
             return $this->blocks[$blockName];
         }
         
@@ -391,6 +394,7 @@ class core_ET extends core_BaseClass
     public function preparePlace($place)
     {
         if ($place === null) {
+            
             return $this->toPlace($this->defaultPlace);
         }
         $this->places[$place] = 1;
@@ -545,6 +549,7 @@ class core_ET extends core_BaseClass
     public function sub($content, $placeHolder, $once, $mode, $global = true)
     {
         if ($content === null) {
+            
             return $this;
         }
         
@@ -558,6 +563,7 @@ class core_ET extends core_BaseClass
             $md5 = md5($str);
             
             if ($this->once[$md5]) {
+                
                 return $this;
             }
         }

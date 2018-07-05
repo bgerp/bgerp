@@ -16,19 +16,19 @@
  */
 class wund_Plugin extends core_Plugin
 {
-    
-    function on_AfterPrepareGroupDate($mvc, &$res, $date) 
-    { 
-        if(dt::addDays(3) < $date) return;
+    public function on_AfterPrepareGroupDate($mvc, &$res, $date)
+    {
+        if (dt::addDays(3) < $date) {
+            return;
+        }
 
         $forRec = wund_Forecasts::getForecast($date);
 
-        if($forRec) {
-            
+        if ($forRec) {
             $thumb = new thumb_Img($forRec->iconUrl, 20, 20, 'url');
             $iconUrl = $thumb->getUrl();
             
-            $res->day .= "<div style='float:right;font-size:0.85em;color:#999;'><span style=\"color:blue\">{$forRec->low}</span>&#126;<span style=\"color:red\">{$forRec->high}</span>&#8451;&nbsp;<img height=20 style='float:right;position:relative;top:-2px;' src=\"" . $iconUrl . "\"></div>";
+            $res->day .= "<div style='float:right;font-size:0.85em;color:#999;'><span style=\"color:blue\">{$forRec->low}</span>&#126;<span style=\"color:red\">{$forRec->high}</span>&#8451;&nbsp;<img height=20 style='float:right;position:relative;top:-2px;' src=\"" . $iconUrl . '"></div>';
         }
     }
 }

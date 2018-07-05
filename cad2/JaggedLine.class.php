@@ -3,25 +3,26 @@
 /**
  * Чертае назъбена линия
  */
-class cad2_JaggedLine  extends cad2_Shape {
+class cad2_JaggedLine extends cad2_Shape
+{
     
     /**
      * Задължителен интерфейс, който фигурите трябва да имат
      */
-    var $interfaces = 'cad2_ShapeIntf';
+    public $interfaces = 'cad2_ShapeIntf';
     
     
     /**
      * Наименование на фигурата
      */
-    var $title = 'Елементи » Назъбена линия';
+    public $title = 'Елементи » Назъбена линия';
     
     
     /**
      * Допълва дадената форма с параметрите на фигурата
      * Връща масив от имената на параметрите
      */
-    static function addFields(&$form)
+    public static function addFields(&$form)
     {
         $form->FLD('x0', 'float', 'caption=Начало->X0,mandatory');
         $form->FLD('y0', 'float', 'caption=Начало->Y0,mandatory');
@@ -40,29 +41,29 @@ class cad2_JaggedLine  extends cad2_Shape {
     /**
      * Метод за изрисуване на фигурата
      */
-    function render($svg, $p = array())
-    { 
+    public function render($svg, $p = array())
+    {
         extract($p);
         
         $svg->setAttr('stroke', $stroke);
         $svg->setAttr('stroke-width', $strokeWidth);
 
         $svg->startPath();
-        $svg->moveTo($x0, $y0, TRUE);
+        $svg->moveTo($x0, $y0, true);
 
-        self::draw($svg, $x1, $y1, $md, $td, $spacer, TRUE);
+        self::draw($svg, $x1, $y1, $md, $td, $spacer, true);
     }
 
 
     /**
      * Изчертава назъбена линия до съответната точка
      */
-    public static function draw($svg, $x1, $y1, $md, $td = NULL, $spacer = 0, $absolute = FALSE)
+    public static function draw($svg, $x1, $y1, $md, $td = null, $spacer = 0, $absolute = false)
     {
-        if($absolute) {
+        if ($absolute) {
             // Вземаме абсолютните координати на началната
-            list($x0, $y0)  = $svg->getCP();
-            $ab = new cad2_Vector($x1-$x0, $y1-$y0);
+            list($x0, $y0) = $svg->getCP();
+            $ab = new cad2_Vector($x1 - $x0, $y1 - $y0);
         } else {
             $ab = new cad2_Vector($x1, $y1);
         }
@@ -71,38 +72,39 @@ class cad2_JaggedLine  extends cad2_Shape {
 
         $md = ($nb != 0) ? ($ab->r / $nb) : 0 ;
 
-        if(!$td) $td = $md/2;
+        if (!$td) {
+            $td = $md / 2;
+        }
        
         $spacer = min(0.4 * $md, $spacer);
         
-		list($x, $y) = $svg->getCP();
-        for($i = 1; $i <= $nb; $i++) {
-
-            if($spacer > 0) {
+        list($x, $y) = $svg->getCP();
+        for ($i = 1; $i <= $nb; $i++) {
+            if ($spacer > 0) {
                 $m = $svg->p($ab->a, $spacer);
                 $x += $m->x;
                 $y += $m->y;
-                $svg->lineTo($x, $y, TRUE);
+                $svg->lineTo($x, $y, true);
             }
 
             // Малко
-            $m = $svg->p($ab->a, $md/2 - $spacer);
-            $n = $svg->p($ab->a - pi()/2, $td);
+            $m = $svg->p($ab->a, $md / 2 - $spacer);
+            $n = $svg->p($ab->a - pi() / 2, $td);
             $x += $m->x + $n->x;
             $y += $m->y + $n->y;
-            $svg->lineTo($x, $y, TRUE); 
+            $svg->lineTo($x, $y, true);
             
-            $m = $svg->p($ab->a, $md/2 - $spacer);
-            $n = $svg->p($ab->a + pi()/2, $td);
+            $m = $svg->p($ab->a, $md / 2 - $spacer);
+            $n = $svg->p($ab->a + pi() / 2, $td);
             $x += $m->x + $n->x;
             $y += $m->y + $n->y;
-            $svg->lineTo($x, $y, TRUE);
+            $svg->lineTo($x, $y, true);
             
-            if($spacer > 0) {
+            if ($spacer > 0) {
                 $m = $svg->p($ab->a, $spacer);
                 $x += $m->x;
                 $y += $m->y;
-               $svg->lineTo($x, $y, TRUE);
+                $svg->lineTo($x, $y, true);
             }
         }
     }

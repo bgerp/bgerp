@@ -78,6 +78,7 @@ class core_Tabs extends core_BaseClass
     {
         // Ако няма конфигурирани табове, рендираме само тялото
         if (!count($this->tabs)) {
+            
             return $body;
         }
         

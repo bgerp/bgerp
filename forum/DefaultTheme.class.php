@@ -4,7 +4,7 @@
 
 /**
  * Клас за дефолт темата на форума
- * 
+ *
  * @category  bgerp
  * @package   forum
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
@@ -12,19 +12,20 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class forum_DefaultTheme extends core_Manager {
+class forum_DefaultTheme extends core_Manager
+{
     
     
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'forum_ThemeIntf';
+    public $interfaces = 'forum_ThemeIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = "Базова тема за форума";
+    public $title = 'Базова тема за форума';
     
     
     /*
@@ -36,14 +37,15 @@ class forum_DefaultTheme extends core_Manager {
      * Връща изгледа на дъските
      * @return core_ET
      */
-	public function getBoardsLayout()
+    public function getBoardsLayout()
     {
-    	if(Mode::is('screenMode', 'narrow')){
-    		$tpl = 'forum/themes/default/BoardsNarrow.shtml';
-    	} else{
-    		$tpl = 'forum/themes/default/Boards.shtml';
-    	}
-    	return getTplFromFile($tpl);
+        if (Mode::is('screenMode', 'narrow')) {
+            $tpl = 'forum/themes/default/BoardsNarrow.shtml';
+        } else {
+            $tpl = 'forum/themes/default/Boards.shtml';
+        }
+
+        return getTplFromFile($tpl);
     }
     
     
@@ -51,9 +53,9 @@ class forum_DefaultTheme extends core_Manager {
      * Връща началната страница на форума
      * @return core_ET
      */
-	public function getIndexLayout()
+    public function getIndexLayout()
     {
-    	return getTplFromFile('forum/themes/default/Index.shtml');
+        return getTplFromFile('forum/themes/default/Index.shtml');
     }
     
     
@@ -63,11 +65,12 @@ class forum_DefaultTheme extends core_Manager {
      */
     public function getSingleThemeLayout()
     {
-        if(Mode::is('screenMode', 'narrow')){
+        if (Mode::is('screenMode', 'narrow')) {
+            
             return getTplFromFile('forum/themes/default/SingleThemeNarrow.shtml');
-        } else{
-            return getTplFromFile('forum/themes/default/SingleTheme.shtml');
         }
+
+        return getTplFromFile('forum/themes/default/SingleTheme.shtml');
     }
     
     
@@ -75,21 +78,23 @@ class forum_DefaultTheme extends core_Manager {
      * Променя изгледа на формата за добавяне на нов коментар
      * @return core_ET
      */
-	public function getPostFormLayout()
+    public function getPostFormLayout()
     {
-    	$tpl = getTplFromFile('forum/themes/default/PostForm.shtml');
-    	return $tpl->getBlock('FORM');
+        $tpl = getTplFromFile('forum/themes/default/PostForm.shtml');
+
+        return $tpl->getBlock('FORM');
     }
     
     
-	/**
+    /**
      * Променя изгледа полетата от формата за добавяне на нов коментар
      * @return core_ET
      */
-	public function getPostFormFieldsLayout()
+    public function getPostFormFieldsLayout()
     {
-    	$tpl = getTplFromFile('forum/themes/default/PostForm.shtml');
-    	return $tpl->getBlock('FORM_FIELDS');
+        $tpl = getTplFromFile('forum/themes/default/PostForm.shtml');
+
+        return $tpl->getBlock('FORM_FIELDS');
     }
     
     
@@ -97,13 +102,14 @@ class forum_DefaultTheme extends core_Manager {
      * Връща шаблона на коментарите
      * @return core_ET
      */
-	public function getCommentsLayout()
+    public function getCommentsLayout()
     {
-        if(Mode::is('screenMode', 'narrow')){
+        if (Mode::is('screenMode', 'narrow')) {
+            
             return getTplFromFile('forum/themes/default/CommentsNarrow.shtml');
-        } else{
-            return getTplFromFile('forum/themes/default/Comments.shtml');
         }
+
+        return getTplFromFile('forum/themes/default/Comments.shtml');
     }
     
     
@@ -113,7 +119,7 @@ class forum_DefaultTheme extends core_Manager {
      */
     public function getResultsLayout()
     {
-    	return getTplFromFile('forum/themes/default/Results.shtml');
+        return getTplFromFile('forum/themes/default/Results.shtml');
     }
     
     
@@ -121,9 +127,9 @@ class forum_DefaultTheme extends core_Manager {
      * Връща шаблона на страницата за добавяне на нова тема
      * @return core_ET
      */
-	public function getAddThemeLayout()
+    public function getAddThemeLayout()
     {
-    	return getTplFromFile('forum/themes/default/New.shtml');
+        return getTplFromFile('forum/themes/default/New.shtml');
     }
     
     
@@ -132,66 +138,68 @@ class forum_DefaultTheme extends core_Manager {
      */
     public function getAddThemeFormLayout(core_Form &$form)
     {
-    	$formTpl = getTplFromFile('forum/themes/default/AddForm.shtml');
-		$form->layout = $formTpl->getBlock("FORM");
-        $form->fieldsLayout = $formTpl->getBlock("FORM_FIELDS");
+        $formTpl = getTplFromFile('forum/themes/default/AddForm.shtml');
+        $form->layout = $formTpl->getBlock('FORM');
+        $form->fieldsLayout = $formTpl->getBlock('FORM_FIELDS');
     }
     
     
-	/**
+    /**
      * Връща изгледа на темата
      * @return core_ET
      */
     public function getThemeLayout()
     {
-    	if(Mode::is('screenMode', 'narrow')){
-    		$tpl = 'forum/themes/default/ThemesNarrow.shtml';
-    	} else{
-    		$tpl = 'forum/themes/default/Themes.shtml';
-    	}
-    	return getTplFromFile($tpl);
+        if (Mode::is('screenMode', 'narrow')) {
+            $tpl = 'forum/themes/default/ThemesNarrow.shtml';
+        } else {
+            $tpl = 'forum/themes/default/Themes.shtml';
+        }
+
+        return getTplFromFile($tpl);
     }
     
     
-	/**
+    /**
      * Връща шаблона на браузването на една дъска
      * @return core_ET
      */
     public function getBrowseLayout()
     {
-    	return getTplFromFile('forum/themes/default/Browse.shtml');
+        return getTplFromFile('forum/themes/default/Browse.shtml');
     }
     
     
-	/**
+    /**
      * Връща шаблона на формата за търсене
      * @return core_ET
      */
     public function getSearchFormLayout()
     {
-    	return getTplFromFile('forum/themes/default/SearchForm.shtml');
+        return getTplFromFile('forum/themes/default/SearchForm.shtml');
     }
     
     
-	/**
+    /**
      * Връща пътя къмс тиловете на темата
      */
     public function getStyles()
     {
-    	return 'forum/themes/default/styles.css';
+        return 'forum/themes/default/styles.css';
     }
     
     
     /**
      * Връща картинка от темата
      * @param string $imgName - име на картинката
-     * @param int $size - размер на картинката
-     * Картинката трябва да е в папка 'img' на темата,
-     * в подпапка '$size'
+     * @param int    $size    - размер на картинката
+     *                        Картинката трябва да е в папка 'img' на темата,
+     *                        в подпапка '$size'
      */
     public function getImage($imgName, $size = '')
     {
-    	$filePath = sbf("forum/themes/default/img/{$size}/{$imgName}", '');
-    	return ht::createElement('img', array('src' => $filePath, 'width' => "{$size}px"));
+        $filePath = sbf("forum/themes/default/img/{$size}/{$imgName}", '');
+
+        return ht::createElement('img', array('src' => $filePath, 'width' => "{$size}px"));
     }
 }

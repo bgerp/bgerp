@@ -3,7 +3,7 @@
 
 /**
  * Работа с ексепшъни за файлове
- * 
+ *
  * @category  bgerp
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -13,5 +13,4 @@
  */
 class fileman_Exception extends Exception
 {
-    
 }

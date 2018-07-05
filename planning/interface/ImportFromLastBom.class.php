@@ -13,45 +13,45 @@
  * @since     v 0.1
  * @title     Импорт на артикули от последната работна рецепта
  */
-class planning_interface_ImportFromLastBom extends planning_interface_ImportDriver 
+class planning_interface_ImportFromLastBom extends planning_interface_ImportDriver
 {
     
     
     /**
      * Заглавие
      */
-    public $title = "Импорт на артикули от последната работна рецепта";
+    public $title = 'Импорт на артикули от последната работна рецепта';
     
     
     /**
      * Добавя специфични полета към формата за импорт на драйвера
      *
-     * @param core_Manager $mvc
-     * @param core_FieldSet $form
+     * @param  core_Manager  $mvc
+     * @param  core_FieldSet $form
      * @return void
      */
     public function addImportFields($mvc, core_FieldSet $form)
     {
-    	$rec = &$form->rec;
-    	$rec->detailsDef = array();
-    	$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-    	expect($bomId = self::getLastActiveBom($masterRec));
-    	$form->info = tr('По рецепта') . " " . cat_Boms::getHyperlink($bomId, TRUE);
-    	$firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
-    	
-		// Взимате се материалите за производството на к-то от заданието
-		$details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $masterRec->storeId);
-		foreach ($details as $dRec){
-			$dRec->caption = cat_Products::getTitleById($dRec->productId);
-			$dRec->caption = str_replace(',', ' ', $dRec->caption);
-			
-			// Подготовка на полетата
-			$key = "{$dRec->productId}|{$dRec->packagingId}";
-			$shortUom = cat_UoM::getShortName($dRec->packagingId);
-			$form->FLD($key, "double(Min=0)","input,caption={$dRec->caption}->К-во,unit={$shortUom}");
-			$form->setDefault($key, $dRec->quantity / $dRec->quantityInPack);
-			$rec->detailsDef[$key] = $dRec;
-		}
+        $rec = &$form->rec;
+        $rec->detailsDef = array();
+        $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+        expect($bomId = self::getLastActiveBom($masterRec));
+        $form->info = tr('По рецепта') . ' ' . cat_Boms::getHyperlink($bomId, true);
+        $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+        
+        // Взимате се материалите за производството на к-то от заданието
+        $details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $masterRec->storeId);
+        foreach ($details as $dRec) {
+            $dRec->caption = cat_Products::getTitleById($dRec->productId);
+            $dRec->caption = str_replace(',', ' ', $dRec->caption);
+            
+            // Подготовка на полетата
+            $key = "{$dRec->productId}|{$dRec->packagingId}";
+            $shortUom = cat_UoM::getShortName($dRec->packagingId);
+            $form->FLD($key, 'double(Min=0)', "input,caption={$dRec->caption}->К-во,unit={$shortUom}");
+            $form->setDefault($key, $dRec->quantity / $dRec->quantityInPack);
+            $rec->detailsDef[$key] = $dRec;
+        }
     }
     
     
@@ -59,99 +59,114 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
      * Връща записите, подходящи за импорт в детайла
      *
      * @param array $recs
-     * 		o productId        - ид на артикула
-     * 		o quantity         - к-во в основна мярка
-     * 		o quantityInPack   - к-во в опаковка
-     * 		o packagingId      - ид на опаковка
-     * 		o batch            - дефолтна партида, ако може
-     * 		o notes            - забележки
-     * 		o $this->masterKey - ид на мастър ключа
+     *                    o productId        - ид на артикула
+     *                    o quantity         - к-во в основна мярка
+     *                    o quantityInPack   - к-во в опаковка
+     *                    o packagingId      - ид на опаковка
+     *                    o batch            - дефолтна партида, ако може
+     *                    o notes            - забележки
+     *                    o $this->masterKey - ид на мастър ключа
      *
      * @return void
      */
     private function getImportRecs(core_Manager $mvc, $rec)
     {
-    	$recs = array();
-    	if(!is_array($rec->detailsDef)) return $recs;
-    	foreach ($rec->detailsDef as $key => $dRec){
+        $recs = array();
+        if (!is_array($rec->detailsDef)) {
+            
+            return $recs;
+        }
+        foreach ($rec->detailsDef as $key => $dRec) {
     
-    		// Ако има въведено количество записва се
-    		if(!empty($rec->{$key})){
-    			unset($dRec->id);
-    			$dRec->quantity = $rec->{$key} * $dRec->quantityInPack;
-    			$dRec->noteId = $rec->{$mvc->masterKey};
-    			$dRec->isEdited = TRUE;
-    			$recs[] = $dRec;
-    		}
-    	}
-    	
-    	return $recs;
+            // Ако има въведено количество записва се
+            if (!empty($rec->{$key})) {
+                unset($dRec->id);
+                $dRec->quantity = $rec->{$key} * $dRec->quantityInPack;
+                $dRec->noteId = $rec->{$mvc->masterKey};
+                $dRec->isEdited = true;
+                $recs[] = $dRec;
+            }
+        }
+        
+        return $recs;
     }
     
     
     /**
      * Проверява събмитнатата форма
      *
-     * @param core_Manager $mvc
-     * @param core_FieldSet $form
+     * @param  core_Manager  $mvc
+     * @param  core_FieldSet $form
      * @return void
      */
     public function checkImportForm($mvc, core_FieldSet $form)
     {
-    	if($form->isSubmitted()){
-    		$form->rec->importRecs = $this->getImportRecs($mvc, $form->rec);
-    	}
+        if ($form->isSubmitted()) {
+            $form->rec->importRecs = $this->getImportRecs($mvc, $form->rec);
+        }
     }
     
     
     /**
      * Намира последната работна рецепта
-     * 
-     * @param stdClass $masterRec
+     *
+     * @param  stdClass $masterRec
      * @return id|NULL
      */
     private static function getLastActiveBom($masterRec)
     {
-    	// Опит за намиране на първата работна рецепта
-    	$firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
-    	if(!$firstDoc->isInstanceOf('planning_Jobs')) return FALSE;
-    	$productId = $firstDoc->fetchField('productId');
-    	$bomId = cat_Products::getLastActiveBom($productId, 'production');
-    	$bomId = (!empty($bomId)) ? $bomId : cat_Products::getLastActiveBom($productId, 'sales');
-    	 
-    	// И по артикула има рецепта
-    	$bomId = cat_Products::getLastActiveBom($productId, 'production');
-    	$bomId = (!empty($bomId)) ? $bomId : cat_Products::getLastActiveBom($productId, 'sales');
-    	
-    	// Ако има рецепта, проверява се има ли редове в нея
-    	if(!empty($bomId)){
-    		$details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $masterRec->storeId);
-    		if(count($details)) return $bomId;
-    	}
-    	
-    	return FALSE;
+        // Опит за намиране на първата работна рецепта
+        $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+        if (!$firstDoc->isInstanceOf('planning_Jobs')) {
+            
+            return false;
+        }
+        $productId = $firstDoc->fetchField('productId');
+        $bomId = cat_Products::getLastActiveBom($productId, 'production');
+        $bomId = (!empty($bomId)) ? $bomId : cat_Products::getLastActiveBom($productId, 'sales');
+         
+        // И по артикула има рецепта
+        $bomId = cat_Products::getLastActiveBom($productId, 'production');
+        $bomId = (!empty($bomId)) ? $bomId : cat_Products::getLastActiveBom($productId, 'sales');
+        
+        // Ако има рецепта, проверява се има ли редове в нея
+        if (!empty($bomId)) {
+            $details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $masterRec->storeId);
+            if (count($details)) {
+                
+                return $bomId;
+            }
+        }
+        
+        return false;
     }
     
     
     /**
      * Може ли драйвера за импорт да бъде избран
      *
-     * @param   core_Manager    $mvc        - клас в който ще се импортира
-     * @param   int|NULL        $masterId   - ако импортираме в детайл, id на записа на мастъра му
-     * @param   int|NULL        $userId     - ид на потребител
+     * @param core_Manager $mvc      - клас в който ще се импортира
+     * @param int|NULL     $masterId - ако импортираме в детайл, id на записа на мастъра му
+     * @param int|NULL     $userId   - ид на потребител
      *
-     * @return boolean          - може ли драйвера да бъде избран
+     * @return boolean - може ли драйвера да бъде избран
      */
-    public function canSelectDriver(core_Manager $mvc, $masterId = NULL, $userId = NULL)
+    public function canSelectDriver(core_Manager $mvc, $masterId = null, $userId = null)
     {
-    	if(!($mvc instanceof planning_ConsumptionNoteDetails)) return FALSE;
-    	 
-    	if(isset($masterId)){
-    		$masterRec = $mvc->Master->fetchRec($masterId);
-    		$bomId = self::getLastActiveBom($masterRec);
-    		if(empty($bomId)) return FALSE;
-    	}
-    	
-    	return TRUE;
+        if (!($mvc instanceof planning_ConsumptionNoteDetails)) {
+            
+            return false;
+        }
+         
+        if (isset($masterId)) {
+            $masterRec = $mvc->Master->fetchRec($masterId);
+            $bomId = self::getLastActiveBom($masterRec);
+            if (empty($bomId)) {
+                
+                return false;
+            }
+        }
+        
+        return true;
     }
 }

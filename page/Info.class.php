@@ -16,14 +16,16 @@
  * @since     v 0.1
  * @link
  */
-class page_Info extends core_ET {
+class page_Info extends core_ET
+{
     
     
     /**
      * Конструктор на шаблона
      */
-    function __construct() {
-        if(Mode::is('screenMode', 'narrow')) {
+    public function __construct()
+    {
+        if (Mode::is('screenMode', 'narrow')) {
             parent::__construct(
                 "\n<table style='max-width:480px;border:solid 1px black; background-color:#ffe'>" .
                 "\n    <tr bgcolor='blue'>" .
@@ -39,14 +41,15 @@ class page_Info extends core_ET {
                 "\n    <td>[#TOOLBAR#]</td>" .
                 "\n</tr>" .
                 "\n<!--ET_END TOOLBAR-->" .
-                "\n</table>");
+                "\n</table>"
+            );
         } else {
             parent::__construct(
                 "\n<CENTER>" .
                 "\n<table style='max-width:480px;margin-top:50px; border:solid 1px black; background-color:#ffe''>" .
                 "\n    <tr bgcolor='blue'>" .
                 "\n        <td  style='font-size:24px;padding:5px;color:white;'>" .
-                "\n            <img src=" . sbf('img/info32.gif') . "  align=absmiddle width=32 height=32>&nbsp;" . tr('Информация') .
+                "\n            <img src=" . sbf('img/info32.gif') . '  align=absmiddle width=32 height=32>&nbsp;' . tr('Информация') .
                 "\n        </td>" .
                 "\n</tr>" .
                 "\n<tr>" .
@@ -58,7 +61,8 @@ class page_Info extends core_ET {
                 "\n</tr>" .
                 "\n<!--ET_END TOOLBAR-->" .
                 "\n</table>" .
-                "\n</CENTER>");
+                "\n</CENTER>"
+            );
         }
     }
 }

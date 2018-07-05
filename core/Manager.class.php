@@ -832,6 +832,7 @@ class core_Manager extends core_Mvc
     public function renderListPager_($data)
     {
         if ($data->pager) {
+            
             return $data->pager->getHtml();
         }
     }
@@ -874,6 +875,7 @@ class core_Manager extends core_Mvc
     public function renderListTitle_($data)
     {
         if (!empty($data->title)) {
+            
             return new ET("<div class='listTitle'>[#1#]</div>", tr($data->title));
         }
     }
@@ -1003,6 +1005,7 @@ class core_Manager extends core_Mvc
     {
         // Приключваме, ако няма права за четене
         if (!$this->haveRightFor('list')) {
+            
             return array(
                 'error' => 'Недостатъчни права за четене на ' . $this->title
             );
@@ -1010,6 +1013,7 @@ class core_Manager extends core_Mvc
         
         // Приключваме, ако класът не представлява модел
         if (count($this->fields) <= 1) {
+            
             return array(
                 'error' => 'Този клас не е модел: ' . $this->title
             );
@@ -1019,6 +1023,7 @@ class core_Manager extends core_Mvc
         $q = Request::get('q');
         
         if (!$q) {
+            
             return array(
                 'error' => 'Липсва заявка за филтриране'
             );

@@ -20,28 +20,28 @@ class type_tests_Richtext extends unit_Class
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
-    function test_ToVerbal()
+    public function test_ToVerbal()
     {
-       $rt = new type_Richtext();
+        $rt = new type_Richtext();
         
-       $sample1 = 'За: tasdasdasd';
-       $sample2 = 'отНосНо: tasdasdasd';
-       $sample3 = 'не трябва да има отНосНо: tasdasdasd';
+        $sample1 = 'За: tasdasdasd';
+        $sample2 = 'отНосНо: tasdasdasd';
+        $sample3 = 'не трябва да има отНосНо: tasdasdasd';
        
-       $res1 = $rt->toVerbal($sample1);
-       $res2 = $rt->toVerbal($sample2);
-       $res3 = $rt->toVerbal($sample3);
+        $res1 = $rt->toVerbal($sample1);
+        $res2 = $rt->toVerbal($sample2);
+        $res3 = $rt->toVerbal($sample3);
        
-       UT::expectEqual(stripos(" ". $res1, '<b>' . $sample1 . '</b>'), TRUE);
-       UT::expectEqual(stripos(" ". $res2, '<b>' . $sample2 . '</b>'), TRUE);
-       UT::expectEqual(stripos(" ". $res3, '<b>' . $sample3 . '</b>'), FALSE);
+        UT::expectEqual(stripos(' '. $res1, '<b>' . $sample1 . '</b>'), true);
+        UT::expectEqual(stripos(' '. $res2, '<b>' . $sample2 . '</b>'), true);
+        UT::expectEqual(stripos(' '. $res3, '<b>' . $sample3 . '</b>'), false);
     }
     
     
     /**
      * Тест за парсира вътрешното URL
      */
-    function test_parseInternalUrl()
+    public function test_parseInternalUrl()
     {
         // Всеки елемент от масива е масив със стрингове, които ще се сравняват
         
@@ -69,7 +69,7 @@ class type_tests_Richtext extends unit_Class
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
     }
     
@@ -96,10 +96,10 @@ class type_tests_Richtext extends unit_Class
      * o [code{=syntax}]...[/code] - преформатиран текст с опционално езиково оцветяване
      * o [em={code}] - емотикони
      *
-     * @param string $richtext
+     * @param  string $richtext
      * @return string
      */
-    function toHtml($html)
+    public function toHtml($html)
     {
     }
     
@@ -107,7 +107,7 @@ class type_tests_Richtext extends unit_Class
     /**
      * Връща уникален стринг, който се използва за име на плейсхолдер
      */
-    function getPlace()
+    public function getPlace()
     {
     }
     
@@ -115,7 +115,7 @@ class type_tests_Richtext extends unit_Class
     /**
      * Обработва [html] ... [/html]
      */
-    function _catchHtml($match)
+    public function _catchHtml($match)
     {
     }
     
@@ -123,17 +123,17 @@ class type_tests_Richtext extends unit_Class
     /**
      * Заменя [html] ... [/html]
      */
-    function _catchLi($match)
+    public function _catchLi($match)
     {
     }
     
     
     /**
-     * Вкарва текста който е в следната последователност: 
+     * Вкарва текста който е в следната последователност:
      * \n и/или интервали \n или в началото[Главна буква][една или повече малки букви и или интервали и или големи букви]:[интервал][произволен текст]\n или край на текста
      * в болд таг на richText
      */
-    function _catchBold($match)
+    public function _catchBold($match)
     {
     }
     
@@ -141,7 +141,7 @@ class type_tests_Richtext extends unit_Class
     /**
      * Заменя [img=????] ... [/img]
      */
-    function _catchImage($match)
+    public function _catchImage($match)
     {
     }
     
@@ -149,7 +149,7 @@ class type_tests_Richtext extends unit_Class
     /**
      * Заменя [gread=????] ... [/gread]
      */
-    function _catchGread($match)
+    public function _catchGread($match)
     {
     }
     
@@ -157,7 +157,7 @@ class type_tests_Richtext extends unit_Class
     /**
      * Заменя елемента [code=???] .... [/code]
      */
-    function _catchCode($match)
+    public function _catchCode($match)
     {
     }
     
@@ -165,17 +165,17 @@ class type_tests_Richtext extends unit_Class
     /**
      * Заменя елементите [link=?????]......[/link]
      */
-    function _catchLink($match)
+    public function _catchLink($match)
     {
     }
     
     
     /**
      * Конвертира към HTML елементите [link=...]...[/link], сочещи към вътрешни URL
-     * 
-     * @param string $url URL, къдетo трябва да сочи връзката
-     * @param string $text текст под връзката
-     * @param string $place
+     *
+     * @param  string $url   URL, къдетo трябва да сочи връзката
+     * @param  string $text  текст под връзката
+     * @param  string $place
      * @return string HTML елемент <a href="...">...</a>
      */
     public function internalLink_($url, $title, $place, $rest)
@@ -185,12 +185,12 @@ class type_tests_Richtext extends unit_Class
 
     /**
      * Конвертира към HTML елементите [link=...]...[/link], сочещи към външни URL
-     * 
+     *
      * Може да бъде прихванат в плъгин на `type_Richtext` с on_AfterExternalLink()
-     * 
-     * @param string $url URL, къдетo трябва да сочи връзката
-     * @param string $text текст под връзката
-     * @param string $place
+     *
+     * @param  string $url   URL, къдетo трябва да сочи връзката
+     * @param  string $text  текст под връзката
+     * @param  string $place
      * @return string HTML елемент <a href="...">...</a>
      */
     public function externalLink_($url, $title, $place)
@@ -201,7 +201,7 @@ class type_tests_Richtext extends unit_Class
     /**
      * Заменя елементите [hide=?????]......[/hide]
      */
-    function _catchHide($match)
+    public function _catchHide($match)
     {
     }
     
@@ -209,7 +209,7 @@ class type_tests_Richtext extends unit_Class
     /**
      * Замества [color=????] елементите
      */
-    function _catchColor($match)
+    public function _catchColor($match)
     {
     }
     
@@ -217,7 +217,7 @@ class type_tests_Richtext extends unit_Class
     /**
      * Замества [bg=????] елементите
      */
-    function _catchBg($match)
+    public function _catchBg($match)
     {
     }
     
@@ -225,7 +225,7 @@ class type_tests_Richtext extends unit_Class
     /**
      * Замества [em=????] елементите
      */
-    function _catchEmoticons($match)
+    public function _catchEmoticons($match)
     {
     }
     
@@ -233,24 +233,24 @@ class type_tests_Richtext extends unit_Class
     /**
      * Обработва хедъри-те [h1..6] ... [/h..]
      */
-    function _catchHeaders($matches)
-    { 
+    public function _catchHeaders($matches)
+    {
     }
     
     
     /**
      * Прави субституция на хипервръзките
      */
-    function _catchUrls($html)
-    {   
+    public function _catchUrls($html)
+    {
     }
     
     
     /**
      * Конвертира вътрешен URL към подходящо HTML представяне.
-     * 
-     * @param string $url
-     * @param string $title
+     *
+     * @param  string $url
+     * @param  string $title
      * @return string HTML елемент <a href="...">...</a>
      */
     public function internalUrl_($url, $title, $rest)
@@ -260,7 +260,7 @@ class type_tests_Richtext extends unit_Class
 
     /**
      * Конвертира въшнен URL към подходящо HTML представяне
-     * 
+     *
      * @param string $url
      * @param string $title
      * @param string HTML код
@@ -273,7 +273,7 @@ class type_tests_Richtext extends unit_Class
     /**
      * Прави субституция на имейлите
      */
-    function _catchEmails($match)
+    public function _catchEmails($match)
     {
     }
 
@@ -281,19 +281,19 @@ class type_tests_Richtext extends unit_Class
     /**
      * Връща масив с html код, съответстващ на бутоните на Richedit компонента
      */
-    function getToolbar(&$attr)
+    public function getToolbar(&$attr)
     {
     }
     
     
     /**
      * Парсира вътрешното URL
-     * 
+     *
      * @param URL $res - Вътрешното URL, което ще парсираме
-     * 
+     *
      * @return array $params - Масив с парсираното URL
      */
-    static function parseInternalUrl($rest)
+    public static function parseInternalUrl($rest)
     {
     }
 }

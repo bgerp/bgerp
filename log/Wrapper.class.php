@@ -2,8 +2,8 @@
 
 
 /**
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   logs
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -18,7 +18,7 @@ class log_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         Mode::set('pageMenu', 'Система');
         Mode::set('pageSubMenu', 'Админ');

@@ -16,59 +16,57 @@
 abstract class import2_AbstractDriver
 {
 
-	/**
-	 * Интерфейси, поддържани от този мениджър
-	 */
-	public $interfaces = 'import2_DriverIntf';
+    /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    public $interfaces = 'import2_DriverIntf';
 
 
-	/**
-	 * Може ли драйвера за импорт да бъде избран
-	 *
-	 * @param   core_Manager    $mvc        - клас в който ще се импортира
-     * @param   int|NULL        $masterId   - ако импортираме в детайл, id на записа на мастъра му
-	 * @param   int|NULL        $userId     - ид на потребител
+    /**
+     * Може ли драйвера за импорт да бъде избран
      *
-	 * @return boolean          - може ли драйвера да бъде избран
-	 */
-	public function canSelectDriver(core_Manager $mvc, $masterId = NULL, $userId = NULL)
-	{
-		return TRUE;
-	}
-	
-	
-	/**
-	 * Добавя специфични полета към формата за импорт на драйвера
-	 * 
-	 * @param core_Manager $mvc
-	 * @param core_FieldSet $form
-	 * @return void
-	 */
-	abstract function addImportFields($mvc, core_FieldSet $form);
-	
-	
-	/**
-	 * Проверява събмитнатата форма
-	 *
-	 * @param core_Manager $mvc
-	 * @param core_FieldSet $form
-	 * @return void
-	 */
-	public function checkImportForm($mvc, core_FieldSet $form)
-	{
-		
-	}
-	
-	
-	/**
-	 * Подготвя импортиращата форма
-	 *
-	 * @param core_Manager $mvc
-	 * @param core_FieldSet $form
-	 * @return void
-	 */
-	public function prepareImportForm($mvc, core_FieldSet $form)
-	{
-	
-	}
+     * @param core_Manager $mvc      - клас в който ще се импортира
+     * @param int|NULL     $masterId - ако импортираме в детайл, id на записа на мастъра му
+     * @param int|NULL     $userId   - ид на потребител
+     *
+     * @return boolean - може ли драйвера да бъде избран
+     */
+    public function canSelectDriver(core_Manager $mvc, $masterId = null, $userId = null)
+    {
+        return true;
+    }
+    
+    
+    /**
+     * Добавя специфични полета към формата за импорт на драйвера
+     *
+     * @param  core_Manager  $mvc
+     * @param  core_FieldSet $form
+     * @return void
+     */
+    abstract public function addImportFields($mvc, core_FieldSet $form);
+    
+    
+    /**
+     * Проверява събмитнатата форма
+     *
+     * @param  core_Manager  $mvc
+     * @param  core_FieldSet $form
+     * @return void
+     */
+    public function checkImportForm($mvc, core_FieldSet $form)
+    {
+    }
+    
+    
+    /**
+     * Подготвя импортиращата форма
+     *
+     * @param  core_Manager  $mvc
+     * @param  core_FieldSet $form
+     * @return void
+     */
+    public function prepareImportForm($mvc, core_FieldSet $form)
+    {
+    }
 }

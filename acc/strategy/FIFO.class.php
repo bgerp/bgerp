@@ -24,10 +24,12 @@ class acc_strategy_FIFO extends acc_strategy_Strategy
     public function consume($quantity)
     {
         if ($quantity == 0) {
+            
             return 0;
         }
         
         if (empty($this->data)) {
+            
             return false;
         }
         

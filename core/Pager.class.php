@@ -458,6 +458,7 @@ class core_Pager extends core_BaseClass
         }
  
         if ($this->currentResult <= $this->rangeStart || $this->currentResult > $this->rangeEnd) {
+            
             return false;
         }
 

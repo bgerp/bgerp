@@ -17,88 +17,88 @@ class pallet_Zones extends core_Manager
 {
     
     
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'store_Zones';
-	
-	
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'store_Zones';
+    
+    
     /**
      * Заглавие
      */
-    var $title = 'Зони';
+    public $title = 'Зони';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_LastUsedKeys, pallet_Wrapper, plg_RowTools2';
+    public $loadList = 'plg_Created, plg_LastUsedKeys, pallet_Wrapper, plg_RowTools2';
     
     
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
-    var $lastUsedKeys = 'storeId';
+    public $lastUsedKeys = 'storeId';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,pallet';
+    public $canRead = 'ceo,pallet';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,pallet';
+    public $canEdit = 'ceo,pallet';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,pallet';
+    public $canAdd = 'ceo,pallet';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,pallet';
+    public $canView = 'ceo,pallet';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo,pallet';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,pallet';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,pallet';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,pallet';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,pallet';
+    public $canDelete = 'ceo,pallet';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'code,comment';
+    public $listFields = 'code,comment';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden');
         $this->FLD('code', 'varchar(4)', 'caption=Код,mandatory');
@@ -112,16 +112,15 @@ class pallet_Zones extends core_Manager
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      * Забранява изтриването/редакцията на зоните, които не са празни
      *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
      * @param stdClass|NULL $rec
-     * @param int|NULL $userId
+     * @param int|NULL      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($rec->id && ($action == 'delete')) {
-            
             $mvc->palletsInStoreArr = pallet_Pallets::getPalletsInStore();
             
             $rec = $mvc->fetch($rec->id);
@@ -141,8 +140,8 @@ class pallet_Zones extends core_Manager
      */
     protected static function on_AfterPrepareListTitle($mvc, $data)
     {
-    	$selectedStoreName = store_Stores::getHyperlink(store_Stores::getCurrent(), TRUE);
-    	$data->title = "|Зони в склад|* <b style='color:green'>{$selectedStoreName}</b>";
+        $selectedStoreName = store_Stores::getHyperlink(store_Stores::getCurrent(), true);
+        $data->title = "|Зони в склад|* <b style='color:green'>{$selectedStoreName}</b>";
     }
     
     
@@ -166,7 +165,7 @@ class pallet_Zones extends core_Manager
      * При нов запис
      *
      * @param core_Mvc $mvc
-     * @param int $id
+     * @param int      $id
      * @param stdClass $rec
      */
     protected static function on_BeforeSave($mvc, &$id, $rec)

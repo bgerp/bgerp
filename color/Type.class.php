@@ -14,39 +14,42 @@
  * @since     v 0.1
  * @link
  */
-class color_Type extends type_Varchar {
+class color_Type extends type_Varchar
+{
     
-	
-	/**
-	 * Параметър определящ максималната широчина на полето
-	 */
-	var $maxFieldSize = 10;
+    
+    /**
+     * Параметър определящ максималната широчина на полето
+     */
+    public $maxFieldSize = 10;
     
 
     /**
      * Колко символа е дълго полето в базата
      */
-    var $dbFieldLen = 9;
+    public $dbFieldLen = 9;
 
-	
+    
     /**
      * Клас за <td> елемент, който показва данни от този тип
      */
-    var $tdClass = 'centerCol';
+    public $tdClass = 'centerCol';
     
     
     /**
      * @todo Чака за документация...
      */
-    function toVerbal($value)
+    public function toVerbal($value)
     {
-        if(!trim($value)) return NULL;
+        if (!trim($value)) {
+            return;
+        }
         
         $cObj = new color_Object($value);
         
         $bgColor = $cObj->getHex();
         
-    	$color = "<span class='colorName'>".tr($value) . "</span><span class='colorBox' style=\"background-color:{$bgColor} !important;\"></span>";
+        $color = "<span class='colorName'>".tr($value) . "</span><span class='colorBox' style=\"background-color:{$bgColor} !important;\"></span>";
     
         return $color;
     }
@@ -55,32 +58,33 @@ class color_Type extends type_Varchar {
     /**
      * Този метод трябва да конвертира от вербално към вътрешно представяне дадената стойност
      */
-    function fromVerbal($value)
+    public function fromVerbal($value)
     {
-        if(!trim($value)) return NULL;
+        if (!trim($value)) {
+            return;
+        }
         
         $cObj = new color_Object($value);
         
-        if($this->error = $cObj->error) {
+        if ($this->error = $cObj->error) {
             
-            return FALSE;
-        } else {
-            
-            return $cObj->getHex();
+            return false;
         }
+            
+        return $cObj->getHex();
     }
     
     
     /**
      * @todo Чака за документация...
      */
-    function renderInput_($name, $value = '', &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
         $attr['name'] = $name;
         
         setIfNot($attr['size'], 10);
         
-        if($value) {
+        if ($value) {
             $value = $value;
         } else {
             $value = $attr['value'];
@@ -94,7 +98,7 @@ class color_Type extends type_Varchar {
     /**
      * @todo Чака за документация...
      */
-    function defVal()
+    public function defVal()
     {
         return '#ffffff';
     }

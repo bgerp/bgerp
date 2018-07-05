@@ -18,55 +18,55 @@ class status_Retrieving extends core_Manager
     /**
      * Заглавие на модела
      */
-    var $title = 'Изтегляния';
+    public $title = 'Изтегляния';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin';
+    public $canView = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
+    public $canList = 'admin';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'status_Wrapper';
+    public $loadList = 'status_Wrapper';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('messageId', 'key(mvc=status_Messages)', 'caption=Съобщение');
         $this->FLD('userId', 'user', 'caption=Потребител,notNull');
@@ -84,19 +84,19 @@ class status_Retrieving extends core_Manager
     
     /**
      * Добавя запис за показване на съответното съобщение в даден таб
-     * 
-     * @param integer $messageId
+     *
+     * @param integer  $messageId
      * @param datetime $hitTime
-     * @param integer $idleTime - Време на бездействие на съответния таб
-     * @param string $sid
-     * @param integer $userId
-     * @param string $hitId
-     * 
+     * @param integer  $idleTime  - Време на бездействие на съответния таб
+     * @param string   $sid
+     * @param integer  $userId
+     * @param string   $hitId
+     *
      * @return integer - id на записа
      */
-    static function addRetrieving($messageId, $hitTime, $idleTime, $sid=NULL, $userId=NULL, $hitId=NULL)
+    public static function addRetrieving($messageId, $hitTime, $idleTime, $sid = null, $userId = null, $hitId = null)
     {
-        // Записва 
+        // Записва
         $rec = new stdClass();
         $rec->messageId = $messageId;
         $rec->hitTime = $hitTime;
@@ -114,7 +114,7 @@ class status_Retrieving extends core_Manager
             $rec->sid = $sid;
         }
         
-        $id = static::save($rec, NULL, 'IGNORE');
+        $id = static::save($rec, null, 'IGNORE');
         
         return $id;
     }
@@ -122,10 +122,10 @@ class status_Retrieving extends core_Manager
     
     /**
      * Изтрива информацията за изтеглянията за съответното статус събщение
-     * 
+     *
      * @param integer $messageId - id на съобщението
      */
-    static function removeRetrieving($messageId)
+    public static function removeRetrieving($messageId)
     {
         $cnt = static::delete("#messageId = '{$messageId}'");
         
@@ -135,17 +135,17 @@ class status_Retrieving extends core_Manager
     
     /**
      * Проверява дали съобщението и извлеченоо за даден потребител в съответния таб
-     * 
-     * @param integer $messageId
+     *
+     * @param integer  $messageId
      * @param datetime $hitTime
-     * @param integer $idleTime - Време на бездействие на съответния таб
-     * @param string $sid
-     * @param integer $userId
-     * @param string $hitId
-     * 
+     * @param integer  $idleTime  - Време на бездействие на съответния таб
+     * @param string   $sid
+     * @param integer  $userId
+     * @param string   $hitId
+     *
      * @return boolean
      */
-    static function isRetrived($messageId, $hitTime, $idleTime, $sid=NULL, $userId=NULL, $hitId=NULL)
+    public static function isRetrived($messageId, $hitTime, $idleTime, $sid = null, $userId = null, $hitId = null)
     {
         // Конфигурация на пакета
         $conf = core_Packs::getConfig('status');
@@ -157,11 +157,11 @@ class status_Retrieving extends core_Manager
         $query = static::getQuery();
         $query->where(array("#messageId = '[#1#]'", $messageId));
         
-        $or = FALSE;
+        $or = false;
         
         if (!empty($hitId)) {
             $query->where(array("#hitId = '[#1#]'", $hitId));
-            $or = TRUE;
+            $or = true;
         }
         
         // Които не са теглени от съответния таб или са теглени от таб с по прясно време на бездействие
@@ -185,6 +185,9 @@ class status_Retrieving extends core_Manager
         }
         
         // Ако има записи
-        if ($query->count()) return TRUE;
+        if ($query->count()) {
+            
+            return true;
+        }
     }
 }

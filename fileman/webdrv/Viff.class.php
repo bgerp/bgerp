@@ -3,7 +3,7 @@
 
 /**
  * Драйвер за работа с .viff файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -13,5 +13,4 @@
  */
 class fileman_webdrv_Viff extends fileman_webdrv_ImageT
 {
-    
 }

@@ -19,15 +19,15 @@ class email_Returned extends email_ServiceEmails
     /**
      * Заглавие на таблицата
      */
-    var $title = "Неполучени, върнати писма";
+    public $title = 'Неполучени, върнати писма';
 
 
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-        $this->addFields();  
+        $this->addFields();
     }
     
 
@@ -35,7 +35,7 @@ class email_Returned extends email_ServiceEmails
      * Проверява дали в $mime се съдържа върнато писмо и
      * ако е така - съхраняваго за определено време в този модел
      */
-    static function process($mime, $accId, $uid)
+    public static function process($mime, $accId, $uid)
     {
         // Извличаме информация за вътрешния системен адрес, към когото е насочено писмото
         $soup = $mime->getHeader('X-Original-To', '*') . ' ' .
@@ -43,7 +43,6 @@ class email_Returned extends email_ServiceEmails
                 $mime->getHeader('To', '*');
         
         if (!preg_match('/^.+\+returned=([a-z]+)@/i', $soup, $matches)) {
-            
             if ($accId && preg_match('/^.+returned=([a-z]+)@/i', $soup) && ($accRec = email_Accounts::fetch($accId))) {
                 if ($accRec->email) {
                     list($accEmail) = explode('@', $accRec->email);
@@ -56,7 +55,9 @@ class email_Returned extends email_ServiceEmails
                 }
             }
             
-            if (empty($matches)) return;
+            if (empty($matches)) {
+                return;
+            }
         }
         
         $mid = $matches[1];
@@ -75,7 +76,7 @@ class email_Returned extends email_ServiceEmails
         
         $isReturnedMail = doclog_Documents::returned($mid, $date, $ip);
         
-        if($isReturnedMail) {
+        if ($isReturnedMail) {
             $rec = new stdClass();
             // Само първите 100К от писмото
             $rec->data = substr($mime->getData(), 0, 100000);

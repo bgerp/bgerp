@@ -15,25 +15,25 @@
  */
 class uiext_plg_DetailLabels extends core_Plugin
 {
-	
-	
-	/**
-	 * Преди рендиране на таблицата
-	 */
-	public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
-	{
-		$masterRec = $data->masterData->rec;
-		
-		$data->hideListFieldsIfEmpty['_tagField'] = '_tagField';
-		uiext_Labels::showLabels($mvc, $masterRec->containerId, $data->recs, $data->rows, $data->listFields, $mvc->hashField, 'Таг', $tpl, $mvc);
-	}
-	
-	
-	/**
-	 * След рендиране на лист таблицата
-	 */
-	public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
-	{
-		uiext_Labels::enable($tpl);
-	}
+    
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $masterRec = $data->masterData->rec;
+        
+        $data->hideListFieldsIfEmpty['_tagField'] = '_tagField';
+        uiext_Labels::showLabels($mvc, $masterRec->containerId, $data->recs, $data->rows, $data->listFields, $mvc->hashField, 'Таг', $tpl, $mvc);
+    }
+    
+    
+    /**
+     * След рендиране на лист таблицата
+     */
+    public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
+    {
+        uiext_Labels::enable($tpl);
+    }
 }

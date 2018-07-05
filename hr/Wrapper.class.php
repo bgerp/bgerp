@@ -23,11 +23,11 @@ class hr_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на опаковката с табове
      */
-    function description()
+    public function description()
     {
         $this->TAB('hr_Indicators', 'Заплащане->Индикатори', 'ceo,hrMaster');
-        $this->TAB('hr_Payroll', 'Заплащане->Ведомост','ceo,hrMaster');
-        $this->TAB('hr_IndicatorNames', 'Заплащане->Видове индикатори','debug,admin');
+        $this->TAB('hr_Payroll', 'Заплащане->Ведомост', 'ceo,hrMaster');
+        $this->TAB('hr_IndicatorNames', 'Заплащане->Видове индикатори', 'debug,admin');
         
         $this->TAB('hr_EmployeeContracts', 'Документи->Договори', 'ceo,hrMaster');
         $this->TAB('hr_Leaves', 'Документи->Отпуски', 'ceo, hr, hrMaster, admin');
@@ -36,13 +36,13 @@ class hr_Wrapper extends plg_ProtoWrapper
         $this->TAB('hr_Bonuses', 'Документи->Премии', 'ceo,hrMaster');
         $this->TAB('hr_Deductions', 'Документи->Удръжки', 'ceo,hrMaster');
 
-        $this->TAB(array('hr_Departments', 'list', 'Chart'=> 'List'), 'Структура->Таблица', 'ceo,hrMaster');
-        $this->TAB(array('hr_Departments', 'list', 'Chart'=> 'Structure'), 'Структура->Графика', 'ceo,hrMaster');
-        $this->TAB('hr_Positions', 'Структура->Длъжности','ceo,hrMaster,admin');
+        $this->TAB(array('hr_Departments', 'list', 'Chart' => 'List'), 'Структура->Таблица', 'ceo,hrMaster');
+        $this->TAB(array('hr_Departments', 'list', 'Chart' => 'Structure'), 'Структура->Графика', 'ceo,hrMaster');
+        $this->TAB('hr_Positions', 'Структура->Длъжности', 'ceo,hrMaster,admin');
         $this->TAB('hr_WorkingCycles', 'Структура->Цикли', 'ceo,hrMaster,admin');
         $this->TAB('hr_ContractTypes', 'Структура->Шаблони', 'ceo,hrMaster,admin');
 
-        if(core_Packs::isInstalled('workpreff')){
+        if (core_Packs::isInstalled('workpreff')) {
             $this->TAB('workpreff_FormCv', 'Подбор->Форма CV', 'ceo,hrMaster');
             $this->TAB('workpreff_WorkPreff', 'Подбор->Опции за подбор', 'ceo,hrMaster');
         }

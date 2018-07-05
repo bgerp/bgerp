@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'store_TransferFolderCoverIntf' - Интерфейс за корици на папки, 
+ * Клас 'store_TransferFolderCoverIntf' - Интерфейс за корици на папки,
  * в които могат да се слагат междускладови трансфери
  *
  *
@@ -16,5 +16,4 @@
  */
 class store_iface_TransferFolderCoverIntf extends doc_FolderIntf
 {
-
 }

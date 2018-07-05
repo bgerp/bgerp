@@ -16,20 +16,21 @@
  * @since     v 0.1
  * @link
  */
-class type_Decimal extends type_Double {
+class type_Decimal extends type_Double
+{
     
     
     /**
      * Тип на полето в mySql таблица
      */
-    var $dbFieldType = 'decimal';
+    public $dbFieldType = 'decimal';
     
     
     
     /**
      * Параметър определящ максималната широчина на полето
      */
-    var $maxFieldSize = 15;
+    public $maxFieldSize = 15;
 
  
 
@@ -48,6 +49,4 @@ class type_Decimal extends type_Double {
 
         return $res;
     }
-
-
 }

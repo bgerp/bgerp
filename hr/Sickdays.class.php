@@ -29,10 +29,10 @@ class hr_Sickdays extends core_Master
      */
     public $title = 'Болнични листи';
     
-     /**
+    /**
      * Заглавие в единствено число
      */
-    public $singleTitle = "Болничен лист";
+    public $singleTitle = 'Болничен лист';
     
     
     /**
@@ -93,15 +93,15 @@ class hr_Sickdays extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo, hrMaster, hrSickdays';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo, hrMaster, hrSickdays';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'ceo, hrMaster, hrSickdays';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo, hrMaster, hrSickdays';
     
     
     /**
@@ -128,9 +128,7 @@ class hr_Sickdays extends core_Master
     public $canChangerec = 'ceo, hrMaster, hrSickdays';
 
     
-    /**
-     * 
-     */
+    
     public $canEdited = 'powerUser';
     
     
@@ -149,13 +147,13 @@ class hr_Sickdays extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = "Skd";
+    public $abbr = 'Skd';
     
     
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "5.4|Човешки ресурси"; 
+    public $newBtnGroup = '5.4|Човешки ресурси';
     
     
     /**
@@ -167,7 +165,7 @@ class hr_Sickdays extends core_Master
     /**
      * Дали може да бъде само в началото на нишка
      */
-    public $onlyFirstInThread = TRUE;
+    public $onlyFirstInThread = true;
     
     
     /**
@@ -187,13 +185,13 @@ class hr_Sickdays extends core_Master
      */
     public function description()
     {
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,mandatory');
-    	$this->FLD('startDate', 'date', 'caption=Отсъствие->От, mandatory');
-    	$this->FLD('toDate', 'date', 'caption=Отсъствие->До, mandatory');
-    	$this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година, input=none, changable');
-    	$this->FLD('fitNoteDate', 'date', 'caption=Болничен лист->Издаден на, input=none, changable');
-    	$this->FLD('fitNoteFile', 'fileman_FileType(bucket=humanResources)', 'caption=Болничен лист->Файл');
-    	$this->FLD('reason', 'enum(1=Майчинство до 15 дни,
+        $this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,mandatory');
+        $this->FLD('startDate', 'date', 'caption=Отсъствие->От, mandatory');
+        $this->FLD('toDate', 'date', 'caption=Отсъствие->До, mandatory');
+        $this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година, input=none, changable');
+        $this->FLD('fitNoteDate', 'date', 'caption=Болничен лист->Издаден на, input=none, changable');
+        $this->FLD('fitNoteFile', 'fileman_FileType(bucket=humanResources)', 'caption=Болничен лист->Файл');
+        $this->FLD('reason', 'enum(1=Майчинство до 15 дни,
 								   2=Майчинство до 410 дни,
 								   3=Заболяване,
 								   4=Трудова злополука,
@@ -203,17 +201,17 @@ class hr_Sickdays extends core_Master
 								   8=Бащинство до 15 дни,
 								   9=Бащинство до 410 дни,
 								   10=Гледа дете до 18 години)', 'caption=Информация->Причина');
-    	$this->FLD('note', 'richtext(rows=5,bucket=Notes)', 'caption=Информация->Бележки');
-    	$this->FLD('icdCode', 'varchar(5)', 'caption=Информация->MKB код, hint=Международна класификация на болестите');
-    	$this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
-    	$this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
-    	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=По време на отсъствието->Заместник');
-    	$this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=hidden, changable');
-    	$this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=hidden,changable');
-    	$this->FNC('title', 'varchar', 'column=none');
-    	 
-    	
-    	$this->FLD('sharedUsers', 'userList(roles=hrSickdays|ceo)', 'caption=Споделяне->Потребители');
+        $this->FLD('note', 'richtext(rows=5,bucket=Notes)', 'caption=Информация->Бележки');
+        $this->FLD('icdCode', 'varchar(5)', 'caption=Информация->MKB код, hint=Международна класификация на болестите');
+        $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
+        $this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
+        $this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=По време на отсъствието->Заместник');
+        $this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=hidden, changable');
+        $this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=hidden,changable');
+        $this->FNC('title', 'varchar', 'column=none');
+         
+        
+        $this->FLD('sharedUsers', 'userList(roles=hrSickdays|ceo)', 'caption=Споделяне->Потребители');
     }
 
     
@@ -235,15 +233,15 @@ class hr_Sickdays extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent,before=selectPeriod');
-    	$data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
-    	$data->listFilter->input('employeeId', 'silent');
+        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent,before=selectPeriod');
+        $data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
+        $data->listFilter->input('employeeId', 'silent');
         
-    	if($filterRec = $data->listFilter->rec){
-        	if($filterRec->employeeId){
-        		$data->query->where(array("#personId = '[#1#]'", $filterRec->employeeId));
-        	}
-    	}
+        if ($filterRec = $data->listFilter->rec) {
+            if ($filterRec->employeeId) {
+                $data->query->where(array("#personId = '[#1#]'", $filterRec->employeeId));
+            }
+        }
     }
 
     
@@ -252,31 +250,31 @@ class hr_Sickdays extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	$form = &$data->form;
-    	$rec = $form->rec;
-    	
-    	// Намират се всички служители
-    	$employees = crm_Persons::getEmployeesOptions();
-    	unset($employees[$rec->personId]);
-    	
-    	if(count($employees)){
-    		$form->setOptions('personId', $employees);
-    		$form->setOptions('alternatePerson', $employees);
-    	} else {
-    		redirect(array('crm_Persons', 'list'), FALSE, "|Липсва избор за служители|*");
-    	}
-    	
-    	$form->setDefault('reason', 3);
+        $form = &$data->form;
+        $rec = $form->rec;
+        
+        // Намират се всички служители
+        $employees = crm_Persons::getEmployeesOptions();
+        unset($employees[$rec->personId]);
+        
+        if (count($employees)) {
+            $form->setOptions('personId', $employees);
+            $form->setOptions('alternatePerson', $employees);
+        } else {
+            redirect(array('crm_Persons', 'list'), false, '|Липсва избор за служители|*');
+        }
+        
+        $form->setDefault('reason', 3);
         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
 
         if ($rec->folderId && $folderClass == 'crm_Persons') {
-	        $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
-	        $form->setReadonly('personId');
-	        
-	        if(!haveRole('ceo,hrSickdays')) {
-	           $data->form->fields['sharedUsers']->mandatory = 'mandatory';
-	        }
-        } 
+            $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+            $form->setReadonly('personId');
+            
+            if (!haveRole('ceo,hrSickdays')) {
+                $data->form->fields['sharedUsers']->mandatory = 'mandatory';
+            }
+        }
     }
     
     
@@ -284,25 +282,25 @@ class hr_Sickdays extends core_Master
      * Проверява и допълва въведените данни от 'edit' формата
      */
     public static function on_AfterInputEditForm($mvc, $form)
-    { 
-    	$now = dt::now(FALSE);
-    	
+    {
+        $now = dt::now(false);
+        
         // Ако формата е изпратена успешно
         if ($form->isSubmitted()) {
-        	if($form->rec->startDate > $now){
-        		
-        		// Добавяме съобщение за грешка
+            if ($form->rec->startDate > $now) {
+                
+                // Добавяме съобщение за грешка
                 $form->setError('startDate', "Началната дата трябва да е преди|* <b>{$now}</b>");
-        	}
-        	
-        	if($form->rec->toDate < $form->rec->startDate){
-        		$form->setError('toDate', "Крайната дата трябва да е след|*  <b>{$form->rec->startDate}</b>");
-        	}
-        	
-        	// Размяна, ако периодите са объркани
-        	if(isset($form->rec->startDate) && isset($form->rec->toDate) && ($form->rec->startDate > $form->rec->toDate)) {
-        	    $form->setError('startDate, toDate', "Началната дата трябва да е по-малка от крайната");
-        	}
+            }
+            
+            if ($form->rec->toDate < $form->rec->startDate) {
+                $form->setError('toDate', "Крайната дата трябва да е след|*  <b>{$form->rec->startDate}</b>");
+            }
+            
+            // Размяна, ако периодите са объркани
+            if (isset($form->rec->startDate, $form->rec->toDate) && ($form->rec->startDate > $form->rec->toDate)) {
+                $form->setError('startDate, toDate', 'Началната дата трябва да е по-малка от крайната');
+            }
         }
     }
     
@@ -311,23 +309,22 @@ class hr_Sickdays extends core_Master
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-
     }
 
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
     {
-    	$mvc->updateSickdaysToCalendar($rec->id);
+        $mvc->updateSickdaysToCalendar($rec->id);
     }
             
     
@@ -335,11 +332,10 @@ class hr_Sickdays extends core_Master
      * Добавя съответните бутони в лентата с инструменти, в зависимост от състоянието
      *
      * @param blast_Emails $mvc
-     * @param object $data
+     * @param object       $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-
     }
     
     
@@ -347,14 +343,14 @@ class hr_Sickdays extends core_Master
      * Извиква се след изпълняването на екшън
      */
     public static function on_AfterAction(&$invoker, &$tpl, $act)
-    { 
+    {
         if (strtolower($act) == 'single' && haveRole('hrSickdays,ceo') && !Mode::is('printing')) {
     
             // Взимаме ид-то на молбата
             $id = Request::get('id', 'int');
     
             // намираме, кой е текущия потребител
-            $cu =  core_Users::getCurrent();
+            $cu = core_Users::getCurrent();
     
             // взимаме записа от модела
             $rec = self::fetch($id);
@@ -366,14 +362,14 @@ class hr_Sickdays extends core_Master
             $sharedUsers[$cu] = $cu;
     
             // връщаме в кей лист масива
-            $rec->sharedUsers =  keylist::fromArray($sharedUsers);
+            $rec->sharedUsers = keylist::fromArray($sharedUsers);
     
             self::save($rec, 'sharedUsers');
     
             doc_ThreadUsers::removeContainer($rec->containerId);
             doc_Threads::updateThread($rec->threadId);
     
-            redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
+            redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId));
         }
     }
     
@@ -397,13 +393,13 @@ class hr_Sickdays extends core_Master
         $row->paidByHI = $Double->toVerbal($rec->paidByHI);
         $row->paidByHI .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
         
-        if(isset($rec->alternatePerson)) {
+        if (isset($rec->alternatePerson)) {
             // Ако имаме права да видим визитката
-            if(crm_Persons::haveRightFor('single', $rec->alternatePerson)){
+            if (crm_Persons::haveRightFor('single', $rec->alternatePerson)) {
                 $name = crm_Persons::fetchField("#id = '{$rec->alternatePerson}'", 'name');
-                $row->alternatePerson = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->alternatePerson), NULL, 'ef_icon = img/16/vcard.png');
+                $row->alternatePerson = ht::createLink($name, array('crm_Persons', 'single', 'id' => $rec->alternatePerson), null, 'ef_icon = img/16/vcard.png');
             }
-        } 
+        }
     }
     
     
@@ -412,16 +408,12 @@ class hr_Sickdays extends core_Master
      */
     protected static function on_AfterRenderSingleLayout($mvc, $tpl, $data)
     {
-        if(!isset($data->rec->paidByEmployer)) {
-        
+        if (!isset($data->rec->paidByEmployer)) {
             $tpl->removeBlock('compensationEmployer');
-       
         }
         
-        if(!isset($data->rec->paidByHI)) {
-        
+        if (!isset($data->rec->paidByHI)) {
             $tpl->removeBlock('compensationHI');
-             
         }
     }
     
@@ -448,54 +440,53 @@ class hr_Sickdays extends core_Master
         $prefix = "Sick-{$id}";
 
         $curDate = $rec->startDate;
-    	
-    	while($curDate < $rec->toDate){
-        // Подготвяме запис за началната дата
-	        if($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
-	            
-	            $calRec = new stdClass();
-	                
-	            // Ключ на събитието
-	            $calRec->key = $prefix . "-{$curDate}";
-	            
-	            // Начало на отпуската
-	            $calRec->time = $curDate;
-	            
-	            // Дали е цял ден?
-	            $calRec->allDay = 'yes';
-	            
-	            // Икона на записа
-	            $calRec->type  = 'sick';
-	
-	            $personName = crm_Persons::fetchField($rec->personId, 'name');
-	            
-	            // Заглавие за записа в календара
-	            $calRec->title = "Болничен: {$personName}";
-	
-	            $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
-	            $personId = array($personProfile->userId => 0);
-	            $user = keylist::fromArray($personId);
-	            
-	            // В чии календари да влезе?
-	            $calRec->users = $user;
-	            
-	            // Статус на задачата
-	            $calRec->state = $rec->state;
-	            
-	            // Url на задачата
-	            $calRec->url = array('hr_Sickdays', 'Single', $id); 
-	            
-	            $events[] = $calRec;
-	        }
-	        $curDate = dt::addDays(1, $curDate);
-    	}
+        
+        while ($curDate < $rec->toDate) {
+            // Подготвяме запис за началната дата
+            if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
+                $calRec = new stdClass();
+                    
+                // Ключ на събитието
+                $calRec->key = $prefix . "-{$curDate}";
+                
+                // Начало на отпуската
+                $calRec->time = $curDate;
+                
+                // Дали е цял ден?
+                $calRec->allDay = 'yes';
+                
+                // Икона на записа
+                $calRec->type = 'sick';
+    
+                $personName = crm_Persons::fetchField($rec->personId, 'name');
+                
+                // Заглавие за записа в календара
+                $calRec->title = "Болничен: {$personName}";
+    
+                $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
+                $personId = array($personProfile->userId => 0);
+                $user = keylist::fromArray($personId);
+                
+                // В чии календари да влезе?
+                $calRec->users = $user;
+                
+                // Статус на задачата
+                $calRec->state = $rec->state;
+                
+                // Url на задачата
+                $calRec->url = array('hr_Sickdays', 'Single', $id);
+                
+                $events[] = $calRec;
+            }
+            $curDate = dt::addDays(1, $curDate);
+        }
 
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
     
    
     /**
-     * Проверка дали нов документ може да бъде добавен в посочената папка 
+     * Проверка дали нов документ може да бъде добавен в посочената папка
      *
      * @param $folderId int ид на папката
      */
@@ -504,28 +495,37 @@ class hr_Sickdays extends core_Master
         $Cover = doc_Folders::getCover($folderId);
         
         // Трябва да е в папка на лице или на проект
-        if ($Cover->className != 'crm_Persons' && $Cover->className != 'doc_UnsortedFolders') return FALSE;
+        if ($Cover->className != 'crm_Persons' && $Cover->className != 'doc_UnsortedFolders') {
+            
+            return false;
+        }
         
         // Ако е в папка на лице, лицето трябва да е в група служители
-        if($Cover->className == 'crm_Persons'){
-        	$emplGroupId = crm_Groups::getIdFromSysId('employees');
-        	$personGroups = $Cover->fetchField('groupList');
-        	if(!keylist::isIn($emplGroupId, $personGroups)) return FALSE;
+        if ($Cover->className == 'crm_Persons') {
+            $emplGroupId = crm_Groups::getIdFromSysId('employees');
+            $personGroups = $Cover->fetchField('groupList');
+            if (!keylist::isIn($emplGroupId, $personGroups)) {
+                
+                return false;
+            }
         }
         
-        if($Cover->className == 'doc_UnsortedFolders') {
+        if ($Cover->className == 'doc_UnsortedFolders') {
             $cu = core_Users::getCurrent();
-            if(!haveRole('ceo,hrSickdays', $cu)) return FALSE;
+            if (!haveRole('ceo,hrSickdays', $cu)) {
+                
+                return false;
+            }
         }
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Интерфейсен метод на doc_DocumentIntf
      *
-     * @param int $id
+     * @param  int      $id
      * @return stdClass $row
      */
     public function getDocumentRow($id)
@@ -546,7 +546,7 @@ class hr_Sickdays extends core_Master
         //id на създателя
         $row->authorId = $rec->createdBy;
         
-        $row->recTitle = $this->getRecTitle($rec, FALSE);
+        $row->recTitle = $this->getRecTitle($rec, false);
         
         return $row;
     }
@@ -555,7 +555,7 @@ class hr_Sickdays extends core_Master
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    public static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = true)
     {
         $me = cls::get(get_called_class());
          

@@ -27,9 +27,9 @@ class fancybox_Setup extends core_ProtoSetup
 {
         
     /**
-	 * Описание на модула
-	 */
-	public $info = "Адаптер за fancybox - разглеждане на картинки и галерии";
+     * Описание на модула
+     */
+    public $info = 'Адаптер за fancybox - разглеждане на картинки и галерии';
 
     
     /**
@@ -37,7 +37,7 @@ class fancybox_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-       'FANCYBOX_VERSION' => array ('enum(1.3.4, 2.1.5)', 'mandatory, caption=Версията на програмата->Версия')
+       'FANCYBOX_VERSION' => array('enum(1.3.4, 2.1.5)', 'mandatory, caption=Версията на програмата->Версия')
 
      );
     
@@ -63,4 +63,3 @@ class fancybox_Setup extends core_ProtoSetup
         return 'fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.css';
     }
 }
-

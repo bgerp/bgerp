@@ -13,41 +13,34 @@
  */
 class csstoinline_CssToInline extends core_Manager
 {
+    public $interfaces = 'csstoinline_ConverterIntf';
     
     
-    /**
-     * 
-     */
-    var $interfaces = 'csstoinline_ConverterIntf';
     
-    
-    /**
-     * 
-     */
-    var $title = 'CssToInline';
+    public $title = 'CssToInline';
     
     
     /**
      * Вкарва външния CSS, като inline стил
-     * 
+     *
      * @param string $html - HTML текста
-     * @param string $css - CSS текста
-     * 
+     * @param string $css  - CSS текста
+     *
      * @return string @processedHTML - Обработения HTML
      */
-    function convert($html, $css)
+    public function convert($html, $css)
     {
         // За да не се разваля кирилицата
-        $html = mb_convert_encoding($html, 'html-entities', 'UTF-8'); 
+        $html = mb_convert_encoding($html, 'html-entities', 'UTF-8');
         
         // Вземаме конфигурационните константи
         $conf = core_Packs::getConfig('csstoinline');
         
         // Пътя до кода
-        $path = "csstoinline/csstoinline/". $conf->CSSTOINLINE_CSSTOINLINE_VERSION . "/css_to_inline_styles.php";
+        $path = 'csstoinline/csstoinline/'. $conf->CSSTOINLINE_CSSTOINLINE_VERSION . '/css_to_inline_styles.php';
         
         // Вкарваме пакета
-        require_once getFullPath($path);  
+        require_once getFullPath($path);
         
         // Създаваме инстанция
         $cssToInlineStyles = new CSSToInlineStyles($html, $css);

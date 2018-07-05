@@ -3,7 +3,7 @@
 
 /**
  * Оцветяването на кода
- * 
+ *
  * @category  vendors
  * @package   hljs
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -12,15 +12,15 @@
  * @since     v 0.1
  */
 class hljs_Adapter
-{    
+{
     
     
     /**
      * Активираме оцветяването на кода
-     * 
+     *
      * @param string $style - CSS'а, който да се използва
      */
-    static function enable($style = 'googlecode')
+    public static function enable($style = 'googlecode')
     {
         // Създаваме шаблона
         $tpl = new ET();
@@ -34,14 +34,14 @@ class hljs_Adapter
     
     /**
      * Добавям нужните елементи на шаблона
-     * 
-     * @param core_Et $tpl - Шаблона, към който ще се добавя
-     * @param string $style - CSS'а, който да се използва
+     *
+     * @param core_Et $tpl   - Шаблона, към който ще се добавя
+     * @param string  $style - CSS'а, който да се използва
      */
-    static function enableHlJs($tpl, $style = 'default')
+    public static function enableHlJs($tpl, $style = 'default')
     {
-    	$conf = core_Packs::getConfig('hljs');
-    	
+        $conf = core_Packs::getConfig('hljs');
+        
         // CSS fajla
         $css = 'hljs/' . $conf->HLJS_VERSION . "/styles/{$style}.css";
         
@@ -52,7 +52,7 @@ class hljs_Adapter
             if (!getFullPath($css)) {
                 
                 // Ако няма такъв файл, използваме стила по подразбиране
-                $css = 'hljs/' . $conf->HLJS_VERSION . "/styles/default.css";     
+                $css = 'hljs/' . $conf->HLJS_VERSION . '/styles/default.css';
             }
         }
 
@@ -60,8 +60,8 @@ class hljs_Adapter
         $tpl->push($css, 'CSS');
 
         // Добавяме JS
-    	$tpl->push('hljs/' . $conf->HLJS_VERSION . '/highlight.pack.js', 'JS');
-    	jquery_Jquery::run($tpl, "runHljs();", TRUE);
+        $tpl->push('hljs/' . $conf->HLJS_VERSION . '/highlight.pack.js', 'JS');
+        jquery_Jquery::run($tpl, 'runHljs();', true);
         jquery_Jquery::runAfterAjax($tpl, 'runHljs');
     }
 }

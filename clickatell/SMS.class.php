@@ -14,74 +14,72 @@
 class clickatell_SMS extends core_Manager
 {
     
-	
+    
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'no_one';
+    public $canRead = 'no_one';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'no_one';
+    public $canView = 'no_one';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'no_one';
+    public $canList = 'no_one';
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
-	
+    public $canDelete = 'no_one';
     
-	/**
-	 * Интерфейсния клас за изпращане на SMS
-	 */
-	var $interfaces = 'callcenter_SentSMSIntf';
-	
-	
-	/**
-	 * 
-	 */
-	var $title = 'Clickatell';
-	
-	
-	/**
-     * Интерфейсен метод за изпращане на SMS' и
-     * 
-     * @param string $number - Номера на получателя
-     * @param string $message - Текста на съобщението
-     * @param string $sender - От кого се изпраща съобщението
-     * 
-     * @see callcenter_SentSMSIntf
-     * 
-     * @return array $nRes - Mасив с информация, дали е получено
-     * $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
-     * $nRes['uid'] string - Уникалното id на съобщението
-     * $nRes['msg'] - Статуса
+    
+    /**
+     * Интерфейсния клас за изпращане на SMS
      */
-    function sendSMS($number, $message, $sender)
-    {    
+    public $interfaces = 'callcenter_SentSMSIntf';
+    
+    
+    
+    public $title = 'Clickatell';
+    
+    
+    /**
+     * Интерфейсен метод за изпращане на SMS' и
+     *
+     * @param string $number  - Номера на получателя
+     * @param string $message - Текста на съобщението
+     * @param string $sender  - От кого се изпраща съобщението
+     *
+     * @see callcenter_SentSMSIntf
+     *
+     * @return array $nRes - Mасив с информация, дали е получено
+     *               $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
+     *               $nRes['uid'] string - Уникалното id на съобщението
+     *               $nRes['msg'] - Статуса
+     */
+    public function sendSMS($number, $message, $sender)
+    {
         // Конфигурацията на модула
-    	$conf = core_Packs::getConfig('clickatell');
-    	
-    	// Масива, който ще връщаме
+        $conf = core_Packs::getConfig('clickatell');
+        
+        // Масива, който ще връщаме
         $nRes = array();
         
         // Ако константата за УРЛ-то е зададена
@@ -105,31 +103,31 @@ class clickatell_SMS extends core_Manager
             // Друг начин за изпращане
 //            // Опитваме се да изпратим
 //            $ctx = stream_context_create(array('http' => array('timeout' => 5)));
-//            
+//
 //            // Вземаме резултата
 //            $retRes = file_get_contents($url, 0, $ctx);
 
             // Разделяме стринга
-            $sendStatusArr = explode(":", $retRes);
+            $sendStatusArr = explode(':', $retRes);
      
             // Ако изпращането е било успешно
-            if ($sendStatusArr[0] == "ID") {
+            if ($sendStatusArr[0] == 'ID') {
                 
                 // Сетваме променливите
                 $nRes['sendStatus'] = 'sended';
                 $nRes['uid'] = trim($sendStatusArr[1]);
-                $nRes['msg'] = "|Успешно изпратен SMS";
+                $nRes['msg'] = '|Успешно изпратен SMS';
             } else {
                 
                 // Сетваме променливите
                 $nRes['sendStatus'] = 'sendError';
-                $nRes['msg'] = "|Не може да се изпрати";
+                $nRes['msg'] = '|Не може да се изпрати';
                 
                 if (isDebug()) {
-                    $nRes['msg'] .= "|*.<br>" . $retRes;
+                    $nRes['msg'] .= '|*.<br>' . $retRes;
                 }
                 
-                self::logErr("Грешка при изпращане на SMS: " . $retRes);
+                self::logErr('Грешка при изпращане на SMS: ' . $retRes);
             }
         } else {
             
@@ -142,28 +140,28 @@ class clickatell_SMS extends core_Manager
             // Записваме в лога
             self::logErr("Липсва константа за URL' то");
         }
-    	
+        
         return $nRes;
     }
     
     
     /**
      * Интерфейсен метод, който връща масив с настройките за услугата
-     * 
+     *
      * @see callcenter_SentSMSIntf
-     * 
+     *
      * @return array $paramsArr
-     * enum $paramsArr['utf8'] - no|yes - Дали поддържа UTF-8
-     * integer $paramsArr['maxStrLen'] - Максималната дължина на стринга
-     * string $paramsArr['allowedUserNames'] - Масив с позволените имена за изпращач
+     *               enum $paramsArr['utf8'] - no|yes - Дали поддържа UTF-8
+     *               integer $paramsArr['maxStrLen'] - Максималната дължина на стринга
+     *               string $paramsArr['allowedUserNames'] - Масив с позволените имена за изпращач
      */
-    function getParams()
+    public function getParams()
     {
         $conf = core_Packs::getConfig('clickatell');
         $paramsArr = array();
         $paramsArr['utf8'] = $conf->CLIKATELL_SUPPORT_UTF8;
         $paramsArr['maxStrLen'] = $conf->CLIKATELL_MAX_STRING_LEN;
-        $paramsArr['allowedUserNames'] = arr::make($conf->CLIKATELL_ALLOWED_USER_NAMES, TRUE);
+        $paramsArr['allowedUserNames'] = arr::make($conf->CLIKATELL_ALLOWED_USER_NAMES, true);
         
         return $paramsArr;
     }
@@ -173,15 +171,13 @@ class clickatell_SMS extends core_Manager
      * Инрерфейсен метод
      * Връща статуса на съобщението от съоветната услуга
      * @see callcenter_SentSMSIntf
-     * 
+     *
      * @param string $uid
-     * 
-     * @return 
+     *
+     * @return
      */
     public function getStatus($uid)
     {
-        
-        return ;
     }
     
     
@@ -189,7 +185,7 @@ class clickatell_SMS extends core_Manager
      * Отбелязване на статуса на съобщенито
      * Извиква се от външната програма след промяна на статуса на SMS'а
      */
-    function act_Delivery()
+    public function act_Delivery()
     {
         // Вземаме променливите
         $uid = Request::get('apiMsgId', 'varchar');
@@ -208,7 +204,6 @@ class clickatell_SMS extends core_Manager
             
             // Статуса
             $status = 'received';
-            
         } else {
             
             // Грешка при получаване
@@ -222,7 +217,7 @@ class clickatell_SMS extends core_Manager
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $uid, $status, $timestamp);
         } catch (core_exception_Expect $e) {
-            $errMsg = "Възникна грешка при обновяване на състоянието с apiMsgId";
+            $errMsg = 'Възникна грешка при обновяване на състоянието с apiMsgId';
             self::logErr("{$errMsg}: " . $uid);
         }
     }
@@ -231,15 +226,15 @@ class clickatell_SMS extends core_Manager
     /**
      * Екшън за проверка на връзката с услугата
      */
-    function act_Check()
+    public function act_Check()
     {
         // Очакваме да има роля admin
         expect(haveRole('admin'));
         
         // Конфигурацията на модула
-    	$conf = core_Packs::getConfig('clickatell');
-    	
-    	// Ако константата за УРЛ-то е зададена
+        $conf = core_Packs::getConfig('clickatell');
+        
+        // Ако константата за УРЛ-то е зададена
         expect($conf->CLICKATELL_CHECK_URL != '');
         
         // Вземаме шаблона
@@ -255,13 +250,14 @@ class clickatell_SMS extends core_Manager
             
             // Изпращаме заявката
             $ret = @file($url);
-        } catch (core_exception_Expect $e) { }
+        } catch (core_exception_Expect $e) {
+        }
         
         // Вземаме резултата
-        $sess = explode(":",$ret[0]);
+        $sess = explode(':', $ret[0]);
         
         // Очакваме да е ОК
-        expect($sess[0] == "OK", 'Не може да се ауторизира', $ret);
+        expect($sess[0] == 'OK', 'Не може да се ауторизира', $ret);
         
         // Връщаме съобщението
         return tr('Clickatell работи коректно');

@@ -167,6 +167,7 @@ class core_Form extends core_FieldSet
         // Ако не е тихо въвеждане и нямаме тихо въвеждане,
         // връщаме въведено към момента
         if ((!$this->cmd) && !$silent) {
+            
             return $this->rec;
         }
         
@@ -184,6 +185,7 @@ class core_Form extends core_FieldSet
         }
         
         if (!count($fields)) {
+            
             return false;
         }
         
@@ -323,6 +325,7 @@ class core_Form extends core_FieldSet
         }
         
         if (!count($fields)) {
+            
             return false;
         }
         
@@ -624,6 +627,7 @@ class core_Form extends core_FieldSet
     public function cmpFormOrder($a, $b)
     {
         if ($a->formOrder == $b->formOrder) {
+            
             return 0;
         }
         
@@ -896,6 +900,7 @@ class core_Form extends core_FieldSet
         }
 
         if ($this->fieldsLayout) {
+            
             return new ET($this->fieldsLayout);
         }
         
@@ -1395,6 +1400,7 @@ class core_Form extends core_FieldSet
                 foreach ($fieldArr as $f) {
                     if ($this->errors[$f]) {
                         if (!$this->errors[$f]->ignorable || !$this->ignore) {
+                            
                             return true;
                         }
                     }
@@ -1402,6 +1408,7 @@ class core_Form extends core_FieldSet
             } else {
                 foreach ($this->errors as $field => $errRec) {
                     if (!$errRec->ignorable || !$this->ignore) {
+                        
                         return true;
                     }
                 }

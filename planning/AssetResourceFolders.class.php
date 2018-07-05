@@ -13,11 +13,6 @@
  */
 class planning_AssetResourceFolders extends core_Manager
 {
-    
-    
-    /**
-     * 
-     */
     public $oldClassName = 'planning_AssetResourcesFolders';
     
     
@@ -60,7 +55,7 @@ class planning_AssetResourceFolders extends core_Manager
     /**
      * Дали в листовия изглед да се показва бутона за добавяне
      */
-    public $listAddBtn = FALSE;
+    public $listAddBtn = false;
     
     
     /**
@@ -89,7 +84,7 @@ class planning_AssetResourceFolders extends core_Manager
     /**
      * Подготвяме  общия изглед за 'List'
      */
-    function prepareDetail_($data)
+    public function prepareDetail_($data)
     {
         $data->classId = $data->masterMvc->getClassId();
         $data->objectId = $data->masterId;
@@ -106,9 +101,9 @@ class planning_AssetResourceFolders extends core_Manager
         $this->prepareListPager($data);
         
         // Името на променливата за страниране на детайл
-        if(is_object($data->pager)) {
+        if (is_object($data->pager)) {
             $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
-            if(cls::existsMethod($data->masterMvc, 'getHandle')) {
+            if (cls::existsMethod($data->masterMvc, 'getHandle')) {
                 $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
             }
         }
@@ -122,14 +117,18 @@ class planning_AssetResourceFolders extends core_Manager
         $data->toolbar = cls::get('core_Toolbar');
         if ($this->haveRightFor('add')) {
             Request::setProtected(array('classId', 'objectId'));
-            $data->toolbar->addBtn('Нов запис', array(
+            $data->toolbar->addBtn(
+                'Нов запис',
+                array(
                     $this,
                     'add',
                     'classId' => $data->classId,
                     'objectId' => $data->objectId,
-                    'ret_url' => TRUE
+                    'ret_url' => true
             ),
-            'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
+            'id=btnAdd',
+                'ef_icon = img/16/star_2.png,title=Създаване на нов запис'
+            );
         }
         
         return $data;
@@ -139,9 +138,9 @@ class planning_AssetResourceFolders extends core_Manager
     /**
      * Рендираме общия изглед за 'List'
      */
-    function renderDetail_($data)
+    public function renderDetail_($data)
     {
-        if(!isset($data->listClass)) {
+        if (!isset($data->listClass)) {
             $data->listClass = 'listRowsDetail';
         }
         
@@ -179,9 +178,10 @@ class planning_AssetResourceFolders extends core_Manager
     /**
      * @see core_Manager::act_Add()
      */
-    function act_Add()
+    public function act_Add()
     {
         Request::setProtected(array('classId', 'objectId'));
+
         return parent::act_Add();
     }
     
@@ -191,7 +191,7 @@ class planning_AssetResourceFolders extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->folderId = doc_Folders::getVerbalLinks($rec->folderId, TRUE);
+        $row->folderId = doc_Folders::getVerbalLinks($rec->folderId, true);
         
         if ($rec->users) {
             $row->users = $mvc->fields['users']->type->toVerbal($rec->users);
@@ -208,21 +208,21 @@ class planning_AssetResourceFolders extends core_Manager
     
     /**
      * Преди показване на форма за добавяне/промяна
-     * 
+     *
      * @param planning_AssetResourceFolders $mvc
-     * @param stdClass $data
+     * @param stdClass                      $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
         
-        $forType = NULL;
+        $forType = null;
         $clsId = Request::get('classId', 'int');
         if ($clsId) {
             $inst = cls::get($clsId);
             if ($inst instanceof planning_AssetResources) {
                 $forType = 'assets';
-            } else if ($inst instanceof planning_Hr) {
+            } elseif ($inst instanceof planning_Hr) {
                 $forType = 'hr';
             }
         }
@@ -235,20 +235,22 @@ class planning_AssetResourceFolders extends core_Manager
     
     /**
      * Добавяне на дефолтна папка за обект
-     * 
-     * @param int $classId       - ид на класа
-     * @param int $objectId      - ид на обекта
-     * @param int|NULL $folderId - дефолтна папка
+     *
+     * @param  int      $classId  - ид на класа
+     * @param  int      $objectId - ид на обекта
+     * @param  int|NULL $folderId - дефолтна папка
      * @return int|void
      */
-    public static function addDefaultFolder($classId, $objectId, $folderId = NULL, $users = NULL)
+    public static function addDefaultFolder($classId, $objectId, $folderId = null, $users = null)
     {
-    	if(self::fetch("#classId = {$classId} AND #objectId = {$objectId}")) return;
-    	
-    	$defFolderId = (isset($folderId)) ? $folderId : planning_Centers::getUndefinedFolderId();
-    	$users = (isset($users)) ? $users : NULL;
-    	$rec = (object)array('classId' => $classId, 'objectId' => $objectId, 'folderId' => $defFolderId, 'users' => $users);
-    	
-    	return self::save($rec);
+        if (self::fetch("#classId = {$classId} AND #objectId = {$objectId}")) {
+            return;
+        }
+        
+        $defFolderId = (isset($folderId)) ? $folderId : planning_Centers::getUndefinedFolderId();
+        $users = (isset($users)) ? $users : null;
+        $rec = (object) array('classId' => $classId, 'objectId' => $objectId, 'folderId' => $defFolderId, 'users' => $users);
+        
+        return self::save($rec);
     }
 }

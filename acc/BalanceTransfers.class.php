@@ -279,6 +279,7 @@ class acc_BalanceTransfers extends core_Master
          
         // Може да създаваме документ-а само в дефолт папката му
         if ($folderId == doc_UnsortedFolders::forceCoverAndFolder((object) array('name' => $me->title))) {
+            
             return true;
         }
     

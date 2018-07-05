@@ -16,7 +16,7 @@
 class rack_Pallets extends core_Manager
 {
     
-	
+    
     /**
      * Заглавие
      */
@@ -54,15 +54,15 @@ class rack_Pallets extends core_Manager
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo,rack';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,rack';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'ceo,rack';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,rack';
     
     
     /**
@@ -93,7 +93,7 @@ class rack_Pallets extends core_Manager
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden,column=none');
         $this->FLD('productId', 'key(mvc=store_Products, select=productId,allowEmpty)', 'caption=Продукт,silent,remember,refreshForm,mandatory,smartCenter');
@@ -108,21 +108,21 @@ class rack_Pallets extends core_Manager
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
         $rec = $form->rec;
         
-        if($rec->id) {
+        if ($rec->id) {
             $exRec = self::fetch($rec->id);
             setIfNot($rec->position, $exRec->position);
             $form->setHidden('exProductId', $rec->productId);
             $form->setHidden('exPosition', $rec->position);
         }
 
-        if($rec->position) {
+        if ($rec->position) {
             $form->setReadOnly('position');
             $rec->positionTo = $rec->position;
         } else {
@@ -135,35 +135,34 @@ class rack_Pallets extends core_Manager
         $form->FNC('movementCreate', 'enum(off=Изключено,on=Включено)', 'caption=Движение->Задаване,input,autohide,remember');
         $form->FNC('movementInfo', 'varchar', 'caption=Движение->Информация,input,autohide,recently');
         
-        if($rec->productId) {
+        if ($rec->productId) {
             $bestPos = self::getBestPos($rec->productId);
             $form->setSuggestions('positionTo', array('' => '', $bestPos => $bestPos));
             $form->setField('positionTo', 'placeholder=' . $bestPos);
-        } 
+        }
 
-        if($rec->position) {
+        if ($rec->position) {
             $form->setField('positionTo', 'placeholder=На пода');
         } else {
             $form->setField('positionTo', 'placeholder=' . $bestPos);
         }
 
-        if($movementCreate = Mode::get('movementCreate')) {
+        if ($movementCreate = Mode::get('movementCreate')) {
             $form->setDefault('movementCreate', $movementCreate);
         }
 
         // Дефолт за последното количество
-        if($rec->productId && !$rec->quantity) {
-            
+        if ($rec->productId && !$rec->quantity) {
             $prodRec = rack_Products::fetch($rec->productId);
             
-            if($prodRec) {
+            if ($prodRec) {
                 $rec->quantity = cat_products_Packagings::getQuantityInPack($prodRec->productId, 'палет');
      
-                if(!$rec->quantity) {
+                if (!$rec->quantity) {
                     $query = self::getQuery();
                     $query->orderBy('#createdOn', 'DESC');
                     $exRec = $query->fetch("#productId = {$rec->productId}");
-                    if($exRec) {
+                    if ($exRec) {
                         $rec->quantity = $exRec->quantity;
                     }
                 }
@@ -171,19 +170,19 @@ class rack_Pallets extends core_Manager
                 $restQuantity = $prodRec->quantity - $prodRec->quantityOnPallets;
                 $rec->quantity = min($rec->quantity, $restQuantity);
 
-                if($rec->quantity <= 0) {
-                    $rec->quantity = NULL;
+                if ($rec->quantity <= 0) {
+                    $rec->quantity = null;
                 }
             }
         }
 
         $mode = Request::get('Mode');
 
-        if($mode == 'down') {
+        if ($mode == 'down') {
             $form->rec->positionTo = '';
         }
 
-        if($mode) {
+        if ($mode) {
             $form->setReadOnly('productId');
             $form->setReadOnly('quantity');
             $form->setReadOnly('label');
@@ -194,9 +193,9 @@ class rack_Pallets extends core_Manager
     /**
      * Връща най-добрата позиция за разполагане на дадения продукт
      */
-    public static function getBestPos($productId, $storeId = NULL)
+    public static function getBestPos($productId, $storeId = null)
     {
-        if(!$storeId) {
+        if (!$storeId) {
             $storeId = store_Stores::getCurrent();
         }
 
@@ -205,18 +204,17 @@ class rack_Pallets extends core_Manager
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
 
         // Ако намерим свободна резервирана позиция за този продукт - вземаме нея
-        foreach($reserved as $pos => $pId) {
-            if(($pId == $productId) && !$used[$pos]) {
-
+        foreach ($reserved as $pos => $pId) {
+            if (($pId == $productId) && !$used[$pos]) {
+                
                 return $pos;
             }
         }
 
         // Ако намерим палет с този продукт и свободно място към края на стелажа - вземаме него
         $racks = array();
-        foreach($used as $pos => $pId) {
-            if($productId != $pId) {
-
+        foreach ($used as $pos => $pId) {
+            if ($productId != $pId) {
                 continue;
             }
 
@@ -230,28 +228,28 @@ class rack_Pallets extends core_Manager
         $bestLen = 100000000;
         $bestPos = '';
         
-        while($rRec = $rQuery->fetch("#storeId = {$storeId}")) {
+        while ($rRec = $rQuery->fetch("#storeId = {$storeId}")) {
             $dist = 20;
-            for($cInd = 1; $cInd <= $rRec->columns; $cInd++) {
-                for($rInd = 'A'; $rInd <= $rRec->rows; $rInd++) {
+            for ($cInd = 1; $cInd <= $rRec->columns; $cInd++) {
+                for ($rInd = 'A'; $rInd <= $rRec->rows; $rInd++) {
                     $pos = "{$rRec->num}-{$rInd}-{$cInd}";
 
-                    if($used[$pos] == $productId) {
+                    if ($used[$pos] == $productId) {
                         $dist = 0;
                     }
                     $dist++;
 
-                    if($used[$pos] || $unusable[$pos] || $reserved[$pos] || $movedTo[$pos]) {
+                    if ($used[$pos] || $unusable[$pos] || $reserved[$pos] || $movedTo[$pos]) {
                         continue;
                     }
                     
-                    if($dist < 20) {
+                    if ($dist < 20) {
                         $len = $dist;
                     } else {
                         $len = $rRec->num * 10000 + 100 * ord($rInd) + $cInd;
                     }
 
-                    if($len < $bestLen) {
+                    if ($len < $bestLen) {
                         $bestPos = $pos;
                         $bestLen = $len;
                     }
@@ -265,41 +263,37 @@ class rack_Pallets extends core_Manager
 
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        if($form->isSubmitted()) {
-
+        if ($form->isSubmitted()) {
             $rec = $form->rec;
             
             $rec->storeId = store_Stores::getCurrent();
             
             // Ако и двете позиции не са сетнати, приемаме, че палета ще се качва на позицията по подразбиране
-            if(!$rec->position && !$rec->positionTo) {
+            if (!$rec->position && !$rec->positionTo) {
                 $rec->positionTo = self::getBestPos($rec->productId);
             }
 
-            if($rec->positionTo && ($rec->exPosition != $rec->positionTo)) {
-                
-                if(!rack_Racks::isPlaceUsable($rec->positionTo, $rec->productId, $rec->storeId, $error, $status)) {
-                    if($status == 'reserved') {
-
+            if ($rec->positionTo && ($rec->exPosition != $rec->positionTo)) {
+                if (!rack_Racks::isPlaceUsable($rec->positionTo, $rec->productId, $rec->storeId, $error, $status)) {
+                    if ($status == 'reserved') {
                         $form->setWarning('positionTo', $error);
                     } else {
                         $form->setError('positionTo', $error);
                     }
                 }
 
-                if(!self::isEmpty($rec->positionTo, $rec->storeId, $error)) {
-
+                if (!self::isEmpty($rec->positionTo, $rec->storeId, $error)) {
                     $form->setError('positionTo', $error);
                 }
             }
 
-            if($rec->movementCreate) {
+            if ($rec->movementCreate) {
                 Mode::setPermanent('movementCreate', $rec->movementCreate);
             }
         }
@@ -311,13 +305,13 @@ class rack_Pallets extends core_Manager
      * Добавя филтър към перата
      *
      * @param acc_Items $mvc
-     * @param stdClass $data
+     * @param stdClass  $data
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
-        $data->title = 'Палетизирани наличности в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . "</b>";
+        $data->title = 'Палетизирани наличности в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
         
         
         $data->listFilter = cls::get('core_Form', array('method' => 'GET'));
@@ -328,31 +322,31 @@ class rack_Pallets extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $rec = $data->listFilter->input();
-        if(!$rec->productId) {
+        if (!$rec->productId) {
             $rec->productId = Request::get('productId', 'int');
             $data->listFilter->setDefault('productId', $rec->productId);
         }
-        if($rec->productId) {
+        if ($rec->productId) {
             $data->query->where("#productId = {$rec->productId}");
-            if(!Request::get('Sort')) {
-                $data->query->orderBy("position", 'ASC');
-                $order = TRUE;
+            if (!Request::get('Sort')) {
+                $data->query->orderBy('position', 'ASC');
+                $order = true;
             }
         }
 
-        if(!$rec->pos) {
+        if (!$rec->pos) {
             $rec->pos = Request::get('pos');
             $data->listFilter->setDefault('pos', $rec->pos);
         }
-        if($rec->pos) {
+        if ($rec->pos) {
             $data->query->where(array("#position LIKE UPPER('[#1#]%')", $rec->pos));
-            if(!Request::get('Sort')) {
-                $data->query->orderBy("position", 'ASC');
-                $order = TRUE;
+            if (!Request::get('Sort')) {
+                $data->query->orderBy('position', 'ASC');
+                $order = true;
             }
         }
 
-        if(!$order) {
+        if (!$order) {
             $data->query->orderBy('#createdOn', 'DESC');
         }
     }
@@ -360,14 +354,13 @@ class rack_Pallets extends core_Manager
 
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
-    protected static function on_AfterSave($mvc, $id, $rec, $fields = NULL)
-    { 
-        if(($rec->position || $rec->positionTo) && ($rec->position != $rec->positionTo) && $rec->storeId && $rec->id) {
-            
+    protected static function on_AfterSave($mvc, $id, $rec, $fields = null)
+    {
+        if (($rec->position || $rec->positionTo) && ($rec->position != $rec->positionTo) && $rec->storeId && $rec->id) {
             $mRec = new stdClass();
             $mRec->palletId = $rec->id;
             $mRec->position = $rec->position;
@@ -375,7 +368,7 @@ class rack_Pallets extends core_Manager
             $mRec->storeId = $rec->storeId;
             $mRec->note = $rec->movementInfo;
 
-            if($rec->movementCreate == 'on') {
+            if ($rec->movementCreate == 'on') {
                 $mRec->state = 'pending';
             } else {
                 
@@ -385,42 +378,42 @@ class rack_Pallets extends core_Manager
                 $mRec->state = 'closed';
             }
 
-            if($mRec->state == 'closed') {
-                if($mRec->positionTo) {
+            if ($mRec->state == 'closed') {
+                if ($mRec->positionTo) {
                     status_Messages::newStatus("|Нова позиция|*: {$mRec->positionTo}");
                 } else {
-                    status_Messages::newStatus("|Сваляне на пода");
+                    status_Messages::newStatus('|Сваляне на пода');
                 }
             } else {
-                if($mRec->positionTo) {
+                if ($mRec->positionTo) {
                     status_Messages::newStatus("|Зададено движение към|* {$mRec->positionTo}");
                 } else {
-                    status_Messages::newStatus("|Зададено движение за сваляне на пода");
+                    status_Messages::newStatus('|Зададено движение за сваляне на пода');
                 }
             }
 
             rack_Movements::save($mRec);
         }
         
-        if(!$rec->label) {
+        if (!$rec->label) {
             $rec->label = '#' . $rec->id;
             $mvc->save_($rec, 'label');
         }
         
         self::recalc($rec->productId);
  
-        if($rec->exProductId && $rec->exProductId != $rec->productId) {
+        if ($rec->exProductId && $rec->exProductId != $rec->productId) {
             self::recalc($rec->exProductId);
         }
         
         $rMvc = cls::get('rack_Racks');
 
-        if($rec->exPosition) {
-            $rMvc->updateRacks[$rec->storeId . '-' . $rec->exPosition] = TRUE;
+        if ($rec->exPosition) {
+            $rMvc->updateRacks[$rec->storeId . '-' . $rec->exPosition] = true;
         }
 
-        if($rec->position) {
-            $rMvc->updateRacks[$rec->storeId . '-' . $rec->position] = TRUE;
+        if ($rec->position) {
+            $rMvc->updateRacks[$rec->storeId . '-' . $rec->position] = true;
         }
         
         $rMvc->on_Shutdown($rMvc);
@@ -432,15 +425,15 @@ class rack_Pallets extends core_Manager
      */
     protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
-    	// Ако изтриваме етап, изтриваме всичките редове от този етап
-    	foreach ($query->getDeletedRecs() as $id => $rec) {
+        // Ако изтриваме етап, изтриваме всичките редове от този етап
+        foreach ($query->getDeletedRecs() as $id => $rec) {
 
             // Рекалкулираме количествата на продукта от изтрития палет
             self::recalc($rec->productId);
 
             // Премахваме записите в "Движения" за този палет
             rack_Movements::delete("#palletId = {$id}");
-    	}
+        }
     }
 
 
@@ -451,8 +444,8 @@ class rack_Pallets extends core_Manager
     {
         expect($productId);
         $query = self::getQuery();
-        while($rec = $query->fetch("#productId = {$productId}")) {
-            if(!$storeId) {
+        while ($rec = $query->fetch("#productId = {$productId}")) {
+            if (!$storeId) {
                 $storeId = $rec->storeId;
             }
             $q += $rec->quantity;
@@ -461,7 +454,7 @@ class rack_Pallets extends core_Manager
         rack_Products::save((object) array('id' => $productId, 'quantityOnPallets' => $q), 'quantityOnPallets');
  
         // Премахваме кеша за този склад
-        if(!$storeId) {
+        if (!$storeId) {
             $storeId = store_Stores::getCurrent();
         }
 
@@ -474,15 +467,15 @@ class rack_Pallets extends core_Manager
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if(($action == 'delete' || $action == 'edit') && isset($rec->id)) {
-            if(rack_Movements::fetch("#palletId = {$rec->id} && #state != 'closed'")) {
+        if (($action == 'delete' || $action == 'edit') && isset($rec->id)) {
+            if (rack_Movements::fetch("#palletId = {$rec->id} && #state != 'closed'")) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -492,81 +485,82 @@ class rack_Pallets extends core_Manager
     /**
      * Проверява дали указаната позиция е празна
      */
-    public static function isEmpty($position, $storeId = NULL, &$error = NULL)
+    public static function isEmpty($position, $storeId = null, &$error = null)
     {
         expect($position);
 
-        if(!$storeId) {
+        if (!$storeId) {
             $storeId = store_Stores::getCurrent();
         }
 
         $rec = self::fetch("#storeId = {$storeId} AND #position = '{$position}'");
 
-        if($rec) {
-            $error = "Тази позиция е заета";
+        if ($rec) {
+            $error = 'Тази позиция е заета';
 
-            return FALSE;
+            return false;
         }
         
         $mRec = rack_Movements::fetch("#storeId = {$storeId} AND #positionTo = '{$position}' AND #state != 'closed'");
  
-        if($mRec) {
-            $error = "Към тази позиция има насочено движение";
+        if ($mRec) {
+            $error = 'Към тази позиция има насочено движение';
 
-            return FALSE;
+            return false;
         }
 
-        return TRUE;
+        return true;
     }
 
     
     /**
      * Проверява дали указаната позиция е празна
      */
-    public static function isEmptyOut($num, $row = NULL, $col = NULL, $storeId = NULL, &$error = NULL)
+    public static function isEmptyOut($num, $row = null, $col = null, $storeId = null, &$error = null)
     {
-        
-        if(!$row) {
-            $row = chr(ord('A')-1);
+        if (!$row) {
+            $row = chr(ord('A') - 1);
         }
 
-        if(!$col) {
+        if (!$col) {
             $col = 0;
         }
 
-        if(!$storeId) {
+        if (!$storeId) {
             $storeId = store_Stores::getCurrent();
         }
         
         $query = self::getQuery();
 
-        while($rec = $query->fetch("#storeId = {$storeId} AND #position LIKE '{$num}-%'")) {
-            
-            if(!$rec->position) continue;
+        while ($rec = $query->fetch("#storeId = {$storeId} AND #position LIKE '{$num}-%'")) {
+            if (!$rec->position) {
+                continue;
+            }
 
             list($n, $r, $c) = explode('-', $rec->position);
-            if($r > $row || $c > $col) {
-                $error = "Има използвани палети извън тези размери";
+            if ($r > $row || $c > $col) {
+                $error = 'Има използвани палети извън тези размери';
 
-                return FALSE;
+                return false;
             }
         }
         
         $mQuery = rack_Movements::getQuery();
 
-        while($mRec = $mQuery->fetch("#storeId = {$storeId} AND #positionTo LIKE '{$num}-%'")) {
-
-            if(!$mRec->positionTo) continue;
+        while ($mRec = $mQuery->fetch("#storeId = {$storeId} AND #positionTo LIKE '{$num}-%'")) {
+            if (!$mRec->positionTo) {
+                continue;
+            }
 
             list($n, $r, $c) = explode('-', $mRec->positionTo);
-            if($r > $row || $c > $col) {
-                $error = "Има насочени движения извън тези размери";
+            if ($r > $row || $c > $col) {
+                $error = 'Има насочени движения извън тези размери';
 
-                return FALSE;
+                return false;
             }
         }
 
-        return TRUE;
+        return true;
     }
 
     /**
@@ -578,12 +572,12 @@ class rack_Pallets extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if($mvc->haveRightFor('edit', $rec)) {
-            if($rec->position) {
-                $row->label = ht::createLink('⇔', array($mvc, 'edit', $rec->id, 'Mode' => 'move'), NULL, 'title=Преместване') . '&nbsp;' . $row->label;
-                $row->label = ht::createLink('⇓', array($mvc, 'edit', $rec->id, 'Mode' => 'down'), NULL, 'title=Сваляне') . '&nbsp;' . $row->label;
+        if ($mvc->haveRightFor('edit', $rec)) {
+            if ($rec->position) {
+                $row->label = ht::createLink('⇔', array($mvc, 'edit', $rec->id, 'Mode' => 'move'), null, 'title=Преместване') . '&nbsp;' . $row->label;
+                $row->label = ht::createLink('⇓', array($mvc, 'edit', $rec->id, 'Mode' => 'down'), null, 'title=Сваляне') . '&nbsp;' . $row->label;
             } else {
-                $row->label = ht::createLink('⇑', array($mvc, 'edit', $rec->id, 'Mode' => 'up'), NULL, 'title=Качване') . '&nbsp;' . $row->label;
+                $row->label = ht::createLink('⇑', array($mvc, 'edit', $rec->id, 'Mode' => 'up'), null, 'title=Качване') . '&nbsp;' . $row->label;
             }
         }
 
@@ -595,17 +589,17 @@ class rack_Pallets extends core_Manager
     /**
      * Връща масив с всички използвани палети
      */
-    public static function getUsed($storeId = NULL)
+    public static function getUsed($storeId = null)
     {
-        if(!$storeId) {
+        if (!$storeId) {
             $storeId = store_Stores::getCurrent();
         }
 
-        if(!($res = core_Cache::get('UsedRacksPossitions', $storeId))) {
+        if (!($res = core_Cache::get('UsedRacksPossitions', $storeId))) {
             $res = array();
             $query = self::getQuery();
-            while($rec = $query->fetch("#storeId = {$storeId}")) {
-                if($rec->position) {
+            while ($rec = $query->fetch("#storeId = {$storeId}")) {
+                if ($rec->position) {
                     $res[$rec->position] = $rec->productId;
                 }
             }

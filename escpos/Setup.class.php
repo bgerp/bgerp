@@ -13,8 +13,8 @@ defIfNot('ESCPOS_SALT', md5(EF_SALT . '_ESCPOS'));
 
 
 /**
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   escpos
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -29,33 +29,33 @@ class escpos_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Escpos принтиране";
+    public $info = 'Escpos принтиране';
     
 
 
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-            'ESCPOS_HASH_LEN' => array ('int', 'caption=Дължина на хеша за линковете->Стойност'),
+    public $configDescription = array(
+            'ESCPOS_HASH_LEN' => array('int', 'caption=Дължина на хеша за линковете->Стойност'),
     );
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         //
-        // Закачаме плъгина 
+        // Закачаме плъгина
         //
         $html .= core_Plugins::installPlugin('Мобилно принтиране на продажби', 'escpos_PrintPlg', 'sales_Sales', 'private');
         $html .= core_Plugins::installPlugin('Мобилно принтиране на ЕН', 'escpos_PrintPlg', 'store_ShipmentOrders', 'private');

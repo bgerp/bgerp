@@ -21,7 +21,7 @@ class rfid_ReaderIntf
     /**
      * Връща запис с IP четеца или база данни
      */
-    function getData($date)
+    public function getData($date)
     {
         $this->class->getData($date);
     }

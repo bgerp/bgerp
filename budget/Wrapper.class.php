@@ -20,14 +20,11 @@ class budget_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
-       
-        
         $this->TAB('budget_Assets', 'Парични средства', 'ceo,budget');
         $this->TAB('budget_IncomeExpenses', 'Приходи / Разходи', 'ceo,budget');
         $this->TAB('budget_Balances', 'Баланс', 'ceo,budget');
         $this->TAB('budget_Reports', 'По подразделения / Дейности', 'ceo,budget');
-        
     }
 }

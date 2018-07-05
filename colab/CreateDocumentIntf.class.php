@@ -16,5 +16,4 @@
  */
 class colab_CreateDocumentIntf
 {
-
 }

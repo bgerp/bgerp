@@ -33,13 +33,13 @@ class blast_Emails extends core_Master
     /**
      * Заглавие на таблицата
      */
-    public $title = "Циркулярни имейли";
+    public $title = 'Циркулярни имейли';
     
     
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Циркулярен имейл";
+    public $singleTitle = 'Циркулярен имейл';
     
     
     /**
@@ -63,7 +63,7 @@ class blast_Emails extends core_Master
     /**
      * Дали може да бъде само в началото на нишка
      */
-    public $onlyFirstInThread = TRUE;
+    public $onlyFirstInThread = true;
     
     
     /**
@@ -191,7 +191,7 @@ class blast_Emails extends core_Master
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "2.2|Циркулярни";
+    public $newBtnGroup = '2.2|Циркулярни';
     
     
     /**
@@ -258,9 +258,9 @@ class blast_Emails extends core_Master
      *
      * @param integer $perSrcClassId
      * @param integer $perSrcObjectId
-     * @param string $text
-     * @param string $subject
-     * @param array $otherParams
+     * @param string  $text
+     * @param string  $subject
+     * @param array   $otherParams
      *
      * @return integer
      */
@@ -277,12 +277,14 @@ class blast_Emails extends core_Master
         expect($rec->perSrcClassId && $rec->perSrcObjectId, $rec);
         
         // Задаваме стойности за останалите полета
-        foreach ((array)$otherParams as $fieldName => $value) {
-            if ($rec->$fieldName) continue;
+        foreach ((array) $otherParams as $fieldName => $value) {
+            if ($rec->$fieldName) {
+                continue;
+            }
             $rec->$fieldName = $value;
         }
         
-        // Ако не е зададен имейл на изпращача, да се използва дефолтният му 
+        // Ако не е зададен имейл на изпращача, да се използва дефолтният му
         if (!$rec->from) {
             $rec->from = email_Outgoings::getDefaultInboxId();
         }
@@ -300,10 +302,10 @@ class blast_Emails extends core_Master
      * Активира имейла, като добавя и списъка с имейлите
      *
      * @param integer|object $id
-     * @param integer $sendPerCall
+     * @param integer        $sendPerCall
      */
     public static function activateEmail($id, $sendPerCall = 5)
-    {   
+    {
         // Записа
         $rec = self::getRec($id);
         
@@ -386,7 +388,6 @@ class blast_Emails extends core_Master
         if (is_object($id)) {
             $rec = $id;
         } else {
-            
             expect($id > 0);
             
             // Ако е id, фечваме записа
@@ -399,7 +400,7 @@ class blast_Emails extends core_Master
     
     /**
      * Проверява дали не трябва да се спира процеса
-     * 
+     *
      * @return boolean
      */
     protected static function checkTimelimit()
@@ -411,9 +412,12 @@ class blast_Emails extends core_Master
             $deadLine -= 2;
         }
         
-        if ($deadLine > time()) return TRUE;
+        if ($deadLine > time()) {
+            
+            return true;
+        }
         
-        return FALSE;
+        return false;
     }
     
     
@@ -455,7 +459,6 @@ class blast_Emails extends core_Master
             
             // Ако е свършило времето
             if (!$this->checkTimelimit()) {
-                
                 $this->logNotice('Прекъснато изпращане на циркулярни имейли', $rec->id);
                 
                 break;
@@ -473,7 +476,9 @@ class blast_Emails extends core_Master
                     $this->save($rec, 'state');
                     $this->touchRec($rec->id);
                     
-                    if (!($sec <= 0)) continue;
+                    if (!($sec <= 0)) {
+                        continue;
+                    }
                 }
             } elseif ($rec->state == 'active') {
                 if ($sec > $period) {
@@ -486,12 +491,14 @@ class blast_Emails extends core_Master
             }
             
             // Само активните да се изпращат
-            if ($rec->state != 'active') continue;
+            if ($rec->state != 'active') {
+                continue;
+            }
             
             // Вземаме данните за имейлите, до които ще пращаме
             $dataArr = blast_EmailSend::getDataArrForEmailId($rec->id, $rec->sendPerCall);
             
-            // Ако няма данни, затваряме 
+            // Ако няма данни, затваряме
             if (empty($dataArr)) {
                 $rec->state = 'closed';
                 $rec->progress = 1;
@@ -513,12 +520,14 @@ class blast_Emails extends core_Master
             $emailPlaceArr = self::getEmailFields($descArr);
             
             // Ако няма полета за имейли, няма смисъл да се праща
-            if (empty($emailPlaceArr)) continue;
+            if (empty($emailPlaceArr)) {
+                continue;
+            }
             
             $notSendDataArr = $dataArr;
             
             // Обхождаме всички получени данни
-            foreach ((array)$dataArr as $detId => $detArr) {
+            foreach ((array) $dataArr as $detId => $detArr) {
                 
                 // Ако е свършило времето
                 if (!$this->checkTimelimit()) {
@@ -542,14 +551,18 @@ class blast_Emails extends core_Master
                 $emailsArr = type_Emails::toArray($emailsStr);
                 
                 // Първия валиден имейл, който не е в блокорани, да е получателя
-                foreach ((array)$emailsArr as $email) {
-                    if (blast_BlockedEmails::isBlocked($email)) continue;
+                foreach ((array) $emailsArr as $email) {
+                    if (blast_BlockedEmails::isBlocked($email)) {
+                        continue;
+                    }
                     $toEmail = $email;
                     break;
                 }
                 
                 // Ако няма имейл, нямя до кого да се праща
-                if (!$toEmail) continue;
+                if (!$toEmail) {
+                    continue;
+                }
                 
                 // Клонираме записа
                 $cRec = clone $rec;
@@ -563,7 +576,7 @@ class blast_Emails extends core_Master
                         'containerId' => $cRec->containerId,
                         'threadId' => $cRec->threadId,
                         'action' => doclog_Documents::ACTION_SEND,
-                        'data' => (object)array(
+                        'data' => (object) array(
                             'sendedBy' => core_Users::getCurrent(),
                             'from' => $cRec->from,
                             'to' => $toEmail,
@@ -573,7 +586,7 @@ class blast_Emails extends core_Master
                 );
                 
                 // Вземаме персонализирания имейл за съответните данни
-                $body = $this->getEmailBody($cRec, $detArr, TRUE);
+                $body = $this->getEmailBody($cRec, $detArr, true);
                 
                 // Деескейпваме шаблоните в текстовата част
                 $body->text = core_ET::unEscape($body->text);
@@ -588,11 +601,11 @@ class blast_Emails extends core_Master
                         $body,
                         array(
                             'encoding' => $cRec->encoding,
-                            'no_thread_hnd' => TRUE
+                            'no_thread_hnd' => true
                         )
                     );
                 } catch (core_exception_Expect $e) {
-                    $status = FALSE;
+                    $status = false;
                 }
                 
                 // Флушваме екшъна
@@ -608,9 +621,9 @@ class blast_Emails extends core_Master
                     blast_EmailSend::setTimeAndEmail(array($detId => $toEmail));
                 } else {
                     // Ако възникне грешка при изпращане, записваме имейла, като върнат
-                    $this->logNotice("Върнато писмо", $rec->id);
+                    $this->logNotice('Върнато писмо', $rec->id);
                     
-                    blast_BlockedEmails::addEmail($toEmail, TRUE, 'error');
+                    blast_BlockedEmails::addEmail($toEmail, true, 'error');
                 }
                 
                 unset($notSendDataArr[$detId]);
@@ -627,12 +640,12 @@ class blast_Emails extends core_Master
      * Преди записване на клонирания запис
      *
      * @param core_Mvc $mvc
-     * @param object $rec
-     * @param object $nRec
+     * @param object   $rec
+     * @param object   $nRec
      *
      * @see plg_Clone
      */
-    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    public function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
         unset($nRec->progress);
         unset($nRec->activatedBy);
@@ -643,8 +656,8 @@ class blast_Emails extends core_Master
     /**
      * Подготвяме данните в rec'а
      *
-     * @param object $rec - Обект с данните
-     * @param array $detArr
+     * @param object $rec    - Обект с данните
+     * @param array  $detArr
      */
     protected function prepareRec(&$rec, $detArr)
     {
@@ -657,7 +670,7 @@ class blast_Emails extends core_Master
      * Замества плейсхолдърите с тяхната стойност
      *
      * @param object $rec
-     * @param array $detArr
+     * @param array  $detArr
      */
     protected function replaceAllData(&$rec, $detArr)
     {
@@ -679,7 +692,9 @@ class blast_Emails extends core_Master
         foreach ($fieldsArr as $header) {
             
             //Ако нямаме въведена стойност, прескачаме
-            if (!$rec->$header) continue;
+            if (!$rec->$header) {
+                continue;
+            }
             
             //Заместваме данните в антетката
             $rec->$header = $this->replacePlaces($rec->$header, $detArr);
@@ -691,7 +706,7 @@ class blast_Emails extends core_Master
      * Заместваме всички шаблони, с техните стойности
      *
      * @param string $resStr - стринга, който ще се замества
-     * @param array $detArr - масив със стойностите за плейсхолдерите
+     * @param array  $detArr - масив със стойностите за плейсхолдерите
      *
      * @return string
      */
@@ -707,15 +722,15 @@ class blast_Emails extends core_Master
     
     /**
      * Връща URL за отписване
-     * 
-     * @param integer $id
+     *
+     * @param integer     $id
      * @param string|NULL $lg
      * @param string|NULL $midPlace
-     * @param array $otherParams
-     * 
+     * @param array       $otherParams
+     *
      * @return array
      */
-    protected static function getUnsubscribeUrl($id, $lg = NULL, $midPlace = NULL, $otherParams = array())
+    protected static function getUnsubscribeUrl($id, $lg = null, $midPlace = null, $otherParams = array())
     {
         $url = array('B', 'U', $id);
         
@@ -736,28 +751,28 @@ class blast_Emails extends core_Master
             $preParams[$name] = $name;
         }
         
-        $absolute = FALSE;
+        $absolute = false;
         
         if (Mode::is('printing') || !Mode::is('text', 'html')) {
-            $absolute = TRUE;
+            $absolute = true;
         }
         
-        return toUrl($url, $absolute, TRUE, $preParams);
+        return toUrl($url, $absolute, true, $preParams);
     }
     
     /**
      * Връща тялото на съобщението
      *
-     * @param object $rec - Данни за имейла
-     * @param array $detArr - масив с id на детайлите
+     * @param object $rec     - Данни за имейла
+     * @param array  $detArr  - масив с id на детайлите
      * @param boolen $sending - Дали ще изпращаме имейла
      *
      * @return object $body - Обект с тялото на съобщението
-     * string $body->html - HTMl частта
-     * string $body->text - Текстовата част
-     * array  $body->attachments - Прикачените файлове
+     *                string $body->html - HTMl частта
+     *                string $body->text - Текстовата част
+     *                array  $body->attachments - Прикачените файлове
      */
-    protected function getEmailBody($rec, $detArr, $sending = FALSE)
+    protected function getEmailBody($rec, $detArr, $sending = false)
     {
         $body = new stdClass();
         
@@ -788,7 +803,6 @@ class blast_Emails extends core_Master
             
             //Ако сме избрали да се добавят документите, като прикачени
             if ($attachArr['documents']) {
-                
                 $nRec = clone $rec;
                 
                 $this->prepareRec($nRec, $detArr);
@@ -798,13 +812,13 @@ class blast_Emails extends core_Master
                 
                 $docsFhArr = array();
                 
-                foreach ((array)$docsArr as $attachDoc) {
+                foreach ((array) $docsArr as $attachDoc) {
                     try {
                         
                         // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
                         // файл със съдържанието на документа в желания формат
                         $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
-                    } catch(ErrorException $e) {
+                    } catch (ErrorException $e) {
                         continue;
                     }
                     $docsFhArr += $fhArr;
@@ -825,8 +839,8 @@ class blast_Emails extends core_Master
             }
             
             //Манипулаторите на файловете в масив
-            $body->attachmentsFh = (array)$attFhArr;
-            $body->documentsFh = (array)$docsFhArr;
+            $body->attachmentsFh = (array) $attFhArr;
+            $body->documentsFh = (array) $docsFhArr;
             
             //id' тата на прикачените файлове с техните
             $body->attachments = keylist::fromArray(fileman::fhKeylistToIds($attFhArr));
@@ -845,8 +859,8 @@ class blast_Emails extends core_Master
     /**
      * Взема HTML частта на имейл-а
      *
-     * @param object $rec     - Данни за имейла
-     * @param array $detArr - Масив с данните
+     * @param object  $rec     - Данни за имейла
+     * @param array   $detArr  - Масив с данните
      * @param boolean $sending - Дали се изпраща в момента
      *
      * @return core_ET $res
@@ -877,9 +891,9 @@ class blast_Emails extends core_Master
         
         //Ако изпращаме имейла
         if ($sending) {
-            //Добавяме CSS, като inline стилове            
-            $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
-            "\n" . file_get_contents(sbf('css/Application.css', "", TRUE)) . "\n" . file_get_contents(sbf('css/email.css', "", TRUE));
+            //Добавяме CSS, като inline стилове
+            $css = file_get_contents(sbf('css/common.css', '', true)) .
+            "\n" . file_get_contents(sbf('css/Application.css', '', true)) . "\n" . file_get_contents(sbf('css/email.css', '', true));
             
             $content = '<div id="begin">' . $content . '<div id="end">';
             
@@ -893,7 +907,7 @@ class blast_Emails extends core_Master
             $inst = cls::get($CssToInline);
             
             // Стартираме процеса
-            $content =  $inst->convert($content, $css);
+            $content = $inst->convert($content, $css);
             
             $content = str::cut($content, '<div id="begin">', '<div id="end">');
         }
@@ -914,8 +928,8 @@ class blast_Emails extends core_Master
     /**
      * Взема текстовата част на имейл-а
      *
-     * @param object $rec - Данни за имейла
-     * @param array $detArr - Масив с данните
+     * @param object $rec    - Данни за имейла
+     * @param array  $detArr - Масив с данните
      *
      * @return core_ET $res
      */
@@ -943,15 +957,15 @@ class blast_Emails extends core_Master
     /**
      * Намира предполагаемия език на текста
      *
-     * @param text $body - Текста, в който ще се търси
+     * @param text        $body - Текста, в който ще се търси
      * @param NULL|string $lang - Език
      *
      * @return string $lg - Двубуквеното означение на предполагаемия език
      */
-    protected static function getLanguage($body, $lang = NULL)
+    protected static function getLanguage($body, $lang = null)
     {
         // Масив с всички допустими езици за системата
-        $langArr = arr::make(EF_LANGUAGES, TRUE);
+        $langArr = arr::make(EF_LANGUAGES, true);
         
         // Ако подадения език е в допустимите, да се използва
         if ($lang && $langArr[$lang]) {
@@ -977,7 +991,7 @@ class blast_Emails extends core_Master
      *
      * @return array $documents - Масив с прикачените документи
      */
-    function getDocuments($rec)
+    public function getDocuments($rec)
     {
         $docsArr = $this->getPossibleTypeConvertings($rec);
         $docs = array();
@@ -986,7 +1000,7 @@ class blast_Emails extends core_Master
         foreach ($docsArr as $fileName => $checked) {
             
             // Намираме името и разширението на файла
-            if (($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
+            if (($dotPos = mb_strrpos($fileName, '.')) !== false) {
                 $ext = mb_substr($fileName, $dotPos + 1);
                 
                 $docHandle = mb_substr($fileName, 0, $dotPos);
@@ -1016,7 +1030,7 @@ class blast_Emails extends core_Master
         $fieldsArr = array();
         
         // Обхождаме всички подадени полета и проверяваме дали не са инстанции на type_Email или type_Emails
-        foreach ((array)$descArr as $name => $type) {
+        foreach ((array) $descArr as $name => $type) {
             $lName = strtolower($name);
             if (($lName == 'email') || ($lName == 'emails') || ($type instanceof type_Email) || ($type instanceof type_Emails)) {
                 $fieldsArr[$name] = $type;
@@ -1030,7 +1044,7 @@ class blast_Emails extends core_Master
     /**
      * Екшън за активиране, съгласно правилата на фреймуърка
      */
-    function act_Activation()
+    public function act_Activation()
     {
         // Права за работа с екшън-а
         $this->requireRightFor('activate');
@@ -1046,7 +1060,7 @@ class blast_Emails extends core_Master
         $form = $this->getForm();
         
         // Въвеждаме id-то (и евентуално други silent параметри, ако има)
-        $form->input(NULL, 'silent');
+        $form->input(null, 'silent');
         
         // Очакваме да има такъв запис
         expect($rec = $this->fetch($form->rec->id));
@@ -1064,8 +1078,7 @@ class blast_Emails extends core_Master
         $srcClsInst = cls::get($rec->perSrcClassId);
         
         // Ако формата е изпратена без грешки
-        if($form->isSubmitted()) {
-            
+        if ($form->isSubmitted()) {
             if ($form->rec->sendingFrom && $form->rec->sendingTo) {
                 if ($form->rec->sendingFrom >= $form->rec->sendingTo) {
                     $form->setError('sendingTo, sendingFrom', 'Началният час трябва да е преди крайния');
@@ -1076,8 +1089,7 @@ class blast_Emails extends core_Master
         }
         
         // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
-        if($form->isSubmitted()) {
-            
+        if ($form->isSubmitted()) {
             $form->rec->activatedBy = core_Users::getCurrent();
             
             $nextStartTime = self::getNextStartTime($form->rec);
@@ -1096,7 +1108,7 @@ class blast_Emails extends core_Master
                 $form->rec->state = 'waiting';
             }
             
-            $form->rec->errMsg = NULL;
+            $form->rec->errMsg = null;
             
             // Упдейтва състоянието и данните за имейл-а
             blast_Emails::save($form->rec, 'state,sendPerCall,activatedBy,modifiedBy,modifiedOn, sendingDay, sendingFrom, sendingTo, errMsg');
@@ -1133,28 +1145,28 @@ class blast_Emails extends core_Master
             self::logRead('Активиране', $rec->id);
             
             // Редиректваме
-            return new Redirect($link, "|Успешно активирахте бласт имейл-а");
-        } else {
-            
-            // Стойности по подразбиране
-            $perMin = $rec->sendPerCall ? $rec->sendPerCall : 5;
-            $form->setDefault('sendPerCall', $perMin);
-            $form->setDefault('sendingDay', $rec->sendingDay);
-            $form->setDefault('sendingFrom', $rec->sendingFrom);
-            $form->setDefault('sendingTo', $rec->sendingTo);
+            return new Redirect($link, '|Успешно активирахте бласт имейл-а');
         }
+            
+        // Стойности по подразбиране
+        $perMin = $rec->sendPerCall ? $rec->sendPerCall : 5;
+        $form->setDefault('sendPerCall', $perMin);
+        $form->setDefault('sendingDay', $rec->sendingDay);
+        $form->setDefault('sendingFrom', $rec->sendingFrom);
+        $form->setDefault('sendingTo', $rec->sendingTo);
+        
         
         // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Запис', 'save', NULL, 'ef_icon = img/16/disk.png, title=Запис на документа');
-        $form->toolbar->addBtn('Отказ', $retUrl, NULL, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        $form->toolbar->addSbBtn('Запис', 'save', null, 'ef_icon = img/16/disk.png, title=Запис на документа');
+        $form->toolbar->addBtn('Отказ', $retUrl, null, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         // Добавяме титлата на формата
-        $form->title = "Стартиране на масово разпращане";
+        $form->title = 'Стартиране на масово разпращане';
         $subject = $this->getVerbal($rec, 'subject');
         $date = dt::mysql2verbal($rec->createdOn);
         
         // Добавяме във формата информация, за да знаем за кое писмо става дума
-        $form->info = new ET ('[#1#]', tr("|*<b>|Писмо|*<i style='color:blue'>: {$subject} / {$date}</i></b>"));
+        $form->info = new ET('[#1#]', tr("|*<b>|Писмо|*<i style='color:blue'>: {$subject} / {$date}</i></b>"));
         
         // Вземаме един запис за персонализиране
         $personalizationArr = $srcClsInst->getPresonalizationArr($rec->perSrcObjectId, 1);
@@ -1172,7 +1184,7 @@ class blast_Emails extends core_Master
         $tpl = $form->renderHtml();
         
         // Добавяме превю на първия бласт имейл, който ще изпратим
-        $preview = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Примерен имейл") . "</b></div><div class='scrolling-holder'>[#BLAST_HTML#]<div class='clearfix21'></div><pre class=\"document\">[#BLAST_TEXT#]</pre></div></div>");
+        $preview = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Примерен имейл') . "</b></div><div class='scrolling-holder'>[#BLAST_HTML#]<div class='clearfix21'></div><pre class=\"document\">[#BLAST_TEXT#]</pre></div></div>");
         
         // Добавяме към шаблона
         $preview->append($body->html, 'BLAST_HTML');
@@ -1187,14 +1199,13 @@ class blast_Emails extends core_Master
     
     /**
      * Помощна функция, за проверка дали се изпраща от частна мрежа и линковете ще са коректни
-     * 
+     *
      * @param core_Form $form
-     * @param string $errField
+     * @param string    $errField
      */
     protected function checkHost($form, $errField)
     {
         if (core_App::checkCurrentHostIsPrivate()) {
-            
             $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
             
             $err = "Внимание|*! |Понеже системата работи на локален адрес|* ({$host}), |то линковете в изходящото писмо няма да са достъпни от други компютри в Интернет|*.";
@@ -1207,7 +1218,7 @@ class blast_Emails extends core_Master
     /**
      * Обновява списъка с имейлите
      */
-    function act_Update()
+    public function act_Update()
     {
         // Права за работа с екшън-а
         $this->requireRightFor('update');
@@ -1233,7 +1244,6 @@ class blast_Emails extends core_Master
         
         // В зависимост от броя на обновления променяме състоянието
         if ($updateCnt || $removeCnt) {
-            
             if ($updateCnt) {
                 if ($updateCnt == 1) {
                     $updateMsg = '|Добавен е|* ' . $updateCnt . ' |запис';
@@ -1274,7 +1284,7 @@ class blast_Emails extends core_Master
     /**
      * Екшън за спиране
      */
-    function act_Stop()
+    public function act_Stop()
     {
         $this->requireRightFor('stop');
         
@@ -1297,18 +1307,18 @@ class blast_Emails extends core_Master
         $recUpd->state = 'stopped';
         
         blast_Emails::save($recUpd);
-		
+        
         self::logRead('Спиране', $rec->id);
         
         // Редиректваме
-        return new Redirect($link, "|Успешно спряхте бласт имейл-а");
+        return new Redirect($link, '|Успешно спряхте бласт имейл-а');
     }
     
     
     /**
      * Добавяне или премахване на имейл в блокираните
      */
-    function act_Unsubscribe()
+    public function act_Unsubscribe()
     {
         $conf = core_Packs::getConfig('blast');
         
@@ -1316,7 +1326,7 @@ class blast_Emails extends core_Master
         $mid = Request::get('m');
         $lang = Request::get('lg');
         $id = Request::get('id', 'int');
-        $uns = Request::get("uns");
+        $uns = Request::get('uns');
         
         expect($id);
         
@@ -1340,13 +1350,13 @@ class blast_Emails extends core_Master
         
         $allLangArr = arr::make(EF_LANGUAGES);
         
-        $pushedLg = FALSE;
+        $pushedLg = false;
         
         if ($allLangArr[$lang]) {
             // Сменяме езика за да може да  се преведат съобщенията
             core_Lg::push($lang);
             
-            $pushedLg = TRUE;
+            $pushedLg = true;
         }
         
         // Шаблон
@@ -1356,7 +1366,7 @@ class blast_Emails extends core_Master
         if (!($hRec = doclog_Documents::fetchHistoryFor($cid, $mid))) {
             
             //Съобщение за грешка, ако няма такъв имейл
-            $tpl->append("<p>" . tr($conf->BGERP_BLAST_NO_MAIL) . "</p>", 'text');
+            $tpl->append('<p>' . tr($conf->BGERP_BLAST_NO_MAIL) . '</p>', 'text');
             
             if ($pushedLg) {
                 // Връщаме предишния език
@@ -1380,7 +1390,6 @@ class blast_Emails extends core_Master
             
             // Добавяме имейл-а в листата на блокираните
             if ($uns) {
-                
                 blast_BlockedEmails::blockEmail($email);
             }
             
@@ -1406,7 +1415,7 @@ class blast_Emails extends core_Master
         
         $text = tr($text);
         
-        $text = "<p>" . $text . "<p>";
+        $text = '<p>' . $text . '<p>';
         
         $text = new ET($text);
         $Email = cls::get('type_Email');
@@ -1428,14 +1437,14 @@ class blast_Emails extends core_Master
      * Изпълнява се след подготвяне на формата за редактиране
      *
      * @param blast_Emails $mvc
-     * @param object $res
-     * @param object $data
+     * @param object       $res
+     * @param object       $data
      */
-    static function on_AfterPrepareEditForm(&$mvc, &$res, &$data)
+    public static function on_AfterPrepareEditForm(&$mvc, &$res, &$data)
     {
         $form = $data->form;
         
-        $defPerSrcClassId = NULL;
+        $defPerSrcClassId = null;
         $currUserId = core_Users::getCurrent();
         // Ако не е подаден клас да е blast_List
         $listClassId = blast_Lists::getClassId();
@@ -1472,7 +1481,7 @@ class blast_Emails extends core_Master
             }
             
             // Заглавието за персонализация
-            $perTitle = $perClsInst->getPersonalizationTitle($perSrcObjId, FALSE);
+            $perTitle = $perClsInst->getPersonalizationTitle($perSrcObjId, false);
             
             // Да може да се избере само подадения обект
             $perOptArr[$perSrcObjId] = $perTitle;
@@ -1481,7 +1490,7 @@ class blast_Emails extends core_Master
             $perOptArr = $perClsInst->getPersonalizationOptionsForId($cover->that);
             
             // Обхождаме всички опции
-            foreach ((array)$perOptArr as $id => $name) {
+            foreach ((array) $perOptArr as $id => $name) {
                 
                 // Проверяваме дали може да се персонализира
                 // Тряба да се проверява в getPersonalizationOptions()
@@ -1499,7 +1508,6 @@ class blast_Emails extends core_Master
             }
             
             if (!$perOptArr) {
-                
                 $msg = '|Няма източник, който да може да се използва за персонализация';
                 
                 $redirectUrl = array();
@@ -1518,7 +1526,7 @@ class blast_Emails extends core_Master
                     $redirectUrl = getRetUrl();
                 }
                 
-                redirect($redirectUrl, FALSE, $msg);
+                redirect($redirectUrl, false, $msg);
             }
             
             // Задаваме опциите
@@ -1544,7 +1552,7 @@ class blast_Emails extends core_Master
             $currLg = core_Lg::getCurrent();
             
             if (empty($allLangArr)) {
-                $allLangArr = arr::make($currLg, TRUE);
+                $allLangArr = arr::make($currLg, true);
             }
             
             if (!$defLg || $defLg == 'auto') {
@@ -1566,17 +1574,17 @@ class blast_Emails extends core_Master
                 $bCnt++;
             }
             
-            $jsonData  = json_encode(array('hint' => tr('Смяна на езика'), 'lg' => $defLg, 'data' => $bodyLangArr, 'id' => 'unsId'));
+            $jsonData = json_encode(array('hint' => tr('Смяна на езика'), 'lg' => $defLg, 'data' => $bodyLangArr, 'id' => 'unsId'));
             
             $form->layout = new ET($data->form->renderLayout());
             
-            jquery_Jquery::run($form->layout, "prepareLangBtn(" . $jsonData . ");");
+            jquery_Jquery::run($form->layout, 'prepareLangBtn(' . $jsonData . ');');
         }
         
         try {
             // Само имейлите достъпни до потребителя да се показват
             $emailOption = email_Inboxes::getFromEmailOptions($form->rec->folderId);
-        } catch(ErrorException $e) {
+        } catch (ErrorException $e) {
             email_Inboxes::redirect();
             $emailOption = array();
         }
@@ -1591,15 +1599,15 @@ class blast_Emails extends core_Master
             // По подразбиране да е избран текущия имейл на потребителя
             $form->setDefault('from', email_Outgoings::getDefaultInboxId($rec->folderId));
             
-            $fieldsArr = array('company' => 'company', 
-            				   'person' => 'person', 
-            				   'email' => 'email', 
-            				   'tel' => 'tel', 
-            				   'fax' => 'fax', 
-            				   'country' => 'country', 
-            				   'pCode' => 'pCode', 
-            				   'place' => 'place', 
-            				   'address' => 'address');
+            $fieldsArr = array('company' => 'company',
+                               'person' => 'person',
+                               'email' => 'email',
+                               'tel' => 'tel',
+                               'fax' => 'fax',
+                               'country' => 'country',
+                               'pCode' => 'pCode',
+                               'place' => 'place',
+                               'address' => 'address');
             
             if ($perSrcObjId) {
                 $fieldsArr = $perClsInst->getPersonalizationDescr($perSrcObjId);
@@ -1620,7 +1628,7 @@ class blast_Emails extends core_Master
         $query = blast_Lists::getQuery();
         $query->where("#keyField = 'email'");
         $query->where("#state != 'rejected'");
-        $query->orderBy("createdOn", 'DESC');
+        $query->orderBy('createdOn', 'DESC');
         
         // Премахваме избрания списък
         if ($rec->perSrcClassId && $rec->perSrcObjectId) {
@@ -1647,9 +1655,9 @@ class blast_Emails extends core_Master
      * Изпълнява се след въвеждането на даните от формата
      *
      * @param blast_Emails $mvc
-     * @param core_Form $form
+     * @param core_Form    $form
      */
-    function on_AfterInputEditForm($mvc, &$form)
+    public function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = $form->rec;
         
@@ -1659,7 +1667,6 @@ class blast_Emails extends core_Master
             // Ако ще се прикачат документи или файлове
             // Проверяваме разширенията им
             if ($rec->attachments) {
-                
                 $attachArr = type_Set::toArray($rec->attachments);
                 
                 if ($attachArr['documents']) {
@@ -1675,7 +1682,7 @@ class blast_Emails extends core_Master
                 }
                 
                 // Проверяваме дали размерът им е над допсутимият
-                $allAttachmentsArr = array_merge((array)$docsSizesArr, (array)$filesSizesArr);
+                $allAttachmentsArr = array_merge((array) $docsSizesArr, (array) $filesSizesArr);
                 
                 if (!$mvc->checkMaxAttachedSize($allAttachmentsArr)) {
                     
@@ -1683,11 +1690,11 @@ class blast_Emails extends core_Master
                     $docAndFilesSizeVerbal = $mvc->getVerbalSizesFromArray($allAttachmentsArr);
                     
                     if ($attachArr['documents'] && $attachArr['files']) {
-                        $str = "файлове и документи";
-                    } else if ($attachArr['documents']) {
-                        $str = "документи";
+                        $str = 'файлове и документи';
+                    } elseif ($attachArr['documents']) {
+                        $str = 'документи';
                     } else {
-                        $str = "файлове";
+                        $str = 'файлове';
                     }
                     
                     $FileSize = cls::get('fileman_FileSize');
@@ -1702,11 +1709,10 @@ class blast_Emails extends core_Master
         // Ако сме субмитнали формата
         // Проверява за плейсхолдери, които липсват в източника
         if ($form->isSubmitted()) {
-            
             $classInst = cls::get($rec->perSrcClassId);
             
             // Масив с всички записи
-            $recArr = (array)$form->rec;
+            $recArr = (array) $form->rec;
             
             // Вземаме Относно и Съобщение
             $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'] . ' ' . $recArr['unsubscribe'];
@@ -1748,7 +1754,7 @@ class blast_Emails extends core_Master
             $onlyAllFieldsArr = $classInst->getPersonalizationDescr($rec->perSrcObjectId);
             
             // Създаваме масив с ключ и стойност имената на полетата, които ще се заместват
-            foreach ((array)$onlyAllFieldsArr as $field => $dummy) {
+            foreach ((array) $onlyAllFieldsArr as $field => $dummy) {
                 // Тримваме полето
                 $field = trim($field);
                 
@@ -1766,7 +1772,6 @@ class blast_Emails extends core_Master
             
             // Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($allPlaceHolder as $placeHolder) {
-                
                 $placeHolderL = strtolower($placeHolder);
                 
                 // Ако плейсхолдера го няма във листа
@@ -1776,7 +1781,7 @@ class blast_Emails extends core_Master
                     $warning .= ($warning) ? ", {$placeHolder}" : $placeHolder;
                     
                     // Стринг на плейсхолдера
-                    $placeHolderStr = "[#" . $placeHolder . "#]";
+                    $placeHolderStr = '[#' . $placeHolder . '#]';
                     
                     // Добавяме го в масива
                     $warningPlaceHolderArr[$placeHolderStr] = $placeHolderStr;
@@ -1788,7 +1793,6 @@ class blast_Emails extends core_Master
             
             // Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($bodyAndSubPlaceHolder as $placeHolder) {
-                
                 $placeHolderL = strtolower($placeHolder);
                 
                 // Ако плейсхолдера го няма във листа
@@ -1817,7 +1821,7 @@ class blast_Emails extends core_Master
                     foreach ($nRecArr as $field => $val) {
                         
                         // Премахваме всички плейсхолдери, които не се използват
-                        $val = str_ireplace((array)$warningPlaceHolderArr, '', $val);
+                        $val = str_ireplace((array) $warningPlaceHolderArr, '', $val);
                         
                         // Добавяме към записа
                         $form->rec->{$field} = $val;
@@ -1834,7 +1838,7 @@ class blast_Emails extends core_Master
     
     /**
      * Връща допустимия размер на прикачените файлове/докумети
-     * 
+     *
      * @return integer
      */
     public static function getMaxAttachFileSizeLimit_()
@@ -1850,11 +1854,11 @@ class blast_Emails extends core_Master
      * Изпълнява се след подготовката на ролите, необходимо за това действие
      *
      * @param blast_Emails $mvc
-     * @param string $roles
-     * @param string $action
-     * @param object $rec
+     * @param string       $roles
+     * @param string       $action
+     * @param object       $rec
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = null, $userId = null)
     {
         // Трябва да има права за сингъла на документа, за да може да активира, спира и/или обновява
         if ((($action == 'activate') || ($action == 'stop') || ($action == 'update')) && $rec) {
@@ -1869,13 +1873,13 @@ class blast_Emails extends core_Master
      * След преобразуване на записа в четим за хора вид
      *
      * @param blast_Emails $mvc
-     * @param object $row
-     * @param object $rec
+     * @param object       $row
+     * @param object       $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $blue = new color_Object("#2244cc");
-        $grey = new color_Object("#bbb");
+        $blue = new color_Object('#2244cc');
+        $grey = new color_Object('#bbb');
         
         $progressPx = min(100, round(100 * $rec->progress));
         $progressRemainPx = 100 - $progressPx;
@@ -1884,16 +1888,20 @@ class blast_Emails extends core_Master
         //При рендиране на листовия изглед показваме дали ще се прикачат файловете и/или документите
         $attachArr = type_Set::toArray($rec->attachments);
         
-        if ($attachArr['files']) $row->Files = tr('Файловете');
+        if ($attachArr['files']) {
+            $row->Files = tr('Файловете');
+        }
         
-        if ($attachArr['documents']) $row->Documents = tr('Документите');
+        if ($attachArr['documents']) {
+            $row->Documents = tr('Документите');
+        }
         
         // Манипулатора на документа
         $row->handle = $mvc->getHandle($rec->id);
         
         // Линка към обекта, който се използва за персонализация
         if ($rec->perSrcClassId && isset($rec->perSrcObjectId)) {
-            if (cls::load($rec->perSrcClassId, TRUE)) {
+            if (cls::load($rec->perSrcClassId, true)) {
                 $inst = cls::get($rec->perSrcClassId);
                 
                 if ($inst->canUsePersonalization($rec->perSrcObjectId)) {
@@ -1913,9 +1921,9 @@ class blast_Emails extends core_Master
      * Добавя съответните бутони в лентата с инструменти, в зависимост от състоянието
      *
      * @param blast_Emails $mvc
-     * @param object $data
+     * @param object       $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
         $state = $data->rec->state;
@@ -1939,7 +1947,7 @@ class blast_Emails extends core_Master
             // Добавяме бутон за обновяване в, ако състоянието е активно, изчакване или затворено
             if (($state == 'waiting') || ($state == 'active') || ($state == 'closed')) {
                 if ($mvc->haveRightFor('update', $rec->rec)) {
-                    $data->toolbar->addBtn('Обновяване', array($mvc, 'Update', $rec->id), NULL, array('ef_icon'=>'img/16/update-icon.png', 'row'=>'1', 'title'=>'Добави новите имейли към списъка'));
+                    $data->toolbar->addBtn('Обновяване', array($mvc, 'Update', $rec->id), null, array('ef_icon' => 'img/16/update-icon.png', 'row' => '1', 'title' => 'Добави новите имейли към списъка'));
                 }
             }
         }
@@ -1950,10 +1958,10 @@ class blast_Emails extends core_Master
      * Променяме шаблона в зависимост от мода
      *
      * @param blast_Emails $mvc
-     * @param core_ET $tpl
-     * @param object $data
+     * @param core_ET      $tpl
+     * @param object       $data
      */
-    function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
+    public function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
     {
         //Рендираме шаблона
         if (Mode::is('text', 'xhtml')) {
@@ -1972,10 +1980,10 @@ class blast_Emails extends core_Master
      * След рендиране на синъл обвивката
      *
      * @param blast_Emails $mvc
-     * @param core_ET $tpl
-     * @param object $data
+     * @param core_ET      $tpl
+     * @param object       $data
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    public function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         // Полета До и Към
         $attn = $data->row->recipient . $data->row->attn;
@@ -2027,7 +2035,6 @@ class blast_Emails extends core_Master
             
             // Ако състоянието е активирано или чернов
             if ($rec->state == 'active' || $rec->state == 'waiting') {
-                
                 $nextStartTime = self::getNextStartTime($rec, core_Cron::getNextStartTime(self::$cronSytemId));
                 
                 $data->row->NextStartTime = dt::mysql2verbal($nextStartTime, 'smartTime');
@@ -2038,19 +2045,19 @@ class blast_Emails extends core_Master
     
     /**
      * Връща времето на следващото стартиране
-     * 
-     * @param object $rec
+     *
+     * @param object              $rec
      * @param NULL|datetime|FALSE $nextStartTime
-     * 
+     *
      * @return datetime|string
      */
-    protected static function getNextStartTime($rec, $nextStartTime = NULL)
+    protected static function getNextStartTime($rec, $nextStartTime = null)
     {
         if (!$nextStartTime) {
             $nextStartTime = dt::now();
         }
         
-        $nowF = dt::now(FALSE);
+        $nowF = dt::now(false);
         
         $today = dt::mysql2timestamp($nowF);
         
@@ -2068,23 +2075,23 @@ class blast_Emails extends core_Master
         
         $dayOfWeek = date('w');
         
-        $haveNextStartTime = FALSE;
+        $haveNextStartTime = false;
         
         if (empty($sendingArr) || ($sendingArr[$dayOfWeek])) {
             if ((($nextStartTime >= $sendingFrom) || !$sendingFrom) && (($nextStartTime < $sendingTo) || !$sendingTo)) {
-                $haveNextStartTime = TRUE;
+                $haveNextStartTime = true;
             }
         }
         
         if (!$haveNextStartTime) {
-            
-            $nextStartDay = NULL;
+            $nextStartDay = null;
             
             foreach ($sendingArr as $sendingDay) {
                 if ($sendingDay >= $dayOfWeek) {
-                    
                     if ($sendingDay == $dayOfWeek) {
-                        if (dt::now() >= $sendingTo) continue;
+                        if (dt::now() >= $sendingTo) {
+                            continue;
+                        }
                     }
                     
                     $nextStartDay = $sendingDay;
@@ -2093,7 +2100,6 @@ class blast_Emails extends core_Master
             }
             
             if (!isset($nextStartDay)) {
-                
                 if ($dw = $sendingArr[$dayOfWeek]) {
                     if (!$sendingTo || ($nextStartTime < $sendingTo)) {
                         $nextStartDay = $dw;
@@ -2105,7 +2111,7 @@ class blast_Emails extends core_Master
                 }
             }
             
-            $nextStartTime = dt::addDays($nextStartDay-$dayOfWeek, $nowF);
+            $nextStartTime = dt::addDays($nextStartDay - $dayOfWeek, $nowF);
             
             if ($rec->sendingFrom) {
                 $nextStartTime = dt::addSecs($rec->sendingFrom, $nextStartTime);
@@ -2120,9 +2126,9 @@ class blast_Emails extends core_Master
      * След порготвяне на формата за филтриране
      *
      * @param blast_Emails $mvc
-     * @param object $data
+     * @param object       $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         // Да се показва полето за търсене
         $data->listFilter->showFields = 'search';
@@ -2142,12 +2148,12 @@ class blast_Emails extends core_Master
      * Преди да подготвим данните за имейла, подготвяме rec
      *
      * @param blast_Emails $mvc
-     * @param core_ET $res
-     * @param integer $id
-     * @param string $mode
-     * @param object|NULL $options
+     * @param core_ET      $res
+     * @param integer      $id
+     * @param string       $mode
+     * @param object|NULL  $options
      */
-    function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
+    public function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = null)
     {
         // Записите за имейла
         $emailRec = $mvc->fetch($id);
@@ -2181,7 +2187,7 @@ class blast_Emails extends core_Master
             $emailRec->unsubscribe = str_replace('[unsubscribe]', "[link={$unsUrl}]", $emailRec->unsubscribe);
             $emailRec->unsubscribe = str_replace('[/unsubscribe]', '[/link]', $emailRec->unsubscribe);
             
-            $emailRec->body .= "\n\n[hr]\n[small]" . $emailRec->unsubscribe . "[/small]";
+            $emailRec->body .= "\n\n[hr]\n[small]" . $emailRec->unsubscribe . '[/small]';
         }
         
         // Подготвяме данните за съответния имейл
@@ -2189,7 +2195,7 @@ class blast_Emails extends core_Master
         
         // Обединяваме рековете и ги добавяме в опциите
         // За да може да запазим ->mid' от река
-        $options->rec = (object)((array)$emailRec + (array)$options->rec);
+        $options->rec = (object) ((array) $emailRec + (array) $options->rec);
     }
     
     
@@ -2199,13 +2205,13 @@ class blast_Emails extends core_Master
      * Това е реализацията по подразбиране на интерфейсния метод doc_DocumentIntf::getDocumentBody()
      * Използва single view на мениджъра на документа.
      *
-     * @param core_Mvc $mvc мениджър на документа
-     * @param core_ET $res генерирания текст под формата на core_ET шаблон
-     * @param int $id първичния ключ на документа - key(mvc=$mvc)
-     * @param string $mode `plain` или `html`
+     * @param core_Mvc $mvc  мениджър на документа
+     * @param core_ET  $res  генерирания текст под формата на core_ET шаблон
+     * @param int      $id   първичния ключ на документа - key(mvc=$mvc)
+     * @param string   $mode `plain` или `html`
      * @access private
      */
-    function on_AfterGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
+    public function on_AfterGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = null)
     {
         // Връщаме езика по подразбиране
         core_Lg::pop();
@@ -2216,17 +2222,20 @@ class blast_Emails extends core_Master
      * Извършва се преди вземането на линк за документа
      *
      * @param blast_Emails $mvc
-     * @param array $res
-     * @param integer $id
-     * @param integer $userId
-     * @param object $data
+     * @param array        $res
+     * @param integer      $id
+     * @param integer      $userId
+     * @param object       $data
      */
-    public static function on_BeforeGetLinkedDocuments($mvc, &$res, $id, $userId = NULL, $data = NULL)
+    public static function on_BeforeGetLinkedDocuments($mvc, &$res, $id, $userId = null, $data = null)
     {
         // id на детайла
         $detId = $data->detId;
         
-        if (!$detId) return ;
+        if (!$detId) {
+            
+            return ;
+        }
         
         // Масив с данните
         $detArr = blast_EmailSend::getDataArr($detId);
@@ -2237,7 +2246,10 @@ class blast_Emails extends core_Master
             $rec = $mvc->fetch($id);
         }
         
-        if ($mvc->fields['body']->type->params['hndToLink'] == 'no') return ;
+        if ($mvc->fields['body']->type->params['hndToLink'] == 'no') {
+            
+            return ;
+        }
         
         // Подготвяме записите
         $mvc->prepareRec($rec, $detArr);
@@ -2246,9 +2258,10 @@ class blast_Emails extends core_Master
         
         try {
             // Вземаме прикачените документи за този детайл с правата на активиралия потребител
-            $attachedDocs = (array)doc_RichTextPlg::getAttachedDocs($rec->body);
+            $attachedDocs = (array) doc_RichTextPlg::getAttachedDocs($rec->body);
         } catch (core_exception_Expect $e) {
             core_Users::exitSudo();
+
             return ;
         }
         
@@ -2259,7 +2272,7 @@ class blast_Emails extends core_Master
             $attachedDocs = array_keys($attachedDocs);
             $attachedDocs = array_combine($attachedDocs, $attachedDocs);
             
-            $res = array_merge($attachedDocs, (array)$res);
+            $res = array_merge($attachedDocs, (array) $res);
         }
     }
     
@@ -2280,9 +2293,12 @@ class blast_Emails extends core_Master
         $coverClassName = strtolower(doc_Folders::fetchCoverClassName($folderId));
         
         // Може да се добавя само в проекти и в групи
-        if (($coverClassName != 'doc_unsortedfolders') && ($coverClassName != 'crm_groups')) return FALSE;
+        if (($coverClassName != 'doc_unsortedfolders') && ($coverClassName != 'crm_groups')) {
+            
+            return false;
+        }
         
-        return TRUE;
+        return true;
     }
     
     
@@ -2293,7 +2309,7 @@ class blast_Emails extends core_Master
      *
      * @return object
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         
@@ -2302,7 +2318,7 @@ class blast_Emails extends core_Master
         $subject = $this->getVerbal($rec, 'subject');
         
         //Ако заглавието е празно, тогава изписва съответния текст
-        if(!trim($subject)) {
+        if (!trim($subject)) {
             $subject = '[' . tr('Липсва заглавие') . ']';
         }
         
@@ -2327,7 +2343,7 @@ class blast_Emails extends core_Master
     /**
      * Функция, която се изпълнява от крона и стартира процеса на изпращане на blast
      */
-    function cron_SendEmails()
+    public function cron_SendEmails()
     {
         $this->sendEmails();
     }
@@ -2336,7 +2352,7 @@ class blast_Emails extends core_Master
     /**
      * Изпълнява се след създаването на модела
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         $conf = core_Packs::getConfig('blast');
         
@@ -2357,19 +2373,19 @@ class blast_Emails extends core_Master
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
         $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket('Blast', 'Прикачени файлове в масовите имейли', NULL, '104857600', 'user', 'user');
+        $res .= $Bucket->createBucket('Blast', 'Прикачени файлове в масовите имейли', null, '104857600', 'user', 'user');
     }
     
     
     /**
      * Реализация интерфейсния метод ::getUsedDocs()
      * Отбелязва използване на документа в документа за персонализация
-     * 
+     *
      * @param blast_Emails $mvc
-     * @param array $res
-     * @param integer $id
+     * @param array        $res
+     * @param integer      $id
      */
-    function on_AfterGetUsedDocs($mvc, &$res, $id)
+    public function on_AfterGetUsedDocs($mvc, &$res, $id)
     {
         $rec = $mvc->fetch($id);
         $srcClsInst = cls::get($rec->perSrcClassId);

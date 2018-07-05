@@ -31,44 +31,44 @@ class cal_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'cal_Calendar';
+    public $startCtr = 'cal_Calendar';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'drdata=0.1';
+    public $depends = 'drdata=0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Календар за задачи, събития, напомняния и празници";
+    public $info = 'Календар за задачи, събития, напомняния и празници';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'cal_Calendar',
             'cal_Tasks',
             'cal_Holidays',
-        	'cal_Reminders',
+            'cal_Reminders',
             'cal_ReminderSnoozes',
-    		'cal_TaskConditions',
-    		'cal_LinkedPostponed',
+            'cal_TaskConditions',
+            'cal_LinkedPostponed',
             'migrate::windUpRem',
             'migrate::removePOKey',
             'migrate::updateTaskProgresses',
@@ -79,13 +79,13 @@ class cal_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = "cal_TaskType, cal_Progresses";
+    public $defClasses = 'cal_TaskType, cal_Progresses';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
             'CAL_WAITING_SHOW_TOP_TIME' => array('time(suggestions=12 часа|1 ден|2 дена)', 'caption=Време под което чакащите задачи ще се преместят над останалите в портала->Време'),
             'CAL_SHOW_HOLIDAY_TYPE' => array('set', 'caption=Типове събития|*&#44; |*които да се показват в календара->Избор, customizeBy=powerUser, optionsFunc=cal_Setup::getHolidayTypeOptions, autohide'),
     );
@@ -93,14 +93,14 @@ class cal_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'user';
+    public $roles = 'user';
 
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(1.33, 'Указател', 'Календар', 'cal_Calendar', 'default', "powerUser, admin"),
+    public $menuItems = array(
+            array(1.33, 'Указател', 'Календар', 'cal_Calendar', 'default', 'powerUser, admin'),
         );
 
 
@@ -108,21 +108,21 @@ class cal_Setup extends core_ProtoSetup
     /**
      * Настройки за Cron
      */
-    var $cronSettings = array(
+    public $cronSettings = array(
         array(
-            'systemId' => "StartReminders",
-            'description' => "Известяване за стартирани напомняния",
-            'controller' => "cal_Reminders",
-            'action' =>"SendNotifications",
+            'systemId' => 'StartReminders',
+            'description' => 'Известяване за стартирани напомняния',
+            'controller' => 'cal_Reminders',
+            'action' => 'SendNotifications',
             'period' => 1,
             'offset' => 0,
         ),
         
         array(
-            'systemId' => "UpdateRemindersToCal",
-            'description' => "Обновяване на напомнянията в календара",
-            'controller' => "cal_Reminders",
-            'action' => "UpdateCalendarEvents",
+            'systemId' => 'UpdateRemindersToCal',
+            'description' => 'Обновяване на напомнянията в календара',
+            'controller' => 'cal_Reminders',
+            'action' => 'UpdateCalendarEvents',
             'period' => 90,
             'offset' => 0,
         )
@@ -132,13 +132,13 @@ class cal_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
     
         //Създаваме, кофа, където ще държим всички прикачени файлове на напомнянията
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('calReminders', 'Прикачени файлове в напомнянията', NULL, '104857600', 'user', 'user');
+        $html .= $Bucket->createBucket('calReminders', 'Прикачени файлове в напомнянията', null, '104857600', 'user', 'user');
     
         return $html;
     }
@@ -147,7 +147,7 @@ class cal_Setup extends core_ProtoSetup
     /**
      * Деинсталиране
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);
@@ -156,24 +156,22 @@ class cal_Setup extends core_ProtoSetup
     }
     
     
-    function reCalcNextStart()
+    public function reCalcNextStart()
     {
-
         $query = cal_Reminders::getQuery();
         $next12months = dt::addMonths(12, dt::today());
         $now = dt::now();
         $query->where("#state = 'active' AND (#nextStartTime <= '{$now}' OR  #nextStartTime IS NULL OR #nextStartTime >= '{$next12months}') AND #notifySent = 'no'");
 
         $class = cls::get('cal_Reminders');
-        while($rec = $query->fetch()) {
-            
+        while ($rec = $query->fetch()) {
             $rec->nextStartTime = $class->calcNextStartTime($rec);
             // Ако изчисленото ново време, не е по-голямо от сега или от началната дата,
             // то продължаваме да го търсим
-                while(dt::mysql2timestamp($rec->nextStartTime) < dt::mysql2timestamp(dt::now())) {
-                    $rec->timeStart = $rec->nextStartTime;
-                    $rec->nextStartTime = $class->calcNextStartTime($rec);
-                }
+            while (dt::mysql2timestamp($rec->nextStartTime) < dt::mysql2timestamp(dt::now())) {
+                $rec->timeStart = $rec->nextStartTime;
+                $rec->nextStartTime = $class->calcNextStartTime($rec);
+            }
 
             cal_Reminders::save($rec, 'nextStartTime');
         }
@@ -184,15 +182,15 @@ class cal_Setup extends core_ProtoSetup
      * Миграция за "зациклилите" напомняния
      * Търсим напомняния, на които "Предварително" е по-голямо
      * от "Повторението". В такъв случай ще сетнем "Повторението"
-     * на половината време от "Повторението" 
+     * на половината време от "Повторението"
      */
-    function windUpRem()
+    public function windUpRem()
     {
         $query = cal_Reminders::getQuery();
-        $query->where("#repetitionEach IS NOT NULL AND #repetitionType IS NOT NULL");
+        $query->where('#repetitionEach IS NOT NULL AND #repetitionType IS NOT NULL');
         
         while ($rec = $query->fetch()) {
-            if (isset($rec->repetitionEach) && isset($rec->repetitionType)) {
+            if (isset($rec->repetitionEach, $rec->repetitionType)) {
                 if (isset($rec->timePreviously)) {
                     $secRepetitionType = cal_Reminders::$map[$rec->repetitionType];
                     $repetitionSec = $rec->repetitionEach * $secRepetitionType;
@@ -201,19 +199,19 @@ class cal_Setup extends core_ProtoSetup
                         $halfRepetitionSec = $repetitionSec / 2;
                     }
                     
-                    if ($rec->timePreviously >= $repetitionSec){
+                    if ($rec->timePreviously >= $repetitionSec) {
                         $rec->timePreviously = $halfRepetitionSec;
-                        cal_Reminders::save($rec,'timePreviously');
+                        cal_Reminders::save($rec, 'timePreviously');
                     }
                 }
             }
-        } 
+        }
     }
     
     
     /**
      * Връща възможните опции за избор на тип празници, които да се показват
-     * 
+     *
      * @return array
      */
     public static function getHolidayTypeOptions()
@@ -225,7 +223,10 @@ class cal_Setup extends core_ProtoSetup
         
         $resArr = core_Cache::get($type, $handler, $keepMinutes, $depends);
         
-        if ($resArr) return $resArr;
+        if ($resArr) {
+            
+            return $resArr;
+        }
         
         $query = cal_Calendar::getQuery();
         
@@ -239,8 +240,9 @@ class cal_Setup extends core_ProtoSetup
         $res = array();
         
         while ($rec = $query->fetch()) {
-            
-            if (!$rec->type) continue;
+            if (!$rec->type) {
+                continue;
+            }
             
             $tVerbal = '';
             
@@ -320,7 +322,7 @@ class cal_Setup extends core_ProtoSetup
     /**
      * Зареждане на данни
      */
-    function loadSetupData($itr = '')
+    public function loadSetupData($itr = '')
     {
         $res = parent::loadSetupData($itr);
         
@@ -352,12 +354,18 @@ class cal_Setup extends core_ProtoSetup
      */
     public function updateTaskProgresses()
     {
-        if (!cls::load('cal_TaskProgresses', TRUE)) return ;
+        if (!cls::load('cal_TaskProgresses', true)) {
+            
+            return ;
+        }
         
         $Progresses = cls::get('cal_TaskProgresses');
         
         // Ако таблицата не е създадена
-        if (!$Progresses->db->tableExists($Progresses->dbTableName)) return ;
+        if (!$Progresses->db->tableExists($Progresses->dbTableName)) {
+            
+            return ;
+        }
         
         $Progresses->setupMVC();
     }
@@ -373,7 +381,7 @@ class cal_Setup extends core_ProtoSetup
         $tQuery = $Tasks->getQuery();
         $tQuery->where("#state = 'closed'");
         $tQuery->orWhere("#state = 'stopped'");
-        $tQuery->where("#timeClosed IS NULL");
+        $tQuery->where('#timeClosed IS NULL');
         
         while ($tRec = $tQuery->fetch()) {
             $tRec->timeClosed = $tRec->modifiedOn;

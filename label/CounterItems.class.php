@@ -19,85 +19,83 @@ class label_CounterItems extends core_Detail
     /**
      * Заглавие на модела
      */
-    var $title = 'Запис в броячи';
+    public $title = 'Запис в броячи';
     
     
-    /**
-     * 
-     */
-    var $singleTitle = 'Записи';
+    
+    public $singleTitle = 'Записи';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'label, admin, ceo';
+    public $canRead = 'label, admin, ceo';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'label, admin, ceo';
+    public $canView = 'label, admin, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'label, admin, ceo';
+    public $canList = 'label, admin, ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'label_Wrapper, plg_Created, plg_Modified, plg_Sorting';
+    public $loadList = 'label_Wrapper, plg_Created, plg_Modified, plg_Sorting';
     
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'counterId';
+    public $masterKey = 'counterId';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, printId, number, modifiedOn, modifiedBy, createdOn, createdBy';
+    public $listFields = 'id, printId, number, modifiedOn, modifiedBy, createdOn, createdBy';
     
     
     /**
      * Активен таб
      */
-    var $currentTab = 'Брояч';
+    public $currentTab = 'Брояч';
     
     
     /**
      * По колко реда от резултата да показва на страница в детайла на документа
      */
-    var $listItemsPerPage = 20;
+    public $listItemsPerPage = 20;
     
     
-	/**
+    /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('counterId', 'key(mvc=label_Counters, select=name)', 'caption=Брояч, mandatory');
         $this->FLD('printId', 'key(mvc=label_Prints, select=title)', 'caption=Етикет, mandatory');
@@ -110,10 +108,10 @@ class label_CounterItems extends core_Detail
     
     /**
      * Връща най - голямата стойност за брояча
-     * 
+     *
      * @param integer $counterId - id на брояча
      */
-    static function getMax($counterId)
+    public static function getMax($counterId)
     {
         // Вземаме най - голямата стойност на номера за съответния брояч
         $query = static::getQuery();
@@ -130,14 +128,14 @@ class label_CounterItems extends core_Detail
     
     /**
      * Обновяваме брояча
-     * 
+     *
      * @param integer $counterId - id на брояча
-     * @param integer $printId - id на етикета
-     * @param integer $number - Стойността на брояча
-     * 
+     * @param integer $printId   - id на етикета
+     * @param integer $number    - Стойността на брояча
+     *
      * @return integer - id на записа
      */
-    static function updateCounter($counterId, $printId, $number)
+    public static function updateCounter($counterId, $printId, $number)
     {
         // Вземаме записа
         $rec = static::fetch(array("#counterId = '[#1#]' AND #printId = '[#2#]'", $counterId, $printId));
@@ -160,14 +158,14 @@ class label_CounterItems extends core_Detail
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param label_CounterItems $mvc
-     * @param object $data
+     * @param object             $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
-	{
-	    $data->query->orderBy('modifiedOn', 'DESC');
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('modifiedOn', 'DESC');
     }
     
     

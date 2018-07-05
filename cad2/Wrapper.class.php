@@ -23,7 +23,7 @@ class cad2_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('cad2_Drawings', 'Фигури', 'powerUser');
     }

@@ -14,15 +14,15 @@
  * @since     v 0.1
  */
 class vislog_reports_IpImpl extends frame_BaseDriver
-{                  
+{
     
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'vislog_IpReports';
-	
-	
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'vislog_IpReports';
+    
+    
     /**
      * Заглавие
      */
@@ -73,9 +73,9 @@ class vislog_reports_IpImpl extends frame_BaseDriver
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo, admin, cms';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo, admin, cms';
 
     
     
@@ -86,10 +86,9 @@ class vislog_reports_IpImpl extends frame_BaseDriver
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
-    	
-    	$form->FLD('from', 'date', 'caption=Начало');
-    	$form->FLD('to', 'date', 'caption=Край');
-	}
+        $form->FLD('from', 'date', 'caption=Начало');
+        $form->FLD('to', 'date', 'caption=Край');
+    }
       
 
     /**
@@ -99,7 +98,6 @@ class vislog_reports_IpImpl extends frame_BaseDriver
      */
     public function prepareEmbeddedForm(core_Form &$form)
     {
-    
     }
     
     
@@ -110,14 +108,14 @@ class vislog_reports_IpImpl extends frame_BaseDriver
      */
     public function checkEmbeddedForm(core_Form &$form)
     {
-    	    	 
-    	// Размяна, ако периодите са объркани
-    	if(isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {
-    		$mid = $form->rec->from;
-    		$form->rec->from = $form->rec->to;
-    		$form->rec->to = $mid;
-    	}
-    }  
+                 
+        // Размяна, ако периодите са объркани
+        if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
+            $mid = $form->rec->from;
+            $form->rec->from = $form->rec->to;
+            $form->rec->to = $mid;
+        }
+    }
     
     
     /**
@@ -127,24 +125,22 @@ class vislog_reports_IpImpl extends frame_BaseDriver
      */
     public function prepareInnerState()
     {
-    	$data = new stdClass();
+        $data = new stdClass();
         $data->ipCnt = array();
         $fRec = $data->fRec = $this->innerForm;
         
         $query = vislog_History::getQuery();
 
-        if($fRec->from) {  
+        if ($fRec->from) {
             $query->where("#createdOn >= '{$fRec->from} 00:00:00'");
         }
 
-        if($fRec->to) {
+        if ($fRec->to) {
             $query->where("#createdOn <= '{$fRec->to} 23:59:59'");
         }
 
-        while($rec = $query->fetch()) {
-        	
-        	$data->ipCnt[$rec->ip]++;
-
+        while ($rec = $query->fetch()) {
+            $data->ipCnt[$rec->ip]++;
         }
 
         // Сортиране на данните
@@ -159,17 +155,16 @@ class vislog_reports_IpImpl extends frame_BaseDriver
      */
     protected function getVerbal_($rec)
     {
-        $Ip = cls::get('type_Ip');        
+        $Ip = cls::get('type_Ip');
         $Int = cls::get('type_Int');
 
         foreach ($rec as $ip => $createdCnt) {
-
             $row = new stdClass();
 
             if ($this->innerState->fRec->to) {
-                $row->ip = $Ip->decorateIp($ip, $this->innerState->fRec->to, TRUE, TRUE);
+                $row->ip = $Ip->decorateIp($ip, $this->innerState->fRec->to, true, true);
             } else {
-                $row->ip = $Ip->decorateIp($ip, $this->innerState->fRec->createdOn, TRUE, TRUE);
+                $row->ip = $Ip->decorateIp($ip, $this->innerState->fRec->createdOn, true, true);
             }
         
             $row->cnt = $Int->toVerbal($createdCnt);
@@ -188,8 +183,8 @@ class vislog_reports_IpImpl extends frame_BaseDriver
     {
         // Подготвяме страницирането
         $data = $res;
-        if(!Mode::is('printing')){
-            $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+        if (!Mode::is('printing')) {
+            $pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
             $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
             $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
             
@@ -199,10 +194,12 @@ class vislog_reports_IpImpl extends frame_BaseDriver
         }
         $rows = $mvc->getVerbal($data->ipCnt);
         
-        if(is_array($rows)) {
+        if (is_array($rows)) {
             foreach ($rows as $id => $row) {
-                if(!Mode::is('printing')){
-                    if (!$pager->isOnPage()) continue;
+                if (!Mode::is('printing')) {
+                    if (!$pager->isOnPage()) {
+                        continue;
+                    }
                 }
         
                 $data->rows[$id] = $row;
@@ -218,39 +215,41 @@ class vislog_reports_IpImpl extends frame_BaseDriver
      */
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
-    	if(empty($data)) return;
-    	
-    	$tpl = new ET("
+        if (empty($data)) {
+            return;
+        }
+        
+        $tpl = new ET('
             <h1>Отчет за посещенията по IP</h1>
             [#FORM#]
     		[#PAGER#]
             [#VISITS#]
-    		[#PAGER#]");
-    	 
-    	$explodeTitle = explode(" » ", $this->title);
-    	 
-    	$title = tr("|{$explodeTitle[1]}|*");
-    	
-    	$tpl->replace($title, 'TITLE');
-    	
-    	$this->prependStaticForm($tpl, 'FORM');
-    	
-    	$tpl->placeObject($data->row);
-    	
-    	$tableMvc = new core_Mvc;
-    	$tableMvc->FLD('ip', 'ip(15)', 'tdClass=itemClass');
-    	$tableMvc->FLD('cnt', 'int', 'tdClass=itemClass,smartCenter');
-    	
-    	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
-    	$fields = 'ip=Посещения->Ip,cnt=Посещения->Брой';
+    		[#PAGER#]');
+         
+        $explodeTitle = explode(' » ', $this->title);
+         
+        $title = tr("|{$explodeTitle[1]}|*");
+        
+        $tpl->replace($title, 'TITLE');
+        
+        $this->prependStaticForm($tpl, 'FORM');
+        
+        $tpl->placeObject($data->row);
+        
+        $tableMvc = new core_Mvc;
+        $tableMvc->FLD('ip', 'ip(15)', 'tdClass=itemClass');
+        $tableMvc->FLD('cnt', 'int', 'tdClass=itemClass,smartCenter');
+        
+        $table = cls::get('core_TableView', array('mvc' => $tableMvc));
+        $fields = 'ip=Посещения->Ip,cnt=Посещения->Брой';
 
-    	$tpl->append($table->get($data->rows, $fields), 'VISITS');
-    	
-    	if($data->pager){
-    	    $tpl->append($data->pager->getHtml(), 'PAGER');
-    	}
-    	
-    	$embedderTpl->append($tpl, 'data');
+        $tpl->append($table->get($data->rows, $fields), 'VISITS');
+        
+        if ($data->pager) {
+            $tpl->append($data->pager->getHtml(), 'PAGER');
+        }
+        
+        $embedderTpl->append($tpl, 'data');
     }
      
     
@@ -293,8 +292,8 @@ class vislog_reports_IpImpl extends frame_BaseDriver
     protected function getExportFields_()
     {
         // Кои полета ще се показват
-        $fields = arr::make("ip=Посещения->Ip,
-                             cnt=Посещения->Брой=Продукт", TRUE);
+        $fields = arr::make('ip=Посещения->Ip,
+                             cnt=Посещения->Брой=Продукт', true);
     
         return $fields;
     }
@@ -311,7 +310,7 @@ class vislog_reports_IpImpl extends frame_BaseDriver
         $exportFields = $this->getExportFields();
         $fields = $this->getFields();
         
-        foreach($this->prepareEmbeddedData()->rows as $id => $rec) {
+        foreach ($this->prepareEmbeddedData()->rows as $id => $rec) {
             $rec->ip = html_entity_decode(strip_tags($rec->ip));
             $data[$id] = $rec;
         }
@@ -327,6 +326,6 @@ class vislog_reports_IpImpl extends frame_BaseDriver
      */
     public function getEarlyActivation()
     {
-    	return $this->innerForm->to;
+        return $this->innerForm->to;
     }
 }

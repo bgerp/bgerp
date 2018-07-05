@@ -13,15 +13,15 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cams_driver_Hikvision extends cams_driver_IpDevice {
+class cams_driver_Hikvision extends cams_driver_IpDevice
+{
     
     
     /**
      * Инициализиране на обекта
      */
-    function init($params = array())
+    public function init($params = array())
     {
-        
         parent::init($params);
         
         setIfNot($this->width, 2688); //2688x1520, 1920x1080, 1280x720
@@ -39,10 +39,13 @@ class cams_driver_Hikvision extends cams_driver_IpDevice {
     /**
      * Подготвя формата за настройки на камерата
      */
-    function prepareSettingsForm($form)
+    public function prepareSettingsForm($form)
     {
-        $form->FNC('ip', 'ip',
-            'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory');
+        $form->FNC(
+            'ip',
+            'ip',
+            'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory'
+        );
         $form->FNC('codec', 'enum(h264=H.264)', 'caption=Кодек,hint=Кодек на RTSP стрийма,input');
         $form->FNC('width', 'int(min=320,max=2688)', 'caption=Ширина,hint=Хоризонтална резолюция,input');
         $form->FNC('height', 'int(min=240,max=1520)', 'caption=Височина,hint=Вертикална резолюция,input');
@@ -63,7 +66,7 @@ class cams_driver_Hikvision extends cams_driver_IpDevice {
 //     	if(!$this->isActive()) {
 //     		$img = imagecreatefromjpeg(dirname(__FILE__) . '/setup.jpg');
 //     	} else {
-//     		$url = $this->getPictureUrl(); 
+//     		$url = $this->getPictureUrl();
 
 //     		// С тази команда вадим скрийншот от RTSP стрийма
 //     		$cmd = "avconv -i ". $this->getStreamUrl() . " -vframes 1 -r 1 -f image2 " . $url;
@@ -73,7 +76,7 @@ class cams_driver_Hikvision extends cams_driver_IpDevice {
 //     		if (is_file($url)) {
 //     			$img = imagecreatefromjpeg($url);
 //     		}
-			
+            
 //     		if(!$img) {
     
 //     			$img = imagecreatefromjpeg(dirname(__FILE__) . '/nocamera.jpg');
@@ -87,7 +90,7 @@ class cams_driver_Hikvision extends cams_driver_IpDevice {
     /**
      * Подготвя формата за PTZ контрола
      */
-    function preparePtzForm($form)
+    public function preparePtzForm($form)
     {
     }
     
@@ -95,15 +98,14 @@ class cams_driver_Hikvision extends cams_driver_IpDevice {
     /**
      * Изпълнява отдалечените команди
      */
-    function applyPtzCommands($cmdArr)
+    public function applyPtzCommands($cmdArr)
     {
-    	return;
     }
 
-	function normalizeCameraId()
-	{
-		$res = str_replace("-", "", $this->cameraId);
-		
-		return $res;
-	}
+    public function normalizeCameraId()
+    {
+        $res = str_replace('-', '', $this->cameraId);
+        
+        return $res;
+    }
 }

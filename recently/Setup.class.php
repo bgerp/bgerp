@@ -33,46 +33,46 @@ class recently_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'recently_Values';
+    public $startCtr = 'recently_Values';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Запомняне в избрани полета на последно въведените данни";
+    public $info = 'Запомняне в избрани полета на последно въведените данни';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
     
             // Максимален брой за предложенията за последно използвани стойности на поле
-            'RECENTLY_MAX_SUGGESTION' => array ('int', 'caption=Максимален брой за предложенията за последно използвани стойности на поле->Брой'),
+            'RECENTLY_MAX_SUGGESTION' => array('int', 'caption=Максимален брой за предложенията за последно използвани стойности на поле->Брой'),
     
             // Максимален брой дни за запазване на стойност след нейната последна употреба
-            'RECENTLY_MAX_KEEPING_DAYS'   => array ('int', 'caption=Максимален брой дни за запазване на стойност след нейната последна употреба->Дни'),
+            'RECENTLY_MAX_KEEPING_DAYS' => array('int', 'caption=Максимален брой дни за запазване на стойност след нейната последна употреба->Дни'),
         );
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Установяваме мениджъра;
         $Values = cls::get('recently_Values');
         $html .= $Values->setupMVC();
@@ -90,7 +90,7 @@ class recently_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

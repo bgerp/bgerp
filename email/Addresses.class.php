@@ -19,70 +19,70 @@ class email_Addresses extends core_Manager
     /**
      * Заглавие на таблицата
      */
-    var $title = "Имейл адреси";
+    public $title = 'Имейл адреси';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Имейл адрес';
+    public $singleTitle = 'Имейл адрес';
     
     
     /**
      * Път към картинка 16x16
      */
-    var $singleIcon = 'img/16/inbox-image-icon.png';
+    public $singleIcon = 'img/16/inbox-image-icon.png';
     
     
     /**
      * Кой има право да го чете?
      */
-    var $canRead = 'admin, ceo';
+    public $canRead = 'admin, ceo';
     
     
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'admin, ceo';
+    public $canEdit = 'admin, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, ceo';
+    public $canAdd = 'admin, ceo';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin, ceo';
+    public $canView = 'admin, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, ceo';
+    public $canList = 'admin, ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin, ceo';
+    public $canDelete = 'admin, ceo';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'email_Wrapper, plg_Modified';
+    public $loadList = 'email_Wrapper, plg_Modified';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-        $this->FLD("email", "email", "caption=Имейл");
-        $this->FLD("classId", "class", 'caption=Клас');
+        $this->FLD('email', 'email', 'caption=Имейл');
+        $this->FLD('classId', 'class', 'caption=Клас');
         $this->FLD('objectId', 'int', 'caption=Обект');
         
         $this->setDbUnique('email, classId, objectId');
@@ -93,7 +93,7 @@ class email_Addresses extends core_Manager
     /**
      * Последно модифицирания обект, който притежава този имейл адрес
      *
-     * @param string $email
+     * @param  string   $email
      * @return stdClass {classId: ..., objectId: ... }
      */
     public static function getObjectByEmail($email)
@@ -110,18 +110,18 @@ class email_Addresses extends core_Manager
     /**
      * Създава или променя вече съществуваща връзка м/у имейл и обект
      *
-     * @param string $email
-     * @param int $classId key(mvc=core_Classes)
-     * @param int $objectId
+     * @param  string  $email
+     * @param  int     $classId  key(mvc=core_Classes)
+     * @param  int     $objectId
      * @return boolean FALSE при неуспех
      */
     public static function addEmail($email, $classId, $objectId)
     {
-        $rec = (object)compact('email', 'classId', 'objectId');
+        $rec = (object) compact('email', 'classId', 'objectId');
         
-        // Запис в режим `ignore`. Ако имейл адреса вече е бил регистриран на същия обект - 
+        // Запис в режим `ignore`. Ако имейл адреса вече е бил регистриран на същия обект -
         // нищо не се променя.
-        $result = static::save($rec, NULL, 'ignore');
+        $result = static::save($rec, null, 'ignore');
         
         return $result;
     }
@@ -130,9 +130,9 @@ class email_Addresses extends core_Manager
     /**
      * Прекъсва връзката между обект и всички негови регистрирани имейл адреси.
      *
-     * @param string $email
-     * @param int $classId key(mvc=core_Classes)
-     * @param int $objectId
+     * @param  string  $email
+     * @param  int     $classId  key(mvc=core_Classes)
+     * @param  int     $objectId
      * @return boolean FALSE при неуспех
      */
     public static function removeEmails($classId, $objectId)

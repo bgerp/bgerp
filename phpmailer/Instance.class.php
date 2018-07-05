@@ -20,13 +20,13 @@ class phpmailer_Instance extends core_BaseClass
     /**
      * Инициализиране на обекта
      */
-    function init($params = array())
+    public function init($params = array())
     {
-    	$conf = core_Packs::getConfig('phpmailer');
-    	
-    	// Зареждаме phpmailer-а за избраната версия
-    	require_once $conf->PML_VERSION . '/PHPMailerAutoload.php';
-    	
+        $conf = core_Packs::getConfig('phpmailer');
+        
+        // Зареждаме phpmailer-а за избраната версия
+        require_once $conf->PML_VERSION . '/PHPMailerAutoload.php';
+        
         // Създаваме инстанция на PHPMailerLite
         $PML = new PHPMailer();
         
@@ -41,42 +41,42 @@ class phpmailer_Instance extends core_BaseClass
         //TODO: да се сложи в конфигурацията?
         
         // Задаваме стойностите от конфигурацията
-        $PML->Mailer    = $conf->PML_MAILER;
-        $PML->CharSet   = $conf->PML_CHARSET;
+        $PML->Mailer = $conf->PML_MAILER;
+        $PML->CharSet = $conf->PML_CHARSET;
         
         //      $PML->Encoding  = PML_ENCODING;
-        $PML->From      = $conf->PML_FROM_EMAIL;
-        $PML->FromName  = $conf->PML_FROM_NAME;
-        $PML->Sendmail  = $conf->SENDMAIL_PATH;
-        $PML->Host      = $conf->PML_HOST;
-        $PML->Port      = $conf->PML_PORT;
-        $PML->SMTPAuth  = $conf->PML_SMTPAUTH;
+        $PML->From = $conf->PML_FROM_EMAIL;
+        $PML->FromName = $conf->PML_FROM_NAME;
+        $PML->Sendmail = $conf->SENDMAIL_PATH;
+        $PML->Host = $conf->PML_HOST;
+        $PML->Port = $conf->PML_PORT;
+        $PML->SMTPAuth = $conf->PML_SMTPAUTH;
         $PML->SMTPSecure = $conf->PML_SMTPSECURE;
-        $PML->Username  = $conf->PML_USERNAME;
-        $PML->Password  = $conf->PML_PASSWORD;
+        $PML->Username = $conf->PML_USERNAME;
+        $PML->Password = $conf->PML_PASSWORD;
         
-        if (strpos($PML->From, ".") === FALSE) {
-            $PML->From .= ".com";
+        if (strpos($PML->From, '.') === false) {
+            $PML->From .= '.com';
         }
         
-        if($params['emailTo']) {
+        if ($params['emailTo']) {
             list($user, $domain) = explode('@', $params['emailTo']);
-            if($domain && getmxrr($domain, $mxhosts, $mx_weight)) {
-                if(count($mxhosts) && ! $params['Host']) {
+            if ($domain && getmxrr($domain, $mxhosts, $mx_weight)) {
+                if (count($mxhosts) && ! $params['Host']) {
                     $params['Host'] = $mxhosts[0];
-                    $params['SMTPAuth'] = FALSE;
-                    $params['SMTPSecure'] = FALSE;
+                    $params['SMTPAuth'] = false;
+                    $params['SMTPSecure'] = false;
                     $params['XMailer'] = 'bgERP direct SMTP';
-                    $params['Mailer']  = 'smtp';
+                    $params['Mailer'] = 'smtp';
                 }
             }
             unset($params['emailTo']);
         }
         
-        // Добавяме динамичните параметри, които могат да 
+        // Добавяме динамичните параметри, които могат да
         // "препокрият" зададените конфигурационни стойности
-        if(count($params)) {
-            foreach($params as $name => $value) {
+        if (count($params)) {
+            foreach ($params as $name => $value) {
                 $PML->{$name} = $value;
             }
         }

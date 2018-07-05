@@ -22,11 +22,9 @@ class hclean_HtmlPurifyPlg extends core_Plugin
     /**
      * Изпълнява се след рендирането на input
      */
-    function on_AfterFromVerbal($type, &$res, $value)
+    public function on_AfterFromVerbal($type, &$res, $value)
     {
         //Изчиства стойността против XSS атаки
         $res = hclean_Purifier::clean($res, 'UTF-8');
-        
-        return ;
     }
 }

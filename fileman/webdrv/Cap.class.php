@@ -3,7 +3,7 @@
 
 /**
  * Драйвер за работа с .cap файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -13,5 +13,4 @@
  */
 class fileman_webdrv_Cap extends fileman_webdrv_Raw
 {
-    
 }

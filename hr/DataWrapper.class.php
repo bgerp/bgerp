@@ -1,8 +1,7 @@
 <?php
 class hr_DataWrapper extends hr_Wrapper
-
 {
-	function on_AfterRenderWrapping($mvc, &$tpl)
+    public function on_AfterRenderWrapping($mvc, &$tpl)
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
 

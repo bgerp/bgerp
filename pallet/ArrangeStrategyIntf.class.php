@@ -22,7 +22,7 @@ class pallet_ArrangeStrategyIntf
      *
      * @param int $palletId
      */
-    function getAutoPalletPlace($productId)
+    public function getAutoPalletPlace($productId)
     {
         return $this->class->getAutoPalletPlace($productId);
     }

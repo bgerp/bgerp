@@ -15,10 +15,10 @@
  */
 class cond_type_Time extends cond_type_abstract_Proto
 {
-	
-	
-	/**
-	 * Кой базов тип наследява
-	 */
-	protected $baseType = 'type_Time';
+    
+    
+    /**
+     * Кой базов тип наследява
+     */
+    protected $baseType = 'type_Time';
 }

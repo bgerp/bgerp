@@ -58,6 +58,7 @@ class bgerp_Portal extends core_Manager
             $folderId = colab_FolderToPartners::getLastSharedContragentFolder();
             
             if ($folderId) {
+                
                 return new Redirect(array('colab_Threads', 'list', 'folderId' => $folderId));
             }
 

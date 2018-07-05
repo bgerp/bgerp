@@ -5,19 +5,19 @@
 /**
  * Път до директория, където ще се съхраняват записите от камерите
  */
-defIfNot('CAMS_VIDEOS_PATH', EF_UPLOADS_PATH . "/cams/videos");
+defIfNot('CAMS_VIDEOS_PATH', EF_UPLOADS_PATH . '/cams/videos');
 
 
 /**
  * Път до директория, където ще се записват jpeg превютата
  */
-defIfNot('CAMS_IMAGES_PATH', EF_UPLOADS_PATH . "/cams/images");
+defIfNot('CAMS_IMAGES_PATH', EF_UPLOADS_PATH . '/cams/images');
 
 
 /**
  * Директория за mp4 файловете
  */
-defIfNot('SBF_CAMS_MP4_DIR', "_cams/mp4");
+defIfNot('SBF_CAMS_MP4_DIR', '_cams/mp4');
 
 
 /**
@@ -51,60 +51,60 @@ class cams_Records extends core_Master
     /**
      * Зареждане на използваните мениджъри
      */
-    var $loadList = 'plg_RowTools, cams_Wrapper, Cameras=cams_Cameras';
+    public $loadList = 'plg_RowTools, cams_Wrapper, Cameras=cams_Cameras';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Записи от камери';
+    public $title = 'Записи от камери';
     
     
     /**
      * Полетата, които ще се ползват
      */
-    var $listFields = 'id, thumb, cameraId, startTime, duration, playedOn, marked';
+    public $listFields = 'id, thumb, cameraId, startTime, duration, playedOn, marked';
     
     
     /**
      * Права за писане
      */
-    var $canWrite = 'ceo,cams, admin';
+    public $canWrite = 'ceo,cams, admin';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo,admin,cams';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,admin,cams';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,admin,cams';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,admin,cams';
     
     
     /**
      * Права за четене
      */
-    var $canRead = 'ceo,cams, admin';
+    public $canRead = 'ceo,cams, admin';
     
     /**
      * Права за добавяне
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Права за маркиране
      */
-    var $canMark = 'ceo,cams,admin';
+    public $canMark = 'ceo,cams,admin';
 
 
     /**
      * Права за размаркиране
      */
-    var $canUnmark = 'ceo,cams,admin';
+    public $canUnmark = 'ceo,cams,admin';
     
     // Ръчно не могат да се добавят записи
     //var $canEdit = 'no_one';
@@ -115,7 +115,7 @@ class cams_Records extends core_Master
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('cameraId', 'key(mvc=cams_Cameras,select=title)', 'caption=Камера, mandatory');
         $this->FLD('startTime', 'datetime', 'caption=Начало');
@@ -132,9 +132,9 @@ class cams_Records extends core_Master
     /**
      * Връща пътища до медийните файлове за $id-тия запис
      */
-    function getFilePaths($startTime, $cameraId)
+    public function getFilePaths($startTime, $cameraId)
     {
-        $baseName = dt::mysql2verbal($startTime, "d-m-y_H-i") . '-' . $cameraId;
+        $baseName = dt::mysql2verbal($startTime, 'd-m-y_H-i') . '-' . $cameraId;
         
         $fp = new stdClass();
         // Видео MP4 файл - суров запис от камерата с добро качество
@@ -152,9 +152,9 @@ class cams_Records extends core_Master
         $fp->mp4File = SBF_CAMS_MP4_PATH . "/{$baseName}_{$hash}.mp4";
         
         // Ако директорията за конвертираните файловете не съществува,
-        // записва в лога 
+        // записва в лога
         if (!is_dir(SBF_CAMS_FLV_PATH) || !is_dir(SBF_CAMS_MP4_PATH)) {
-            $this->logAlert("Директорията за конвертираните файлове не съществува - преинсталирайте пакета cams.");
+            $this->logAlert('Директорията за конвертираните файлове не съществува - преинсталирайте пакета cams.');
         }
         
         $fp->mp4Url = sbf(SBF_CAMS_MP4_DIR . "/{$baseName}_{$hash}.mp4", '');
@@ -167,7 +167,7 @@ class cams_Records extends core_Master
      * Връща началната картинка за посочения запис
      * Ако параметъра от заявката thumb е сетнат - връща умалена картинка
      */
-    function act_StartJpg()
+    public function act_StartJpg()
     {
         requireRole('cams, admin');
         
@@ -178,7 +178,7 @@ class cams_Records extends core_Master
         // Подготвяме пътищата до различните медийни файлове
         $fp = $this->getFilePaths($rec->startTime, $rec->cameraId);
         
-        if(Request::get('thumb')) {
+        if (Request::get('thumb')) {
             $img = imagecreatefromjpeg($fp->thumbFile);
         } else {
             $img = imagecreatefromjpeg($fp->imageFile);
@@ -194,11 +194,11 @@ class cams_Records extends core_Master
         header('Cache-control: max-age=' . $cacheTime);
         header('Expires: ' . gmdate(DATE_RFC1123, time() + $cacheTime));
         
-        // To get best cacheability, send Last-Modified header and reply with 
+        // To get best cacheability, send Last-Modified header and reply with
         // status 304 and empty body if browser sends If-Modified-Since header.
         header('Last-Modified: ' . gmdate(DATE_RFC1123, filemtime($fp->imageFile)));
         
-        // This is cheating a bit (doesn't verify the date), but is valid as 
+        // This is cheating a bit (doesn't verify the date), but is valid as
         // long as you don't mind browsers keeping cached file forever:
         if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
             header('HTTP/1.1 304 Not Modified');
@@ -218,12 +218,12 @@ class cams_Records extends core_Master
     /**
      * Плейва посоченото видео (id на записа идва от GET)
      */
-    function act_Single()
+    public function act_Single()
     {
         requireRole('cams, admin');
         
-    	$conf = core_Packs::getConfig('cams');
-    	
+        $conf = core_Packs::getConfig('cams');
+        
         $id = Request::get('id', 'int');
         
         expect($rec = $this->fetch($id));
@@ -238,29 +238,29 @@ class cams_Records extends core_Master
         $data->toolbar = cls::get('core_Toolbar');
         
         // Ако имаме предишен запис - поставяме бутон към него
-        if($idPrev = $this->getPrevRec($id)) {
+        if ($idPrev = $this->getPrevRec($id)) {
             $data->toolbar->addBtn('« Предишен', array($this, 'Single', $idPrev));
         }
         
         // Ако имаме следващ запис - поставяме бутон към него
-        if($idNext = $this->getNextRec($id)) {
+        if ($idNext = $this->getNextRec($id)) {
             $data->toolbar->addBtn('Следващ »', array($this, 'Single', $idNext));
         }
         
         // Ако записа е маркиран, поставяме бутон за от маркиране и обратното
-        if($rec->marked == 'yes') {
+        if ($rec->marked == 'yes') {
             $data->toolbar->addBtn('От маркиране', array($this, 'Unmark', $id));
         } else {
             $data->toolbar->addBtn('Маркиране', array($this, 'Mark', $id));
         }
 
-        // Подготвяме параметрите на записа        
+        // Подготвяме параметрите на записа
         $params = json_decode($rec->params);
         
         $data->width = $params->width;
         $data->height = $params->height;
         
-        if(!file_exists($fp->mp4File) && !self::isRecordConverting($fp->mp4File)) {
+        if (!file_exists($fp->mp4File) && !self::isRecordConverting($fp->mp4File)) {
             // Стартираме конвертирането на видеото към mp4, ако това все още не е направено
             $this->convertToMp4($fp->videoFile, $fp->mp4File);
             $this->logInfo('Конвертиране към MP4', $rec->id);
@@ -273,18 +273,18 @@ class cams_Records extends core_Master
         
         $camera = cams_Cameras::getTitleById($rec->cameraId);
         
-        $data->caption = "{$camera}: $row->startTime";
+        $data->caption = "{$camera}: {$row->startTime}";
         
         // Записваме, кога клипът е пуснат за разглеждане първи път
-        if(empty($rec->playedOn)) {
+        if (empty($rec->playedOn)) {
             $rec->playedOn = dt::verbal2mysql();
             $this->save($rec, 'playedOn');
         } else {
-            $data->caption .= ", видян на $row->playedOn";
+            $data->caption .= ", видян на {$row->playedOn}";
         }
         
-        if($rec->marked == 'yes') {
-            $data->caption .= ", маркиран";
+        if ($rec->marked == 'yes') {
+            $data->caption .= ', маркиран';
         }
         
         $data->duration = $conf->CAMS_CLIP_DURATION;
@@ -292,7 +292,7 @@ class cams_Records extends core_Master
         // Рендираме плеъра
         $tpl = $this->renderSingle($data);
         
-        $this->logRead("Разглеждане", $rec->id);
+        $this->logRead('Разглеждане', $rec->id);
         
         return $this->renderWrapping($tpl);
     }
@@ -301,10 +301,9 @@ class cams_Records extends core_Master
     /**
      * Рендиране на mp4 плеъра
      */
-    function renderSingle_($data, $tpl = NULL)
+    public function renderSingle_($data, $tpl = null)
     {
-
-        $tpl = new ET ('
+        $tpl = new ET('
             <div id=toolbar style="margin-bottom:10px;">[#toolbar#]</div>
             <div class="video-rec">
                 <div class="[#captionClass#]" style="padding:5px;font-size:0.95em;">[#caption#]</div>
@@ -317,14 +316,16 @@ class cams_Records extends core_Master
 
         if ($this->isRecordConverting(basename($data->url))) {
             $data->playerTpl = "<img class='imageProcesing' src={$data->image} width={$data->width} height={$data->height} style='cursor: wait;'>";
-            $data->convertProgress = "Конвертиране ...";
-            $tpl->appendOnce("\n" . '<meta http-equiv="refresh" content="3">', "HEAD");
+            $data->convertProgress = 'Конвертиране ...';
+            $tpl->appendOnce("\n" . '<meta http-equiv="refresh" content="3">', 'HEAD');
         } else {
-            $data->playerTpl = mejs_Adapter::createVideo(   $data->url,
-                                                            array(  'poster' => $data->image,
+            $data->playerTpl = mejs_Adapter::createVideo(
+                $data->url,
+                                                            array('poster' => $data->image,
                                                                 'width' => $data->width,
                                                                 'height' => $data->height),
-                                                            'url');
+                                                            'url'
+            );
         }
         
         // Поставяме стойностите на плейсхолдърите
@@ -335,30 +336,30 @@ class cams_Records extends core_Master
     
     /**
      *  Дали записа е в процес на транскодиране
-     *  
+     *
      *  @return boolean
      */
-    private static function isRecordConverting($mp4File) {
+    private static function isRecordConverting($mp4File)
+    {
         // Ако файлa е заключен за транскодиране => има процес
-        $mp4File = basename($mp4File); 
+        $mp4File = basename($mp4File);
         if (core_Locks::isLocked($mp4File)) {
-
-          return TRUE;
+            
+            return true;
         }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Конвертира указания файл (записан от този драйвер) към mp4 за html5 video
      */
-    function convertToMp4($mp4Path, $mp4File)
+    public function convertToMp4($mp4Path, $mp4File)
     {
+        core_Locks::get(basename($mp4File), 300, 0, false);
         
-        core_Locks::get(basename($mp4File), 300, 0, FALSE);
-        
-        $cmdTmpl = "ffmpeg -hide_banner -loglevel panic -i [#INPUTF#] -preset fast -crf 35 -vcodec h264 -acodec aac -strict -2 [#OUTPUTF#]";
+        $cmdTmpl = 'ffmpeg -hide_banner -loglevel panic -i [#INPUTF#] -preset fast -crf 35 -vcodec h264 -acodec aac -strict -2 [#OUTPUTF#]';
         $Script = cls::get('fconv_Script');
         
         // Инстанция на класа
@@ -368,7 +369,7 @@ class cams_Records extends core_Master
         $params = array(
             'mp4File' => $mp4File,
             'callBack' => $me . '::afterConvert',
-            'asynch' => TRUE,
+            'asynch' => true,
             'createdBy' => core_Users::getCurrent('id'),
             'errFilePath' => 'err_videoconv.txt'
         );
@@ -381,44 +382,42 @@ class cams_Records extends core_Master
         $Script->params = $params;
         
         // Стартираме скрипта Aсинхронно
-        if ($Script->run($params['asynch']) === FALSE) {
-            $this->logError("Грешка при пускане на прекодиране на видео");
+        if ($Script->run($params['asynch']) === false) {
+            $this->logError('Грешка при пускане на прекодиране на видео');
             // Добавяме съобщение
             status_Messages::newStatus('|Грешка при транскодиране на MP4', 'error');
         } else {
             // Добавяме съобщение
             status_Messages::newStatus('|Стартирано е транскодиране на MP4', 'success');
         }
-        
     }
     
     /**
      * Изпълнява се след приключване на обработката
-     * 
+     *
      * @param fconv_Script $script - Обект с данните
-     * 
+     *
      * @param boolean  - TRUE - за да изтрие tmp скрипта и файловете
      */
-    function afterConvert($script)
+    public function afterConvert($script)
     {
-        copy ($script->tempDir . basename($script->params['mp4File']), $script->params['mp4File']);
+        copy($script->tempDir . basename($script->params['mp4File']), $script->params['mp4File']);
         core_Locks::release(basename($script->params['mp4File']));
         $err = file_get_contents($script->params['errFilePath']);
         if ($err) {
-            self::logErr("Грешка при конвертиране на видео: $err");
+            self::logErr("Грешка при конвертиране на видео: ${err}");
         }
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Конвертира указания файл (записан от този драйвер) към flv файл
      */
-    function convertToFlv($mp4Path, $flvFile, $params)
+    public function convertToFlv($mp4Path, $flvFile, $params)
     {
-
-        $cmd = "ffmpeg -i $mp4Path -ar 44100 -ab 96 -qmax {$params->FPS} -f flv $flvFile < /dev/null > /dev/null 2>&1 &";
+        $cmd = "ffmpeg -i ${mp4Path} -ar 44100 -ab 96 -qmax {$params->FPS} -f flv ${flvFile} < /dev/null > /dev/null 2>&1 &";
         
         $out = exec($cmd);
         
@@ -432,9 +431,9 @@ class cams_Records extends core_Master
     /**
      * Конвертира указания файл (записан от този драйвер) към flv файл
      */
-    function convertToOgv($mp4Path, $ogvFile)
+    public function convertToOgv($mp4Path, $ogvFile)
     {
-        $cmd = "ffmpeg -i $mp4Path -ar 44100 -vcodec libtheora -acodec libvorbis -ab 96 -qmax 10 -f ogv $ogvFile < /dev/null > /dev/null 2>&1 &";
+        $cmd = "ffmpeg -i ${mp4Path} -ar 44100 -vcodec libtheora -acodec libvorbis -ab 96 -qmax 10 -f ogv ${ogvFile} < /dev/null > /dev/null 2>&1 &";
         
         $out = exec($cmd);
         $this->logDebug("cmd = {$cmd}");
@@ -447,7 +446,7 @@ class cams_Records extends core_Master
     /**
      * Маркира посочения в id запис
      */
-    function act_Mark()
+    public function act_Mark()
     {
         expect($id = Request::get('id', 'int'));
         
@@ -466,7 +465,7 @@ class cams_Records extends core_Master
     /**
      * От маркира посочения в id запис
      */
-    function act_Unmark()
+    public function act_Unmark()
     {
         expect($id = Request::get('id', 'int'));
         
@@ -489,7 +488,7 @@ class cams_Records extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function act_RecordVideo()
+    public function act_RecordVideo()
     {
         expect(isDebug());
         
@@ -501,10 +500,10 @@ class cams_Records extends core_Master
      * Стартира се периодично на всеки 5 минути и прави записи
      * на всички активни камери
      */
-    function cron_RecordVideo()
+    public function cron_RecordVideo()
     {
-    	$conf = core_Packs::getConfig('cams');
-    	
+        $conf = core_Packs::getConfig('cams');
+        
         $camsQuery = $this->Cameras->getQuery();
         
         $camsQuery->where("#state = 'active'");
@@ -513,18 +512,18 @@ class cams_Records extends core_Master
         
         $images = $clips = 0;
         
-        while($camRec = $camsQuery->fetch()) {
-            
+        while ($camRec = $camsQuery->fetch()) {
             $fp = $this->getFilePaths($startTime, $camRec->id);
             
             $driver = cls::getInterface('cams_DriverIntf', $camRec->driver, $camRec->params);
             
-            if(!$driver->isActive()) continue;
-			
+            if (!$driver->isActive()) {
+                continue;
+            }
+            
             $driver->captureVideo($fp->videoFile, $conf->CAMS_CLIP_DURATION + 7);
 
-            if($imageStr = $driver->getPicture()) {
-                
+            if ($imageStr = $driver->getPicture()) {
                 imagejpeg($imageStr, $fp->imageFile);
                 
                 // Отложено ресайзване
@@ -540,7 +539,7 @@ class cams_Records extends core_Master
             $rec->duration = $conf->CAMS_CLIP_DURATION;
             $rec->marked = 'no';
             $rec->isAnalyzed = 'no';
-            $rec->params = json_encode(array("FPS"=>$driver->getFPS(), "width"=>$driver->getWidth(), "height"=>$driver->getHeight()));
+            $rec->params = json_encode(array('FPS' => $driver->getFPS(), 'width' => $driver->getWidth(), 'height' => $driver->getHeight()));
             
             $this->save($rec);
             
@@ -548,16 +547,16 @@ class cams_Records extends core_Master
         }
         
         // Преоразмеряваме големите картинки
-        if(count($toThumb)) {
-            foreach($toThumb as $src => $dest) {
-                if(Mode::is('screenMode', 'narrow')) {
+        if (count($toThumb)) {
+            foreach ($toThumb as $src => $dest) {
+                if (Mode::is('screenMode', 'narrow')) {
                     $width = 420;
                     $height = 315;
                 } else {
                     $width = 280;
                     $height = 210;
                 }
-                $img = new thumb_Img(array($src, $width, $height, 'path', 'isAbsolute' => FALSE, 'mode' => 'small-no-change'));
+                $img = new thumb_Img(array($src, $width, $height, 'path', 'isAbsolute' => false, 'mode' => 'small-no-change'));
                 $thumb = $img->getScaledGdRes();
                 
                 imagejpeg($thumb, $dest, 85);
@@ -572,7 +571,7 @@ class cams_Records extends core_Master
      * Изпълнява се след подготовката на филтъра за листовия изглед
      * Обикновено тук се въвеждат филтриращите променливи от Request
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $camOpt = $mvc->getCameraOpts();
         
@@ -601,30 +600,30 @@ class cams_Records extends core_Master
         
         //Ако имаме cameraId
         if (isset($fRec->cameraId) && (!$mvc->Cameras->fetch($fRec->cameraId))) {
-            $fRec->cameraId = NULL;
-            Mode::setPermanent('monLastUsedCameraId', NULL);
+            $fRec->cameraId = null;
+            Mode::setPermanent('monLastUsedCameraId', null);
         }
         
         // Ако няма последно използвана камера, вземаме първата активна от списъка
-        if(!isset($fRec->cameraId)) {
+        if (!isset($fRec->cameraId)) {
             $fRec->cameraId = $mvc->Cameras->fetchField("#state = 'active'", 'id');
         }
         
         // Ако няма активна камера, вземаме първата
-        if(!isset($fRec->cameraId)) {
-            $fRec->cameraId = $mvc->Cameras->fetchField("1=1", 'id');
+        if (!isset($fRec->cameraId)) {
+            $fRec->cameraId = $mvc->Cameras->fetchField('1=1', 'id');
         }
         
-        // Ако няма никаква камера, редиректваме към камерите, 
+        // Ако няма никаква камера, редиректваме към камерите,
         // със съобщение за въведат поне една камера
-        if(!isset($fRec->cameraId)) {
-            redirect(array('cams_Cameras'), TRUE, "|Моля въведете поне една камера");
+        if (!isset($fRec->cameraId)) {
+            redirect(array('cams_Cameras'), true, '|Моля въведете поне една камера');
         }
         
         // Задаваме, така получената камера, като последно използвана
         Mode::setPermanent('monLastUsedCameraId', $fRec->cameraId);
         
-        if($fRec->select == 'marked') {
+        if ($fRec->select == 'marked') {
             $data->query->where("#marked = 'yes'");
         }
         
@@ -666,7 +665,7 @@ class cams_Records extends core_Master
     /**
      * Връща масива с опции за страници с видео-записи
      */
-    function getPageOpts($query, $cameraId, &$firstPage)
+    public function getPageOpts($query, $cameraId, &$firstPage)
     {
         $query = clone($query);
         
@@ -675,15 +674,15 @@ class cams_Records extends core_Master
         $query->orderBy('#startTime', 'DESC');
         
         $pageOpts = $pageState = array();
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             $page = $this->getPageByTime($rec->startTime);
 
-            if(!isset($pageOpts[$page])) {
+            if (!isset($pageOpts[$page])) {
                 $pageOpts[$page] = $page;
             }
             
-            if($cameraId == $rec->cameraId) {
-                $pageState[$page] = TRUE;
+            if ($cameraId == $rec->cameraId) {
+                $pageState[$page] = true;
             }
         }
         
@@ -693,18 +692,18 @@ class cams_Records extends core_Master
         arsort($pageOpts);
         
         $pageOptsVerbal = array();
-        foreach($pageOpts as $page) {
+        foreach ($pageOpts as $page) {
             $pageVerbal = dt::mysql2verbal($page);
             
             $pageOptsVerbal[$page] = new stdClass();
             //            $pageOptsVerbal[$pageVerbal]->title = $pageVerbal;
             $pageOptsVerbal[$page]->title = $pageVerbal;
             
-            if(!$pageState[$page]) {
-            	$pageOptsVerbal[$pageVerbal] = new stdClass();
+            if (!$pageState[$page]) {
+                $pageOptsVerbal[$pageVerbal] = new stdClass();
                 $pageOptsVerbal[$pageVerbal]->attr = array('style' => 'color:#666');
             } else {
-                if(!$firstPage) {
+                if (!$firstPage) {
                     $firstPage = $pageVerbal;
                 }
             }
@@ -717,7 +716,7 @@ class cams_Records extends core_Master
     /**
      * Връща страницата според началното време на записа
      */
-    function getPageByTime($startTime)
+    public function getPageByTime($startTime)
     {
         $begin = dt::mysql2timestamp('2000-01-01 00:00:00');
         $pageDuration = $this->getPageDuration();
@@ -733,17 +732,16 @@ class cams_Records extends core_Master
     /**
      * Връща опциите за камерите, като тези, които не записват са посивени
      */
-    function getCameraOpts()
+    public function getCameraOpts()
     {
         $camQuery = $this->Cameras->getQuery();
         
-        while($camRec = $camQuery->fetch()) {
-            
+        while ($camRec = $camQuery->fetch()) {
             $obj = new stdClass();
             
             $obj->title = $this->Cameras->getVerbal($camRec, 'title');
             
-            if($camRec->state != 'active') {
+            if ($camRec->state != 'active') {
                 $obj->attr = array('style' => 'color:#666');
             }
             $cameraOpts[$camRec->id] = $obj;
@@ -756,16 +754,17 @@ class cams_Records extends core_Master
     /**
      * Връща id на предходния запис за същата камера
      */
-    function getPrevRec($id)
+    public function getPrevRec($id)
     {
-    	$conf = core_Packs::getConfig('cams');
-    	
+        $conf = core_Packs::getConfig('cams');
+        
         $rec = $this->fetch($id);
         $startStamp = dt::mysql2timestamp($rec->startTime);
-        $prevStamp = $startStamp -$conf->CAMS_CLIP_DURATION;
+        $prevStamp = $startStamp - $conf->CAMS_CLIP_DURATION;
         $prevTime = dt::timestamp2mysql($prevStamp);
         
-        if($prevRec = $this->fetch("#startTime = '{$prevTime}' AND #cameraId = {$rec->cameraId}")) {
+        if ($prevRec = $this->fetch("#startTime = '{$prevTime}' AND #cameraId = {$rec->cameraId}")) {
+            
             return $prevRec->id;
         }
     }
@@ -774,16 +773,17 @@ class cams_Records extends core_Master
     /**
      * Връща id на следващия запис за същата камера
      */
-    function getNextRec($id)
+    public function getNextRec($id)
     {
-    	$conf = core_Packs::getConfig('cams');
-    	
+        $conf = core_Packs::getConfig('cams');
+        
         $rec = $this->fetch($id);
         $startStamp = dt::mysql2timestamp($rec->startTime);
         $nextStamp = $startStamp + $conf->CAMS_CLIP_DURATION;
         $nextTime = dt::timestamp2mysql($nextStamp);
         
-        if($nextRec = $this->fetch("#startTime = '{$nextTime}' AND #cameraId = {$rec->cameraId}")) {
+        if ($nextRec = $this->fetch("#startTime = '{$nextTime}' AND #cameraId = {$rec->cameraId}")) {
+            
             return $nextRec->id;
         }
     }
@@ -792,10 +792,10 @@ class cams_Records extends core_Master
     /**
      * Връща броя на клиповете, които се показват на една страница
      */
-    function getClipsPerPage()
+    public function getClipsPerPage()
     {
-    	$conf = core_Packs::getConfig('cams');
-    	
+        $conf = core_Packs::getConfig('cams');
+        
         return Mode::is('screenMode', 'narrow') ?
         $conf->CAMS_CLIPS_PER_NARROW_PAGE :
         $conf->CAMS_CLIPS_PER_WIDE_PAGE;
@@ -805,10 +805,10 @@ class cams_Records extends core_Master
     /**
      * Връща броя на клиповете, които се показват на един ред
      */
-    function getClipsPerRow()
+    public function getClipsPerRow()
     {
-    	$conf = core_Packs::getConfig('cams');
-    	
+        $conf = core_Packs::getConfig('cams');
+        
         return Mode::is('screenMode', 'narrow') ?
         $conf->CAMS_CLIPS_PER_NARROW_ROW :
         $conf->CAMS_CLIPS_PER_WIDE_ROW;
@@ -818,11 +818,11 @@ class cams_Records extends core_Master
     /**
      * Връща периода който обхваща една страница със записи в секунди
      */
-    function getPageDuration()
+    public function getPageDuration()
     {
         static $duration;
 
-        if(!$duration) {
+        if (!$duration) {
             $conf = core_Packs::getConfig('cams');
             $duration = $conf->CAMS_CLIP_DURATION * $this->getClipsPerPage();
         }
@@ -834,12 +834,11 @@ class cams_Records extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function prepareListRecs_(&$data)
+    public function prepareListRecs_(&$data)
     {
-    	$conf = core_Packs::getConfig('cams');
-    	
-        while($rec = $data->query->fetch())
-        {
+        $conf = core_Packs::getConfig('cams');
+        
+        while ($rec = $data->query->fetch()) {
             $startTimeTimestamp = dt::mysql2timestamp($rec->startTime);
             $number = ($startTimeTimestamp - $data->startPageStamp) / $conf->CAMS_CLIP_DURATION;
             $row = floor($number / $this->getClipsPerRow());
@@ -854,29 +853,27 @@ class cams_Records extends core_Master
     /**
      * Рендира съдържанието - таблицата с превютата
      */
-    function renderListTable_($data)
+    public function renderListTable_($data)
     {
-    	$conf = core_Packs::getConfig('cams');
-    	
+        $conf = core_Packs::getConfig('cams');
+        
         $cols = $this->getClipsPerRow();
         $rows = $this->getClipsPerPage() / $this->getClipsPerRow();
 
         $html .= '<table cellspacing="3" bgcolor="white" class="video-rec">';
 
-        for($r = 0; $r < $rows; $r++) {
+        for ($r = 0; $r < $rows; $r++) {
+            $html .= '<tr>';
 
-            $html .= "<tr>";
-
-            for($c = 0; $c < $cols; $c++) {
-
-                if(isset($data->listRecs[$r][$c]->id)) {
+            for ($c = 0; $c < $cols; $c++) {
+                if (isset($data->listRecs[$r][$c]->id)) {
                     $content = $data->listRows[$r][$c]->thumb;
                     $content = ht::createLink($content, array($this, 'Single', $data->listRecs[$r][$c]->id));
                 } else {
                     $content = '';
                 }
 
-                if(!$data->listRows[$r][$c]->startTime) {
+                if (!$data->listRows[$r][$c]->startTime) {
                     $startStamp = $data->startPageStamp + ($r * $cols + $c) * $conf->CAMS_CLIP_DURATION;
                     $startTime = dt::timestamp2mysql($startStamp);
                     $startVerbalTime = dt::mysql2verbal($startTime);
@@ -886,15 +883,15 @@ class cams_Records extends core_Master
 
                 $class = $this->getCaptionClassByRec($data->listRecs[$r][$c]);
 
-                $date = "<div class='{$class}' style='border-bottom:solid 1px #ccc;'>" . $startVerbalTime . "</div>";
+                $date = "<div class='{$class}' style='border-bottom:solid 1px #ccc;'>" . $startVerbalTime . '</div>';
 
                 $html .= "<td class='recordImage'>{$date}{$content}</td>";
             }
 
-            $html .= "</tr>";
+            $html .= '</tr>';
         }
 
-        $html .= "</table>";
+        $html .= '</table>';
         
         return $html;
     }
@@ -903,11 +900,11 @@ class cams_Records extends core_Master
     /**
      * Връща стила на надписа за съответния запис
      */
-    function getCaptionClassByRec($rec)
+    public function getCaptionClassByRec($rec)
     {
-        if($rec->marked == 'yes') {
+        if ($rec->marked == 'yes') {
             $class = 'marked';
-        } elseif($rec->playedOn) {
+        } elseif ($rec->playedOn) {
             $class = 'played';
         } else {
             $class = 'normal';
@@ -920,12 +917,12 @@ class cams_Records extends core_Master
     /**
      * Изпълнява се след конвертирането към вербални стойности
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $attr = array();
         $attr['src'] = toUrl(array($mvc, 'StartJpg', $rec->id, 'thumb' => 'yes'));
 
-        if(Mode::is('screenMode', 'narrow')) {
+        if (Mode::is('screenMode', 'narrow')) {
             $attr['width'] = 364;
             $attr['height'] = 273;
         }
@@ -937,16 +934,17 @@ class cams_Records extends core_Master
     /**
      * Изтрива стари записи, ако дисковото пространство е под лимита
      */
-    function cron_DeleteOldRecords()
+    public function cron_DeleteOldRecords()
     {
-    	$conf = core_Packs::getConfig('cams');
-    	
-        if(!file_exists(CAMS_VIDEOS_PATH) || !is_writable(CAMS_VIDEOS_PATH)) return;
+        $conf = core_Packs::getConfig('cams');
+        
+        if (!file_exists(CAMS_VIDEOS_PATH) || !is_writable(CAMS_VIDEOS_PATH)) {
+            return;
+        }
 
         $freeSpace = disk_free_space(CAMS_VIDEOS_PATH);
         
-        if($freeSpace < $conf->CAMS_MIN_DISK_SPACE) {
-            
+        if ($freeSpace < $conf->CAMS_MIN_DISK_SPACE) {
             $query = $this->getQuery();
             
             $query->orderBy('startTime');
@@ -958,20 +956,27 @@ class cams_Records extends core_Master
             
             $deleted = $delFiels = 0;
             
-            while(disk_free_space(CAMS_VIDEOS_PATH) < $conf->CAMS_MIN_DISK_SPACE && ($rec = $query->fetch())) {
-                
-                if($rec->id) {
+            while (disk_free_space(CAMS_VIDEOS_PATH) < $conf->CAMS_MIN_DISK_SPACE && ($rec = $query->fetch())) {
+                if ($rec->id) {
                     $this->delete($rec->id);
                     
                     $fPaths = $this->getFilePaths($rec->startTime, $rec->cameraId);
                     
-                    if(@unlink($fPaths->videoFile)) $delFils++;
+                    if (@unlink($fPaths->videoFile)) {
+                        $delFils++;
+                    }
                     
-                    if(@unlink($fPaths->imageFile)) $delFils++;
+                    if (@unlink($fPaths->imageFile)) {
+                        $delFils++;
+                    }
                     
-                    if(@unlink($fPaths->thumbFile)) $delFils++;
+                    if (@unlink($fPaths->thumbFile)) {
+                        $delFils++;
+                    }
                     
-                    if(@unlink($fPaths->flvFile)) $delFils++;
+                    if (@unlink($fPaths->flvFile)) {
+                        $delFils++;
+                    }
                     
                     $deleted++;
                 }
@@ -980,28 +985,27 @@ class cams_Records extends core_Master
             return "Изтрити са {$deleted} записа в базата и {$delFils} файла";
         }
         
-        return "Не са изтрити записи от камерите, място все още има";
+        return 'Не са изтрити записи от камерите, място все още има';
     }
     
     
     /**
      * Изпълнява се след начално установяване(настройка) на модела
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
-    	$conf = core_Packs::getConfig('cams');
-    	    	
+        $conf = core_Packs::getConfig('cams');
+                
         $dirs = array(
-            CAMS_VIDEOS_PATH => "за съхраняване на записите",
-            CAMS_IMAGES_PATH => "за съхраняване на JPG",
-            SBF_CAMS_FLV_PATH => "за FLV за плейване",
-            SBF_CAMS_MP4_PATH => "за MP4 за плейване",
+            CAMS_VIDEOS_PATH => 'за съхраняване на записите',
+            CAMS_IMAGES_PATH => 'за съхраняване на JPG',
+            SBF_CAMS_FLV_PATH => 'за FLV за плейване',
+            SBF_CAMS_MP4_PATH => 'за MP4 за плейване',
         );
         
-        foreach($dirs as $d => $caption) {
-            
-            if(!is_dir($d)) {
-                if(mkdir($d, 0777, TRUE)) {
+        foreach ($dirs as $d => $caption) {
+            if (!is_dir($d)) {
+                if (mkdir($d, 0777, true)) {
                     $msg = "<li style='color:green;'> Директорията <b>{$d}</b> е създадена ({$caption})";
                 } else {
                     $msg = "<li style='color:red;'> Директорията <b>{$d}</b> не може да бъде създадена ({$caption})";
@@ -1015,30 +1019,30 @@ class cams_Records extends core_Master
         
         // Наглася Cron да стартира записването на камерите
         $rec = new stdClass();
-        $rec->systemId = "record_video";
-        $rec->description = "Правят се записи от камерите";
-        $rec->controller = "cams_Records";
-        $rec->action = "RecordVideo";
+        $rec->systemId = 'record_video';
+        $rec->description = 'Правят се записи от камерите';
+        $rec->controller = 'cams_Records';
+        $rec->action = 'RecordVideo';
         $rec->period = (int) $conf->CAMS_CLIP_DURATION / 60;
         $rec->offset = 0;
         $res .= core_Cron::addOnce($rec);
 
         
         $rec = new stdClass();
-        $rec->systemId = "delete_old_video";
-        $rec->description = "Изтриване на старите записи от камерите";
-        $rec->controller = "cams_Records";
-        $rec->action = "DeleteOldRecords";
+        $rec->systemId = 'delete_old_video';
+        $rec->description = 'Изтриване на старите записи от камерите';
+        $rec->controller = 'cams_Records';
+        $rec->action = 'DeleteOldRecords';
         $rec->period = (int) 2 * $conf->CAMS_CLIP_DURATION / 60;
-        $rec->offset = mt_rand(0,8);
+        $rec->offset = mt_rand(0, 8);
         $res .= core_Cron::addOnce($rec);
 
         
         $rec = new stdClass();
-        $rec->systemId = "cams_Analyze";
-        $rec->description = "Монтира по 4 записите с движение";
-        $rec->controller = "cams_Records";
-        $rec->action = "Analyze";
+        $rec->systemId = 'cams_Analyze';
+        $rec->description = 'Монтира по 4 записите с движение';
+        $rec->controller = 'cams_Records';
+        $rec->action = 'Analyze';
         $rec->period = (int) $conf->CAMS_CLIP_DURATION / 60;
         $rec->offset = 1;
         $res .= core_Cron::addOnce($rec);
@@ -1049,14 +1053,14 @@ class cams_Records extends core_Master
      * Метод за Cron за анализиране на записите
      * Извикава се на всеки 5 минути (300 секунди).
      */
-    function cron_Analyze()
+    public function cron_Analyze()
     {
-        // Вземаме всички записи, които не са анализирани, под 100 са, и са започнати 
+        // Вземаме всички записи, които не са анализирани, под 100 са, и са започнати
         // преди повече от $conf->CAMS_CLIP_DURATION + 7 сек. от най-новите към по-старите
         $query = $this->getQuery();
         
         $query->orderBy('startTime', 'DESC');
-        $before5min = dt::addsecs(-6*60);
+        $before5min = dt::addsecs(-6 * 60);
         $query->where("#startTime < '{$before5min}' AND #isAnalyzed = 'no'");
         //$query->limit(100);
         $query->limit(60);
@@ -1065,32 +1069,31 @@ class cams_Records extends core_Master
             $paths = $this->getFilePaths($rec->startTime, $rec->cameraId);
             $Script[$rec->id] = cls::get('fconv_Script');
             $Script[$rec->id]->setFile('INPUTF', $paths->videoFile);
-            $Script[$rec->id]->setFile('OUTPUTF', "/shot_" . $rec->id . "_%03d.jpg");
+            $Script[$rec->id]->setFile('OUTPUTF', '/shot_' . $rec->id . '_%03d.jpg');
             $Script[$rec->id]->lineExec("ffmpeg -i [#INPUTF#] -an -vf \"select=gt(scene\,0.02),setpts=N/(2*TB)\" [#OUTPUTF#]");
             $Script[$rec->id]->callBack('cams_Records::afterAnalyze');
             $Script[$rec->id]->recId = $rec->id;
             $Script[$rec->id]->imageFile = $paths->imageFile;
             $Script[$rec->id]->thumbFile = $paths->thumbFile;
             
-            $async = TRUE;
-            if ($Script[$rec->id]->run($async) !== FALSE) {
+            $async = true;
+            if ($Script[$rec->id]->run($async) !== false) {
             }
             sleep(2);
         }
-
     }
     
     /**
-     * Получава обекта - скрипт, който е вадел кадри от видео 
+     * Получава обекта - скрипт, който е вадел кадри от видео
      *
      */
-    function afterAnalyze($script)
+    public function afterAnalyze($script)
     {
         // Ако имаме получени картинки, вадим максимално до 4 от тях и викаме: montage keyframes001.png keyframes002.png keyframes003.png keyframes005.png -geometry 512x384+2+2 result.png
         // взимаме броя на jpg файловете, които са резултат от движението във видеото
         $fCnt = (int) exec("ls -l {$script->tempDir}*.jpg | wc -l");
         $fourShots = '';
-        $outpuF = str_replace("//", "/", $script->tempDir . $script->files['OUTPUTF']);
+        $outpuF = str_replace('//', '/', $script->tempDir . $script->files['OUTPUTF']);
         // Ако имаме само 1 картинка - нищо не правим. Ако имаме 2 или 3, повтаряме последтата
         switch ($fCnt) {
             case 0:
@@ -1098,35 +1101,34 @@ class cams_Records extends core_Master
                 break;
             case 2:
                 //$script->files['OUTPUTF']; // [OUTPUTF] => /shot_1656_%03d.jpg
-                $fourShots = sprintf($outpuF, 1) . " "
-                     . sprintf($outpuF, 2) . " " 
-                     . sprintf($outpuF, 2) . " "
+                $fourShots = sprintf($outpuF, 1) . ' '
+                     . sprintf($outpuF, 2) . ' '
+                     . sprintf($outpuF, 2) . ' '
                      . sprintf($outpuF, 2);
                 break;
             case 3:
-                $fourShots = sprintf($outpuF, 1) . " "
-                     . sprintf($outpuF, 2) . " "
-                     . sprintf($outpuF, 3) . " "
+                $fourShots = sprintf($outpuF, 1) . ' '
+                     . sprintf($outpuF, 2) . ' '
+                     . sprintf($outpuF, 3) . ' '
                      . sprintf($outpuF, 3);
                 break;
             default:
-                $fourShots = sprintf($outpuF, 1) . " "
-                     . sprintf($outpuF, (int)$fCnt/3) . " "
-                     . sprintf($outpuF, (int)$fCnt*2/3)  . " " 
+                $fourShots = sprintf($outpuF, 1) . ' '
+                     . sprintf($outpuF, (int) $fCnt / 3) . ' '
+                     . sprintf($outpuF, (int) $fCnt * 2 / 3)  . ' '
                      . sprintf($outpuF, $fCnt);
         }
         
         if (!empty($fourShots)) {
-            $cmd = "montage " . $fourShots . " -geometry 512x384+2+2 " . $script->tempDir . "result.jpg";        
+            $cmd = 'montage ' . $fourShots . ' -geometry 512x384+2+2 ' . $script->tempDir . 'result.jpg';
             exec($cmd);
             // Резултатната снимка записваме като файла за картинка
-            copy($script->tempDir . "result.jpg", $script->imageFile);
+            copy($script->tempDir . 'result.jpg', $script->imageFile);
             // и нейния thumb - в пътя за тъмб
-            $img = new thumb_Img(array($script->tempDir . "result.jpg", 280, 210, 'path', 'isAbsolute' => FALSE, 'mode' => 'small-no-change'));
+            $img = new thumb_Img(array($script->tempDir . 'result.jpg', 280, 210, 'path', 'isAbsolute' => false, 'mode' => 'small-no-change'));
             $thumb = $img->getScaledGdRes();
             
             imagejpeg($thumb, $script->thumbFile, 85);
-            
         }
         
         // Отбелязваме че записа е анализиран
@@ -1136,14 +1138,14 @@ class cams_Records extends core_Master
         $this->save($rec);
         // Ако е наближило 300 секунди от началото на процеса - излизаме иначе, продължаваме от начало
         
-        return TRUE;
+        return true;
     }
     
     /**
      * Ръчен метод за тестване на кеон метода за детектиране на движение
-     * 
+     *
      */
-    function act_Analyze()
+    public function act_Analyze()
     {
         requireRole('admin');
         

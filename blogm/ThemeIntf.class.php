@@ -28,78 +28,78 @@ class blogm_ThemeIntf
      */
     public function getArticleLayout()
     {
-    	return $this->class->getArticleLayout();
+        return $this->class->getArticleLayout();
     }
     
     
-	/**
+    /**
      * Връща навигацията на блога
      */
     public function getNavigationLayout()
     {
-    	return $this->class->getNavigationLayout();
+        return $this->class->getNavigationLayout();
     }
     
     
-	/**
+    /**
      * Връща формата за търсене
      */
     public function getSearchFormLayout()
     {
-    	return $this->class->getSearchFormLayout();
+        return $this->class->getSearchFormLayout();
     }
     
     
-	/**
+    /**
      * Връща шаблона за страницата за търсене на статии
      */
     public function getBrowseLayout()
     {
-    	return $this->class->getSearchBrowseLayout();
+        return $this->class->getSearchBrowseLayout();
     }
     
     
-	/**
+    /**
      * Връща шаблона за коментарите
      */
     public function getCommentsLayout()
     {
-    	return $this->class->getCommentsLayout();
+        return $this->class->getCommentsLayout();
     }
     
     
-	/**
+    /**
      * Променя изгледа на формата за добавяне на коментари
      */
     public function getCommentFormLayout()
     {
-    	return $this->class->getCommentFormLayout();
+        return $this->class->getCommentFormLayout();
     }
     
     
-	/**
+    /**
      * Променя изгледа на полетата от формата за добавяне на коментари
      */
     public function getCommentFormFieldsLayout()
     {
-    	return $this->class->getCommentFormFieldsLayout();
+        return $this->class->getCommentFormFieldsLayout();
     }
     
     
-	/**
+    /**
      * Връща дефолт стиловете на блога
      */
     public function getStyles()
     {
-    	return $this->class->getStyles();
+        return $this->class->getStyles();
     }
     
     
-	/**
+    /**
      * Връща пътя пътя към файла който ще бъде обвивка на блога
      */
     public function getBlogLayout()
     {
-    	return $this->class->getBlogLayout();
+        return $this->class->getBlogLayout();
     }
 }

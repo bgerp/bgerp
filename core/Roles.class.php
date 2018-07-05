@@ -290,6 +290,7 @@ class core_Roles extends core_Manager
     {
         // Ако входния аргумент е keylist - директно го връщаме
         if (keylist::isKeylist($roles)) {
+            
             return $roles;
         }
 
@@ -514,6 +515,7 @@ class core_Roles extends core_Manager
     public static function getVerbal($rec, $fieldName)
     {
         if ($rec->id === 0) {
+            
             return tr($rec->name);
         }
         

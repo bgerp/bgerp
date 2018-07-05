@@ -42,8 +42,16 @@ class plg_Printing extends core_Plugin
 
         //self::addCmdParams($url);
         
-        $data->toolbar->addBtn('Печат', $url,
-            'id=btnPrint,target=_blank','ef_icon = img/16/printer.png,title=Печат на страницата');
+        $data->toolbar->addBtn(
+        
+            'Печат',
+        
+            $url,
+            'id=btnPrint,target=_blank',
+        
+            'ef_icon = img/16/printer.png,title=Печат на страницата'
+        
+        );
     }
     
     
@@ -56,48 +64,47 @@ class plg_Printing extends core_Plugin
     {
         if (Mode::is('forceShowPrint') || !($data->rec->state == 'draft' ||
             ($data->rec->state == 'rejected' && $data->rec->brState == 'draft') ||
-            ($data->rec->state == 'rejected' && $data->rec->brState != 'draft' && $mvc->printRejected === FALSE))) {
-        	
-            if($mvc->haveRightFor('single', $data->rec)){
+            ($data->rec->state == 'rejected' && $data->rec->brState != 'draft' && $mvc->printRejected === false))) {
+            if ($mvc->haveRightFor('single', $data->rec)) {
                 // Текущото URL
-            	$currUrl = getCurrentUrl();
-            	
-            	// Ако името на класа е текущото URL
-            	if (strtolower($mvc->className) == strtolower($currUrl['Ctr'])) {
-            	    
-            	    // Екшъна
-            	    $act = strtolower($currUrl['Act']);
-            	    
-            	    // Ако екшъна е single или list
-            	    if ($act == 'single' || $act == 'list') {
-            	        
-            	        // URL за принтиране
-            	        $url = $currUrl + array('Printing' => 'yes');
-            	    }
-            	}
-            	
-            	// Ако няма URL
-            	if (!$url) {
-            	    
-            	    // Създаваме го
-            	    $url = array(
+                $currUrl = getCurrentUrl();
+                
+                // Ако името на класа е текущото URL
+                if (strtolower($mvc->className) == strtolower($currUrl['Ctr'])) {
+                    
+                    // Екшъна
+                    $act = strtolower($currUrl['Act']);
+                    
+                    // Ако екшъна е single или list
+                    if ($act == 'single' || $act == 'list') {
+                        
+                        // URL за принтиране
+                        $url = $currUrl + array('Printing' => 'yes');
+                    }
+                }
+                
+                // Ако няма URL
+                if (!$url) {
+                    
+                    // Създаваме го
+                    $url = array(
                         $mvc,
                         'single',
                         $data->rec->id,
                         'Printing' => 'yes',
                     );
-            	}
-        		
+                }
+                
                 self::addCmdParams($url);
-        		
-            	// По подразбиране бутона за принтиране се показва на втория ред на тулбара
-            	setIfNot($mvc->printBtnToolbarRow, 2);
-            	
-            	$attr = array('name' => 'btnPrint');
-            	ht::setUniqId($attr);
-            	
-            	// Бутон за отпечатване
-            	$data->toolbar->addBtn('Печат', $url, "id={$attr['id']},target=_blank,row={$mvc->printBtnToolbarRow}", 'ef_icon = img/16/printer.png,title=Печат на документа');
+                
+                // По подразбиране бутона за принтиране се показва на втория ред на тулбара
+                setIfNot($mvc->printBtnToolbarRow, 2);
+                
+                $attr = array('name' => 'btnPrint');
+                ht::setUniqId($attr);
+                
+                // Бутон за отпечатване
+                $data->toolbar->addBtn('Печат', $url, "id={$attr['id']},target=_blank,row={$mvc->printBtnToolbarRow}", 'ef_icon = img/16/printer.png,title=Печат на документа');
             }
         }
     }
@@ -108,7 +115,7 @@ class plg_Printing extends core_Plugin
      */
     public static function on_BeforeAction($mvc, &$res, $act)
     {
-        if(Request::get('Printing')) {
+        if (Request::get('Printing')) {
             Mode::set('wrapper', 'page_Print');
             Mode::set('printing');
         }
@@ -120,15 +127,14 @@ class plg_Printing extends core_Plugin
      */
     public static function on_BeforeRenderWrapping($mvc, &$res, $tpl)
     {
-        if(Request::get('Printing')) {
-            
-            $tpl->prepend(tr($mvc->title) . " « ", 'PAGE_TITLE');
+        if (Request::get('Printing')) {
+            $tpl->prepend(tr($mvc->title) . ' « ', 'PAGE_TITLE');
             
             $res = $tpl;
             
-            jquery_Jquery::run($tpl, "scalePrintingDocument(1180);", TRUE);
+            jquery_Jquery::run($tpl, 'scalePrintingDocument(1180);', true);
             
-            return FALSE;
+            return false;
         }
     }
     
@@ -139,10 +145,9 @@ class plg_Printing extends core_Plugin
     public static function on_BeforeRenderHtml($mvc, &$res)
     {
         if (Request::get('Printing') && !Mode::get('forcePrinting')) {
+            $res = null;
             
-            $res = NULL;
-            
-            return FALSE;
+            return false;
         }
     }
     
@@ -158,8 +163,8 @@ class plg_Printing extends core_Plugin
      */
     protected static function on_AfterRenderListFilter($mvc, &$res, $data)
     {
-        if ($mvc->showPrintListFilter !== FALSE) {
-            $showFieldsArr = arr::make($data->listFilter->showFields, TRUE);
+        if ($mvc->showPrintListFilter !== false) {
+            $showFieldsArr = arr::make($data->listFilter->showFields, true);
             
             $fFields = '';
             
@@ -170,19 +175,29 @@ class plg_Printing extends core_Plugin
                     if (isset($fRecVal) && trim($fRecVal)) {
                         $field = $data->listFilter->fields[$showFields];
                         
-                        if (!$field) continue;
+                        if (!$field) {
+                            continue;
+                        }
                         
-                        if (($field->input == 'hidden') || ($field->input == 'none')) continue;
+                        if (($field->input == 'hidden') || ($field->input == 'none')) {
+                            continue;
+                        }
                         
-                        if ($field->printListFilter == 'none') continue;
+                        if ($field->printListFilter == 'none') {
+                            continue;
+                        }
                         
                         $fType = $field->type;
-                        if (!$fType) continue;
+                        if (!$fType) {
+                            continue;
+                        }
                         
                         $caption = tr($field->caption);
                         $verbVal = $fType->toVerbal($fRecVal);
                         
-                        if (!$verbVal) continue;
+                        if (!$verbVal) {
+                            continue;
+                        }
                         
                         $fFields .= $fFields ? ' | ' : '';
                         
@@ -196,7 +211,6 @@ class plg_Printing extends core_Plugin
             }
             
             if ($fFields) {
-                
                 $fFields = "<div class='printListFilter'>{$fFields}</div>";
                 
                 $res->append($fFields, '1');
@@ -208,13 +222,13 @@ class plg_Printing extends core_Plugin
     /**
      * Добавя ваички командни параметри от GET заявката
      */
-    static function addCmdParams(&$url)
+    public static function addCmdParams(&$url)
     {
         $cUrl = getCurrentUrl();
 
-        if(count($cUrl)) {
-            foreach($cUrl as $param => $value) {
-                if($param{0} < 'a' || $param{0} > 'z') {
+        if (count($cUrl)) {
+            foreach ($cUrl as $param => $value) {
+                if ($param{0} < 'a' || $param{0} > 'z') {
                     $url[$param] = $value;
                 }
             }

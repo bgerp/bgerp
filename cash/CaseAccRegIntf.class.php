@@ -16,5 +16,4 @@
  */
 class cash_CaseAccRegIntf extends acc_RegisterIntf
 {
-
 }

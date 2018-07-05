@@ -3,25 +3,26 @@
 /**
  * Чертае Правоъгълник
  */
-class cad2_Rectangle  extends cad2_Shape {
+class cad2_Rectangle extends cad2_Shape
+{
     
     /**
      * Задължителен интерфейс, който фигурите трябва да имат
      */
-    var $interfaces = 'cad2_ShapeIntf';
+    public $interfaces = 'cad2_ShapeIntf';
     
     
     /**
      * Наименование на фигурата
      */
-    var $title = 'Елементи » Правоъгълник';
+    public $title = 'Елементи » Правоъгълник';
     
     
     /**
      * Допълва дадената форма с параметрите на фигурата
      * Връща масив от имената на параметрите
      */
-    static function addFields(&$form)
+    public static function addFields(&$form)
     {
         $form->FLD('x', 'float', 'caption=X');
         $form->FLD('y', 'float', 'caption=Y');
@@ -39,8 +40,8 @@ class cad2_Rectangle  extends cad2_Shape {
     /**
      * Метод за изрисуване на фигурата
      */
-    function render($svg, $p = array())
-    { 
+    public function render($svg, $p = array())
+    {
         extract($p);
 
         $svg->setAttr('stroke', $stroke);
@@ -50,7 +51,7 @@ class cad2_Rectangle  extends cad2_Shape {
 
         $svg->startPath();
 
-        $svg->moveTo($x, $y, TRUE);
+        $svg->moveTo($x, $y, true);
 
         self::draw($svg, $w, $h);
     }
@@ -60,11 +61,10 @@ class cad2_Rectangle  extends cad2_Shape {
      * Метод за ичертаване на правоъгълник
      */
     public static function draw($svg, $w, $h)
-    {   
+    {
         $svg->lineTo($w, 0);
         $svg->lineTo(0, $h);
         $svg->lineTo(-$w, 0);
         $svg->lineTo(0, -$h);
     }
-    
 }

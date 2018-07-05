@@ -2,7 +2,7 @@
 
 
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   bgerp
@@ -30,30 +30,22 @@ class escpos_Print extends core_Manager
     /**
      * Дали id-тата на този модел да са защитени?
      */
-    var $protectId = FALSE;
+    public $protectId = false;
     
     
-    /**
-     * 
-     */
+    
     public $canAdd = 'no_one';
     
     
-    /**
-     * 
-     */
+    
     public $canDelete = 'no_one';
     
     
-    /**
-     * 
-     */
+    
     public $canEdit = 'no_one';
     
     
-    /**
-     *
-     */
+    
     public $canList = 'no_one';
     
     
@@ -66,7 +58,7 @@ class escpos_Print extends core_Manager
     /**
      * Екшън за отпечатване с escpos
      */
-    function act_Print()
+    public function act_Print()
     {
         $idFullStr = Request::get('id');
         
@@ -89,11 +81,11 @@ class escpos_Print extends core_Manager
         }
         
         // За да не се кешира
-        header("Expires: Sun, 19 Nov 1978 05:00:00 GMT");
-        header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
-        header("Cache-Control: no-store, no-cache, must-revalidate");
-        header("Cache-Control: post-check=0, pre-check=0", false);
-        header("Pragma: no-cache");
+        header('Expires: Sun, 19 Nov 1978 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: no-store, no-cache, must-revalidate');
+        header('Cache-Control: post-check=0, pre-check=0', false);
+        header('Pragma: no-cache');
         
         // Указваме, че ще се връща XML
         header('Content-Type: application/xml');
@@ -109,10 +101,10 @@ class escpos_Print extends core_Manager
     
     /**
      * Подготвя URL за печатане чрез
-     * 
+     *
      * @param core_Master $mvc
-     * @param int $id
-     * 
+     * @param int         $id
+     *
      * @return string
      */
     public static function prepareUrlIdForAgent($clsInst, $id)
@@ -132,11 +124,11 @@ class escpos_Print extends core_Manager
     
     /**
      * Връща хеша за стринг
-     * 
-     * @param string $clsId
-     * @param string $pId
+     *
+     * @param string  $clsId
+     * @param string  $pId
      * @param integer $cu
-     * 
+     *
      * @return string
      */
     protected static function getHash($clsId, $pId, $cu)
@@ -153,9 +145,9 @@ class escpos_Print extends core_Manager
     
     /**
      * Парсира стринга и връща маси в id и инстанция на класа
-     * 
+     *
      * @param string $str
-     * 
+     *
      * @return array
      */
     protected static function parseParamStr($str)
@@ -172,7 +164,7 @@ class escpos_Print extends core_Manager
         
         $id = $inst->unprotectId($pId);
         
-        expect($id !== FALSE);
+        expect($id !== false);
         
         $res = array();
         $res['id'] = $id;
@@ -190,7 +182,7 @@ class escpos_Print extends core_Manager
     public function act_Test()
     {
         $idFullStr = Request::get('id');
-		
+        
         $drvName = 'escpos_driver_Ddp250';
         
         if (Request::get('html')) {
@@ -210,19 +202,19 @@ class escpos_Print extends core_Manager
         } else {
             $res = escpos_Helper::getTpl();
             
-            $res->replace("Тестово отпечатване", 'title');
+            $res->replace('Тестово отпечатване', 'title');
             
-            $test = "<c F b>Test<p><r29 F b>Proba...<p><p><p>";
+            $test = '<c F b>Test<p><r29 F b>Proba...<p><p><p>';
             $dataContent = escpos_Convert::process($test, 'escpos_driver_Ddp250');
             
             $res->replace(base64_encode($dataContent), 'data');
             
             // За да не се кешира
-            header("Expires: Sun, 19 Nov 1978 05:00:00 GMT");
-            header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
-            header("Cache-Control: no-store, no-cache, must-revalidate");
-            header("Cache-Control: post-check=0, pre-check=0", false);
-            header("Pragma: no-cache");
+            header('Expires: Sun, 19 Nov 1978 05:00:00 GMT');
+            header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+            header('Cache-Control: no-store, no-cache, must-revalidate');
+            header('Cache-Control: post-check=0, pre-check=0', false);
+            header('Pragma: no-cache');
             
             // Указваме, че ще се връща XML
             header('Content-Type: application/xml');

@@ -559,6 +559,7 @@ class doc_UnsortedFolders extends core_Master
                 case 'start':
                     usort($resTask, function ($a, $b) {
                         for ($i = 0; $i < count($a['timeline']); $i++) {
+                            
                             return ($a['timeline'][$i]['startTime'] < $b['timeline'][$i]['startTime']) ? -1 : 1;
                         }
                     });
@@ -636,6 +637,7 @@ class doc_UnsortedFolders extends core_Master
                 case 'alphabetic':
             
                     usort($resTask, function ($a, $b) {
+                        
                         return strnatcmp(mb_strtolower($a['hint'], 'UTF-8'), mb_strtolower($b['hint'], 'UTF-8'));
                     });
             
@@ -771,6 +773,7 @@ class doc_UnsortedFolders extends core_Master
         
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
+                
                 return array();
             }
             

@@ -137,6 +137,7 @@ class core_Request
         $act = self::get('Act');
 
         if (self::get('Cf') === self::getSessHash($act . $id)) {
+            
             return true;
         }
 
@@ -393,6 +394,7 @@ class core_Request
         if (!$Request::get('Act') &&
             strlen($ctr) == core_Forwards::CORE_FORWARD_SYSID_LEN &&
             preg_match('/^[a-z]+$/', $ctr)) {
+            
             return core_Forwards::go($ctr);
         }
 

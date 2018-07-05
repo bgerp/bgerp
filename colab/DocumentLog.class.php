@@ -3,7 +3,7 @@
 
 /**
  * Лог на документи за контрактори
- * 
+ *
  * @category  bgerp
  * @package   colab
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -18,60 +18,58 @@ class colab_DocumentLog extends core_Manager
     /**
      * Брой елементи на страница
      */
-    var $itemsPerPage = 20;
+    public $itemsPerPage = 20;
     
     
     /**
      * Заглавие на таблицата
      */
-    var $title = "Лог на документи за контрактори";
+    public $title = 'Лог на документи за контрактори';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo, admin';
+    public $canRead = 'ceo, admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'ceo';
+    public $canView = 'ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo, admin';
+    public $canList = 'ceo, admin';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created';
+    public $loadList = 'plg_Created';
     
     
-    /**
-     * 
-     */
+    
     public $canRenderview = 'powerUser';
     
     
@@ -81,16 +79,14 @@ class colab_DocumentLog extends core_Manager
     const ACTION_VIEW = 'view';
     
     
-    /**
-     * 
-     */
-    static $recForAdd = array();
+    
+    public static $recForAdd = array();
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         // enum полетата на екшъните
         $actionsEnum = array(
@@ -98,7 +94,7 @@ class colab_DocumentLog extends core_Manager
         );
         
         // Тип на събитието
-        $this->FLD("action", 'enum(' . implode($actionsEnum) . ')', "caption = Действие");
+        $this->FLD('action', 'enum(' . implode($actionsEnum) . ')', 'caption = Действие');
         
         // Документ, за който се отнася събитието
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption = Контейнер');
@@ -113,11 +109,11 @@ class colab_DocumentLog extends core_Manager
     
     /**
      * Отбелязва документа, като видян
-     * 
+     *
      * @param integer $containerId
      * @param integer $userId
      */
-    public static function markAsViewed($containerId, $userId = NULL)
+    public static function markAsViewed($containerId, $userId = null)
     {
         // За да може да се извика on_ShutDown
         cls::get('colab_DocumentLog');
@@ -136,7 +132,7 @@ class colab_DocumentLog extends core_Manager
     
     /**
      * Връща линк с икона, за показванията
-     * 
+     *
      * @param integer $containerId
      */
     public static function renderViewedLink($containerId)
@@ -146,8 +142,7 @@ class colab_DocumentLog extends core_Manager
             if ($containerId) {
                 $cRec = doc_Containers::fetch($containerId);
                 if ((($cRec->state == 'draft') || ($cRec->state == 'rejected')) && !haveRole('partner', $cRec->createdBy)) {
-                    
-                    $isHiddenNow = TRUE;
+                    $isHiddenNow = true;
 //                     if ($cRec->state == 'rejected') {
 //                         try {
 //                             $doc = doc_Containers::getDocument($cRec->id);
@@ -169,16 +164,15 @@ class colab_DocumentLog extends core_Manager
             }
             
             $attr = array('title' => $title, 'class' => 'eyeIcon');
-    		$attr = ht::addBackgroundIcon($attr, 'img/16/eye-open.png');
+            $attr = ht::addBackgroundIcon($attr, 'img/16/eye-open.png');
 
-            $viewLink = ht::createElement('span', $attr, '', TRUE);
+            $viewLink = ht::createElement('span', $attr, '', true);
         }
         
         if ($actArr = self::getActions($containerId, self::ACTION_VIEW, 1)) {
             $rec = array_pop($actArr);
             
             if (self::haveRightFor('renderview', $rec)) {
-                
                 $viewCnt = self::getViewCount($containerId);
                 
                 if ($viewCnt) {
@@ -189,7 +183,7 @@ class colab_DocumentLog extends core_Manager
                     $attr['data-useHover'] = '1';
                     $attr['data-useCache'] = '1';
                     
-                    $viewCntLink = ht::createElement('span', $attr, "<span>" . $viewCnt . "</span>", TRUE);
+                    $viewCntLink = ht::createElement('span', $attr, '<span>' . $viewCnt . '</span>', true);
                     
                     $viewCntLink = '<div class="pluginCountButtonNub"></div>' . $viewCntLink;
                     
@@ -200,16 +194,14 @@ class colab_DocumentLog extends core_Manager
             }
         }
         
-        $viewLink = "<span>" . $viewLink . "</span>";
+        $viewLink = '<span>' . $viewLink . '</span>';
         
         return $viewLink;
     }
     
     
-    /**
-     * 
-     */
-    function act_ShowViewed()
+    
+    public function act_ShowViewed()
     {
         expect(Request::get('ajax_mode'));
         
@@ -226,9 +218,9 @@ class colab_DocumentLog extends core_Manager
         $html = $this->getViewHtml($cid);
         
         $resObj = new stdClass();
-		$resObj->func = "html";
-		$resObj->arg = array('id' => self::getElemId($cid), 'html' => $html, 'replace' => TRUE);
-		
+        $resObj->func = 'html';
+        $resObj->arg = array('id' => self::getElemId($cid), 'html' => $html, 'replace' => true);
+        
         $res = array($resObj);
         
         return $res;
@@ -237,9 +229,9 @@ class colab_DocumentLog extends core_Manager
     
     /**
      * Подготвя лога за виждания
-     * 
+     *
      * @param integer $cid
-     * 
+     *
      * @return string
      */
     protected static function getViewHtml($cid)
@@ -252,7 +244,7 @@ class colab_DocumentLog extends core_Manager
         foreach ($actArr as $rec) {
             
             // Записите
-            $row = (object)array(
+            $row = (object) array(
                 'createdOn' => $rec->createdOn,
                 'createdBy' => $rec->createdBy,
                 'cnt' => $rec->cnt
@@ -272,27 +264,26 @@ class colab_DocumentLog extends core_Manager
     
     /**
      * Връща id за html елемент
-     * 
+     *
      * @param stdClass $rec
-     * 
+     *
      * @return string
      */
     protected static function getElemId($cid)
     {
-        
         return 'showViewed_' . $cid;
     }
     
     
     /**
      * Връща броя на вижданията на документа от колабораторите
-     * 
+     *
      * @param integer $cid
      * @param boolean $group
-     * 
+     *
      * @return integer
      */
-    protected static function getViewCount($cid, $group = TRUE)
+    protected static function getViewCount($cid, $group = true)
     {
         $query = self::getQuery();
         $query->where(array("#containerId = '[#1#]'", $cid));
@@ -313,33 +304,33 @@ class colab_DocumentLog extends core_Manager
     
     /**
      * Проверява дали има съответното действия за съответния документ
-     * 
+     *
      * @param integer $containerId
-     * @param string $action
-     * 
+     * @param string  $action
+     *
      * @return boolean
      */
     protected static function haveAction($containerId, $action)
     {
         if (self::getActions($containerId, $action, 1)) {
             
-            return TRUE;
+            return true;
         }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Връща всички дейстив за документа
-     * 
+     *
      * @param integer $containerId
-     * @param string $action
+     * @param string  $action
      * @param integer limit
-     * 
+     *
      * @return array
      */
-    protected static function getActions($containerId, $action = NULL, $limit=NULL)
+    protected static function getActions($containerId, $action = null, $limit = null)
     {
         $resArr = array();
         
@@ -363,16 +354,18 @@ class colab_DocumentLog extends core_Manager
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param colab_DocumentLog $mvc
      */
     protected static function on_Shutdown($mvc)
     {
-        if (!self::$recForAdd) return ;
+        if (!self::$recForAdd) {
+            
+            return ;
+        }
         
         foreach (self::$recForAdd as $rec) {
-            
             if (!($nRec = self::fetch(array("#containerId = [#1#] AND #action = '[#2#]' AND #createdBy = [#3#]", $rec->containerId, $rec->action, $rec->createdBy)))) {
                 $nRec = $rec;
             }
@@ -388,17 +381,16 @@ class colab_DocumentLog extends core_Manager
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (($requiredRoles != 'no_one') && $rec && $action == 'renderview') {
             $doc = doc_Containers::getDocument($rec->containerId);
             if (!$doc->instance->haveRightFor('single', $doc->that)) {
-                
                 $requiredRoles = 'no_one';
             }
         }
@@ -407,10 +399,10 @@ class colab_DocumentLog extends core_Manager
     
     /**
      * След изчислянване на вербалната стойност
-     * 
+     *
      * @param colab_DocumentLog $mvc
-     * @param object $row
-     * @param object $rec
+     * @param object            $row
+     * @param object            $rec
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {

@@ -3,7 +3,7 @@
 
 /**
  * Драйвер за работа с .svg файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -17,16 +17,19 @@ class fileman_webdrv_Svg extends fileman_webdrv_Inkscape
     
     /**
      * Преобразува подадения файл в SVG
-     * 
+     *
      * @param string $file
      * @param string $type
      * @param string $name
-     * 
+     *
      * @return string - манипулатор на новия файл
      */
     public static function toSvg($file, $type = 'auto', $name = '')
     {
-        if (!$file) return ;
+        if (!$file) {
+            
+            return ;
+        }
         
         cls::load('fileman_Files');
         
@@ -59,14 +62,14 @@ class fileman_webdrv_Svg extends fileman_webdrv_Inkscape
         $errFilePath = self::getErrLogFilePath($outFilePath);
         
         // Скрипта, който ще конвертира файла в .svg формат
-        $Script->lineExec("inkscape [#INPUTF#] --export-plain-svg=[#OUTPUTF#] --export-area-drawing", array('errFilePath' => $errFilePath));
+        $Script->lineExec('inkscape [#INPUTF#] --export-plain-svg=[#OUTPUTF#] --export-area-drawing', array('errFilePath' => $errFilePath));
         
         // Стартираме скрипта синхронно
-        $Script->run(FALSE);
+        $Script->run(false);
         
         fileman_Indexes::haveErrors($outFilePath, array('type' => 'pdf', 'errFilePath' => $errFilePath));
         
-        $resFileHnd = NULL;
+        $resFileHnd = null;
         
         if (is_file($outFilePath)) {
             $resFileHnd = fileman::absorb($outFilePath, 'fileIndex');
@@ -80,7 +83,7 @@ class fileman_webdrv_Svg extends fileman_webdrv_Inkscape
             
             if ($fileType == 'string') {
                 fileman::deleteTempPath($file);
-            } 
+            }
         } else {
             if (is_file($errFilePath)) {
                 $err = @file_get_contents($errFilePath);

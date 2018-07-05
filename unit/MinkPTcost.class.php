@@ -12,11 +12,11 @@
  * @since     v 0.1
  * @link
  */
-
-class unit_MinkPTcost extends core_Manager {
+class unit_MinkPTcost extends core_Manager
+{
      
     /**
-     * Стартира последователно тестовете от MinkPTcost 
+     * Стартира последователно тестовете от MinkPTcost
      */
     //http://localhost/unit_MinkPTcost/Run/
     public function act_Run()
@@ -26,10 +26,11 @@ class unit_MinkPTcost extends core_Manager {
         }
         
         $res = '';
-        $res .= "<br>".'MinkPTcost';
-        $res .= "  1.".$this->act_InstallTcost();
-        $res .= "  2.".$this->act_CreateDeliveryTerm();
-        $res .= "  3.".$this->act_CreateFeeZones();
+        $res .= '<br>'.'MinkPTcost';
+        $res .= '  1.'.$this->act_InstallTcost();
+        $res .= '  2.'.$this->act_CreateDeliveryTerm();
+        $res .= '  3.'.$this->act_CreateFeeZones();
+
         return $res;
     }
     
@@ -47,6 +48,7 @@ class unit_MinkPTcost extends core_Manager {
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
+
         return $browser;
     }
   
@@ -61,13 +63,14 @@ class unit_MinkPTcost extends core_Manager {
         $Company = 'Фирма bgErp';
         $browser->click($Company);
         $browser->press('Папка');
+
         return $browser;
     }
     /**
      * 1. Инсталиране на пакета Tcost
      */
     //http://localhost/unit_MinkPTcost/InstallTcost/
-    function act_InstallTcost()
+    public function act_InstallTcost()
     {
         // Логване
         $browser = $this->SetUp();
@@ -76,9 +79,9 @@ class unit_MinkPTcost extends core_Manager {
         $browser->setValue('search', 'Tcost');
         $browser->press('Филтрирай');
         //$browser->click('Активирай');
-        if(strpos($browser->gettext(), 'Активирай')) {
-        $browser->open('http://localhost/core_Packs/install/?pack=Tcost');
-        //echo $browser->getHtml();
+        if (strpos($browser->gettext(), 'Активирай')) {
+            $browser->open('http://localhost/core_Packs/install/?pack=Tcost');
+            //echo $browser->getHtml();
         }
     }
     
@@ -86,7 +89,7 @@ class unit_MinkPTcost extends core_Manager {
      * 2. Създаване на условие на доставка с изчисляване на транспортна себестойност
      */
     //http://localhost/unit_MinkPTcost/CreateDeliveryTerm/
-    function act_CreateDeliveryTerm()
+    public function act_CreateDeliveryTerm()
     {
         // Логване
         $browser = $this->SetUp();
@@ -100,13 +103,12 @@ class unit_MinkPTcost extends core_Manager {
         $browser->setValue('calcCost', 'Включено');
         $browser->press('Запис');
         //return $browser->getHtml();
-        
     }
     /**
      * 3. Създаване на транспортни зони
      */
     //http://localhost/unit_MinkPTcost/CreateFeeZones/
-    function act_CreateFeeZones()
+    public function act_CreateFeeZones()
     {
         // Логване
         $browser = $this->SetUp();
@@ -145,7 +147,5 @@ class unit_MinkPTcost extends core_Manager {
         $browser->setValue('deliveryTermId', 'TRR');
         $browser->press('Запис');
         $browser->click('Зона BG 2');
-    
     }
-     
 }

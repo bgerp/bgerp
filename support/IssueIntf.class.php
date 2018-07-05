@@ -15,5 +15,4 @@
  */
 class support_IssueIntf
 {
-
 }

@@ -20,7 +20,7 @@ class calculator_View
     /**
      * Връща хипервръзка с икона за стартиране на калкулатора
      */
-    static function getBtn()
+    public static function getBtn()
     {
         $tpl = new ET("<a style='cursor:pointer;' title='" . tr('Калкулатор') . "' onclick=\"w = window.open('[#url#]','Calculator','width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0'); if(w) w.focus();\"  target='Calculator'>[#icon#]</a>");
         

@@ -3,25 +3,26 @@
 /**
  * Чертае Окръжност
  */
-class cad2_Circle  extends cad2_Shape {
+class cad2_Circle extends cad2_Shape
+{
     
     /**
      * Задължителен интерфейс, който фигурите трябва да имат
      */
-    var $interfaces = 'cad2_ShapeIntf';
+    public $interfaces = 'cad2_ShapeIntf';
     
     
     /**
      * Наименование на фигурата
      */
-    var $title = 'Елементи » Окръжност';
+    public $title = 'Елементи » Окръжност';
     
     
     /**
      * Допълва дадената форма с параметрите на фигурата
      * Връща масив от имената на параметрите
      */
-    static function addFields(&$form)
+    public static function addFields(&$form)
     {
         $form->FLD('x', 'float', 'caption=X');
         $form->FLD('y', 'float', 'caption=Y');
@@ -38,21 +39,21 @@ class cad2_Circle  extends cad2_Shape {
     /**
      * Метод за изрисуване на фигурата
      */
-    function render($svg, $p = array())
-    { 
+    public function render($svg, $p = array())
+    {
         extract($p);
         
-        if(!$notStartNewPath) {
+        if (!$notStartNewPath) {
             $svg->startPath(
                 array(
                 'stroke' => $stroke,
-                'fill' => $fill, 
-                'stroke-width' => $strokeWidth, 
+                'fill' => $fill,
+                'stroke-width' => $strokeWidth,
                 'fill-opacity' => $opacity)
                 );
         }
 
-        $svg->moveTo($x, $y - $r, TRUE);
+        $svg->moveTo($x, $y - $r, true);
         
         self::draw($svg, $r);
     }
@@ -68,5 +69,4 @@ class cad2_Circle  extends cad2_Shape {
         $svg->roundTo(-$r, 0, -$r, -$r, $r);
         $svg->roundTo(0, -$r, $r, -$r, $r);
     }
-
 }

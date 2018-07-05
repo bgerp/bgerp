@@ -28,39 +28,39 @@ class remote_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'remote_Authorizations';
+    public $startCtr = 'remote_Authorizations';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Оторизация от и към външни услуги";
+    public $info = 'Оторизация от и към външни услуги';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-        'REMOTE_RECEIVE_NOTIFICATIONS' => array ('enum(yes=Да,no=Не)', 'caption=Получаване на нотификации от отдалечени системи->Избор, customizeBy=powerUser'),
+    public $configDescription = array(
+        'REMOTE_RECEIVE_NOTIFICATIONS' => array('enum(yes=Да,no=Не)', 'caption=Получаване на нотификации от отдалечени системи->Избор, customizeBy=powerUser'),
         );
 
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-   var $managers = array(
+    public $managers = array(
             'remote_Authorizations',
             'remote_Tokens',
         );
@@ -69,49 +69,49 @@ class remote_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'remote';
+    public $roles = 'remote';
     
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(1.99, 'Система', 'Отдалечени', 'remote_Authorizations', 'list', "admin"),
+    public $menuItems = array(
+            array(1.99, 'Система', 'Отдалечени', 'remote_Authorizations', 'list', 'admin'),
         );
 
         
     /**
      * Инсталиране на пакета
      */
-    function install()
-    {  
-    	$html = parent::install(); 
-    	 
+    public function install()
+    {
+        $html = parent::install();
+         
         $html .= core_Classes::add('remote_BgerpDriver');
 
         $rec = new stdClass();
-        $rec->systemId = "UpdateRemoteNotification";
-        $rec->description = "Обновяване на отдалечени нотификации";
-        $rec->controller = "remote_BgerpDriver";
-        $rec->action = "UpdateRemoteNotification";
+        $rec->systemId = 'UpdateRemoteNotification';
+        $rec->description = 'Обновяване на отдалечени нотификации';
+        $rec->controller = 'remote_BgerpDriver';
+        $rec->action = 'UpdateRemoteNotification';
         $rec->period = 3;
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
         
         $rec = new stdClass();
-        $rec->systemId = "DeleteExpiredTokens";
-        $rec->description = "Изтриване на изтеклите tokens";
-        $rec->controller = "remote_Tokens";
-        $rec->action = "DeleteExpiredTokens";
+        $rec->systemId = 'DeleteExpiredTokens';
+        $rec->description = 'Изтриване на изтеклите tokens';
+        $rec->controller = 'remote_Tokens';
+        $rec->action = 'DeleteExpiredTokens';
         $rec->period = 50;
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
 
         $rec = new stdClass();
-        $rec->systemId = "AlertForNotifications";
-        $rec->description = "Изтриване на изтеклите tokens";
-        $rec->controller = "remote_Authorizations";
-        $rec->action = "AlertForNotifications";
+        $rec->systemId = 'AlertForNotifications';
+        $rec->description = 'Изтриване на изтеклите tokens';
+        $rec->controller = 'remote_Authorizations';
+        $rec->action = 'AlertForNotifications';
         $rec->period = 1;
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
@@ -123,12 +123,11 @@ class remote_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);
         
         return $res;
     }
-
 }

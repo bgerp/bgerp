@@ -207,6 +207,7 @@ class doc_Folders extends core_Master
     public static function logRead($action, $objectId = null, $lifeDays = 180)
     {
         if (!self::logToFolder('read', $action, $objectId, $lifeDays)) {
+            
             return parent::logRead($action, $objectId, $lifeDays);
         }
     }
@@ -224,6 +225,7 @@ class doc_Folders extends core_Master
     public static function logWrite($action, $objectId = null, $lifeDays = 360)
     {
         if (!self::logToFolder('write', $action, $objectId, $lifeDays)) {
+            
             return parent::logWrite($action, $objectId, $lifeDays);
         }
     }
@@ -240,12 +242,14 @@ class doc_Folders extends core_Master
     protected static function logToFolder($type, $action, $objectId, $lifeDays)
     {
         if (!$objectId) {
+            
             return ;
         }
         
         $allowedType = array('read', 'write');
         
         if (!in_array($type, $allowedType)) {
+            
             return ;
         }
         
@@ -257,6 +261,7 @@ class doc_Folders extends core_Master
             $fncName = 'log' . $type;
             
             if (!cls::load($rec->coverClass, true)) {
+                
                 return ;
             }
             
@@ -322,6 +327,7 @@ class doc_Folders extends core_Master
     public static function haveRightToFolder($folderId, $userId = null)
     {
         if (!($folderId > 0)) {
+            
             return false;
         }
 
@@ -343,16 +349,19 @@ class doc_Folders extends core_Master
         
         // Всеки има право на достъп до папката за която отговаря
         if ($rec->inCharge && ($rec->inCharge == $userId)) {
+            
             return true;
         }
         
         // Всеки има право на достъп до папките, които са му споделени
         if (strpos($rec->shared, '|' . $userId . '|') !== false) {
+            
             return true;
         }
         
         // Всеки има право на достъп до общите папки
         if (($rec->access == 'public') && !core_Users::isContractor()) {
+            
             return true;
         }
         
@@ -361,6 +370,7 @@ class doc_Folders extends core_Master
             
             // с изключение на личните и секретните на други CEO
             if (core_Users::haveRole('ceo', $rec->inCharge) && (($rec->access == 'private') || ($rec->access == 'secret'))) {
+                
                 return false;
             }
 
@@ -375,16 +385,19 @@ class doc_Folders extends core_Master
         
         // Ако папката е екипна, и е на член от екипа на потребителя, и потребителя е manager или officer или executive - има достъп
         if ($rec->access == 'team' && $fromTeam && core_Users::haveRole('manager,officer,executive', $userId)) {
+            
             return true;
         }
         
         // Ако собственика на папката има права 'manager' или 'ceo' отказваме достъпа
         if (core_Users::haveRole('manager,ceo', $rec->inCharge)) {
+            
             return false;
         }
         
         // Ако папката е лична на член от екипа, и потребителя има права 'manager' - има достъп
         if ($rec->access == 'private' && $fromTeam && core_Users::haveRole('manager', $userId)) {
+            
             return true;
         }
         
@@ -668,6 +681,7 @@ class doc_Folders extends core_Master
         // Ако не е форсирано, при наличие на запис да не се обновява
         if (!$forced) {
             if (isset($fRec->statistic)) {
+                
                 return $fRec->statistic;
             }
         }
@@ -985,6 +999,7 @@ class doc_Folders extends core_Master
     {
         // Ако няма стойност, връщаме
         if (!$id) {
+            
             return ;
         }
         
@@ -996,6 +1011,7 @@ class doc_Folders extends core_Master
         
         // Ако корицата не е Лице или Фирма
         if (($coverClass != 'crm_Persons') && ($coverClass != 'crm_Companies')) {
+            
             return ;
         }
             
@@ -1004,6 +1020,7 @@ class doc_Folders extends core_Master
         
         // Ако няма въведена държава
         if (!$classRec->country) {
+            
             return ;
         }
             
@@ -1012,6 +1029,7 @@ class doc_Folders extends core_Master
         
         // Ако няма нищо
         if (!$lgStr) {
+            
             return ;
         }
         
@@ -1097,6 +1115,7 @@ class doc_Folders extends core_Master
     {
         // Проверяваме дали е число
         if (!is_numeric($params['folderId'])) {
+            
             return false;
         }
         
@@ -1113,6 +1132,7 @@ class doc_Folders extends core_Master
         
         // Ако няма права и е със секретен достъп
         if (!$rec || (!($haveRight) && $rec->access == 'secret')) {
+            
             return false;
         }
 
@@ -1701,6 +1721,7 @@ class doc_Folders extends core_Master
     public static function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
     {
         if (!$rec->coverClass) {
+            
             return ;
         }
         $class = cls::get($rec->coverClass);
@@ -1760,18 +1781,22 @@ class doc_Folders extends core_Master
         $currUser = core_Users::getCurrent();
         
         if (!doc_Folders::haveRightFor('single', $id, $currUser)) {
+            
             return false;
         }
         
         if (!$userOrRole) {
+            
             return true;
         }
         
         if ($currUser == $userOrRole) {
+            
             return true;
         }
         
         if (haveRole('admin, ceo', $currUser)) {
+            
             return true;
         }
         
@@ -2006,6 +2031,7 @@ class doc_Folders extends core_Master
            
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
+                
                 return array();
             }
 

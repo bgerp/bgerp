@@ -21,7 +21,7 @@ class status_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на опаковката от табове
      */
-    function description()
+    public function description()
     {
         $this->TAB('status_Messages', 'Съобщения', 'admin');
         $this->TAB('status_Retrieving', 'Изтегляния', 'admin');

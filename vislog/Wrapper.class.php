@@ -23,9 +23,8 @@ class vislog_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
-        
         $this->TAB('vislog_History', 'История', 'admin, ceo, cms');
         $this->TAB('vislog_Referer', 'Рефериране', 'admin, ceo, cms');
         $this->TAB('vislog_Adwords', 'Adwords', 'admin, ceo, cms');

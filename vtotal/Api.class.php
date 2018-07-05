@@ -1,28 +1,27 @@
 <?php
 
 
-require_once __DIR__ . "/VirusTotalApiV2.php";
+require_once __DIR__ . '/VirusTotalApiV2.php';
 
 class vtotal_Api extends core_Master
 {
+    public $loadList = 'vtotal_Setup';
 
-    public $loadList = "vtotal_Setup";
-
-    private static $VTScanUrl = "https://www.virustotal.com/vtapi/v2/file/report";
+    private static $VTScanUrl = 'https://www.virustotal.com/vtapi/v2/file/report';
 
     //public static $VTApiKey = "7bd9b8cf8075a43624ea21db550e3caf04d201a99b8ddc634d47995ea5822148";
 
     /**
-     * @param   string $md5Hash     MD5 на файла идващ от cronJob
-     * @return  stdClass            Връща обект от много и различна информаниция за сигурността на файла за файла
+     * @param  string   $md5Hash MD5 на файла идващ от cronJob
+     * @return stdClass Връща обект от много и различна информаниция за сигурността на файла за файла
      */
     public static function VTGetReport($md5Hash)
     {
         $post = array(
-            "resource" => $md5Hash,
+            'resource' => $md5Hash,
 //            "apikey" => vtotal_Setup::get('VIRUSTOTAL_API_KEY'),
         //Api key here
-            "apikey" => "",
+            'apikey' => '',
         );
 
         $ch = curl_init();
@@ -35,27 +34,27 @@ class vtotal_Api extends core_Master
         curl_close($ch);
 
         if ($httpCode == '429') {
+            
             return array(
                 'response_code' => -3
             );
         } elseif ($httpCode == '403') {
+            
             return array(
                 'response_code' => -1
             );
-        } else
-            return json_decode($responce);
+        }
 
+        return json_decode($responce);
     }
 
     /**
-     * @param stdClass $VTResponse
+     * @param  stdClass  $VTResponse
      * @return float|int
      */
     public static function getDangerRateVTResponse($VTResponse)
     {
-
-        return  $VTResponse->positives/$VTResponse->total * 100;
-
+        return  $VTResponse->positives / $VTResponse->total * 100;
     }
 
     public static function getLastCheckVTResponse($VTResponse)
@@ -64,10 +63,10 @@ class vtotal_Api extends core_Master
     }
 
     /**
-     * @param stdClass $VTResponse Virus Total Api Response
-     * @return int Отговор
-     * -1 ако файлът НЕ е преминал проверка
-     *  1 ако файлът е преминал проверка
+     * @param  stdClass $VTResponse Virus Total Api Response
+     * @return int      Отговор
+     *                             -1 ако файлът НЕ е преминал проверка
+     *                             1 ако файлът е преминал проверка
      */
     public function checkIfFileIsUseable($VTResponse)
     {

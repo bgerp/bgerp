@@ -16,29 +16,28 @@
  */
 class swf_Setup extends core_ProtoSetup
 {
-	
-	
-	/**
-	 * Версия на пакета
-	 */
-	public $version = '0.1';
-	
-	
-	/**
-	 * Описание на модула
-	 */
-	public $info = "Пакет за работа с SWFObject2";
-	
     
-	/**
-	 * Път до js файла
-	 */
-//	var $commonJS = 'swf/2.2/swfobject.js';
+    
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
+    
+    
+    /**
+     * Описание на модула
+     */
+    public $info = 'Пакет за работа с SWFObject2';
+    
+    
+    /**
+     * Път до js файла
+     */
+    //	var $commonJS = 'swf/2.2/swfobject.js';
 
-	
-	/**
-	 * Пакет без инсталация
-	 */
-	public $noInstall = TRUE;
+    
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = true;
 }
-

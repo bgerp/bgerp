@@ -12,11 +12,11 @@
  * @since     v 0.1
  * @link
  */
-
-class unit_MinkPColab extends core_Manager {
+class unit_MinkPColab extends core_Manager
+{
      
     /**
-     * Стартира последователно тестовете от MinkPColab 
+     * Стартира последователно тестовете от MinkPColab
      */
     //http://localhost/unit_MinkPColab/Run/
     public function act_Run()
@@ -26,15 +26,16 @@ class unit_MinkPColab extends core_Manager {
         }
         
         $res = '';
-        $res .= "<br>".'MinkPColab';
-        $res .= "  1.".$this->act_InstallColab();
-        $res .= "  2.".$this->act_AddDistrAddRights();
-        $res .= "  3.".$this->act_CreateAgent();
-        $res .= "  4.".$this->act_AddAgentRights();
-        $res .= "  5.".$this->act_LogAgent();
-        $res .= "  6.".$this->act_CreateDistr();
-        $res .= "  7.".$this->act_AddDistrRights();
-        $res .= "  8.".$this->act_LogDistr();
+        $res .= '<br>'.'MinkPColab';
+        $res .= '  1.'.$this->act_InstallColab();
+        $res .= '  2.'.$this->act_AddDistrAddRights();
+        $res .= '  3.'.$this->act_CreateAgent();
+        $res .= '  4.'.$this->act_AddAgentRights();
+        $res .= '  5.'.$this->act_LogAgent();
+        $res .= '  6.'.$this->act_CreateDistr();
+        $res .= '  7.'.$this->act_AddDistrRights();
+        $res .= '  8.'.$this->act_LogDistr();
+
         return $res;
     }
     
@@ -52,6 +53,7 @@ class unit_MinkPColab extends core_Manager {
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
+
         return $browser;
     }
   
@@ -66,13 +68,14 @@ class unit_MinkPColab extends core_Manager {
         $Company = 'Фирма bgErp';
         $browser->click($Company);
         $browser->press('Папка');
+
         return $browser;
     }
     /**
      * 1. Инсталиране на пакета colab
      */
     //http://localhost/unit_MinkPColab/InstallColab/
-    function act_InstallColab()
+    public function act_InstallColab()
     {
         // Логване
         $browser = $this->SetUp();
@@ -89,7 +92,7 @@ class unit_MinkPColab extends core_Manager {
      * 2. Права на distributor за добавяне на артикули в продажба
      */
     //http://localhost/unit_MinkPColab/AddDistrAddRights/
-    function act_AddDistrAddRights()
+    public function act_AddDistrAddRights()
     {
         // Логване
         $browser = $this->SetUp();
@@ -98,7 +101,7 @@ class unit_MinkPColab extends core_Manager {
         $browser->setValue('search', 'sales');
         $browser->press('Филтрирай');
         $browser->click('Настройки');
-        $browser->setValue('distributor', True);
+        $browser->setValue('distributor', true);
         $browser->press('Запис');
         //echo $browser->getHtml();
     }
@@ -107,7 +110,7 @@ class unit_MinkPColab extends core_Manager {
      * 3. Създаване на Partner-agent и потребител към него
      */
     //http://localhost/unit_MinkPColab/CreateAgent/
-    function act_CreateAgent()
+    public function act_CreateAgent()
     {
         // Логване
         $browser = $this->SetUp();
@@ -119,7 +122,7 @@ class unit_MinkPColab extends core_Manager {
         $browser->setValue('name', 'Агент на Фирма bgErp');
         $browser->setValue('buzCompanyId', '3');
         //$browser->setValue('groupListInput[9]', True);
-        $browser->setValue('Потребители', True);
+        $browser->setValue('Потребители', true);
         $browser->press('Запис');
         // Добавяне на потребител
         $browser->press('Потребител');
@@ -131,20 +134,19 @@ class unit_MinkPColab extends core_Manager {
         //$browser->setValue('partner', True);
         $browser->setValue('roleRank', 'partner');
         $browser->refresh('Запис');
-        $browser->setValue('agent', True);
+        $browser->setValue('agent', true);
         //Повтаряне на паролите,
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
         $browser->press('Запис');
         //return $browser->getHtml();
-        
     }
     
     /**
      * 4. Даване на права до папката на фирмата и изход
      */
     //http://localhost/unit_MinkPColab/AddAgentRights/
-    function act_AddAgentRights()
+    public function act_AddAgentRights()
     {
         // Логване
         $browser = $this->SetUp();
@@ -158,14 +160,13 @@ class unit_MinkPColab extends core_Manager {
         $browser->press('Запис');
         $browser->click('Изход');
         //Да се затвори браузъра
-        
-    }  
+    }
     
     /**
      * 5. Логване на agent и запитване
      */
     //http://localhost/unit_MinkPColab/LogAgent/
-    function act_LogAgent()
+    public function act_LogAgent()
     {
         // Логване
         $browser = cls::get('unit_Browser');
@@ -183,13 +184,12 @@ class unit_MinkPColab extends core_Manager {
         $browser->setValue('inqDescription', 'Чували');
         $browser->setValue('measureId', 'брой');
         $browser->press('Запис');
-      
     }
     /**
      * 6. Създаване на Partner-distributor и потребител към него
      */
     //http://localhost/unit_MinkPColab/CreateDistr/
-    function act_CreateDistr()
+    public function act_CreateDistr()
     {
         // Логване
         $browser = $this->SetUp();
@@ -200,7 +200,7 @@ class unit_MinkPColab extends core_Manager {
         $browser->press('Ново лице');
         $browser->setValue('name', 'Представител на Фирма bgErp');
         $browser->setValue('buzCompanyId', '3');
-        $browser->setValue('Потребители', True);
+        $browser->setValue('Потребители', true);
         $browser->press('Запис');
        
         // Добавяне на потребител
@@ -213,19 +213,18 @@ class unit_MinkPColab extends core_Manager {
         //$browser->setValue('partner', True);
         $browser->setValue('roleRank', 'partner');
         $browser->refresh('Запис');
-        $browser->setValue('distributor', True);
+        $browser->setValue('distributor', true);
         //Повтаряне на паролите,
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
         $browser->press('Запис');
-    
     }
     
     /**
      * 7. Даване на права до папката на фирмата и изход
      */
     //http://localhost/unit_MinkPColab/AddDistrRights/
-    function act_AddDistrRights()
+    public function act_AddDistrRights()
     {
         // Логване
         $browser = $this->SetUp();
@@ -239,14 +238,13 @@ class unit_MinkPColab extends core_Manager {
         $browser->press('Запис');
         $browser->click('Изход');
         //Да се затвори браузъра
-    
     }
     
     /**
      * 8. Логване на distr, запитване и продажба
      */
     //http://localhost/unit_MinkPColab/LogDistr/
-    function act_LogDistr()
+    public function act_LogDistr()
     {
         // Логване
         $browser = cls::get('unit_Browser');
@@ -259,7 +257,7 @@ class unit_MinkPColab extends core_Manager {
         $browser->press('Вход');
         $browser->click('Теми');
         
-        //Продажба 
+        //Продажба
         $browser->click('Теми');
         $browser->press('Продажба');
         $browser->setValue('reff', 'от distr');
@@ -274,7 +272,5 @@ class unit_MinkPColab extends core_Manager {
         $browser->press('Запис');
         $browser->press('Заявка');
         //return $browser->getHtml();
-       
     }
-    
 }

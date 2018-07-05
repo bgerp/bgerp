@@ -29,19 +29,19 @@ class xmpphp_Sender extends core_Manager
     /**
      * Интерфeйси
      */
-    var $interfaces = 'bgerp_XmppIntf';
+    public $interfaces = 'bgerp_XmppIntf';
     
     
     /**
      * Изпраща Xmpp съобщение
      */
-    static function send($user, $message)
+    public static function send($user, $message)
     {
-    	$conf = core_Packs::getConfig('xmpphp');
-    	
-        include (XMPPHP_VERSION . "/XMPPHP/XMPP.php");
+        $conf = core_Packs::getConfig('xmpphp');
         
-        $conn = new XMPPHP_XMPP($conf->XMPPHP_SERVER, $conf->XMPPHP_PORT, $conf->XMPPHP_USER, $conf->XMPPHP_PASSWORD, 'xmpphp', $conf->XMPPHP_DOMAIN, $printlog = False, $loglevel = LEVEL_ERROR);
+        include(XMPPHP_VERSION . '/XMPPHP/XMPP.php');
+        
+        $conn = new XMPPHP_XMPP($conf->XMPPHP_SERVER, $conf->XMPPHP_PORT, $conf->XMPPHP_USER, $conf->XMPPHP_PASSWORD, 'xmpphp', $conf->XMPPHP_DOMAIN, $printlog = false, $loglevel = LEVEL_ERROR);
         
         try {
             $conn->connect();
@@ -49,7 +49,7 @@ class xmpphp_Sender extends core_Manager
             $conn->presence();
             $conn->message($user, $message);
             $conn->disconnect();
-        } catch(XMPPHP_Exception $e) {
+        } catch (XMPPHP_Exception $e) {
             return($e->getMessage());
         }
     }
@@ -58,7 +58,7 @@ class xmpphp_Sender extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function act_Test()
+    public function act_Test()
     {
         requireRole('admin');
         

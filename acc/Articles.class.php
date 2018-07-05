@@ -183,6 +183,7 @@ class acc_Articles extends core_Master
     {
         $rec = $this->fetchRec($id);
         if (!empty($rec->originId) || ($this->canUseClosedItems === true)) {
+            
             return true;
         }
         
@@ -409,6 +410,7 @@ class acc_Articles extends core_Master
         }
         
         if (!$articleId = static::save($articleRec)) {
+            
             return false;
         }
         

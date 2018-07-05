@@ -59,7 +59,7 @@ class html2text_Html2Text
      * @var string $html
      * @access public
      */
-    var $html;
+    public $html;
     
     
     /**
@@ -68,7 +68,7 @@ class html2text_Html2Text
      * @var string $text
      * @access public
      */
-    var $text;
+    public $text;
     
     
     /**
@@ -77,7 +77,7 @@ class html2text_Html2Text
      * @var integer $width
      * @access public
      */
-    var $width = 70;
+    public $width = 70;
     
     
     /**
@@ -88,7 +88,7 @@ class html2text_Html2Text
      * @access public
      * @see $replace
      */
-    var $search = array(
+    public $search = array(
         "/\r/", // Non-legal carriage return
         "/[\n\t]+/", // Newlines and tabs
         '/<script[^>]*>.*?<\/script>/si', // <script>s -- which strip_tags supposedly has problems with
@@ -147,7 +147,7 @@ class html2text_Html2Text
      * @access public
      * @see $search
      */
-    var $replace = array(
+    public $replace = array(
         '', // Non-legal carriage return
         ' ', // Newlines and tabs
         '', // <script>s -- which strip_tags supposedly has problems with
@@ -204,7 +204,7 @@ class html2text_Html2Text
     /**
      * @todo Чака за документация...
      */
-    var $replaceSimple = array(
+    public $replaceSimple = array(
         '', // Non-legal carriage return
         ' ', // Newlines and tabs
         '', // <script>s -- which strip_tags supposedly has problems with
@@ -265,7 +265,7 @@ class html2text_Html2Text
      * @access private
      * @see $html, $text
      */
-    var $_converted = FALSE;
+    public $_converted = false;
     
     
     /**
@@ -275,13 +275,14 @@ class html2text_Html2Text
      * @access private
      * @see _build_link_list()
      */
-    var $_link_list;
+    public $_link_list;
     
     
     /**
      * Просто конвертира
      */
-    function convert2text($html, $simple = FALSE) {
+    public function convert2text($html, $simple = false)
+    {
         $this->set_html($html);
         $this->simple = $simple;
         
@@ -296,12 +297,12 @@ class html2text_Html2Text
      * will instantiate with that source propagated, all that has
      * to be done it to call get_text().
      *
-     * @param string $source HTML content
+     * @param string  $source    HTML content
      * @param boolean $from_file Indicates $source is a file to pull content from
      * @access public
      * @return void
      */
-    function set($source = '', $from_file = FALSE)
+    public function set($source = '', $from_file = false)
     {
         if (!empty($source)) {
             $this->set_html($source, $from_file);
@@ -312,12 +313,12 @@ class html2text_Html2Text
     /**
      * Loads source HTML into memory, either from $source string or a file.
      *
-     * @param string $source HTML content
+     * @param string  $source    HTML content
      * @param boolean $from_file Indicates $source is a file to pull content from
      * @access public
      * @return void
      */
-    function set_html($source, $from_file = FALSE)
+    public function set_html($source, $from_file = false)
     {
         $this->html = $source;
         
@@ -327,7 +328,7 @@ class html2text_Html2Text
             fclose($fp);
         }
         
-        $this->_converted = FALSE;
+        $this->_converted = false;
     }
     
     
@@ -337,7 +338,7 @@ class html2text_Html2Text
      * @access public
      * @return string
      */
-    function get_text()
+    public function get_text()
     {
         if (!$this->_converted) {
             $this->_convert();
@@ -353,9 +354,9 @@ class html2text_Html2Text
      * @access public
      * @return void
      */
-    function print_text()
+    public function print_text()
     {
-        print $this->get_text();
+        echo $this->get_text();
     }
     
     
@@ -366,9 +367,9 @@ class html2text_Html2Text
      * @return void
      * @see print_text()
      */
-    function p()
+    public function p()
     {
-        print $this->get_text();
+        echo $this->get_text();
     }
     
     
@@ -383,7 +384,7 @@ class html2text_Html2Text
      * @access private
      * @return void
      */
-    function _convert()
+    public function _convert()
     {
         // Variables used for building the link list
         $link_count = 1;
@@ -392,10 +393,9 @@ class html2text_Html2Text
         $text = trim(stripslashes($this->html));
         
         // Run our defined search-and-replace
-        if($this->simple) {
+        if ($this->simple) {
             $text = preg_replace($this->search, $this->replaceSimple, $text);
         } else {
-
             $text = preg_replace($this->search, $this->replace, $text);
         }
         
@@ -417,7 +417,7 @@ class html2text_Html2Text
         
         $this->text = $text;
         
-        $this->_converted = TRUE;
+        $this->_converted = true;
     }
     
     
@@ -429,29 +429,29 @@ class html2text_Html2Text
      * appeared.
      *
      * @param integer $link_count Counter tracking current link number
-     * @param string $link URL of the link
-     * @param string $display Part of the text to associate number with
+     * @param string  $link       URL of the link
+     * @param string  $display    Part of the text to associate number with
      * @access private
      * @return string
      */
-    function _build_link_list($link_count, $link, $display)
+    public function _build_link_list($link_count, $link, $display)
     {
         $link = trim($link);
         $display = trim($display);
         
-        if($this->wapSafe) {
+        if ($this->wapSafe) {
             if (trim($link) == trim($display)) {
-                return "{[{a href='$display'}]}$display{[{/a}]}";
-            } else {
-                return "{[{a href='$link'}]}$display{[{/a}]}" ;
+                
+                return "{[{a href='${display}'}]}${display}{[{/a}]}";
             }
-        } else {
-            if (trim($link) == trim($display)) {
-                return $display;
-            } else {
-                return $display . " " . $link . " ";
-            }
+
+            return "{[{a href='${link}'}]}${display}{[{/a}]}" ;
         }
+        if (trim($link) == trim($display)) {
+            
+            return $display;
+        }
+
+        return $display . ' ' . $link . ' ';
     }
 }
-

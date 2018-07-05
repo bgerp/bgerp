@@ -14,27 +14,28 @@
  * @since     v 0.1
  * @link
  */
-class type_Text extends core_Type {
+class type_Text extends core_Type
+{
     
     
     /**
      * MySQL тип на полето в базата данни
      */
-    var $dbFieldType = 'text';
+    public $dbFieldType = 'text';
     
     
     /**
      * Дължина на полето в mySql таблица
      */
-    var $dbFieldLen = 65536;
+    public $dbFieldLen = 65536;
     
     
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
-        if(Mode::is('screenMode', 'narrow')) {
+        if (Mode::is('screenMode', 'narrow')) {
             setIfnot($attr['rows'], $this->params['rows'], 5);
         } else {
             setIfnot($attr['rows'], $this->params['rows'], 10);
@@ -46,39 +47,39 @@ class type_Text extends core_Type {
         setIfNot($size, $this->params['size'], $this->params[0], $this->dbFieldLen);
         
         if (!$this->params['noTrim']) {
-            $attr['onblur'] .= "this.value = this.value.trim();";
+            $attr['onblur'] .= 'this.value = this.value.trim();';
         }
         
-        if($size > 0) {
-             $attr['onblur'] .= "colorByLen(this, {$size}, true); if(this.value.length > {$size}) alert('" . 
-                 tr("Въведената стойност е дълга") . " ' + this.value.length + ' " . tr("символа, което е над допустимите") . " $size " . tr('символа') . "');";
-             $attr['onkeyup'] .= "colorByLen(this, {$size});";
+        if ($size > 0) {
+            $attr['onblur'] .= "colorByLen(this, {$size}, true); if(this.value.length > {$size}) alert('" .
+                 tr('Въведената стойност е дълга') . " ' + this.value.length + ' " . tr('символа, което е над допустимите') . " ${size} " . tr('символа') . "');";
+            $attr['onkeyup'] .= "colorByLen(this, {$size});";
         }
         
         $attr['name'] = $name;
 
-        return ht::createElement('textarea', $attr, $value, TRUE);
+        return ht::createElement('textarea', $attr, $value, true);
     }
     
     
     /**
      * Връща атрибутите на MySQL полето
      */
-    function getMysqlAttr()
+    public function getMysqlAttr()
     {
         // Умножаваме по 2 размера, заради UTF-8, който представя кирилицата с 2 байта
         $size = 2 * $this->getDbFieldSize();
         
-        if(!$size) {
-            $this->dbFieldType = "text";
-        } elseif($size <256) {
-            $this->dbFieldType = "tinytext";
-        } elseif($size <65536) {
-            $this->dbFieldType = "text";
-        } elseif($size <16777216) {
-            $this->dbFieldType = "mediumtext";
+        if (!$size) {
+            $this->dbFieldType = 'text';
+        } elseif ($size < 256) {
+            $this->dbFieldType = 'tinytext';
+        } elseif ($size < 65536) {
+            $this->dbFieldType = 'text';
+        } elseif ($size < 16777216) {
+            $this->dbFieldType = 'mediumtext';
         } else {
-            $this->dbFieldType = "longtext";
+            $this->dbFieldType = 'longtext';
         }
         
         return parent::getMysqlAttr();
@@ -89,7 +90,7 @@ class type_Text extends core_Type {
      * Връща стойността на текста, без изменения, защото се
      * предполага, че той е в HTML формат
      */
-    function toVerbal_($value)
+    public function toVerbal_($value)
     {
         if (!Mode::is('text', 'plain')) {
             $value = str_replace(array('&', '<', "\n"), array('&amp;', '&lt;', '<br>'), $value) ;
@@ -102,13 +103,13 @@ class type_Text extends core_Type {
     /**
      * Разбива произволно дълъг текст на линии с определена максимална дължина
      *
-     * @param string $text текста за разбиване
-     * @param int $width максимален брой символи на линия
-     * @param int $firstLine отместване на първата линия в текста. Останалите линии ще бъдат
-     * попълнени отпред с интервали за да се подравнят отляво с първата.
+     * @param  string $text      текста за разбиване
+     * @param  int    $width     максимален брой символи на линия
+     * @param  int    $firstLine отместване на първата линия в текста. Останалите линии ще бъдат
+     *                           попълнени отпред с интервали за да се подравнят отляво с първата.
      * @return string
      */
-    static function formatTextBlock($text, $width, $firstLine)
+    public static function formatTextBlock($text, $width, $firstLine)
     {
         $lines = explode("\n", $text);
         $splitLines = array();
@@ -134,11 +135,11 @@ class type_Text extends core_Type {
     /**
      * Разбива текст на линии с определена макс. дължина на линията
      *
-     * @param string $text
-     * @param int $width макс. брой символи на линия
+     * @param  string $text
+     * @param  int    $width макс. брой символи на линия
      * @return array
      */
-    static function splitToLines($text, $width)
+    public static function splitToLines($text, $width)
     {
         $lines = array();
         
@@ -158,11 +159,12 @@ class type_Text extends core_Type {
      * @TODO да се ограничи на кои символи може да завършва парчето, за да не реже думите по
      * средата.
      *
-     * @param string $text извлеченото парче се отрязва от текста.
-     * @param int $width максимална дължина на парчето
+     * @param  string $text  извлеченото парче се отрязва от текста.
+     * @param  int    $width максимална дължина на парчето
      * @return string
      */
-    static function getChunk(&$text, $width) {
+    public static function getChunk(&$text, $width)
+    {
         $chunk = mb_substr($text, 0, $width);
         $text = mb_substr($text, $width);
         
@@ -175,7 +177,7 @@ class type_Text extends core_Type {
      */
     public function getSuggestions()
     {
-        if(!$this->suggestions) {
+        if (!$this->suggestions) {
             $this->prepareSuggestions();
         }
 
@@ -190,11 +192,14 @@ class type_Text extends core_Type {
     {
         $this->suggestions = arr::make($this->suggestions);
         
-        if ($this->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this)) === FALSE) return ;
+        if ($this->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this)) === false) {
+            
+            return ;
+        }
         
-        // Добавяме 
+        // Добавяме
         $suggestionsStr = str_replace('|', ',', $this->params['suggestions']);
-        $this->suggestions = arr::make($suggestionsStr, TRUE);
+        $this->suggestions = arr::make($suggestionsStr, true);
         
         $this->invoke('AfterPrepareSuggestions', array(&$this->suggestions, $this));
     }

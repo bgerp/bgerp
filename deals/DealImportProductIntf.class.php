@@ -16,19 +16,19 @@
  */
 class deals_DealImportProductIntf extends acc_RegisterIntf
 {
-	
-	
-	/**
-	 * Инпортиране на артикул генериран от ред на csv файл 
-	 * @param int $masterId - ид на мастъра на детайла
-	 * @param array $row - Обект представляващ артикула за импортиране
-	 * 					->code - код/баркод на артикула
-	 * 					->quantity - К-во на опаковката или в основна мярка
-	 * 					->price - цената във валутата на мастъра, ако няма се изчислява директно
-	 * @return string $html - съобщение с резултата
-	 */
-	function import($masterId, $row)
-	{
-		return $this->class->import($masterId, $row);
-	}
+    
+    
+    /**
+     * Инпортиране на артикул генериран от ред на csv файл
+     * @param  int    $masterId - ид на мастъра на детайла
+     * @param  array  $row      - Обект представляващ артикула за импортиране
+     *                          ->code - код/баркод на артикула
+     *                          ->quantity - К-во на опаковката или в основна мярка
+     *                          ->price - цената във валутата на мастъра, ако няма се изчислява директно
+     * @return string $html - съобщение с резултата
+     */
+    public function import($masterId, $row)
+    {
+        return $this->class->import($masterId, $row);
+    }
 }

@@ -22,24 +22,24 @@ class sass_Converter
     
     /**
      * Конвертира sass в css файл
-     * 
-     * @param string $file - Линк към файла или стринг от стилове
+     *
+     * @param string $file   - Линк към файла или стринг от стилове
      * @param string $syntax - Синтаксиса sass или scss
-     * @param string $style - nested, expanded, compact, compressed
-     * 
+     * @param string $style  - nested, expanded, compact, compressed
+     *
      * @return string - Конвертиран css стринг
      */
-    static function convert($file, $syntax=FALSE, $style = 'nested')
+    public static function convert($file, $syntax = false, $style = 'nested')
     {
         // Опциите
         $options = array(
             'style' => $style,
-            'cache' => FALSE,
+            'cache' => false,
             'syntax' => $syntax,
-            'debug' => FALSE,
+            'debug' => false,
             'callbacks' => array(
-            	'warn' => FALSE,
-            	'debug' => FALSE,
+                'warn' => false,
+                'debug' => false,
             ),
         );
         

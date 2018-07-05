@@ -605,6 +605,7 @@ class acc_ValueCorrections extends core_Master
         
         // Може да се добави само към тред на покупка/продажба
         if ($firstDoc->isInstanceOf('sales_Sales') || $firstDoc->isInstanceOf('purchase_Purchases')) {
+            
             return true;
         }
         

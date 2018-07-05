@@ -8,5 +8,4 @@
  */
 class spas_client_Exception extends Exception
 {
-
 }

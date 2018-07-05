@@ -108,6 +108,7 @@ class doc_DocumentCache extends core_Master
     public static function getCache($cRec, $document)
     {
         if ($cRec->id == Request::get('Cid')) {
+            
             return false;
         }
         
@@ -191,6 +192,7 @@ class doc_DocumentCache extends core_Master
         
         // Ако не е включено кеширането на документите в нишката не правим нищо
         if (!(doc_Setup::get('CACHE_LIFETIME') > 0)) {
+            
             return $res;
         }
         expect($threadId);
@@ -235,6 +237,7 @@ class doc_DocumentCache extends core_Master
         
         // Ако не кешираме, няма какво да инвалидираме
         if (!(doc_Setup::get('CACHE_LIFETIME') > 0)) {
+            
             return $deleted;
         }
         
@@ -275,6 +278,7 @@ class doc_DocumentCache extends core_Master
     public static function on_Shutdown($mvc)
     {
         if (empty(self::$invalidateCIdArr)) {
+            
             return ;
         }
         

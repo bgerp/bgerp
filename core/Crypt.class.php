@@ -283,18 +283,21 @@ class core_Crypt extends core_BaseClass
         $var = base64_decode($var);
         
         if (!$var) {
+            
             return false;
         }
         
         $var = self::decodeStr($var, $key . 'encodeVar');
         
         if (!$var) {
+            
             return false;
         }
         
         $var = gzuncompress($var);
         
         if (!$var) {
+            
             return false;
         }
         

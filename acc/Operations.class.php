@@ -111,6 +111,7 @@ class acc_Operations extends core_Manager
     {
         // Ако има запис с това име, връщаме му ид-то
         if ($id = static::fetchField(array("#title = '[#1#]'", $title), 'id')) {
+            
             return $id;
         }
         

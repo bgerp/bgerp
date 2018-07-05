@@ -15,34 +15,32 @@
  */
 class email_DocumentIntf extends doc_DocumentIntf
 {
-	
-	
-	/**
+    
+    
+    /**
      * Връща тялото на имейла генериран от документа
-     * 
-     * @param int $id - ид на документа
+     *
+     * @param int     $id      - ид на документа
      * @param boolean $forward
-     * 
+     *
      * @return string
      */
-    public function getDefaultEmailBody($id, $forward = FALSE)
+    public function getDefaultEmailBody($id, $forward = false)
     {
-        
-        return $this->class->getDefaultEmailBody($id, $forward = FALSE);
+        return $this->class->getDefaultEmailBody($id, $forward = false);
     }
-	
-	
-	/**
+    
+    
+    /**
      * Връща заглавието на имейла
-     * 
-     * @param int $id - ид на документа
+     *
+     * @param int     $id      - ид на документа
      * @param boolean $forward
-     * 
+     *
      * @return string
      */
-    public function getDefaultEmailSubject($id, $forward = FALSE)
+    public function getDefaultEmailSubject($id, $forward = false)
     {
-        
-        return $this->class->getDefaultEmailSubject($id, $forward = FALSE);
+        return $this->class->getDefaultEmailSubject($id, $forward = false);
     }
 }

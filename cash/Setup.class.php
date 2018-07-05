@@ -21,43 +21,43 @@ class cash_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'cash_Cases';
+    public $startCtr = 'cash_Cases';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'drdata=0.1';
+    public $depends = 'drdata=0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Каси, кешови операции и справки";
+    public $info = 'Каси, кешови операции и справки';
     
-	
-	/**
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'cash_Cases',
-        	'cash_Pko',
-        	'cash_Rko',
-        	'cash_InternalMoneyTransfer',
-        	'cash_ExchangeDocument',
-    		'cash_NonCashPaymentDetails',
+            'cash_Pko',
+            'cash_Rko',
+            'cash_InternalMoneyTransfer',
+            'cash_ExchangeDocument',
+            'cash_NonCashPaymentDetails',
             'migrate::repairSerchKeywords',
         );
 
@@ -65,30 +65,30 @@ class cash_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = array(
-    		array('cash', 'seePrice'),
-    		array('cashMaster', 'cash'),
+    public $roles = array(
+            array('cash', 'seePrice'),
+            array('cashMaster', 'cash'),
     );
 
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(2.2, 'Финанси', 'Каси', 'cash_Cases', 'default', "cash, ceo"),
+    public $menuItems = array(
+            array(2.2, 'Финанси', 'Каси', 'cash_Cases', 'default', 'cash, ceo'),
         );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cash_reports_CashImpl";
+    public $defClasses = 'cash_reports_CashImpl';
     
     
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

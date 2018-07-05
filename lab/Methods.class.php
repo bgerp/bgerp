@@ -18,17 +18,17 @@ class lab_Methods extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Методи за лабораторни тестове";
+    public $title = 'Методи за лабораторни тестове';
 
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = "Метод за лабораторен тест";
+    public $singleTitle = 'Метод за лабораторен тест';
 
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State,
+    public $loadList = 'plg_Created, plg_State,
                              Params=lab_Parameters, plg_RowTools2, plg_Printing, 
                              lab_Wrapper, plg_Sorting, fileman_Files';
 
@@ -61,7 +61,7 @@ class lab_Methods extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'lab,ceo';
+    public $canList = 'lab,ceo';
 
     /**
      * Кой може да разглежда сингъла на документите?
@@ -78,8 +78,11 @@ class lab_Methods extends core_Master
      */
     public function description()
     {
-        $this->FLD('paramId', 'key(mvc=lab_Parameters,select=name,allowEmpty,remember)', 
-            'caption=Параметър,notSorting,mandatory');
+        $this->FLD(
+            'paramId',
+            'key(mvc=lab_Parameters,select=name,allowEmpty,remember)',
+            'caption=Параметър,notSorting,mandatory'
+        );
         $this->FLD('name', 'varchar(255)', 'caption=Наименование');
         $this->FLD('abbreviatedName', 'varchar(255)', 'caption=Съкращение');
         $this->FLD('formula', 'text', 'caption=Формула');
@@ -92,54 +95,49 @@ class lab_Methods extends core_Master
     /**
      * Проверка и валидиране на формата
      *
-     * @param core_Mvc $mvc     
-     * @param stdClass $form            
+     * @param core_Mvc $mvc
+     * @param stdClass $form
      */
-    static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
         
         if ($form->isSubmitted()) {
+            if ($rec->formula) {
+                $contex = array();
             
-            if ($rec->formula){
-            
-            $contex = array();
-            
-            preg_match_all("/\\$[_a-z][a-z0-9_]*/i", $rec->formula, $matches);
+                preg_match_all('/\$[_a-z][a-z0-9_]*/i', $rec->formula, $matches);
             
                 foreach ($matches[0] as $v) {
-                    
                     $contex += array(
                         $v => 1
                     );
                 }
             
-                if ((str::prepareMathExpr($rec->formula, $contex)) === FALSE) {
-                    
-                    $form->setError('formula', "Некоректно въведена формула !");
+                if ((str::prepareMathExpr($rec->formula, $contex)) === false) {
+                    $form->setError('formula', 'Некоректно въведена формула !');
                 }
-                
             }
-            
         }
-    
     }
 
     /**
      * Линк към single
      *
-     * @param core_Mvc $mvc            
-     * @param stdClass $row            
-     * @param stdClass $rec            
+     * @param core_Mvc $mvc
+     * @param stdClass $row
+     * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->name = Ht::createLink($row->name, 
+        $row->name = Ht::createLink(
+            $row->name,
             array(
                 $mvc,
                 'single',
                 $rec->id
-            ));
+            )
+        );
     }
 
     /**

@@ -15,7 +15,8 @@
  * @since     v 0.1
  * @link
  */
-class type_AutofillMenu extends type_Varchar {
+class type_AutofillMenu extends type_Varchar
+{
     
     /**
      * Опции за менюто
@@ -40,19 +41,18 @@ class type_AutofillMenu extends type_Varchar {
         $this->menuOpt = $menuOpt;
         $this->namesList = $namesList;
         $this->separator = $separator;
-
     }
 
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
         $res = new ET();
         
-        if(is_array($this->menuOpt) && count($this->menuOpt)) {
-            foreach($this->menuOpt as $fromTo => $verbal) {
-                $opt .= "<option value='$fromTo'>{$verbal}</options>";
+        if (is_array($this->menuOpt) && count($this->menuOpt)) {
+            foreach ($this->menuOpt as $fromTo => $verbal) {
+                $opt .= "<option value='${fromTo}'>{$verbal}</options>";
             }
         
             expect($this->namesList);

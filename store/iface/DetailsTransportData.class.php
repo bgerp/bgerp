@@ -16,37 +16,37 @@
 class store_iface_DetailsTransportData
 {
     
-	
-	/**
-	 * Клас имплементиращ интерфейса
-	 */
-	public $class;
-	
-	
-	/**
-	 * Какви са използваните ЛЕ
-	 * 
-	 * @param stdClass $masterRec - ид на мастъра
-	 * @return array              - масив с ле => к-во
-	 */
-	public function getTransUnits($masterRec)
-	{
-		return $this->getTransUnits($masterRec);
-	}
-	
-	
-	/**
-	 * Изчисляване на общото тегло и обем на редовете
-	 * 
-	 * @param stdClass $masterRec - ид на мастъра
-	 * @param boolean $force
-	 * @return stdClass $res
-	 * 			- weight    - теглото на реда
-	 * 			- volume    - теглото на реда
-	 * 			- transUnits - транспортнтие еденици
-	 */
-	public function getTransportInfo($masterId, $force = FALSE)
-	{
-		return $this->class->getTransportInfo($masterId, $force);
-	}
+    
+    /**
+     * Клас имплементиращ интерфейса
+     */
+    public $class;
+    
+    
+    /**
+     * Какви са използваните ЛЕ
+     *
+     * @param  stdClass $masterRec - ид на мастъра
+     * @return array    - масив с ле => к-во
+     */
+    public function getTransUnits($masterRec)
+    {
+        return $this->getTransUnits($masterRec);
+    }
+    
+    
+    /**
+     * Изчисляване на общото тегло и обем на редовете
+     *
+     * @param  stdClass $masterRec - ид на мастъра
+     * @param  boolean  $force
+     * @return stdClass $res
+     *                            - weight    - теглото на реда
+     *                            - volume    - теглото на реда
+     *                            - transUnits - транспортнтие еденици
+     */
+    public function getTransportInfo($masterId, $force = false)
+    {
+        return $this->class->getTransportInfo($masterId, $force);
+    }
 }

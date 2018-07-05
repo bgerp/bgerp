@@ -14,55 +14,56 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class drdata_Phones extends core_Manager {
+class drdata_Phones extends core_Manager
+{
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin';
+    public $canEdit = 'admin';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin';
+    public $canAdd = 'admin';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin';
+    public $canView = 'admin';
     
     
     /**
      * @todo Чака за документация...
      */
-    var $canNew = 'admin';
+    public $canNew = 'admin';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Телефонни номера';
+    public $title = 'Телефонни номера';
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = 'Членове';
+    public $pageMenu = 'Членове';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('md5', 'varchar(32)', 'caption=MD5');
         $this->FLD('number', 'text', 'caption=Номер');
@@ -76,9 +77,9 @@ class drdata_Phones extends core_Manager {
     
     /**
      * Връща масив с всички варииации на телофона, кода и града
-     * 
+     *
      * @param array $numberArr
-     * 
+     *
      * @return arrray
      */
     public static function getVariationsNumberArr($numbersArr)
@@ -86,7 +87,7 @@ class drdata_Phones extends core_Manager {
         $allArr = array();
         $setArr = array();
         
-        foreach ((array)$numbersArr as $key => $numberObj) {
+        foreach ((array) $numbersArr as $key => $numberObj) {
             
             // Масив с варициите на частите на номера
             $countryVarArr = self::getCountryCodeVariation($numberObj->countryCode);
@@ -101,7 +102,7 @@ class drdata_Phones extends core_Manager {
                         if ($areaCode{0} === '0') {
                             $hash = $areaCode . '|' . $number;
                             if (!$setArr[$hash]) {
-                                $setArr[$hash] = TRUE;
+                                $setArr[$hash] = true;
                                 $allArr[] = $areaCode . $number;
                             }
                         } else {
@@ -119,16 +120,16 @@ class drdata_Phones extends core_Manager {
     /**
      * Връща наличната информация в базата за този код
      */
-    function getMobile($countryCode)
+    public function getMobile($countryCode)
     {
         // Зареждаме инфото, което имаме за тази $countryCode
         static $mobileInfo;
         
-        if($countryCode && !$mobileInfo[$countryCode]) {
+        if ($countryCode && !$mobileInfo[$countryCode]) {
             $query = $this->DialCodes->getQuery();
             
-            while($rec = $query->fetch("#countryCode = '{$countryCode}'")) {
-                if($rec->areaCode) {
+            while ($rec = $query->fetch("#countryCode = '{$countryCode}'")) {
+                if ($rec->areaCode) {
                     $mobileInfo[$countryCode][] = $rec->areaCode;
                 }
             }
@@ -141,70 +142,70 @@ class drdata_Phones extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function parseTel($tel, $dCC = '', $dAC = '', $useCache = TRUE)
+    public function parseTel($tel, $dCC = '', $dAC = '', $useCache = true)
     {
         // Добавка за българските телефони
-        if($dCC == '359' && !$dAC) {
+        if ($dCC == '359' && !$dAC) {
             $dAC = '2';
         }
         
-        if($useCache) {
+        if ($useCache) {
             $telSave = $tel;
             $dCCSave = $dCC;
             $dACSave = $dAC;
             $res = drdata_PhoneCache::get($tel, $dCC, $dAC);
         }
         
-        if($res === NULL) {
-            // Основната идея е да направим различни разбивки на номера и да 
+        if ($res === null) {
+            // Основната идея е да направим различни разбивки на номера и да
             // проверим за всяка една от тях дали се съдържа САМО реални номера
             // Реалните номера предполагаме, че са: ... [Код на страна] [Код на регион] номер [вътрешен] ...
              
-            $tel = str_replace(array('(0)', '[0]', '++'), array('', '', '+') , $tel);
+            $tel = str_replace(array('(0)', '[0]', '++'), array('', '', '+'), $tel);
             
             $tel = preg_replace("/ +\- +/", '-', $tel);
             
             $from = array(' fax', ' факс', ' f.', ' ф.', ' Fax',  ' Факс',  ' F.', ' Ф.', ' FAX', ' ФАКС',
                           ' Mob', ' mob', ' m.', ' m ', ' моб', ' Моб', ' Тел.', ' тел.', '+');
 
-            if($defaultCountryCode) {
+            if ($defaultCountryCode) {
                 $from[] = ' 00' . $defaultCountryCode;
                 $from[] = ' 00 ' . $defaultCountryCode;
             }
-            if($defaultAreaCode) {
+            if ($defaultAreaCode) {
                 $from[] = ' 0' . $defaultAreaCode;
             }
    
-            $sepArr = array(';', ',', ' ', '.', '/', "\\");      // възможни сепаратори
+            $sepArr = array(';', ',', ' ', '.', '/', '\\');      // възможни сепаратори
 
-            foreach($sepArr as $sep) {
-                
+            foreach ($sepArr as $sep) {
                 $to = array();
-                foreach($from as $c) {
+                foreach ($from as $c) {
                     $to[] = $sep . $c;
                 }
                 $tel = str_replace($from, $to, $tel);
 
                 $test[] = explode($sep, $tel);
-                if($sep != ';' && strpos($tel, ';')) {
+                if ($sep != ';' && strpos($tel, ';')) {
                     $test[] = explode($sep, str_replace(';', $sep, $tel));
                 }
             }
  
-            foreach($test as $telArr) {
-                
-                $error = FALSE;
+            foreach ($test as $telArr) {
+                $error = false;
                 $res = array();
                 
                 $defaultCountryCode = $dCC;
                 $defaultAreaCode = $dAC;
                 
-                foreach($telArr as $t) {
+                foreach ($telArr as $t) {
                     
                     // Имаме ли нещо?
                     $t = trim($t, ',;\\/ ');
                     
-                    if(!$t || !preg_match("/[0-9]/", $t)) continue;
+                    if (!$t || !preg_match('/[0-9]/', $t)) {
+                        continue;
+                    }
                     
                     // Нулираме обекта
                     $obj = new stdClass();
@@ -215,20 +216,20 @@ class drdata_Phones extends core_Manager {
                     
                     // Имаме ли факс?
                     
-                    if((strpos($t1, 'faks') !== FALSE) ||
-                        (strpos($t1, 'f.') !== FALSE) ||
-                        (strpos($t1, 'fax') !== FALSE)
+                    if ((strpos($t1, 'faks') !== false) ||
+                        (strpos($t1, 'f.') !== false) ||
+                        (strpos($t1, 'fax') !== false)
                     ) {
-                        $obj->fax = TRUE;
+                        $obj->fax = true;
                     }
                     
                     // Отделяме, ако има вътрешен номер
-                    foreach(array('v.', 'vtr', 'int', 'internal', 'vatre', 'vatr') as $w) {
-                        if(($p = strpos($t1, $w)) !== FALSE) {
+                    foreach (array('v.', 'vtr', 'int', 'internal', 'vatre', 'vatr') as $w) {
+                        if (($p = strpos($t1, $w)) !== false) {
                             $rest = substr($t1, $p + strlen($w));
                             $rest = preg_replace('/[^0-9]/', '', $rest);
                             
-                            if(strlen($rest) > 1 && strlen($rest) < 5) {
+                            if (strlen($rest) > 1 && strlen($rest) < 5) {
                                 $obj->internal = $rest;
                                 $t1 = substr($t1, 0, $p);
                             }
@@ -242,46 +243,47 @@ class drdata_Phones extends core_Manager {
                     // Ако има знак '+', заменяме го с две нули
                     $t1 = str_replace('+', '00', $t1);
                     
-                    if(!$t1) continue;
+                    if (!$t1) {
+                        continue;
+                    }
                     
                     // Оставяме само цифрите
                     $t1 = preg_replace('/[^0-9\+]+/', '', $t1);
                     
                     // Започваме да разсъждаваме над цифрите
                     
-                    // Ако първата цифра на телефона е >0, обаче той е много, много дълъг, за 
+                    // Ако първата цифра на телефона е >0, обаче той е много, много дълъг, за
                     // да бъде локален телефон, проверяваме дали не започва директно с код
                     // на държавата по дефолт. Ако е така, добавяме 2 нули
-                    if($t1{0} > '0' && strlen($t1) >= 10 && $defaultCountryCode) {
-                        if(strpos($t1, $defaultCountryCode) === 0) {
+                    if ($t1{0} > '0' && strlen($t1) >= 10 && $defaultCountryCode) {
+                        if (strpos($t1, $defaultCountryCode) === 0) {
                             $t1 = '00' . $t1;
                         }
                     }
                     
                     // Ако телефонът започва с единица и в оригиналния си вид
                     // след единицата не е цифра, значи предполагаме, че телефонът е американски
-                    if($t1{0} == '1' && strlen($t1) > 0) {
+                    if ($t1{0} == '1' && strlen($t1) > 0) {
                         $onePos = strpos($t, '1');
                         $second = @substr($t, $onePos, 1);
                         
-                        if($second > '9' || $second < '0') {
+                        if ($second > '9' || $second < '0') {
                             $t1 = '00' . $t1;
                         }
                     }
                     
-                    // Ако първата цифра на телефона е >0, обаче той е  дълъг, за 
+                    // Ако първата цифра на телефона е >0, обаче той е  дълъг, за
                     // да бъде локален телефон, проверяваме дали не започва директно с код
                     // на региона по дефолт или на мобилни оператори от държавата. Ако е така, добавяме 1 нула
-                    if($t1{0} > '0' && strlen($t1) >= 8 && strlen($t1) < 15) {
-                        if($defaultAreaCode && strpos($t1, $defaultAreaCode) === 0) {
+                    if ($t1{0} > '0' && strlen($t1) >= 8 && strlen($t1) < 15) {
+                        if ($defaultAreaCode && strpos($t1, $defaultAreaCode) === 0) {
                             $t1 = '0' . $t1;
                         } else {
-                            
                             $mobArr = $this->getMobile($defaultCountryCode);
                             
-                            if(count($mobArr)) {
-                                foreach($mobArr as $mCode) {
-                                    if(strpos($t1, $mCode) === 0) {
+                            if (count($mobArr)) {
+                                foreach ($mobArr as $mCode) {
+                                    if (strpos($t1, $mCode) === 0) {
                                         $t1 = '0' . $t1;
                                     }
                                 }
@@ -291,18 +293,18 @@ class drdata_Phones extends core_Manager {
                     
                     // Ако първата цифра е 0, но втората не е и все пак, телефона е дълъг за да бъде регионален,
                     // Проверяваме дали не започва с националния код, и ако е така, отпред добавяме една 0
-                    if($t1{0} == '0' && $t1{1} > '0' && strlen($t1) >= 9 && $defaultCountryCode) {
-                        if(substr($t1, 1, strlen($defaultCountryCode)) == $defaultCountryCode) {
+                    if ($t1{0} == '0' && $t1{1} > '0' && strlen($t1) >= 9 && $defaultCountryCode) {
+                        if (substr($t1, 1, strlen($defaultCountryCode)) == $defaultCountryCode) {
                             $t1 = '0' . $t1;
                         }
                     }
                     
                     // Ако номера започва с две нули, вадим кода на страната от него
-                    if(substr($t1, 0, 2) == '00') {
+                    if (substr($t1, 0, 2) == '00') {
                         $query = $this->DialCodes->getQuery();
                         $rec = $query->fetch("'{$t1}' LIKE CONCAT('00', #countryCode, '%')   AND !#areaCode  AND #countryCode != ''");
                         
-                        if($rec) {
+                        if ($rec) {
                             $obj->countryCode = $rec->countryCode;
                             $obj->country = $rec->country;
                         } else {
@@ -317,16 +319,15 @@ class drdata_Phones extends core_Manager {
                     
                     // ако номера започва с една нула приемаме, че страната е по дефоулт, и се опитваме да извадим
                     // населеното място
-                    if(substr($t1, 0, 1) == '0') {
-                        if(!$obj->countryCode) {
-                            
+                    if (substr($t1, 0, 1) == '0') {
+                        if (!$obj->countryCode) {
                             $obj->countryCode = $defaultCountryCode;
                             $rec = $this->DialCodes->fetch(" #countryCode = '{$obj->countryCode}'  AND !#areaCode ");
                             $obj->country = $rec->country;
                         }
                         
                         // само за италия
-                        if($obj->countryCode == '39' && $t1{1} == '0') {
+                        if ($obj->countryCode == '39' && $t1{1} == '0') {
                             $t1 = substr($t1, 1);
                         }
                         
@@ -334,22 +335,26 @@ class drdata_Phones extends core_Manager {
                         
                         $rec = $query->fetch("'{$t1}' LIKE CONCAT('0', #areaCode, '%') AND #countryCode = '{$obj->countryCode}' AND #areaCode != ''");
                         
-                        if($rec) {
+                        if ($rec) {
                             $obj->areaCode = $rec->areaCode;
                             $obj->area = $rec->area;
                             $obj->country = $rec->country;
                         } else {
                             // Приемаме, че е непознат регион
-                            if($obj->countryCode == '49') {
+                            if ($obj->countryCode == '49') {
                                 // В германия кодовете са по-дълги
                                 $areaCodeLen = 4;
                             } else {
                                 $areaCodeLen = 2;
                             }
                             
-                            if($t1{$areaCodeLen + 1} == '0') $areaCodeLen++;
+                            if ($t1{$areaCodeLen + 1} == '0') {
+                                $areaCodeLen++;
+                            }
                             
-                            if($t1{$areaCodeLen + 1} == '0') $areaCodeLen++;
+                            if ($t1{$areaCodeLen + 1} == '0') {
+                                $areaCodeLen++;
+                            }
                             
                             $obj->areaCode = substr($t1, 1, $areaCodeLen);
                             
@@ -360,18 +365,18 @@ class drdata_Phones extends core_Manager {
                     }
                     
                     // Само за италия
-                    if($obj->countryCode == '39' && ($obj->areaCode{0} != '0') && ($obj->areaCode{0} != '3')) {
+                    if ($obj->countryCode == '39' && ($obj->areaCode{0} != '0') && ($obj->areaCode{0} != '3')) {
                         $obj->areaCode = '0' . $obj->areaCode;
                     }
                     
                     // Тука вече се предполага, че става дума за локален телефон
                     
                     // Ако нямаме страна?
-                    if(!$obj->countryCode) {
-                        if($defaultCountryCode && $defaultAreaCode) {
+                    if (!$obj->countryCode) {
+                        if ($defaultCountryCode && $defaultAreaCode) {
                             $rec = $this->DialCodes->fetch("#countryCode = '{$defaultCountryCode}' AND #areaCode = '{$defaultAreaCode}'");
                             
-                            if($rec) {
+                            if ($rec) {
                                 $obj->countryCode = $rec->countryCode;
                                 $obj->country = $rec->country;
                                 $obj->areaCode = $rec->areaCode;
@@ -381,11 +386,11 @@ class drdata_Phones extends core_Manager {
                     }
                     
                     // Ако все още нямаме страна
-                    if(!$obj->countryCode) {
-                        if($defaultCountryCode) {
+                    if (!$obj->countryCode) {
+                        if ($defaultCountryCode) {
                             $rec = $this->DialCodes->fetch("#countryCode = '{$defaultCountryCode}' AND !#areaCode ");
                             
-                            if($rec) {
+                            if ($rec) {
                                 $obj->countryCode = $rec->countryCode;
                                 $obj->country = $rec->country;
                             } else {
@@ -395,11 +400,11 @@ class drdata_Phones extends core_Manager {
                     }
                     
                     // Ако имаме страна, но нямаме регион
-                    if($obj->countryCode && !$obj->areaCode) {
-                        if($obj->countryCode && $defaultAreaCode) {
+                    if ($obj->countryCode && !$obj->areaCode) {
+                        if ($obj->countryCode && $defaultAreaCode) {
                             $rec = $this->DialCodes->fetch("#countryCode = '{$obj->countryCode}' AND #areaCode = '{$defaultAreaCode}'");
                             
-                            if($rec) {
+                            if ($rec) {
                                 $obj->areaCode = $rec->areaCode;
                                 $obj->area = $rec->area;
                             } else {
@@ -409,57 +414,56 @@ class drdata_Phones extends core_Manager {
                     }
                     
                     $obj->number = $t1;
-                    $this->debug("<li> $t1 [ " . $obj->countryCode . "-" . $obj->areaCode . "-" . $obj->number . "-" . $ok . " ] ( $defaultCountryCode ) ( $defaultAreaCode ) $obj->area ");
+                    $this->debug("<li> ${t1} [ " . $obj->countryCode . '-' . $obj->areaCode . '-' . $obj->number . '-' . $ok . " ] ( ${defaultCountryCode} ) ( ${defaultAreaCode} ) {$obj->area} ");
                     
-                    if(strpos($obj->area, 'Cellular') !== FALSE) {
-                        $obj->mobile = TRUE;
+                    if (strpos($obj->area, 'Cellular') !== false) {
+                        $obj->mobile = true;
                     }
                     
                     // Хайде сега да видим дали са ОК дължините
-                    $error = FALSE;
+                    $error = false;
                     
-                    if(strlen($obj->number) < 3) {
-                        $this->debug(" [<3] ");
-                        $error = TRUE;
+                    if (strlen($obj->number) < 3) {
+                        $this->debug(' [<3] ');
+                        $error = true;
                     }
                     
                     // Прекалено дълъг номер
-                    if(strlen($obj->number . $obj->areacode) > 13) {
-                        $this->debug(" [>13] ");
-                        $error = TRUE;
+                    if (strlen($obj->number . $obj->areacode) > 13) {
+                        $this->debug(' [>13] ');
+                        $error = true;
                     }
                     
-                    if($obj->countryCode == '352') {
+                    if ($obj->countryCode == '352') {
                         $maxAreaNum = 6;
                     } else {
                         $maxAreaNum = 7;
                     }
                     
-                    if(strlen($obj->areaCode . $obj->number) < $maxAreaNum) {
+                    if (strlen($obj->areaCode . $obj->number) < $maxAreaNum) {
                         $this->debug(" [<{$maxAreaNum}] ");
-                        $error = TRUE;
+                        $error = true;
                     }
                     
                     // Прекалено дълги номера за България
-                    if($obj->countryCode == '359' && $obj->areaCode && strlen($obj->number) > 7) {
-                        $this->debug(" [BG7] ");
-                        $error = TRUE;
+                    if ($obj->countryCode == '359' && $obj->areaCode && strlen($obj->number) > 7) {
+                        $this->debug(' [BG7] ');
+                        $error = true;
                     }
                     
                     // Неточен брой цифри на мобилни номера
-                    if($obj->countryCode == '359' &&
+                    if ($obj->countryCode == '359' &&
                         ($obj->areaCode == '87' || $obj->areaCode == '88' || $obj->areaCode == '89') &&
                         strlen($obj->number) != 7) {
-                        
-                        $this->debug("[BG MOB] ");
-                        $error = TRUE;
+                        $this->debug('[BG MOB] ');
+                        $error = true;
                     }
                     
-                    if(!$error) {
+                    if (!$error) {
                         // Няма грешка засега
                         $res[] = $obj;
                         
-                        if(!$obj->mobile) {
+                        if (!$obj->mobile) {
                             $defaultCountryCode = $obj->countryCode;
                             $defaultAreaCode = $obj->areaCode;
                         }
@@ -469,10 +473,12 @@ class drdata_Phones extends core_Manager {
                     }
                 }
                 
-                if(!$error) break;
+                if (!$error) {
+                    break;
+                }
             }
 
-            if($useCache) {
+            if ($useCache) {
                 drdata_PhoneCache::set($telSave, $dCCSave, $dACSave, $res);
             }
         }
@@ -484,23 +490,22 @@ class drdata_Phones extends core_Manager {
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    static function on_BeforeSave(&$invoker, &$id, &$rec)
+    public static function on_BeforeSave(&$invoker, &$id, &$rec)
     {
-        if($invoker->fetch("#countryCode = '{$rec->countryCode}' AND #areaCode = '{$rec->areaCode}'")) {
+        if ($invoker->fetch("#countryCode = '{$rec->countryCode}' AND #areaCode = '{$rec->areaCode}'")) {
             
-            return FALSE;
+            return false;
         }
         
         $rec->country = trim(str::utf2ascii($rec->country));
         $rec->countryCode = trim($rec->countryCode);
         $rec->area = trim(str::utf2ascii($rec->area));
         
-        if((strpos(strtolower($rec->area), 'russia') !== FALSE || !trim($rec->area)) && $rec->countryCode == '7') {
-            $rec->country = "Russia";
+        if ((strpos(strtolower($rec->area), 'russia') !== false || !trim($rec->area)) && $rec->countryCode == '7') {
+            $rec->country = 'Russia';
         }
         
-        if($rec->country == 'Balgaria')
-        {
+        if ($rec->country == 'Balgaria') {
             $rec->country = 'Bulgaria';
         }
         
@@ -513,8 +518,9 @@ class drdata_Phones extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function debug($str) {
-        if($this->test) {
+    public function debug($str)
+    {
+        if ($this->test) {
             echo $str;
         }
     }

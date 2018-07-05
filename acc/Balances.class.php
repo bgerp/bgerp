@@ -269,6 +269,7 @@ class acc_Balances extends core_Master
         $query->orderBy('#toDate', 'DESC');
         while ($rec = $query->fetch("#toDate < '{$date}'")) {
             if (self::isValid($rec)) {
+                
                 return $rec;
             }
         }
@@ -474,11 +475,13 @@ class acc_Balances extends core_Master
     {
         // Ако балансът никога не е калкулиран, значи не е валиден
         if (empty($rec->lastCalculate)) {
+            
             return false;
         }
         
         // Ако нямаме никакви записи за периода, значи всичко е ОК
         if (empty($rec->lastAlternation)) {
+            
             return true;
         }
          
@@ -490,11 +493,13 @@ class acc_Balances extends core_Master
         $lastRec = $query->fetch();
         
         if ($lastRec && ($lastRec->lastCalculate > $rec->lastCalculate)) {
+            
             return false;
         }
         
         // Ако последното изчисляване е $calcMinutesAfter и повече след последната промяна на журнала за периода, значи баланса е валиден
         if (dt::secsBetween($rec->lastCalculate, $rec->lastAlternation) > $calcMinutesAfter * 60) {
+            
             return true;
         }
         
@@ -514,6 +519,7 @@ class acc_Balances extends core_Master
         for ($day = $d - 1; $day > 0; $day--) {
             $wDate = sprintf('%d-%02d-%02d', $y, $m, $day);
             if (!dt::isHoliday($wDate)) {
+                
                 return $wDate;
             }
         }
@@ -567,6 +573,7 @@ class acc_Balances extends core_Master
         
         // Ако няма запис на последния баланс не се връща нищо
         if (empty($balanceRec)) {
+            
             return false;
         }
         
@@ -598,6 +605,7 @@ class acc_Balances extends core_Master
         
         // Ако няма записи, връщаме празен масив
         if (!count($jRecs)) {
+            
             return $res;
         }
         
@@ -737,6 +745,7 @@ class acc_Balances extends core_Master
         
         // Ако няма записи, връщаме празен масив
         if (!count($jRecs)) {
+            
             return $res;
         }
         

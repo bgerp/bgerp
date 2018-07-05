@@ -14,13 +14,14 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class ckeditor_Plugin extends core_Plugin {
+class ckeditor_Plugin extends core_Plugin
+{
     
     
     /**
      * Извиква се преди рендирането на HTML input
      */
-    function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr, $options = array())
+    public function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr, $options = array())
     {
         ht::setUniqId($attr);
     }
@@ -29,11 +30,13 @@ class ckeditor_Plugin extends core_Plugin {
     /**
      * Извиква се след рендирането на HTML input
      */
-    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr, $options = array())
+    public function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr, $options = array())
     {
-        if(Mode::is('screenMode', 'narrow')) return;
+        if (Mode::is('screenMode', 'narrow')) {
+            return;
+        }
         
         $editor = cls::get('ckeditor_CKeditor');
         $tpl = $editor->renderHtml($tpl, $attr);
     }
-} 
+}

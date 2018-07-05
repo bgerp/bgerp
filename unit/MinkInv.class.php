@@ -13,7 +13,8 @@
  * @since     v 0.1
  * @link
  */
-class unit_MinkInv extends core_Manager {
+class unit_MinkInv extends core_Manager
+{
 
     
     /**
@@ -28,6 +29,7 @@ class unit_MinkInv extends core_Manager {
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
+
         return $browser;
     }
     
@@ -42,15 +44,15 @@ class unit_MinkInv extends core_Manager {
         $Company = 'Фирма bgErp';
         $browser->click($Company);
         $browser->press('Папка');
+
         return $browser;
-          
     }
     
     /**
      *  Създаване на параметър - текст.
      */
     //http://localhost/unit_MinkInv/CreateParam/
-    function act_CreateParam()
+    public function act_CreateParam()
     {
          
         // Логване
@@ -67,23 +69,24 @@ class unit_MinkInv extends core_Manager {
         $browser->setValue('rows', '2');
         $browser->press('Запис');
         //return $browser->getHtml();
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
+
             return Дублиране;
         }
-        if(strpos($browser->gettext(), '<FONT COLOR=RED>!!!red BUG !!!</FONT>;\'[#title#]]')) {
+        if (strpos($browser->gettext(), '<FONT COLOR=RED>!!!red BUG !!!</FONT>;\'[#title#]]')) {
         } else {
-            return "Грешно име";
-        }
             
+            return 'Грешно име';
+        }
     }
     
     /**
-    * Създаване на фирма и папка към нея, допуска дублиране - ОК
-    * Select2 трябва да е деинсталиран
-    */
+     * Създаване на фирма и папка към нея, допуска дублиране - ОК
+     * Select2 трябва да е деинсталиран
+     */
     //http://localhost/unit_MinkInv/CompanyName/
-    function act_CompanyName()
+    public function act_CompanyName()
     {
         // Логване
         $browser = $this->SetUp();
@@ -93,7 +96,7 @@ class unit_MinkInv extends core_Manager {
         $browser->click('Визитник');
         $browser->press('Нова фирма');
         //$browser->setValue('name', '<FONT COLOR=RED>!!! red BUG !!!</FONT> " &lt; &#9829; \' [#title#]');
-        $browser->setValue('name',  $company);
+        $browser->setValue('name', $company);
         $browser->setValue('place', 'Ст. Загора');
         $browser->setValue('pCode', '6400');
         $browser->setValue('address', '<b>!BUG!</b>"&lt;&#9829;\'[#title#]');
@@ -105,25 +108,25 @@ class unit_MinkInv extends core_Manager {
         $browser->press('Запис');
         //return $browser->getText();
         
-        if (strpos($browser->getText(),"Предупреждение:")){
+        if (strpos($browser->getText(), 'Предупреждение:')) {
             $browser->setValue('Ignore', 1);
             $browser->press('Запис');
         }
         //if(strpos($browser->gettext(), '<FONT COLOR=RED>!!! red BUG !!!</FONT> " &lt; &#9829; \' [#title#]')) {
-        if(strpos($browser->gettext(), '<FONT COLOR=RED>!!! red BUG !!!</FONT> " <&#9829; \' [#title#]')) {
-            return "Име";
-        } else {  
-            return $company . " Грешно име";                     
+        if (strpos($browser->gettext(), '<FONT COLOR=RED>!!! red BUG !!!</FONT> " <&#9829; \' [#title#]')) {
+            
+            return 'Име';
         }
-        
+
+        return $company . ' Грешно име';
     }
     
    
     /**
-    * Създаване на параметър - избор.
-    */
+     * Създаване на параметър - избор.
+     */
     //http://localhost/unit_MinkInv/CreateParamChoice/
-    function act_CreateParamChoice()
+    public function act_CreateParamChoice()
     {
          
         // Логване
@@ -144,13 +147,15 @@ class unit_MinkInv extends core_Manager {
         //bp($browser->gettext());
         $browser->press('Запис');
        
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
         }
-        if(strpos($browser->gettext(), '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \'[#title#]')) {
+        if (strpos($browser->gettext(), '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \'[#title#]')) {
         } else {
-            return "Грешно име";
-        } 
+            
+            return 'Грешно име';
+        }
+
         return $browser->getHtml();
     }
     
@@ -160,7 +165,7 @@ class unit_MinkInv extends core_Manager {
     //if(strpos($browser->gettext(), $Company)  && 0) {  - не намира съществуваща фирма
     //if(strpos($browser->gettext(), $Company)) {намира фирмата, но дава грешка при търсене на несъществуваща,  заради търсенето
     //http://localhost/unit_MinkInvPbgERP/TestFirm/
-    function act_TestFirm()
+    public function act_TestFirm()
     {
     
         // Логване
@@ -171,17 +176,16 @@ class unit_MinkInv extends core_Manager {
         $browser->click('Визитник');
         // търсим фирмата
         //$browser->click('P');
-        $Company = "Пролет ООД";
+        $Company = 'Пролет ООД';
          
         //$browser->open("/crm_Companies/?id=&Rejected=&alpha=&Cmd[default]=1&search={$Company}&users=all_users&order=alphabetic&groupId=&Cmd[default]=Филтрирай");
         //if(strpos($browser->gettext(), $Company)  && 0) {  - не намира съществуваща фирма
         //if(strpos($browser->gettext(), $Company)) { намира фирмата, но дава грешка при търсене на несъществуваща, заради търсенето
-        if(strpos($browser->gettext(), $Company)) {
+        if (strpos($browser->gettext(), $Company)) {
             //bp($browser->gettext());
             //има такава фирма - редакция
             $browser->click($Company);
             $browser->press('Редакция');
-    
         } else {
              
             // Създаване на нова фирма
@@ -201,7 +205,5 @@ class unit_MinkInv extends core_Manager {
         $browser->press('Запис');
         // Създаване на папка
         $browser->press('Папка');
-    } 
-    
-      
+    }
 }

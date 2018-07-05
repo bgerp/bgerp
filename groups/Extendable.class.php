@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Плъгин позволяващ разширението на единичния изглед на мастъри с данни от други мениджъри 
+ * Плъгин позволяващ разширението на единичния изглед на мастъри с данни от други мениджъри
  *
  *
  * @category  bgerp
@@ -16,10 +16,10 @@ class groups_Extendable extends core_Plugin
 {
     /**
      * Преди подготовка на единичния изглед
-     * 
+     *
      * @param core_Master $master
-     * @param mixed $res
-     * @param mixed $data
+     * @param mixed       $res
+     * @param mixed       $data
      */
     public static function on_BeforePrepareSingle(core_Master $master, &$res, $data)
     {
@@ -29,18 +29,18 @@ class groups_Extendable extends core_Plugin
     
     /**
      * Реализация на метода $master::addExtender() по подразбиране
-     * 
+     *
      *  Така обектите с прикачен плъгин groups_Extendable получават нов метод - addExtender().
      *  Извикването му води до регистриране на нов екстендер в груповия мениджър на $master по
      *  време на изпълнението.
-     *  
-     *  Този механизъм позволява на плъгините да регистрират екстендери на класовете, към които 
+     *
+     *  Този механизъм позволява на плъгините да регистрират екстендери на класовете, към които
      *  са прикачени.
-     *  
+     *
      * @param core_Master $master
-     * @param mixed $res резултата, който връща $master::addExtender()
-     * @param string $xtName кодово име на екстендер
-     * @param array $xtDescription  
+     * @param mixed       $res           резултата, който връща $master::addExtender()
+     * @param string      $xtName        кодово име на екстендер
+     * @param array       $xtDescription
      */
     public static function on_AfterAddExtender(core_Master $master, &$res, $xtName, $xtDescription)
     {
@@ -52,9 +52,9 @@ class groups_Extendable extends core_Plugin
     
     /**
      * Зарежда (като детайли) екстендерите на групите, в които се намира мастър-записа $rec
-     * 
+     *
      * @param core_Master $master
-     * @param stdClass $rec Запис от модела $master
+     * @param stdClass    $rec    Запис от модела $master
      */
     protected static function attachExtenders(core_Master $master, $rec)
     {
@@ -66,7 +66,7 @@ class groups_Extendable extends core_Plugin
         $details = array();
 
         foreach ($extenders as $key => $ext) {
-            $prefix    = $ext['prefix'];
+            $prefix = $ext['prefix'];
             $className = $ext['className'];
             
             $details[$prefix] = $className;
@@ -80,13 +80,13 @@ class groups_Extendable extends core_Plugin
      * Извлича описанията на екстендерите на групите, в които се намира записа $rec
      *
      * @param core_Master $master
-     * @param stdClass $rec
+     * @param stdClass    $rec
      */
     public static function on_BeforeGetExtenders(core_Master $master, &$extenders, $rec)
     {
         $groupsFieldName = static::getGroupsFieldName($master);
         
-        // ИД-тата на групите в които е записа $rec  
+        // ИД-тата на групите в които е записа $rec
         $groupIds = keylist::toArray($rec->{$groupsFieldName});
         
         expect($GroupsManager = static::getGroupsManager($master));
@@ -99,7 +99,7 @@ class groups_Extendable extends core_Plugin
     {
         $groupsFieldName = static::getGroupsFieldName($master);
         
-        expect($groupsField   = $master->getField($groupsFieldName));
+        expect($groupsField = $master->getField($groupsFieldName));
         expect($GroupsManager = cls::get($groupsField->type->params['mvc']));
         
         return $GroupsManager;
@@ -108,8 +108,8 @@ class groups_Extendable extends core_Plugin
     
     /**
      * Името на полето съдържащо информация за групите в които е съотв. запис на $master
-     * 
-     * @param core_Master $master
+     *
+     * @param  core_Master $master
      * @return string
      */
     protected static function getGroupsFieldName(core_Master $master)
@@ -118,7 +118,7 @@ class groups_Extendable extends core_Plugin
     }
     
     
-    public static function on_AfterSave(core_Master $master, &$id, $rec, $saveFields = NULL)
+    public static function on_AfterSave(core_Master $master, &$id, $rec, $saveFields = null)
     {
         $extenders = $master::getExtenders($rec);
         

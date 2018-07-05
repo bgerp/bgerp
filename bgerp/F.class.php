@@ -303,6 +303,7 @@ class bgerp_F extends core_Manager
         $rec = $query->fetch();
         
         if (!$rec) {
+            
             return ;
         }
         
@@ -394,6 +395,7 @@ class bgerp_F extends core_Manager
         $rec = self::fetch(array("#key = '[#1#]'", $key));
         
         if (!$rec || (dt::addSecs($rec->validity, $rec->createdOn) < dt::now())) {
+            
             return new Redirect(array('Index'), '|Изтекла или липсваща връзка', 'error');
         }
         

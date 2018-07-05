@@ -16,76 +16,76 @@ class pallet_RackDetails extends core_Detail
 {
     
     
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'store_RackDetails';
-	
-	
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'store_RackDetails';
+    
+    
     /**
      * Заглавие
      */
-    var $title = "Детайли на стелаж";
+    public $title = 'Детайли на стелаж';
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Логистика";
+    public $pageMenu = 'Логистика';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, pallet_Wrapper';
+    public $loadList = 'plg_RowTools2, pallet_Wrapper';
     
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'rackId';
+    public $masterKey = 'rackId';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, rackId, rRow, rColumn, action, metric';
+    public $listFields = 'tools=Пулт, rackId, rRow, rColumn, action, metric';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo, pallet';
+    public $canRead = 'ceo, pallet';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo, pallet';
+    public $canEdit = 'ceo, pallet';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo, pallet';
+    public $canAdd = 'ceo, pallet';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo, pallet';
+    public $canDelete = 'ceo, pallet';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('rackId', 'key(mvc=pallet_Racks)', 'caption=Позиция->Стелаж, input=hidden');
         $this->FLD('rRow', 'enum(A,B,C,D,E,F,G,H,ALL)', 'caption=Позиция->Ред');
@@ -106,7 +106,7 @@ class pallet_RackDetails extends core_Detail
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->rackId = pallet_Racks::fetchField("#id = {$rec->rackId}", 'num');
     }
@@ -119,7 +119,7 @@ class pallet_RackDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $rackId = $data->form->rec->rackId;
         $rackNum = pallet_Racks::fetchField("#id = {$rackId}", 'num');
@@ -151,17 +151,17 @@ class pallet_RackDetails extends core_Detail
      */
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	$data->form->title = $data->formTitle;
+        $data->form->title = $data->formTitle;
     }
     
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param core_Mvc $mvc
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
@@ -237,7 +237,7 @@ class pallet_RackDetails extends core_Detail
                 
                 // Проверка, ако новия детайл не е 'outofuse', дали за това ПМ има вече дефиниран детайл 'outofuse'
                 if ($rec->action != 'outofuse') {
-                    if (isset($detailsForRackArr[$rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn]['outofuse'])) {
+                    if (isset($detailsForRackArr[$rec->rackId . '-' . $rec->rRow . '-' . $rec->rColumn]['outofuse'])) {
                         $form->setError('rRow,rColumn', 'Тази позиция вече е дефинирана като неизползваема!');
                     }
                 }
@@ -249,7 +249,7 @@ class pallet_RackDetails extends core_Detail
                     $detailsActionsArr = array('reserved', 'maxWeight', 'maxWidth', 'maxHeight');
                     
                     foreach ($detailsActionsArr as $v) {
-                        if (isset($detailsForRackArr[$rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn][$v])) {
+                        if (isset($detailsForRackArr[$rec->rackId . '-' . $rec->rRow . '-' . $rec->rColumn][$v])) {
                             $form->setWarning('rRow,rColumn', 'За тази позиция вече има дефинирани детайли!');
                             break;
                         }
@@ -257,7 +257,6 @@ class pallet_RackDetails extends core_Detail
                 }
                 
                 // ENDOF Проверка, ако новия детайл е 'outofuse' дали за това ПМ има вече дефинирани детайли, които не са 'outofuse'
-            
             }
             
             /* ENDOF Проверки за други детайли, палети и движения към ПМ-то от новия детайл */
@@ -268,10 +267,10 @@ class pallet_RackDetails extends core_Detail
     /**
      * Зарежда всички детайли за даден стелаж
      *
-     * @param int $rackId
+     * @param  int   $rackId
      * @return array $detailsForRackArr
      */
-    static function getDetailsForRack($rackId)
+    public static function getDetailsForRack($rackId)
     {
         $rackRows = pallet_Racks::fetchField("#id = {$rackId}", 'rows');
         $rackColumns = pallet_Racks::fetchField("#id = {$rackId}", 'columns');
@@ -285,7 +284,7 @@ class pallet_RackDetails extends core_Detail
         $query = pallet_RackDetails::getQuery();
         $where = "#rackId = {$rackId} AND #rRow='ALL' AND #rColumn='ALL'";
         
-        while($rec = $query->fetch($where)) {
+        while ($rec = $query->fetch($where)) {
             $detailsResults[] = $rec;
         }
         unset($query, $where, $rec);
@@ -294,8 +293,7 @@ class pallet_RackDetails extends core_Detail
         $query = pallet_RackDetails::getQuery();
         $where = "#rackId = {$rackId} AND #rRow='ALL' AND #rColumn!='ALL'";
         
-        while($rec = $query->fetch($where)) {
-            
+        while ($rec = $query->fetch($where)) {
             $detailsResults[] = $rec;
         }
         unset($query, $where, $rec);
@@ -304,7 +302,7 @@ class pallet_RackDetails extends core_Detail
         $query = pallet_RackDetails::getQuery();
         $where = "#rackId = {$rackId} AND #rRow!='ALL' AND #rColumn='ALL'";
         
-        while($rec = $query->fetch($where)) {
+        while ($rec = $query->fetch($where)) {
             $detailsResults[] = $rec;
         }
         unset($query, $where, $rec);
@@ -313,14 +311,14 @@ class pallet_RackDetails extends core_Detail
         $query = pallet_RackDetails::getQuery();
         $where = "#rackId = {$rackId} AND #rRow!='ALL' AND #rColumn!='ALL'";
         
-        while($rec = $query->fetch($where)) {
+        while ($rec = $query->fetch($where)) {
             $detailsResults[] = $rec;
         }
         unset($query, $where, $rec);
         
-        // foreach 
+        // foreach
         foreach ($detailsResults as $rec) {
-            $palletPlace = $rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn;
+            $palletPlace = $rec->rackId . '-' . $rec->rRow . '-' . $rec->rColumn;
             
             $detailsRec['action'] = $rec->action;
             $detailsRec['metric'] = $rec->metric;
@@ -329,10 +327,10 @@ class pallet_RackDetails extends core_Detail
             if ($rec->rRow == 'ALL' && $rec->rColumn == 'ALL') {
                 for ($r = 1; $r <= $rackRows; $r++) {
                     for ($c = 1; $c <= $rackColumns; $c++) {
-                        $pp = $rec->rackId . "-" . pallet_Racks::rackRowConv($r) . "-" . $c;
+                        $pp = $rec->rackId . '-' . pallet_Racks::rackRowConv($r) . '-' . $c;
                         
                         if (in_array($detailsRec['action'], $detailsArrBoolean)) {
-                            $detailsForRackArr[$pp][$detailsRec['action']] = "YES";
+                            $detailsForRackArr[$pp][$detailsRec['action']] = 'YES';
                             continue;
                         }
                         
@@ -346,10 +344,10 @@ class pallet_RackDetails extends core_Detail
             // ред 'ALL' и колона not 'ALL'
             if ($rec->rRow == 'ALL' && $rec->rColumn != 'ALL') {
                 for ($r = 1; $r <= $rackRows; $r++) {
-                    $pp = $rec->rackId . "-" . pallet_Racks::rackRowConv($r) . "-" . $rec->rColumn;
+                    $pp = $rec->rackId . '-' . pallet_Racks::rackRowConv($r) . '-' . $rec->rColumn;
                     
                     if (in_array($detailsRec['action'], $detailsArrBoolean)) {
-                        $detailsForRackArr[$pp][$detailsRec['action']] = "YES";
+                        $detailsForRackArr[$pp][$detailsRec['action']] = 'YES';
                         continue;
                     }
                     
@@ -362,10 +360,10 @@ class pallet_RackDetails extends core_Detail
             // ред not 'ALL' и колона 'ALL'
             if ($rec->rRow != 'ALL' && $rec->rColumn == 'ALL') {
                 for ($c = 1; $c <= $rackColumns; $c++) {
-                    $pp = $rec->rackId . "-" . $rec->rRow . "-" . $c;
+                    $pp = $rec->rackId . '-' . $rec->rRow . '-' . $c;
                     
                     if (in_array($detailsRec['action'], $detailsArrBoolean)) {
-                        $detailsForRackArr[$pp][$detailsRec['action']] = "YES";
+                        $detailsForRackArr[$pp][$detailsRec['action']] = 'YES';
                         continue;
                     }
                     
@@ -377,10 +375,10 @@ class pallet_RackDetails extends core_Detail
             
             // ред not 'ALL' и колона not 'ALL'
             if ($rec->rRow != 'ALL' && $rec->rColumn != 'ALL') {
-                $pp = $rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn;
+                $pp = $rec->rackId . '-' . $rec->rRow . '-' . $rec->rColumn;
                 
                 if (in_array($detailsRec['action'], $detailsArrBoolean)) {
-                    $detailsForRackArr[$pp][$detailsRec['action']] = "YES";
+                    $detailsForRackArr[$pp][$detailsRec['action']] = 'YES';
                     continue;
                 }
                 
@@ -396,44 +394,46 @@ class pallet_RackDetails extends core_Detail
     
     /**
      * Проверка дали тази позиция присъства в детайлите и дали е неизползваема
-     * @param int $rackId
-     * @param string $palletPlace
+     * @param  int     $rackId
+     * @param  string  $palletPlace
      * @return boolean
      */
-    static function checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace)
+    public static function checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace)
     {
         $detailsForRackArr = pallet_RackDetails::getDetailsForRack($rackId);
         
         if (empty($detailsForRackArr)) {
-            return TRUE;
-        } else {
-            if (isset($detailsForRackArr[$palletPlace]['outofuse'])) {
-                return FALSE;
-            } else {
-                return TRUE;
-            }
+            
+            return true;
         }
+        if (isset($detailsForRackArr[$palletPlace]['outofuse'])) {
+            
+            return false;
+        }
+
+        return true;
     }
     
     
     /**
      * Проверка дали тази позиция присъства в детайлите и дали е резервирана
-     * @param int $rackId
-     * @param string $palletPlace
+     * @param  int     $rackId
+     * @param  string  $palletPlace
      * @return boolean
      */
-    static function checkIfPalletPlaceIsNotReserved($rackId, $palletPlace)
+    public static function checkIfPalletPlaceIsNotReserved($rackId, $palletPlace)
     {
         $detailsForRackArr = pallet_RackDetails::getDetailsForRack($rackId);
         
         if (empty($detailsForRackArr)) {
-            return TRUE;
-        } else {
-            if (isset($detailsForRackArr[$palletPlace]['reserved'])) {
-                return FALSE;
-            } else {
-                return TRUE;
-            }
+            
+            return true;
         }
+        if (isset($detailsForRackArr[$palletPlace]['reserved'])) {
+            
+            return false;
+        }
+
+        return true;
     }
 }

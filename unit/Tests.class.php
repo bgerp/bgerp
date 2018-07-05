@@ -16,26 +16,25 @@
  */
 class unit_Tests extends core_Manager
 {
+    public $errorLog = '';
+    public $testLog = array();
 
-    var $errorLog = '';
-    var $testLog = array();
-
-    function on_BeforeAction($mvc, &$res, $act)
+    public function on_BeforeAction($mvc, &$res, $act)
     {
         $act = trim(Request::get('Act', 'identifier'), '_');
         
         $classes = array();
 
-        if($act && cls::load($act, TRUE)) {
+        if ($act && cls::load($act, true)) {
             $classes[] = $act;
         } else {
             $classes = $this->readClasses(EF_APP_PATH, $act);
         }
-        foreach($classes as $testClass) { 
-            if(strrpos($testClass, '_tests_')) {
-                if(cls::load($testClass, TRUE)) { 
+        foreach ($classes as $testClass) {
+            if (strrpos($testClass, '_tests_')) {
+                if (cls::load($testClass, true)) {
                     $class = str_replace('_tests_', '_', $testClass);
-                    if(cls::load($class, TRUE)) {
+                    if (cls::load($class, true)) {
                         $tests[$class] = $testClass;
                     }
                 }
@@ -45,36 +44,34 @@ class unit_Tests extends core_Manager
         $requestMetod = strtolower(Request::get('id', 'identifier'));
         
         // Правим тестове на всички открити файлове
-        if(count($tests)) {
-            
+        if (count($tests)) {
             Debug::startTimer('unit_Tests');
             
-            foreach($tests as $class => $testClass) {
-
+            foreach ($tests as $class => $testClass) {
                 $this->testLog[] = "<h3>Тестване на <b style='color:blue;'>{$class}</b></h3><ul>";
 
                 $reflector = new ReflectionClass($testClass);
                 $testClass = cls::get($testClass);
                 $methods = $reflector->getMethods();
-                foreach($methods as $m) {
+                foreach ($methods as $m) {
                     $mName = strtolower($m->name);
-                    if(stripos($mName, 'test_') === 0) {
+                    if (stripos($mName, 'test_') === 0) {
                         $testMethod = substr($mName, 5);
-                        if(!$requestMethod || ($requestMethod == $testMethod)) {
+                        if (!$requestMethod || ($requestMethod == $testMethod)) {
                             $unitClass = cls::get($class);
                             try {
                                 call_user_func(array($testClass, $mName), $unitClass);
                             } catch (core_Exception_Expect $expect) {
                                 $dump = $expect->getDump();
-                                $this->errorLog .= ' exception: ' . $expect->getMessage() . " " . $dump[0]; 
+                                $this->errorLog .= ' exception: ' . $expect->getMessage() . ' ' . $dump[0];
                                 reportException($expect);
                             }
 
-                            if($this->errorLog) {
+                            if ($this->errorLog) {
                                 $msg = "<span class=\"red\">{$this->errorLog}</span>";
                                 $errCnt++;
                             } else {
-                                $msg = "<span class=\"green\">OK</span>";
+                                $msg = '<span class="green">OK</span>';
                             }
 
                             $testsCnt++;
@@ -84,12 +81,12 @@ class unit_Tests extends core_Manager
 
                             $this->testLog[] = "<li>{$class}->" . $methodName . ": {$msg}</li>";
                      
-                            $this->errorLog = '';    
+                            $this->errorLog = '';
                         }
                     }
-                } 
+                }
                 
-                $this->testLog[] = "</ul>";
+                $this->testLog[] = '</ul>';
             }
             
             Debug::stopTimer('unit_Tests');
@@ -97,22 +94,18 @@ class unit_Tests extends core_Manager
 
         $res = implode("\n", $this->testLog);
 
-        return FALSE;
-     }
+        return false;
+    }
 
 
-     /**
-      *
-      */
-    static function expectEqual($a, $b)
+    
+    public static function expectEqual($a, $b)
     {
-        if($a == $b) {
+        if ($a == $b) {
         } else {
             $me = cls::get('unit_Tests');
             $me->errorLog .= "{$a} != {$b}";
         }
-
-        
     }
 
 
@@ -126,7 +119,7 @@ class unit_Tests extends core_Manager
      * @param string $root
      * @result array
      */
-    function readClasses($root, $pack = '')
+    public function readClasses($root, $pack = '')
     {
         $directories = array();
         $root = $root . DIRECTORY_SEPARATOR;
@@ -135,11 +128,10 @@ class unit_Tests extends core_Manager
         $files = array();
         
         while (sizeof($directories)) {
-            
             $dir = array_pop($directories);
             
             if ($handle = @opendir($dir)) {
-                while (FALSE !== ($file = readdir($handle))) {
+                while (false !== ($file = readdir($handle))) {
                     if ($file == '.' || $file == '..' || $file == '.git') {
                         continue;
                     }
@@ -150,9 +142,9 @@ class unit_Tests extends core_Manager
                         $directory_path = $file . DIRECTORY_SEPARATOR;
                         array_push($directories, $directory_path);
                     } elseif (is_file($file) && strpos($file, '.class.php')) {
-                        $file = str_replace($root, "", $file);
-                        $file = str_replace(DIRECTORY_SEPARATOR, "_", $file);
-                        $file = str_replace('.class.php', "", $file);
+                        $file = str_replace($root, '', $file);
+                        $file = str_replace(DIRECTORY_SEPARATOR, '_', $file);
+                        $file = str_replace('.class.php', '', $file);
                         $files[] = $file;
                     }
                 }
@@ -162,5 +154,4 @@ class unit_Tests extends core_Manager
         
         return $files;
     }
-
 }

@@ -14,30 +14,36 @@
  * @since     v 0.1
  * @link
  */
-class type_Enum extends core_Type {
+class type_Enum extends core_Type
+{
     
     
     /**
      * MySQL тип на полето в базата данни
      */
-    var $dbFieldType = 'enum';
+    public $dbFieldType = 'enum';
     
     
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
-    function toVerbal($value)
+    public function toVerbal($value)
     {
-        if(!isset($value)) return NULL;
+        if (!isset($value)) {
+            return;
+        }
         
-        if(!isset($this->options[$value])) return "{$value}?";
+        if (!isset($this->options[$value])) {
+            
+            return "{$value}?";
+        }
         
         $options = $this->options;
-        if(($div = $this->params['groupByDiv'])) {
+        if (($div = $this->params['groupByDiv'])) {
             $options = ht::groupOptions($this->options, $div);
         }
 
-        if(is_object($options[$value])) {
+        if (is_object($options[$value])) {
             $res = tr($options[$value]->title);
         } else {
             $res = tr($options[$value]);
@@ -50,17 +56,16 @@ class type_Enum extends core_Type {
     /**
      * Конвертира от вербална стойност
      */
-    function fromVerbal($value)
+    public function fromVerbal($value)
     {
         if (isset($value) && !isset($this->options[$value])) {
-            $this->error = "Недопустима стойност за изброим тип";
+            $this->error = 'Недопустима стойност за изброим тип';
             
-            return FALSE;
+            return false;
         }
         
-        if($value === '') {
-
-            return NULL;
+        if ($value === '') {
+            return;
         }
         
         return $value;
@@ -70,33 +75,32 @@ class type_Enum extends core_Type {
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
         // TODO: да се махне хака със <style>
-        if(count($this->options)) {
-
-            if(count($this->options) == 2) {
-                if($this->options['off'] == 'off' && $this->options['off'] == 'off') {
-                    $tpl = "<input type='checkbox' name='{$name}'  class='checkbox'" . ($value == 'on'? ' checked ' : '') . ">";
+        if (count($this->options)) {
+            if (count($this->options) == 2) {
+                if ($this->options['off'] == 'off' && $this->options['off'] == 'off') {
+                    $tpl = "<input type='checkbox' name='{$name}'  class='checkbox'" . ($value == 'on'? ' checked ' : '') . '>';
 
                     return $tpl;
                 }
             }
             $options = $this->options;
-            if($div = $this->params['groupByDiv']) {
+            if ($div = $this->params['groupByDiv']) {
                 $options = ht::groupOptions($this->options, $div);
             }
 
             $arr = array();
 
-            foreach($options as $id => $title) {
-                if(is_object($title)) {
+            foreach ($options as $id => $title) {
+                if (is_object($title)) {
                     $arr[$id] = $title;
                     $arr[$id]->title = html_entity_decode(tr($arr[$id]->title));
                 } else {
                     $t1 = explode('<style>', $title);
                     
-                    if(count($t1) == 2) {
+                    if (count($t1) == 2) {
                         $arr[$id]->title = tr($t1[0]);
                         $arr[$id]->attr['style'] = $t1[1];
                     } else {
@@ -106,12 +110,22 @@ class type_Enum extends core_Type {
             }
         }
         
-        parent::setFieldWidth($attr, NULL, $arr);
+        parent::setFieldWidth($attr, null, $arr);
  
-        $tpl = ht::createSmartSelect($arr, $name, $value, $attr,
+        $tpl = ht::createSmartSelect(
+ 
+            $arr,
+ 
+            $name,
+ 
+            $value,
+ 
+            $attr,
             $this->params['maxRadio'],
             $this->params['maxColumns'],
-            $this->params['columns']);
+            $this->params['columns']
+ 
+        );
 
         return $tpl;
     }
@@ -120,9 +134,8 @@ class type_Enum extends core_Type {
     /**
      * Стойност по подразбиране за полетата от тип enum
      */
-    function defVal()
+    public function defVal()
     {
-        
         return key($this->options);
     }
 }

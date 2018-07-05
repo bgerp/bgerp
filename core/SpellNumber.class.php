@@ -212,6 +212,7 @@ class core_SpellNumber
     public function num2Text($NUMBER, $g = 'n')
     {
         if ($NUMBER == 0) {
+            
             return 'нула';
         }
         $N = str_pad(abs($NUMBER), 12, '0', STR_PAD_LEFT);

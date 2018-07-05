@@ -725,6 +725,7 @@ class bank_Register extends core_Manager
     public static function getCurrencyRate($rec)
     {
         if ($rec->currencyRate) {
+            
             return $rec->currencyRate;
         }
 
@@ -732,6 +733,7 @@ class bank_Register extends core_Manager
             $rate = currency_CurrencyRates::getRate($rec->createdOn, $rec->currencyId, null);
  
             if ($rate) {
+                
                 return $rate;
             }
         }

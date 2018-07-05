@@ -23,7 +23,7 @@ class draw_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('draw_Designs', 'Дизайни', 'draw, ceo, admin');
         $this->TAB('draw_Pens', 'Моливи', 'draw, ceo, admin');

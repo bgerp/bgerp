@@ -455,6 +455,7 @@ class core_Db extends core_BaseClass
         $dbRes = $this->query($query);
         
         if (!$dbRes) {
+            
             return false;
         }
         
@@ -475,6 +476,7 @@ class core_Db extends core_BaseClass
         $dbRes = $this->query($query);
         
         if (!$dbRes) {
+            
             return false;
         }
         
@@ -484,6 +486,7 @@ class core_Db extends core_BaseClass
         
         // Ако няма атрибути - връщаме сигнал, че полето не съществува
         if (!$arr) {
+            
             return false;
         }
         
@@ -616,6 +619,7 @@ class core_Db extends core_BaseClass
         }
 
         if ($field->field) {
+            
             return $this->query("ALTER TABLE `{$tableName}` CHANGE `{$field->field}` `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$autoIncrement}{$notNull}{$default}");
         }
 
@@ -808,6 +812,7 @@ class core_Db extends core_BaseClass
                                     WHERE TABLE_SCHEMA = '" . $db->escape($db->dbName) ."'", true);
         
         if (!is_object($dbRes) || !$dbRes->num_rows) {
+            
             return true;
         }
         
@@ -817,6 +822,7 @@ class core_Db extends core_BaseClass
         $db->freeResult($dbRes);
         
         if (!$rows->RECS) {
+            
             return true;
         }
         
@@ -842,6 +848,7 @@ class core_Db extends core_BaseClass
         					 WHERE table_schema = '{$db->dbName}'", true);
         
         if (!is_object($dbRes)) {
+            
             return false;
         }
         

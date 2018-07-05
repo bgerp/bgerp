@@ -223,12 +223,14 @@ class doc_Threads extends core_Manager
     protected static function logToDocument($type, $action, $objectId, $lifeDays)
     {
         if (!$objectId) {
+            
             return ;
         }
         
         $allowedType = array('read', 'write');
         
         if (!in_array($type, $allowedType)) {
+            
             return ;
         }
         
@@ -236,6 +238,7 @@ class doc_Threads extends core_Manager
             $firstCid = self::getFirstContainerId($objectId);
             
             if (!$firstCid) {
+                
                 return ;
             }
             
@@ -848,6 +851,7 @@ class doc_Threads extends core_Manager
     public static function getDocumentTypesOptionsByFolder($folderId, $onlyVisibleForPartners = false, $rejected = false)
     {
         if (!$folderId) {
+            
             return array();
         }
         
@@ -1521,6 +1525,7 @@ class doc_Threads extends core_Manager
         
         // Ако е зададено да не се може да се мести документа
         if ($firstDoc->moveDocToFolder === false) {
+            
             return false;
         }
         
@@ -1541,6 +1546,7 @@ class doc_Threads extends core_Manager
         $maxTimeForMove = 5;
         
         if (self::getExpectationMoveTime($threadId, $moveRest) >= $maxTimeForMove) {
+            
             return false;
         }
         
@@ -1727,6 +1733,7 @@ class doc_Threads extends core_Manager
         $rec = self::fetch($id);
 
         if ($rec->firstContainerId) {
+            
             return $rec->firstContainerId;
         }
 
@@ -2586,6 +2593,7 @@ class doc_Threads extends core_Manager
         }
         
         if ($field) {
+            
             return $bestContragentData->{$field};
         }
 
@@ -2677,6 +2685,7 @@ class doc_Threads extends core_Manager
     {
         // Ако няма стойност, връщаме
         if (!$id) {
+            
             return ;
         }
         
@@ -2688,6 +2697,7 @@ class doc_Threads extends core_Manager
         
         // Ако няма id на първия документ
         if (!$firstContId) {
+            
             return ;
         }
         
@@ -2740,6 +2750,7 @@ class doc_Threads extends core_Manager
     {
         // Проверяваме дали е число
         if (!is_numeric($params['threadId'])) {
+            
             return false;
         }
         
@@ -2756,6 +2767,7 @@ class doc_Threads extends core_Manager
         
         // Проверяваме дали има права
         if (!$rec || !$haveRight) {
+            
             return false;
         }
             
@@ -2831,18 +2843,22 @@ class doc_Threads extends core_Manager
         $currUser = core_Users::getCurrent();
         
         if (!doc_Threads::haveRightFor('single', $id, $currUser)) {
+            
             return false;
         }
         
         if (!$userOrRole) {
+            
             return true;
         }
         
         if ($currUser == $userOrRole) {
+            
             return true;
         }
         
         if (haveRole('admin, ceo', $currUser)) {
+            
             return true;
         }
         

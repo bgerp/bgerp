@@ -18,13 +18,12 @@ class csstoinline_ConverterIntf
     
     /**
      * Вкарва външния CSS, като inline стил
-     * 
+     *
      * @param string $html - HTML текста
-     * @param string $css - CSS текста
+     * @param string $css  - CSS текста
      */
-    function convert($html, $css)
+    public function convert($html, $css)
     {
-        
         return $this->class->convert($html, $css);
     }
 }

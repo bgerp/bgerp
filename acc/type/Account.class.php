@@ -42,6 +42,7 @@ class acc_type_Account extends type_Key
     public function prepareOptions($value = null)
     {
         if (isset($this->options)) {
+            
             return $this->options;
         }
         

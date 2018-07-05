@@ -20,27 +20,29 @@ class plg_ListCache extends core_Plugin
     /**
      * Извиква се преди подготовката на $data->recs и $data->rows за табличния изглед
      */
-    function on_BeforePrepareListRows($mvc, &$res, $data)
+    public function on_BeforePrepareListRows($mvc, &$res, $data)
     {
-        if($mvc->className == 'core_Cache') return;
+        if ($mvc->className == 'core_Cache') {
+            return;
+        }
         
-        if(count($data->recs)) {
+        if (count($data->recs)) {
             $data->listCacheHnd = md5(json_encode($data->recs));
             $data->listCacheDepends = arr::make($mvc->listCacheDepends);
             $data->listCacheDepends[] = $mvc;
             
-            foreach($mvc->selectFields() as $fld) {
-                if($fld->type->params['mvc']) {
+            foreach ($mvc->selectFields() as $fld) {
+                if ($fld->type->params['mvc']) {
                     $data->listCacheDepends[] = $fld->type->params['mvc'];
                 }
             }
             
             $cachedData = core_Cache::get('ListCache', $data->listCacheHnd, 100, $data->listCacheDepends);
             
-            if($cachedData !== FALSE) {
+            if ($cachedData !== false) {
                 $data->rows = $cachedData;
                 
-                return FALSE;
+                return false;
             }
         }
     }
@@ -53,9 +55,11 @@ class plg_ListCache extends core_Plugin
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterPrepareListRows($mvc, &$res, $data)
+    public function on_AfterPrepareListRows($mvc, &$res, $data)
     {
-        if($mvc->className == 'core_Cache' || !$data->listCacheHnd) return;
+        if ($mvc->className == 'core_Cache' || !$data->listCacheHnd) {
+            return;
+        }
         
         core_Cache::set('ListCache', $data->listCacheHnd, $data->rows, 100, $data->listCacheDepends);
     }

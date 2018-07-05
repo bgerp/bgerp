@@ -21,16 +21,13 @@ class social_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
-       
-        
         $this->TAB('social_Sharings', 'Споделяне->Бутони', 'cms, social, admin, ceo');
         $this->TAB('social_SharingCnts', 'Споделяне->Броячи', 'cms, social, admin, ceo');
         $this->TAB('social_Followers', 'Проследяване', 'cms, social, admin, ceo');
                 
         $this->title = 'SNM « Сайт';
-        Mode::set('menuPage','Сайт:SNM');
+        Mode::set('menuPage', 'Сайт:SNM');
     }
-
 }

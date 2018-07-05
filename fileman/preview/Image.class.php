@@ -13,16 +13,4 @@
  */
 class fileman_preview_Image extends core_Manager
 {
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 }

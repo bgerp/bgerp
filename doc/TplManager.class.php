@@ -495,11 +495,13 @@ class doc_TplManager extends core_Master
     {
         // Ако няма шаблон
         if (!$templateId) {
+            
             return false;
         }
         
         // Ако има кеширан в хита резултат за скрипта, връща се той
         if (isset(static::$cacheScripts[$templateId])) {
+            
             return static::$cacheScripts[$templateId];
         }
         
@@ -507,6 +509,7 @@ class doc_TplManager extends core_Master
         $filePath = doc_TplManager::fetchField($templateId, 'path');
         
         if (!$filePath) {
+            
             return false;
         }
         

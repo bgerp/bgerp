@@ -15,10 +15,10 @@
  */
 class cond_type_Percent extends cond_type_abstract_Proto
 {
-	
-	
-	/**
-	 * Кой базов тип наследява
-	 */
-	protected $baseType = 'type_Percent';
+    
+    
+    /**
+     * Кой базов тип наследява
+     */
+    protected $baseType = 'type_Percent';
 }

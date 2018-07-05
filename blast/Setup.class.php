@@ -82,59 +82,59 @@ class blast_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'blast_Lists';
+    public $startCtr = 'blast_Lists';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Разпращане на циркулярни имейл-и, sms-и, писма, ...";
+    public $info = 'Разпращане на циркулярни имейл-и, sms-и, писма, ...';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
         
         // Текст за потвърждаване на отписването
-        'BGERP_BLAST_UNSUBSCRIBE' => array ('text(rows=5)', 'caption=Потвърждаване на отписването от списъка за изпращане->Съобщение'),
+        'BGERP_BLAST_UNSUBSCRIBE' => array('text(rows=5)', 'caption=Потвърждаване на отписването от списъка за изпращане->Съобщение'),
         
         // Текст, който се показва, ако не може да се намери имейл адреса в системата
-        'BGERP_BLAST_NO_MAIL'   => array ('text(rows=5)', 'caption=Липсващ имейл за отписване от списъка за изпращане->Съобщение'),
+        'BGERP_BLAST_NO_MAIL' => array('text(rows=5)', 'caption=Липсващ имейл за отписване от списъка за изпращане->Съобщение'),
         
         // Teкст, който се показва когато премахнем имейл-а от блокираните
-        'BGERP_BLAST_SUCCESS_ADD'   => array ('text(rows=5)', 'caption=Успешно премахване от списъка с блокираните->Съобщение'),
+        'BGERP_BLAST_SUCCESS_ADD' => array('text(rows=5)', 'caption=Успешно премахване от списъка с блокираните->Съобщение'),
         
         // Текст, който се показва когато добавим имейл-а в списъка на блокираните имейли
-        'BGERP_BLAST_SUCCESS_REMOVED'   => array ('text(rows=5)', 'caption=Успешно добавяне в списъка с блокираните->Съобщение'),
+        'BGERP_BLAST_SUCCESS_REMOVED' => array('text(rows=5)', 'caption=Успешно добавяне в списъка с блокираните->Съобщение'),
         
-        'BLAST_UNSUBSCRIBE_TEXT_FOOTER'   => array ('text(rows=3)', 'caption=Текст за отписване във футъра->Текст'),
+        'BLAST_UNSUBSCRIBE_TEXT_FOOTER' => array('text(rows=3)', 'caption=Текст за отписване във футъра->Текст'),
         
-        'BLAST_EMAILS_CRON_PERIOD'   => array ('time(suggestions=1 мин.|2 мин.|5 мин.|10 мин.)', 'caption=Период на изпращане на информационни съобщения по крон->Време'),
-        'BLAST_EMAILS_CRON_TIME_LIMIT'   => array ('time(suggestions=30 сек.|50 сек.|1 мин.|2 мин.|3 мин.)', 'caption=Ограничение на времето при изпращане по крон->Време'),
+        'BLAST_EMAILS_CRON_PERIOD' => array('time(suggestions=1 мин.|2 мин.|5 мин.|10 мин.)', 'caption=Период на изпращане на информационни съобщения по крон->Време'),
+        'BLAST_EMAILS_CRON_TIME_LIMIT' => array('time(suggestions=30 сек.|50 сек.|1 мин.|2 мин.|3 мин.)', 'caption=Ограничение на времето при изпращане по крон->Време'),
         
-        'BLAST_RECHECK_EMAILS_AFTER'   => array ('time(suggestions=15 дни|1 месец|2 месеца)', 'caption=Повторна проверка за валидност на имейли след->Време'),
-        'BLAST_RECHECK_EMAILS_LIMIT'   => array ('int', 'suggestions=3|5|10, caption=Лимит за проверка на имейли за всяко извикване->Брой'),
-        'BLAST_STOP_CHECKING_EMAILS_PERIOD'   => array ('time(suggestions=3 месеца|6 месеца|1 година)', 'caption=Колко време след последната комуникация да се спре проверката на имейла->Време'),
+        'BLAST_RECHECK_EMAILS_AFTER' => array('time(suggestions=15 дни|1 месец|2 месеца)', 'caption=Повторна проверка за валидност на имейли след->Време'),
+        'BLAST_RECHECK_EMAILS_LIMIT' => array('int', 'suggestions=3|5|10, caption=Лимит за проверка на имейли за всяко извикване->Брой'),
+        'BLAST_STOP_CHECKING_EMAILS_PERIOD' => array('time(suggestions=3 месеца|6 месеца|1 година)', 'caption=Колко време след последната комуникация да се спре проверката на имейла->Време'),
     );
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
         'blast_Lists',
         'blast_ListDetails',
         'blast_Emails',
@@ -154,13 +154,13 @@ class blast_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'blast';
+    public $roles = 'blast';
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
         
@@ -175,15 +175,15 @@ class blast_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-        array(1.36, 'Указател', 'Разпращане', 'blast_Lists', 'default', "ceo, blast"),
+    public $menuItems = array(
+        array(1.36, 'Указател', 'Разпращане', 'blast_Lists', 'default', 'ceo, blast'),
     );
     
     
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);
@@ -195,7 +195,7 @@ class blast_Setup extends core_ProtoSetup
     /**
      * Миграция за blast_Emails таблицата
      */
-    static function fixEmails()
+    public static function fixEmails()
     {
         $blsInst = cls::get('blast_Emails');
         
@@ -203,14 +203,17 @@ class blast_Setup extends core_ProtoSetup
         
         $listId = str::phpToMysqlName('listId');
        
-        if (!$blsInst->db->isFieldExists($blsInst->dbTableName, $listId)) return ;
+        if (!$blsInst->db->isFieldExists($blsInst->dbTableName, $listId)) {
+            
+            return ;
+        }
         
         $blsInst->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист, mandatory');
         
         // Всички записи, които нямат клас и обект
         $query = $blsInst->getQuery();
-        $query->where("#perSrcClassId IS NULL");
-        $query->where("#perSrcObjectId IS NULL");
+        $query->where('#perSrcClassId IS NULL');
+        $query->where('#perSrcObjectId IS NULL');
         
         $listClassId = blast_Lists::getClassId();
         
@@ -228,14 +231,16 @@ class blast_Setup extends core_ProtoSetup
     /**
      * Добавя хеш на имейлите
      */
-    static function addEmailSendHash()
+    public static function addEmailSendHash()
     {
         $query = blast_EmailSend::getQuery();
-        $query->where("#hash IS NULL");
+        $query->where('#hash IS NULL');
         while ($rec = $query->fetch()) {
-            if (is_null($rec->email)) continue;
+            if (is_null($rec->email)) {
+                continue;
+            }
             $emailH = $rec->email;
-            $hash = NULL;
+            $hash = null;
             
             do {
                 $hash = blast_EmailSend::getHash($emailH);
@@ -252,7 +257,7 @@ class blast_Setup extends core_ProtoSetup
     /**
      * Обновява езика на списъците
      */
-    static function updateListLg2()
+    public static function updateListLg2()
     {
         $lQuery = blast_Lists::getQuery();
         $lQuery->where("#lg IS NULL OR #lg = '' OR #lg = 'auto'");
@@ -295,15 +300,18 @@ class blast_Setup extends core_ProtoSetup
         
         $startOnField = str::phpToMysqlName('startOn');
         
-        if (!$cls->db->isFieldExists($cls->dbTableName, $startOnField)) return ;
+        if (!$cls->db->isFieldExists($cls->dbTableName, $startOnField)) {
+            
+            return ;
+        }
         
         $cls->FLD('startOn', 'datetime', 'caption=Дата');
         
         $query = $cls->getQuery();
-        $query->where("#startOn IS NOT NULL");
-        $query->where("#sendingDay IS NULL");
-        $query->where("#sendingTo IS NULL");
-        $query->where("#sendingFrom IS NULL");
+        $query->where('#startOn IS NOT NULL');
+        $query->where('#sendingDay IS NULL');
+        $query->where('#sendingTo IS NULL');
+        $query->where('#sendingFrom IS NULL');
         
         while ($rec = $query->fetch()) {
             $timeStamp = dt::mysql2timestamp($rec->startOn);

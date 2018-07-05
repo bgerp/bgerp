@@ -36,7 +36,7 @@ class support_Tasks extends core_Manager
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -51,9 +51,7 @@ class support_Tasks extends core_Manager
     public $canList = 'ceo, admin, support';
     
     
-    /**
-     * 
-     */
+    
     public $loadList = 'plg_SelectPeriod, support_Wrapper, plg_Search';
     
     
@@ -70,14 +68,14 @@ class support_Tasks extends core_Manager
     
     
     /**
-     * 
+     *
      * @see plg_SelectPeriod
      */
     public $filterDateFrom = 'createdFrom';
     
     
     /**
-     * 
+     *
      * @see plg_SelectPeriod
      */
     public $filterDateTo = 'createdTo';
@@ -88,7 +86,7 @@ class support_Tasks extends core_Manager
      *
      * @return core_Query
      */
-    function getQuery_($params = array())
+    public function getQuery_($params = array())
     {
         $this->mvc = cls::get('cal_Tasks');
         
@@ -97,15 +95,15 @@ class support_Tasks extends core_Manager
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @see core_Manager::prepareListFields_()
      */
-    function prepareListFields_(&$data)
+    public function prepareListFields_(&$data)
     {
         $data->listFields = array();
         
-        $data->listFields = arr::make('id=№, title=Заглавие, folderId=Папка, progress=Прогрес, timeStart=Времена->Начало, timeEnd=Времена->Край, timeDuration=Времена->Продължителност, assign=Потребители->Възложени, sharedUsers=Потребители->Споделени', TRUE);
+        $data->listFields = arr::make('id=№, title=Заглавие, folderId=Папка, progress=Прогрес, timeStart=Времена->Начало, timeEnd=Времена->Край, timeDuration=Времена->Продължителност, assign=Потребители->Възложени, sharedUsers=Потребители->Споделени', true);
         
         return $data;
     }
@@ -114,9 +112,8 @@ class support_Tasks extends core_Manager
     /**
      * Подготвя редовете във вербална форма
      */
-    function prepareListRows_(&$data)
+    public function prepareListRows_(&$data)
     {
-        
         return $this->mvc->prepareListRows($data);
     }
     
@@ -128,7 +125,7 @@ class support_Tasks extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->where("#state != 'rejected'");
         
@@ -171,8 +168,8 @@ class support_Tasks extends core_Manager
         
         // Филтриране по споделени/възложени потребители
         if ($rec->maintainers && !type_Keylist::isIn('-1', $rec->maintainers)) {
-            $data->query->likeKeylist("sharedUsers", $rec->maintainers);
-            $data->query->likeKeylist("assign", $rec->maintainers, TRUE);
+            $data->query->likeKeylist('sharedUsers', $rec->maintainers);
+            $data->query->likeKeylist('assign', $rec->maintainers, true);
         }
         
         if ($rec->createdFrom) {

@@ -1,15 +1,13 @@
 <?php
 
 
-/**
- * 
- */
+
 defIfNot('EMAIL_SENT_DOMAIN_HASH', md5(EF_SALT . '_DOMAIN_' . BGERP_DEFAULT_EMAIL_DOMAIN));
 
 
 /**
  * Изпращане на писма
- * 
+ *
  * @category  bgerp
  * @package   email
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
@@ -31,7 +29,7 @@ class email_Sent
     /**
      * Изпраща имейл
      */
-    static function sendOne($boxFrom, $emailsTo, $subject, $body, $options, $emailsCc = NULL, &$error = NULL)
+    public static function sendOne($boxFrom, $emailsTo, $subject, $body, $options, $emailsCc = null, &$error = null)
     {
         // Премахване на всички картинки, които са в css стилове за фон
         if ($body->html) {
@@ -41,21 +39,21 @@ class email_Sent
         if ($options['encoding'] == 'ascii') {
             $body->html = str::utf2ascii($body->html);
             $body->text = str::utf2ascii($body->text);
-            $subject    = str::utf2ascii($subject);
+            $subject = str::utf2ascii($subject);
         } elseif (!empty($options['encoding']) && $options['encoding'] != 'utf-8') {
             $body->html = iconv('UTF-8', $options['encoding'] . '//IGNORE', $body->html);
             $body->text = iconv('UTF-8', $options['encoding'] . '//IGNORE', $body->text);
-            $subject    = iconv('UTF-8', $options['encoding'] . '//IGNORE', $subject);
+            $subject = iconv('UTF-8', $options['encoding'] . '//IGNORE', $subject);
         }
         
         $messageBase = array(
             'subject' => $subject,
-            'html'    => $body->html,
-            'text'    => $body->text,
-            'attachments' => array_merge((array)$body->attachmentsFh, (array)$body->documentsFh),
+            'html' => $body->html,
+            'text' => $body->text,
+            'attachments' => array_merge((array) $body->attachmentsFh, (array) $body->documentsFh),
             'headers' => array('X-Bgerp-Hash' => EMAIL_SENT_DOMAIN_HASH),
             'emailFrom' => email_Inboxes::fetchField($boxFrom, 'email'),
-            'charset'   => $options['encoding'],
+            'charset' => $options['encoding'],
         );
         
         if ($body->__inReplyTo) {
@@ -67,15 +65,15 @@ class email_Sent
             $messageBase['subject'] = email_ThreadHandles::decorateSubject($messageBase['subject'], $body->threadId);
         }
         
-        $sentRec = (object)array(
+        $sentRec = (object) array(
             'boxFrom' => $boxFrom,
-            'mid'     => $body->__mid,
+            'mid' => $body->__mid,
             'encoding' => $options['encoding'],
             'attachments' => (is_array($body->attachments)) ? keylist::fromArray($body->attachments) :$body->attachments,
             'documents' => (is_array($body->documents)) ? keylist::fromArray($body->documents) :$body->documents,
         );
         
-        $message = (object)$messageBase;
+        $message = (object) $messageBase;
      
         static::prepareMessage($message, $sentRec, $options['is_fax']);
     
@@ -86,8 +84,8 @@ class email_Sent
     /**
      * Подготвя за изпращане по имейл
      */
-    protected static function prepareMessage($message, $sentRec, $isFax = NULL)
-    {        
+    protected static function prepareMessage($message, $sentRec, $isFax = null)
+    {
         list($senderName, $senderDomain) = explode('@', $message->emailFrom, 2);
         
         expect(is_array($message->headers));
@@ -95,15 +93,15 @@ class email_Sent
         // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
         $corpAccRec = email_Accounts::getCorporateAcc();
 
-        if($corpAccRec->domain == $senderDomain && !$isFax) {
+        if ($corpAccRec->domain == $senderDomain && !$isFax) {
             $message->headers['Return-Path'] = "{$senderName}+returned={$sentRec->mid}@{$senderDomain}";
         }
         
         $message->headers += array(
             
-            'X-Confirm-Reading-To'        => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
+            'X-Confirm-Reading-To' => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
             'Disposition-Notification-To' => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
-            'Return-Receipt-To'           => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
+            'Return-Receipt-To' => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
         );
         
         $message->messageId = email_Router::createMessageIdFromMid($sentRec->mid, $sentRec->boxFrom);
@@ -120,13 +118,13 @@ class email_Sent
      * Реално изпращане на писмо по електронна поща
      *
      * @param stdClass $message
-     * @param string $emailFrom
-     * @param string $emailTo
-     * @param string $error
-     * 
+     * @param string   $emailFrom
+     * @param string   $emailTo
+     * @param string   $error
+     *
      * @return bool
      */
-    protected static function doSend($message, $emailsTo, $emailsCc = NULL, &$error = NULL)
+    protected static function doSend($message, $emailsTo, $emailsCc = null, &$error = null)
     {
         expect($emailsTo);
         expect($message->emailFrom);
@@ -140,7 +138,7 @@ class email_Sent
             $toArr = type_Emails::toArray($emailsTo);
             foreach ($toArr as $to) {
                 blast_BlockedEmails::addEmail($to);
-                $PML->AddAddress($to);        
+                $PML->AddAddress($to);
             }
         }
         
@@ -148,20 +146,20 @@ class email_Sent
             $ccArr = type_Emails::toArray($emailsCc);
             foreach ($ccArr as $cc) {
                 blast_BlockedEmails::addEmail($cc);
-                $PML->AddCC($cc);        
+                $PML->AddCC($cc);
             }
         }
         $PML->SetFrom($message->emailFrom);
-        $PML->Subject   = $message->subject;
-        $PML->CharSet   = $message->charset;
+        $PML->Subject = $message->subject;
+        $PML->CharSet = $message->charset;
         $PML->MessageID = $message->messageId;
         
-        /* 
+        /*
          * Ако не е зададено е 8bit
          * Проблема се появява при дълъг стринг - без интервали и на кирилица.
          * Понеже е entity се режи грешно от phpmailer -> class.smtpl.php - $max_line_length = 998;
          */
-        $PML->Encoding = "quoted-printable";
+        $PML->Encoding = 'quoted-printable';
         
         $PML->ClearReplyTos();
         
@@ -169,14 +167,14 @@ class email_Sent
             $PML->Body = $message->html;
             
             //Вкарваме всички статични файлове в съобщението
-            self::embedSbfImg($PML); 
-            $PML->IsHTML(TRUE);
+            self::embedSbfImg($PML);
+            $PML->IsHTML(true);
         }
         
         if (!empty($message->text)) {
             if (empty($message->html)) {
                 $PML->Body = $message->text;
-                $PML->IsHTML(FALSE);
+                $PML->IsHTML(false);
             } else {
                 $PML->AltBody = $message->text;
             }
@@ -186,7 +184,9 @@ class email_Sent
         if (count($message->attachments)) {
             foreach ($message->attachments as $fh) {
                 //Ако няма fileHandler да не го добавя
-                if (!$fh) continue;
+                if (!$fh) {
+                    continue;
+                }
                 
                 $name = fileman_Files::fetchByFh($fh, 'name');
                 $path = fileman_Files::fetchByFh($fh, 'path');
@@ -216,19 +216,17 @@ class email_Sent
         if (!$isSended) {
             $error = trim($PML->ErrorInfo);
             if (isset($error)) {
-                
                 $errType = 'err';
                 
                 foreach (self::$logErrToWarningArr as $v) {
                     if (stripos($error, $v)) {
-                        
                         $errType = 'warning';
                         
                         break;
                     }
                 }
                 
-                log_System::add('phpmailer_Instance', "PML error: " . $error, NULL, $errType);
+                log_System::add('phpmailer_Instance', 'PML error: ' . $error, null, $errType);
             }
         }
         
@@ -241,7 +239,7 @@ class email_Sent
      * Приема обект.
      * Прави промените в $PML->Body
      */
-    static function embedSbfImg(&$PML)
+    public static function embedSbfImg(&$PML)
     {
         //Енкодинг
         $encoding = 'base64';
@@ -299,21 +297,21 @@ class email_Sent
                 $filename = $imgPathInfo['basename'];
                 
                 //Последната точка в името на файла
-                $dotPos = mb_strrpos($filename, ".");
+                $dotPos = mb_strrpos($filename, '.');
                 
                 //Добавяме стойността на брояча между името и разширението на cid'а за да е уникално
                 $cidName = mb_substr($filename, 0, $dotPos) . $i . mb_substr($filename, $dotPos);
                 
                 //cid' а, с който ще заместваме
-                $cidPath = "cid:" . $cidName;
+                $cidPath = 'cid:' . $cidName;
                 
                 //Вземаме mimeType' а на файла
                 $mimeType = fileman_Mimes::getMimeByExt($imgPathInfo['extension']);
                 
                 //Шаблона, за намиране на URL' то на файла
-                $pattern = "/" . preg_quote($imgPath, '/') . "/im";
+                $pattern = '/' . preg_quote($imgPath, '/') . '/im';
                 
-                $patternQuote = "/" . preg_quote('"' . $imgPath . '"', '/') . "/im";
+                $patternQuote = '/' . preg_quote('"' . $imgPath . '"', '/') . '/im';
                 
                 //Заместваме URL' то на файла със съответния cid
                 $PML->Body = preg_replace(array($patternQuote, $pattern), array("'{$cidPath}'", $cidPath), $PML->Body, 1);
@@ -331,7 +329,7 @@ class email_Sent
     /**
      * Превръша абсолютново URL в линк в системата
      */
-    static function absoluteUrlToReal($link)
+    public static function absoluteUrlToReal($link)
     {
         $link = decodeUrl($link);
 
@@ -342,7 +340,7 @@ class email_Sent
         $spfPos = mb_stripos($link, $sbfPath);
         
         //Ако сме открили съвпадание
-        if ($spfPos !== FALSE) {
+        if ($spfPos !== false) {
             //Пътя на файла след sbf директорията
             $sbfPart = mb_substr($link, $spfPos + mb_strlen($sbfPath));
             
@@ -356,9 +354,9 @@ class email_Sent
     
     /**
      * Замества линка в background-image с base64
-     * 
+     *
      * @param array $matches
-     * 
+     *
      * @return string
      */
     protected static function replaceBgImg($matches)

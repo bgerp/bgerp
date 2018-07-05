@@ -13,7 +13,8 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class pos_Cards extends core_Manager {
+class pos_Cards extends core_Manager
+{
     
     
     /**
@@ -25,13 +26,13 @@ class pos_Cards extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-   public $loadList = 'pos_Wrapper, plg_Printing, plg_Search, plg_Sorting, plg_State2, plg_RowTools2';
+    public $loadList = 'pos_Wrapper, plg_Printing, plg_Search, plg_Sorting, plg_State2, plg_RowTools2';
    
     
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Клиентска карта";
+    public $singleTitle = 'Клиентска карта';
  
     
     /**
@@ -41,18 +42,18 @@ class pos_Cards extends core_Manager {
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo, pos';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo, pos';
     
-	
+    
     /**
      * Кой има право да контира?
      */
     public $canConto = 'pos, ceo';
-	
-	
-	/**
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'number, contragentId=Контрагент';
@@ -67,19 +68,19 @@ class pos_Cards extends core_Manager {
     /**
      * Дали в листовия изглед да се показва бутона за добавяне
      */
-    public $listAddBtn = FALSE;
+    public $listAddBtn = false;
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
-    	$this->FLD('number', 'varchar(32)', 'caption=Номер, mandatory');
-    	$this->FLD('contragentId', 'int', 'input=hidden,silent');
-    	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,silent');
-    	
-    	$this->setDbUnique('number,contragentId,contragentClassId');
+        $this->FLD('number', 'varchar(32)', 'caption=Номер, mandatory');
+        $this->FLD('contragentId', 'int', 'input=hidden,silent');
+        $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,silent');
+        
+        $this->setDbUnique('number,contragentId,contragentClassId');
     }
     
     
@@ -88,27 +89,27 @@ class pos_Cards extends core_Manager {
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	$rec = $data->form->rec;
-    	if(isset($rec->contragentClassId) && isset($rec->contragentId)){
-    		$data->form->title = core_Detail::getEditTitle($rec->contragentClassId, $rec->contragentId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
-    	}
+        $rec = $data->form->rec;
+        if (isset($rec->contragentClassId, $rec->contragentId)) {
+            $data->form->title = core_Detail::getEditTitle($rec->contragentClassId, $rec->contragentId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
+        }
     }
     
     
-	/**
+    /**
      * След преобразуване на записа в четим за хора вид
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if(isset($fields['-list'])){
-    		$Contragent = cls::get($rec->contragentClassId);
-    		$row->contragentId = $Contragent->getHyperLink($rec->contragentId, TRUE);
-    		$row->contragentId = "<span style='float:left'>{$row->contragentId}</span>";
-    	}
+        if (isset($fields['-list'])) {
+            $Contragent = cls::get($rec->contragentClassId);
+            $row->contragentId = $Contragent->getHyperLink($rec->contragentId, true);
+            $row->contragentId = "<span style='float:left'>{$row->contragentId}</span>";
+        }
     }
     
     
-	/**
+    /**
      * Малко манипулации след подготвянето на формата за филтриране
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
@@ -126,19 +127,19 @@ class pos_Cards extends core_Manager {
      */
     public function prepareCards($data)
     {
-    	$Contragent = $data->masterMvc;
-    	$masterRec = $data->masterData->rec;
-    	
-    	$query = $this->getQuery();
-    	$query->where("#contragentClassId = '{$Contragent->getClassId()}' AND #contragentId = {$masterRec->id}");
-    	$query->where("#state = 'active'");
-    	while($rec = $query->fetch()){
-    		$data->rows[$rec->id] = $this->recToVerbal($rec);
-    	}
-    	
-    	if($Contragent->haveRightFor('edit', $data->masterId) && $this->haveRightFor('add')){
-		    $addUrl = array($this, 'add', 'contragentClassId' => $Contragent->getClassId(), 'contragentId' => $data->masterId, 'ret_url' => TRUE);
-		    $data->addBtn = ht::createLink('', $addUrl, NULL, array('ef_icon' => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Добавяне на нова клиентска карта')); 
+        $Contragent = $data->masterMvc;
+        $masterRec = $data->masterData->rec;
+        
+        $query = $this->getQuery();
+        $query->where("#contragentClassId = '{$Contragent->getClassId()}' AND #contragentId = {$masterRec->id}");
+        $query->where("#state = 'active'");
+        while ($rec = $query->fetch()) {
+            $data->rows[$rec->id] = $this->recToVerbal($rec);
+        }
+        
+        if ($Contragent->haveRightFor('edit', $data->masterId) && $this->haveRightFor('add')) {
+            $addUrl = array($this, 'add', 'contragentClassId' => $Contragent->getClassId(), 'contragentId' => $data->masterId, 'ret_url' => true);
+            $data->addBtn = ht::createLink('', $addUrl, null, array('ef_icon' => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Добавяне на нова клиентска карта'));
         }
     }
     
@@ -148,61 +149,62 @@ class pos_Cards extends core_Manager {
      */
     public function renderCards($data)
     {
-    	$tpl = new core_ET("");
+        $tpl = new core_ET('');
         $tpl->append(tr('Клиентски карти'), 'cardTitle');
         
-        if(isset($data->addBtn)){
-        	$tpl->append($data->addBtn, 'cardTitle');
+        if (isset($data->addBtn)) {
+            $tpl->append($data->addBtn, 'cardTitle');
         }
         
-    	if(count($data->rows)) {
-			foreach($data->rows as $id => $row) {
-				$tpl->append("<div style='white-space:normal;font-size:0.9em;'>");
-				
-				$tools = $row->_rowTools->renderHtml();
-				$tpl->append($row->number  . "<span style='position:relative;top:4px'>{$tools}</span>");
-				$tpl->append("</div>");
-			}
-	    } else {
-	    	$tpl->append(tr("Няма записи"));
-	    }
-	    
+        if (count($data->rows)) {
+            foreach ($data->rows as $id => $row) {
+                $tpl->append("<div style='white-space:normal;font-size:0.9em;'>");
+                
+                $tools = $row->_rowTools->renderHtml();
+                $tpl->append($row->number  . "<span style='position:relative;top:4px'>{$tools}</span>");
+                $tpl->append('</div>');
+            }
+        } else {
+            $tpl->append(tr('Няма записи'));
+        }
+        
         return $tpl;
     }
     
     
     /**
      * Връща контрагента отговарящ на номера на картата
-     * 
-     * @param string $number - номер на карта
-     * @param int $ctrClassId - ид на класа от който трябва да е контрагента
+     *
+     * @param  string                     $number     - номер на карта
+     * @param  int                        $ctrClassId - ид на класа от който трябва да е контрагента
      * @return FALSE|core_ObjectReference - референция към контрагента
      */
-    public static function getContragent($number, $ctrClassId = NULL)
+    public static function getContragent($number, $ctrClassId = null)
     {
-    	$query = static::getQuery();
-    	$query->where("#number = '{$number}'");
-    	if(isset($ctrClassId)){
-    		$query->where("#contragentClassId = $ctrClassId");
-    	}
-    	
-    	if($rec = $query->fetch()){
-    		return new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-    	}
-    	
-    	return FALSE;
+        $query = static::getQuery();
+        $query->where("#number = '{$number}'");
+        if (isset($ctrClassId)) {
+            $query->where("#contragentClassId = ${ctrClassId}");
+        }
+        
+        if ($rec = $query->fetch()) {
+            
+            return new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
+        }
+        
+        return false;
     }
     
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-    	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
-    		if(!cls::get($rec->contragentClassId)->haveRightFor('edit', $rec->contragentId)){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
+        if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)) {
+            if (!cls::get($rec->contragentClassId)->haveRightFor('edit', $rec->contragentId)) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }

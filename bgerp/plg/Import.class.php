@@ -59,6 +59,7 @@ class bgerp_plg_Import extends core_Plugin
     {
         // Прикачане е допустимо само към наследник на cat_Products ...
         if (!$mvc instanceof core_Manager) {
+            
             return false;
         }
         

@@ -66,6 +66,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
     public function toVerbal($value)
     {
         if (Mode::isReadOnly()) {
+            
             return cls::get('type_Html')->toVerbal($value);
         }
         

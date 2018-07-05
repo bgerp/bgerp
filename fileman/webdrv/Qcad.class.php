@@ -9,7 +9,7 @@ defIfNot('QCAD_PATH', '');
 
 /**
  * Драйвер за обработка на файлове с `QCad`
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -23,35 +23,34 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
     
     /**
      * Типа на изходния файл
-     * 
+     *
      * Възможни - svg, bmp, pdf
      */
-    static $fileType = 'bmp';
+    public static $fileType = 'bmp';
     
     
     /**
      * Дали да се зададат размери за широчина и височина на изходния файл
      */
-    static $useSizes = TRUE;
+    public static $useSizes = true;
     
     
     /**
      * Колко пъти да се увеличи широчината/височината за показване
      * По-добро качество
      */
-    static $qualityFactor = 1.4;
+    public static $qualityFactor = 1.4;
     
     
     /**
      * Стартира конвертиране към PNG формат
-     * 
-     * @param object $fRec - Записите за файла
-     * @param array $params - Допълнителни параметри
+     *
+     * @param object $fRec   - Записите за файла
+     * @param array  $params - Допълнителни параметри
      */
-    static function startConvertingToPng($fRec, $params)
+    public static function startConvertingToPng($fRec, $params)
     {
         if (!defined('QCAD_PATH') || !QCAD_PATH) {
-            
             fileman_webdrv_Qcad::logAlert('Няма зададена стойност за "QCAD_PATH"');
             
             core_Locks::release($params['lockId']);
@@ -82,7 +81,7 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
         
         $errFilePath = self::getErrLogFilePath($outFilePath);
         
-        $lineExec = "dwg2" . self::$fileType . " -outfile=[#OUTPUTF#]";
+        $lineExec = 'dwg2' . self::$fileType . ' -outfile=[#OUTPUTF#]';
         
         if (self::$useSizes) {
             $lineExec .= ' -platform offscreen -x ' . self::$qualityFactor * fileman_Setup::get('PREVIEW_WIDTH') . ' -y ' . self::$qualityFactor * fileman_Setup::get('PREVIEW_HEIGHT');
@@ -107,16 +106,16 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
         $Script->setCheckProgramsArr('dwg2' . self::$fileType);
         
         // Стартираме скрипта синхронно
-        if ($Script->run() === FALSE) {
+        if ($Script->run() === false) {
             fileman_Indexes::createError($params);
         }
     }
     
     
-	/**
+    /**
      * Екшън за показване превю
      */
-    function act_Preview()
+    public function act_Preview()
     {
         expect(in_array(self::$fileType, array('bmp', 'svg', 'pdf')));
         
@@ -136,31 +135,30 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
             
             // Опитваме се да вземем thumbnail на файла
             try {
-                
                 $filesArr = self::getInfoContentByFh($fileHnd, 'jpg');
                 
-                $return = FALSE;
+                $return = false;
                 
                 // Ако няма такъв запис
-                if ($filesArr === FALSE) {
-                    $return = TRUE;
+                if ($filesArr === false) {
+                    $return = true;
                 }
                 
                 // Ако е обект и има съобщение за грешка
                 if (!is_array($filesArr)) {
-                    $return = TRUE;
+                    $return = true;
                 } else {
                     $newFileHnd = key($filesArr);
                     
                     if (!$newFileHnd) {
-                        $return = TRUE;
+                        $return = true;
                     }
                 }
                 
                 $nRec = fileman_Files::fetchByFh($newFileHnd);
                 
                 if (!$nRec) {
-                    $return = TRUE;
+                    $return = true;
                 }
                 
                 if ($return) {
@@ -185,14 +183,14 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
                 Mode::set('wrapper', 'page_PreText');
                 
                 // Връщаме грешката
-                return $e->getMessage();    
+                return $e->getMessage();
             }
         } catch (core_exception_Expect $e) {
             
             // Сменяме мода
             Mode::set('wrapper', 'page_PreText');
             
-            return "Не може да се покаже прегледа на файла.";
+            return 'Не може да се покаже прегледа на файла.';
         }
     }
 }

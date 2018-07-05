@@ -3,9 +3,9 @@
 
 /**
  * Клас 'plg_Translate' - Плъгин за превеждане
- * 
+ *
  * Превежда полето, ако е зададен параметъра 'translate' в типа
- * 
+ *
  * @category  ef
  * @package   plg
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -19,13 +19,13 @@ class plg_Translate extends core_Plugin
     
     /**
      * Преди вземането на вербалната стойност
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param integer $num
-     * @param mixed $rec
-     * @param string $part
+     * @param integer  $num
+     * @param mixed    $rec
+     * @param string   $part
      */
-    static function on_BeforeGetVerbal($mvc, &$num, &$rec, $part=NULL)
+    public static function on_BeforeGetVerbal($mvc, &$num, &$rec, $part = null)
     {
         // Ако е зададено да се превежда полето и има поле
         if ($part && $mvc->fields[$part]->translate) {

@@ -20,7 +20,7 @@ class support_Preventions extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf';
     
     
     /**
@@ -32,61 +32,61 @@ class support_Preventions extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Превантивни действия";
+    public $title = 'Превантивни действия';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Превантивни действия";
+    public $singleTitle = 'Превантивни действия';
     
     
     /**
      * Кой има право да го чете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'powerUser';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    public $canAdd = 'powerUser';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    public $canView = 'powerUser';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo, admin, support';
+    public $canList = 'ceo, admin, support';
     
     
     /**
      * Кой има право да изтрива?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * @todo Чака за документация...
      */
-    var $canSingle = 'admin, support';
+    public $canSingle = 'admin, support';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, 
+    public $loadList = 'support_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, 
         plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone';
     
     
@@ -99,13 +99,13 @@ class support_Preventions extends core_Master
     /**
      * Кой може да променя активирани записи
      */
-    var $canChangerec = 'support, admin, ceo';
+    public $canChangerec = 'support, admin, ceo';
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'support/tpl/SingleLayoutPreventions.shtml';
+    public $singleLayoutFile = 'support/tpl/SingleLayoutPreventions.shtml';
     
     /**
      * Икона по подразбиране за единичния обект
@@ -117,43 +117,43 @@ class support_Preventions extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'PRV';
+    public $abbr = 'PRV';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'subject, body';
+    public $searchFields = 'subject, body';
     
     
     /**
      * Полето "Относно" да е хипервръзка към единичния изглед
      */
-    var $rowToolsSingleField = 'subject';
+    public $rowToolsSingleField = 'subject';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
+    public $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "10.3|Поддръжка";
+    public $newBtnGroup = '10.3|Поддръжка';
     
     
     /**
      * Да се показва антетка
      */
-    public $showLetterHead = TRUE;
+    public $showLetterHead = true;
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('subject', 'varchar', 'caption=Относно, mandatory, input=hidden');
         $this->FLD('body', 'richtext(rows=10,bucket=Support)', 'caption=Коментар,mandatory');
@@ -163,7 +163,7 @@ class support_Preventions extends core_Master
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         
@@ -189,10 +189,8 @@ class support_Preventions extends core_Master
      * Реализация  на интерфейсния метод ::getThreadState()
      * Добавянето на превенция не променя състоянието на треда
      */
-    static function getThreadState($id)
+    public static function getThreadState($id)
     {
-        
-        return NULL;
     }
     
     
@@ -200,7 +198,7 @@ class support_Preventions extends core_Master
      * Проверка дали нов документ може да бъде
      * добавен в посочената нишк-а
      *
-     * @param int $threadId key(mvc=doc_Threads)
+     * @param  int     $threadId key(mvc=doc_Threads)
      * @return boolean
      */
     public static function canAddToThread($threadId)
@@ -214,20 +212,20 @@ class support_Preventions extends core_Master
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
-     * @param int $folderId - id на папката
+     * @param  int     $folderId - id на папката
      * @return boolean
      */
     public static function canAddToFolder($folderId)
     {
         // Да не може да се добавя в папка, като начало на нишка
-        return FALSE;
+        return false;
     }
     
     
     /**
      * @todo Чака за документация...
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         // Премахваме бутона за добанвяне на нов запис в листовия изглед
         $data->toolbar->removeBtn('btnAdd');
@@ -235,12 +233,12 @@ class support_Preventions extends core_Master
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param support_Corrections $mvc
-     * @param stdClass $data
+     * @param stdClass            $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $rec = $data->form->rec;
         

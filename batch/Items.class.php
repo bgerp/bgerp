@@ -557,6 +557,7 @@ class batch_Items extends core_Master
         
         $def = batch_Defs::getBatchDef($productId);
         if (!$def) {
+            
             return $res;
         }
         

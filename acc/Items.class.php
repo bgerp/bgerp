@@ -454,6 +454,7 @@ class acc_Items extends core_Manager
     {
         $listId = Request::get('listId', 'int');
         if ($listId == -1) {
+            
             return $listId;
         }
         
@@ -560,6 +561,7 @@ class acc_Items extends core_Manager
         
         core_Lg::push(EF_DEFAULT_LANGUAGE);
         if (!$regRec = $register->getItemRec($objectId)) {
+            
             return false;
         }
         core_Lg::pop();

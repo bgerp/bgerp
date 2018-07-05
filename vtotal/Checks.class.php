@@ -8,61 +8,61 @@ class vtotal_Checks extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Проверки във VirusTotal";
+    public $title = 'Проверки във VirusTotal';
 
 
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'debug, admin';
+    public $canRead = 'debug, admin';
 
 
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
 
 
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
 
 
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'debug, admin';
+    public $canList = 'debug, admin';
 
 
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'debug, admin';
+    public $canSingle = 'debug, admin';
 
 
     /**
      * Кой може да го види?
      */
-    var $canView = 'debug, admin';
+    public $canView = 'debug, admin';
 
 
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'debug, admin';
+    public $canDelete = 'debug, admin';
 
 
     /**
      * @var Url нужно на VirusTotal за Api-то
      */
-    private static $VTScanUrl = "https://www.virustotal.com/vtapi/v2/file/report";
+    private static $VTScanUrl = 'https://www.virustotal.com/vtapi/v2/file/report';
 
 
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting";
+    public $loadList = 'plg_Created, plg_Sorting';
 
 
     /**
@@ -80,9 +80,7 @@ class vtotal_Checks extends core_Master
     }
     
     
-    /**
-     * 
-     */
+    
     public function act_manualCheck()
     {
         $this->requireRightFor('admin, debug');
@@ -97,7 +95,7 @@ class vtotal_Checks extends core_Master
         // Форсираме сканирането на файла по крон, ако вече е бил сканиран
         $cRec = $this->fetch(array("#filemanDataId = '[#1#]'", $rec->dataId));
         if ($cRec) {
-            $maxScanLimit = vtotal_Setup::get("MAX_SCAN_OF_FILE");
+            $maxScanLimit = vtotal_Setup::get('MAX_SCAN_OF_FILE');
             $sArr = array();
             if ($maxScanLimit && $cRec->timesScanned && ($cRec->timesScanned >= $maxScanLimit)) {
                 $cRec->timesScanned = $maxScanLimit - 1;
@@ -105,7 +103,7 @@ class vtotal_Checks extends core_Master
             }
             
             if (isset($cRec->lastCheck)) {
-                $cRec->lastCheck = NULL;
+                $cRec->lastCheck = null;
                 $sArr['lastCheck'] = 'lastCheck';
             }
             
@@ -114,26 +112,26 @@ class vtotal_Checks extends core_Master
             }
         }
         
-        return new Redirect( array('vtotal_Checks', null , 'md5' => $md5));
+        return new Redirect(array('vtotal_Checks', null, 'md5' => $md5));
     }
     
 
     /**
-     * 
-     * 
+     *
+     *
      * @param $VTResult обект от тип stdClass VirusTotalRespone
-     * 
+     *
      * @return type_Percent колко опасен е съответния файл
      */
     public function getDangerRate($VTResult)
     {
-        return $VTResult->positives/$VTResult->total;
+        return $VTResult->positives / $VTResult->total;
     }
 
 
     /**
      * Проверява дали Avast е инсталиран на работната машината
-     * 
+     *
      * @return bool
      */
     public static function isAvastInstalled()
@@ -141,47 +139,51 @@ class vtotal_Checks extends core_Master
         $inst = cls::get('vtotal_Setup');
         $isInstalled = $inst->checkConfig();
         
-        if (is_null($isInstalled)) return TRUE;
+        if (is_null($isInstalled)) {
+            
+            return true;
+        }
         
-        return FALSE;
+        return false;
     }
 
 
     /**
-     * 
-     * 
+     *
+     *
      * @param $path Път до файла, който трябва да се сканира
-     * 
-     * @return int  Краен резултар дали е опасен.
-     * 1 -> да опасен е
-     * 0 -> не е опасе
+     *
+     * @return int Краен резултар дали е опасен.
+     *             1 -> да опасен е
+     *             0 -> не е опасе
      */
     public function AvastSingleFileScan($path)
     {
         expect(is_file($path));
         $path = escapeshellarg($path);
-        $command = escapeshellcmd(vtotal_Setup::get('AVAST_COMMAND') . " " . $path);
+        $command = escapeshellcmd(vtotal_Setup::get('AVAST_COMMAND') . ' ' . $path);
         $output = exec($command, $output, $code);
 
-        preg_match("/(?'file'.+?)\[(?'result'.+?)\]/", $output , $matches);
+        preg_match("/(?'file'.+?)\[(?'result'.+?)\]/", $output, $matches);
+
         return !empty($matches[0]) ? 1 : 0;
     }
 
 
     /**
-     * 
-     * 
+     *
+     *
      * @param $md5Hash Хеш за проверка на файл през VirusTotal MD5
-     * 
+     *
      * @return mixed
-     * При неуспешно повикване връща int respone_code
-     * При успешно повикване връща stdClass Обект от VirusTotal отговор
+     *               При неуспешно повикване връща int respone_code
+     *               При успешно повикване връща stdClass Обект от VirusTotal отговор
      */
     public static function VTGetReport($md5Hash)
     {
         $post = array(
-            "resource" => $md5Hash,
-            "apikey" => vtotal_Setup::get("API_KEY"),
+            'resource' => $md5Hash,
+            'apikey' => vtotal_Setup::get('API_KEY'),
         );
 
         $ch = curl_init();
@@ -194,34 +196,37 @@ class vtotal_Checks extends core_Master
         curl_close($ch);
 
         if ($httpCode == '429') {
+            
             return (object) array(
                 'response_code' => -3
             );
         } elseif ($httpCode == '403') {
+            
             return (object) array(
                 'response_code' => -1
             );
-        } else
-            return json_decode($responce);
+        }
+
+        return json_decode($responce);
     }
     
     
     /**
-     * 
-     * 
-     * @param stdObjec $fRec
-     * @param string $md5
+     *
+     *
+     * @param stdObjec    $fRec
+     * @param string      $md5
      * @param string|null $counter
      */
     public function putNewFileForCheck(&$fRec, $md5, &$counter = null)
     {
-        $checkFile = (object)array('filemanDataId' => $fRec->dataId,
-            'firstCheck' => NULL, 'lastCheck' => NULL, 'md5'=> $md5, 'timesScanned' => 0);
-        $result = $this->save($checkFile, NULL, "IGNORE");
-        if(!$result) {
+        $checkFile = (object) array('filemanDataId' => $fRec->dataId,
+            'firstCheck' => null, 'lastCheck' => null, 'md5' => $md5, 'timesScanned' => 0);
+        $result = $this->save($checkFile, null, 'IGNORE');
+        if (!$result) {
             $cRec = $this->fetch("#filemanDataId = {$fRec->dataId}");
             $fRec->dangerRate = $this->getDangerRateByRateStr($cRec->rateByVT);
-            fileman_Files::save($fRec, "dangerRate");
+            fileman_Files::save($fRec, 'dangerRate');
         } else {
             $counter++;
         }
@@ -229,8 +234,8 @@ class vtotal_Checks extends core_Master
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @return array
      */
     protected static function getDangerExtension()
@@ -239,7 +244,7 @@ class vtotal_Checks extends core_Master
         
         if (empty($extensionsArr)) {
             $extensionStr = mb_strtolower(vtotal_Setup::get('DANGER_EXTENSIONS'));
-            $extensionsArr = arr::make($extensionStr, TRUE);
+            $extensionsArr = arr::make($extensionStr, true);
         }
         
         return $extensionsArr;
@@ -259,32 +264,34 @@ class vtotal_Checks extends core_Master
         );
 
         $query = fileman_Files::getQuery();
-        $query->where("#dangerRate IS NULL");
-        $query->orderBy("#createdOn", "DESC");
+        $query->where('#dangerRate IS NULL');
+        $query->orderBy('#createdOn', 'DESC');
         $query->limit(300);
         
         $counter = 0;
 
-        while($rec = $query->fetch()) {
-            if($counter == vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL")) break;
+        while ($rec = $query->fetch()) {
+            if ($counter == vtotal_Setup::get('NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL')) {
+                break;
+            }
             
             if (!$rec->dataId) {
                 $rec->dangerRate = 0;
-                fileman_Files::save($rec, "dangerRate");
+                fileman_Files::save($rec, 'dangerRate');
                 continue;
             }
             
             $extension = pathinfo($rec->name, PATHINFO_EXTENSION);
 
-            if(in_array(strtoupper($extension), $archiveExtensions)) {
+            if (in_array(strtoupper($extension), $archiveExtensions)) {
                 $fileHnd = $rec->fileHnd;
                 $fRec = fileman_Files::fetchByFh($fileHnd);
 
                 // throw fileman_Exception - ако размера е над допустимия за обработка,
                 // трябва да го прихванеш
-                try{
+                try {
                     $archivInst = fileman_webdrv_Archive::getArchiveInst($fRec);
-                }catch(fileman_Exception $e){
+                } catch (fileman_Exception $e) {
                     // Проверка във VT
                     $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
                     $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
@@ -300,52 +307,59 @@ class vtotal_Checks extends core_Master
                     $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
                     continue;
                 }
-				
-                $archiveHaveExt = FALSE;
+                
+                $archiveHaveExt = false;
                 
                 foreach ($entriesArr as $key => $entry) {
                     $size = $entry->getSize();
 
-                    if (!$size) continue;
+                    if (!$size) {
+                        continue;
+                    }
 
                     // Гледаме размера след разархивиране да не е много голям
                     // Защита от "бомби" - от препълване на сървъра
-                    if ($size > ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT) continue;
+                    if ($size > ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT) {
+                        continue;
+                    }
 
                     $path = $entry->getPath();
 
                     $ext = pathinfo($path, PATHINFO_EXTENSION);
 
-                    if (!$ext) continue;
+                    if (!$ext) {
+                        continue;
+                    }
 
                     // Проверка на разширението дали е от сканируемите
-                    if (!$dangerExtensionsArr[mb_strtolower($ext)]) continue;
+                    if (!$dangerExtensionsArr[mb_strtolower($ext)]) {
+                        continue;
+                    }
                     
-                    $archiveHaveExt = TRUE;
+                    $archiveHaveExt = true;
                     
                     // След като открием файла който ще пратим към VT
                     try {
                         $extractedPath = $archivInst->extractEntry($path);
                     } catch (ErrorException $e) {
-                        $archiveHaveExt = FALSE;
+                        $archiveHaveExt = false;
                         continue;
                     }
 
                     if (!is_file($extractedPath)) {
-                        $archiveHaveExt = FALSE;
+                        $archiveHaveExt = false;
                         continue;
                     }
                     
                     $md5 = @md5_file($extractedPath);
                     
                     if (!$md5) {
-                        $archiveHaveExt = FALSE;
+                        $archiveHaveExt = false;
                         continue;
-                    } else {
-                        // Проверка във VT
-                        $this->putNewFileForCheck($rec, $md5, $counter);
-                        break;
                     }
+                    // Проверка във VT
+                    $this->putNewFileForCheck($rec, $md5, $counter);
+                    break;
                 }
                 
                 if (!$archiveHaveExt) {
@@ -356,12 +370,11 @@ class vtotal_Checks extends core_Master
                 // Изтриваме временната директория за съхранение на архива.
                 $archivInst->deleteTempPath();
             } elseif (!$dangerExtensionsArr[mb_strtolower($extension)]) {
-                
                 $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
 
-                if($cRec) {
+                if ($cRec) {
                     $rec->dangerRate = $this->getDangerRateByRateStr($cRec->rateByVT);
-                    fileman_Files::save($rec, "dangerRate");
+                    fileman_Files::save($rec, 'dangerRate');
                 } else {
                     $rec->dangerRate = 0;
 
@@ -372,11 +385,11 @@ class vtotal_Checks extends core_Master
                         $extensionFRec = pathinfo($fRec->name, PATHINFO_EXTENSION);
                         if (!isset($fRec->dangerRate) && !$dangerExtensionsArr[mb_strtolower($extensionFRec)]) {
                             $fRec->dangerRate = 0;
-                            fileman_Files::save($fRec, "dangerRate");
+                            fileman_Files::save($fRec, 'dangerRate');
                         }
                     }
                 }
-            } elseif ($rec->dangerRate == NULL) {
+            } elseif ($rec->dangerRate == null) {
                 $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
                 $this->putNewFileForCheck($rec, $vtotalFilemanDataObject->md5, $counter);
             }
@@ -394,12 +407,12 @@ class vtotal_Checks extends core_Master
         
         $now = dt::now();
         $query = self::getQuery();
-        $query->where("#lastCheck IS NULL");
-        $query->orWhere("ADDDATE(#lastCheck, INTERVAL " . vtotal_Setup::get("BETWEEN_TIME_SCANS") . " SECOND) < '{$now}'");
-        $query->orderBy("#createdOn", "DESC");
-        $query->limit(vtotal_Setup::get("NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL"));
+        $query->where('#lastCheck IS NULL');
+        $query->orWhere('ADDDATE(#lastCheck, INTERVAL ' . vtotal_Setup::get('BETWEEN_TIME_SCANS') . " SECOND) < '{$now}'");
+        $query->orderBy('#createdOn', 'DESC');
+        $query->limit(vtotal_Setup::get('NUMBER_OF_ITEMS_TO_SCAN_BY_VIRUSTOTAL'));
         
-        $maxScanLimit = vtotal_Setup::get("MAX_SCAN_OF_FILE");
+        $maxScanLimit = vtotal_Setup::get('MAX_SCAN_OF_FILE');
         
         if ($maxScanLimit > 0) {
             $query->where(array("#timesScanned < '[#1#]'", $maxScanLimit));
@@ -407,8 +420,7 @@ class vtotal_Checks extends core_Master
         
         $isAvastInstalled = $this->isAvastInstalled();
         
-        while($rec = $query->fetch())
-        {
+        while ($rec = $query->fetch()) {
             $result = self::VTGetReport($rec->md5);
             
             if ($result->response_code == -1) {
@@ -420,7 +432,7 @@ class vtotal_Checks extends core_Master
                 увеличете вашият абонамент на един от платените във VirusTotal', $rec->id);
                 
                 break;
-            } elseif($result->response_code == 0) {
+            } elseif ($result->response_code == 0) {
                 $rec->timesScanned = $rec->timesScanned + 1;
 
                 if ($isAvastInstalled) {
@@ -431,8 +443,7 @@ class vtotal_Checks extends core_Master
                     $fsQuery = fileman_Files::getQuery();
                     $fsQuery->where("#dataId = {$rec->filemanDataId}");
 
-                    while($fRec = $fsQuery->fetch())
-                    {
+                    while ($fRec = $fsQuery->fetch()) {
                         $fRec->dangerRate = $dangerRate;
                         fileman_Files::save($fRec, 'dangerRate');
                     }
@@ -440,8 +451,7 @@ class vtotal_Checks extends core_Master
                     if ($maxScanLimit && ($rec->timesScanned >= $maxScanLimit)) {
                         $fQuery = fileman_Files::getQuery();
                         $fQuery->where("#dataId = {$rec->filemanDataId}");
-                        while($fRec = $fQuery->fetch())
-                        {
+                        while ($fRec = $fQuery->fetch()) {
                             $fRec->dangerRate = -1;
                             fileman_Files::save($fRec, 'dangerRate');
                         }
@@ -455,7 +465,7 @@ class vtotal_Checks extends core_Master
                 $rec->timesScanned = $rec->timesScanned + 1;
                 $rec->firstCheck = $result->scan_date;
                 $rec->lastCheck = dt::now();
-                $rec->rateByVT = $result->positives . "|" . $result->total;
+                $rec->rateByVT = $result->positives . '|' . $result->total;
                 $this->save($rec);
 
                 $fsQuery = fileman_Files::getQuery();
@@ -465,8 +475,7 @@ class vtotal_Checks extends core_Master
                     fileman_Data::logNotice('Файл с вирус', $rec->filemanDataId);
                 }
                 
-                while($fRec = $fsQuery->fetch())
-                {
+                while ($fRec = $fsQuery->fetch()) {
                     $fRec->dangerRate = $dangerRate;
                     fileman_Files::save($fRec, 'dangerRate');
                     
@@ -492,18 +501,18 @@ class vtotal_Checks extends core_Master
                         $eQuery->orLike('files', '|' . $fRec->id . '|');
                         
                         while ($eRec = $eQuery->fetch()) {
-                            
                             if ($eRec->routeBy == 'fromTo' && $eRec->folderId) {
                                 $coverClass = doc_Folders::getCover($eRec->folderId);
                                 
                                 // Ако ще се рутира към пощенска кутия или проект
                                 if ($coverClass) {
-                                    if ((!$coverClass->instance instanceof email_Inboxes) && (!$coverClass->instance instanceof doc_UnsortedFolders)) continue;
+                                    if ((!$coverClass->instance instanceof email_Inboxes) && (!$coverClass->instance instanceof doc_UnsortedFolders)) {
+                                        continue;
+                                    }
                                 }
                             }
                             
                             if (email_Incomings::reject($eRec)) {
-                                
                                 if ($eRec->threadId) {
                                     $tRec = doc_Threads::fetch($eRec->threadId);
                                 }
@@ -536,7 +545,7 @@ class vtotal_Checks extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->input(NULL, 'silent');
+        $data->listFilter->input(null, 'silent');
         
         if ($data->listFilter->rec->md5) {
             $data->query->where(array("#md5 = '[#1#]'", $data->listFilter->rec->md5));
@@ -547,27 +556,32 @@ class vtotal_Checks extends core_Master
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param string $rateStr
-     * 
+     *
      * @return number
      */
     protected function getDangerRateByRateStr($rateStr)
     {
         $rate = 0;
         
-        if (!trim($rateStr)) return $rate;
+        if (!trim($rateStr)) {
+            
+            return $rate;
+        }
         
         $obj = new stdClass();
         
         list($obj->positives, $obj->total) = explode('|', $rateStr);
         
-        if (!$obj->positives || !$obj->total) return $rate;
+        if (!$obj->positives || !$obj->total) {
+            
+            return $rate;
+        }
         
         $rate = vtotal_Checks::getDangerRate($obj);
         
         return $rate;
     }
-
 }

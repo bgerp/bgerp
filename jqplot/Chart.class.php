@@ -34,7 +34,7 @@ class jqplot_Chart
     protected static $defaultOptions = array(
         'seriesDefaults' => array(
             'rendererOptions' => array(
-                'smooth' => TRUE
+                'smooth' => true
             )
         ),
         'axesDefaults' => array(
@@ -69,7 +69,7 @@ class jqplot_Chart
      *
      * @var string
      */
-    protected $tickAxis  = 'xaxis';
+    protected $tickAxis = 'xaxis';
 
 
     /**
@@ -90,7 +90,7 @@ class jqplot_Chart
      *
      * @var array
      */
-    protected $htmlAttr  = array();
+    protected $htmlAttr = array();
 
 
     /**
@@ -114,14 +114,13 @@ class jqplot_Chart
         $this->options = static::$defaultOptions;
 
         if ($config['type'] == 'bars') {
-
             $this->options['seriesDefaults']['renderer'] = '@$.jqplot.BarRenderer@';
             $this->usePlugin('barRenderer');
 
             if ($config['dir'] == 'horizontal') {
                 $this->options['seriesDefaults']['rendererOptions']['barDirection'] = 'horizontal';
 
-                $this->tickAxis  = 'yaxis';
+                $this->tickAxis = 'yaxis';
                 $this->valueAxis = 'xaxis';
             }
         }
@@ -196,21 +195,20 @@ class jqplot_Chart
      * Добавя нова точка в графиката
      *
      * @param scalar $seriesKey стойност, която уникално идентидифицира серията
-     * @param scalar $tick категория на точката (X-координата)
-     * @param scalar $value стойност на точката (Y-координата)
-     * @param string $label текст, който да се изпише до точката
+     * @param scalar $tick      категория на точката (X-координата)
+     * @param scalar $value     стойност на точката (Y-координата)
+     * @param string $label     текст, който да се изпише до точката
      */
-    public function addPoint($seriesKey, $tick, $value, $label = NULL)
+    public function addPoint($seriesKey, $tick, $value, $label = null)
     {
-
         if ($this->tickAxis == 'xaxis') {
             $this->series[$seriesKey][] = array($tick, $value);
         } else {
             $this->series[$seriesKey][] = array($value, $tick);
         }
 
-        $this->options['seriesDefaults']['pointLabels']['show']     = TRUE;
-        $this->options['seriesDefaults']['pointLabels']['escapeHTML'] = FALSE;
+        $this->options['seriesDefaults']['pointLabels']['show'] = true;
+        $this->options['seriesDefaults']['pointLabels']['escapeHTML'] = false;
         $this->options['seriesDefaults']['pointLabels']['edgeTolerance'] = -40;
         $this->options['series'][$seriesKey]['pointLabels']['labels'][] = $label;
 
@@ -248,7 +246,7 @@ class jqplot_Chart
         }
 
         // Създаваме контейнер елемента със зададените HТML атрибути
-        $chartEl = core_Html::createElement('div', $this->htmlAttr, '', TRUE);
+        $chartEl = core_Html::createElement('div', $this->htmlAttr, '', true);
 
         $options = $this->options;
 
@@ -265,8 +263,8 @@ class jqplot_Chart
         }
 
         // Конвертираме натрупаните данни до JSON-стрингове
-        $series  = json_encode($series);
-        $options = json_encode((object)$options);
+        $series = json_encode($series);
+        $options = json_encode((object) $options);
 
         //
         // Лек хак:
@@ -294,17 +292,17 @@ class jqplot_Chart
     /**
      * HTML атрибути на елемента-контейнер на графиката
      *
-     * @param string|array $name име на атрибута. С масив се задават много атрибути наведнъж
-     * @param string $value стойност на атрибута. Използва се само ако първия аргумент не е масив
+     * @param string|array $name  име на атрибута. С масив се задават много атрибути наведнъж
+     * @param string       $value стойност на атрибута. Използва се само ако първия аргумент не е масив
      */
-    public function setHtmlAttr($name, $value = NULL)
+    public function setHtmlAttr($name, $value = null)
     {
         // Първо нормализираме до масив
         if (!is_array($name)) {
-            $name = array($name=>$value);
+            $name = array($name => $value);
         }
 
-        foreach ($name as $n=>$v) {
+        foreach ($name as $n => $v) {
             $this->htmlAttr[$n] = $v;
         }
     }
@@ -332,11 +330,11 @@ class jqplot_Chart
     {
         // Зареждане на базовите jqplot файлове
         $tpl->appendOnce("\n"
-            . "<!--[if lt IE 9]>"
-            . "<script type=\"text/javascript\" src="
+            . '<!--[if lt IE 9]>'
+            . '<script type="text/javascript" src='
                  . sbf(static::resource('excanvas.js'))
-            . "></script>"
-            . "<![endif]-->", 'HEAD');
+            . '></script>'
+            . '<![endif]-->', 'HEAD');
         $tpl->push(static::resource('jquery.jqplot.js'), 'JS');
         $tpl->push(static::resource('jquery.jqplot.css'), 'CSS');
 
@@ -353,12 +351,12 @@ class jqplot_Chart
      * Ако приложението не е в дебъг режим, метода вмъква '.min' точно преди разширението на
      * файла и така се зареждат продъкшън файловете на jqplot.
      *
-     * @param string $name име на jqplot файл относително спрямо базовата jqplot директория.
+     * @param  string $name име на jqplot файл относително спрямо базовата jqplot директория.
      * @return string име на файл, готово за sbf()
      */
     public static function resource($name)
     {
-        if (isDebug() && ($dot = strrpos($name, '.')) !== FALSE) {
+        if (isDebug() && ($dot = strrpos($name, '.')) !== false) {
             $name = substr($name, 0, $dot) . '.min' . substr($name, $dot);
         }
         $conf = core_Packs::getConfig('jqplot');

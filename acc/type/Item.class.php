@@ -45,6 +45,7 @@ class acc_type_Item extends type_Key
         expect($lists = $this->params['lists'], $this);
         
         if (isset($this->options)) {
+            
             return $this->options;
         }
         

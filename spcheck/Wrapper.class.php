@@ -4,9 +4,9 @@
 
 /**
  * Клас 'spcheck_Wrapper'
- * 
+ *
  * Поддържа системното меню и табове-те на пакета 'eshop'
- * 
+ *
  * @category  bgerp
  * @package   spcheck
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -21,7 +21,7 @@ class spcheck_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('spcheck_Dictionary', 'Речник', 'powerUser');
     }

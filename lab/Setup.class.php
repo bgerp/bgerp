@@ -24,37 +24,37 @@ class lab_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'lab_Tests';
+    public $startCtr = 'lab_Tests';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'drdata=0.1';
+    public $depends = 'drdata=0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Лаборатория: методи, тестове и стандарти";
+    public $info = 'Лаборатория: методи, тестове и стандарти';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'lab_Tests',
             'lab_Parameters',
             'lab_Methods',
@@ -65,24 +65,24 @@ class lab_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-   //  var $roles ='lab';
+    //  var $roles ='lab';
 
-     var $roles = array(
-     		array('lab'),
-     		array('masterLab', 'lab'),
+    public $roles = array(
+             array('lab'),
+             array('masterLab', 'lab'),
      );
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(2.45, 'Обслужване', 'Лаб', 'lab_Tests', 'default', "lab, ceo"),
+    public $menuItems = array(
+            array(2.45, 'Обслужване', 'Лаб', 'lab_Tests', 'default', 'lab, ceo'),
         );
 
         
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

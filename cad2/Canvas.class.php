@@ -2,10 +2,9 @@
 
 defIfNot('CAD2_MAX_CANVAS_SIZE', 1000);
 
-/**
- *
- */
-abstract class cad2_Canvas extends core_BaseClass {
+
+abstract class cad2_Canvas extends core_BaseClass
+{
     
 
     /**
@@ -17,7 +16,7 @@ abstract class cad2_Canvas extends core_BaseClass {
     /**
      * Допустими имена на атрибути
      */
-    protected $alowedAttributes = array('stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'stroke-linecap', 
+    protected $alowedAttributes = array('stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'stroke-linecap',
         'fill', 'fill-opacity', 'fill-rule', 'font-size', 'font-weight', 'font-family', 'text-color', 'stroke-color-name', 'fill-color-name', 'text-color-name');
 
 
@@ -30,19 +29,19 @@ abstract class cad2_Canvas extends core_BaseClass {
     /**
      * Флаг, дали записваме режещите отсечки
      */
-    private $saveCuttingSegments = FALSE;
+    private $saveCuttingSegments = false;
 
     
     /**
      * Параметри за чертане
      */
-	public $p = array();
+    public $p = array();
 
 
     /**
      * Задава размера на страницата
      */
-	abstract public function setPaper($width = 210, $height = 297, $paddingTop = 10, $paddingRight = 10, $paddingBottom = 10, $paddingLeft = 10);
+    abstract public function setPaper($width = 210, $height = 297, $paddingTop = 10, $paddingRight = 10, $paddingBottom = 10, $paddingLeft = 10);
 
 
     /**
@@ -54,39 +53,39 @@ abstract class cad2_Canvas extends core_BaseClass {
     /**
      * Започва нов път (поредица от линии и премествания)
      */
-	abstract public function startPath($attr = array());
+    abstract public function startPath($attr = array());
 
 
     /**
      * Премества текущата позиция на посочените координати
      * без да рисува линия
      */
-	abstract public function moveTo($x, $y, $absolute = FALSE);
+    abstract public function moveTo($x, $y, $absolute = false);
 
 
     /**
      * Рисува линия до посочените координати
      */
-	abstract public function doLineTo($x, $y, $absolute = FALSE);
+    abstract public function doLineTo($x, $y, $absolute = false);
 
 
     /**
      * Изчертава крива на Безие с посочените координати
      */
-	abstract public function curveTo($x1, $y1, $x2, $y2, $x, $y, $absolute = FALSE);
+    abstract public function curveTo($x1, $y1, $x2, $y2, $x, $y, $absolute = false);
 
 
     /**
      * Изписва текст
      */
-    abstract public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE, $link = NULL);
+    abstract public function writeText($x, $y, $text, $rotation = 0, $absolute = true, $link = null);
  
 
     /**
      * Затваря текущия път или под-път
      */
-	abstract public function closePath($close = TRUE);
-	
+    abstract public function closePath($close = true);
+    
 
     /**
      * Отваря нова група
@@ -97,7 +96,7 @@ abstract class cad2_Canvas extends core_BaseClass {
     /**
      * Затваряне на група
      */
-	abstract public function closeGroup();
+    abstract public function closeGroup();
 
 
     /**
@@ -115,37 +114,37 @@ abstract class cad2_Canvas extends core_BaseClass {
     /**
      * Отваря нов слой
      */
-    abstract public function openLayer($name = NULL);
+    abstract public function openLayer($name = null);
 
 
     /**
      * Затваряне на слой
      */
     abstract public function closeLayer();
-	
-	
-	/**
-	 * Отваря новa шарка
-	 */
-	abstract public function openPattern($attr = array());
-	
-	
-	/**
-	 * Затваряне на шарка
-	 */
-	abstract public function closePattern();
-	
-	
-	/**
-	 * Отваряне на дефиниции
-	 */
-	abstract public function openDefinitions($attr = array());
+    
+    
+    /**
+     * Отваря новa шарка
+     */
+    abstract public function openPattern($attr = array());
+    
+    
+    /**
+     * Затваряне на шарка
+     */
+    abstract public function closePattern();
+    
+    
+    /**
+     * Отваряне на дефиниции
+     */
+    abstract public function openDefinitions($attr = array());
 
-	
-	/**
-	 * Затваряне на дефиниции
-	 */
-	abstract public function closeDefinitions();
+    
+    /**
+     * Затваряне на дефиниции
+     */
+    abstract public function closeDefinitions();
 
 
     /**
@@ -175,33 +174,33 @@ abstract class cad2_Canvas extends core_BaseClass {
      * Връща стойността на посочения атрибут
      */
     abstract public function getAttr($name);
- 	
+    
 
     /**
      * Връща XML текста на SVG чертежа
      */
     abstract public function render();
-	
+    
 
     /*=================================================================================================
     /*
     /* ПОМОЩНИ ФУНКЦИИ
     /*
     /**************************************************************************************************
-    
+
     /**
      * Предефинираме lineTo, за да записваме режещите отсечки
      */
-    public function lineTo($x, $y, $absolute = FALSE)
+    public function lineTo($x, $y, $absolute = false)
     {
-        if($this->saveCuttingSegments) {
+        if ($this->saveCuttingSegments) {
             $s = new stdClass();
             list($s->Ax, $s->Ay) = $this->getCP();
         }
 
         $this->doLineTo($x, $y, $absolute);
         
-        if($this->saveCuttingSegments) {
+        if ($this->saveCuttingSegments) {
             list($s->Bx, $s->By) = $this->getCP();
             $this->cuttingSegments[] = $s;
         }
@@ -211,37 +210,43 @@ abstract class cad2_Canvas extends core_BaseClass {
     /**
      * Задаваме, че следват режещи отсечки
      */
-    function startCuttingSegments()
+    public function startCuttingSegments()
     {
-        $this->saveCuttingSegments = TRUE;
+        $this->saveCuttingSegments = true;
     }
 
 
     /**
      * Задаваме, че режещите отсечки спират
      */
-    function stopCuttingSegments()
+    public function stopCuttingSegments()
     {
-        $this->saveCuttingSegments = FALSE;
+        $this->saveCuttingSegments = false;
     }
 
     
     /**
      * Дадена е отсечка АБ. Тази сънкция връща $y-ка в точката $x за тази отсечка.
      */
-    static function getYatX($Ax, $Ay, $Bx, $By, $x)
+    public static function getYatX($Ax, $Ay, $Bx, $By, $x)
     {
         // функцията не е детерминирана за вертикални отсечки
-        if($Ax == $Bx) return FALSE;
+        if ($Ax == $Bx) {
+            
+            return false;
+        }
 
         // Условие за пресичане
-        if( min($Ax,$Bx) > $x || $x > max($Ax, $Bx)) return FALSE;
+        if (min($Ax, $Bx) > $x || $x > max($Ax, $Bx)) {
+            
+            return false;
+        }
         
         // Коефициент `a`
-        $a = ($Ay-$By) / ($Ax-$Bx);
+        $a = ($Ay - $By) / ($Ax - $Bx);
 
         // Коефициент `b`
-        $b = ($Ax*$By - $Ay*$Bx) / ($Ax-$Bx);
+        $b = ($Ax * $By - $Ay * $Bx) / ($Ax - $Bx);
 
         $y = $a * $x + $b;
 
@@ -252,17 +257,19 @@ abstract class cad2_Canvas extends core_BaseClass {
     /**
      * Връща пресечните точки на режащата отсечка в дадения $x
      */
-    function getCuttingIntersection($x1, $y1, $x2, $y2)
-    {   
+    public function getCuttingIntersection($x1, $y1, $x2, $y2)
+    {
         $res = array();
-        $last = FALSE;
-        foreach($this->cuttingSegments as $l) {
-            if($p = self::getIntersection($l->Ax, $l->Ay, $l->Bx, $l->By, $x1, $y1, $x2, $y2)) {
+        $last = false;
+        foreach ($this->cuttingSegments as $l) {
+            if ($p = self::getIntersection($l->Ax, $l->Ay, $l->Bx, $l->By, $x1, $y1, $x2, $y2)) {
                 $a = self::d($x1, $y1);
                 $b = $a->add($p->neg());
                 $p->dist = $b->r;
 
-                if(isset($lastP) && round($lastP->x,2) == round($p->x,2) && round($lastP->y,2) == round($p->y,2)) continue;
+                if (isset($lastP) && round($lastP->x, 2) == round($p->x, 2) && round($lastP->y, 2) == round($p->y, 2)) {
+                    continue;
+                }
                 
                 $p->baseX = $x1;
                 $p->baseY = $y1;
@@ -291,13 +298,13 @@ abstract class cad2_Canvas extends core_BaseClass {
     /**
      * Чертае закръгляне до посочената точка
      */
-    function roundTo($x1, $y1, $x, $y, $r, $absolute = FALSE)
+    public function roundTo($x1, $y1, $x, $y, $r, $absolute = false)
     {
         // Вземаме абсолютните координати на началната
-        list($x0, $y0)  = $this->getCP();
+        list($x0, $y0) = $this->getCP();
 
         // Правим координатите абсолютни
-        if(!$absolute) {
+        if (!$absolute) {
             $x1 += $x0;
             $y1 += $y0;
             $x += $x0;
@@ -312,12 +319,12 @@ abstract class cad2_Canvas extends core_BaseClass {
         $BC = $C->add($B->neg());
         $BA = $AB->neg();
         
-        $m = abs($r * tan(($BC->a - $AB->a)/2));
+        $m = abs($r * tan(($BC->a - $AB->a) / 2));
  
         $M = $B->add($this->p($BA->a, $m));
         $N = $B->add($this->p($BC->a, $m));
         
-        $c = 4/3*(M_SQRT2-1);
+        $c = 4 / 3 * (M_SQRT2 - 1);
         
         $MB = $B->add($M->neg());
         
@@ -327,53 +334,52 @@ abstract class cad2_Canvas extends core_BaseClass {
         $Nc = $N->add($this->p($NB->a, $NB->r * $c));
 
 
-        if(round($A->x, 5) != round($M->x, 5) || round($A->y, 5) != round($M->y, 5)) {
-            $this->lineTo($M->x, $M->y, TRUE);
+        if (round($A->x, 5) != round($M->x, 5) || round($A->y, 5) != round($M->y, 5)) {
+            $this->lineTo($M->x, $M->y, true);
         }
 
-        $this->curveTo($Mc->x, $Mc->y, $Nc->x, $Nc->y, $N->x, $N->y, TRUE);
+        $this->curveTo($Mc->x, $Mc->y, $Nc->x, $Nc->y, $N->x, $N->y, true);
         
-        if(round($C->x, 5) != round($N->x, 5) || round($C->y, 5) != round($N->y, 5)) {
-            $this->lineTo($C->x, $C->y, TRUE);
+        if (round($C->x, 5) != round($N->x, 5) || round($C->y, 5) != round($N->y, 5)) {
+            $this->lineTo($C->x, $C->y, true);
         }
-        
     }
 
 
     /**
      * Изчертава арка
      */
-    function arcTo($x1, $y1, $r, $absolute = FALSE)
+    public function arcTo($x1, $y1, $r, $absolute = false)
     {
-    	cad2_ArcTo::draw($this, $x1, $y1, $r, $absolute);
+        cad2_ArcTo::draw($this, $x1, $y1, $r, $absolute);
     }
     
     
     /**
      * Задаване на начупена линия
      */
-    function jaggedLineTo($x1, $y1, $md = 1, $td = NULL, $spacer = 0, $absolute = FALSE)
+    public function jaggedLineTo($x1, $y1, $md = 1, $td = null, $spacer = 0, $absolute = false)
     {
-    	cad2_JaggedLine::draw($this, $x1, $y1, $md, $td, $spacer, $absolute);
+        cad2_JaggedLine::draw($this, $x1, $y1, $md, $td, $spacer, $absolute);
     }
 
 
- 	/**
-	 * Преобразуване от градуси към радиани
-	 */
-	function gradusToRad($gradus)
-	{
-		return $gradus*(pi()/180);
-	}
-	
-	
-	/**
-	 * Преобразуване от радиани към градуси
-	 */
-	function radToGradus($rad)
-	{
-		return $rad*180/pi();
-	}
+    /**
+     * Преобразуване от градуси към радиани
+     */
+    public function gradusToRad($gradus)
+    {
+        return $gradus * (pi() / 180);
+    }
+    
+    
+    /**
+     * Преобразуване от радиани към градуси
+     */
+    public function radToGradus($rad)
+    {
+        return $rad * 180 / pi();
+    }
 
 
     /**
@@ -399,7 +405,7 @@ abstract class cad2_Canvas extends core_BaseClass {
 
 
     /**
-     * Computes the intersection between two segments. 
+     * Computes the intersection between two segments.
      * @param x1 Starting point of Segment 1
      * @param y1 Starting point of Segment 1
      * @param x2 Ending point of Segment 1
@@ -410,7 +416,7 @@ abstract class cad2_Canvas extends core_BaseClass {
      * @param y4 Ending point of Segment 2
      * @return Point where the segments intersect, or null if they don't
      */
-    public static function getIntersection($x1,  $y1,  $x2,  $y2, $x3, $y3, $x4, $y4)
+    public static function getIntersection($x1, $y1, $x2, $y2, $x3, $y3, $x4, $y4)
     {
         $x1 += 0.00001;
         $y1 -= 0.00002;
@@ -418,86 +424,108 @@ abstract class cad2_Canvas extends core_BaseClass {
         $x3 += 0.00003;
         $y3 -= 0.00004;
 
-        $d = ($x1-$x2)*($y3-$y4) - ($y1-$y2)*($x3-$x4);
-        if ($d == 0) return null;
+        $d = ($x1 - $x2) * ($y3 - $y4) - ($y1 - $y2) * ($x3 - $x4);
+        if ($d == 0) {
+            return;
+        }
     
-        $xi = (($x3-$x4)*($x1*$y2-$y1*$x2)-($x1-$x2)*($x3*$y4-$y3*$x4))/$d;
-        $yi = (($y3-$y4)*($x1*$y2-$y1*$x2)-($y1-$y2)*($x3*$y4-$y3*$x4))/$d;
+        $xi = (($x3 - $x4) * ($x1 * $y2 - $y1 * $x2) - ($x1 - $x2) * ($x3 * $y4 - $y3 * $x4)) / $d;
+        $yi = (($y3 - $y4) * ($x1 * $y2 - $y1 * $x2) - ($y1 - $y2) * ($x3 * $y4 - $y3 * $x4)) / $d;
 
 
-        if ($xi < min($x1,$x2) || $xi > max($x1,$x2)) return null;
-        if ($xi < min($x3,$x4) || $xi > max($x3,$x4)) return null;
+        if ($xi < min($x1, $x2) || $xi > max($x1, $x2)) {
+            return;
+        }
+        if ($xi < min($x3, $x4) || $xi > max($x3, $x4)) {
+            return;
+        }
 
-        return self::d(round($xi*10000)/10000, round($yi*10000)/10000);
+        return self::d(round($xi * 10000) / 10000, round($yi * 10000) / 10000);
     }
 
     
     /**
      * Задава текущия прозорец
      */
-    function setWindow($x, $y, $w, $h)
+    public function setWindow($x, $y, $w, $h)
     {
-        $this->window = array($x, $y, $x+$w, $y+$h);
+        $this->window = array($x, $y, $x + $w, $y + $h);
     }
 
 
     /**
      * Премахва текущия прозорец
      */
-    function unsetWindow()
+    public function unsetWindow()
     {
-        $this->window = NULL;
+        $this->window = null;
     }
 
 
     /**
      * Проверява дали точката се намира в прозореца
      */
-    function isInWindow($x, $y)
+    public function isInWindow($x, $y)
     {
-        if(!$this->window) return TRUE;
+        if (!$this->window) {
+            
+            return true;
+        }
         
-        list($x1,$y1,$x2,$y2) = $this->window;
+        list($x1, $y1, $x2, $y2) = $this->window;
 
-        if(min($x1,$x2) <= $x && max($x1,$x2) >= $x && min($y1,$y2) <= $y && max($y1,$y2) >= $y) {
-
-            return TRUE;
+        if (min($x1, $x2) <= $x && max($x1, $x2) >= $x && min($y1, $y2) <= $y && max($y1, $y2) >= $y) {
+            
+            return true;
         }
 
-        return FALSE;
+        return false;
     }
 
 
     /**
      * Намира точка в която зададената отсечка сече прозореца
      */
-    function getWindowIntersection($Ax, $Ay, $Bx, $By)
-    {      
-        if(!$this->window) return TRUE;
+    public function getWindowIntersection($Ax, $Ay, $Bx, $By)
+    {
+        if (!$this->window) {
+            
+            return true;
+        }
         
-        list($x1,$y1,$x2,$y2) = $this->window;
+        list($x1, $y1, $x2, $y2) = $this->window;
         $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x1, $y1, $x1, $y2);
-        if($p) return $p;
+        if ($p) {
+            
+            return $p;
+        }
 
         $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x2, $y1, $x2, $y2);
-        if($p) return $p;
+        if ($p) {
+            
+            return $p;
+        }
       
         $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x1, $y1, $x2, $y1);
-        if($p) return $p;
+        if ($p) {
+            
+            return $p;
+        }
 
         $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x1, $y2, $x2, $y2);
-        if($p) return $p;
+        if ($p) {
+            
+            return $p;
+        }
 
-        if($this->isInWindow($Ax, $Ay)) {
+        if ($this->isInWindow($Ax, $Ay)) {
+            
             return self::d($Ax, $Ay);
         }
 
-        if($this->isInWindow($Bx, $By)) {
-
-             return self::d($Bx, $By);
+        if ($this->isInWindow($Bx, $By)) {
+            
+            return self::d($Bx, $By);
         }
     }
-
-    
-    
 }

@@ -289,18 +289,18 @@ class core_Detail extends core_Manager
      */
     public static function getEditTitle($master, $masterId, $singleTitle, $recId, $preposition = null, $len = null)
     {
-    	if(!$preposition){
-    		$preposition = tr('към');
-    	}
-    	
-    	if ($singleTitle) {
-    	    $single = ' на|* ' . tr(mb_strtolower($singleTitle));
-    	}
-    	
-    	$title = ($recId) ? "Редактиране{$single} {$preposition}" : "Добавяне{$single} {$preposition}";
-    	$title .= " " . cls::get($master)->getFormTitleLink($masterId);
-    	
-    	return $title;
+        if (!$preposition) {
+            $preposition = tr('към');
+        }
+        
+        if ($singleTitle) {
+            $single = ' на|* ' . tr(mb_strtolower($singleTitle));
+        }
+        
+        $title = ($recId) ? "Редактиране{$single} {$preposition}" : "Добавяне{$single} {$preposition}";
+        $title .= ' ' . cls::get($master)->getFormTitleLink($masterId);
+        
+        return $title;
     }
     
     
@@ -339,6 +339,7 @@ class core_Detail extends core_Manager
             }
             
             if ($masterRec) {
+                
                 return $this->Master->getRequiredRoles('edit', $masterRec, $userId);
             }
         }
@@ -353,6 +354,7 @@ class core_Detail extends core_Manager
     public function save_(&$rec, $fieldsList = null, $mode = null)
     {
         if (!$id = parent::save_($rec, $fieldsList, $mode)) {
+            
             return false;
         }
 

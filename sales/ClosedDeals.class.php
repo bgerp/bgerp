@@ -2,7 +2,7 @@
 /**
  * Клас 'sales_ClosedDeals'
  * Клас с който се приключва една продажба
- * 
+ *
  *
  *
  * @category  bgerp
@@ -59,23 +59,23 @@ class sales_ClosedDeals extends deals_ClosedDeals
     
   
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo,sales';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,sales';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'ceo,sales';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,sales';
     
-	
-	/**
-	 * Кой може да контира документите?
-	 */
-	public $canConto = 'ceo,sales';
-	
-	
+    
+    /**
+     * Кой може да контира документите?
+     */
+    public $canConto = 'ceo,sales';
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -84,8 +84,8 @@ class sales_ClosedDeals extends deals_ClosedDeals
     
     /**
      * Групиране на документите
-     */ 
-    public $newBtnGroup = "3.9|Търговия";
+     */
+    public $newBtnGroup = '3.9|Търговия';
    
     
     /**
@@ -117,20 +117,20 @@ class sales_ClosedDeals extends deals_ClosedDeals
 
     /**
      * Връща разликата с която ще се приключи сделката
-     * @param mixed  $threadId - ид на нишката или core_ObjectReference
-     * 							 към първия документ в нишката
+     * @param  mixed  $threadId - ид на нишката или core_ObjectReference
+     *                          към първия документ в нишката
      * @return double $amount - разликата на платеното и експедираното
      */
     public static function getClosedDealAmount($threadId)
     {
-    	$firstDoc = doc_Threads::getFirstDocument($threadId);
-    	$jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
-    	 
-    	$cost = acc_Balances::getBlAmounts($jRecs, '6911', 'debit')->amount;
-    	$inc = acc_Balances::getBlAmounts($jRecs, '7911', 'credit')->amount;
-    	 
-    	// Разликата между платеното и доставеното
-    	return $inc - $cost;
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        $jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
+         
+        $cost = acc_Balances::getBlAmounts($jRecs, '6911', 'debit')->amount;
+        $inc = acc_Balances::getBlAmounts($jRecs, '7911', 'credit')->amount;
+         
+        // Разликата между платеното и доставеното
+        return $inc - $cost;
     }
     
     
@@ -139,8 +139,8 @@ class sales_ClosedDeals extends deals_ClosedDeals
      */
     public static function on_AfterDescription(core_Master &$mvc)
     {
-    	// Добавяме към модела, поле за избор на с коя сделка да се приключи
-    	$mvc->FLD('closeWith', 'key(mvc=sales_Sales,allowEmpty)', 'caption=Приключи с,input=none');
+        // Добавяме към модела, поле за избор на с коя сделка да се приключи
+        $mvc->FLD('closeWith', 'key(mvc=sales_Sales,allowEmpty)', 'caption=Приключи с,input=none');
     }
     
     
@@ -150,12 +150,12 @@ class sales_ClosedDeals extends deals_ClosedDeals
      */
     public function getDocumentRow($id)
     {
-    	$row = parent::getDocumentRow($id);
-    	$title = "Приключване на продажба #{$row->saleId}";
-    	$row->title = $title;
-    	$row->recTitle = $title;
-    	
-    	return $row;
+        $row = parent::getDocumentRow($id);
+        $title = "Приключване на продажба #{$row->saleId}";
+        $row->title = $title;
+        $row->recTitle = $title;
+        
+        return $row;
     }
     
     
@@ -164,24 +164,24 @@ class sales_ClosedDeals extends deals_ClosedDeals
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->DOC_NAME = tr("ПРОДАЖБА");
-    	
-    	if($rec->closeWith){
-    		$row->closeWith = ht::createLink($row->closeWith, array('sales_Sales', 'single', $rec->closeWith));
-    	}
+        $row->DOC_NAME = tr('ПРОДАЖБА');
+        
+        if ($rec->closeWith) {
+            $row->closeWith = ht::createLink($row->closeWith, array('sales_Sales', 'single', $rec->closeWith));
+        }
     }
     
     
     /**
      * Малко манипулации след подготвянето на формата за филтриране
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
-    	$data->listFilter->view = 'horizontal';
-    	$data->listFilter->showFields = 'search';
-    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
-    	
-        $data->listFilter->input(NULL, 'silent');
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->input(null, 'silent');
     }
     
 
@@ -190,38 +190,40 @@ class sales_ClosedDeals extends deals_ClosedDeals
      */
     public static function isSaleDiffAllowed($saleRec)
     {
-    	$diff = round($saleRec->amountBl, 2);
-    	$conf = core_Packs::getConfig('acc');
-    	$res = ($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE);
-    	
-    	return $res;
+        $diff = round($saleRec->amountBl, 2);
+        $conf = core_Packs::getConfig('acc');
+        $res = ($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE);
+        
+        return $res;
     }
     
     
-	/**
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-    	if($res == 'no_one') return;
-    	
-    	if(($action == 'add' || $action == 'conto' || $action == 'restore') && isset($rec)){
-    		
-    		// Ако има ориджин
-    		if($origin = $mvc->getOrigin($rec)){
-    			$originRec = $origin->fetch();
-    			
-    			// Ако няма сч. движения по сделката не може да се приключи
-    			if($originRec->state == 'active' && $origin->isInstanceOf('sales_Sales')){
-    				
-    				// Ако разликата между доставеното/платеното е по голяма, се изисква
-    				// потребителя да има по-големи права за да създаде документа
-    				if(!self::isSaleDiffAllowed($originRec)){
-    					$res = 'ceo,salesMaster';
-    				}
-    			}
-    		}
-    	}
+        if ($res == 'no_one') {
+            return;
+        }
+        
+        if (($action == 'add' || $action == 'conto' || $action == 'restore') && isset($rec)) {
+            
+            // Ако има ориджин
+            if ($origin = $mvc->getOrigin($rec)) {
+                $originRec = $origin->fetch();
+                
+                // Ако няма сч. движения по сделката не може да се приключи
+                if ($originRec->state == 'active' && $origin->isInstanceOf('sales_Sales')) {
+                    
+                    // Ако разликата между доставеното/платеното е по голяма, се изисква
+                    // потребителя да има по-големи права за да създаде документа
+                    if (!self::isSaleDiffAllowed($originRec)) {
+                        $res = 'ceo,salesMaster';
+                    }
+                }
+            }
+        }
     }
     
     
@@ -230,15 +232,21 @@ class sales_ClosedDeals extends deals_ClosedDeals
      */
     public static function canAddToThread($threadId)
     {
-    	// Може ли да се добави към нишката
-    	$res = parent::canAddToThread($threadId);
-    	if(!$res) return FALSE;
-    	
-    	$firstDoc = doc_Threads::getFirstDocument($threadId);
-    	
-    	// Може само към нишка, породена от продажба
-    	if(!$firstDoc->isInstanceOf('sales_Sales')) return FALSE;
-    	
-    	return TRUE;
+        // Може ли да се добави към нишката
+        $res = parent::canAddToThread($threadId);
+        if (!$res) {
+            
+            return false;
+        }
+        
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        
+        // Може само към нишка, породена от продажба
+        if (!$firstDoc->isInstanceOf('sales_Sales')) {
+            
+            return false;
+        }
+        
+        return true;
     }
 }

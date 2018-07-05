@@ -24,45 +24,45 @@ class escpos_driver_Ddp250 extends core_BaseClass
     /**
      * Връща конанди за настройка на шрифта
      */
-    public function getFont($font, $bold, $underline) 
+    public function getFont($font, $bold, $underline)
     {
         $f = $b = $u = 0;
 
-        if($font == 'F') {
+        if ($font == 'F') {
             $f = 32;
             $lf = chr(27) . chr(0x32);
-        } else if ($font == 'f') {
+        } elseif ($font == 'f') {
             $f = 1;
             $lf = chr(27) . chr(0x33) . chr(0x18);
         } else {
             $lf = chr(27) . chr(0x32);
         }
 
-        if($bold) {
+        if ($bold) {
             $b = 8;
         }
 
-        if($underline) {
+        if ($underline) {
             $u = 128;
         }
 
-        return $lf . chr(27) . '!' . chr($f|$b|$u);
+        return $lf . chr(27) . '!' . chr($f | $b | $u);
     }
     
 
     /**
      * Край на задаването на шрифта
      */
-    public function getFontEnd() 
+    public function getFontEnd()
     {
-        return "";
+        return '';
     }
 
 
     /**
      * Нова линия
      */
-    public function getNewLine() 
+    public function getNewLine()
     {
         return chr(27) . 'd' . chr(1);
     }
@@ -71,13 +71,13 @@ class escpos_driver_Ddp250 extends core_BaseClass
     /**
      * Последователност за срязване на хартията
      */
-    public function getCutting() 
+    public function getCutting()
     {
     }
 
 
     /**
-     * Връща символа за интервал 
+     * Връща символа за интервал
      * Преместване на позицията с един символ, без да отпечатва нищо
      */
     public function getSpace()
@@ -89,15 +89,15 @@ class escpos_driver_Ddp250 extends core_BaseClass
     /**
      * Връща максималния брой символи, според вида на шрифта
      */
-    public function getWidth($font = NULL)
+    public function getWidth($font = null)
     {
         $width = 32;
 
-        if($font == 'f') {
+        if ($font == 'f') {
             $width = 48;
         }
 
-        if($font == 'F') {
+        if ($font == 'F') {
             $width = 16;
         }
 
@@ -110,16 +110,15 @@ class escpos_driver_Ddp250 extends core_BaseClass
      */
     public function encode($text)
     {
-        
         return $text;
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param core_Et $tpl
-     * 
+     *
      * @return core_Et
      */
     public function placePrintData($tpl)
@@ -141,14 +140,13 @@ class escpos_driver_Ddp250 extends core_BaseClass
     
     /**
      * Добавя необходимите настройки за преди текста за отпечатване
-     * 
+     *
      * @param string $res
-     * 
+     *
      * @return string
      */
     public function prepareTextSettings($res)
     {
-        
         return $res;
     }
 }

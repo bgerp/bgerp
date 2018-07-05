@@ -33,7 +33,7 @@ class physics_PressureType extends type_Double
     /**
      * Инициализиране на типа
      */
-    function init($params = array())
+    public function init($params = array())
     {
         parent::init($params);
         setIfNot($this->params['decimals'], EF_PRESSURETYPE_DECIMALS);
@@ -44,9 +44,11 @@ class physics_PressureType extends type_Double
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
-        if (!is_numeric($value)) $value = 0;
+        if (!is_numeric($value)) {
+            $value = 0;
+        }
         
         $value = parent::toVerbal($value) . ' ' . $this->params['defaultUnit'];
         
@@ -57,9 +59,11 @@ class physics_PressureType extends type_Double
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
-    function toVerbal($value)
+    public function toVerbal($value)
     {
-        if(!isset($value)) return NULL;
+        if (!isset($value)) {
+            return;
+        }
         
         return parent::toVerbal($value) . ' ' . $this->params['defaultUnit'];
     }
@@ -68,7 +72,7 @@ class physics_PressureType extends type_Double
     /**
      * Преобразуване от вербална стойност, към вътрешно представяне
      */
-    function fromVerbal($value)
+    public function fromVerbal($value)
     {
         $convertFrom = $this->checkUnit($value);
         $convertTo = $this->checkUnit($this->params['defaultUnit']);
@@ -92,7 +96,7 @@ class physics_PressureType extends type_Double
         
         //Премахва всички стойности различни от: "числа-.,аритметични знаци"
         $pattern = '/[^0-9\-\.\,\/\*\+]/';
-        $value = preg_replace($pattern, '' , $value);
+        $value = preg_replace($pattern, '', $value);
         
         $value = parent::fromVerbal($value);
         
@@ -105,34 +109,31 @@ class physics_PressureType extends type_Double
     /**
      * Проверява стойността на представката
      */
-    function checkUnitPrefix($valueForCheck) {
+    public function checkUnitPrefix($valueForCheck)
+    {
         $prefix = 1;
-        $searh = array("atm", "атм", "mmHg", "милиметри");
-        $valueForCheck = str_ireplace($searh, "", $valueForCheck);
+        $searh = array('atm', 'атм', 'mmHg', 'милиметри');
+        $valueForCheck = str_ireplace($searh, '', $valueForCheck);
         
-        if ((mb_stristr($valueForCheck, 'milli') == TRUE) ||
-            (mb_stristr($valueForCheck, 'мили') == TRUE) ||
-            (mb_strstr($valueForCheck, 'm') == TRUE) ||
-            (mb_strstr($valueForCheck, 'м') == TRUE))
-        {
+        if ((mb_stristr($valueForCheck, 'milli') == true) ||
+            (mb_stristr($valueForCheck, 'мили') == true) ||
+            (mb_strstr($valueForCheck, 'm') == true) ||
+            (mb_strstr($valueForCheck, 'м') == true)) {
             $prefix = 0.001;
-        } elseif ((mb_stristr($valueForCheck, 'mega') == TRUE) ||
-            (mb_stristr($valueForCheck, 'мега') == TRUE) ||
-            (mb_strstr($valueForCheck, 'M') == TRUE) ||
-            (mb_strstr($valueForCheck, 'М') == TRUE))
-        {
+        } elseif ((mb_stristr($valueForCheck, 'mega') == true) ||
+            (mb_stristr($valueForCheck, 'мега') == true) ||
+            (mb_strstr($valueForCheck, 'M') == true) ||
+            (mb_strstr($valueForCheck, 'М') == true)) {
             $prefix = 1000000;
-        } elseif ((mb_stristr($valueForCheck, 'kilo') == TRUE) ||
-            (mb_stristr($valueForCheck, 'кило') == TRUE) ||
-            (mb_stristr($valueForCheck, 'k') == TRUE) ||
-            (mb_stristr($valueForCheck, 'к') == TRUE))
-        {
+        } elseif ((mb_stristr($valueForCheck, 'kilo') == true) ||
+            (mb_stristr($valueForCheck, 'кило') == true) ||
+            (mb_stristr($valueForCheck, 'k') == true) ||
+            (mb_stristr($valueForCheck, 'к') == true)) {
             $prefix = 1000;
-        } elseif ((mb_stristr($valueForCheck, 'hecto') == TRUE) ||
-            (mb_stristr($valueForCheck, 'хекто') == TRUE) ||
-            (mb_stristr($valueForCheck, 'h') == TRUE) ||
-            (mb_stristr($valueForCheck, 'Х') == TRUE))
-        {
+        } elseif ((mb_stristr($valueForCheck, 'hecto') == true) ||
+            (mb_stristr($valueForCheck, 'хекто') == true) ||
+            (mb_stristr($valueForCheck, 'h') == true) ||
+            (mb_stristr($valueForCheck, 'Х') == true)) {
             $prefix = 100;
         }
         
@@ -143,41 +144,41 @@ class physics_PressureType extends type_Double
     /**
      * Проверява единицата на въведената стойност
      */
-    function checkUnit($valueForCheck, $searchAgain = TRUE)
+    public function checkUnit($valueForCheck, $searchAgain = true)
     {
-        if ((mb_stristr($valueForCheck, 'ps') == TRUE) ||
-            (mb_stristr($valueForCheck, 'пс') == TRUE)) {
+        if ((mb_stristr($valueForCheck, 'ps') == true) ||
+            (mb_stristr($valueForCheck, 'пс') == true)) {
             $str = 'psi';
-        }elseif ((mb_stristr($valueForCheck, 'bar') == TRUE) ||
-            (mb_stristr($valueForCheck, 'бар')) == TRUE) {
+        } elseif ((mb_stristr($valueForCheck, 'bar') == true) ||
+            (mb_stristr($valueForCheck, 'бар')) == true) {
             $str = 'bar';
-        } elseif ((mb_stristr($valueForCheck, 'atm') == TRUE) ||
-            (mb_stristr($valueForCheck, 'атм') == TRUE) ||
-            (mb_stristr($valueForCheck, 'физ') == TRUE) ||
-            (mb_stristr($valueForCheck, 'ysi') == TRUE)) {
+        } elseif ((mb_stristr($valueForCheck, 'atm') == true) ||
+            (mb_stristr($valueForCheck, 'атм') == true) ||
+            (mb_stristr($valueForCheck, 'физ') == true) ||
+            (mb_stristr($valueForCheck, 'ysi') == true)) {
             $str = 'atm';
-        } elseif ((mb_stristr($valueForCheck, 'at') == TRUE) ||
-            (mb_stristr($valueForCheck, 'ат') == TRUE) ||
-            (mb_stristr($valueForCheck, 'техн') == TRUE) ||
-            (mb_stristr($valueForCheck, 'te') == TRUE)) {
+        } elseif ((mb_stristr($valueForCheck, 'at') == true) ||
+            (mb_stristr($valueForCheck, 'ат') == true) ||
+            (mb_stristr($valueForCheck, 'техн') == true) ||
+            (mb_stristr($valueForCheck, 'te') == true)) {
             $str = 'at';
-        } elseif ((mb_stristr($valueForCheck, 'mmHg') == TRUE) ||
-            (mb_stristr($valueForCheck, 'жив') == TRUE) ||
-            (mb_stristr($valueForCheck, 'mercury') == TRUE) ||
-            (mb_stristr($valueForCheck, 'tor') == TRUE) ||
-            (mb_stristr($valueForCheck, 'тор') == TRUE)) {
+        } elseif ((mb_stristr($valueForCheck, 'mmHg') == true) ||
+            (mb_stristr($valueForCheck, 'жив') == true) ||
+            (mb_stristr($valueForCheck, 'mercury') == true) ||
+            (mb_stristr($valueForCheck, 'tor') == true) ||
+            (mb_stristr($valueForCheck, 'тор') == true)) {
             $str = 'torr';
-        } elseif ((mb_stristr($valueForCheck, 'Pa') == TRUE) ||
-            (mb_stristr($valueForCheck, 'Па') == TRUE) ||
-            (mb_stristr($valueForCheck, 'P') == TRUE) ||
-            (mb_stristr($valueForCheck, 'П') == TRUE)) {
+        } elseif ((mb_stristr($valueForCheck, 'Pa') == true) ||
+            (mb_stristr($valueForCheck, 'Па') == true) ||
+            (mb_stristr($valueForCheck, 'P') == true) ||
+            (mb_stristr($valueForCheck, 'П') == true)) {
             $str = 'pa';
         } else {
             $str = 'bar';
             
             //Проверява дали е въведена стойност по подразбиране, за да я използва, ако няма добавена
             if ($searchAgain) {
-                $str = $this->checkUnit($this->params['defaultUnit'], FALSE);
+                $str = $this->checkUnit($this->params['defaultUnit'], false);
             }
         }
         
@@ -191,7 +192,7 @@ class physics_PressureType extends type_Double
      * @param $valueUnit string - Единицата на въведената стойност
      * @param $defUnit   string - Желаната стойност
      */
-    function convertToBar($value, $valueUnit, $defUnit)
+    public function convertToBar($value, $valueUnit, $defUnit)
     {
         if ($valueUnit == 'pa') {
             $bar = $value / 100000;
@@ -217,7 +218,7 @@ class physics_PressureType extends type_Double
      * @param $value     double - Стойността за обработване
      * @param $defUnit   string - Желаната стойност
      */
-    function convertToDef($value, $defUnit)
+    public function convertToDef($value, $defUnit)
     {
         if ($defUnit == 'pa') {
             $converted = $value * 100000;

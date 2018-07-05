@@ -24,7 +24,7 @@ class unit_MinkBom extends core_Manager
             return;
         }
         $res = '';
-        $res .= "<br>".'MinkBom ';
+        $res .= '<br>'.'MinkBom ';
         $res .= $this->act_CreateProductWork();
         $res .= $this->act_CreateElectricity();
         $res .= $this->act_CreatePackage();
@@ -62,14 +62,15 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
+
         return $browser;
     }
     
     /**
-     * 1.Създава нов артикул - труд със себестойност 
+     * 1.Създава нов артикул - труд със себестойност
      */
     //http://localhost/unit_MinkBom/CreateProductWork/
-    function act_CreateProductWork()
+    public function act_CreateProductWork()
     {
         $browser = $this->SetUp();
         // Правим нов артикул - труд
@@ -83,10 +84,10 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('meta[canSell]', 'canSell');
         $browser->press('Запис');
     
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
             $browser->click('Труд (work)');
-        } 
+        }
        
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
@@ -100,7 +101,7 @@ class unit_MinkBom extends core_Manager
      * 2.Създава нов артикул - Електричество със себестойност
      */
     //http://localhost/unit_MinkBom/CreateElectricity/
-    function act_CreateElectricity()
+    public function act_CreateElectricity()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -117,10 +118,10 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('meta[canConvert]', 'canConvert');//вложим
         $browser->press('Запис');
        
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
             $browser->click('Електричество');
-        } 
+        }
         
         //Добавяне на мениджърска себестойност
         $browser->click('Цени');
@@ -134,7 +135,7 @@ class unit_MinkBom extends core_Manager
      * 3.Създава нов артикул - опаковка
      */
     //http://localhost/unit_MinkBom/CreatePackage/
-    function act_CreatePackage()
+    public function act_CreatePackage()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -149,16 +150,16 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('meta[canConvert]', 'canConvert');//вложим
         $browser->press('Запис');
     
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
         }
     }
     
     /**
      * 4.Създава нов артикул - материал 1
-    */
+     */
     //http://localhost/unit_MinkBom/CreateMaterial1/
-    function act_CreateMaterial1()
+    public function act_CreateMaterial1()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -172,7 +173,7 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('measureId', 'килограм');
         $browser->press('Запис');
     
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
         }
     }
@@ -181,7 +182,7 @@ class unit_MinkBom extends core_Manager
      * 5.Създава нов артикул - материал 2
      */
     //http://localhost/unit_MinkBom/CreateMaterial2/
-    function act_CreateMaterial2()
+    public function act_CreateMaterial2()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -195,16 +196,16 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('measureId', 'литър');
         $browser->press('Запис');
         
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
         }
-    } 
+    }
      
     /**
      * 6.Създава нов артикул - отпадък 1
      */
     //http://localhost/unit_MinkBom/CreateWaste1/
-    function act_CreateWaste1()
+    public function act_CreateWaste1()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -218,7 +219,7 @@ class unit_MinkBom extends core_Manager
         // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
         $browser->press('Запис');
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
             $browser->click('Отпадък 1');
         }
@@ -234,7 +235,7 @@ class unit_MinkBom extends core_Manager
      * 7.Създава нов артикул - отпадък 2
      */
     //http://localhost/unit_MinkBom/CreateWaste2/
-    function act_CreateWaste2()
+    public function act_CreateWaste2()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -250,7 +251,7 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('meta[canSell]', 'canSell');
         $browser->press('Запис');
          
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
             $browser->click('Отпадък 2');
         }
@@ -266,7 +267,7 @@ class unit_MinkBom extends core_Manager
      * 8.Създава нов артикул - отпадък 3
      */
     //http://localhost/unit_MinkBom/CreateWaste3/
-    function act_CreateWaste3()
+    public function act_CreateWaste3()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -282,7 +283,7 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('meta[canSell]', 'canSell');
         $browser->press('Запис');
           
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
             $browser->click('Отпадък 3');
         }
@@ -298,7 +299,7 @@ class unit_MinkBom extends core_Manager
      * 9.Създава нов артикул - машина 1 (машинно време 1 етап)
      */
     //http://localhost/unit_MinkBom/CreateMash1/
-    function act_CreateMash1()
+    public function act_CreateMash1()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -312,14 +313,14 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('measureId', 'час');
         // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
-        $browser->setValue('meta[canStore]', False);
+        $browser->setValue('meta[canStore]', false);
         $browser->press('Запис');
      
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
             $browser->click('Машина 1');
         }
-       //Добавяне на мениджърска себестойност
+        //Добавяне на мениджърска себестойност
         $browser->click('Цени');
         $browser->click('Добавяне на нова мениджърска себестойност');
         $browser->refresh('Запис');
@@ -331,7 +332,7 @@ class unit_MinkBom extends core_Manager
      * 10.Създава нов артикул - машина 2 (машинно време 2 етап)
      */
     //http://localhost/unit_MinkBom/CreateMash2/
-    function act_CreateMash2()
+    public function act_CreateMash2()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -345,10 +346,10 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('measureId', 'час');
         // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
-        $browser->setValue('meta[canStore]', False);
+        $browser->setValue('meta[canStore]', false);
         $browser->press('Запис');
           
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
             $browser->click('Машина 2');
         }
@@ -364,7 +365,7 @@ class unit_MinkBom extends core_Manager
      * 11.Създава нов артикул - машина 3 (машинно време 3 етап)
      */
     //http://localhost/unit_MinkBom/CreateMash3/
-    function act_CreateMash3()
+    public function act_CreateMash3()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -378,10 +379,10 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('measureId', 'час');
         // За да записва себестойността - трябва да е продаваем
         $browser->setValue('meta[canSell]', 'canSell');
-        $browser->setValue('meta[canStore]', False);
+        $browser->setValue('meta[canStore]', false);
         $browser->press('Запис');
           
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
             $browser->click('Машина 3');
         }
@@ -391,13 +392,13 @@ class unit_MinkBom extends core_Manager
         $browser->refresh('Запис');
         $browser->setValue('price', '15');
         $browser->press('Запис');
-    }  
+    }
     
     /**
      * 12.Създава нов артикул - заготовка 1 (резултат от 1 етап)
      */
     //http://localhost/unit_MinkBom/CreateStage1/
-    function act_CreateStage1()
+    public function act_CreateStage1()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -411,12 +412,12 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('measureId', 'брой');
         $browser->press('Запис');
      
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
             $browser->click('Заготовка 1');
         }
         
-        if (strpos($browser->getText(),"Тегло:")){
+        if (strpos($browser->getText(), 'Тегло:')) {
         } else {
             $browser->click('Добавяне на нов параметър');
             $browser->setValue('paramId', 'Тегло');
@@ -431,7 +432,7 @@ class unit_MinkBom extends core_Manager
      * 13.Създава нов артикул - заготовка 2 (резултат от 2 етап)
      */
     //http://localhost/unit_MinkBom/CreateStage2/
-    function act_CreateStage2()
+    public function act_CreateStage2()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -445,13 +446,13 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('measureId', 'килограм');
         $browser->press('Запис');
           
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
             $browser->click('Заготовка 2');
         }
         //проверка ако параметърът вече го има
-        if (strpos($browser->getText(),"Цвят")){
-        } else {   
+        if (strpos($browser->getText(), 'Цвят')) {
+        } else {
             $browser->click('Добавяне на нов параметър');
             $browser->setValue('paramId', 'Цвят');
             $browser->refresh('Запис');
@@ -464,7 +465,7 @@ class unit_MinkBom extends core_Manager
      * 14.Създава нов артикул - крайно изделие (резултат от 3 етап)
      */
     //http://localhost/unit_MinkBom/CreateTestBom/
-    function act_CreateTestBom()
+    public function act_CreateTestBom()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -478,7 +479,7 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('measureId', 'брой');
         $browser->press('Запис');
     
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
         }
     }
@@ -489,7 +490,7 @@ class unit_MinkBom extends core_Manager
      * 16. Създаване на склад
      */
     //http://localhost/unit_MinkBom/CreateStore/
-    function act_CreateStore()
+    public function act_CreateStore()
     {
         // Логване
         $browser = $this->SetUp();
@@ -502,13 +503,15 @@ class unit_MinkBom extends core_Manager
         $browser->setValue('name', 'Склад 2');
         $browser->setValue('chiefs_13_1', '13_1');
         $browser->press('Запис');
-        if (strpos($browser->getText(),'Непопълнено задължително поле')){
+        if (strpos($browser->getText(), 'Непопълнено задължително поле')) {
             $browser->press('Отказ');
-            Return Грешка;
+
+            return Грешка;
         }
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+        if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
-            Return Дублиране;
+
+            return Дублиране;
         }
         //return $browser->getHtml();
     }
@@ -517,8 +520,8 @@ class unit_MinkBom extends core_Manager
      * 17.Създава доставка на материалите
      */
     //http://localhost/unit_MinkBom/CreatePurchase/
-    function act_CreatePurchase()
-    {  
+    public function act_CreatePurchase()
+    {
         // Логваме се
         $browser = $this->SetUp();
         
@@ -530,7 +533,7 @@ class unit_MinkBom extends core_Manager
         $browser->press('Папка');
         
         // нова покупка - проверка има ли бутон
-        if(strpos($browser->gettext(), 'Покупка')) {
+        if (strpos($browser->gettext(), 'Покупка')) {
             $browser->press('Покупка');
         } else {
             $browser->press('Нов...');
@@ -538,8 +541,8 @@ class unit_MinkBom extends core_Manager
         }
          
         $browser->setValue('note', 'MinkTestCreatePurchase');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
-        $browser->setValue('chargeVat', "Отделен ред за ДДС");
+        $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
+        $browser->setValue('chargeVat', 'Отделен ред за ДДС');
         $browser->press('Чернова');
         
         // Записваме черновата на покупката
@@ -570,14 +573,16 @@ class unit_MinkBom extends core_Manager
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
              
-        if(strpos($browser->gettext(), '257,12')) {
+        if (strpos($browser->gettext(), '257,12')) {
         } else {
-            return "Грешно ДДС";
+            
+            return 'Грешно ДДС';
         }
         
-        if(strpos($browser->gettext(), 'Хиляда петстотин четиридесет и два BGN и 0,72')) {
+        if (strpos($browser->gettext(), 'Хиляда петстотин четиридесет и два BGN и 0,72')) {
         } else {
-            return "Грешна обща сума";
+            
+            return 'Грешна обща сума';
         }
         
         // Складова разписка
@@ -591,7 +596,7 @@ class unit_MinkBom extends core_Manager
      *18.Добавя рецепта за етап 1
      */
     //http://localhost/unit_MinkBom/CreateBomStage1/
-    function act_CreateBomStage1()
+    public function act_CreateBomStage1()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -639,7 +644,7 @@ class unit_MinkBom extends core_Manager
      *19.Добавя рецепта за етап 2
      */
     //http://localhost/unit_MinkBom/CreateBomStage2/
-    function act_CreateBomStage2()
+    public function act_CreateBomStage2()
     {
         // Логваме се
         $browser = $this->SetUp();
@@ -683,7 +688,7 @@ class unit_MinkBom extends core_Manager
      *20.Добавя рецепта за етап 3 - крайно изделие
      */
     //http://localhost/unit_MinkBom/CreateBomStage3/
-    function act_CreateBomStage3()
+    public function act_CreateBomStage3()
     {
     
         // Логваме се
@@ -726,10 +731,11 @@ class unit_MinkBom extends core_Manager
         $browser->press('Запис');
         $browser->press('Активиране');
         
-        if(strpos($browser->gettext(), 'Себестойност: 0,62 BGN')) {
+        if (strpos($browser->gettext(), 'Себестойност: 0,62 BGN')) {
         } else {
-            return "Грешна себестойност";
+            
+            return 'Грешна себестойност';
         }
-        //return $browser->gethtml(); 
+        //return $browser->gethtml();
     }
 }

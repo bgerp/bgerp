@@ -281,6 +281,7 @@ class core_ProtoSetup
     public static function preparePacksPath($packName, $pathStr)
     {
         if (!trim($pathStr)) {
+            
             return $pathStr;
         }
         
@@ -289,6 +290,7 @@ class core_ProtoSetup
         
         // Ако няма плейсхолдер
         if (!$matches[0]) {
+            
             return $pathStr;
         }
         

@@ -131,6 +131,7 @@ class core_ObjectReference
     public function getInstance()
     {
         if (is_null($this->interface)) {
+            
             return $this->instance;
         }
         
@@ -159,11 +160,13 @@ class core_ObjectReference
     public function isInstanceOf($className)
     {
         if (!cls::load($className, true)) {
+            
             return false;
         }
         $ReflectionClass = new ReflectionClass($className);
         
         if ($ReflectionClass->isAbstract()) {
+            
             return is_subclass_of($this->getInstance(), $className);
         }
         $class = cls::get($className);

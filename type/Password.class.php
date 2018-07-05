@@ -11,7 +11,8 @@
  * @since     v 0.1
  * @link
  */
-class type_Password extends type_Varchar {
+class type_Password extends type_Varchar
+{
     
     /**
      * Служебна константа, за стойност на инпута на паролата
@@ -21,26 +22,26 @@ class type_Password extends type_Varchar {
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", &$attr = array())
-    { 
+    public function renderInput_($name, $value = '', &$attr = array())
+    {
         $attr['type'] = 'password';
         
         // Само за дебъг
         // !isDebug() || $attr['title'] = $value;
-        if($this->params['show']) {
+        if ($this->params['show']) {
             $attr['type'] = 'text';
             $attr['style'] = ';color:#ccc; text-shadow: 0px 0px 5px #444;';
-        } elseif($value && !$this->params['allowEmpty']) {
+        } elseif ($value && !$this->params['allowEmpty']) {
             $value = self::EF_PASS_NO_CHANGE;
             $attr['onfocus'] = "if(this.value == '" . self::EF_PASS_NO_CHANGE . "') this.select();";
-        } else { 
-            if($value) {
-                $attr['placeholder'] = html_entity_decode("&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;");  
+        } else {
+            if ($value) {
+                $attr['placeholder'] = html_entity_decode('&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;');
             }
             $value = '';
         }
         
-        if($value || $this->params['autocomplete'] == 'off') {
+        if ($value || $this->params['autocomplete'] == 'off') {
             $attr['autocomplete'] = 'off';
         }
         
@@ -55,9 +56,11 @@ class type_Password extends type_Varchar {
     /**
      * Конвертира от вербална стойност
      */
-    function fromVerbal($value)
+    public function fromVerbal($value)
     {
-        if(!isset($value) || $value == self::EF_PASS_NO_CHANGE) return NULL;
+        if (!isset($value) || $value == self::EF_PASS_NO_CHANGE) {
+            return;
+        }
                 
         return $value;
     }
@@ -68,7 +71,9 @@ class type_Password extends type_Varchar {
      */
     public function toMysql($value, $db, $notNull, $defValue)
     {
-        if($value === NULL) return NULL;
+        if ($value === null) {
+            return;
+        }
         
         return parent::toMysql($value, $db, $notNull, $defValue);
     }
@@ -77,10 +82,8 @@ class type_Password extends type_Varchar {
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
-    function toVerbal($value)
+    public function toVerbal($value)
     {
         return $value ? '********' : '';
     }
-
-
 }

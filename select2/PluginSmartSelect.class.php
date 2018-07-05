@@ -3,7 +3,7 @@
 
 /**
  * Плъгин за превръщане на SmartSelect полетата в select2
- * 
+ *
  * @category  bgerp
  * @package   selec2
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -18,7 +18,7 @@ class select2_PluginSmartSelect extends core_Plugin
     /**
      * Дали може да се изчистват всичките записи едновременно
      */
-    protected static $allowClear = FALSE;
+    protected static $allowClear = false;
     
     
     /**
@@ -28,36 +28,39 @@ class select2_PluginSmartSelect extends core_Plugin
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param core_Form $invoker
-     * @param core_ET $input
+     * @param core_ET   $input
      * @param core_Type $type
-     * @param array $options
-     * @param string $name
-     * @param string $value
-     * @param array $attr
+     * @param array     $options
+     * @param string    $name
+     * @param string    $value
+     * @param array     $attr
      */
-    function on_BeforeCreateSmartSelect($invoker, $input, $type, $options, $name, $value, &$attr)
+    public function on_BeforeCreateSmartSelect($invoker, $input, $type, $options, $name, $value, &$attr)
     {
         ht::setUniqId($attr);
     }
     
 
     /**
-     * 
-     * 
+     *
+     *
      * @param core_Form $invoker
-     * @param core_ET $input
+     * @param core_ET   $input
      * @param core_Type $type
-     * @param array $options
-     * @param string $name
-     * @param string $value
-     * @param array $attr
+     * @param array     $options
+     * @param string    $name
+     * @param string    $value
+     * @param array     $attr
      */
-    function on_AfterCreateSmartSelect($invoker, $input, $type, $options, $name, $value, &$attr)
+    public function on_AfterCreateSmartSelect($invoker, $input, $type, $options, $name, $value, &$attr)
     {
-        if ($invoker->params['isReadOnly']) return ;
+        if ($invoker->params['isReadOnly']) {
+            
+            return ;
+        }
         
         // Ако все още няма id
         if (!$attr['id']) {
@@ -69,13 +72,20 @@ class select2_PluginSmartSelect extends core_Plugin
         $optionsCnt = count($options);
         
         // Ако опциите са под минималното - нищо не правим
-        if ($optionsCnt <= $minItems) return;
+        if ($optionsCnt <= $minItems) {
+            return;
+        }
         
         // Ако няма JS нищо не правим
-        if (Mode::is('javascript', 'no')) return;
+        if (Mode::is('javascript', 'no')) {
+            return;
+        }
         
         // Ако ще са радиобутони
-        if ($type->params['maxRadio'] && ($type->params['maxRadio'] >= $optionsCnt)) return ;
+        if ($type->params['maxRadio'] && ($type->params['maxRadio'] >= $optionsCnt)) {
+            
+            return ;
+        }
         
         $select = ($attr['placeholder']) ? ($attr['placeholder']) : '';
         

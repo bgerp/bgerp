@@ -25,7 +25,7 @@ class sens2_ProtoDriver
     /**
      * Интерфeйси, поддържани от всички наследници
      */
-    var $interfaces = 'sens2_DriverIntf';
+    public $interfaces = 'sens2_DriverIntf';
     
     
     /**
@@ -33,14 +33,14 @@ class sens2_ProtoDriver
      *
      * @see  sens2_DriverIntf
      *
-     * @return  array
+     * @return array
      */
-    function getInputPorts($config = NULL)
+    public function getInputPorts($config = null)
     {
         $res = array();
         
-        if(is_array($this->inputs)) {
-            foreach($this->inputs as $name => $params) {
+        if (is_array($this->inputs)) {
+            foreach ($this->inputs as $name => $params) {
                 $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);
             }
         }
@@ -54,14 +54,14 @@ class sens2_ProtoDriver
      *
      * @see  sens2_DriverIntf
      *
-     * @return  array
+     * @return array
      */
-    function getOutputPorts()
+    public function getOutputPorts()
     {
         $res = array();
 
-        if(is_array($this->outputs)) {
-            foreach($this->outputs as $name => $params) {
+        if (is_array($this->outputs)) {
+            foreach ($this->outputs as $name => $params) {
                 $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);
             }
         }
@@ -77,7 +77,7 @@ class sens2_ProtoDriver
      *
      * @param core_Form
      */
-    function prepareConfigForm($form)
+    public function prepareConfigForm($form)
     {
     }
     
@@ -89,7 +89,7 @@ class sens2_ProtoDriver
      *
      * @param   core_Form
      */
-    function checkConfigForm($form)
+    public function checkConfigForm($form)
     {
     }
 
@@ -97,7 +97,7 @@ class sens2_ProtoDriver
     /**
      * Връща масив със стойностите на изразходваната активна мощност
      */
-    function readInputs($inputs, $config, &$persistentState)
+    public function readInputs($inputs, $config, &$persistentState)
     {
         return array();
     }
@@ -108,7 +108,7 @@ class sens2_ProtoDriver
      *
      * @return bool
      */
-    function writeOutputs($outputs, $config, &$persistentState)
+    public function writeOutputs($outputs, $config, &$persistentState)
     {
         return array();
     }
@@ -117,8 +117,8 @@ class sens2_ProtoDriver
     /**
      * Връща снимка на контролера
      *
-     * @param   stdClass     $config    конфигурацията на контролера
-     * @return  string|null
+     * @param  stdClass    $config конфигурацията на контролера
+     * @return string|null
      */
     public static function getPicture($config)
     {
@@ -132,17 +132,17 @@ class sens2_ProtoDriver
     {
         $slots = $this->getSlotCnt();
  
-        $typeArr = arr::make($type, TRUE);
+        $typeArr = arr::make($type, true);
 
-        if(!count($typeArr)) {
+        if (!count($typeArr)) {
             $typeArr = array_keys($slots);
         }
 
         $res = array();
-        foreach($typeArr as $st) {
+        foreach ($typeArr as $st) {
             $cnt = (int) $slots[$st];
             
-            for($i = static::FIRST_SLOT_NO; $i < $cnt + static::FIRST_SLOT_NO; $i++) {
+            for ($i = static::FIRST_SLOT_NO; $i < $cnt + static::FIRST_SLOT_NO; $i++) {
                 $name = $st . '-' . $i;
                 $res[$name] = $name;
             }

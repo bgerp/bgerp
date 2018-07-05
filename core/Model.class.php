@@ -92,6 +92,7 @@ class core_Model
     public function __get($property)
     {
         if (method_exists($this, "calc_{$property}")) {
+            
             return $this->{"calc_{$property}"}();
         }
     }

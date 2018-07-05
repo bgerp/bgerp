@@ -20,20 +20,20 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
      * @Override
      * @see fileman_webdrv_Generic::$defaultTab
      */
-    static $defaultTab = 'html';
+    public static $defaultTab = 'html';
     
     
-	/**
+    /**
      * Връща всички табове, които ги има за съответния файл
-     * 
+     *
      * @param object $fRec - Записите за файла
-     * 
+     *
      * @return array
-     * 
+     *
      * @Override
      * @see fileman_webdrv_Generic::getTabs
      */
-    static function getTabs($fRec)
+    public static function getTabs($fRec)
     {
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
@@ -54,7 +54,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
             $tabsArr['html'] = (object)
             array(
                     'title' => 'HTML',
-                    'html'  => $htmlPart,
+                    'html' => $htmlPart,
                     'order' => 3,
             );
         }
@@ -65,42 +65,41 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
             $tabsArr['text'] = (object)
             array(
                     'title' => 'Текст',
-                    'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div>{$textPart}</div></div>",
+                    'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Текст') . "</div>{$textPart}</div></div>",
                     'order' => 4,
             );
         }
-			
+            
         return $tabsArr;
     }
     
     
     /**
      * Връща HTML частта от файла
-     * 
+     *
      * @param object $fRec - Данните за файла
-     * 
+     *
      * return url - Връща URL, което да се визуализра
      */
-    static function getHtmlPart($fRec)
+    public static function getHtmlPart($fRec)
     {
-        
         return fileman_Download::getDownloadUrl($fRec->fileHnd);
     }
     
     
-     /**
+    /**
      * Връща текстовата част (richEdit) на файла
-     * 
+     *
      * @param object $fRec - Данните за файла
-     * 
+     *
      * return string - Текстовата част
      */
-    static function getRichTextPart($fRec)
-    {    
+    public static function getRichTextPart($fRec)
+    {
         // Вземаме съдържанието на файла
         $content = fileman_Files::getContent($fRec->fileHnd);
         
-        $content = i18n_Charset::convertToUtf8($content, array(), TRUE);
+        $content = i18n_Charset::convertToUtf8($content, array(), true);
         
         // Инстанция на richtext типа
         $richText = cls::get('type_Richtext');
@@ -117,14 +116,14 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
     }
     
     
-     /**
+    /**
      * Връща текстовата част на файла
-     * 
+     *
      * @param object $fRec - Данните за файла
-     * 
+     *
      * return string - Текстовата част
      */
-    static function getTextPart($fRec)
+    public static function getTextPart($fRec)
     {
         if (is_object($fRec)) {
             // Съдържанието на файла
@@ -148,13 +147,13 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
     
     /**
      * Връща информация за съответния файл и съответния тип
-     * 
+     *
      * @param fileHandler $fileHnd - Манипулатор на файла
-     * @param string $type - Типа на файла
-     * 
+     * @param string      $type    - Типа на файла
+     *
      * @return mixed $content - Десериализирания стринг
      */
-    static function getInfoContentByFh($fileHnd, $type)
+    public static function getInfoContentByFh($fileHnd, $type)
     {
         // Записите за съответния файл
         $fRec = fileman_Files::fetchByFh($fileHnd);
@@ -170,19 +169,19 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
             default:
                 
                 // Ако типа не съществува, връщаме FALSE
-                return FALSE;
+                return false;
         }
         
         return $content;
     }
     
     
-	/**
+    /**
      * Извлича текстовата част от файла
-     * 
+     *
      * @param object $fRec - Записите за файла
      */
-    static function extractText($fRec)
+    public static function extractText($fRec)
     {
         // Параметри необходими за конвертирането
         $params = array(
@@ -201,30 +200,33 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         $params['lockId'] = self::getLockId('text', $dId);
         
         // Проверявама дали няма извлечена информация или не е заключен
-        if (fileman_Indexes::isProcessStarted($params)) return ;
+        if (fileman_Indexes::isProcessStarted($params)) {
+            
+            return ;
+        }
         
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
-        	
+        if (core_Locks::get($params['lockId'], 100, 0, false)) {
+            
             // Вземаме текстовата част
             if ($params['fileHnd']) {
                 $htmlPart = self::getInfoContentByFh($fRec->fileHnd, 'text');
             } else {
                 $htmlPart = self::getTextPart($fRec);
             }
-        	
+            
             $htmlPart = mb_strcut($htmlPart, 0, 1000000);
             $htmlPart = i18n_Charset::convertToUtf8($htmlPart);
-        	
+            
             if ($params['fileHnd']) {
                 // Обновяваме данните за запис във fileman_Indexes
                 $params['content'] = $htmlPart;
                 fileman_Indexes::saveContent($params);
             }
-        	
+            
             // Отключваме процеса
             core_Locks::release($params['lockId']);
-        	
+            
             return $htmlPart;
         }
     }

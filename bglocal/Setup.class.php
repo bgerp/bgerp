@@ -23,31 +23,31 @@ class bglocal_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.15';
+    public $version = '0.15';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'bglocal_Banks';
+    public $startCtr = 'bglocal_Banks';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Готови данни и типове от различни области";
+    public $info = 'Готови данни и типове от различни области';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
         
         'bglocal_Mvr',
         'bglocal_Banks',
@@ -61,13 +61,13 @@ class bglocal_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "bglocal_interface_FreeShipping";
+    public $defClasses = 'bglocal_interface_FreeShipping';
     
     
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

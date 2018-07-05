@@ -31,7 +31,7 @@ class tnef_Decode extends core_Manager
      * Кой може да добавя
      */
     protected $canAdd = 'no_one';
-	
+    
     
     /**
      * Кой може да го редактира
@@ -75,15 +75,13 @@ class tnef_Decode extends core_Manager
     protected static $filesDelimiter = ',';
     
     
-    /**
-     * 
-     */
+    
     public function description()
     {
         cls::get('fileman_Files');
         $this->FLD('fileHnd', 'varchar(' . strlen(FILEMAN_HANDLER_PTR) . ')', 'caption=Файл->Източник');
         $this->FLD('extractedFilesHnd', 'varchar', 'caption=Файл->Резултати');
-        $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни');
+        $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Данни');
         
         $this->setDbUnique('dataId');
     }
@@ -91,23 +89,25 @@ class tnef_Decode extends core_Manager
     
     /**
      * Декодира подадения tnef файл и извлича всички файлове от него
-     * 
+     *
      * @param string $fileHnd
-     * 
+     *
      * @return array
      */
     public static function decode($fileHnd)
     {
         $fRec = fileman_Files::fetchByFh($fileHnd);
         
-        if (!$fRec) return FALSE;
+        if (!$fRec) {
+            
+            return false;
+        }
         
         $fileHndArr = array();
         
         // Ако е за същия файл е бил извличан преди
         $rec = self::fetch("#dataId = '{$fRec->dataId}'");
         if ($rec) {
-            
             $fileHndArr = explode(self::$filesDelimiter, $rec->extractedFilesHnd);
             
             return $fileHndArr;
@@ -135,10 +135,9 @@ class tnef_Decode extends core_Manager
         $Script->setCheckProgramsArr('tnef');
         
         // Стартираме скрипта синхронно синхронно
-        if ($Script->run(FALSE) === FALSE) {
+        if ($Script->run(false) === false) {
             fileman_Indexes::createError($params);
         } else {
-            
             $fileHndArr = self::uploadResFiles($Script);
             
             if (!$fileHndArr) {
@@ -148,20 +147,20 @@ class tnef_Decode extends core_Manager
             $rec = new stdClass();
             $rec->fileHnd = $fileHnd;
             $rec->dataId = $fRec->dataId;
-            $rec->extractedFilesHnd = implode(self::$filesDelimiter, (array)$fileHndArr);
-            $savedId = self::save($rec, NULL, 'IGNORE');
+            $rec->extractedFilesHnd = implode(self::$filesDelimiter, (array) $fileHndArr);
+            $savedId = self::save($rec, null, 'IGNORE');
         }
         
         return $fileHndArr;
     }
     
     
-	/**
+    /**
      * Качва резултатните файлове
-     * 
+     *
      * @param object $script - Обект със стойности
-     * 
-     * @return array 
+     *
+     * @return array
      */
     protected static function uploadResFiles($script)
     {
@@ -170,12 +169,16 @@ class tnef_Decode extends core_Manager
         // Вземаме всички файлове във временната директория
         $files = scandir($script->outputPath);
         
-        if (!$files) return $fileHndArr;
+        if (!$files) {
+            
+            return $fileHndArr;
+        }
         
         // Обхождаме всички отркити файлове
         foreach ($files as $file) {
-            
-            if ($file == '.' || $file == '..') continue;
+            if ($file == '.' || $file == '..') {
+                continue;
+            }
             
             // Ако възникне грешка при качването на файла (липса на права)
             try {
@@ -187,7 +190,7 @@ class tnef_Decode extends core_Manager
             
             // Ако се качи успешно записваме манипулатора в масив
             if ($fileHnd) {
-                $fileHndArr[$fileHnd] = $fileHnd;    
+                $fileHndArr[$fileHnd] = $fileHnd;
             }
         }
         
@@ -201,13 +204,13 @@ class tnef_Decode extends core_Manager
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param tnef_Decode $mvc
-     * @param object $row
-     * @param object $rec
+     * @param object      $row
+     * @param object      $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Името на файла да е линк към singле' a му
         $row->fileHnd = fileman_Files::getLink($rec->fileHnd);
@@ -216,10 +219,12 @@ class tnef_Decode extends core_Manager
         
         $row->extractedFilesHnd = '';
         
-        foreach ((array)$filesArr as $fileHnd) {
+        foreach ((array) $filesArr as $fileHnd) {
             $link = fileman_Files::getLink($fileHnd);
             
-            if (!$link) continue;
+            if (!$link) {
+                continue;
+            }
             
             $row->extractedFilesHnd .= ($row->extractedFilesHnd) ? '<br>' . $link : $link;
         }
@@ -227,12 +232,12 @@ class tnef_Decode extends core_Manager
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param tnef_Decode $mvc
-     * @param string $res
+     * @param string      $res
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         $conf = core_Packs::getConfig('tnef');
         $res .= fileman_Buckets::createBucket(self::$bucket, 'Файлове от TNEF', '', $conf->TNEF_MAX_SIZE, 'user', 'user');

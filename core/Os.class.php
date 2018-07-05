@@ -416,6 +416,7 @@ class core_Os
         $pathSpaceArr = self::getPathSpace($path);
         
         if ($percent) {
+            
             return $pathSpaceArr[4];
         }
         

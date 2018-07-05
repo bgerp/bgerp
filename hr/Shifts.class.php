@@ -19,60 +19,60 @@ class hr_Shifts extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Графици";
+    public $title = 'Графици';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "График";
+    public $singleTitle = 'График';
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Персонал";
+    public $pageMenu = 'Персонал';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper,  plg_Printing,
+    public $loadList = 'plg_Created, plg_RowTools, hr_Wrapper,  plg_Printing,
                        plg_SaveAndNew, WorkingCycles=hr_WorkingCycles';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,hrMaster';
+    public $canRead = 'ceo,hrMaster';
     
     /**
      * @todo Чака за документация...
      */
-    var $details = 'hr_ShiftDetails';
+    public $details = 'hr_ShiftDetails';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'ceo,hrMaster';
+    public $canWrite = 'ceo,hrMaster';
     
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'hr/tpl/SingleLayoutShift.shtml';
+    public $singleLayoutFile = 'hr/tpl/SingleLayoutShift.shtml';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory');
-        $this->FLD('cycle', 'key(mvc=hr_WorkingCycles,select=name)', "caption=Раб. цикъл");
-        $this->FLD('startingOn', 'datetime', "caption=Започване на");
-        $this->FLD('employersCnt', 'datetime', "caption=Служители,input=none");
+        $this->FLD('cycle', 'key(mvc=hr_WorkingCycles,select=name)', 'caption=Раб. цикъл');
+        $this->FLD('startingOn', 'datetime', 'caption=Започване на');
+        $this->FLD('employersCnt', 'datetime', 'caption=Служители,input=none');
         
         $this->setDbUnique('name');
     }
@@ -85,17 +85,17 @@ class hr_Shifts extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_BeforePrepareEditForm($mvc, $data)
+    public static function on_BeforePrepareEditForm($mvc, $data)
     {
-        if(!$mvc->WorkingCycles->fetch('1=1')) {
-            redirect(array('hr_WorkingCycles'), FALSE, "|Моля въведете поне един работен режим");
+        if (!$mvc->WorkingCycles->fetch('1=1')) {
+            redirect(array('hr_WorkingCycles'), false, '|Моля въведете поне един работен режим');
         }
     }
     
     /**
      * @todo Чака за документация...
      */
-    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         static $shiftMap = array(
              0 => 'п',
@@ -110,35 +110,35 @@ class hr_Shifts extends core_Master
         
         $month = Request::get('cal_month', 'int');
         $month = str_pad($month, 2, '0', STR_PAD_LEFT);
-        $year  = Request::get('cal_year', 'int');
+        $year = Request::get('cal_year', 'int');
         
-        if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
+        if (!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
             $year = date('Y');
             $month = date('n');
         }
         
         // Добавяне на първия хедър
-        $currentMonth = tr(dt::$months[$month-1]) . " " . $year;
+        $currentMonth = tr(dt::$months[$month - 1]) . ' ' . $year;
         
-        $pm = $month-1;
+        $pm = $month - 1;
         
-        if($pm == 0) {
+        if ($pm == 0) {
             $pm = 12;
-            $py = $year-1;
+            $py = $year - 1;
         } else {
             $py = $year;
         }
-        $prevMonth = tr(dt::$months[$pm-1]) . " " . $py;
+        $prevMonth = tr(dt::$months[$pm - 1]) . ' ' . $py;
         
         $nm = $month + 1;
         
-        if($nm == 13) {
+        if ($nm == 13) {
             $nm = 1;
             $ny = $year + 1;
         } else {
             $ny = $year;
         }
-        $nextMonth = tr(dt::$months[$nm-1]) . " " . $ny;
+        $nextMonth = tr(dt::$months[$nm - 1]) . ' ' . $ny;
         
         $nextLink = $prevtLink = getCurrentUrl();
         
@@ -167,29 +167,29 @@ class hr_Shifts extends core_Master
         // Броя на дните в месеца (= на последната дата в месеца);
         $lastDay = date('t', $firstDayTms);
         
-        for($i = 1; $i <= $lastDay; $i++){
+        for ($i = 1; $i <= $lastDay; $i++) {
             $daysTs = mktime(0, 0, 0, $month, $i, $year);
-            $date = date("Y-m-d H:i", $daysTs);
+            $date = date('Y-m-d H:i', $daysTs);
             $d[$i] = new stdClass();
             
-            $d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($data->rec, $date)] . "</span>";
-            $d[$i]->type = (string)static::getShiftDay($data->rec, $date);
+            $d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($data->rec, $date)] . '</span>';
+            $d[$i]->type = (string) static::getShiftDay($data->rec, $date);
 
-            if($d[$i]->type == '0'){
+            if ($d[$i]->type == '0') {
                 $res->row->shift0 = ' rest';
-            } elseif($d[$i]->type == '1'){
+            } elseif ($d[$i]->type == '1') {
                 $res->row->shift1 = ' first';
-            } elseif($d[$i]->type == '2'){
+            } elseif ($d[$i]->type == '2') {
                 $res->row->shift2 = ' second';
-            } elseif($d[$i]->type == '3'){
+            } elseif ($d[$i]->type == '3') {
                 $res->row->shift3 = ' third';
-            } elseif($d[$i]->type == '4'){
+            } elseif ($d[$i]->type == '4') {
                 $res->row->shift4 = ' diurnal';
-            } elseif($d[$i]->type == '5'){
+            } elseif ($d[$i]->type == '5') {
                 $res->row->shift5 = ' leave';
-            } elseif($d[$i]->type == '6'){
+            } elseif ($d[$i]->type == '6') {
                 $res->row->shift6 = ' sick';
-            } elseif($d[$i]->type == '7'){
+            } elseif ($d[$i]->type == '7') {
                 $res->row->shift7 = ' traveling';
             }
         }
@@ -201,7 +201,7 @@ class hr_Shifts extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderWrapping($mvc, &$tpl)
+    public function on_AfterRenderWrapping($mvc, &$tpl)
     {
         $tpl->push('hr/tpl/style.css', 'CSS');
     }
@@ -211,10 +211,10 @@ class hr_Shifts extends core_Master
      * По зададена смяна и ден от календара
      * връща режима на смяната
      *
-     * @param stdClass $recShift
+     * @param stdClass   $recShift
      * @param mySQL date $date
      */
-    static public function getShiftDay($recShift, $date)
+    public static function getShiftDay($recShift, $date)
     {
         // По кой цикъл работи смяната
         // Кога започва графика на смяната
@@ -246,10 +246,9 @@ class hr_Shifts extends core_Master
     /**
      * @todo Чака за документация...
      */
-    static public function putNewShiftDetail($recShift, $recDetail)
+    public static function putNewShiftDetail($recShift, $recDetail)
     {
-        if($recDetail->startingOn > $recShift->startingOn){
-        
+        if ($recDetail->startingOn > $recShift->startingOn) {
         }
     }
 }

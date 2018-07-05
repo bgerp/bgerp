@@ -2,7 +2,7 @@
 
 
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   logs
@@ -24,7 +24,7 @@ class log_Classes extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Класове";
+    public $title = 'Класове';
     
     
     /**
@@ -69,9 +69,7 @@ class log_Classes extends core_Manager
     public $loadList = 'plg_SystemWrapper, log_Wrapper';
     
     
-    /**
-     * 
-     */
+    
     public static $classArr = array();
     
     
@@ -89,15 +87,18 @@ class log_Classes extends core_Manager
     
     /**
      * Връща crc32 стойността на стринга
-     * 
-     * @param string $action
+     *
+     * @param string  $action
      * @param boolean $autoSave
-     * 
+     *
      * @return integer|NULL
      */
-    public static function getClassCrc($className, $autoSave = TRUE)
+    public static function getClassCrc($className, $autoSave = true)
     {
-        if (!$className) return ;
+        if (!$className) {
+            
+            return ;
+        }
         
         $classCrc = crc32($className);
         
@@ -114,21 +115,21 @@ class log_Classes extends core_Manager
      */
     public static function saveActions()
     {
-       foreach (self::$classArr as $crc => $class) {
-           $rec = new stdClass();
-           $rec->crc = $crc;
-           $rec->class = $class;
+        foreach (self::$classArr as $crc => $class) {
+            $rec = new stdClass();
+            $rec->crc = $crc;
+            $rec->class = $class;
            
-           self::save($rec, NULL, 'IGNORE');
-       }
+            self::save($rec, null, 'IGNORE');
+        }
     }
     
     
     /**
      * Връща името на класа от подадената crc стойност
-     * 
+     *
      * @param integer $crc
-     * 
+     *
      * @return string
      */
     public static function getClassFromCrc($crc)

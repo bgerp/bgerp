@@ -40,6 +40,7 @@ class core_Sbf extends core_Mvc
                     
             // Създаваме директория
             if (!@mkdir($dir, 0777, true)) {
+                
                 return false;
             }
         }

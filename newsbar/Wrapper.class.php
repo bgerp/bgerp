@@ -21,12 +21,11 @@ class newsbar_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('newsbar_News', 'Новини', 'cms, newsbar, admin, ceo');
                        
         $this->title = 'Новини « Сайт';
-        Mode::set('menuPage','Сайт:Новини');
+        Mode::set('menuPage', 'Сайт:Новини');
     }
-
 }

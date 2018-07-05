@@ -199,11 +199,13 @@ class core_Lg extends core_Manager
     {
         // Празните стрингове и обектите не се превеждат
         if (is_object($kstring) || !trim($kstring)) {
+            
             return $kstring;
         }
         
         // Когато се извършва начална инсталация - също не се превежда
         if (Mode::is('dbInit')) {
+            
             return $kstring;
         }
 
@@ -540,11 +542,13 @@ class core_Lg extends core_Manager
     {
         // Ако е обект, връщаме
         if (is_object($str)) {
+            
             return ($str);
         }
         
         // Ако е празен стринг
         if (!trim($str)) {
+            
             return $str;
         }
         
@@ -594,6 +598,7 @@ class core_Lg extends core_Manager
         $langArr = arr::make(mb_strtolower(EF_LANGUAGES), true);
         
         if (isset($langArr[$lg])) {
+            
             return true;
         }
         

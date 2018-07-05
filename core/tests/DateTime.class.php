@@ -156,6 +156,7 @@ class core_tests_DateTime extends unit_Class
         }
 
         if (!$mysqlDate || $mysqlDate == '0000-00-00' || $mysqlDate == '0000-00-00 00:00:00') {
+            
             return false;
         }
         
@@ -291,6 +292,7 @@ class core_tests_DateTime extends unit_Class
 
         for ($i = -2; $i <= 2; $i++) {
             if (date('Y-m-d', time() + $i * 24 * 60 * 60) == $date) {
+                
                 return $relNames[$i];
             }
         }
@@ -385,6 +387,7 @@ class core_tests_DateTime extends unit_Class
                     $month = $out[2];
                     $year = date('Y', time());
                 } else {
+                    
                     return false;
                 }
             }
@@ -458,6 +461,7 @@ class core_tests_DateTime extends unit_Class
             return $date2;
         }
         if ($full) {
+            
             return date('Y-m-d H:i:s', time());
         }
 
@@ -532,6 +536,7 @@ class core_tests_DateTime extends unit_Class
         $dayOfWeek = dt::mysql2verbal($date, 'w');
         
         if ($dayOfWeek == 0 || $dayOfWeek == 6) {
+            
             return true;
         }
         

@@ -21,13 +21,13 @@ class sens_driver_IpDevice extends core_BaseClass
     /**
      * Интерфeйси, поддържани от всички наследници
      */
-    var $interfaces = 'sens_DriverIntf, permanent_SettingsIntf';
+    public $interfaces = 'sens_DriverIntf, permanent_SettingsIntf';
     
     
     /**
      * id на устройството
      */
-    var $id;
+    public $id;
     
     
     /**
@@ -40,20 +40,20 @@ class sens_driver_IpDevice extends core_BaseClass
      * 'Chm' => array('unit'=>'Chm', 'param'=>'Хим. замърсяване', 'details'=>'%')
      * );
      */
-    var $params = array();
+    public $params = array();
     
     
     /**
      * Брой последни стойности на базата на които се изчислява средна стойност
      * @var integer
      */
-    var $avgCnt = 10;
+    public $avgCnt = 10;
     
     
     /**
      * Брой аларми - хубаво е да се предефинира в драйверите наследници
      */
-    var $alarmCnt = 3;
+    public $alarmCnt = 3;
     
     
     /**
@@ -64,7 +64,7 @@ class sens_driver_IpDevice extends core_BaseClass
      * 'out3' => array('analog' => array(0,10))
      * );
      */
-    var $outs = array();
+    public $outs = array();
     
     
     /**
@@ -80,15 +80,15 @@ class sens_driver_IpDevice extends core_BaseClass
      * 'out3' => 4.8
      * );
      */
-    var $stateArr = array();
+    public $stateArr = array();
     
     
     /**
      * Начално установяване на параметрите
      */
-    function init($params = array())
+    public function init($params = array())
     {
-        $params = arr::make($params, TRUE);
+        $params = arr::make($params, true);
         parent::init($params);
         permanent_Settings::setObject($this);
     }
@@ -98,7 +98,7 @@ class sens_driver_IpDevice extends core_BaseClass
      * Зарежда в $this->stateArr всички досегашни данни, които драйвера пази
      * от permanent_Data
      */
-    function loadState()
+    public function loadState()
     {
         if (empty($this->stateArr)) {
             $this->stateArr = permanent_Data::read($this->getStateKey());
@@ -111,10 +111,10 @@ class sens_driver_IpDevice extends core_BaseClass
     /**
      * Запазва всички актуални данни в permanent_Data
      */
-    function saveState()
+    public function saveState()
     {
         if (!permanent_Data::write($this->getStateKey(), $this->stateArr)) {
-            $this->logWarning("Неуспешно записване на драйвер");
+            $this->logWarning('Неуспешно записване на драйвер');
         }
     }
     
@@ -124,18 +124,17 @@ class sens_driver_IpDevice extends core_BaseClass
      * Реализира се в наследниците
      * в зависимост от начина на четенето на входовете и изходите
      */
-    function updateState()
+    public function updateState()
     {
-    
     }
     
     
     /**
      * Връща настройките на обекта от permanent_Data
      */
-    function getSettings()
+    public function getSettings()
     {
-        if(!$this->settings && $this->id) {
+        if (!$this->settings && $this->id) {
             permanent_Settings::setObject($this);
         }
 
@@ -146,9 +145,12 @@ class sens_driver_IpDevice extends core_BaseClass
     /**
      * Задава вътрешните сетинги на обекта
      */
-    function setSettings($data)
+    public function setSettings($data)
     {
-        if (!$data) return FALSE;
+        if (!$data) {
+            
+            return false;
+        }
         $this->settings = $data;
     }
     
@@ -157,9 +159,9 @@ class sens_driver_IpDevice extends core_BaseClass
      * Връща уникален за обекта ключ под който
      * ще се запишат сетингите в permanent_Data
      */
-    function getSettingsKey()
+    public function getSettingsKey()
     {
-        return core_String::convertToFixedKey(cls::getClassName($this) . "_" . $this->id . "Settings");
+        return core_String::convertToFixedKey(cls::getClassName($this) . '_' . $this->id . 'Settings');
     }
     
     
@@ -167,9 +169,9 @@ class sens_driver_IpDevice extends core_BaseClass
      * Връща уникален за обекта ключ под който
      * ще се запишат показанията в permanent_Data
      */
-    function getStateKey()
+    public function getStateKey()
     {
-        return core_String::convertToFixedKey(cls::getClassName($this) . "_" . $this->id . "State");
+        return core_String::convertToFixedKey(cls::getClassName($this) . '_' . $this->id . 'State');
     }
     
     
@@ -179,7 +181,6 @@ class sens_driver_IpDevice extends core_BaseClass
      */
     public function setParams()
     {
-        
         $Params = cls::get('sens_Params');
         
         foreach ($this->params as $param) {
@@ -194,69 +195,82 @@ class sens_driver_IpDevice extends core_BaseClass
      * Добавя във формата за настройки на сензора
      * стандартните параметри и условията
      */
-    function getSettingsForm($form)
+    public function getSettingsForm($form)
     {
-        
         $paramArr[''] = 'избери';
         
-        foreach($this->params as $p => $pArr) {
-            if ($pArr['onChange']) $onChange = ' или при промяна';
-            if (strpos($p,'InA') === FALSE) {
-	            $form->FLD('logPeriod_' . $p,
-	                'int(4)',
-	                'caption=Параметри - периоди на следене->' . $pArr['param'] .
-	                ',hint=На колко минути да се записва стойността на параметъра,unit=мин.' . $onChange . ',input');
+        foreach ($this->params as $p => $pArr) {
+            if ($pArr['onChange']) {
+                $onChange = ' или при промяна';
+            }
+            if (strpos($p, 'InA') === false) {
+                $form->FLD(
+                    'logPeriod_' . $p,
+                    'int(4)',
+                    'caption=Параметри - периоди на следене->' . $pArr['param'] .
+                    ',hint=На колко минути да се записва стойността на параметъра,unit=мин.' . $onChange . ',input'
+                );
             } else {
-            	// Входа е аналогов
-	            $form->FLD('logPeriod_' . $p,
-	                'int(4)',
-	                'caption=Параметри - периоди на следене - ' . $pArr['param'] .'->' . "Период на следене" .
-	                ',hint=На колко минути да се записва стойността на параметъра,unit=мин.' . $onChange . ',input');
-	            
-	            // Подготвяме масива за setOptions
-	            $queryParams = sens_Params::getQuery();
-	            $queryParams->show("unit, param, details");
-	            while ($res = $queryParams->fetch()) {
-	            	$arrRes["{$res->unit}"] = $res->param . " " . $res->details;
-	            }
+                // Входа е аналогов
+                $form->FLD(
+                    'logPeriod_' . $p,
+                    'int(4)',
+                    'caption=Параметри - периоди на следене - ' . $pArr['param'] .'->' . 'Период на следене' .
+                    ',hint=На колко минути да се записва стойността на параметъра,unit=мин.' . $onChange . ',input'
+                );
+                
+                // Подготвяме масива за setOptions
+                $queryParams = sens_Params::getQuery();
+                $queryParams->show('unit, param, details');
+                while ($res = $queryParams->fetch()) {
+                    $arrRes["{$res->unit}"] = $res->param . ' ' . $res->details;
+                }
 
-	            $arrRes = array('empty' => '') + $arrRes;
-	            $form->FLD('name_' . $p,
-	                'enum',
-	                'caption=Параметри - периоди на следене - ' . $pArr['param'] .'->Наименование,hint=Наименование' . $onChange . ',input');
+                $arrRes = array('empty' => '') + $arrRes;
+                $form->FLD(
+                    'name_' . $p,
+                    'enum',
+                    'caption=Параметри - периоди на следене - ' . $pArr['param'] .'->Наименование,hint=Наименование' . $onChange . ',input'
+                );
 
-	            $form->setOptions("name_{$p}", $arrRes);
-	            
-	            $form->FLD('angular_' . $p,
-	                'double(decimals=2)',
-	                'caption=Параметри - периоди на следене - ' . $pArr['param'] .'->Ъглов коефициент,hint=Коефициент на линейното уравнение,input');
-	            $form->FLD('linear_' . $p,
-	                'double(decimals=2)',
-	                'caption=Параметри - периоди на следене - ' . $pArr['param'] .'->Линеен коефициент,hint=отстояние на линейната функция,input');
-            }            
+                $form->setOptions("name_{$p}", $arrRes);
+                
+                $form->FLD(
+                
+                    'angular_' . $p,
+                    'double(decimals=2)',
+                    'caption=Параметри - периоди на следене - ' . $pArr['param'] .'->Ъглов коефициент,hint=Коефициент на линейното уравнение,input'
+                
+                );
+                $form->FLD(
+                    'linear_' . $p,
+                    'double(decimals=2)',
+                    'caption=Параметри - периоди на следене - ' . $pArr['param'] .'->Линеен коефициент,hint=отстояние на линейната функция,input'
+                );
+            }
             $paramArr[$p] = $pArr['param'];
         }
         
-        for($i = 1; $i <= $this->alarmCnt; $i++) {
+        for ($i = 1; $i <= $this->alarmCnt; $i++) {
             $form->FLD("alarm_{$i}_message", 'varchar', "caption=Аларма {$i}->Съобщение,hint=Съобщение за лог-а,input,width=400px;");
             $form->FLD("alarm_{$i}_severity", 'enum(normal=Информация, warning=Предупреждение, alert=Аларма)', "caption=Аларма {$i}->Приоритетност,hint=Ниво на важност,input");
             $enumType = cls::get('type_Enum', array('options' => $paramArr));
             $form->FLD("alarm_{$i}_param", $enumType, "caption=Аларма {$i}->Параметър,hint=Параметър за алармиране,input");
-            $form->FLD("alarm_{$i}_cond", "enum(nothing=нищо, higher=по-голямо, lower=по-малко)", "caption=Аларма {$i}->Условие,hint=Условие на действие,input");
-            $form->FLD("alarm_{$i}_value", "double(4)", "caption=Аларма {$i}->Стойност за сравняване,hint=Стойност за сравняване,input");
+            $form->FLD("alarm_{$i}_cond", 'enum(nothing=нищо, higher=по-голямо, lower=по-малко)', "caption=Аларма {$i}->Условие,hint=Условие на действие,input");
+            $form->FLD("alarm_{$i}_value", 'double(4)', "caption=Аларма {$i}->Стойност за сравняване,hint=Стойност за сравняване,input");
             
             // Ако имаме изходи /релета/ за управление
             if (!empty($this->outs)) {
                 foreach ($this->outs as $out => $values) {
                     foreach ($values as $type => $set) {
                         switch ($type) {
-                            case 'digital' :
-                                $set = array_merge(array('nothing'=>'нищо'), (array)$set);
+                            case 'digital':
+                                $set = array_merge(array('nothing' => 'нищо'), (array) $set);
                                 $enumType = cls::get('type_Enum', array('options' => $set));
-                                $form->FLD("{$out}_{$i}", $enumType, "caption=Стойност на цифров изход,hint=Как да се сетне изхода,input");
+                                $form->FLD("{$out}_{$i}", $enumType, 'caption=Стойност на цифров изход,hint=Как да се сетне изхода,input');
                                 break;
-                            case 'analog' :
-                                $form->FLD("{$out}_{$i}", new type_Float(array('size' => 6, 'min=' . $set[0], 'max=' . $set[1])), "caption=Стойност на аналогов изход,hint=Как да се сетне изхода,input");
+                            case 'analog':
+                                $form->FLD("{$out}_{$i}", new type_Float(array('size' => 6, 'min=' . $set[0], 'max=' . $set[1])), 'caption=Стойност на аналогов изход,hint=Как да се сетне изхода,input');
                                 break;
                         }
                     }
@@ -272,39 +286,39 @@ class sens_driver_IpDevice extends core_BaseClass
      * Взима сетингите от $driver->settings
      * и се свързва с устройството според тях
      */
-    function process()
+    public function process()
     {
         // Запазваме старото състояние за сравняване при необходимост с новите данни
         $stateArrOld = $this->loadState();
         
         if (!$this->updateState()) {
             if (!$stateArrOld['readError']) {
-                sens_MsgLog::add($this->id, "Не се чете!", 3);
-                $this->stateArr['readError'] = TRUE;
+                sens_MsgLog::add($this->id, 'Не се чете!', 3);
+                $this->stateArr['readError'] = true;
                 $this->saveState();
             }
             exit(1);
         }
         
-        $this->stateArr['readError'] = FALSE;
+        $this->stateArr['readError'] = false;
         
         // Обикаляме всички параметри на драйвера и всичко с префикс logPeriod от настройките
         // и ако му е времето го записваме в indicationsLog-а
         $settingsArr = (array) $this->getSettings();
 
         foreach ($this->params as $param => $arr) {
-        	// Ако в сетингите е зададено, че параметъра е изчисляем:
-        	// Създаваме logPeriod 
-        	if (!empty($settingsArr["name_{$param}"]) && $settingsArr["name_{$param}"] != 'empty') {
-        		$settingsArr["logPeriod_{$settingsArr["name_{$param}"]}"] = $settingsArr["logPeriod_{$param}"];
-        		$param = $settingsArr["name_{$param}"];
-        	}
+            // Ако в сетингите е зададено, че параметъра е изчисляем:
+            // Създаваме logPeriod
+            if (!empty($settingsArr["name_{$param}"]) && $settingsArr["name_{$param}"] != 'empty') {
+                $settingsArr["logPeriod_{$settingsArr["name_{$param}"]}"] = $settingsArr["logPeriod_{$param}"];
+                $param = $settingsArr["name_{$param}"];
+            }
 
-        	// Дали параметъра е зададен да се логва при промяна?
+            // Дали параметъра е зададен да се логва при промяна?
             if ($arr['onChange']) {
                 // Дали има промяна? Ако - ДА записваме в лог-а
-                if ($this->stateArr["$param"] != $stateArrOld["$param"]) {
-                    sens_MsgLog::add($this->id, $param . " - " . $this->stateArr["$param"], 1);
+                if ($this->stateArr["${param}"] != $stateArrOld["${param}"]) {
+                    sens_MsgLog::add($this->id, $param . ' - ' . $this->stateArr["${param}"], 1);
                 }
             }
             
@@ -314,30 +328,31 @@ class sens_driver_IpDevice extends core_BaseClass
                 $currentMinute = round(time() / 60);
                 
                 if ($currentMinute % $settingsArr["logPeriod_{$param}"] == 0) {
+                    sens_IndicationsLog::add(
                     
-                    sens_IndicationsLog::add($this->id,
+                        $this->id,
                         $param,
-                        $this->stateArr["$param"]
+                        $this->stateArr["${param}"]
                     );
                 }
             }
         }
-		
+        
         // Ред е да задействаме аларми ако има.
         // Започваме цикъл всички идентификатори на формата
-        for($i = 1; $i <= $this->alarmCnt; $i++) {
-            $cond = FALSE;
+        for ($i = 1; $i <= $this->alarmCnt; $i++) {
+            $cond = false;
             
             switch ($settingsArr["alarm_{$i}_cond"]) {
                 
-                case "lower" :
+                case 'lower':
                     $cond = $this->stateArr[$settingsArr["alarm_{$i}_param"]] < $settingsArr["alarm_{$i}_value"];
                     break;
                 
-                case "higher" :
+                case 'higher':
                     $cond = $this->stateArr[$settingsArr["alarm_{$i}_param"]] > $settingsArr["alarm_{$i}_value"];
                     break;
-                default :
+                default:
                 // Прескачаме недефинираните аларми
                 continue 2;
             }
@@ -355,17 +370,17 @@ class sens_driver_IpDevice extends core_BaseClass
                 // При задействано условие запазваме съобщението в състоянието на сензора за следваща употреба
                 $lastMsgArr["lastMsg_{$i}"] = $settingsArr["alarm_{$i}_message"] . $settingsArr["alarm_{$i}_severity"];
                 
-                // Тук ще зададем състоянието на изходите /ако има такива/ 
+                // Тук ще зададем състоянието на изходите /ако има такива/
                 // в зависимост от изпълненото условие /задействаната аларма/
                 if (is_array($this->outs)) {
                     foreach ($this->outs as $out => $type) {
-                        // Прескачаме изходите със стойност 'nothing' а останалите ги санитизираме 
+                        // Прескачаме изходите със стойност 'nothing' а останалите ги санитизираме
                         if ($settingsArr["{$out}_{$i}"] != 'nothing') {
                             switch ($type) {
-                                case 'digital' :
+                                case 'digital':
                                     $settingsArr["{$out}_{$i}"] = empty($settingsArr["{$out}_{$i}"]) ? 0 : 1;
                                     break;
-                                case 'analog' :
+                                case 'analog':
                                     $settingsArr["{$out}_{$i}"] = (int) $settingsArr["{$out}_{$i}"];
                                     break;
                             }
@@ -381,7 +396,7 @@ class sens_driver_IpDevice extends core_BaseClass
             $this->updateState();
         }
         // Добавяме последните аларми към състоянието ако е имало такива
-        $this->stateArr = array_merge((array)$this->stateArr, (array)$lastMsgArr);
+        $this->stateArr = array_merge((array) $this->stateArr, (array) $lastMsgArr);
         
         $this->saveState();
     }
@@ -393,7 +408,7 @@ class sens_driver_IpDevice extends core_BaseClass
      * че да е валиден само за текущата сесия на потребителя.
      * @param object $object
      */
-    function getUrl()
+    public function getUrl()
     {
         return array('sens_Sensors', 'Settings', $this->id);
     }
@@ -403,9 +418,10 @@ class sens_driver_IpDevice extends core_BaseClass
      * Връща линк с подходяща картинка към входната точка за настройка на данните за този обект
      * @param object $object
      */
-    function getLink()
+    public function getLink()
     {
-        return ht::createLink("<img width=16 height=16 src=" . sbf('img/16/testing.png') . ">",
+        return ht::createLink(
+            '<img width=16 height=16 src=' . sbf('img/16/testing.png') . '>',
             array('sens_Sensors', 'Settings', $this->id)
         );
     }
@@ -414,7 +430,7 @@ class sens_driver_IpDevice extends core_BaseClass
     /**
      * Връща заглавието на драйвера
      */
-    function getTitle()
+    public function getTitle()
     {
         $settings = $this->getSettings();
         
@@ -425,26 +441,27 @@ class sens_driver_IpDevice extends core_BaseClass
     /**
      * Връща HTML блок, показващ вербално състоянието на сензора
      */
-    function renderHtml()
+    public function renderHtml()
     {
-        
-        $this->loadState(); 
+        $this->loadState();
         $settings = (array) $this->settings;
 
-        $html = "<table colspan=0 rowspan=0>";
+        $html = '<table colspan=0 rowspan=0>';
         foreach ($this->params as $param => $properties) {
             
             // Празните параметри не ги показваме
-            if (empty($this->stateArr["{$param}"]) || $param == 'empty') continue;
+            if (empty($this->stateArr["{$param}"]) || $param == 'empty') {
+                continue;
+            }
             
             // Ако параметъра е аналогов и има функция за изчислението му показваме само изчисления параметър
-            if (strpos($param, 'InA') !== FALSE && !empty($settings["name_{$param}"]) && $settings["name_{$param}"] !='empty') {
-            	$query = sens_params::getQuery();
-		        $query->where('#unit="' . $settings["name_{$param}"] . '"');
-		        $countable = $query->fetch();
-            	
-            	$html .= "<tr><td>{$settings["name_{$param}"]}</td><td>= " . round($this->stateArr["{$settings["name_{$param}"]}"], 2) . " {$countable->details}</td></tr>";
-            	continue;
+            if (strpos($param, 'InA') !== false && !empty($settings["name_{$param}"]) && $settings["name_{$param}"] != 'empty') {
+                $query = sens_params::getQuery();
+                $query->where('#unit="' . $settings["name_{$param}"] . '"');
+                $countable = $query->fetch();
+                
+                $html .= "<tr><td>{$settings["name_{$param}"]}</td><td>= " . round($this->stateArr["{$settings["name_{$param}"]}"], 2) . " {$countable->details}</td></tr>";
+                continue;
             }
             
             // Стринговете се кастват към float, и ако са !=0 се показват
@@ -455,7 +472,7 @@ class sens_driver_IpDevice extends core_BaseClass
             
             $html .= "<tr><td>{$param}</td><td>= " . round($valParam, 2) . " {$properties['details']}</td></tr>";
         }
-        $html .= "</table>";
+        $html .= '</table>';
         
         return $html;
     }

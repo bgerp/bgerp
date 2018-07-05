@@ -18,14 +18,12 @@
  */
 class help_Wrapper extends plg_ProtoWrapper
 {
-/**
+    /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
-       
         $this->TAB('help_Info', 'Помощ', 'debug, help,admin');
         $this->TAB('help_Log', 'Лог', 'debug, help,admin');
-       
     }
 }

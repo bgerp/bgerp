@@ -126,6 +126,7 @@ class bgerp_Notifications extends core_Manager
     public static function add($msg, $urlArr, $userId, $priority = null, $customUrl = null, $addOnce = false)
     {
         if (!isset($userId)) {
+            
             return ;
         }
 
@@ -144,11 +145,13 @@ class bgerp_Notifications extends core_Manager
         // Потребителят не може да си прави нотификации сам на себе си
         // Режима 'preventNotifications' спира задаването на всякакви нотификации
         if (($userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) {
+            
             return ;
         }
         
         // Да не се нотифицира контракторът
         if (core_Users::haveRole('partner', $userId)) {
+            
             return ;
         }
         
@@ -203,6 +206,7 @@ class bgerp_Notifications extends core_Manager
         
         // Ако само се запознава със съдържанието - не се изчиства
         if (Request::get('ОnlyMeet')) {
+            
             return ;
         }
         
@@ -216,6 +220,7 @@ class bgerp_Notifications extends core_Manager
 
         // Да не се нотифицира контрактора
         if ($userId != '*' && core_Users::haveRole('partner', $userId)) {
+            
             return ;
         }
         
@@ -253,6 +258,7 @@ class bgerp_Notifications extends core_Manager
         $query->where("#url = '{$url}' AND #userId = '{$userId}'");
         
         if ($rec = $query->fetch()) {
+            
             return $rec->closedOn;
         }
     }
@@ -455,6 +461,7 @@ class bgerp_Notifications extends core_Manager
         $tpl = new core_ET();
         
         if ($rec->userId != core_Users::getCurrent()) {
+            
             return array();
         }
         
@@ -541,6 +548,7 @@ class bgerp_Notifications extends core_Manager
         $rec = self::fetchRec($rec);
         
         if (!$rec) {
+            
             return $resValsArr;
         }
         
@@ -869,6 +877,7 @@ class bgerp_Notifications extends core_Manager
         $retUrl = getRetUrl();
         
         if (!cls::load($ctr, true) || !$ctr::haveRightFor($act, $dId)) {
+            
             return new Redirect($retUrl, 'Не може да се настройва', 'warning');
         }
         
@@ -1202,6 +1211,7 @@ class bgerp_Notifications extends core_Manager
         $resRec = $query->fetch();
         
         if (!$resRec) {
+            
             return ;
         }
         

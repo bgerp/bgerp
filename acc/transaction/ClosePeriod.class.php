@@ -254,6 +254,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         $entries = array();
         // Приходи от продажби по артикули
         if (!count($this->balanceId)) {
+            
             return $entries;
         }
         

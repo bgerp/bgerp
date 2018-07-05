@@ -232,6 +232,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
     {
         $rec = static::fetchRec($id);
         if ($Driver = static::getDriver($rec)) {
+            
             return $Type = $Driver->getType($rec, $domainClass, $domainId, $value);
         }
          
@@ -365,6 +366,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
     {
         $Type = self::getTypeInstance($id, $domainClass, $domainId, $value);
         if ($Type) {
+            
             return $Type->toVerbal(trim($value));
         }
          

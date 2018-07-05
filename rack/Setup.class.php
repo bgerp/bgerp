@@ -21,37 +21,37 @@ class rack_Setup extends core_ProtoSetup
     /**
      * Версия на компонента
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'acc=0.1';
+    public $depends = 'acc=0.1';
     
     
     /**
      * Стартов контролер за връзката в системното меню
      */
-    var $startCtr = 'rack_Movements';
+    public $startCtr = 'rack_Movements';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Палетно складово стопанство";
+    public $info = 'Палетно складово стопанство';
         
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var  $managers = array(
+    public $managers = array(
             'rack_Products',
             'rack_Movements',
             'rack_Pallets',
@@ -63,36 +63,36 @@ class rack_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'rack,rackMaster';
+    public $roles = 'rack,rackMaster';
     
 
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', "rack,ceo,store,storeWorker"),
+    public $menuItems = array(
+            array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', 'rack,ceo,store,storeWorker'),
         );
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
-    	$Plugins = cls::get('core_Plugins');
-    	$html .= $Plugins->installPlugin('Връзка между междускладовия трансфер и палетния склад', 'rack_plg_Document', 'store_TransfersDetails', 'private');
-    	$html .= $Plugins->installPlugin('Връзка между ЕН и палетния склад', 'rack_plg_Document', 'store_ShipmentOrderDetails', 'private');
-    	
-    	return $html;
+        $html = parent::install();
+        
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Връзка между междускладовия трансфер и палетния склад', 'rack_plg_Document', 'store_TransfersDetails', 'private');
+        $html .= $Plugins->installPlugin('Връзка между ЕН и палетния склад', 'rack_plg_Document', 'store_ShipmentOrderDetails', 'private');
+        
+        return $html;
     }
     
     
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);
@@ -104,7 +104,7 @@ class rack_Setup extends core_ProtoSetup
     /**
      * Изпълнява се след setup-а
      */
-    function checkConfig()
+    public function checkConfig()
     {
         $sMvc = cls::get('store_Stores');
         $sMvc->setupMVC();

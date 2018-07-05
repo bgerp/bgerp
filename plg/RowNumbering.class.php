@@ -24,28 +24,27 @@ class plg_RowNumbering extends core_Plugin
 {
     
     
-	/**
-	 * Преди извличане на записите от БД
-	 *
-	 * @param core_Mvc $mvc
-	 * @param stdClass $res
-	 * @param stdClass $data
-	 */
-	public static function on_BeforePrepareListRecs($mvc, &$res, $data)
-	{
-		$data->query->orderBy('id', 'ASC');
-	}
-	
-	
+    /**
+     * Преди извличане на записите от БД
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $data->query->orderBy('id', 'ASC');
+    }
+    
+    
     /**
      * Извиква се след подготовката на $data->recs и $data->rows за табличния изглед
      */
     public static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
-        if($cnt = count($data->recs)) {
-            
-            if($data->reverseOrder) {
-                if($data->pager) {
+        if ($cnt = count($data->recs)) {
+            if ($data->reverseOrder) {
+                if ($data->pager) {
                     $number = $data->pager->itemsCount - $data->pager->rangeStart;
                 } else {
                     $number = count($data->rows);
@@ -53,7 +52,7 @@ class plg_RowNumbering extends core_Plugin
                 
                 $increment = -1;
             } else {
-                if($data->pager) {
+                if ($data->pager) {
                     $number = $data->pager->rangeStart + 1;
                 } else {
                     $number = 1;
@@ -64,16 +63,16 @@ class plg_RowNumbering extends core_Plugin
             
             $zebra = 1;
             
-            foreach($data->rows as $id => $row) {
-                if($data->rows[$id]->RowNumb instanceof core_Et) {
+            foreach ($data->rows as $id => $row) {
+                if ($data->rows[$id]->RowNumb instanceof core_Et) {
                     $data->rows[$id]->RowNumb->append($number, 'ROWTOOLS_CAPTION');
                 } else {
-                    $data->rows[$id]->RowNumb .= "<span class='detailNumbering'>$number</span>";
+                    $data->rows[$id]->RowNumb .= "<span class='detailNumbering'>${number}</span>";
                 }
 
                 $rec = $data->recs[$id];
 
-                if($mvc->zebraRows !== FALSE && $rec->state == '') {
+                if ($mvc->zebraRows !== false && $rec->state == '') {
                     $row->ROW_ATTR['class'] .= ' zebra' . ($zebra % 2);
                 }
                 $zebra++;
@@ -81,8 +80,8 @@ class plg_RowNumbering extends core_Plugin
             }
         }
         
-        if(!$data->listFields['RowNumb'] && $mvc instanceof core_Detail) {
-            $data->listFields = arr::combine(array('RowNumb' => '№') , $data->listFields);
+        if (!$data->listFields['RowNumb'] && $mvc instanceof core_Detail) {
+            $data->listFields = arr::combine(array('RowNumb' => '№'), $data->listFields);
         }
     }
     
@@ -92,6 +91,6 @@ class plg_RowNumbering extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$res, &$data)
     {
-    	$data->listTableMvc->FLD('RowNumb', 'int', 'tdClass=rowNumColumn');
+        $data->listTableMvc->FLD('RowNumb', 'int', 'tdClass=rowNumColumn');
     }
 }

@@ -14,16 +14,16 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class csv_tests_Lib extends unit_Class 
+class csv_tests_Lib extends unit_Class
 {
 
     /**
      * Импортира CSV файл в указания модел
      */
-    static function test_import($mvc)
-    {  
-        $mvc  = cls::get("cal_Holidays");
-        $file = "/csv/tests/Tests.csv";
+    public static function test_import($mvc)
+    {
+        $mvc = cls::get('cal_Holidays');
+        $file = '/csv/tests/Tests.csv';
 
         $res = csv_Lib::import($mvc, $file);
         $res->html = trim($res->html);
@@ -41,7 +41,7 @@ class csv_tests_Lib extends unit_Class
     /**
      * Създава csv
      */
-    static function test_createCsv($mvc)
+    public static function test_createCsv($mvc)
     {
         $format['length'] = 0;
         $format['delimiter'] = ',';
@@ -49,17 +49,17 @@ class csv_tests_Lib extends unit_Class
         $format['escape'] = '\\';
         $format['skip'] = '#';
 
-        $file = "/csv/tests/Tests.csv";
+        $file = '/csv/tests/Tests.csv';
         $path = getFullPath($file);
         
-        expect(($handle = fopen($path, "r")) !== FALSE);
+        expect(($handle = fopen($path, 'r')) !== false);
         
         $resArr = array();
 
-        while (($data = fgetcsv($handle, $format['length'], $format['delimiter'], $format['enclosure'], $format['escape'])) !== FALSE) {
+        while (($data = fgetcsv($handle, $format['length'], $format['delimiter'], $format['enclosure'], $format['escape'])) !== false) {
             $allRows[] = $data;
             
-            foreach ($allRows as $id =>$rec) { 
+            foreach ($allRows as $id => $rec) {
                 foreach ($rec as $i => $d) {
                     if (!array_key_exists($id, $resArr)) {
                         $resArr[$id] = (object) array("f{$i}" => $d);
@@ -69,17 +69,16 @@ class csv_tests_Lib extends unit_Class
                     }
                 }
             }
-            
         }
         
-        $caption = array_slice ($resArr, 0, 1);
-        $restData = array_slice ($resArr, 1, count($resArr)-1);
+        $caption = array_slice($resArr, 0, 1);
+        $restData = array_slice($resArr, 1, count($resArr) - 1);
         
         $listFields = array();
         
         foreach ($caption as $header) {
-            foreach (range(0, 9) as $i){
-                if(!empty($header->{"f{$i}"})){
+            foreach (range(0, 9) as $i) {
+                if (!empty($header->{"f{$i}"})) {
                     $listFields["f{$i}"] = $header->{"f{$i}"};
                 }
             }

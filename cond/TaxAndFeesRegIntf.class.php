@@ -16,5 +16,4 @@
  */
 class cond_TaxAndFeesRegIntf extends acc_RegisterIntf
 {
-
 }

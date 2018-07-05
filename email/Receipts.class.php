@@ -19,13 +19,13 @@ class email_Receipts extends email_ServiceEmails
     /**
      * Заглавие на таблицата
      */
-    var $title = "Обратни разписки за получаване на имейл";
+    public $title = 'Обратни разписки за получаване на имейл';
     
     
     /**
      * Масив с думи, които НЕ трябва да съществуват в стринга
      */
-    protected static $negativeWordsArr = array('fail', 'sorry', 'rejected', 'not be delivered', "couldn t be delivered");
+    protected static $negativeWordsArr = array('fail', 'sorry', 'rejected', 'not be delivered', 'couldn t be delivered');
     
     
     /**
@@ -37,9 +37,9 @@ class email_Receipts extends email_ServiceEmails
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-        $this->addFields();  
+        $this->addFields();
     }
     
     
@@ -47,9 +47,9 @@ class email_Receipts extends email_ServiceEmails
      * Проверява дали в $mime се съдържа върнато писмо и
      * ако е така - съхраняваго за определено време в този модел
      */
-    static function process($mime, $accId, $uid, $forcedMid = FALSE)
+    public static function process($mime, $accId, $uid, $forcedMid = false)
     {
-        if ($forcedMid === FALSE) {
+        if ($forcedMid === false) {
             // Извличаме информация за вътрешния системен адрес, към когото е насочено писмото
             $soup = $mime->getHeader('X-Original-To', '*') . ' ' .
                     $mime->getHeader('Delivered-To', '*') . ' ' .
@@ -75,20 +75,23 @@ class email_Receipts extends email_ServiceEmails
                 $mid = self::getMidFromReceipt($mime, $accId);
             }
             
-            if (!$mid) return ;
+            if (!$mid) {
+                
+                return ;
+            }
         } else {
             $mid = $forcedMid;
         }
         
         // Намираме датата на писмото
         $date = $mime->getSendingTime();
-		
+        
         // Намираме ip-то на изпращача
         $ip = $mime->getSenderIp();
         
         $isReceipt = doclog_Documents::received($mid, $date, $ip);
         
-        if($isReceipt) {
+        if ($isReceipt) {
             $rec = new stdClass();
             // Само първите 100К от писмото
             $rec->data = substr($mime->getData(), 0, 100000);
@@ -109,10 +112,10 @@ class email_Receipts extends email_ServiceEmails
     
     /**
      * В зависимост от съдържанието на заглавието и текста, се опитваме да определим mid за обратна разписка
-     * 
+     *
      * @param email_Mime $mime
-     * @param integer $accId
-     * 
+     * @param integer    $accId
+     *
      * @return string|NULL
      */
     protected static function getMidFromReceipt($mime, $accId)
@@ -127,21 +130,21 @@ class email_Receipts extends email_ServiceEmails
             $tId = email_ThreadHandles::extractThreadFromSubject($subject);
             
             if ($tId) {
-                $returnMid = FALSE;
+                $returnMid = false;
                 if (stripos($subject, 'read report') === 0) {
-                    if (stripos($textPart, 'time of reading') !== FALSE) {
-                        $returnMid = TRUE;
+                    if (stripos($textPart, 'time of reading') !== false) {
+                        $returnMid = true;
                     }
                 } elseif (!$mime->getFiles() && (strlen($textPart) < $maxTextLen)) {
-                    if (stripos($textPart, 'this is a receipt for the mail') !== FALSE) {
-                        $returnMid = TRUE;
+                    if (stripos($textPart, 'this is a receipt for the mail') !== false) {
+                        $returnMid = true;
                     }
                 }
                 
                 if ($returnMid) {
                     $dQuery = doclog_Documents::getQuery();
                     $dQuery->where(array("#threadId = '[#1#]' AND #action = '[#2#]'", $tId, doclog_Documents::ACTION_SEND));
-                    $dQuery->where("#mid IS NOT NULL");
+                    $dQuery->where('#mid IS NOT NULL');
                     $dQuery->limit(1);
                     $dQuery->show('mid');
                     $dQuery->orderBy('createdOn', 'DESC');
@@ -158,7 +161,7 @@ class email_Receipts extends email_ServiceEmails
     
     /**
      * Проверява дали трябва да е обрабтна разписак
-     * 
+     *
      * @param email_Mime $mime
      */
     public static function isForReceipts($mime)
@@ -166,7 +169,10 @@ class email_Receipts extends email_ServiceEmails
         $isGoodTextPart = self::checkTextPart($mime->textPart);
         
         // Ако съдържа някои от позитивните или отрицателните думи
-        if (!is_null($isGoodTextPart)) return $isGoodTextPart;
+        if (!is_null($isGoodTextPart)) {
+            
+            return $isGoodTextPart;
+        }
         
         // Проверяваме и хедърите за специфични маркери
         $isGoodHeader = self::checkHeader($mime);
@@ -177,9 +183,9 @@ class email_Receipts extends email_ServiceEmails
     
     /**
      * Проверява подадения текст, дали може да е обратна разписка
-     * 
+     *
      * @param string $text
-     * 
+     *
      * @return boolean|NULL
      */
     protected static function checkTextPart($text)
@@ -188,17 +194,17 @@ class email_Receipts extends email_ServiceEmails
         
         // При наличие на някоя от негативните думи, прекратяваме
         foreach (self::$negativeWordsArr as $negativeWord) {
-            if (stripos($text, $negativeWord) !== FALSE) {
+            if (stripos($text, $negativeWord) !== false) {
                 
-                return FALSE;
+                return false;
             }
         }
         
         // Ако открием съвпадение с някоя дума, от позитивните думи
         foreach (self::$positiveWordsArr as $positveWord) {
-            if (stripos($text, $positveWord) !== FALSE) {
+            if (stripos($text, $positveWord) !== false) {
                 
-                return TRUE;
+                return true;
             }
         }
     }
@@ -206,9 +212,9 @@ class email_Receipts extends email_ServiceEmails
     
     /**
      * Проверява хедърите, дали може да е обратна разписка
-     * 
+     *
      * @param email_Mime $mime
-     * 
+     *
      * @return boolean
      */
     protected static function checkHeader($mime)
@@ -217,10 +223,16 @@ class email_Receipts extends email_ServiceEmails
         $autoSubmitted = strtolower($autoSubmitted);
         $autoSubmitted = trim($autoSubmitted);
         
-        if (!$autoSubmitted) return FALSE;
+        if (!$autoSubmitted) {
+            
+            return false;
+        }
         
-        if (stripos($autoSubmitted, 'auto-replied') !== FALSE) return TRUE;
+        if (stripos($autoSubmitted, 'auto-replied') !== false) {
+            
+            return true;
+        }
         
-        return FALSE;
+        return false;
     }
 }

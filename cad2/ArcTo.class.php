@@ -3,24 +3,25 @@
 /**
  * Чертае част от окръжност
  */
-class cad2_ArcTo  extends cad2_Shape {
+class cad2_ArcTo extends cad2_Shape
+{
     
     /**
      * Задължителен интерфейс за всички фигури
      */
-    var $interfaces = 'cad2_ShapeIntf';
+    public $interfaces = 'cad2_ShapeIntf';
     
     /**
      * Наименование на фигурата
      */
-    var $title = 'Елементи » Закръглен ъгъл';
+    public $title = 'Елементи » Закръглен ъгъл';
 
 
     /**
      * Допълва дадената форма с параметрите на фигурата
      * Връща масив от имената на параметрите
      */
-    static function addFields(&$form)
+    public static function addFields(&$form)
     {
         $form->FLD('Ax', 'float', 'caption=Ax');
         $form->FLD('Ay', 'float', 'caption=Ay');
@@ -39,23 +40,21 @@ class cad2_ArcTo  extends cad2_Shape {
     /**
      * Интерфейсен метод за изчертаване на фигурата
      */
-    function render(&$svg, $p = array())
-    { 
+    public function render(&$svg, $p = array())
+    {
         extract($p);
 
         $svg->startPath(
             array(
             'stroke' => $stroke,
-            'fill' => 'none', 
+            'fill' => 'none',
             'stroke-width' => $strokeWidth
             )
             );
 
-        $svg->moveTo($Ax, $Ay, TRUE);
+        $svg->moveTo($Ax, $Ay, true);
 
-        self::draw($svg, $Bx, $By, $r, TRUE);        
-
-        return;
+        self::draw($svg, $Bx, $By, $r, true);
     }
 
 
@@ -65,10 +64,10 @@ class cad2_ArcTo  extends cad2_Shape {
     public static function draw($svg, $x1, $y1, $r, $absolute)
     {
         // Вземаме абсолютните координати на началната
-        list($x0, $y0)  = $svg->getCP();
+        list($x0, $y0) = $svg->getCP();
 
         // Правим координатите абсолютни
-        if(!$absolute) {
+        if (!$absolute) {
             $x1 += $x0;
             $y1 += $y0;
         }
@@ -77,20 +76,20 @@ class cad2_ArcTo  extends cad2_Shape {
         $B = new cad2_Vector($x1, $y1);
         $AB = $B->add($A->neg());
         
-        $M = $A->add($svg->p($AB->a, $AB->r/2));
+        $M = $A->add($svg->p($AB->a, $AB->r / 2));
         
-        $dist = $r * $r - $AB->r/2 * $AB->r/2;
+        $dist = $r * $r - $AB->r / 2 * $AB->r / 2;
 
-        if($dist < 0) {
-            $m = 0; 
-            $r = ($AB->r / 2) * ($r<0?-1:1);
+        if ($dist < 0) {
+            $m = 0;
+            $r = ($AB->r / 2) * ($r < 0?-1:1);
         } else {
             $m = sqrt($dist);
         }
 
-        $reverse = ($r<0?-1:1) * 0.00001;
+        $reverse = ($r < 0?-1:1) * 0.00001;
  
-        $C = $M->add($svg->p($AB->a - pi()/2 + ($r<0 ? pi() : 0), $m));
+        $C = $M->add($svg->p($AB->a - pi() / 2 + ($r < 0 ? pi() : 0), $m));
  
         $CA = $A->add($C->neg());
         $CB = $B->add($C->neg());
@@ -99,38 +98,34 @@ class cad2_ArcTo  extends cad2_Shape {
         $a = $CA->a;
         $b = $CB->a;
 
-        $d = pi()/(48*round(max(log(abs($r)),1)));
+        $d = pi() / (48 * round(max(log(abs($r)), 1)));
 
-        if($a > $b) { 
-            if($a - $b + $reverse > pi()) { 
-                for($i = $a; $i <= $b + 2*pi(); $i += $d) {
+        if ($a > $b) {
+            if ($a - $b + $reverse > pi()) {
+                for ($i = $a; $i <= $b + 2 * pi(); $i += $d) {
                     $X = $C->add($svg->p($i, abs($r)));
-                    $svg->lineTo($X->x, $X->y, TRUE);
+                    $svg->lineTo($X->x, $X->y, true);
                 }
-            } else { 
-                for($i = $a; $i >= $b; $i -= $d) {
+            } else {
+                for ($i = $a; $i >= $b; $i -= $d) {
                     $X = $C->add($svg->p($i, abs($r)));
-                    $svg->lineTo($X->x, $X->y, TRUE);
+                    $svg->lineTo($X->x, $X->y, true);
                 }
             }
         } else {
-
-            if($CB->a - $CA->a + $reverse > pi()) {
-                for($a = $CA->a + 2*pi(); $a >= $CB->a; $a -= $d) {
+            if ($CB->a - $CA->a + $reverse > pi()) {
+                for ($a = $CA->a + 2 * pi(); $a >= $CB->a; $a -= $d) {
                     $X = $C->add($svg->p($a, abs($r)));
-                    $svg->lineTo($X->x, $X->y, TRUE);
+                    $svg->lineTo($X->x, $X->y, true);
                 }
             } else {
-                for($a = $CA->a; $a <= $CB->a; $a += $d) {
-                    $X = $C->add($svg->p($a, abs($r))); 
+                for ($a = $CA->a; $a <= $CB->a; $a += $d) {
+                    $X = $C->add($svg->p($a, abs($r)));
                     
-                    $svg->lineTo($X->x, $X->y, TRUE);
+                    $svg->lineTo($X->x, $X->y, true);
                 }
             }
-
-        }  
-        $svg->lineTo($x1, $y1, TRUE); 
-
+        }
+        $svg->lineTo($x1, $y1, true);
     }
-    
 }

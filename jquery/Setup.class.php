@@ -35,19 +35,19 @@ class jquery_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "JQuery";
+    public $info = 'JQuery';
     
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'JQUERY_VERSION' => array ('enum(1.7.1, 1.8.3, 1.11.2, 2.1.3)', 'caption=Версия на JQuery->Версия'), 
+        'JQUERY_VERSION' => array('enum(1.7.1, 1.8.3, 1.11.2, 2.1.3)', 'caption=Версия на JQuery->Версия'),
     );
     
     
-	/**
-	 * Пакет без инсталация
-	 */
-	public $noInstall = TRUE;
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = true;
 }

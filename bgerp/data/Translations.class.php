@@ -58,6 +58,7 @@ class bgerp_data_Translations extends core_MVC
         
         // Ако няма повече езици, не се изпълянва
         if (!count($langArr)) {
+            
             return ;
         }
         

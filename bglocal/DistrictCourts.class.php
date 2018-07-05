@@ -21,53 +21,53 @@ class bglocal_DistrictCourts extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, bglocal_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, bglocal_Wrapper';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, city, type, code';
+    public $listFields = 'id, city, type, code';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Окръжни съдилища';
+    public $title = 'Окръжни съдилища';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, common';
+    public $canRead = 'admin, common';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, common';
+    public $canEdit = 'admin, common';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, common';
+    public $canAdd = 'admin, common';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin, common';
+    public $canDelete = 'admin, common';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-        $this->FLD('city',  'varchar', 'caption=Град, mandatory');
-        $this->FLD('type',  'enum(cityCourt=Градски съд, districtCourt=Окръжен съд )', 'caption=Обхват, mandatory');
-        $this->FLD('code',  'varchar(3)', 'caption=Код, mandatory');
+        $this->FLD('city', 'varchar', 'caption=Град, mandatory');
+        $this->FLD('type', 'enum(cityCourt=Градски съд, districtCourt=Окръжен съд )', 'caption=Обхват, mandatory');
+        $this->FLD('code', 'varchar(3)', 'caption=Код, mandatory');
     }
     
     
@@ -78,7 +78,7 @@ class bglocal_DistrictCourts extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('#city');
     }
@@ -90,7 +90,7 @@ class bglocal_DistrictCourts extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $res
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
         $data = array(
             array('city' => 'Благоевград',    'type' => 'districtCourt', 'code' => '120'),
@@ -123,12 +123,11 @@ class bglocal_DistrictCourts extends core_Manager
             array('city' => 'Ямбол',          'type' => 'districtCourt', 'code' => '230')
         );
         
-        if(!$mvc->fetch("1=1")) {
-            
+        if (!$mvc->fetch('1=1')) {
             $nAffected = 0;
             
             foreach ($data as $rec) {
-                $rec = (object)$rec;
+                $rec = (object) $rec;
                 
                 if (!$mvc->fetch("#city='{$rec->city}'")) {
                     if ($mvc->save($rec)) {

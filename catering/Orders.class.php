@@ -20,13 +20,13 @@ class catering_Orders extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Поръчки за храна";
+    public $title = 'Поръчки за храна';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, plg_Created, catering_Wrapper, plg_Printing,
+    public $loadList = 'plg_RowTools2, plg_Created, catering_Wrapper, plg_Printing,
                              Menu=catering_Menu,    
                              Requests=catering_Requests,
                              RequestDetails=catering_RequestDetails,
@@ -39,25 +39,25 @@ class catering_Orders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'requestId, companyId';
+    public $listFields = 'requestId, companyId';
 
     
     /**
      * Права
      */
-    var $canWrite = 'no_one';
+    public $canWrite = 'no_one';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'catering, ceo';
+    public $canRead = 'catering, ceo';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('requestId', 'key(mvc=catering_Requests, select=date)', 'caption=За дата, input=none');
         $this->FLD('date', 'date', 'caption=Дата, input=none');
@@ -70,23 +70,23 @@ class catering_Orders extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function act_MakeOrder()
+    public function act_MakeOrder()
     {
         $requestId = Request::get('id', 'int');
         $date = $this->Requests->fetchField($requestId, 'date');
         
         // Prepare $companiesArr
         $queryCompanies = $this->Companies->getQuery();
-        $where = "1=1";
+        $where = '1=1';
         
-        while($recCompanies = $queryCompanies->fetch($where)) {
+        while ($recCompanies = $queryCompanies->fetch($where)) {
             $companiesArr[$recCompanies->id] = $this->CrmCompanies->fetchField("#id = {$recCompanies->companyId}", 'name');
         }
         
         // END Prepare $companiesArr
         
         // За всяка компания правим запис
-        foreach($companiesArr as $companyId => $companyName) {
+        foreach ($companiesArr as $companyId => $companyName) {
             $recNew = new stdClass;
             $recNew->requestId = $requestId;
             $recNew->date = $date;
@@ -108,7 +108,7 @@ class catering_Orders extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         if ($date = substr(Request::get('date', 'date'), 0, 10)) {
             $data->query->where("#date = '{$date}'");
@@ -124,7 +124,7 @@ class catering_Orders extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         // Array to store table data in
         $orderDetails = array();
@@ -138,7 +138,7 @@ class catering_Orders extends core_Master
         $where = "#requestId = {$requestId}";
         
         // За всеки запис от RequestDetails, който отговаря на избрания $requestId
-        while($recRequestDetails = $queryRequestDetails->fetch($where)) {
+        while ($recRequestDetails = $queryRequestDetails->fetch($where)) {
             // Get $menuId for the current rec
             $menuIdForCurrentRec = $mvc->MenuDetails->fetchField("#id = {$recRequestDetails->menuDetailsId}", 'menuId');
             
@@ -181,9 +181,9 @@ class catering_Orders extends core_Master
             $counter++;
             $tableRow['counter'] = $counter;
             $tableRow['food'] = $v['food'];
-            $tableRow['priceForOne'] = "<div style='float:right;'>" . number_format($v['priceForOne'], 2, ',', ' ') . " лв</div>";
-            $tableRow['quantity'] = "<div style='float:right;'>" . $v['quantity'] . " бр.</div>";
-            $tableRow['priceSum'] = "<div style='float:right;'>" . number_format($v['priceSum'], 2, ',', ' ') . " лв</div>";
+            $tableRow['priceForOne'] = "<div style='float:right;'>" . number_format($v['priceForOne'], 2, ',', ' ') . ' лв</div>';
+            $tableRow['quantity'] = "<div style='float:right;'>" . $v['quantity'] . ' бр.</div>';
+            $tableRow['priceSum'] = "<div style='float:right;'>" . number_format($v['priceSum'], 2, ',', ' ') . ' лв</div>';
             
             $priceTotalSum += $v['priceSum'];
             $tableData[] = $tableRow;
@@ -200,10 +200,10 @@ class catering_Orders extends core_Master
      * Render single
      *
      * @param core_Mvc $mvc
-     * @param core_Et $tpl
+     * @param core_Et  $tpl
      * @param stdClass $data
      */
-    static function on_BeforeRenderSingle($mvc, &$tpl, $data)
+    public static function on_BeforeRenderSingle($mvc, &$tpl, $data)
     {
         // Some params for the order
         $orderId = $data->rec->id;
@@ -217,16 +217,16 @@ class catering_Orders extends core_Master
         // Prepare render table
         $table = cls::get('core_TableView', array('mvc' => $mvc));
         
-        $data->listFields = arr::make($data->listFields, TRUE);
+        $data->listFields = arr::make($data->listFields, true);
         
-        $tpl = $table->get($data->tableData, "counter=№, 
+        $tpl = $table->get($data->tableData, 'counter=№, 
                                               food=Избор,
                                               priceForOne=Цена за 1 бр.,
                                               quantity=Количество,
-                                              priceSum=Сума");
+                                              priceSum=Сума');
         
-        $tpl->prepend("<div><b>Поръчка за храна</b>
-                       <br/>№ " . $orderId . " / Дата: " . $orderDate . " към фирма \"" . $orderCompanyName . "\"</div><br/>");
+        $tpl->prepend('<div><b>Поръчка за храна</b>
+                       <br/>№ ' . $orderId . ' / Дата: ' . $orderDate . ' към фирма "' . $orderCompanyName . '"</div><br/>');
         
         if ($data->priceTotalSum) {
             $tpl->append("<br/>
@@ -239,20 +239,20 @@ class catering_Orders extends core_Master
                           <div style='clear: both;'></div>");
         }
         
-        $tpl->append("<br/>");
+        $tpl->append('<br/>');
         
         // ENDOF Prepare render table
         
         $data->toolbar->addBtn('Назад', array('Ctr' => $this,
                 'Act' => 'list',
-                'ret_url' => TRUE));
+                'ret_url' => true));
         
         // Поставяме toolbar-а
         // $tpl->append($mvc->renderSingleToolbar($data), 'SingleToolbar');
         $tpl .= $mvc->renderSingleToolbar($data);
         
         // Break render
-        return FALSE;
+        return false;
     }
     
     
@@ -261,10 +261,10 @@ class catering_Orders extends core_Master
      *
      * @param stdClass $data
      */
-    static function on_BeforePrepareListTitle($mvc, $data)
+    public static function on_BeforePrepareListTitle($mvc, $data)
     {
         if ($date = Request::get('date')) {
-            $data->title = "Поръчки за дата " . $date;
+            $data->title = 'Поръчки за дата ' . $date;
         }
     }
 }

@@ -209,6 +209,7 @@ class acc_BalanceRepairs extends core_Master
     
         // Може да се добавя само към нишка с начало документ 'Приключване на период'
         if ($firstDoc->isInstanceOf('acc_ClosePeriods')) {
+            
             return true;
         }
     

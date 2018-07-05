@@ -17,17 +17,17 @@ class docoffice_Pdf
     
     /**
      * Конвертиране на офис документи с помощта на unoconv
-     * 
+     *
      * @param fileHandler $fileHnd - Манупулатора на файла, който ще се конвертира
-     * @param array $params - Други параметри
-     * 				$params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането
-     * 				$params['ext'] - Разширението, от което се конвертира /Разширението на файла/
-     * 				$params['fileInfoId'] - id към bgerp_FileInfo
-     * 				$params['asynch'] - Дали скрипта да се стартира асинхронно или не
-     * 
+     * @param array       $params  - Други параметри
+     *                             $params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането
+     *                             $params['ext'] - Разширението, от което се конвертира /Разширението на файла/
+     *                             $params['fileInfoId'] - id към bgerp_FileInfo
+     *                             $params['asynch'] - Дали скрипта да се стартира асинхронно или не
+     *
      * @return NULL|string
      */
-    static function convertPdfToTxt($fileHnd, $params=array())
+    public static function convertPdfToTxt($fileHnd, $params = array())
     {
         // Инстанция на класа
         $Script = cls::get(fconv_Script);
@@ -60,7 +60,7 @@ class docoffice_Pdf
         
         $Script->setCheckProgramsArr('pdftotext');
         // Стартираме скрипта синхронно
-        if ($Script->run($params['asynch']) === FALSE) {
+        if ($Script->run($params['asynch']) === false) {
             fileman_Indexes::createError($params);
         }
         
@@ -74,17 +74,17 @@ class docoffice_Pdf
     }
     
     
-	/**
+    /**
      * Конвертиране на офис документи с помощта на unoconv
-     * 
+     *
      * @param fileHandler $fileHnd - Манупулатора на файла, който ще се конвертира
-     * @param array $params - Други параметри
-     * 				$params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането
-     * 				$params['ext'] - Разширението, от което се конвертира /Разширението на файла/
-     * 				$params['fileInfoId'] - id към bgerp_FileInfo
-     * 				$params['asynch'] - Дали скрипта да се стартира асинхронно или не
+     * @param array       $params  - Други параметри
+     *                             $params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането
+     *                             $params['ext'] - Разширението, от което се конвертира /Разширението на файла/
+     *                             $params['fileInfoId'] - id към bgerp_FileInfo
+     *                             $params['asynch'] - Дали скрипта да се стартира асинхронно или не
      */
-    static function convertPdfToJpg($fileHnd, $params=array())
+    public static function convertPdfToJpg($fileHnd, $params = array())
     {
         // Инстанция на класа
         $Script = cls::get(fconv_Script);
@@ -117,7 +117,7 @@ class docoffice_Pdf
         
         $Script->setCheckProgramsArr('convert');
         // Стартираме скрипта синхронно
-        if ($Script->run($params['asynch']) === FALSE) {
+        if ($Script->run($params['asynch']) === false) {
             fileman_Indexes::createError($params);
         }
     }

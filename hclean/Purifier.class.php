@@ -48,7 +48,7 @@ class hclean_Purifier
      *
      * @return $clear string - HTML файла, с inline CSS елементи
      */
-    static function clean($html, $charset = NULL, $css = NULL, $force = NULL)
+    public static function clean($html, $charset = null, $css = null, $force = null)
     {
         //Вкарва CSS, който се намира в html файла между CSS таговете, като inline елементи
         $html = csstoinline_ToInline::inlineCssFromHtml($html);
@@ -81,14 +81,14 @@ class hclean_Purifier
     /**
      * Създава директорията нужна за работа на системата
      */
-    static function mkdir()
+    public static function mkdir()
     {
-        if(!is_dir(PURIFIER_TEMP_PATH)) {
-            if(!mkdir(PURIFIER_TEMP_PATH, 0777, TRUE)) {
+        if (!is_dir(PURIFIER_TEMP_PATH)) {
+            if (!mkdir(PURIFIER_TEMP_PATH, 0777, true)) {
                 expect('Не може да се създаде директорията необходима за работа на HTML Purifier');
             }
         }
         
-        return "<li>Успешно създадохте директорията: " . PURIFIER_TEMP_PATH;
+        return '<li>Успешно създадохте директорията: ' . PURIFIER_TEMP_PATH;
     }
 }

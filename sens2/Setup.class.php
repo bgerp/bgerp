@@ -23,37 +23,37 @@ class sens2_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * От кои други пакети зависи
      */
-    var $depends = '';
+    public $depends = '';
     
     
     /**
      * Начален контролер на пакета за връзката в core_Packs
      */
-    var $startCtr = 'sens2_Indicators';
+    public $startCtr = 'sens2_Indicators';
     
     
     /**
      * Начален екшън на пакета за връзката в core_Packs
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Мониторинг на сензори и оборудване";
+    public $info = 'Мониторинг на сензори и оборудване';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'sens2_Indicators',
             'sens2_DataLogs',
             'sens2_Controllers',
@@ -67,14 +67,14 @@ class sens2_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'sens';
+    public $roles = 'sens';
     
 
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.4, 'Мониторинг', 'Сензори', 'sens2_Indicators', 'default', "sens, ceo,admin"),
+    public $menuItems = array(
+            array(3.4, 'Мониторинг', 'Сензори', 'sens2_Indicators', 'default', 'sens, ceo,admin'),
         );
     
 
@@ -98,25 +98,25 @@ class sens2_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
          
         $rec = new stdClass();
-        $rec->systemId = "sens2_UpdateIndications";
-        $rec->description = "Взима данни от активни сензори";
-        $rec->controller = "sens2_Controllers";
-        $rec->action = "Update";
+        $rec->systemId = 'sens2_UpdateIndications';
+        $rec->description = 'Взима данни от активни сензори';
+        $rec->controller = 'sens2_Controllers';
+        $rec->action = 'Update';
         $rec->period = 1;
         $rec->offset = 0;
         $rec->timeLimit = 55;
         $html .= core_Cron::addOnce($rec);
         
         $rec = new stdClass();
-        $rec->systemId = "sens2_RunScripts";
-        $rec->description = "Изпълнява всички скриптове";
-        $rec->controller = "sens2_Scripts";
-        $rec->action = "RunAll";
+        $rec->systemId = 'sens2_RunScripts';
+        $rec->description = 'Изпълнява всички скриптове';
+        $rec->controller = 'sens2_Scripts';
+        $rec->action = 'RunAll';
         $rec->period = 1;
         $rec->delay = 15;
         $rec->timeLimit = 55;
@@ -129,7 +129,7 @@ class sens2_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

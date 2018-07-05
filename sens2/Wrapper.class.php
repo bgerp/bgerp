@@ -23,7 +23,7 @@ class sens2_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('sens2_Indicators', 'Индикатори', 'sens, ceo, admin');
         $this->TAB('sens2_DataLogs', 'Записи');

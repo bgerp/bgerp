@@ -49,17 +49,17 @@ class hr_IndicatorNames extends core_Manager
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'debug,admin';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'debug,admin';
 
     
-	/**
-	 * Плъгини за зареждане
-	 */
-	public $loadList = 'hr_Wrapper';
-	
-	
+    /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'hr_Wrapper';
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -76,66 +76,66 @@ class hr_IndicatorNames extends core_Manager
     /**
      * Връща id-то на дадения индикатор. Ако липсва - добавя го.
      *
-     * @param string $name   - заглавие на индикатора
-     * @param mixed $class   - клас на индикатора
-     * @param int $uniqueId  - уникален номер
+     * @param  string   $name     - заглавие на индикатора
+     * @param  mixed    $class    - клас на индикатора
+     * @param  int      $uniqueId - уникален номер
      * @return stdClass $rec - форсирания запис
      */
     public static function force($name, $class, $uniqueId)
     {
-    	$class = cls::get($class);
-    	
-    	$rec = self::fetch("#classId = {$class->getClassId()} AND #uniqueId = '{$uniqueId}'");
-    	$name = self::normalizeName($name);
-    	
-    	if(!$rec){
-    		$rec = (object)array('name' => $name, 'classId' => $class->getClassId(), 'uniqueId' => $uniqueId);
-    		self::save($rec);
-    	} else{
-    		if($rec->name != $name){
-    			$rec->name = $name;
-    			cls::get(get_called_class())->save_($rec, 'name');
-    		}
-    	}
-    	
-    	return $rec;
+        $class = cls::get($class);
+        
+        $rec = self::fetch("#classId = {$class->getClassId()} AND #uniqueId = '{$uniqueId}'");
+        $name = self::normalizeName($name);
+        
+        if (!$rec) {
+            $rec = (object) array('name' => $name, 'classId' => $class->getClassId(), 'uniqueId' => $uniqueId);
+            self::save($rec);
+        } else {
+            if ($rec->name != $name) {
+                $rec->name = $name;
+                cls::get(get_called_class())->save_($rec, 'name');
+            }
+        }
+        
+        return $rec;
     }
     
     
     /**
      * Нормализира името на индикатора
-     * 
-     * @param string $name
+     *
+     * @param  string $name
      * @return string $name
      */
     public static function normalizeName($name)
     {
-    	$name = preg_replace('/\s+/', ' ', $name);
-    	$name = str_replace(' ', '_', $name);
-    	
-    	return $name;
+        $name = preg_replace('/\s+/', ' ', $name);
+        $name = str_replace(' ', '_', $name);
+        
+        return $name;
     }
     
     
     /**
      * Имената на индикаторите като опции
-     * 
+     *
      * @return array $suggestions
      */
     public static function getFormulaSuggestions()
     {
-    	$suggestions = array();
-    	$names = hr_Indicators::getIndicatorNames();
-    	
-    	foreach($names as $class => $nArr) {
-    		foreach($nArr as $n) {
-    			$n = '$' . $n;
-    			$suggestions[$n] = $n;
-    		}
-    	}
-    	
-    	$suggestions["$" . 'BaseSalary'] = "$" . 'BaseSalary';
-    	
-    	return $suggestions;
+        $suggestions = array();
+        $names = hr_Indicators::getIndicatorNames();
+        
+        foreach ($names as $class => $nArr) {
+            foreach ($nArr as $n) {
+                $n = '$' . $n;
+                $suggestions[$n] = $n;
+            }
+        }
+        
+        $suggestions['$' . 'BaseSalary'] = '$' . 'BaseSalary';
+        
+        return $suggestions;
     }
 }

@@ -80,6 +80,7 @@ class bgerp_LastTouch extends core_Manager
         $rec = self::fetch(array("#resource = '[#1#]' AND #userId = '[#2#]'", $resource, $userId));
 
         if ($rec) {
+            
             return $rec->lastTime;
         }
     }

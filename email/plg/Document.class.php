@@ -26,12 +26,12 @@ class email_plg_Document extends core_Plugin
      *
      * Използва single view на мениджъра на документа.
      *
-     * @param core_Mvc $mvc мениджър на документа
-     * @param int $id първичния ключ на документа - key(mvc=$mvc)
-     * @param string $mode `plain` или `html`
+     * @param core_Mvc $mvc  мениджър на документа
+     * @param int      $id   първичния ключ на документа - key(mvc=$mvc)
+     * @param string   $mode `plain` или `html`
      * @access private
      */
-    function getDocumentBody($mvc, $id, $mode)
+    public function getDocumentBody($mvc, $id, $mode)
     {
         expect($mode == 'plain' || $mode == 'html');
         

@@ -20,21 +20,21 @@ class custom_SettingsIntf
     /**
      * Кой може да модифицира настройките за персонализация
      */
-    var $canModify;
+    public $canModify;
     
     
     /**
      * Кой може да модифицира по-подразбиране за всички
      */
-    var $canModifydefault;
+    public $canModifydefault;
     
     
     /**
      * Подготвя формата за персонализация
-     * 
+     *
      * @param core_Form $form
      */
-    function prepareCustomizationForm(&$form)
+    public function prepareCustomizationForm(&$form)
     {
         return $this->class->prepareCustomizationForm($form);
     }
@@ -42,10 +42,10 @@ class custom_SettingsIntf
     
     /**
      * Проверява формата за персонализация
-     * 
+     *
      * @param core_Form $form
      */
-    function checkCustomizationForm(&$form)
+    public function checkCustomizationForm(&$form)
     {
         return $this->class->checkCustomizationForm($form);
     }

@@ -19,26 +19,25 @@ class eastron_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * От кои други пакети зависи
      */
-    var $depends = '';
+    public $depends = '';
         
     
     /**
      * Описание на модула
      */
-    var $info = "Драйвери за устройства на фирма Eastron Group";
+    public $info = 'Драйвери за устройства на фирма Eastron Group';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $defClasses = array(
+    public $defClasses = array(
             'eastron_SDM120',
         );
-    
 }

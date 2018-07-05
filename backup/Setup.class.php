@@ -218,6 +218,7 @@ class backup_Setup extends core_ProtoSetup
 
         // Имаме грешка в конфигурацията - не добавяме задачите на крона
         if (!is_null($cfgRes)) {
+            
             return $html;
         }
         
@@ -307,18 +308,21 @@ class backup_Setup extends core_ProtoSetup
         @exec($cmd, $output, $returnVar);
         
         if ($returnVar !== 0) {
+            
             return "|*<li class='debug-error'>|mysqldump грешка при свързване|*!</li>";
         }
         
         // Проверка дали gzip е наличен
         @exec('gzip --version', $output, $returnVar);
         if ($returnVar !== 0) {
+            
             return "<li class='debug-error'>липсва gzip!</li>";
         }
         
         // Проверка дали tar е наличен
         @exec('tar --version', $output, $returnVar);
         if ($returnVar !== 0) {
+            
             return "<li class='debug-error'>липсва tar!</li>";
         }
         
@@ -327,6 +331,7 @@ class backup_Setup extends core_ProtoSetup
         // Премахваме всички табулации, нови редове и шпации - log_bin ON
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
         if ($res != 'log_binon') {
+            
             return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
         }
     
@@ -334,6 +339,7 @@ class backup_Setup extends core_ProtoSetup
         // Премахваме всички табулации, нови редове и шпации - server_id 1
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
         if ($res != 'server_id1') {
+            
             return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
         }
     }

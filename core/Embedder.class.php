@@ -110,6 +110,7 @@ class core_Embedder extends core_Master
                 $Driver->EmbedderRec = new core_ObjectReference($this, $rec->id);
                 $this->Drivers[$rec->id] = $Driver;
             } else {
+                
                 return false;
             }
         }

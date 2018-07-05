@@ -94,6 +94,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
     public function isValid($value, $quantity, &$msg)
     {
         if ($this->rec->uniqueProduct != 'yes') {
+            
             return true;
         }
         
@@ -253,6 +254,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
     {
         $batches = array();
         if (!isset($storeId)) {
+            
             return $batches;
         }
         $date = (isset($date)) ? $date : dt::today();

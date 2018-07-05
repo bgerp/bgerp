@@ -16,7 +16,7 @@ defIfNot('CMS_GALLERY_TITLE_HANDLER_PTR', 'dddd');
 /**
  * Добавя възможност за уникален вербален идентификатор на записите.
  * По подразбиране за уникален идентификатор се използва титлата на записа.
- * 
+ *
  * @category  bgerp
  * @package   cms
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -32,13 +32,13 @@ class cms_GalleryTitlePlg extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$mvc)
+    public function on_AfterDescription(&$mvc)
     {
         // Записваме стойността в инстанцията
         $mvc->galleryTitleFieldName = $mvc->galleryTitleFieldName ? $mvc->galleryTitleFieldName : 'title';
         
         // Ако няма такова поле
-        if(!$mvc->fields[$mvc->galleryTitleFieldName]) {
+        if (!$mvc->fields[$mvc->galleryTitleFieldName]) {
             
             // Добавяне на полето
             $mvc->FLD($mvc->galleryTitleFieldName, 'varchar(' . CMS_GALLERY_TITLE_LEN . ')', 'caption=Заглавие, width=100%');
@@ -51,7 +51,7 @@ class cms_GalleryTitlePlg extends core_Plugin
 //        $mvc->setDbUnique($this->galleryTitleFieldName);
 
         // @todo - да се премахне след като се прмахне добавката в on_AfterSetupMvc
-        if(!$mvc->fields['vid']) {
+        if (!$mvc->fields['vid']) {
             $mvc->FLD('vid', 'varchar(128)', 'caption=Вербално ID, width=100%, input=none');
         }
     }
@@ -59,13 +59,13 @@ class cms_GalleryTitlePlg extends core_Plugin
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param integer $id
-     * @param object $rec
-     * @param mixed $fields
+     * @param integer  $id
+     * @param object   $rec
+     * @param mixed    $fields
      */
-    function on_BeforeSave(&$mvc, &$id, &$rec, &$fields = NULL)
+    public function on_BeforeSave(&$mvc, &$id, &$rec, &$fields = null)
     {
         // Името на полето
         $titleFieldName = $mvc->galleryTitleFieldName;
@@ -77,8 +77,7 @@ class cms_GalleryTitlePlg extends core_Plugin
         $i = 0;
         
         // Ако не е зададено Вербално ID от потребителя
-        if(!$recTitle) {
-            
+        if (!$recTitle) {
             $mvc->prepareRecTitle($rec);
             
             // Вземаме титлата
@@ -89,14 +88,16 @@ class cms_GalleryTitlePlg extends core_Plugin
             
             do {
                 // Ако достигнем максималния брой опити
-                if(16 < $i++) error('@Unable to generate random file handler', $rec);
+                if (16 < $i++) {
+                    error('@Unable to generate random file handler', $rec);
+                }
                 
                 // Генерирам псевдо-случаен стринг
                 $hash = str::getRand(CMS_GALLERY_TITLE_HANDLER_PTR);
                 
                 // Добавяме хеша след
                 $recTitleNew = $recTitle . '-' . $hash;
-            } while ($mvc->fetch("#{$titleFieldName} = '$recTitleNew'"));
+            } while ($mvc->fetch("#{$titleFieldName} = '${recTitleNew}'"));
         } else {
             
             // Вербализираме вербалното ID - само букви и цифри на латиница или кирилица
@@ -105,16 +106,18 @@ class cms_GalleryTitlePlg extends core_Plugin
             $dash = '-';
             
             // Ако има такъв запис
-            while ($fRec = ($mvc->fetch("#{$titleFieldName} = '$recTitleNew'"))) {
+            while ($fRec = ($mvc->fetch("#{$titleFieldName} = '${recTitleNew}'"))) {
                 
                 // Ако редактираме текущия запис, да не се порменя
-                if ($fRec->id == $rec->id) break;
+                if ($fRec->id == $rec->id) {
+                    break;
+                }
                 
-                if(($dashPos = strrpos($recTitleNew, $dash)) !== FALSE) {
+                if (($dashPos = strrpos($recTitleNew, $dash)) !== false) {
                     $left = substr($recTitleNew, 0, $dashPos);
-                    $right = substr($recTitleNew, $dashPos+1);
+                    $right = substr($recTitleNew, $dashPos + 1);
                     
-                    if (is_numeric($right) && (int)$right == $right) {
+                    if (is_numeric($right) && (int) $right == $right) {
                         $right++;
                         $recTitleNew = $left . $dash . $right;
                         continue;
@@ -137,12 +140,12 @@ class cms_GalleryTitlePlg extends core_Plugin
     /**
      * Канонизира заглавието
      * Само букви и цифри на латиница или кирилица
-     * 
+     *
      * @param string $title
-     * 
+     *
      * @return string
      */
-    function canonizeTitle($title)
+    public function canonizeTitle($title)
     {
         $title = trim(preg_replace('/[^\p{L}0-9]+/iu', '-', " {$title} "), '-');
         
@@ -152,25 +155,23 @@ class cms_GalleryTitlePlg extends core_Plugin
     
     /**
      * Метод по подразбиране за викане на prepareRecTitle($rec)
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param object $res
-     * @param object $rec
+     * @param object   $res
+     * @param object   $rec
      */
-    function on_AfterPrepareRecTitle($mvc, $res, &$rec)
+    public function on_AfterPrepareRecTitle($mvc, $res, &$rec)
     {
-        
-        return ;
     }
     
     
     /**
      * @todo - Да се премахне
-     * 
+     *
      * @param unknown_type $mvc
      * @param unknown_type $res
      */
-    static function on_AfterSetupMvc($mvc, &$res) 
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
         $changed = 0;
         
@@ -178,16 +179,16 @@ class cms_GalleryTitlePlg extends core_Plugin
         $query = $mvc->getQuery();
         $query->where("#vid != '' AND #vid IS NOT NULL");
         
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             
             // Флаг, дали да се запише
-            $mustSave = FALSE;
+            $mustSave = false;
             
             // Ако няма заглавие
             if (!$rec->{$mvc->galleryTitleFieldName}) {
                 
                 // Вдигаме флага, за да се запише
-                $mustSave=TRUE;
+                $mustSave = true;
                 
                 // Задаваме заглавието от полето Vid
                 $rec->{$mvc->galleryTitleFieldName} = $rec->vid;
@@ -209,7 +210,7 @@ class cms_GalleryTitlePlg extends core_Plugin
                         unset($rec->createdBy);
                         
                         // Вдигаме флага
-                        $mustSave=TRUE;
+                        $mustSave = true;
                     }
                 }
             }

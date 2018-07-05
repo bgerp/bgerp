@@ -4,7 +4,7 @@
 
 /**
  * Клас връщащ темата за pos-а
- * 
+ *
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
@@ -12,19 +12,20 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class pos_DefaultTheme extends core_Manager {
+class pos_DefaultTheme extends core_Manager
+{
     
     
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'pos_ThemeIntf';
+    public $interfaces = 'pos_ThemeIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = "Базова тема за pos терминала";
+    public $title = 'Базова тема за pos терминала';
     
     
     /*
@@ -32,20 +33,20 @@ class pos_DefaultTheme extends core_Manager {
      */
     
     
-	/**
+    /**
      *Pодготвя стиловете за пос-a
      */
     public function getStyleFile()
     {
-    	return 'pos/themes/default/style.css';
+        return 'pos/themes/default/style.css';
     }
     
     
-	/**
+    /**
      * Подготвя стиловете за пос-a
      */
     public function getFavouritesTpl()
     {
-    	return getTplFromFile('pos/themes/default/Favourites.shtml');
+        return getTplFromFile('pos/themes/default/Favourites.shtml');
     }
 }

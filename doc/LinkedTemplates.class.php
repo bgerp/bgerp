@@ -171,18 +171,21 @@ class doc_LinkedTemplates extends core_Master
         $res = array();
         
         if (!$cId) {
+            
             return $res;
         }
         
         $document = doc_Containers::getDocument($cId);
         
         if (!$document) {
+            
             return $res;
         }
         
         $clsId = $document->instance->getClassId();
         
         if (!$clsId) {
+            
             return $res;
         }
         
@@ -209,12 +212,14 @@ class doc_LinkedTemplates extends core_Master
         $res = array();
         
         if (!$cId) {
+            
             return $res;
         }
         
         $fRec = fileman_Files::fetch($cId);
         
         if (!$fRec) {
+            
             return $res;
         }
         
@@ -371,26 +376,31 @@ class doc_LinkedTemplates extends core_Master
     protected function getRecForActivity($activity)
     {
         if (!$activity) {
+            
             return ;
         }
         
         $actArr = explode('|', $activity);
         
         if ($actArr[0] != get_called_class()) {
+            
             return ;
         }
         
         if (!$actArr[1]) {
+            
             return ;
         }
         
         if (!is_numeric($actArr[1])) {
+            
             return ;
         }
         
         $rec = $this->fetch($actArr[1]);
         
         if (!$rec) {
+            
             return ;
         }
         
@@ -412,12 +422,14 @@ class doc_LinkedTemplates extends core_Master
         static $preparedArr = array();
         
         if ($preparedArr[$key]) {
+            
             return ;
         }
         
         $rec = $this->getRecForActivity($activity);
         
         if (!$rec) {
+            
             return ;
         }
         
@@ -456,10 +468,12 @@ class doc_LinkedTemplates extends core_Master
         $rec = $this->getRecForActivity($activity);
         
         if (!$rec) {
+            
             return ;
         }
         
         if (!$form->isSubmitted() && $rec->submit != 'auto') {
+            
             return ;
         }
         

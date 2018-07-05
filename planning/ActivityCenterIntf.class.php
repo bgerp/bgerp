@@ -16,5 +16,4 @@
  */
 class planning_ActivityCenterIntf extends acc_RegisterIntf
 {
-	
 }

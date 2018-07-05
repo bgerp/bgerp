@@ -16,14 +16,16 @@
  * @since     v 0.1
  * @link
  */
-class page_Error extends core_ET {
+class page_Error extends core_ET
+{
     
     
     /**
      * Конструктор на шаблона
      */
-    function __construct() {
-        if(Mode::is('screenMode', 'narrow')) {
+    public function __construct()
+    {
+        if (Mode::is('screenMode', 'narrow')) {
             parent::__construct(
                 "\n<CENTER>" .
                 "\n<table style='max-width:600; border:1px solid red; background-color:#FFFF66'>" .
@@ -41,14 +43,15 @@ class page_Error extends core_ET {
                 "\n</tr>" .
                 "\n<!--ET_END TOOLBAR-->" .
                 "\n</table>" .
-                "\n</CENTER>");
+                "\n</CENTER>"
+            );
         } else {
             parent::__construct(
                 "\n<CENTER>" .
                 "\n<table style='max-width:600;margin-top:50px; border:1px solid red;background-color:#FFFF66'>" .
                 "\n    <tr bgcolor='#FFCC33'>" .
                 "\n        <td  style='font-size:36px;padding:5px;'>" .
-                "\n            <img src=" . sbf('img/error.gif') . "  align=absmiddle width=48 height=48>&nbsp;" . tr('Грешка') .
+                "\n            <img src=" . sbf('img/error.gif') . '  align=absmiddle width=48 height=48>&nbsp;' . tr('Грешка') .
                 "\n        </td>" .
                 "\n</tr>" .
                 "\n<tr>" .
@@ -60,7 +63,8 @@ class page_Error extends core_ET {
                 "\n</tr>" .
                 "\n<!--ET_END TOOLBAR-->" .
                 "\n</table>" .
-                "\n</CENTER>");
+                "\n</CENTER>"
+            );
         }
     }
 }

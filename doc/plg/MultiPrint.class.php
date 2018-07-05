@@ -39,6 +39,7 @@ class doc_plg_MultiPrint extends core_Plugin
     {
         // Прикачане е допустимо само към наследник на core_Manager ...
         if (!$mvc instanceof core_Manager) {
+            
             return false;
         }
         
@@ -46,6 +47,7 @@ class doc_plg_MultiPrint extends core_Plugin
         $plugins = arr::make($mvc->loadList);
 
         if (isset($plugins['doc_DocumentPlg'])) {
+            
             return false;
         }
         

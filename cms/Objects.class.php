@@ -20,7 +20,7 @@ class cms_Objects extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Обекти, достъпни за публикуване";
+    public $title = 'Обекти, достъпни за публикуване';
     
     
     /**
@@ -36,15 +36,15 @@ class cms_Objects extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo,admin,cms';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,admin,cms';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'ceo,admin,cms';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,admin,cms';
     
 
     /**
@@ -68,8 +68,8 @@ class cms_Objects extends core_Master
     /**
      * Описание на модела (таблицата)
      */
-    function description()
-    {   
+    public function description()
+    {
         // Таг за показване на обекта
         $this->FLD('tag', 'varchar', 'caption=Таг,width=100%,mandatory');
 
@@ -103,39 +103,37 @@ class cms_Objects extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	Request::setProtected('sourceClass,type,sourceId');
-    	$rec = $data->form->rec;
+        Request::setProtected('sourceClass,type,sourceId');
+        $rec = $data->form->rec;
 
         $source = cls::getInterface('cms_ObjectSourceIntf', $rec->sourceClass);
         
         $objData = new stdClass();
         $objData->cmsObjectId = $rec->sourceId;
-        $objData->cmsType  = $rec->type;
+        $objData->cmsType = $rec->type;
         
-        if(!$rec->tpl) {
+        if (!$rec->tpl) {
             $source->prepareCmsObject($objData);
              
             $rec->tpl = $source->getDefaultCmsTpl($objData)->content;
         }
 
-        if(!$rec->id) {
+        if (!$rec->id) {
             $query = self::getQuery();
 
             $query->where("#sourceClass = {$rec->sourceClass} AND #sourceId = {$rec->sourceId} AND #type = '{$rec->type}'");
 
-            while($exRec = $query->fetch()) {
- 
-                if(!$data->form->info) {
+            while ($exRec = $query->fetch()) {
+                if (!$data->form->info) {
                     $data->form->info = "<div style='background-color:#ffff99;border:solid 1px #ffcc66;padding:10px;margin-bottom:15px;'>Съществуващи публикации:<ul>";
                 }
 
                 $data->form->info .= '<li>' . ht::createLink($exRec->tag, array($mvc, 'single', $exRec->id)) .  ' [obj=' . $exRec->tag . ']</li>';
             }
 
-            if(!$data->form->info) {
-                 $data->form->info .= '</div>';
+            if (!$data->form->info) {
+                $data->form->info .= '</div>';
             }
-
         }
     }
 
@@ -143,11 +141,11 @@ class cms_Objects extends core_Master
     /**
      * След подготовка на вербалното показване
      */
-    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = null)
     {
         $row->tag = "[obj={$rec->tag}]";
 
-        if($fields['-single']) {
+        if ($fields['-single']) {
             $richText = cls::get('type_Richtext');
 
             $text = "[obj={$rec->tag}]";
@@ -171,7 +169,7 @@ class cms_Objects extends core_Master
      */
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	$data->row->titleTag = $data->title;
+        $data->row->titleTag = $data->title;
     }
 
 
@@ -185,31 +183,31 @@ class cms_Objects extends core_Master
         
         $rec = self::fetch(array("#tag = '[#1#]'", $tag));
         
-        if(!$rec || $used[$tag]) {
-
+        if (!$rec || $used[$tag]) {
+            
             return "[obj={$tag}]";
         }
 
-        $used[$tag] = TRUE;
+        $used[$tag] = true;
 
         $data = new stdClass();
         $data->cmsObjectId = $rec->sourceId;
-        $data->cmsType  = $rec->type;
+        $data->cmsType = $rec->type;
 
         $source = cls::getInterface('cms_ObjectSourceIntf', $rec->sourceClass);
 
         $source->prepareCmsObject($data);
 
-        $tpl  = new ET($rec->tpl);
+        $tpl = new ET($rec->tpl);
         $sTpl = $source->getDefaultCmsTpl($data) ;
-        $allPlaces  = $sTpl->getPlaceholders();
+        $allPlaces = $sTpl->getPlaceholders();
         $allPlaces[] = 'DETAILS';
         $thisPlaces = $tpl->getPlaceholders();
 
         $res = $source->renderCmsObject($data, $tpl);
 
-        foreach($allPlaces as $place) {
-            if(!in_array($place, $thisPlaces)) {
+        foreach ($allPlaces as $place) {
+            if (!in_array($place, $thisPlaces)) {
                 $res->removePendings($place);
             }
         }
@@ -219,4 +217,4 @@ class cms_Objects extends core_Master
 
         return $res;
     }
- }
+}

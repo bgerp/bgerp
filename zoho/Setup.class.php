@@ -13,47 +13,42 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class zoho_Setup  extends core_ProtoSetup 
+class zoho_Setup extends core_ProtoSetup
 {
-    
-    
-    /**
-     *
-     */
-    public $deprecated = TRUE;
+    public $deprecated = true;
     
     
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Преглед на документи с zoho.com";
+    public $info = 'Преглед на документи с zoho.com';
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -67,10 +62,10 @@ class zoho_Setup  extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

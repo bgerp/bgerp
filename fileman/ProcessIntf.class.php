@@ -17,15 +17,14 @@ class fileman_ProcessIntf
     
     /**
      * Пуска обработка на файла
-     * 
+     *
      * @param stdClass $dRec
      * @param datetime $endOn
-     * 
+     *
      * @return boolean
      */
-    function processFile($dRec, $endOn)
+    public function processFile($dRec, $endOn)
     {
-        
         return $this->class->processFile($dRec, $endOn);
     }
 }

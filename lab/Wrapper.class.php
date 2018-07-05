@@ -21,10 +21,8 @@ class lab_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
-        
-        
         $this->TAB('lab_Tests', 'Тестове', 'lab,ceo');
         $this->TAB('lab_Methods', 'Методи', 'lab,ceo');
         $this->TAB('lab_Parameters', 'Параметри', 'lab,ceo');

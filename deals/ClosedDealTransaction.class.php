@@ -10,7 +10,7 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * 
+ *
  * @see deals_ClosedDealTransaction
  *
  */
@@ -23,22 +23,22 @@ abstract class deals_ClosedDealTransaction extends acc_DocumentTransactionSource
      */
     public function finalizeTransaction($id)
     {
-    	// Извличаме записа
-    	$rec = $this->class->fetchRec($id);
+        // Извличаме записа
+        $rec = $this->class->fetchRec($id);
     
-    	// Промяна на състоянието на документа
-    	$rec->state = $this->finalizedState;
-    	if(!$rec->valior){
-    		$rec->valior = $this->class->getValiorDate($rec);
-    	}
-    	
-    	// Запазване на промененото състояние
-    	if($id = $this->class->save($rec)) {
-    		
-    		// Ако записа е успешен, нотифицираме документа, че е бил активиран
-    		$this->class->invoke('AfterActivation', array($rec));
-    	}
+        // Промяна на състоянието на документа
+        $rec->state = $this->finalizedState;
+        if (!$rec->valior) {
+            $rec->valior = $this->class->getValiorDate($rec);
+        }
+        
+        // Запазване на промененото състояние
+        if ($id = $this->class->save($rec)) {
+            
+            // Ако записа е успешен, нотифицираме документа, че е бил активиран
+            $this->class->invoke('AfterActivation', array($rec));
+        }
     
-    	return $id;
+        return $id;
     }
 }
