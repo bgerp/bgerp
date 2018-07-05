@@ -121,10 +121,10 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     	$storeId = $data->masterData->rec->storeId;
     	foreach ($data->rows as $id => $row){
     		$rec = $data->recs[$id];
-    		
     		$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
-    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
-    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
+    		
+    		if (strlen($warning) && in_array($data->masterData->rec->state, array('draft', 'pending')){
+    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE, NULL, 'class=doc-negative-quantiy');
     		}
     	}
     }

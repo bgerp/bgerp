@@ -201,18 +201,18 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     {
     	$rows = &$data->rows;
     	
-    	if(!count($data->recs)) return;
+    	if (!count($data->recs)) return;
     	
     	$storeId = $data->masterData->rec->storeId;
     	foreach ($rows as $id => $row){
     		$rec = $data->recs[$id];
     		$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
     		
-    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
-    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
+    		if (strlen($warning) && in_array($data->masterData->rec->state, array('draft', 'pending')){
+    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE, NULL, 'class=doc-negative-quantiy');
     		}
     		 
-    		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
+    		if ($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
     			if(!core_Users::haveRole('partner') && isset($row->packPrice)){
     				$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
     			}
