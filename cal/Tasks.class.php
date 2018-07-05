@@ -941,25 +941,6 @@ class cal_Tasks extends embed_Manager
             $taskStart = dt::now();
         }
         
-        // ако имаме задача в чернова, проверяваме дали може да се активира
-        if ($data->rec->id) {
-            $sharedUsersArr = keylist::toArray($data->rec->sharedUsers);
-           
-            if ($data->rec->assign) {
-                $sharedUsersArr += type_Keylist::toArray($data->rec->assign);
-            }
-               
-            if (empty($sharedUsersArr)) {
-                // ако не може, слагаме бутон заявка
-                $data->toolbar->removeBtn('btnActivate');
-            }
-        }
-        
-        if ($data->rec->state == 'pending') {
-            $data->toolbar->removeBtn('btnRequest');
-            $data->toolbar->removeBtn('btnActivate');
-        }
-        
         // ако имаме зададена продължителност
         if ($data->rec->timeDuration) {
             if (!$data->rec->timeEnd) {
