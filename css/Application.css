@@ -4262,6 +4262,10 @@ div.location.public {
 /*
  * край на стилове за състояния на SMS' ите в колцентъра
  */
+.doc-negative-quantiy {
+  color: red;
+  font-weight: bold; }
+
 /*
  * Стилове за `sens`
  */
