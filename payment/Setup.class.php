@@ -37,12 +37,11 @@ class payment_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "Обработка на платежни банкови документи";
+    public $info = 'Обработка на платежни банкови документи';
 
 
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "payment_ImportDriver";
- 
+    public $defClasses = 'payment_ImportDriver';
 }

@@ -15,5 +15,4 @@
  */
 abstract class crm_Contragents extends core_Master
 {
-	
 }

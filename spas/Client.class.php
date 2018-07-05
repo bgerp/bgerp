@@ -1,9 +1,7 @@
 <?php
 
 
-/**
- * 
- */
+
 require_once 'client/Result.class.php';
 
 
@@ -15,8 +13,8 @@ require_once 'client/Result.class.php';
  */
 class spas_Client
 {
-    const LEARN_SPAM   = 0;
-    const LEARN_HAM    = 1;
+    const LEARN_SPAM = 0;
+    const LEARN_HAM = 1;
     const LEARN_FORGET = 2;
 
     protected $learnTypes = array(
@@ -26,7 +24,7 @@ class spas_Client
     );
 
     protected $hostname = 'localhost';
-    protected $port     = '783';
+    protected $port = '783';
     
     protected $socketPath;
     protected $socket;
@@ -35,14 +33,14 @@ class spas_Client
 
     /**
      * Class constructor
-     * 
+     *
      * Accepts an associative array with the following keys:
-     * 
+     *
      * socketPath      - mandatory only if using UNIX sockets to local server
      * hostname        - mandatory only if using remote SpamAssassin server
      * user            - optional parameter
      * protocolVersion - spamd protocol version (defaults to 1.5)
-     * 
+     *
      * @param array $params SpamAssassin parameters
      */
     public function __construct(array $params)
@@ -58,14 +56,15 @@ class spas_Client
     protected function getSocket()
     {
         if (!empty($this->socketPath)) {
-            $socket = @fsockopen('unix://' . $this->socketPath, NULL, $errno, $errstr);
+            $socket = @fsockopen('unix://' . $this->socketPath, null, $errno, $errstr);
         } else {
             $socket = @fsockopen($this->hostname, $this->port, $errno, $errstr);
         }
 
         if (!$socket) {
             throw new spas_client_Exception(
-                "Could not connect to SpamAssassin: {$errstr}", $errno
+                "Could not connect to SpamAssassin: {$errstr}",
+                $errno
             );
         }
 
@@ -73,16 +72,16 @@ class spas_Client
     }
 
     /**
-     * Sends a command to the server and returns an object with the result 
-     * 
+     * Sends a command to the server and returns an object with the result
+     *
      * @param string $cmd               Protocol command to be executed
      * @param string $message           Full email message
      * @param array  $additionalHeaders Associative array with additional headers
      */
     protected function exec($cmd, $message, array $additionalHeaders = array())
     {
-        $socket        = $this->getSocket();
-        $message      .= "\r\n";
+        $socket = $this->getSocket();
+        $message .= "\r\n";
         $contentLength = strlen($message);
 
         if (!empty($this->maxSize)) {
@@ -93,21 +92,21 @@ class spas_Client
             }
         }
 
-        $cmd  = $cmd . " SPAMC/" . $this->protocolVersion . "\r\n";
+        $cmd = $cmd . ' SPAMC/' . $this->protocolVersion . "\r\n";
         $cmd .= "Content-length: {$contentLength}\r\n";
 
         if ($this->enableZlib && function_exists('gzcompress')) {
-            $cmd    .= "Compress: zlib\r\n";
+            $cmd .= "Compress: zlib\r\n";
             $message = gzcompress($message);
         }
 
         if (!empty($this->user)) {
-            $cmd .= "User: " .$this->user . "\r\n";
+            $cmd .= 'User: ' .$this->user . "\r\n";
         }
 
         if (!empty($additionalHeaders)) {
             foreach ($additionalHeaders as $headerName => $val) {
-                $cmd .= $headerName . ": " . $val . "\r\n";
+                $cmd .= $headerName . ': ' . $val . "\r\n";
             }
         }
 
@@ -124,10 +123,10 @@ class spas_Client
 
     /**
      * Writes data to the socket
-     * 
+     *
      * @param resource $socket Socket returned by getSocket()
      * @param string   $data   Data to be written
-     * 
+     *
      * @return void
      */
     protected function write($socket, $data)
@@ -137,9 +136,9 @@ class spas_Client
 
     /**
      * Reads all input from the SpamAssassin server after data was written
-     * 
+     *
      * @param resource $socket Socket connection created by getSocket()
-     * 
+     *
      * @return array Array containing output headers and message
      */
     protected function read($socket)
@@ -148,11 +147,11 @@ class spas_Client
         $message = '';
 
         while (true) {
-            $buffer   = fgets($socket, 128);
+            $buffer = fgets($socket, 128);
             $headers .= $buffer;
             if ($buffer == "\r\n" || feof($socket)) {
                 break;
-            }            
+            }
         }
 
         while (!feof($socket)) {
@@ -167,10 +166,10 @@ class spas_Client
     
     /**
      * Parses SpamAssassin output ($header and $message)
-     * 
+     *
      * @param string $header  Output headers
      * @param string $message Output message
-     * 
+     *
      * @return spas_client_Result Object containing the result
      */
     protected function parseOutput($header, $message)
@@ -179,13 +178,13 @@ class spas_Client
 
         /**
          * Matches the first line in the output. Something like this:
-         * 
+         *
          * SPAMD/1.5 0 EX_OK
          * SPAMD/1.5 68 service unavailable: TELL commands have not been enabled
          */
         if (preg_match('/SPAMD\/(\d\.\d) (\d+) (.*)/', $header, $matches)) {
             $result->protocolVersion = $matches[1];
-            $result->responseCode    = $matches[2];
+            $result->responseCode = $matches[2];
             $result->responseMessage = $matches[3];
 
             if ($result->responseCode != 0) {
@@ -194,7 +193,6 @@ class spas_Client
                     $result->responseCode
                 );
             }
-            
         } else {
             throw new spas_client_Exception('Could not parse response header');
         }
@@ -208,34 +206,32 @@ class spas_Client
             $header,
             $matches
         )) {
-
             ($matches[1] == 'True' || $matches[1] == 'Yes') ?
                 $result->isSpam = true :
                 $result->isSpam = false;
 
-            $result->score    = (float) $matches[2];
+            $result->score = (float) $matches[2];
             $result->thresold = (float) $matches[3];
         } else {
 
             /**
-             * In PROCESS method with protocol version before 1.3, SpamAssassin 
+             * In PROCESS method with protocol version before 1.3, SpamAssassin
              * won't return the 'Spam:' field in the response header. In this case,
              * it is necessary to check for the X-Spam-Status: header in the
              * processed message headers.
-            */
+             */
             if (preg_match(
                   '/X-Spam-Status: (Yes|No)\, score=(\d+\.\d) required=(\d+\.\d)/',
                   $header.$message,
-                  $matches)) {
-
-                ($matches[1] == 'Yes') ? 
+                  $matches
+            )) {
+                ($matches[1] == 'Yes') ?
                     $result->isSpam = true :
                     $result->isSpam = false;
 
-                $result->score    = (float) $matches[2];
+                $result->score = (float) $matches[2];
                 $result->thresold = (float) $matches[3];
             }
-
         }
 
         /* Used for report/revoke/learn */
@@ -256,12 +252,11 @@ class spas_Client
         $result->message = $message;
 
         return $result;
-        
     }
 
     /**
      * Pings the server to check the connection
-     * 
+     *
      * @return boolean
      */
     public function ping()
@@ -271,7 +266,7 @@ class spas_Client
         $this->write($socket, "PING SPAMC/{$this->protocolVersion}\r\n\r\n");
         list($headers, $message) = $this->read($socket);
 
-        if (strpos($headers, "PONG") === false) {
+        if (strpos($headers, 'PONG') === false) {
             return false;
         }
 
@@ -280,9 +275,9 @@ class spas_Client
 
     /**
      * Returns a detailed report if the message is spam or null if it's ham
-     * 
+     *
      * @param string $message Email message
-     * 
+     *
      * @return string Detailed spam report
      */
     public function getSpamReport($message)
@@ -292,13 +287,13 @@ class spas_Client
 
     /**
      * Processes the message and returns it's headers
-     * 
+     *
      * This will check if the message is spam or not and return all headers
      * for the modified processed message. Such as X-Spam-Flag and X-Spam-Status.
-     * 
+     *
      * @param string $message Headers for the modified message
-     * 
-     * @return spas_client_Result Object containing the 
+     *
+     * @return spas_client_Result Object containing the
      */
     public function headers($message)
     {
@@ -307,9 +302,9 @@ class spas_Client
 
     /**
      * Checks if a message is spam with the CHECK protocol command
-     * 
+     *
      * @param string $message Raw email message
-     * 
+     *
      * @return spas_client_Result Object containing the result
      */
     public function check($message)
@@ -319,9 +314,9 @@ class spas_Client
 
     /**
      * Shortcut to check() method that returns a boolean
-     * 
+     *
      * @param string $message Raw email message
-     * 
+     *
      * @return boolean Whether message is spam or not
      */
     public function isSpam($message)
@@ -331,21 +326,21 @@ class spas_Client
 
     /**
      * Shortcut to check() method that returns a float score
-     * 
+     *
      * @param string $message Raw email message
-     * 
+     *
      * @return float Spam Score of the Message
      */
-	public function getScore($message)
-	{
-		return $this->check($message)->score;
-	}
+    public function getScore($message)
+    {
+        return $this->check($message)->score;
+    }
 
     /**
      * Processes the message, checks it for spam and returning it's modified version
-     * 
+     *
      * @param string $message Raw email message
-     * 
+     *
      * @return spas_client_Result Result details and modified message
      */
     public function process($message)
@@ -355,9 +350,9 @@ class spas_Client
 
     /**
      * Returns all rules matched by the message
-     * 
+     *
      * @param string $message Raw email message
-     * 
+     *
      * @return array Array containing the names of the rules matched
      */
     public function symbols($message)
@@ -368,38 +363,38 @@ class spas_Client
             return array();
         }
 
-        $symbols = explode(",", $result->message);
+        $symbols = explode(',', $result->message);
 
         return array_map('trim', $symbols);
     }
 
     /**
      * Uses SpamAssassin learning feature with TELL. Must be enabled on the server.
-     * 
+     *
      * @param string $message   Raw email message
      * @param int    $learnType self::LEARN_SPAM|self::LEARN_FORGET|self::LEARN_HAM
-     * 
+     *
      * @return boolean Whether it did learn or not
      */
     public function learn($message, $learnType = self::LEARN_SPAM)
     {
         if (!in_array($learnType, $this->learnTypes)) {
-            throw new spas_client_Exception("Invalid learn type ($learnType)");
+            throw new spas_client_Exception("Invalid learn type (${learnType})");
         }
 
         if ($learnType == self::LEARN_SPAM) {
             $additionalHeaders = array(
-                "Message-class" => "spam",
-                "Set"           => "local"
+                'Message-class' => 'spam',
+                'Set' => 'local'
             );
-        } else if ($learnType == self::LEARN_HAM) {
+        } elseif ($learnType == self::LEARN_HAM) {
             $additionalHeaders = array(
-                "Message-class" => "ham",
-                "Set"           => "local"
+                'Message-class' => 'ham',
+                'Set' => 'local'
             );
-        } else if ($learnType == self::LEARN_FORGET) {
+        } elseif ($learnType == self::LEARN_FORGET) {
             $additionalHeaders = array(
-                "Remove" => "local"
+                'Remove' => 'local'
             );
         }
 
@@ -407,23 +402,23 @@ class spas_Client
         
         if ($learnType == self::LEARN_SPAM || $learnType == self::LEARN_HAM) {
             return $result->didSet;
-        } else {
-            return $result->didRemove;
         }
+
+        return $result->didRemove;
     }
 
     /**
      * Report message as spam, both local and remote
-     * 
+     *
      * @param string $message Raw email message
-     * 
+     *
      * @return boolean
      */
     public function report($message)
     {
         $additionalHeaders = array(
-            "Message-class" => "spam",
-            "Set"           => "local,remote"
+            'Message-class' => 'spam',
+            'Set' => 'local,remote'
         );
 
         return $this->exec('TELL', $message, $additionalHeaders)->didSet;
@@ -431,19 +426,18 @@ class spas_Client
 
     /**
      * Revokes a message previously reported as spam
-     * 
+     *
      * @param string $message Raw email message
-     * 
+     *
      * @return boolean
      */
     public function revoke($message)
     {
         $additionalHeaders = array(
-            "Message-class" => "ham",
-            "Set"           => "local,remote"
+            'Message-class' => 'ham',
+            'Set' => 'local,remote'
         );
 
         return $this->exec('TELL', $message, $additionalHeaders)->didSet;
     }
-
 }

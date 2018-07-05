@@ -21,7 +21,7 @@ class lab_Parameters extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Параметри за лабораторни тестове";
+    public $title = 'Параметри за лабораторни тестове';
     
     
     /**
@@ -57,15 +57,15 @@ class lab_Parameters extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'lab,ceo';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'lab,ceo';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'lab,ceo';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'lab,ceo';
     
     
     /**
@@ -84,7 +84,7 @@ class lab_Parameters extends core_Master
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = "Параметър";
+    public $singleTitle = 'Параметър';
     
          
     /**
@@ -115,7 +115,7 @@ class lab_Parameters extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         // Сортиране на записите по name
         $data->query->orderBy('name=ASC');
@@ -129,7 +129,7 @@ class lab_Parameters extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->name = Ht::createLink($row->name, array($mvc, 'single', $rec->id));
     }
@@ -138,17 +138,16 @@ class lab_Parameters extends core_Master
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
         // Пътя до файла с данните
-        $file = "lab/csv/lab_Parameters.csv";
+        $file = 'lab/csv/lab_Parameters.csv';
         
-        // Импортираме данните от CSV файла. 
+        // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::importOnce($mvc, $file, array('name', 'type', 'dimension', 'precision', 'description'));
             
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;
     }
-
 }

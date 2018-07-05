@@ -23,8 +23,8 @@ class replace_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
-    {        
+    public function description()
+    {
         $this->TAB('replace_Dictionary', 'Речник', 'admin');
         $this->TAB('replace_Groups', 'Групи', 'admin');
     }

@@ -14,46 +14,46 @@
  * @since     v 0.1
  * @link
  */
-class tests_Test extends core_Manager {
+class tests_Test extends core_Manager
+{
     
     
     /**
      * @todo Чака за документация...
      */
-    function act_Regexp()
+    public function act_Regexp()
     {
-        preg_match('/(\d+)[ ]*(d|day|days|д|ден|дни|дена)\b/u', "2 дена", $matches);
+        preg_match('/(\d+)[ ]*(d|day|days|д|ден|дни|дена)\b/u', '2 дена', $matches);
         
         // работи според очакванията от php 5.3.4+
-        // http://stackoverflow.com/questions/8915713/php5-3-preg-match-with-umlaute-utf-8-modifier 
+        // http://stackoverflow.com/questions/8915713/php5-3-preg-match-with-umlaute-utf-8-modifier
         bp($matches);
     }
 
 
-    function act_Date()
+    public function act_Date()
     {
         $this->date = 'Tue, 17 Dec 2013 13:49:05 -0800';
         
         $this->getSendingTime();
 
         bp($this->sendingTime);
-
     }
 
     /**
      * Определяне на датата на писмото, когато е изпратено
      */
-    function getSendingTime()
+    public function getSendingTime()
     {
-        if(!isset($this->sendingTime)) {
+        if (!isset($this->sendingTime)) {
             // Определяме датата на писмото
             $d = date_parse($this->date);
-          //  bp($d);
-            if(count($d)) {
-                $time = mktime($d['hour'], $d['minute'], $d['second'], $d['month'], $d['day'] , $d['year']);
+            //  bp($d);
+            if (count($d)) {
+                $time = mktime($d['hour'], $d['minute'], $d['second'], $d['month'], $d['day'], $d['year']);
                 
-                if($d['is_localtime']) {
-                    $time = $time - ($d['zone'] * 60) + (date("O")/100) * 60 * 60;
+                if ($d['is_localtime']) {
+                    $time = $time - ($d['zone'] * 60) + (date('O') / 100) * 60 * 60;
                 }
                 
                 $this->sendingTime = dt::timestamp2Mysql($time);
@@ -62,5 +62,4 @@ class tests_Test extends core_Manager {
 
         return $this->sendingTime;
     }
-
 }

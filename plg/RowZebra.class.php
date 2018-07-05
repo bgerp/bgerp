@@ -22,20 +22,17 @@ class plg_RowZebra extends core_Plugin
     /**
      * Извиква се след подготовката на $data->recs и $data->rows за табличния изглед
      */
-    function on_AfterPrepareListRows($mvc, &$res, $data)
+    public function on_AfterPrepareListRows($mvc, &$res, $data)
     {
-        if($cnt = count($data->recs)) {
-            
+        if ($cnt = count($data->recs)) {
             $zebra = 1;
             
-            foreach($data->rows as $id => $row) {
-
-                if($mvc->zebraRows !== FALSE && $rec->state == '') {
+            foreach ($data->rows as $id => $row) {
+                if ($mvc->zebraRows !== false && $rec->state == '') {
                     $row->ROW_ATTR['class'] .= ' zebra' . ($zebra % 2);
                 }
                 $zebra++;
             }
         }
-        
     }
 }

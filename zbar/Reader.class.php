@@ -19,16 +19,16 @@ class zbar_Reader
      * Масив със стойности, които ще се приемат за тип на баркод
      */
     protected static $barcodesArr = array('qr', 'ean', 'code', 'datamatrix', 'std', 'int', 'msi', 'codabar');
-	
-	
-	/**
+    
+    
+    /**
      * Връща баркодовете във файла
-     * 
+     *
      * @param fileHnd - Манупулатор на файла, в който ще се търсят баркодове
-     * 
+     *
      * @return array $barcodesArr - Масив с типовете и баркодовете във файла
      */
-    static function getBarcodesFromFile($fh)
+    public static function getBarcodesFromFile($fh)
     {
         // Масива с намерените баркодове
         $barcodesArr = array();
@@ -36,24 +36,24 @@ class zbar_Reader
         // Екстрактваме файла и вземаме пътя до екстрактнатия файл
         $filePath = fileman::extract($fh);
         
-        if (!$filePath) return $barcodesArr;
+        if (!$filePath) {
+            return $barcodesArr;
+        }
         
         // Изпълняваме командата за намиране на баркодове
-        exec("zbarimg -q " . escapeshellarg($filePath), $allBarcodesArr, $errorCode);
+        exec('zbarimg -q ' . escapeshellarg($filePath), $allBarcodesArr, $errorCode);
         
         // Изтриване на временния файл
         fileman::deleteTempPath($filePath);
         
         if (($errorCode !== 0) && ($errorCode !== 4)) {
-            
-            log_System::add('zbar_Reader', "Грешка (№{$errorCode}) при извличане на баркод от URL - '{$filePath}'", NULL, 'debug');
+            log_System::add('zbar_Reader', "Грешка (№{$errorCode}) при извличане на баркод от URL - '{$filePath}'", null, 'debug');
             
             throw new fileman_Exception('Възникна грешка при обработка.');
         }
         
         // Ако има окрит баркод
         if ((is_array($allBarcodesArr)) && count($allBarcodesArr)) {
-            
             $fBarcodeStr = '';
             
             // Обикаляме намерените баркодове
@@ -61,10 +61,10 @@ class zbar_Reader
                 
                 // Разделяме типа на баркода от съдържанието му
                 list($barcodeType, $barcodeStr) = explode(':', $barcode, 2);
-                $isBarcodeType = FALSE;
+                $isBarcodeType = false;
                 foreach (self::$barcodesArr as $bStr) {
                     if (stripos($barcodeType, $bStr) === 0) {
-                        $isBarcodeType = TRUE;
+                        $isBarcodeType = true;
                         break;
                     }
                 }
@@ -75,20 +75,19 @@ class zbar_Reader
                     }
                     
                     continue;
-                } else {
-                    if (!is_object($barcodesArr[$key])) {
-                        $barcodesArr[$key] = new stdClass();
-                    }
-                    
-                    if (!empty($fBarcodeStr)) {
-                        $barcodeStr .= $fBarcodeStr;
-                        $fBarcodeStr = '';
-                    }
-                    
-                    // Записваме намерените резултатис
-                    $barcodesArr[$key]->type = $barcodeType;
-                    $barcodesArr[$key]->code = $barcodeStr;
                 }
+                if (!is_object($barcodesArr[$key])) {
+                    $barcodesArr[$key] = new stdClass();
+                }
+                    
+                if (!empty($fBarcodeStr)) {
+                    $barcodeStr .= $fBarcodeStr;
+                    $fBarcodeStr = '';
+                }
+                    
+                // Записваме намерените резултатис
+                $barcodesArr[$key]->type = $barcodeType;
+                $barcodesArr[$key]->code = $barcodeStr;
             }
             
             if (!empty($fBarcodeStr)) {

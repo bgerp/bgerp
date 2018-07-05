@@ -3,7 +3,7 @@
 
 /**
  * Драйвер за работа с .odp файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -13,5 +13,4 @@
  */
 class fileman_webdrv_Odp extends fileman_webdrv_Office
 {
-    
 }

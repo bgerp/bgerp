@@ -27,7 +27,7 @@ class lib_Diff
     /**
      * Списък с препинателни знаци, ескейпнати за регулярен израз
      */
-    const PUNCTUATION = "\\.\\,\\?\\-\\!";
+    const PUNCTUATION = '\\.\\,\\?\\-\\!';
     
     
     /**
@@ -36,93 +36,98 @@ class lib_Diff
      * @param old string star HTML
      * @param new string нов HTML
      */
-    static function getDiff(
-        $old, $new, 
-        $insL = '<span class="ins">', $insR = '</span>', 
-        $delL = '<span class="del">', $delR = '</span>', 
-        $cngL = '<span title="#" class="cng">', $cngR = '</span>')
-    {   
+    public static function getDiff(
+        $old,
+        $new,
+        $insL = '<span class="ins">',
+        $insR = '</span>',
+        $delL = '<span class="del">',
+        $delR = '</span>',
+        $cngL = '<span title="#" class="cng">',
+        $cngR = '</span>'
+    ) {
         
         // Ако няма промени, няма смисъл от обработка
-        if ($old == $new) return (string)$new;
+        if ($old == $new) {
+            return (string) $new;
+        }
         
-        $oldArr  = self::explodeHtml($old);
-        $newArr  = self::explodeHtml($new);
+        $oldArr = self::explodeHtml($old);
+        $newArr = self::explodeHtml($new);
         $arrDiff = self::ses($oldArr, $newArr);
         
         // Ако процеса за открираване на разлики е спрял принудително
-        if ($arrDiff === FALSE) {
+        if ($arrDiff === false) {
             
             // Връщаме предупреждение и най - новата версия
-            return "<div class='formError' style='color:red;'>" . tr("Внимание! Има много разлики и не може да се изчислят.") . "</div>" . $new;
+            return "<div class='formError' style='color:red;'>" . tr('Внимание! Има много разлики и не може да се изчислят.') . '</div>' . $new;
         }
         
         $out = $mode = $buf = '';
 
-        foreach($arrDiff as $e) {
+        foreach ($arrDiff as $e) {
             
             // Текст
-            if(is_string($e)) {
+            if (is_string($e)) {
                 $out = new stdClass();
                 $out->mode = 't';
-                $out->str  = $e;
+                $out->str = $e;
                 $res[] = $out;
                 continue;
             }
             
             // Замяна
-            while(count($e['d']) && count($e['i']) && (($ct = self::getCharType($e['d'])) == self::getCharType($e['i']))) {
-                
+            while (count($e['d']) && count($e['i']) && (($ct = self::getCharType($e['d'])) == self::getCharType($e['i']))) {
                 $kd = key($e['d']);
                 $ki = key($e['i']);
 
                 $out = new stdClass();
-                if($ct == 'tag') {
+                if ($ct == 'tag') {
                     $out->mode = 't';
-                    $out->str  = $e['i'][$ki];
+                    $out->str = $e['i'][$ki];
                 } else {
                     $out->mode = 'c';
-                    $out->str  = $e['i'][$ki];
-                    $out->del  = $e['d'][$kd];
+                    $out->str = $e['i'][$ki];
+                    $out->del = $e['d'][$kd];
                 }
                 $res[] = $out;
                 unset($e['d'][$kd], $e['i'][$ki]);
 
                 $last = count($res) - 1;
 
-                if(($last >=2) && $res[$last]->mode == 'c' && $res[$last-1]->mode == 't' && $res[$last-2]->mode == 'c') {
-                    $res[$last-2]->str .= $res[$last-1]->str . $res[$last]->str;
-                    $res[$last-2]->del .= $res[$last-1]->str . $res[$last]->del;
-                    unset($res[$last], $res[$last-1]); 
+                if (($last >= 2) && $res[$last]->mode == 'c' && $res[$last - 1]->mode == 't' && $res[$last - 2]->mode == 'c') {
+                    $res[$last - 2]->str .= $res[$last - 1]->str . $res[$last]->str;
+                    $res[$last - 2]->del .= $res[$last - 1]->str . $res[$last]->del;
+                    unset($res[$last], $res[$last - 1]);
                 }
             }
 
 
             // Изтриване
-            if(count($e['d'])) {
-                foreach($e['d'] as $d) {
+            if (count($e['d'])) {
+                foreach ($e['d'] as $d) {
                     $out = new stdClass();
-                    if($d{0} == '<') {
+                    if ($d{0} == '<') {
                         continue;
-                    } else {
-                        $out->mode = 'd';
-                        $out->str  = $d;
                     }
+                    $out->mode = 'd';
+                    $out->str = $d;
+                    
                     $res[] = $out;
                     continue;
                 }
             }
             
             // Добавяне
-            if(count($e['i'])) {
-                foreach($e['i'] as $i) {
+            if (count($e['i'])) {
+                foreach ($e['i'] as $i) {
                     $out = new stdClass();
-                    if($i{0} == '<') {
+                    if ($i{0} == '<') {
                         $out->mode = 't';
-                        $out->str  = $i;
+                        $out->str = $i;
                     } else {
                         $out->mode = 'i';
-                        $out->str  = $i;
+                        $out->str = $i;
                     }
                     $res[] = $out;
                     continue;
@@ -130,31 +135,32 @@ class lib_Diff
             }
         }
         
-        $mode = 't'; $out = '';
+        $mode = 't';
+        $out = '';
         $res[] = (object) array('str' => '', 'mode' => '');
 
-        foreach($res as $s) {
-            if($mode != $s->mode) {
-                if($mode == 'd') {
+        foreach ($res as $s) {
+            if ($mode != $s->mode) {
+                if ($mode == 'd') {
                     $out .= $delR;
                 }
-                if($mode == 'i') {
+                if ($mode == 'i') {
                     $out .= $insR;
                 }
-                if($mode == 'c') {
+                if ($mode == 'c') {
                     $out .= $cngR;
                 }
-                if($s->mode == 'd') {
+                if ($s->mode == 'd') {
                     $out .= $delL;
                 }
-                if($s->mode == 'i') {
+                if ($s->mode == 'i') {
                     $out .= $insL;
                 }
-                if($s->mode == 'c') {
+                if ($s->mode == 'c') {
                     $out .= str_replace('#', $s->del, $cngL);
                 }
             }
-            if(substr($out, -1) == '>' && substr($s->str, 0, 1) == ' ') {
+            if (substr($out, -1) == '>' && substr($s->str, 0, 1) == ' ') {
                 $s->str = '&nbsp;' . substr($s->str, 1);
             }
             $out .= $s->str;
@@ -168,27 +174,23 @@ class lib_Diff
     /**
      * Връща типа на знака
      */
-    static function getCharType($c)
+    public static function getCharType($c)
     {
-        if(is_array($c)) {
+        if (is_array($c)) {
             $c = reset($c);
         }
 
         $c = mb_substr($c, 0, 1);
 
-        if(preg_match("/[\s]+/", $c)) {
-
-            return "ws";
-        } elseif(preg_match("/[" . self::PUNCTUATION . "]+/", $c)) {
-
+        if (preg_match("/[\s]+/", $c)) {
+            return 'ws';
+        } elseif (preg_match('/[' . self::PUNCTUATION . ']+/', $c)) {
             return 'dev';
-        } elseif($c == '<') {
-
+        } elseif ($c == '<') {
             return 'tag';
-        } else {
-
-            return 'text';
         }
+
+        return 'text';
     }
     
     
@@ -200,8 +202,8 @@ class lib_Diff
     {
         $out = '';
 
-        foreach($arr as $e) {
-            if($e{0} != '<') {
+        foreach ($arr as $e) {
+            if ($e{0} != '<') {
                 $out .= $e;
             }
         }
@@ -211,12 +213,11 @@ class lib_Diff
 
 
     /**
-     * Разбива HTML на масив от думи, 
+     * Разбива HTML на масив от думи,
      */
     private static function explodeHtml($html)
     {
-       
-        $ptr = "/(<[^>]*>|[\\s]+|[" . self::PUNCTUATION . "]+|[^\\s" . self::PUNCTUATION . "\\<]+)/";
+        $ptr = '/(<[^>]*>|[\\s]+|[' . self::PUNCTUATION . ']+|[^\\s' . self::PUNCTUATION . '\\<]+)/';
  
         preg_match_all($ptr, $html, $matches);
  
@@ -228,34 +229,32 @@ class lib_Diff
     /**
      * Намиране на най-краткия скрипт за редактиране (SES) чрез бърз алгоритъм от книгата
      * "An O(ND) Difference Algorithm and Its Variations" by Eugene W.Myers, 1986.
-     * 
+     *
      *
      * @param array          $src            Оригинален масив
      * @param array          $dst            Нов Масив
      *
      * @return array
      */
-     public static function ses($src, $dst)
-     {
+    public static function ses($src, $dst)
+    {
         $cx = count($src);
         $cy = count($dst);
          
         $stack = array();
-        $V = array(1=>0);
+        $V = array(1 => 0);
         $end_reached = false;
          
         # Find LCS length
-        for ($D = 0; $D < $cx+$cy+1 && !$end_reached; $D++)
-        {
-            for ($k = -$D; $k <= $D; $k += 2)
-            {
-                $x = ($k == -$D || $k != $D && $V[$k-1] < $V[$k+1])
-                    ? $V[$k+1] : $V[$k-1]+1;
-                $y = $x-$k;
+        for ($D = 0; $D < $cx + $cy + 1 && !$end_reached; $D++) {
+            for ($k = -$D; $k <= $D; $k += 2) {
+                $x = ($k == -$D || $k != $D && $V[$k - 1] < $V[$k + 1])
+                    ? $V[$k + 1] : $V[$k - 1] + 1;
+                $y = $x - $k;
                  
-                while ($x < $cx && $y < $cy && $src[$x] == $dst[$y])
-                {
-                    $x++; $y++;
+                while ($x < $cx && $y < $cy && $src[$x] == $dst[$y]) {
+                    $x++;
+                    $y++;
                 }
                  
                 $V[$k] = $x;
@@ -269,14 +268,15 @@ class lib_Diff
             $stack[] = $V;
             
             // Ако броя на разликите е над допустимото, връщаме FALSE
-            if (count($stack) > EF_LIB_DIFF_MAX_STACK_COUNT) return FALSE;
+            if (count($stack) > EF_LIB_DIFF_MAX_STACK_COUNT) {
+                return false;
+            }
         }
         $D--;
          
         # Recover edit path
         $res = array();
-        for ($D = $D; $D > 0; $D--)
-        {
+        for ($D = $D; $D > 0; $D--) {
             $V = array_pop($stack);
             $cx = $x;
             $cy = $y;
@@ -284,18 +284,18 @@ class lib_Diff
             # Try right diagonal
             $k++;
             $x = $V[$k];
-            $y = $x-$k;
+            $y = $x - $k;
             $y++;
              
             while ($x < $cx && $y < $cy
-            && isset($src[$x]) && isset($dst[$y]) && $src[$x] == $dst[$y])
-            {
-                $x++; $y++;
+            && isset($src[$x], $dst[$y]) && $src[$x] == $dst[$y]) {
+                $x++;
+                $y++;
             }
              
             if ($x == $cx && $y == $cy) {
                 $x = $V[$k];
-                $y = $x-$k;
+                $y = $x - $k;
                  
                 $res[] = array('i',$x,$y);
                 continue;
@@ -304,7 +304,7 @@ class lib_Diff
             # Right diagonal wasn't the solution, use left diagonal
             $k -= 2;
             $x = $V[$k];
-            $y = $x-$k;
+            $y = $x - $k;
             $res[] = array('d',$x,$y);
         }
          
@@ -321,40 +321,38 @@ class lib_Diff
         $src[] = '';
         
         // Подготовка на форматирания резултат
-        foreach($src as $i => $el) {
-            if(($o = $res[$p][0]) && ($res[$p][1] == $i)) {
-                
+        foreach ($src as $i => $el) {
+            if (($o = $res[$p][0]) && ($res[$p][1] == $i)) {
+                $li = null;
+                $flag = false;
 
-                $li = NULL; $flag = FALSE;
-
-                while(($res[$p][1] == $i) && ($res[$p] !== NULL)) {
-                    if(!isset($li)) {
+                while (($res[$p][1] == $i) && ($res[$p] !== null)) {
+                    if (!isset($li)) {
                         $li = count($r) - 1;
-                        if(!is_array($r[$li])) {
+                        if (!is_array($r[$li])) {
                             $li++;
                             $r[$li] = array();
                         }
                     }
 
-                    if($o == 'd') {
+                    if ($o == 'd') {
                         $r[$li]['d'][] = $src[$res[$p][1]];
                     } else {
                         expect($o == 'i');
                         $r[$li]['i'][] = $dst[$res[$p][2]];
-                        if($res[$p][0] != 'd' && !$flag) {
-                             $r[] = $el;
-                             $flag = TRUE;
+                        if ($res[$p][0] != 'd' && !$flag) {
+                            $r[] = $el;
+                            $flag = true;
                         }
                     }
 
                     $p++;
                 }
-
             } else {
                 $r[] = $el;
             }
         }
 
         return $r;
-     }
- }
+    }
+}

@@ -23,7 +23,6 @@ class cams_tpl_SingleCamera extends core_ET
      */
     public function init($params = array())
     {
-        
         $html = "[#SingleToolbar#]
                  [#title#], [#ip#]
                  <br/><br/>

@@ -22,20 +22,20 @@ class smock_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "SMS изпращане мокъп";
+    public $info = 'SMS изпращане мокъп';
     
-    var $startCtr = 'smock_SMS';
+    public $startCtr = 'smock_SMS';
       
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'smock_SMS',
         );
 
@@ -43,11 +43,11 @@ class smock_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-       // Изтриване на пакета от менюто
-       $res = bgerp_Menu::remove($this);
+        // Изтриване на пакета от менюто
+        $res = bgerp_Menu::remove($this);
         
-       return $res;
+        return $res;
     }
 }

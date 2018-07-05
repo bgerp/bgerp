@@ -34,48 +34,59 @@ defIfNot('EF_DOWNLOAD_PREFIX_PTR', '$*****');
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class fileman_Download extends core_Manager {
+class fileman_Download extends core_Manager
+{
     
     
     /**
      * @todo Чака за документация...
      */
-    var $pathLen = 6;
+    public $pathLen = 6;
     
     
     /**
      * Заглавие на модула
      */
-    var $title = 'Сваляния';
+    public $title = 'Сваляния';
     
-	
-	/**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'admin, debug';
     
-	
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'admin, debug';
+    
+    
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         // Файлов манипулатор - уникален 8 символно/цифров низ, започващ с буква.
         // Генериран случайно, поради което е труден за налучкване
-        $this->FLD("fileName", "varchar(255)", 'notNull,caption=Име');
+        $this->FLD('fileName', 'varchar(255)', 'notNull,caption=Име');
         
-        $this->FLD("prefix", "varchar(" . strlen(EF_DOWNLOAD_PREFIX_PTR) . ")",
-            array('notNull' => TRUE, 'caption' => 'Префикс'));
+        $this->FLD(
+        
+            'prefix',
+        
+            'varchar(' . strlen(EF_DOWNLOAD_PREFIX_PTR) . ')',
+            array('notNull' => true, 'caption' => 'Префикс')
+        
+        );
         
         // Име на файла
-        $this->FLD("fileId",
-            "varchar(32)",
-            array('notNull' => TRUE, 'caption' => 'Файл'));
+        $this->FLD(
+            'fileId',
+            'varchar(32)',
+            array('notNull' => true, 'caption' => 'Файл')
+        );
         
         // Крайно време за сваляне
-        $this->FLD("expireOn",
-            "datetime",
-            array('caption' => 'Активен до'));
+        $this->FLD(
+            'expireOn',
+            'datetime',
+            array('caption' => 'Активен до')
+        );
         
         // Плъгини за контрол на записа и модифицирането
         $this->load('plg_Created,Files=fileman_Files,fileman_Wrapper,Buckets=fileman_Buckets');
@@ -87,20 +98,22 @@ class fileman_Download extends core_Manager {
     
     /**
      * Връща URL за сваляне на файла с валидност publicTime часа
-     * 
-     * @param string $src - Манипулатор на файл, път до файл или URL
+     *
+     * @param string  $src      - Манипулатор на файл, път до файл или URL
      * @param integer $lifeTime - Колко време да се пази линка (в часове)
-     * @param string $type -  - Типа на сорса - handler, url, path
-     * 
+     * @param string  $type     -  - Типа на сорса - handler, url, path
+     *
      * @return URL - Линк към файла
      */
-    static function getDownloadUrl($src, $lifeTime = 1, $type = 'handler')
+    public static function getDownloadUrl($src, $lifeTime = 1, $type = 'handler')
     {
         // Очакваме типа да е един от дадените
         expect(in_array($type, array('url', 'path', 'handler')));
         
         // Ако е подаден празен стринг
-        if (!trim($src)) return FALSE;
+        if (!trim($src)) {
+            return false;
+        }
 
         // Ако типа е URL
         if ($type == 'url') {
@@ -114,7 +127,9 @@ class fileman_Download extends core_Manager {
             $fRec = fileman_Files::fetchByFh($src);
             
             // Ако няма запис връщаме
-            if(!$fRec) return FALSE;
+            if (!$fRec) {
+                return false;
+            }
             
             // Името на файла
             $name = $fRec->name;
@@ -139,7 +154,9 @@ class fileman_Download extends core_Manager {
             }
             
             // Ако не е файл
-            if (!is_file($originalPath)) return FALSE;
+            if (!is_file($originalPath)) {
+                return false;
+            }
             
             // Времето на последна модификация на файла
             $fileTime = filemtime($originalPath);
@@ -168,7 +185,7 @@ class fileman_Download extends core_Manager {
             }
             
             // Вземаме URL
-            $link = static::getSbfDownloadUrl($dRec, TRUE);
+            $link = static::getSbfDownloadUrl($dRec, true);
             
             // Записваме
             static::save($dRec);
@@ -190,18 +207,18 @@ class fileman_Download extends core_Manager {
         $rec->fileName = $name;
         
         // Ако няма директория
-        if(!is_dir(EF_DOWNLOAD_DIR . '/' . $rec->prefix)) {
+        if (!is_dir(EF_DOWNLOAD_DIR . '/' . $rec->prefix)) {
             
             // Създаваме я
-            mkdir(EF_DOWNLOAD_DIR . '/' . $rec->prefix, 0777, TRUE);
+            mkdir(EF_DOWNLOAD_DIR . '/' . $rec->prefix, 0777, true);
         }
         
         // Генерираме пътя до файла (hard link) който ще се сваля
         $downloadPath = EF_DOWNLOAD_DIR . '/' . $rec->prefix . '/' . $rec->fileName;
         
         // Създаваме хард-линк или копираме
-        if(!@copy($originalPath, $downloadPath)) {
-            error("@Не може да бъде копиран файла", $originalPath, $downloadPath);
+        if (!@copy($originalPath, $downloadPath)) {
+            error('@Не може да бъде копиран файла', $originalPath, $downloadPath);
         }
         
         // Задаваме id-то на файла
@@ -215,14 +232,14 @@ class fileman_Download extends core_Manager {
         static::save($rec);
         
         // Връщаме линка за сваляне
-        return static::getSbfDownloadUrl($rec, TRUE);
+        return static::getSbfDownloadUrl($rec, true);
     }
     
     
     /**
      * @todo Чака за документация...
      */
-    function act_Download()
+    public function act_Download()
     {
         // Манипулатора на файла
         $fh = Request::get('fh');
@@ -253,10 +270,10 @@ class fileman_Download extends core_Manager {
 //
 //            // Големина на файла
 //            $fileLen = fileman_Data::fetchField($fRec->dataId, 'fileLen');
-//            
+//
 //            // 1024*1024
 //            $chunksize = 1048576;
-//            
+//
 //            // Големината на файловете, над която ще се игнорира forceDownload
 //            $chunksizeOb = 30 * $chunksize;
 //
@@ -272,53 +289,52 @@ class fileman_Download extends core_Manager {
 //                header('Cache-Control: must-revalidate');
 //                header('Content-Length: ' . $fileLen);
 //                header("Connection: close");
-//                
-////                header('Pragma: public'); //TODO Нужен е когато се използва SSL връзка в браузъри на IE <= 8 версия
-////                header("Pragma: "); // TODO ако има проблеми с някои версии на IE
-////                header("Cache-Control: "); // TODO ако има проблеми с някои версии на IE
+//
+        ////                header('Pragma: public'); //TODO Нужен е когато се използва SSL връзка в браузъри на IE <= 8 версия
+        ////                header("Pragma: "); // TODO ако има проблеми с някои версии на IE
+        ////                header("Cache-Control: "); // TODO ако има проблеми с някои версии на IE
 //
 //                // Ако е файла по - малък от 1 MB
-//                if ($fileLen < $chunksize) { 
-//                    
+//                if ($fileLen < $chunksize) {
+//
 //                    // Предизвикваме сваляне на файла
-//                    readfile($link);  
+//                    readfile($link);
 //                } else {
-//                    
+//
 //                    // Стартираме нов буфер
 //                    ob_start();
-//                    
+//
 //                    // Вземаме манипулатора на файла
-//                    $handle = fopen($link, 'rb'); 
-//                    $buffer = ''; 
-//                    
+//                    $handle = fopen($link, 'rb');
+//                    $buffer = '';
+//
 //                    // Докато стигнем края на файла
-//                    while (!feof($handle)) { 
-//                        
+//                    while (!feof($handle)) {
+//
 //                        // Вземаме част от файла
-//                        $buffer = fread($handle, $chunksize); 
-//                        
+//                        $buffer = fread($handle, $chunksize);
+//
 //                        // Показваме го на екрана
-//                        echo $buffer; 
-//                        
+//                        echo $buffer;
+//
 //                        // Изчистваме буфера
-//                        ob_flush(); 
-//                        flush(); 
-//                    } 
-//                    
+//                        ob_flush();
+//                        flush();
+//                    }
+//
 //                    // Затваряме файла
 //                    fclose($handle);
-//                    
+//
 //                    // Спираме буфера, който сме стартирали
 //                    ob_end_clean();
 //                }
-//                
+//
 //                // Прекратяваме изпълнението на скрипта
 //                shutdown();
 //            }
 //        }
         
         if (Request::get('forceDownload')) {
-            
             redirect($link);
         } else {
             
@@ -331,13 +347,13 @@ class fileman_Download extends core_Manager {
     /**
      * Изтрива линковете, които не се използват и файловете им
      */
-    function clearOldLinks()
+    public function clearOldLinks()
     {
         $now = dt::timestamp2Mysql(time());
         $query = self::getQuery();
         $query->where("#expireOn < '{$now}'");
         
-        $htmlRes .= "<hr />";
+        $htmlRes .= '<hr />';
         
         $count = $query->count();
         
@@ -348,21 +364,20 @@ class fileman_Download extends core_Manager {
         }
         
         while ($rec = $query->fetch()) {
-            
-            $htmlRes .= "<hr />";
+            $htmlRes .= '<hr />';
             
             $dir = static::getDownloadDir($rec);
             
             if (self::delete("#id = '{$rec->id}'")) {
-                $htmlRes .= "\n<li> Deleted record #: $rec->id</li>";
+                $htmlRes .= "\n<li> Deleted record #: {$rec->id}</li>";
                 
                 if (core_Os::deleteDir($dir)) {
-                    $htmlRes .= "\n<li> Deleted dir: $rec->prefix</li>";
+                    $htmlRes .= "\n<li> Deleted dir: {$rec->prefix}</li>";
                 } else {
-                    $htmlRes .= "\n<li style='color:red'> Can' t delete dir: $rec->prefix</li>";
+                    $htmlRes .= "\n<li style='color:red'> Can' t delete dir: {$rec->prefix}</li>";
                 }
             } else {
-                $htmlRes .= "\n<li style='color:red'> Can' t delete record #: $rec->id</li>";
+                $htmlRes .= "\n<li style='color:red'> Can' t delete record #: {$rec->id}</li>";
             }
         }
         
@@ -373,7 +388,7 @@ class fileman_Download extends core_Manager {
     /**
      * Стартиране на процеса за изтриване на ненужните файлове
      */
-    function act_ClearOldLinks()
+    public function act_ClearOldLinks()
     {
         $clear = $this->clearOldLinks();
         
@@ -384,7 +399,7 @@ class fileman_Download extends core_Manager {
     /**
      * Стартиране на процеса за изтриване на ненужните файлове по крон
      */
-    function cron_ClearOldLinks()
+    public function cron_ClearOldLinks()
     {
         $clear = $this->clearOldLinks();
         
@@ -395,10 +410,10 @@ class fileman_Download extends core_Manager {
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
-        if(!is_dir(EF_DOWNLOAD_DIR)) {
-            if(!mkdir(EF_DOWNLOAD_DIR, 0777, TRUE)) {
+        if (!is_dir(EF_DOWNLOAD_DIR)) {
+            if (!mkdir(EF_DOWNLOAD_DIR, 0777, true)) {
                 $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') .
                 ' "' . EF_DOWNLOAD_DIR . '</li>';
             } else {
@@ -407,21 +422,20 @@ class fileman_Download extends core_Manager {
             }
         }
         
-        if( CORE_OVERWRITE_HTAACCESS ) {
+        if (CORE_OVERWRITE_HTAACCESS) {
             $filesToCopy = array(
                 core_App::getFullPath('fileman/tpl/htaccessDL.txt') => EF_DOWNLOAD_DIR . '/.htaccess',
             );
             
-            foreach($filesToCopy as $src => $dest) {
-
-                if(file_exists($dest) &&  is_readable($dest)) {
-                    if(md5_file($dest) == md5_file($src)) {
+            foreach ($filesToCopy as $src => $dest) {
+                if (file_exists($dest) && is_readable($dest)) {
+                    if (md5_file($dest) == md5_file($src)) {
                         $res .= "<li>От преди съществуващ файл: <b>{$dest}</b></li>";
                         continue;
                     }
                 }
 
-                if(copy($src, $dest)) {
+                if (copy($src, $dest)) {
                     $res .= "<li class=\"debug-new\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
                 } else {
                     $res .= "<li class=\"debug-error\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
@@ -436,7 +450,7 @@ class fileman_Download extends core_Manager {
         $rec->controller = $mvc->className;
         $rec->action = 'ClearOldLinks';
         $rec->period = 100;
-        $rec->offset = mt_rand(0,60);
+        $rec->offset = mt_rand(0, 60);
         $rec->delay = 0;
         $res .= core_Cron::addOnce($rec);
     }
@@ -444,13 +458,13 @@ class fileman_Download extends core_Manager {
     
     /**
      * Връща SBF линк за сваляне на файла
-     * 
-     * @param object $rec - Записа за файла
+     *
+     * @param object  $rec      - Записа за файла
      * @param boolean $absolute - Дали линка да е абсолютен или не
-     * 
+     *
      * @return string $link - Текстов линк за сваляне
      */
-    static function getSbfDownloadUrl($rec, $absolute=FALSE)
+    public static function getSbfDownloadUrl($rec, $absolute = false)
     {
         // Линка на файла
         $link = sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $rec->fileName, '', $absolute);
@@ -461,10 +475,10 @@ class fileman_Download extends core_Manager {
     
     /**
      * Връща директорията, в който е записан файла
-     * 
+     *
      * @param fileman_Download $rec - Записа, за който търсим директорията
      */
-    static function getDownloadDir($rec)
+    public static function getDownloadDir($rec)
     {
         // Очакваме да е обект
         expect(is_object($rec), 'Не сте подали запис');
@@ -478,12 +492,12 @@ class fileman_Download extends core_Manager {
     
     /**
      * Изтрива подадени файл от sbf директорията и от модела
-     * 
+     *
      * @param fileman_Files $fileId - id' то на записа, който ще изтриваме
      */
-    static function deleteFileFromSbf($fileId)
+    public static function deleteFileFromSbf($fileId)
     {
-        // Очакваме да има 
+        // Очакваме да има
         expect($fileId);
         
         // Ако има такъм запис
@@ -496,7 +510,7 @@ class fileman_Download extends core_Manager {
             core_Os::deleteDir($dir);
             
             // Изтриваме записа от модела
-            $deleted = static::delete("#fileId = '{$fileId}'");    
+            $deleted = static::delete("#fileId = '{$fileId}'");
         }
     }
 }

@@ -15,31 +15,32 @@
  * @data      http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
  * @todo:     Да се документира този клас
  */
-class drdata_Languages extends core_Manager {
+class drdata_Languages extends core_Manager
+{
     
     
     /**
      * Заглавие
      */
-    var $title = 'ISO информация за езиците по света';
+    public $title = 'ISO информация за езиците по света';
 
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'drdata_Wrapper,plg_Sorting';
+    public $loadList = 'drdata_Wrapper,plg_Sorting';
 
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
+    public $canList = 'admin';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('languageName', 'varchar', 'caption=Име->Език');
         $this->FLD('nativeName', 'varchar', 'caption=Име->Собствено');
@@ -48,32 +49,30 @@ class drdata_Languages extends core_Manager {
         $this->load('plg_RowTools2');
         
         $this->setDbUnique('code');
-       
     }
 
     
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         // Подготвяме пътя до файла с данните
-        $file = "drdata/data/languagesList.csv";
+        $file = 'drdata/data/languagesList.csv';
 
         // Кои колонки ще вкарваме
         $fields = array(
-            0 => "languageName",
-            1 => "nativeName",
-            2 => "code",
+            0 => 'languageName',
+            1 => 'nativeName',
+            2 => 'code',
           
         );
         
-        // Импортираме данните от CSV файла. 
+        // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
 
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;
     }
-    
 }

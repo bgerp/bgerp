@@ -65,43 +65,43 @@ class docoffice_Setup extends core_ProtoSetup
     /**
      * От кои други пакети зависи
      */
-    var $depends = 'permanent=0.1';
+    public $depends = 'permanent=0.1';
     
     
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Конвертиране на документи";
+    public $info = 'Конвертиране на документи';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
     
         // Кой клас да се използва за конвертиране на офис документи
-        'OFFICE_CONVERTER_CLASS' => array ('class(interface=docoffice_ConverterIntf, select=title)', 'mandatory, caption=Кой клас да се използва за конвертиране на офис документи->Клас'),
+        'OFFICE_CONVERTER_CLASS' => array('class(interface=docoffice_ConverterIntf, select=title)', 'mandatory, caption=Кой клас да се използва за конвертиране на офис документи->Клас'),
         
-    	'OFFICE_PREVIEW_WIDTH'   => array ('int', 'caption=Размер на изгледа в широк режим->Широчина,unit=pix'),
+        'OFFICE_PREVIEW_WIDTH' => array('int', 'caption=Размер на изгледа в широк режим->Широчина,unit=pix'),
            
-    	'OFFICE_PREVIEW_HEIGHT'   => array ('int', 'caption=Размер на изгледа в широк режим->Височина,unit=pix'), 
+        'OFFICE_PREVIEW_HEIGHT' => array('int', 'caption=Размер на изгледа в широк режим->Височина,unit=pix'),
 
-    	'OFFICE_PREVIEW_WIDTH_NARROW'   => array ('int', 'caption=Размер на изгледа в мобилен режим->Широчина,unit=pix'),
+        'OFFICE_PREVIEW_WIDTH_NARROW' => array('int', 'caption=Размер на изгледа в мобилен режим->Широчина,unit=pix'),
 
-    	'OFFICE_PREVIEW_HEIGHT_NARROW'   => array ('int', 'caption=Размер на изгледа в мобилен режим->Височина,unit=pix'), 
+        'OFFICE_PREVIEW_HEIGHT_NARROW' => array('int', 'caption=Размер на изгледа в мобилен режим->Височина,unit=pix'),
     );
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'docoffice_Jodconverter',
             'docoffice_Unoconv',
         );
@@ -110,13 +110,13 @@ class docoffice_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-      	$html = parent::install();
-      	
+        $html = parent::install();
+          
         // Проверяваме дали офис пакета е инсталиран и работи коректно
         if (docoffice_Office::startOffice()) {
-            $html .= "<li>Офис пакета работи коректно.";  
+            $html .= '<li>Офис пакета работи коректно.';
         } else {
             $html .= "<li class='debug-error'>Не може да бъде стартиран офис пакета.";
         }
@@ -128,7 +128,7 @@ class docoffice_Setup extends core_ProtoSetup
         
         // Ако програмата не е инсталирана
         if ($errorCode == 127) {
-            $html .= "<li class='debug-error'>Програмата '{$unoconv}' не е инсталирана.";  
+            $html .= "<li class='debug-error'>Програмата '{$unoconv}' не е инсталирана.";
         } else {
             $html .= "<li>Програмата '{$unoconv}' работи коректно.";
         }
@@ -143,7 +143,7 @@ class docoffice_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

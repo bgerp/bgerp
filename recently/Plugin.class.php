@@ -21,9 +21,9 @@ class recently_Plugin extends core_Plugin
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_BeforeRenderFields(&$form)
+    public function on_BeforeRenderFields(&$form)
     {
-        setIfNot($prefix, $form->mvc->dbTableName, $form->name, "_");
+        setIfNot($prefix, $form->mvc->dbTableName, $form->name, '_');
         
         $Values = cls::get('recently_Values');
         
@@ -32,7 +32,7 @@ class recently_Plugin extends core_Plugin
         if (count($inputFields)) {
             foreach ($inputFields as $name => $field) {
                 if ($field->recently) {
-                    $saveName = $prefix . "." . $name;
+                    $saveName = $prefix . '.' . $name;
                     
                     $suggetions = $Values->getSuggestions($saveName);
                     
@@ -46,9 +46,9 @@ class recently_Plugin extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_AfterInput($form)
+    public function on_AfterInput($form)
     {
-        setIfNot($prefix, $form->mvc->dbTableName, $form->name, "_");
+        setIfNot($prefix, $form->mvc->dbTableName, $form->name, '_');
         
         $Values = cls::get('recently_Values');
         
@@ -58,10 +58,8 @@ class recently_Plugin extends core_Plugin
         
         if (count($flds)) {
             foreach ($flds as $name => $field) {
-                
-                if($field->recently && isset($rec->{$name}) && !$form->gotErrors($name)) {
-                    
-                    $saveName = $prefix . "." . $name;
+                if ($field->recently && isset($rec->{$name}) && !$form->gotErrors($name)) {
+                    $saveName = $prefix . '.' . $name;
                     
                     // Запомняме само стойности, които са над 2 символа
                     if (mb_strlen(trim($rec->{$name})) > 2) {

@@ -54,9 +54,9 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
      * Преди показване на форма за добавяне/промяна.
      *
      * @param frame2_driver_Proto $Driver
-     *            $Driver
-     * @param embed_Manager $Embedder
-     * @param stdClass $data
+     *                                      $Driver
+     * @param embed_Manager       $Embedder
+     * @param stdClass            $data
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
@@ -67,11 +67,11 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param stdClass $rec
-     * @param stdClass $data
+     * @param  stdClass $rec
+     * @param  stdClass $data
      * @return array
      */
-    protected function prepareRecs($rec, &$data = NULL)
+    protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
         $sickdaysArr = array();
@@ -97,11 +97,9 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $tripsQuery->where("#state != 'rejected'");
         
         if ($rec->employee) {
-            
             $employees = type_Keylist::toArray($rec->employee);
             
             foreach ($employees as $v) {
-                
                 $employees[$v] = crm_Profiles::getProfile($v)->id;
             }
             
@@ -118,7 +116,6 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $docPeriod = array();
         
         while ($sickdays = $sickdaysQuery->fetch()) {
-            
             $doc['startDate'] = ($sickdays->startDate);
             $doc['endDate'] = $sickdays->toDate;
             
@@ -129,7 +126,6 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             $sickdaysArr[$sickdays->personId] += $numberOfSickdays;
             
             if (!array_key_exists($sickdays->productId, $recs)) {
-                
                 $recs[$sickdays->personId] = (object) array(
                     
                     'personId' => $sickdays->personId,
@@ -138,7 +134,6 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                 
                 );
             } else {
-                
                 $obj = &$recs[$sickdays->productId];
                 
                 $obj->numberOfSickdays += $numberOfSickdays;
@@ -151,7 +146,6 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $docPeriod = array();
         
         while ($leaves = $leavesQuery->fetch()) {
-            
             $doc['startDate'] = dt::addDays(0, $leaves->leaveFrom, false);
             $doc['endDate'] = dt::addDays(0, $leaves->leaveTo, false);
             
@@ -160,7 +154,6 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             $numberOfLeavesDays = $docPeriod['workingDays'];
             
             if (!array_key_exists($leaves->personId, $recs)) {
-                
                 $recs[$leaves->personId] = (object) array(
                     
                     'personId' => $leaves->personId,
@@ -169,7 +162,6 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                 
                 );
             } else {
-                
                 $obj = &$recs[$leaves->personId];
                 
                 $obj->numberOfLeavesDays += $numberOfLeavesDays;
@@ -182,7 +174,6 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $docPeriod = array();
         
         while ($trips = $tripsQuery->fetch()) {
-            
             $doc['startDate'] = ($trips->startDate);
             $doc['endDate'] = $trips->toDate;
             
@@ -193,7 +184,6 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             $tripsesArr[$trips->personId] += $numberOfTripsesDays;
             
             if (!array_key_exists($trips->personId, $recs)) {
-                
                 $recs[$trips->personId] = (object) array(
                     
                     'personId' => $trips->personId,
@@ -201,7 +191,6 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                     'numberOfTripsesDays' => $numberOfTripsesDays
                 );
             } else {
-                
                 $obj = &$recs[$trips->personId];
                 
                 $obj->numberOfTripsesDays += $numberOfTripsesDays;
@@ -214,41 +203,40 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param stdClass $rec
-     *            - записа
-     * @param boolean $export
-     *            - таблицата за експорт ли е
+     * @param  stdClass      $rec
+     *                               - записа
+     * @param  boolean       $export
+     *                               - таблицата за експорт ли е
      * @return core_FieldSet - полетата
      */
-    protected function getTableFieldSet($rec, $export = FALSE)
+    protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
         
-        if ($export === FALSE) {
-            
+        if ($export === false) {
             $fld->FLD('employee', 'varchar', 'caption=Потребител');
             $fld->FLD('numberOfLeavesDays', 'varchar', 'caption=Дни->Отпуска,tdClass=centered');
             $fld->FLD('numberOfSickdays', 'varchar', 'caption=Дни->Болнични,tdClass=centered');
             $fld->FLD('numberOfTripsesDays', 'varchar', 'caption=Дни->Командировъчни,tdClass=centered');
             $fld->FLD('absencesDays', 'varchar', 'caption=Общо отсъствия,tdClass=centered');
         } else {
-            
             $fld->FLD('employee', 'varchar', 'caption=Потребител');
             $fld->FLD('numberOfLeavesDays', 'varchar', 'caption=Дни->Отпуска,tdClass=centered');
             $fld->FLD('numberOfSickdays', 'varchar', 'caption=Дни->Болнични,tdClass=centered');
             $fld->FLD('numberOfTripsesDays', 'varchar', 'caption=Дни->Командировъчни,tdClass=centered');
             $fld->FLD('absencesDays', 'varchar', 'caption=Общо отсъствия,tdClass=centered');
         }
+
         return $fld;
     }
 
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param stdClass $rec
-     *            - записа
-     * @param stdClass $dRec
-     *            - чистия запис
+     * @param  stdClass $rec
+     *                        - записа
+     * @param  stdClass $dRec
+     *                        - чистия запис
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -275,9 +263,9 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
      * След рендиране на единичния изглед
      *
      * @param cat_ProductDriver $Driver
-     * @param embed_Manager $Embedder
-     * @param core_ET $tpl
-     * @param stdClass $data
+     * @param embed_Manager     $Embedder
+     * @param core_ET           $tpl
+     * @param stdClass          $data
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
@@ -291,23 +279,21 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->from)) {
-            $fieldTpl->append("<b>" . $data->rec->from . "</b>", 'from');
+            $fieldTpl->append('<b>' . $data->rec->from . '</b>', 'from');
         }
         
         if (isset($data->rec->to)) {
-            $fieldTpl->append("<b>" . $data->rec->to . "</b>", 'to');
+            $fieldTpl->append('<b>' . $data->rec->to . '</b>', 'to');
         }
         
         if ((isset($data->rec->employee)) && ((min(array_keys(keylist::toArray($data->rec->employee))) >= 1))) {
-            
             foreach (type_Keylist::toArray($data->rec->employee) as $employee) {
-                
                 $employeeVerb .= (core_Users::getTitleById($employee) . ', ');
             }
             
-            $fieldTpl->append("<b>" . trim($employeeVerb, ',  ') . "</b>", 'employee');
+            $fieldTpl->append('<b>' . trim($employeeVerb, ',  ') . '</b>', 'employee');
         } else {
-            $fieldTpl->append("<b>" . 'Всички' . "</b>", 'employee');
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'employee');
         }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
@@ -317,9 +303,9 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
      * След подготовка на реда за експорт
      *
      * @param frame2_driver_Proto $Driver
-     * @param stdClass $res
-     * @param stdClass $rec
-     * @param stdClass $dRec
+     * @param stdClass            $res
+     * @param stdClass            $rec
+     * @param stdClass            $dRec
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
@@ -333,41 +319,35 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     /**
      * Връща масив с данни за сечението на проверявания период и периода на документа
      *
-     * @param stdClass $rec
-     *            - запис
-     * @param array $doc
-     *            - начална и крайна дата на документа
-     * @return array - масив с начална и крайна дата на периода за проверка,
-     *         брой календарни дни, брoй работни дни.
+     * @param  stdClass $rec
+     *                       - запис
+     * @param  array    $doc
+     *                       - начална и крайна дата на документа
+     * @return array    - масив с начална и крайна дата на периода за проверка,
+     *                      брой календарни дни, брoй работни дни.
      */
     public function getPeriod($rec, $doc)
     {
         $period = array();
         if (($rec->from <= $doc['startDate']) && ($rec->to >= $doc['endDate'])) {
-            
             $period['startDate'] = $doc['startDate'];
             $period['endDate'] = $doc['endDate'];
         }
         
         if ($rec->from > $doc['startDate']) {
-            
             if (($rec->to < $doc['endDate'])) {
-                
                 $period['startDate'] = $rec->from;
                 $period['endDate'] = $rec->to;
             }
             
             if (($rec->to >= $doc['endDate'])) {
-                
                 $period['startDate'] = $rec->from;
                 $period['endDate'] = $doc['endDate'];
             }
         }
         
         if ($rec->to < $doc['endtDate']) {
-            
             if ($rec->from <= $doc['startDate']) {
-                
                 $period['startDate'] = $doc['startDate'];
                 $period['endDate'] = $rec->to;
             }
@@ -379,13 +359,11 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $checkDate = $period['startDate'];
         
         do {
-            
             if (!cal_Calendar::isHoliday($checkDate, 'bg')) {
-                
                 $period[workingDays]++;
             }
             
-            $checkDate = dt::addDays(1, $checkDate, FALSE);
+            $checkDate = dt::addDays(1, $checkDate, false);
         } while ($checkDate <= $period['endDate']);
         
         $period[numberOfDays] = dt::daysBetween($period['endDate'], $period['startDate']) + 1;
@@ -396,8 +374,8 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     /**
      * Връща следващите три дати, когато да се актуализира справката
      *
-     * @param stdClass $rec
-     *            - запис
+     * @param  stdClass    $rec
+     *                          - запис
      * @return array|FALSE - масив с три дати или FALSE ако не може да се обновява
      */
     public function getNextRefreshDates($rec)
@@ -419,6 +397,3 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         );
     }
 }
-
-
-

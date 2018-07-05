@@ -38,5 +38,5 @@ class import2_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "Пакет за импорт на данни";
+    public $info = 'Пакет за импорт на данни';
 }

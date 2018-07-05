@@ -26,7 +26,7 @@ class eastron_SDM120 extends sens2_ioport_Abstract
     /**
      * Заглавие на драйвера
      */
-    public  $title = 'Електромер SDM120';
+    public $title = 'Електромер SDM120';
     
 
     /**
@@ -38,18 +38,18 @@ class eastron_SDM120 extends sens2_ioport_Abstract
     /**
      * Описание на входовете
      */
-    var $inputs = array(
-        'Voltage'              => array('caption'=>'Напрежение', 'uom' => 'V', 'addr' => 0),
-        'Current'              => array('caption'=>'Ток', 'uom' => 'A', 'addr' => 6),
-        'ActivePower'          => array('caption'=>'Активна енергия', 'uom' => 'W', 'addr' => 12),
-        'ApparentPower'        => array('caption'=>'Явна енергия', 'uom' => 'VA', 'addr' => 18),
-    	'ReactivePower'        => array('caption'=>'Реактивна енергия', 'uom' => 'WAr', 'addr' => 24),
-        'PowerFactor'          => array('caption'=>'Косинус Фи', 'uom'=>'Deg', 'addr' => 30),
-        'Frequency'            => array('caption'=>'Честота', 'uom'=>'Hz', 'addr' => 70),
-        'ImportActiveEnergy'   => array('caption'=>'Вх. акт. енергия', 'uom'=>'KWh', 'addr' => 72),
-        'ExportActiveEnergy'   => array('caption'=>'Изх. акт. енергия', 'uom'=>'KWh', 'addr' => 74),
-        'ImportReactiveEnergy' => array('caption'=>'Вх. реакт. енергия', 'uom'=>'kvarh', 'addr' => 76),
-        'ExportReactiveEnergy' => array('caption'=>'Изх. реакт. енергия', 'uom'=>'kvarh', 'addr' => 78),
+    public $inputs = array(
+        'Voltage' => array('caption' => 'Напрежение', 'uom' => 'V', 'addr' => 0),
+        'Current' => array('caption' => 'Ток', 'uom' => 'A', 'addr' => 6),
+        'ActivePower' => array('caption' => 'Активна енергия', 'uom' => 'W', 'addr' => 12),
+        'ApparentPower' => array('caption' => 'Явна енергия', 'uom' => 'VA', 'addr' => 18),
+        'ReactivePower' => array('caption' => 'Реактивна енергия', 'uom' => 'WAr', 'addr' => 24),
+        'PowerFactor' => array('caption' => 'Косинус Фи', 'uom' => 'Deg', 'addr' => 30),
+        'Frequency' => array('caption' => 'Честота', 'uom' => 'Hz', 'addr' => 70),
+        'ImportActiveEnergy' => array('caption' => 'Вх. акт. енергия', 'uom' => 'KWh', 'addr' => 72),
+        'ExportActiveEnergy' => array('caption' => 'Изх. акт. енергия', 'uom' => 'KWh', 'addr' => 74),
+        'ImportReactiveEnergy' => array('caption' => 'Вх. реакт. енергия', 'uom' => 'kvarh', 'addr' => 76),
+        'ExportReactiveEnergy' => array('caption' => 'Изх. реакт. енергия', 'uom' => 'kvarh', 'addr' => 78),
     );
     
     
@@ -60,7 +60,7 @@ class eastron_SDM120 extends sens2_ioport_Abstract
      *
      * @param core_Form
      */
-    function addFields(core_Fieldset &$fieldset)
+    public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FNC('unit', 'int(5)', 'caption=Unit,hint=Unit, input, mandatory,value=2');
     }
@@ -69,13 +69,13 @@ class eastron_SDM120 extends sens2_ioport_Abstract
     /**
      * Прочита стойностите на портовете, за които отговаря от изброените
      */
-    function read($controller, $rec, $ports)
+    public function read($controller, $rec, $ports)
     {
         // Вземи данните за регистрите от източника.
         $sdm120RegistersData = $controller->readPorts($rec->slot, array('unit' => $config->unit, 'registers' => self::getRegistersIDs()));
         
         // Създай уред и подай данните от регистрите.
-        $sdm120 = new SDM120($sdm120RegistersData); 
+        $sdm120 = new SDM120($sdm120RegistersData);
         
         // Прочитаме изчерпаната до сега информация.
         $res['Voltage'] = $sdm120->getVoltage();
@@ -96,5 +96,4 @@ class eastron_SDM120 extends sens2_ioport_Abstract
                 
         return $res;
     }
-    
 }

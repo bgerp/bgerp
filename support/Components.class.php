@@ -10,7 +10,7 @@
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * 
+ *
  * @deprecated
  */
 class support_Components extends core_Detail
@@ -20,97 +20,89 @@ class support_Components extends core_Detail
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    var $oldClassName = 'issue_Components';
+    public $oldClassName = 'issue_Components';
     
     
     /**
      * Заглавие на модела
      */
-    var $title = 'Поддържани компоненти';
+    public $title = 'Поддържани компоненти';
     
     
-    /**
-     * 
-     */
-    var $singleTitle = 'Компонент';
+    
+    public $singleTitle = 'Компонент';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, support';
+    public $canRead = 'admin, support';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, support';
+    public $canEdit = 'admin, support';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, support';
+    public $canAdd = 'admin, support';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin, support';
+    public $canView = 'admin, support';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'powerUser';
+    public $canList = 'powerUser';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'admin, support';
+    public $canDelete = 'admin, support';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, plg_RowTools2, plg_Sorting, plg_State';
+    public $loadList = 'support_Wrapper, plg_RowTools2, plg_Sorting, plg_State';
     
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'systemId';
+    public $masterKey = 'systemId';
     
     
-    /**
-     * 
-     */
-    var $listItemsPerPage = 20;
+    
+    public $listItemsPerPage = 20;
     
     
-    /**
-     * 
-     */
-    var $listFields = 'id, name, description, maintainers';
+    
+    public $listFields = 'id, name, description, maintainers';
     
     
-    /**
-     * 
-     */
-    var $currentTab = 'Системи';
+    
+    public $currentTab = 'Системи';
 
     
-	/**
+    /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, mandatory');
         $this->FLD('name', 'varchar', 'caption=Наименование,mandatory, width=100%');
-        $this->FLD('description', 'richtext(bucket=Support)', "caption=Описание");
-        $this->FLD('maintainers' , 'userList(roles=support)', 'caption=Отговорници');
-        $this->FLD('state' , 'enum(draft=Чернова, active=Активно)', 'caption=Отговорници, input=none, notNull');
+        $this->FLD('description', 'richtext(bucket=Support)', 'caption=Описание');
+        $this->FLD('maintainers', 'userList(roles=support)', 'caption=Отговорници');
+        $this->FLD('state', 'enum(draft=Чернова, active=Активно)', 'caption=Отговорници, input=none, notNull');
 
         $this->setDbUnique('systemId, name');
     }
@@ -118,12 +110,12 @@ class support_Components extends core_Detail
     
     /**
      * Връща масив всички компоненти от системата
-     * 
+     *
      * @param support_Systems $systemId - id на системата
-     * 
+     *
      * @return array $componentArr - Масив с компонентите
      */
-    static function getSystemsArr($systemId = NULL)
+    public static function getSystemsArr($systemId = null)
     {
         // Масив с компонентите
         $componentArr = array();
@@ -135,11 +127,11 @@ class support_Components extends core_Detail
             // Всички системи
             $allSystemsArr = support_Systems::getSystems($systemId);
             
-            $query->orWhereArr('systemId', $allSystemsArr);    
+            $query->orWhereArr('systemId', $allSystemsArr);
         }
 
         // Обхождаме резултатите
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             
             // Добавяме в масива
             $componentArr[$rec->id] = static::getVerbal($rec, 'name');
@@ -149,7 +141,7 @@ class support_Components extends core_Detail
         if (count($componentArr)) {
             
             // Премахваме повтарящите се
-            $componentArr = array_unique($componentArr);        
+            $componentArr = array_unique($componentArr);
         }
         
         return $componentArr;
@@ -158,12 +150,12 @@ class support_Components extends core_Detail
     
     /**
      * Масив с id' тата на еднаквите компоненти по име
-     * 
+     *
      * @param integer $id - Id на компонента
-     * 
+     *
      * @return array $arr - Масив, с id'тата на компонентите със същото име
      */
-    static function getSame($id)
+    public static function getSame($id)
     {
         // Името на компонента
         $name = static::fetchField($id, 'name');
@@ -188,16 +180,20 @@ class support_Components extends core_Detail
     
     /**
      * Маркира компонента като използван
-     * 
+     *
      * @param integer $id
      */
     public static function markAsUsed($id)
     {
-        if (!$id) return ;
+        if (!$id) {
+            return ;
+        }
         
         $rec = self::fetch($id);
         
-        if ($rec->state == 'active') return ;
+        if ($rec->state == 'active') {
+            return ;
+        }
         
         $rec->state = 'active';
         
@@ -209,12 +205,12 @@ class support_Components extends core_Detail
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($rec) {
             if ($action == 'delete') {

@@ -22,19 +22,19 @@ class plg_NoChange extends core_Plugin
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = $data->form;
-        $rec  = $form->rec;
+        $rec = $form->rec;
 
-        if($rec->id && !$mvc->haveRightFor('delete', $rec)) {
-            $fields = $mvc->selectFields("#noChange");
+        if ($rec->id && !$mvc->haveRightFor('delete', $rec)) {
+            $fields = $mvc->selectFields('#noChange');
             
-            foreach($fields as $name => $field) {
-                $form->setReadonly($name); 
-                $form->fields[$name]->type->params['allowEmpty'] = NULL; 
+            foreach ($fields as $name => $field) {
+                $form->setReadonly($name);
+                $form->fields[$name]->type->params['allowEmpty'] = null;
             }
         }
     }

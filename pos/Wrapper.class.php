@@ -20,9 +20,9 @@ class pos_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
-    	$this->TAB('pos_Points', 'Точки', 'ceo,pos');
+        $this->TAB('pos_Points', 'Точки', 'ceo,pos');
         $this->TAB('pos_Receipts', 'Бележки', 'ceo,pos');
         $this->TAB('pos_Reports', 'Отчети', 'ceo,pos');
         $this->TAB('pos_Stocks', 'Наличности', 'ceo,pos');

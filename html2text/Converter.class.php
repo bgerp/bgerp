@@ -103,7 +103,7 @@ class html2text_Converter
      * @var string $html
      * @access public
      */
-    var $html;
+    public $html;
     
     
     /**
@@ -112,7 +112,7 @@ class html2text_Converter
      * @var string $text
      * @access public
      */
-    var $text;
+    public $text;
     
     
     /**
@@ -124,7 +124,7 @@ class html2text_Converter
      * @var integer $width
      * @access public
      */
-    var $width = 7000;
+    public $width = 7000;
     
     
     /**
@@ -136,7 +136,7 @@ class html2text_Converter
      * @see $replace
      */
     /*
-	var $search = array(
+    var $search = array(
         //'/<pre[^>]*>(.*?)<\/pre>/sei',           // <pre>
         "/\r/",                                  // Non-legal carriage return
         "/[\n\t]+/",                             // Newlines and tabs
@@ -178,8 +178,8 @@ class html2text_Converter
         '/&(euro|#8364);/i',                     // Euro sign
         //'/&[^&;]+;/i',                           // Unknown/unhandled entities
         '/[ ]{2,}/'                              // Runs of spaces, post-handling
-    ); 
-	*/
+    );
+    */
     
     
     /**
@@ -242,7 +242,7 @@ class html2text_Converter
      * @access public
      * @see set_allowed_tags()
      */
-    var $allowed_tags = '';
+    public $allowed_tags = '';
     
     
     /**
@@ -251,7 +251,7 @@ class html2text_Converter
      * @var string $url
      * @access public
      */
-    var $url;
+    public $url;
     
     
     /**
@@ -261,7 +261,7 @@ class html2text_Converter
      * @access private
      * @see $html, $text
      */
-    var $_converted = false;
+    public $_converted = false;
     
     
     /**
@@ -271,7 +271,7 @@ class html2text_Converter
      * @access private
      * @see _build_link_list()
      */
-    var $_link_list = '';
+    public $_link_list = '';
     
     
     /**
@@ -282,7 +282,7 @@ class html2text_Converter
      * @access private
      * @see _build_link_list()
      */
-    var $_link_count = 0;
+    public $_link_count = 0;
     
     
     /**
@@ -292,12 +292,12 @@ class html2text_Converter
      * will instantiate with that source propagated, all that has
      * to be done it to call get_text().
      *
-     * @param string $source HTML content
+     * @param string  $source    HTML content
      * @param boolean $from_file Indicates $source is a file to pull content from
      * @access public
      * @return void
      */
-    function __construct($source = '', $from_file = false)
+    public function __construct($source = '', $from_file = false)
     {
         if (!empty($source)) {
             $this->set_html($source, $from_file);
@@ -308,7 +308,7 @@ class html2text_Converter
     /**
      * @todo Чака за документация...
      */
-    static function toRichText($text)
+    public static function toRichText($text)
     {
         $html2Text = new html2text_Converter($text);
         
@@ -319,12 +319,12 @@ class html2text_Converter
     /**
      * Loads source HTML into memory, either from $source string or a file.
      *
-     * @param string $source HTML content
+     * @param string  $source    HTML content
      * @param boolean $from_file Indicates $source is a file to pull content from
      * @access public
      * @return void
      */
-    function set_html($source, $from_file = false)
+    public function set_html($source, $from_file = false)
     {
         $this->html = $source;
         
@@ -344,7 +344,7 @@ class html2text_Converter
      * @access public
      * @return string
      */
-    function get_text()
+    public function get_text()
     {
         if (!$this->_converted) {
             $this->_convert();
@@ -360,9 +360,9 @@ class html2text_Converter
      * @access public
      * @return void
      */
-    function print_text()
+    public function print_text()
     {
-        print $this->get_text();
+        echo $this->get_text();
     }
     
     
@@ -373,9 +373,9 @@ class html2text_Converter
      * @return void
      * @see print_text()
      */
-    function p()
+    public function p()
     {
-        print $this->get_text();
+        echo $this->get_text();
     }
     
     
@@ -387,7 +387,7 @@ class html2text_Converter
      * @access public
      * @return void
      */
-    function set_allowed_tags($allowed_tags = '')
+    public function set_allowed_tags($allowed_tags = '')
     {
         if (!empty($allowed_tags)) {
             $this->allowed_tags = $allowed_tags;
@@ -401,7 +401,7 @@ class html2text_Converter
      * @access public
      * @return void
      */
-    function _set_base_url($matches)
+    public function _set_base_url($matches)
     {
         $url = $matches[2];
         if (empty($url)) {
@@ -432,7 +432,7 @@ class html2text_Converter
      * @access private
      * @return void
      */
-    function _convert()
+    public function _convert()
     {
         // Variables used for building the link list
         $this->_link_count = 0;
@@ -443,16 +443,16 @@ class html2text_Converter
         // Run our defined search-and-replace
         
         // <pre>
-        $text = preg_replace_callback("/<pre[^>]*>(.*?)<\/pre>/si", array($this, 'pre'), $text); 
+        $text = preg_replace_callback("/<pre[^>]*>(.*?)<\/pre>/si", array($this, 'pre'), $text);
         
         // Non-legal carriage return
-        $text = preg_replace("/\r/", '', $text); 
+        $text = preg_replace("/\r/", '', $text);
         
         // Newlines and tabs
         $text = preg_replace("/[\n\t]+/", ' ', $text);
         
         // Runs of spaces, pre-handling
-        $text = preg_replace("/[ ]{2,}/", ' ', $text);
+        $text = preg_replace('/[ ]{2,}/', ' ', $text);
         
         // Base URL
         $text = preg_replace_callback('/<base [^>]*href=("|\')([^"|\']+)("|\')[^>]*>/i', array($this, '_set_base_url'), $text);
@@ -473,17 +473,17 @@ class html2text_Converter
         $text = preg_replace_callback('/<title>(.*?)<\/title>/i', array($this, 'title'), $text);
 
         // <P>
-        $text = preg_replace("/<p[^>]*>/i", "\n\n", $text);
+        $text = preg_replace('/<p[^>]*>/i', "\n\n", $text);
         
         // <div>
-        $text = preg_replace("/<div[^>]*>/i", "\n", $text);
+        $text = preg_replace('/<div[^>]*>/i', "\n", $text);
         
         // <br>
-        $text = preg_replace("/<br[^>]*>/i", "\n", $text);
+        $text = preg_replace('/<br[^>]*>/i', "\n", $text);
         
-        // blockquote 
-        $text = preg_replace("/<blockquote[^>]*>/i", "[bQuote]", $text);
-        $text = preg_replace("/<\/blockquote[^>]*>/i", "[/bQuote]", $text);
+        // blockquote
+        $text = preg_replace('/<blockquote[^>]*>/i', '[bQuote]', $text);
+        $text = preg_replace("/<\/blockquote[^>]*>/i", '[/bQuote]', $text);
 
         // <b>
         $text = preg_replace_callback('/<b[^>]*>(.*?)<\/b[^>]*>/i', array($this, 'bold'), $text);
@@ -492,16 +492,16 @@ class html2text_Converter
         $text = preg_replace_callback('/<strong[^>]*>(.*?)<\/strong[^>]*>/i', array($this, 'bold'), $text);
         
         // <i>
-        $text = preg_replace("/<i[^>]*>(.*?)<\/i[^>]*>/i", "[i]\\1[/i]", $text);
+        $text = preg_replace("/<i[^>]*>(.*?)<\/i[^>]*>/i", '[i]\\1[/i]', $text);
         
         // <em>
-        $text = preg_replace("/<em[^>]*>(.*?)<\/em[^>]*>/i", "[b]\\1[/b]", $text);
+        $text = preg_replace("/<em[^>]*>(.*?)<\/em[^>]*>/i", '[b]\\1[/b]', $text);
         
 
-       // $text = preg_replace("/<table[^>]*>(.*?)<\/table[^>]*>/i", "[table]\\1[/table]", $text);
-       // $text = preg_replace("/<tr[^>]*>(.*?)<\/tr[^>]*>/i", "[tr]\\1[/tr]", $text);
-       // $text = preg_replace("/<td[^>]*>(.*?)<\/td[^>]*>/i", "[td]\\1[/td]", $text);
-       // $text = preg_replace("/<th[^>]*>(.*?)<\/th[^>]*>/i", "[th]\\1[/th]", $text);
+        // $text = preg_replace("/<table[^>]*>(.*?)<\/table[^>]*>/i", "[table]\\1[/table]", $text);
+        // $text = preg_replace("/<tr[^>]*>(.*?)<\/tr[^>]*>/i", "[tr]\\1[/tr]", $text);
+        // $text = preg_replace("/<td[^>]*>(.*?)<\/td[^>]*>/i", "[td]\\1[/td]", $text);
+        // $text = preg_replace("/<th[^>]*>(.*?)<\/th[^>]*>/i", "[th]\\1[/th]", $text);
 
         // <ul> and </ul>
         $text = preg_replace("/(<ul[^>]*>|<\/ul[^>]*>)/i", "\n\n", $text);
@@ -513,13 +513,13 @@ class html2text_Converter
         $text = preg_replace("/<li[^>]*>(.*?)<\/li[^>]*>/i", "\t* \\1\n", $text);
         
         // <li>
-        $text = preg_replace("/<li[^>]*>/i", "\n\t* ", $text);
+        $text = preg_replace('/<li[^>]*>/i', "\n\t* ", $text);
         
         // <a href="">
         $text = preg_replace_callback('/<a [^>]*href=("|\')([^"|\']+)("|\')[^>]*>(.*?)<\/a>/is', array($this, '_build_link_list'), $text);
         
         // <hr>
-        $text = preg_replace("/<hr[^>]*>/i", "\n-------------------------\n", $text);
+        $text = preg_replace('/<hr[^>]*>/i', "\n-------------------------\n", $text);
         
         // <table> and </table>
         $text = preg_replace("/(<table[^>]*>|<\/table[^>]*>)/i", "\n\n", $text);
@@ -534,45 +534,45 @@ class html2text_Converter
         $text = preg_replace_callback('/<th[^>]*>(.*?)<\/th>/i', array($this, 'boldt'), $text);
         
         // Non-breaking space
-        $text = preg_replace("/&(nbsp|#160);/i", " ", $text);
+        $text = preg_replace('/&(nbsp|#160);/i', ' ', $text);
         
         // Double quotes
-        $text = preg_replace("/&(quot|rdquo|ldquo|#8220|#8221|#147|#148);/i", '"', $text);
+        $text = preg_replace('/&(quot|rdquo|ldquo|#8220|#8221|#147|#148);/i', '"', $text);
         
         // Single quotes
-        $text = preg_replace("/&(apos|rsquo|lsquo|#8216|#8217);/i", "'", $text);
+        $text = preg_replace('/&(apos|rsquo|lsquo|#8216|#8217);/i', "'", $text);
         
         // Copyright
-        $text = preg_replace("/&(copy|#169);/i", "(c)", $text);
+        $text = preg_replace('/&(copy|#169);/i', '(c)', $text);
         
         // Trademark
-        $text = preg_replace("/&(trade|#8482|#153);/i", "(tm)", $text);
+        $text = preg_replace('/&(trade|#8482|#153);/i', '(tm)', $text);
         
         // Registered
-        $text = preg_replace("/&(reg|#174);/i", "(R)", $text);
+        $text = preg_replace('/&(reg|#174);/i', '(R)', $text);
         
         // mdash
-        $text = preg_replace("/&(mdash|#151|#8212);/i", "--", $text);
+        $text = preg_replace('/&(mdash|#151|#8212);/i', '--', $text);
         
         // ndash
-        $text = preg_replace("/&(ndash|minus|#8211|#8722);/i", "-", $text);
+        $text = preg_replace('/&(ndash|minus|#8211|#8722);/i', '-', $text);
         
         // Bullet
-        $text = preg_replace("/&(bull|#149|#8226);/i", "*", $text);
+        $text = preg_replace('/&(bull|#149|#8226);/i', '*', $text);
         
         // Pound sign
-        $text = preg_replace("/&(pound|#163);/i", "£", $text);
+        $text = preg_replace('/&(pound|#163);/i', '£', $text);
         
         // Euro sign
-        $text = preg_replace("/&(euro|#8364);/i", "€", $text);
+        $text = preg_replace('/&(euro|#8364);/i', '€', $text);
         
         // Unknown/unhandled entities
 //        $text = preg_replace("'/&[^&;]+;/i'", "", $text);
         
         // Runs of spaces, post-handling
-        $text = preg_replace("/[ ]{2,}/", " ", $text);
+        $text = preg_replace('/[ ]{2,}/', ' ', $text);
         
-        $text = preg_replace_callback("/<[0-9]+/i", array($this, '_allowTags'), $text);
+        $text = preg_replace_callback('/<[0-9]+/i', array($this, '_allowTags'), $text);
 
         // Strip any other HTML tags
         $text = strip_tags($text, $this->allowed_tags);
@@ -606,9 +606,9 @@ class html2text_Converter
     /**
      * Позволява определни тагове да се показват
      */
-    function _allowTags($matches)
+    public function _allowTags($matches)
     {
-        $res =  '&lt;' . substr($matches[0], 1);
+        $res = '&lt;' . substr($matches[0], 1);
 
         return $res;
     }
@@ -622,54 +622,55 @@ class html2text_Converter
      * appeared. Also makes an effort at identifying and handling absolute
      * and relative links.
      *
-     * @param string $link URL of the link
+     * @param string $link    URL of the link
      * @param string $display Part of the text to associate number with
      * @access private
      * @return string
      */
-    function _build_link_list($matches)
+    public function _build_link_list($matches)
     {
         $link = $matches[2];
         $display = $matches[4];
 
         $linkArr = explode(':', $link, 2);
-        $schema  = strtolower(trim($linkArr[0]));
-        $path    = strtolower(trim($linkArr[1], "\t\n\r/"));
+        $schema = strtolower(trim($linkArr[0]));
+        $path = strtolower(trim($linkArr[1], "\t\n\r/"));
         
         preg_match(type_Richtext::URL_PATTERN, strip_tags($display), $dUrls);
  
-        if(is_array($dUrls) && $dU = $dUrls[0]) {  
-            if(stripos($dU, 'www.') === 0) {
+        if (is_array($dUrls) && $dU = $dUrls[0]) {
+            if (stripos($dU, 'www.') === 0) {
                 $dU = 'http://' . $dU;
             }
  
-            if(core_Url::getDomain($dU) != core_Url::getDomain($link)) {
+            if (core_Url::getDomain($dU) != core_Url::getDomain($link)) {
                 $alert = ' [em=alert]';
             }
         }
 
-        switch($schema) {
-            case 'http' :
-            case 'https' :
-            case 'ftp' :
-            case 'ftps' :
-                if(stripos($display, trim($path)) === FALSE) {
+        switch ($schema) {
+            case 'http':
+            case 'https':
+            case 'ftp':
+            case 'ftps':
+                if (stripos($display, trim($path)) === false) {
                     $this->_link_count++;
-                    $this->_link_list .= "[" . $this->_link_count . "] $link {$alert}\n";
+                    $this->_link_list .= '[' . $this->_link_count . "] ${link} {$alert}\n";
                     $additional = " [link={$link}][" . $this->_link_count . "][/link]{$alert}";
                 } else {
                     $additional = '';
                 }
                 break;
-            case 'mailto' :
-                if(stripos($display, $path) === FALSE) {
+            case 'mailto':
+                if (stripos($display, $path) === false) {
                     $this->_link_count++;
-                    $this->_link_list .= "[" . $this->_link_count . "]$path\n";
-                    $additional = " [" . $this->_link_count . "]";
+                    $this->_link_list .= '[' . $this->_link_count . "]${path}\n";
+                    $additional = ' [' . $this->_link_count . ']';
                 } else {
                     $additional = '';
                 }
-            default :
+                // no break
+            default:
             $additional = '';
             break;
         }
@@ -681,28 +682,23 @@ class html2text_Converter
     /**
      * ���������� ��������� ������ ��� ������ �����
      */
-    function bold($matches)
+    public function bold($matches)
     {
-
         return "[b]{$matches[1]}[/b]";
     }
     
     
-    /**
-     * 
-     */
-    function boldt($matches)
+    
+    public function boldt($matches)
     {
-
         return $this->bold($matches) . "\t";
     }
     
     /**
      * ����� ������ �����, ����� ������� ����� �� ����
      */
-    function ucwords($stri)
+    public function ucwords($stri)
     {
-        
         return mb_convert_case($text, MB_CASE_TITLE);
     }
     
@@ -710,10 +706,13 @@ class html2text_Converter
     /**
      * ������� ������� �� ��������������� �����
      */
-    static function pre($matches)
+    public static function pre($matches)
     {
-        $text = str_replace(array("\r\n", "\n\r", "\n", "\r"  ), 
-                array("<br>", "<br>\n", "<br>\n", "<br>\n" ), $matches[1]);
+        $text = str_replace(
+            array("\r\n", "\n\r", "\n", "\r"),
+                array('<br>', "<br>\n", "<br>\n", "<br>\n"),
+            $matches[1]
+        );
          
         return '[code=text]' . $text . '[/code]';
     }
@@ -722,7 +721,7 @@ class html2text_Converter
     /**
      * �������� �������� <h*>
      */
-    function h($matches)
+    public function h($matches)
     {
         return "[h{$matches[1]}]{$matches[2]}[/h{$matches[1]}]";
     }
@@ -730,9 +729,8 @@ class html2text_Converter
     /**
      * Конвертира таговете <title>
      */
-    function title($matches)
+    public function title($matches)
     {
         return "[h2]{$matches[1]}[/h2]";
     }
-
 }

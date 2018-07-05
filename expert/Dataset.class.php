@@ -15,7 +15,8 @@
  * @since     v 0.1
  * @link
  */
-class expert_Dataset extends core_BaseClass {
+class expert_Dataset extends core_BaseClass
+{
     
     
     /**
@@ -39,21 +40,21 @@ class expert_Dataset extends core_BaseClass {
     /**
      * Задава стойност на променлива
      */
-    public function addRule($name, $expr, $cond = NULL, $priority = NULL)
+    public function addRule($name, $expr, $cond = null, $priority = null)
     {
         // Нормализация на параметрите
         $name = trim($name);
         $cond = trim($cond);
         $expr = trim($expr);
-        if($name{0} == '$') {
+        if ($name{0} == '$') {
             $name = substr($name, 1);
         }
 
         $id = substr(md5($name . $expr . $cond . $priority), 0, 8);
 
-        $rule = (object) array('name' => $name, 'expr' => $expr, 'cond' => $cond, 'state' => 'pending', 'order' => count($this->rules[$name])+1);
+        $rule = (object) array('name' => $name, 'expr' => $expr, 'cond' => $cond, 'state' => 'pending', 'order' => count($this->rules[$name]) + 1);
         
-        if($priority) {
+        if ($priority) {
             $rule->priority = $priority;
         }
 
@@ -65,7 +66,7 @@ class expert_Dataset extends core_BaseClass {
         expect(!$rule->condVars[$rule->name] && !$rule->exprVars[$rule->name]);
 
         
-        if(isset($this->rules[$name][$id])) { 
+        if (isset($this->rules[$name][$id])) {
             $this->log[] = "<br>Warning: Дублиране на правило \${$name} = {$expr} ({$cond}";
         }
 
@@ -76,20 +77,20 @@ class expert_Dataset extends core_BaseClass {
     /**
      * Мегически метод, който се извиква, ако обекта се използва като функция
      */
-    public function __invoke($name, $expr, $cond = NULL, $priority = NULL)
+    public function __invoke($name, $expr, $cond = null, $priority = null)
     {
         static $files;
 
         $stack = debug_backtrace();
  
-        if(!$files[$stack[0]['file']]) {
+        if (!$files[$stack[0]['file']]) {
             $files[$stack[0]['file']] = explode("\n", file_get_Contents($stack[0]['file']));
         }
  
-        $line = trim($files[$stack[0]['file']][$stack[0]['line']-1]);
+        $line = trim($files[$stack[0]['file']][$stack[0]['line'] - 1]);
 
-        if(strpos($line, ', "')) {
-            $this->log[] = "<br>Warning: Възможен проблем с двойни кавички в правилото <b>$line</b>";
+        if (strpos($line, ', "')) {
+            $this->log[] = "<br>Warning: Възможен проблем с двойни кавички в правилото <b>${line}</b>";
         }
 
         $this->addRule($name, $expr, $cond, $priority);
@@ -109,7 +110,7 @@ class expert_Dataset extends core_BaseClass {
 
         preg_match_all($ptr, $expr, $matches);
         
-        foreach($matches[1] as $name) {
+        foreach ($matches[1] as $name) {
             $res[$name] = $name;
         }
 
@@ -122,16 +123,16 @@ class expert_Dataset extends core_BaseClass {
      */
     private function setVar($var, $value, $trust = 0.6, $log = '')
     {
-        if(!strpos($var, '[]')) {
+        if (!strpos($var, '[]')) {
             $this->vars[$var] = $value;
             $this->trusts[$var] = $trust;
-        } else {  
+        } else {
             expect(substr($var, -2) == '[]');
-            $array = substr($var, 0, strlen($var)-2);
+            $array = substr($var, 0, strlen($var) - 2);
             $this->vars[$array][] = $value;
         }
 
-        $this->log[] = "<li style='color:green;'>{$var} = {$value}; " . round($trust*100) . "% {$log}</li>";
+        $this->log[] = "<li style='color:green;'>{$var} = {$value}; " . round($trust * 100) . "% {$log}</li>";
     }
 
 
@@ -140,7 +141,6 @@ class expert_Dataset extends core_BaseClass {
      */
     private function getVar($var)
     {
-    
         return $this->vars[$var];
     }
 
@@ -153,90 +153,89 @@ class expert_Dataset extends core_BaseClass {
      * $rule->state = fail, pending, used
      */
     private function prepareRule(&$rule)
-    { 
-        if($rule->state != 'pending') return;
+    {
+        if ($rule->state != 'pending') {
+            return;
+        }
 
-        if($this->trusts[$rule->name]) {
+        if ($this->trusts[$rule->name]) {
             $rule->state = 'block';
-            $rule->reason = "Използвано е друго правило";
+            $rule->reason = 'Използвано е друго правило';
 
             return;
         }
  
-        $trust = $maxTrust = max($rule->priority < 0 ? pow(3, $rule->priority/20) : 0.1, 1 + ($rule->expr != '' && $rule->expr != '0' && $rule->expr != '""') - $rule->order/100000 + $rule->priority);
+        $trust = $maxTrust = max($rule->priority < 0 ? pow(3, $rule->priority / 20) : 0.1, 1 + ($rule->expr != '' && $rule->expr != '0' && $rule->expr != '""') - $rule->order / 100000 + $rule->priority);
         $div = 3;
         
         $vars = $rule->exprVars + $rule->condVars;
         
         $maxTrust += count($vars);
-        $div      += count($vars);
+        $div += count($vars);
 
-        foreach($vars as $n) {
+        foreach ($vars as $n) {
 
             // Ако нямаме достоверност за стойността и нямаме правило за нея - правилото е блокирано
-            if(!($this->trusts[$n] > 0)) {
-                if(!isset($this->rules[$n])) {
+            if (!($this->trusts[$n] > 0)) {
+                if (!isset($this->rules[$n])) {
                     $rule->state = 'block';
                     $rule->reason = "Липсват правила за {$n}";
 
                     return;
-                } else {
-                    $havePending = FALSE;
-                    foreach($this->rules[$n] as $id => $rN) {
-                        if($rN->state == 'pending' || ($rN->trust && isset($rN->value))) {
-                            $havePending = TRUE;
-                            break;
-                        }
+                }
+                $havePending = false;
+                foreach ($this->rules[$n] as $id => $rN) {
+                    if ($rN->state == 'pending' || ($rN->trust && isset($rN->value))) {
+                        $havePending = true;
+                        break;
                     }
-                    if(!$havePending) {
-                        $rule->state = 'block';
-                        $rule->reason = "Правилата за {$n} са изчерпани";
+                }
+                if (!$havePending) {
+                    $rule->state = 'block';
+                    $rule->reason = "Правилата за {$n} са изчерпани";
 
-                        return;
-                    }
+                    return;
                 }
             }
 
-            $trust += (1+$this->trusts[$n])/2;
-            if(!$this->trusts[$n]) {
+            $trust += (1 + $this->trusts[$n]) / 2;
+            if (!$this->trusts[$n]) {
                 $trust = 0;
                 $rule->trustReason = "Няма достоверност за {$n}";
                 break;
             }
         }
 
-        $rule->trust = $trust/$div;
-        $rule->maxTrust = $maxTrust/$div;
+        $rule->trust = $trust / $div;
+        $rule->maxTrust = $maxTrust / $div;
 
-        if($rule->trust > 1) {
-            $rule->trust = 1 + log(2+$rule->trust);
+        if ($rule->trust > 1) {
+            $rule->trust = 1 + log(2 + $rule->trust);
         }
 
-        if($rule->maxTrust > 1) {
-            $rule->maxTrust = 2 + log(2+$rule->trust);
+        if ($rule->maxTrust > 1) {
+            $rule->maxTrust = 2 + log(2 + $rule->trust);
         }
 
-        if($rule->trust > 0 && !isset($rule->value)) {
-
-            $rule->condVal = empty($rule->cond) ? TRUE : $this->calc($rule->cond, $rule->condVars);
-            if(!$rule->condVal) {
+        if ($rule->trust > 0 && !isset($rule->value)) {
+            $rule->condVal = empty($rule->cond) ? true : $this->calc($rule->cond, $rule->condVars);
+            if (!$rule->condVal) {
                 $rule->state = 'fail';
                  
                 return;
             }
             $rule->value = $this->calc($rule->expr, $rule->exprVars);
         }
-
     }
 
 
     /**
      * Изчислява израза, което замества посочените променливи с техните свойства
      */
-    function calc($expr, $vars)
+    public function calc($expr, $vars)
     {
-        if(count($vars)) {
-            foreach($vars as $name) {
+        if (count($vars)) {
+            foreach ($vars as $name) {
                 $replace['$' . $name] = "\$this->vars['{$name}']";
             }
 
@@ -246,9 +245,9 @@ class expert_Dataset extends core_BaseClass {
         //$code = "return {$expr};";
         $code = 'return ' . $expr. ';';
         
-        if(!@eval('return TRUE;' . $code)) {
+        if (!@eval('return TRUE;' . $code)) {
             // Некоректен израз
-            expect(FALSE, $code);
+            expect(false, $code);
         }
 
         $res = eval($code);
@@ -261,46 +260,49 @@ class expert_Dataset extends core_BaseClass {
     /**
      * Стартира процес на изчисляване, според зададените правила
      */
-    public function run($rec = NULL, $state = NULL)
+    public function run($rec = null, $state = null)
     {
  
         // Записваме променливите от $rec
-        if(is_object($rec) || is_array($rec)) {
-            foreach((array) $rec as $name => $value) {
-                if($value !== NULL && is_scalar($value)) {
-                    $this->setVar($name, $value, 1, "INPUT");
+        if (is_object($rec) || is_array($rec)) {
+            foreach ((array) $rec as $name => $value) {
+                if ($value !== null && is_scalar($value)) {
+                    $this->setVar($name, $value, 1, 'INPUT');
                 }
             }
         }
        
         do {
             // Изчисляваме всички правила. Опитваме се да намерим $value, $trust, $maxTrust
-            foreach($this->rules as $name => &$rArr) {
-                
-                foreach($rArr as $id => $r) {
+            foreach ($this->rules as $name => &$rArr) {
+                foreach ($rArr as $id => $r) {
                     $this->prepareRule($r);
                 }
             }
 
-            $bestRule = NULL;
+            $bestRule = null;
             $rated = array();
 
             // Намираме от всички правила, това, което има достоверност >0 и се изчислява
             // приоритет = достоверност - брой "чакъщи" правила с по-висок или равен ранг
-            foreach($this->rules as $name => &$rArr) {
+            foreach ($this->rules as $name => &$rArr) {
                 
                 // Прескачаме променливите, които имат стойност
-                if($this->trusts[$name]) continue;
+                if ($this->trusts[$name]) {
+                    continue;
+                }
                
-                foreach($rArr as $id => $r) {
+                foreach ($rArr as $id => $r) {
 
                     // Пропускаме правилата, които не са чакащи и които не са достоверни
-                    if($r->state != 'pending' || !($r->trust > 0)) continue;
+                    if ($r->state != 'pending' || !($r->trust > 0)) {
+                        continue;
+                    }
                     
                     // Колко са правилата, които са чакащи и имат по-голям maxTrust от текущия
                     $l = 0;
-                    foreach($rArr as $rI) {
-                        if($rI->maxTrust > $r->trust && $rI->state == 'pending' && !($rI->trust > 0)) {
+                    foreach ($rArr as $rI) {
+                        if ($rI->maxTrust > $r->trust && $rI->state == 'pending' && !($rI->trust > 0)) {
                             $l++;
                         }
                     }
@@ -308,19 +310,18 @@ class expert_Dataset extends core_BaseClass {
                     // общия рейтинг на текущото правило
                     $r->rate = 9 + $r->trust - $l + $r->priority;
  
-                    if(!isset($bestRule) || $bestRule->rate < $r->rate) {
+                    if (!isset($bestRule) || $bestRule->rate < $r->rate) {
                         $bestRule = $r;
                         $rated[] = $r;
                     }
                 }
             }
             
-            if($bestRule) {  
+            if ($bestRule) {
                 $this->setVar($bestRule->name, $bestRule->value, $bestRule->trust, "[{$bestRule->expr}]" . ($bestRule->cond ?  " ({$bestRule->cond})":''));
                 $bestRule->state = 'used';
             }
-
-        } while($bestRule);
+        } while ($bestRule);
         
         return $this->vars;
     }

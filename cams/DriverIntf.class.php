@@ -29,7 +29,7 @@ class cams_DriverIntf
     /**
      * Записва видео в указания файл с продължителност $duration
      */
-    function captureVideo($savePath, $duration)
+    public function captureVideo($savePath, $duration)
     {
         return $this->class->captureVideo($savePath, $duration);
     }
@@ -44,7 +44,7 @@ class cams_DriverIntf
     /**
      * Записва снимка от камерата в указания файл;
      */
-    function getPicture()
+    public function getPicture()
     {
         return $this->class->getPicture();
     }
@@ -53,7 +53,7 @@ class cams_DriverIntf
     /**
      * Връща скоростта на стрийма
      */
-    function getFPS()
+    public function getFPS()
     {
         return $this->class->FPS;
     }
@@ -62,7 +62,7 @@ class cams_DriverIntf
     /**
      * Връща широчината на картинката
      */
-    function getWidth()
+    public function getWidth()
     {
         return $this->class->width;
     }
@@ -71,20 +71,20 @@ class cams_DriverIntf
     /**
      * Връща височината на картинката
      */
-    function getHeight()
+    public function getHeight()
     {
         return $this->class->height;
     }
 
     /**
-     * 
+     *
      * Връща резолюцията и скоростта на запис зададени в камерата
      */
-	function getParamsFromCam($params)
-	{
-		return $this->class->getParamsFromCam($params);
-	}
-	
+    public function getParamsFromCam($params)
+    {
+        return $this->class->getParamsFromCam($params);
+    }
+    
     /****************************************************************************************
      *                                                                                      *
      *  Pan, Tilt, Zoom контрол                                                             *
@@ -95,7 +95,7 @@ class cams_DriverIntf
     /**
      * Дали камерата има управление PTZ
      */
-    function havePtzControl()
+    public function havePtzControl()
     {
         return $this->class->havePtzControl();
     }
@@ -104,7 +104,7 @@ class cams_DriverIntf
     /**
      * Връща формата за местене на камерата
      */
-    function preparePtzForm($form)
+    public function preparePtzForm($form)
     {
         return $this->class->preparePtzform($form);
     }
@@ -113,7 +113,7 @@ class cams_DriverIntf
     /**
      * Изпълнява PTZ команда
      */
-    function applyPtzCommands($cmdArr)
+    public function applyPtzCommands($cmdArr)
     {
         return $this->class->applyPtzCommands($cmdArr);
     }
@@ -128,7 +128,7 @@ class cams_DriverIntf
     /**
      * Подготвя формата за настройките
      */
-    function prepareSettingsForm($form)
+    public function prepareSettingsForm($form)
     {
         return $this->class->prepareSettingsForm($form);
     }
@@ -137,7 +137,7 @@ class cams_DriverIntf
     /**
      * Подготвя формата за настройките
      */
-    function validateSettingsForm($form)
+    public function validateSettingsForm($form)
     {
         return $this->class->validateSettingsForm($form);
     }
@@ -146,7 +146,7 @@ class cams_DriverIntf
     /**
      * Дали камерата е активна
      */
-    function isActive()
+    public function isActive()
     {
         return $this->class->isActive();
     }

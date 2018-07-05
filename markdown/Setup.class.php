@@ -20,22 +20,22 @@ class markdown_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
         
     
     /**
      * Описание на модула
      */
-    var $info = "Конвертиране от markdown текст към HTML";
+    public $info = 'Конвертиране от markdown текст към HTML';
     
 
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -45,22 +45,22 @@ class markdown_Setup extends core_ProtoSetup
         return $html;
     }
 
-	
-	/**
+    
+    /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
         // Деинсталираме markdown конвертора
-        if($delCnt = $Plugins->deinstallPlugin('markdown_RichTextPlg')) {
+        if ($delCnt = $Plugins->deinstallPlugin('markdown_RichTextPlg')) {
             $html .= "<li>Премахнати са {$delCnt} закачания на 'type_Richtext'";
         } else {
-            $html .= "<li>Не са премахнати закачания на плъгина";
+            $html .= '<li>Не са премахнати закачания на плъгина';
         }
         
         return $html;

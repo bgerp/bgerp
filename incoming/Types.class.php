@@ -19,87 +19,87 @@ class incoming_Types extends core_Master
     /**
      * Заглавие на модела
      */
-    var $title = 'Типове входящи документи';
+    public $title = 'Типове входящи документи';
     
     
     /**
      * @todo Чака за документация...
      */
-    var $singleTitle = 'Тип на входящ документ';
+    public $singleTitle = 'Тип на входящ документ';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo, doc';
+    public $canRead = 'ceo, doc';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'powerUser';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    public $canAdd = 'powerUser';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    public $canView = 'powerUser';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo, doc';
+    public $canList = 'ceo, doc';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'ceo, doc';
+    public $canReject = 'ceo, doc';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Кой има права за
      */
-    var $canDoc = 'powerUser';
+    public $canDoc = 'powerUser';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'powerUser';
+    public $canSingle = 'powerUser';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Modified,incoming_Wrapper,plg_Rowtools2';
+    public $loadList = 'plg_Created,plg_Modified,incoming_Wrapper,plg_Rowtools2';
     
     
     /**
      * Полето "Заглавие" да е хипервръзка към единичния изглед
      */
-    var $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-         $this->FLD("name", "varchar(128)", 'caption=Тип документ,mandatory');
-         $this->setDbUnique('name');
+        $this->FLD('name', 'varchar(128)', 'caption=Тип документ,mandatory');
+        $this->setDbUnique('name');
     }
 }

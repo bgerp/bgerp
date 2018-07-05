@@ -14,13 +14,14 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class calendarpicker_Plugin extends core_Plugin {
+class calendarpicker_Plugin extends core_Plugin
+{
     
     
     /**
      * Изпълнява се преди рендирането на input
      */
-    function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr = array())
+    public function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr = array())
     {
         ht::setUniqId($attr);
     }
@@ -29,17 +30,17 @@ class calendarpicker_Plugin extends core_Plugin {
     /**
      * Изпълнява се след рендирането на input
      */
-    function on_AfterRenderInput(&$invoker, &$ret, $name, $value, $attr = array())
-    {        
+    public function on_AfterRenderInput(&$invoker, &$ret, $name, $value, $attr = array())
+    {
         $CP = cls::get('calendarpicker_Import');
         
         $options = array();
         
-        if($invoker->params['min']) {
+        if ($invoker->params['min']) {
             $options['min'] = dt::mysql2verbal($invoker->params['min'], 'Ymd');
         }
         
-        if($this->caller->params['max']) {
+        if ($this->caller->params['max']) {
             $options['min'] = dt::mysql2verbal($invoker->params['max'], 'Ymd');
         }
         
@@ -48,6 +49,6 @@ class calendarpicker_Plugin extends core_Plugin {
         
         $ret = $CP->render($ret, $attr);
         
-        return TRUE;
+        return true;
     }
 }

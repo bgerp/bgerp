@@ -21,23 +21,22 @@ class mobio_SmsDlr extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Обратна връзка от Mobio';
+    public $title = 'Обратна връзка от Mobio';
     
     
     /**
      * Обратна информация за SMS-а
      */
-    function act_Dlr()
+    public function act_Dlr()
     {
-        
         $uid = request::get('msgid', 'varchar');
         $oldStatus = request::get('oldstats', 'varchar');
         $number = request::get('tonum', 'varchar');
         $code = request::get('newstatus', 'varchar');
         
-        expect($rec = sms_Sender::fetch(array("#uid = '[#1#]'", $uid)), "Невалидна заявка.");
+        expect($rec = sms_Sender::fetch(array("#uid = '[#1#]'", $uid)), 'Невалидна заявка.');
         
-        if ((int)$code !== 1) {
+        if ((int) $code !== 1) {
             $status = 'receiveError';
         } else {
             $status = 'received';

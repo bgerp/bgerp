@@ -16,9 +16,9 @@
  * @title     Персонал » Присъствена форма 76
  */
 class hr_reports_LeaveDaysRep extends frame2_driver_TableData
-{                  
-	
-	
+{
+    
+    
     /**
      * Кой може да избира драйвъра
      */
@@ -59,193 +59,192 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
     /**
      * Видовете почивни дни
      */
-    static $typeMap = array('sickDay' => 'Болничен',
+    public static $typeMap = array('sickDay' => 'Болничен',
                                'tripDay' => 'Командировка',
                                'leaveDay' => 'Отпуск');
     
     
     /**
-	 * Добавя полетата на драйвера към Fieldset
-	 *
-	 * @param core_Fieldset $fieldset
-	 */
-	public function addFields(core_Fieldset &$fieldset)
-	{
-	    $fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title)', 'caption=Месец,after=title,single=none');
-	}
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        $fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title)', 'caption=Месец,after=title,single=none');
+    }
       
 
     /**
-	 * Преди показване на форма за добавяне/промяна.
-	 *
-	 * @param frame2_driver_Proto $Driver $Driver
-	 * @param embed_Manager $Embedder
-	 * @param stdClass $data
-	 */
-	protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
-	{
-
-	}
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param frame2_driver_Proto $Driver   $Driver
+     * @param embed_Manager       $Embedder
+     * @param stdClass            $data
+     */
+    protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
+    {
+    }
     
-	
-	/**
-	 * Кои записи ще се показват в таблицата
-	 * 
-	 * @param stdClass $rec
-	 * @param stdClass $data
-	 * @return array
-	 */
-	protected function prepareRecs($rec, &$data = NULL)
-	{
-		$recs = array();
-		$persons = array();
-		$date = acc_Periods::fetch($rec->periods);
-
-	
-	    $querySick = hr_Sickdays::getQuery();
-	    $querySick->where("((#startDate >= '{$date->start}' AND #toDate <= '{$date->end}')) AND #state = 'active'");
-	    
-	    $queryTrip = hr_Trips::getQuery();
-	    $queryTrip->where("((#startDate >= '{$date->start}' AND #toDate <= '{$date->end}')) AND #state = 'active'");
-	    
-	    $queryLeave = hr_Leaves::getQuery();
-	    $queryLeave->where("((#leaveFrom >= '{$date->start}' AND #leaveTo <= '{$date->end}')) AND #state = 'active'");
-	    
-	    $num = 1;
-	    // добавяме болничните
-	    while($recSick = $querySick->fetch()){
-	        // ключ за масива ще е ид-то на всеки потребител в системата
-	        $id = $recSick->personId;
-
-	        // добавяме в масива събитието
-	        $recs[$recSick->id.'|'.$id] =
-	            (object) array (
-	                'num' => $num,
-	                'containerId' => $recSick->containerId,
-	                'person' => $recSick->personId,
-	                'dateFrom' => $recSick->startDate,
-	                'dateTo' => $recSick->toDate,
-	                'count' => self::getLeaveDays($recSick->startDate, $recSick->toDate, $id)->workDays,
-	                'type' => 'sickDay',
-	            );
-	            
-	            $num++;
-	    }
-	    
-	    // добавяме командировките
-	    while($recTrip = $queryTrip->fetch()){
-	        // ключ за масива ще е ид-то на всеки потребител в системата
-	        $id = $recTrip->personId;
-
-	        // добавяме в масива събитието
-	        $recs[$recTrip->id.'|'.$id] =
-	            (object) array (
-	                'num' => $num,
-	                'containerId' => $recTrip->containerId,
-	                'person' => $recTrip->personId,
-	                'dateFrom' => $recTrip->startDate,
-	                'dateTo' => $recTrip->toDate,
-	                'count' => self::getLeaveDays($recTrip->startDate, $recTrip->toDate, $id)->workDays,
-	                'type' => 'tripDay',
-	            );
-	            
-	            $num++;
-	    }
-	    
-	    // добавяме и отпуските
-	    while($recLeave = $queryLeave->fetch()){
-	        // ключ за масива ще е ид-то на всеки потребител в системата
-	        $id = $recLeave->personId;
-
-	        $recs[$recLeave->id.'|'.$id] =
-	           (object) array (
-	                'num' => $num,
-	                'containerId' => $recLeave->containerId,
-	                'person' => $recLeave->personId,
-	                'dateFrom' => $recLeave->leaveFrom,
-	                'dateTo' => $recLeave->leaveTo,
-	                'count' =>self::getLeaveDays($recLeave->leaveFrom, $recLeave->leaveTo, $id)->workDays,
-	                'type' => 'leaveDay',
-	            );
-	           
-	           $num++;
-	    }
-
-
-		return $recs;
-	}
-	
-	
-	/**
-	 * Връща фийлдсета на таблицата, която ще се рендира
-	 *
-	 * @param stdClass $rec   - записа
-	 * @param boolean $export - таблицата за експорт ли е
-	 * @return core_FieldSet  - полетата
-	 */
-	protected function getTableFieldSet($rec, $export = FALSE)
-	{
-		$fld = cls::get('core_FieldSet');
-	
-		$fld->FLD('num', 'varchar','caption=№');
-		$fld->FLD('person', 'key(mvc=crm_Persons,select=name)', 'caption=Служител');
-	    $fld->FLD('dateFrom', 'date', 'caption=Дата->От');
-		$fld->FLD('dateTo', 'date', 'smartCenter,caption=Дата->До');
-	    $fld->FLD('count', 'int', 'smartCenter,caption=Бр. дни');
-	    $fld->FLD('type', 'enum(sickDay=Болничен,tripDay=Командировка,leaveDay=Отпуск)', 'smartCenter,caption=Вид');
-	
-		return $fld;
-	}
-	
-	
+    
     /**
-	 * Вербализиране на редовете, които ще се показват на текущата страница в отчета
-	 *
-	 * @param stdClass $rec  - записа
-	 * @param stdClass $dRec - чистия запис
-	 * @return stdClass $row - вербалния запис
-	 */
-	protected function detailRecToVerbal($rec, &$dRec)
-	{
-		$Int = cls::get('type_Int');
-		$Date = cls::get('type_Date');
-		$row = new stdClass();
+     * Кои записи ще се показват в таблицата
+     *
+     * @param  stdClass $rec
+     * @param  stdClass $data
+     * @return array
+     */
+    protected function prepareRecs($rec, &$data = null)
+    {
+        $recs = array();
+        $persons = array();
+        $date = acc_Periods::fetch($rec->periods);
 
-		// Линк към служителя
-		$row->person = crm_Persons::fetchField($dRec->person, 'name');
-		$row->person = strip_tags(($row->person instanceof core_ET) ? $row->person->getContent() : $row->person);
-		
-		if(isset($dRec->num)) {
-		    $row->num = $Int->toVerbal($dRec->num);
-		}
+    
+        $querySick = hr_Sickdays::getQuery();
+        $querySick->where("((#startDate >= '{$date->start}' AND #toDate <= '{$date->end}')) AND #state = 'active'");
+        
+        $queryTrip = hr_Trips::getQuery();
+        $queryTrip->where("((#startDate >= '{$date->start}' AND #toDate <= '{$date->end}')) AND #state = 'active'");
+        
+        $queryLeave = hr_Leaves::getQuery();
+        $queryLeave->where("((#leaveFrom >= '{$date->start}' AND #leaveTo <= '{$date->end}')) AND #state = 'active'");
+        
+        $num = 1;
+        // добавяме болничните
+        while ($recSick = $querySick->fetch()) {
+            // ключ за масива ще е ид-то на всеки потребител в системата
+            $id = $recSick->personId;
 
-		if(isset($dRec->dateFrom)) {
-		    $row->dateFrom = $Date->toVerbal($dRec->dateFrom);
-		}
-		
-		if(isset($dRec->dateTo)) {
-		    $row->dateTo = $Date->toVerbal($dRec->dateTo);
-		}
-		
-	    if(isset($dRec->count)) {
-		    $row->count = $Int->toVerbal($dRec->count);
-		}
-		
-		if(isset($dRec->type)) {
-			$row->type = self::$typeMap[$dRec->type];
-		}
+            // добавяме в масива събитието
+            $recs[$recSick->id.'|'.$id] =
+                (object) array(
+                    'num' => $num,
+                    'containerId' => $recSick->containerId,
+                    'person' => $recSick->personId,
+                    'dateFrom' => $recSick->startDate,
+                    'dateTo' => $recSick->toDate,
+                    'count' => self::getLeaveDays($recSick->startDate, $recSick->toDate, $id)->workDays,
+                    'type' => 'sickDay',
+                );
+                
+            $num++;
+        }
+        
+        // добавяме командировките
+        while ($recTrip = $queryTrip->fetch()) {
+            // ключ за масива ще е ид-то на всеки потребител в системата
+            $id = $recTrip->personId;
 
-		return $row;
-	}
+            // добавяме в масива събитието
+            $recs[$recTrip->id.'|'.$id] =
+                (object) array(
+                    'num' => $num,
+                    'containerId' => $recTrip->containerId,
+                    'person' => $recTrip->personId,
+                    'dateFrom' => $recTrip->startDate,
+                    'dateTo' => $recTrip->toDate,
+                    'count' => self::getLeaveDays($recTrip->startDate, $recTrip->toDate, $id)->workDays,
+                    'type' => 'tripDay',
+                );
+                
+            $num++;
+        }
+        
+        // добавяме и отпуските
+        while ($recLeave = $queryLeave->fetch()) {
+            // ключ за масива ще е ид-то на всеки потребител в системата
+            $id = $recLeave->personId;
+
+            $recs[$recLeave->id.'|'.$id] =
+               (object) array(
+                    'num' => $num,
+                    'containerId' => $recLeave->containerId,
+                    'person' => $recLeave->personId,
+                    'dateFrom' => $recLeave->leaveFrom,
+                    'dateTo' => $recLeave->leaveTo,
+                    'count' => self::getLeaveDays($recLeave->leaveFrom, $recLeave->leaveTo, $id)->workDays,
+                    'type' => 'leaveDay',
+                );
+               
+            $num++;
+        }
+
+
+        return $recs;
+    }
+    
+    
+    /**
+     * Връща фийлдсета на таблицата, която ще се рендира
+     *
+     * @param  stdClass      $rec    - записа
+     * @param  boolean       $export - таблицата за експорт ли е
+     * @return core_FieldSet - полетата
+     */
+    protected function getTableFieldSet($rec, $export = false)
+    {
+        $fld = cls::get('core_FieldSet');
+    
+        $fld->FLD('num', 'varchar', 'caption=№');
+        $fld->FLD('person', 'key(mvc=crm_Persons,select=name)', 'caption=Служител');
+        $fld->FLD('dateFrom', 'date', 'caption=Дата->От');
+        $fld->FLD('dateTo', 'date', 'smartCenter,caption=Дата->До');
+        $fld->FLD('count', 'int', 'smartCenter,caption=Бр. дни');
+        $fld->FLD('type', 'enum(sickDay=Болничен,tripDay=Командировка,leaveDay=Отпуск)', 'smartCenter,caption=Вид');
+    
+        return $fld;
+    }
+    
+    
+    /**
+     * Вербализиране на редовете, които ще се показват на текущата страница в отчета
+     *
+     * @param  stdClass $rec  - записа
+     * @param  stdClass $dRec - чистия запис
+     * @return stdClass $row - вербалния запис
+     */
+    protected function detailRecToVerbal($rec, &$dRec)
+    {
+        $Int = cls::get('type_Int');
+        $Date = cls::get('type_Date');
+        $row = new stdClass();
+
+        // Линк към служителя
+        $row->person = crm_Persons::fetchField($dRec->person, 'name');
+        $row->person = strip_tags(($row->person instanceof core_ET) ? $row->person->getContent() : $row->person);
+        
+        if (isset($dRec->num)) {
+            $row->num = $Int->toVerbal($dRec->num);
+        }
+
+        if (isset($dRec->dateFrom)) {
+            $row->dateFrom = $Date->toVerbal($dRec->dateFrom);
+        }
+        
+        if (isset($dRec->dateTo)) {
+            $row->dateTo = $Date->toVerbal($dRec->dateTo);
+        }
+        
+        if (isset($dRec->count)) {
+            $row->count = $Int->toVerbal($dRec->count);
+        }
+        
+        if (isset($dRec->type)) {
+            $row->type = self::$typeMap[$dRec->type];
+        }
+
+        return $row;
+    }
     
     
     /**
      * След рендиране на единичния изглед
      *
      * @param cat_ProductDriver $Driver
-     * @param embed_Manager $Embedder
-     * @param core_ET $tpl
-     * @param stdClass $data
+     * @param embed_Manager     $Embedder
+     * @param core_ET           $tpl
+     * @param stdClass          $data
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
@@ -259,21 +258,20 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
    
     /**
      * Изчисляване на дните - присъствени, неприсъствени, почивни
-     * 
+     *
      * @param myslq Date $from
      * @param myslq Date $to
-     * @param int $personId
+     * @param int        $personId
      */
-    static public function getLeaveDays($from, $to, $personId)
+    public static function getLeaveDays($from, $to, $personId)
     {
     
-        // изисляване на непресъствените бр дни 
+        // изисляване на непресъствените бр дни
         $state = hr_EmployeeContracts::getQuery();
         $state->where("#personId='{$personId}'");
         
         // данните от договора на служителя
-        if($employeeContractDetails = $state->fetch()){
-            
+        if ($employeeContractDetails = $state->fetch()) {
             $employeeContract = $employeeContractDetails->id;
             $department = $employeeContractDetails->departmentId;
             
@@ -281,19 +279,18 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
             $schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
             
             // изчисляваме дните по него
-            if($schedule){
+            if ($schedule) {
                 $days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $from, $to);
             // в противен случай ги изсичляваме на основание на калндара
             } else {
                 $days = cal_Calendar::calcLeaveDays($from, $to);
             }
             
-        // ако служителя няма договор изчисляваме дните на база календара
+            // ако служителя няма договор изчисляваме дните на база календара
         } else {
-                 
             $days = cal_Calendar::calcLeaveDays($from, $to);
         }
         
-        return $days;   
+        return $days;
     }
 }

@@ -23,24 +23,24 @@ defIfNot('FASTSCROLL_ACTIVE_RATIO', '2');
  * @license   GPL 3
  * @since     v 0.1
  */
-class fastscroll_Setup extends core_ProtoSetup 
+class fastscroll_Setup extends core_ProtoSetup
 {
-	var $info = "Бързо скрoлиране в дълги страници";
-	
-	
-	/**
-	 * Описание на конфигурационните константи
-	 */
-	var $configDescription = array(
-			'FASTSCROLL_HIDE_AFTER_SEC' => array ('time(suggestions=1сек|2сек|3сек|4сек|5сек)', 'caption=Скриване на стрелките за бързо скролиране след->Време за изчакване'),
-			'FASTSCROLL_ACTIVE_RATIO' => array ('double', 'caption=Показване при скрита/видима част->Съотношение'),
-	);
-	
+    public $info = 'Бързо скрoлиране в дълги страници';
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+            'FASTSCROLL_HIDE_AFTER_SEC' => array('time(suggestions=1сек|2сек|3сек|4сек|5сек)', 'caption=Скриване на стрелките за бързо скролиране след->Време за изчакване'),
+            'FASTSCROLL_ACTIVE_RATIO' => array('double', 'caption=Показване при скрита/видима част->Съотношение'),
+    );
+    
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
         'migrate::removeOldPlugins',
     );
     
@@ -48,10 +48,10 @@ class fastscroll_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -65,10 +65,10 @@ class fastscroll_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -84,7 +84,6 @@ class fastscroll_Setup extends core_ProtoSetup
      */
     public function getCommonJs()
     {
-        
         return 'fastscroll/lib/fastscroll.js';
     }
     
@@ -94,14 +93,11 @@ class fastscroll_Setup extends core_ProtoSetup
      */
     public function getCommonCss()
     {
-        
         return 'fastscroll/lib/fastscroll.css';
     }
     
     
-    /**
-     * 
-     */
+    
     public function removeOldPlugins()
     {
         $this->deinstall();

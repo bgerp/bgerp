@@ -19,27 +19,27 @@ class distro_Setup extends core_ProtoSetup
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'distro_Group';
+    public $startCtr = 'distro_Group';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Разпределена файлова група";
+    public $info = 'Разпределена файлова група';
     
-	
+    
     /**
      * Необходими пакети
      */
@@ -49,7 +49,7 @@ class distro_Setup extends core_ProtoSetup
     /**
      * Мениджъри за инсталиране
      */
-    var $managers = array(
+    public $managers = array(
             'distro_Group',
             'distro_Files',
             'distro_Automation',
@@ -68,8 +68,8 @@ class distro_Setup extends core_ProtoSetup
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-        array(1.9, 'Документи', 'Дистрибутив', 'distro_Group', 'default', "admin"),
+    public $menuItems = array(
+        array(1.9, 'Документи', 'Дистрибутив', 'distro_Group', 'default', 'admin'),
     );
     
     
@@ -82,21 +82,22 @@ class distro_Setup extends core_ProtoSetup
         $cls = cls::get('distro_Files');
         $cls->db->connect();
         $reposField = str::phpToMysqlName('repos');
-        if (!$cls->db->isFieldExists($cls->dbTableName, $reposField)) return ;
+        if (!$cls->db->isFieldExists($cls->dbTableName, $reposField)) {
+            return ;
+        }
 
         $fQuery = $cls->getQuery();
         
         unset($fQuery->fields['repos']);
         $fQuery->FLD('repos', 'keylist(mvc=distro_Repositories, select=name)');
         
-        $fQuery->where("#repoId IS NULL");
+        $fQuery->where('#repoId IS NULL');
         
         while ($fRec = $fQuery->fetch()) {
-            
             $reposArr = type_Keylist::toArray($fRec->repos);
             
             foreach ($reposArr as $repoId) {
-                $fRec->repos = NULL;
+                $fRec->repos = null;
                 $fRec->repoId = $repoId;
                 
                 $cls->save($fRec);
@@ -104,8 +105,6 @@ class distro_Setup extends core_ProtoSetup
                 unset($fRec->id);
             }
         }
-        
-        return ;
     }
     
     
@@ -118,7 +117,6 @@ class distro_Setup extends core_ProtoSetup
         $gQuery = distro_Group::getQuery();
         
         while ($gRec = $gQuery->fetch()) {
-            
             $reposArr = type_Keylist::toArray($gRec->repos);
             
             foreach ($reposArr as $repoId) {

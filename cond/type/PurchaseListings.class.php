@@ -15,12 +15,12 @@
  */
 class cond_type_PurchaseListings extends cond_type_abstract_Listings
 {
-	
-	
-	/**
-	 * Мета свойства
-	 * 
-	 * @string canBuy|canSell
-	 */
-	protected $meta = 'canBuy';
+    
+    
+    /**
+     * Мета свойства
+     *
+     * @string canBuy|canSell
+     */
+    protected $meta = 'canBuy';
 }

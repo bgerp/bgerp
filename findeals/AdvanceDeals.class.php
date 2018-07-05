@@ -18,7 +18,7 @@
 class findeals_AdvanceDeals extends findeals_Deals
 {
     
-	
+    
     /**
      * Заглавие
      */
@@ -45,8 +45,8 @@ class findeals_AdvanceDeals extends findeals_Deals
     
     /**
      * Групиране на документите
-     */ 
-    public $newBtnGroup = "4.2|Финанси";
+     */
+    public $newBtnGroup = '4.2|Финанси';
     
     
     /**
@@ -64,7 +64,7 @@ class findeals_AdvanceDeals extends findeals_Deals
     /**
      * Дали в листовия изглед да се показва бутона за добавяне
      */
-    public $listAddBtn = TRUE;
+    public $listAddBtn = true;
     
     
     /**
@@ -77,13 +77,13 @@ class findeals_AdvanceDeals extends findeals_Deals
      */
     public static function canAddToFolder($folderId)
     {
-    	$coverClass = doc_Folders::fetchCoverClassName($folderId);
+        $coverClass = doc_Folders::fetchCoverClassName($folderId);
         
         if (cls::haveInterface('crm_PersonAccRegIntf', $coverClass)) {
-            return TRUE;
+            return true;
         }
         
-        return FALSE;
+        return false;
     }
     
     
@@ -92,8 +92,8 @@ class findeals_AdvanceDeals extends findeals_Deals
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if($fields['-single']){
-    		$row->contragentCaption = tr('Подотчетно лице');
-    	}
+        if ($fields['-single']) {
+            $row->contragentCaption = tr('Подотчетно лице');
+        }
     }
 }

@@ -27,21 +27,23 @@ class plg_StyleNumbers extends core_Plugin
 {
     
     
-	/**
-	 * Преди рендиране на таблицата
-	 */
-	public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
-	{
-		$rows = &$data->rows;
-		
-		if(!count($data->recs)) return;
-		
-		foreach ($mvc->selectFields() as $name => $field) {
-			if (is_a($field->type, 'type_Double')) {
-				foreach ($data->recs as $i => $rec) {
-					$rows[$i]->{$name} = ht::styleNumber($rows[$i]->{$name}, round($rec->{$name}, 4));
-				}
-			}
-		}
-	}
+    /**
+     * Преди рендиране на таблицата
+     */
+    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $rows = &$data->rows;
+        
+        if (!count($data->recs)) {
+            return;
+        }
+        
+        foreach ($mvc->selectFields() as $name => $field) {
+            if (is_a($field->type, 'type_Double')) {
+                foreach ($data->recs as $i => $rec) {
+                    $rows[$i]->{$name} = ht::styleNumber($rows[$i]->{$name}, round($rec->{$name}, 4));
+                }
+            }
+        }
+    }
 }

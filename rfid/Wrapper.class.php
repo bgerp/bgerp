@@ -23,14 +23,13 @@ class rfid_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
-              
         $this->TAB('rfid_Events', 'Събития', 'ceo,admin,rfid');
         $this->TAB('rfid_Tags', 'Карти', 'ceo,admin,rfid');
         $this->TAB('rfid_Readers', 'Четци', 'ceo,admin,rfid');
         $this->TAB('rfid_Holders', 'Обекти', 'ceo,admin,rfid');
-        $this->TAB('rfid_Ownerships', 'Собственици','ceo,admin,rfid');
+        $this->TAB('rfid_Ownerships', 'Собственици', 'ceo,admin,rfid');
         
         $this->title = 'Мониторинг';
     }

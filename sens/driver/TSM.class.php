@@ -20,32 +20,31 @@ class sens_driver_TSM extends sens_driver_IpDevice
     /**
      * Заглавие на драйвера
      */
-    var $title = 'TSM';
+    public $title = 'TSM';
    
 
     /**
      * Параметри които чете или записва драйвера
      */
-    var $params = array(
-        'KGH' => array('unit'=>'KGH', 'param'=>'Килограми за час', 'details'=>'Kgh'),
-        'EO' => array('unit'=>'EO', 'param'=>'Килограми', 'details'=>'Kg'),
-        'ERC' => array('unit'=>'ERC', 'param'=>'Рецепта', 'details'=>'%', 'onChange'=>TRUE)
+    public $params = array(
+        'KGH' => array('unit' => 'KGH', 'param' => 'Килограми за час', 'details' => 'Kgh'),
+        'EO' => array('unit' => 'EO', 'param' => 'Килограми', 'details' => 'Kg'),
+        'ERC' => array('unit' => 'ERC', 'param' => 'Рецепта', 'details' => '%', 'onChange' => true)
     );
     
     
     /**
      * Колко аларми/контроли да има?
      */
-    var $alarmCnt = 1;
+    public $alarmCnt = 1;
     
     
     /**
      * Подготвя формата за настройки на сензора
      * и алармите в зависимост от параметрите му
      */
-    function prepareSettingsForm($form)
+    public function prepareSettingsForm($form)
     {
-        
         $form->FNC('ip', new type_Ip(), 'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory,value=502');
         $form->FNC('unit', 'int(5)', 'caption=Unit,hint=Unit, input, mandatory,value=1');
@@ -65,16 +64,15 @@ class sens_driver_TSM extends sens_driver_IpDevice
      *
      * @param object $form
      */
-    function setSettingsFromForm($form)
+    public function setSettingsFromForm($form)
     {
-    
     }
     
     
     /**
      * Връща масив със стойностите на температурата и влажността
      */
-    function updateState()
+    public function updateState()
     {
         $state = array();
         
@@ -101,19 +99,19 @@ class sens_driver_TSM extends sens_driver_IpDevice
         $output = ($c1[400446] + $c2[400468] + $c3[400490] + $c4[400512] + $c5[400534] + $c6[400556]) / 100;
         
         if (!$output) {
-            $this->stateArr = NULL;
+            $this->stateArr = null;
             
-            return FALSE;
+            return false;
         }
         
         // Минутите от 0-60 са индекси на масива за изчисление на средната стойност
         /*
         $currMin = (int)time()/60;
-        
+
         $ndx = $currMin % $this->avgCnt;
 
         $stateOld['avgOutputArr'][$ndx] = $output;
-                
+
         $state['KGH'] = round((max($stateOld['avgOutputArr']) - min($stateOld['avgOutputArr']))*$this->avgCnt/count($stateOld['avgOutputArr']),2);
         $state['avgOutputArr'] = $stateOld['avgOutputArr'];
 */
@@ -147,28 +145,28 @@ class sens_driver_TSM extends sens_driver_IpDevice
         $KGH = $driver->read(400402, 1);
         $state['KGH'] = $KGH[400402] / 100;
         
-        if($p1) {
-            $recpt .= "[1] => " . $p1 / 100;
+        if ($p1) {
+            $recpt .= '[1] => ' . $p1 / 100;
         }
         
-        if($p2) {
-            $recpt .= ($recpt ? ", " : "") . "[2] => " . $p2 / 100;
+        if ($p2) {
+            $recpt .= ($recpt ? ', ' : '') . '[2] => ' . $p2 / 100;
         }
         
-        if($p3) {
-            $recpt .= ($recpt ? ", " : "") . "[3] => " . $p3 / 100;
+        if ($p3) {
+            $recpt .= ($recpt ? ', ' : '') . '[3] => ' . $p3 / 100;
         }
         
-        if($p4) {
-            $recpt .= ($recpt ? ", " : "") . "[4] => " . $p4 / 100;
+        if ($p4) {
+            $recpt .= ($recpt ? ', ' : '') . '[4] => ' . $p4 / 100;
         }
         
-        if($p5) {
-            $recpt .= ($recpt ? ", " : "") . "[5] => " . $p5 / 100;
+        if ($p5) {
+            $recpt .= ($recpt ? ', ' : '') . '[5] => ' . $p5 / 100;
         }
         
-        if($p6) {
-            $recpt .= ($recpt ? ", " : "") . "[6] => " . $p6 / 100;
+        if ($p6) {
+            $recpt .= ($recpt ? ', ' : '') . '[6] => ' . $p6 / 100;
         }
         
         $state['EO'] = $output;
@@ -176,6 +174,6 @@ class sens_driver_TSM extends sens_driver_IpDevice
         
         $this->stateArr = $state;
         
-        return TRUE;
+        return true;
     }
 }

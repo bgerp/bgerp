@@ -4,7 +4,7 @@
 /**
  * Плъгин за превръщане на документи във видими за партньори,
  * за които не е зададено твърдо 'visibleForPartners' пропърти
- * 
+ *
  * @category  bgerp
  * @package   colab
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -32,7 +32,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
@@ -77,7 +77,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
             $data->form->setDefault('visibleForPartners', 'no');
         }
         
-        if(core_Users::haveRole('partner')) {
+        if (core_Users::haveRole('partner')) {
             $mvc->currentTab = 'Нишка';
             plg_ProtoWrapper::changeWrapper($mvc, 'cms_ExternalWrapper');
         }
@@ -86,9 +86,9 @@ class colab_plg_VisibleForPartners extends core_Plugin
     
     /**
      * Връща дали документа е видим за партньори
-     * 
-     * @param core_Mvc $mvc
-     * @param NULL|string $res
+     *
+     * @param core_Mvc         $mvc
+     * @param NULL|string      $res
      * @param integer|stdClass $rec
      */
     public static function on_BeforeIsVisibleForPartners($mvc, &$res, $rec)
@@ -97,7 +97,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
         
         if (!isset($res)) {
             if ($rec->visibleForPartners === 'yes') {
-                $res = TRUE;
+                $res = true;
             }
         }
     }
@@ -108,14 +108,13 @@ class colab_plg_VisibleForPartners extends core_Plugin
      */
     public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-    	// Контрактора да не може да създава чернова, а директно да активира
-    	if (core_Users::haveRole('partner')) {
-    		
-    		if($data->form->toolbar->hasBtn('activate')){
-    			$data->form->toolbar->removeBtn('save');
-    			$data->form->toolbar->removeBtn('active');
-    			$data->form->toolbar->addSbBtn('Запис', 'active', 'id=activate,order=0.1, ef_icon = img/16/disk.png', 'title=Запис на документа');
-    		}
-    	}
+        // Контрактора да не може да създава чернова, а директно да активира
+        if (core_Users::haveRole('partner')) {
+            if ($data->form->toolbar->hasBtn('activate')) {
+                $data->form->toolbar->removeBtn('save');
+                $data->form->toolbar->removeBtn('active');
+                $data->form->toolbar->addSbBtn('Запис', 'active', 'id=activate,order=0.1, ef_icon = img/16/disk.png', 'title=Запис на документа');
+            }
+        }
     }
 }

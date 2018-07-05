@@ -24,28 +24,27 @@ defIfNot('GAUGE_PATH', 'jsgauge/0.4.1');
  */
 class jsgauge_Setup extends core_ProtoSetup
 {
-	
-	
-	/**
-	 * Версия на пакета
-	 */
-	public $version = '0.1';
-	
-	
-	/**
-	 * Описание на модула
-	 */
-	public $info = "Пакет за визуализация на gauge-индикатори";
-	
-	
-	/**
-	 * Пътища до JS файлове
-	 */
+    
+    
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
+    
+    
+    /**
+     * Описание на модула
+     */
+    public $info = 'Пакет за визуализация на gauge-индикатори';
+    
+    
+    /**
+     * Пътища до JS файлове
+     */
 
-	
-	/**
-	 * Пакет без инсталация
-	 */
-	public $noInstall = TRUE;
+    
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = true;
 }
-

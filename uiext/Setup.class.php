@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'uiext_Setup' 
+ * Клас 'uiext_Setup'
  *
  *
  * @category  bgerp
@@ -38,7 +38,7 @@ class uiext_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "Разширения на потребителския интерфейс";
+    public $info = 'Разширения на потребителския интерфейс';
     
     
     /**
@@ -51,7 +51,7 @@ class uiext_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-    		array(1.9999, 'Система', 'Инструменти', 'uiext_Labels', 'default', "uiext, admin, ceo"),
+            array(1.9999, 'Система', 'Инструменти', 'uiext_Labels', 'default', 'uiext, admin, ceo'),
     );
     
     
@@ -67,13 +67,13 @@ class uiext_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
+        $html = parent::install();
     
-    	$Plugins = cls::get('core_Plugins');
-    	$html .= $Plugins->installPlugin('Добавяне на тагове към редовете на транспортните линии', 'uiext_plg_DetailLabels', 'trans_LineDetails', 'private');
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Добавяне на тагове към редовете на транспортните линии', 'uiext_plg_DetailLabels', 'trans_LineDetails', 'private');
     
-    	return $html;
+        return $html;
     }
 }

@@ -13,7 +13,8 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cash_Cases extends core_Master {
+class cash_Cases extends core_Master
+{
     
     
     /**
@@ -31,7 +32,7 @@ class cash_Cases extends core_Master {
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Каса";
+    public $singleTitle = 'Каса';
     
     
     /**
@@ -89,26 +90,26 @@ class cash_Cases extends core_Master {
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo, cash';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo, cash';
 
 
-   /**
-	* Кой може да активира?
-	*/
-	public $canActivate = 'ceo, cash';
-	
-	
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'ceo,cash';
-	
-	
-	/**
+    /**
+     * Кой може да активира?
+     */
+    public $canActivate = 'ceo, cash';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,cash';
+    
+    
+    /**
      * Детайли на този мастър обект
-     * 
+     *
      * @var string|array
      */
     public $details = 'AccReports=acc_ReportDetails';
@@ -121,7 +122,7 @@ class cash_Cases extends core_Master {
     
     
     /**
-     * По кой итнерфейс ще се групират сметките 
+     * По кой итнерфейс ще се групират сметките
      */
     public $balanceRefGroupBy = 'cash_CaseAccRegIntf';
     
@@ -129,7 +130,7 @@ class cash_Cases extends core_Master {
     /**
      * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
      * $autoList.
-     * 
+     *
      * @see acc_plg_Registry
      * @var string
      */
@@ -150,7 +151,7 @@ class cash_Cases extends core_Master {
     
     /**
      * Поле за избор на потребителите, които могат да активират обекта
-     * 
+     *
      * @see bgerp_plg_FLB
      */
     public $canActivateUserFld = 'cashiers';
@@ -159,7 +160,7 @@ class cash_Cases extends core_Master {
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование,oldFiled=Title,mandatory');
         $this->FLD('cashiers', 'userList(roles=cash|ceo)', 'caption=Контиране на документи->Потребители');
@@ -174,47 +175,45 @@ class cash_Cases extends core_Master {
      */
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if(is_object($rec)){
-    		if(isset($fields['-list'])){
-    			$rec->name =  $mvc->singleTitle . " \"{$rec->name}\"";
-    		}
-    	}
+        if (is_object($rec)) {
+            if (isset($fields['-list'])) {
+                $rec->name = $mvc->singleTitle . " \"{$rec->name}\"";
+            }
+        }
     }
     
     
-	/**
+    /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     protected static function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
     {
-        $row->STATE_CLASS .= ($rec->state == 'rejected') ? " state-rejected" : " state-active";
+        $row->STATE_CLASS .= ($rec->state == 'rejected') ? ' state-rejected' : ' state-active';
         
-        if(isset($fields['-list'])){
-        	
-        	if($mvc->haveRightFor('select', $rec)){
-        		
-        		$caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
-        		$rec->blAmount = 0;
-        		
-        		// Намираме всички записи от текущия баланс за това перо
-        		if($balRec = acc_Balances::getLastBalance()){
-        			$bQuery = acc_BalanceDetails::getQuery();
-        			acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $caseItem->id);
-        			 
-        			// Събираме ги да намерим крайното салдо на перото
-        			while($bRec = $bQuery->fetch()){
-        				$rec->blAmount += $bRec->blAmount;
-        			}
-        		}
-        		 
-        		// Обръщаме го във четим за хората вид
-        		$Double = cls::get('type_Double');
-        		$Double->params['decimals'] = 2;
-        		$row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . "</span>";
-        		if($rec->blAmount < 0){
-        			$row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
-        		}
-        	}
+        if (isset($fields['-list'])) {
+            if ($mvc->haveRightFor('select', $rec)) {
+                $caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
+                $rec->blAmount = 0;
+                
+                // Намираме всички записи от текущия баланс за това перо
+                if ($balRec = acc_Balances::getLastBalance()) {
+                    $bQuery = acc_BalanceDetails::getQuery();
+                    acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, null, $caseItem->id);
+                     
+                    // Събираме ги да намерим крайното салдо на перото
+                    while ($bRec = $bQuery->fetch()) {
+                        $rec->blAmount += $bRec->blAmount;
+                    }
+                }
+                 
+                // Обръщаме го във четим за хората вид
+                $Double = cls::get('type_Double');
+                $Double->params['decimals'] = 2;
+                $row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . '</span>';
+                if ($rec->blAmount < 0) {
+                    $row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
+                }
+            }
         }
     }
     
@@ -224,31 +223,31 @@ class cash_Cases extends core_Master {
      */
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
-    	$data->listFields['blAmount'] .= ", " . acc_Periods::getBaseCurrencyCode();
+        $data->listFields['blAmount'] .= ', ' . acc_Periods::getBaseCurrencyCode();
     }
     
     
     /**
      * Подготвя и осъществява търсене по каса, изпозлва се в касовите документи
-     * @param stdClass $data 
-     * @param array $fields - масив от полета в полета в които ще се
-     * търси по caseId
+     * @param stdClass $data
+     * @param array    $fields - масив от полета в полета в които ще се
+     *                         търси по caseId
      */
     public static function prepareCaseFilter(&$data, $fields = array())
     {
-    	$data->listFilter->FNC('case', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,width=10em,silent');
-		$data->listFilter->showFields .= ',case';
-		$data->listFilter->setDefault('case', static::getCurrent('id', FALSE));
-		$data->listFilter->input();
-		
-		if($filter = $data->listFilter->rec) {
-			if($filter->case) {
-				foreach($fields as $i => $fld){
-					$or = ($i === 0) ? FALSE : TRUE;
-					$data->query->where("#{$fld} = {$filter->case}", $or);
-				}
-			}
-		}
+        $data->listFilter->FNC('case', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,width=10em,silent');
+        $data->listFilter->showFields .= ',case';
+        $data->listFilter->setDefault('case', static::getCurrent('id', false));
+        $data->listFilter->input();
+        
+        if ($filter = $data->listFilter->rec) {
+            if ($filter->case) {
+                foreach ($fields as $i => $fld) {
+                    $or = ($i === 0) ? false : true;
+                    $data->query->where("#{$fld} = {$filter->case}", $or);
+                }
+            }
+        }
     }
     
     
@@ -257,34 +256,36 @@ class cash_Cases extends core_Master {
      */
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
-    	if(!count($data->rows)) return;
-    	
-    	foreach ($data->recs as $rec){
-    		$total += $rec->blAmount;
-    	}
-    	
-    	$Double = cls::get('type_Double');
-    	$Double->params['decimals'] = 2;
-    	$total = $Double->toVerbal($total);
-    	if($total < 0){
-    		$total = "<span style='color:red'>{$total}</span>";
-    	}
-    	
-    	$currencyId = acc_Periods::getBaseCurrencyCode();
-    	$state = (Request::get('Rejected', 'int')) ? 'rejected' : 'closed';
-    	$colspan = count($data->listFields) - 1;
-    	$lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp;<span class='cCode'>{$currencyId}</span> <b>[#total#]</b> </td><td>&nbsp;</td></tr>");
-    	$lastRow->replace(tr("Общо"), 'caption');
-    	$lastRow->replace($total, 'total');
-    	
-    	$tpl->append($lastRow, 'ROW_AFTER');
+        if (!count($data->rows)) {
+            return;
+        }
+        
+        foreach ($data->recs as $rec) {
+            $total += $rec->blAmount;
+        }
+        
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+        $total = $Double->toVerbal($total);
+        if ($total < 0) {
+            $total = "<span style='color:red'>{$total}</span>";
+        }
+        
+        $currencyId = acc_Periods::getBaseCurrencyCode();
+        $state = (Request::get('Rejected', 'int')) ? 'rejected' : 'closed';
+        $colspan = count($data->listFields) - 1;
+        $lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp;<span class='cCode'>{$currencyId}</span> <b>[#total#]</b> </td><td>&nbsp;</td></tr>");
+        $lastRow->replace(tr('Общо'), 'caption');
+        $lastRow->replace($total, 'total');
+        
+        $tpl->append($lastRow, 'ROW_AFTER');
     }
     
     
     /*******************************************************************************************
-     * 
+     *
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see cash_CaseAccRegIntf
-     * 
+     *
      ******************************************************************************************/
     
     
@@ -295,11 +296,11 @@ class cash_Cases extends core_Master {
     public static function getItemRec($objectId)
     {
         $self = cls::get(__CLASS__);
-        $result = NULL;
+        $result = null;
         
         if ($rec = $self->fetch($objectId)) {
-            $result = (object)array(
-                'num' => $rec->id . " cs",
+            $result = (object) array(
+                'num' => $rec->id . ' cs',
                 'title' => $rec->name,
                 'features' => 'foobar' // @todo!
             );
@@ -307,8 +308,8 @@ class cash_Cases extends core_Master {
         
         return $result;
     }
-	
-	
+    
+    
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId

@@ -14,12 +14,12 @@
  *
  *
  *
- * source=Class:Method($params - Параметрите на типa, 
- *                     $limit = 0 - колко резултата да върнем, 
- *                     $q = '' - пълнотекстова заявка, 
- *                     $sectionWith = array() - id-та, само сред които се прави търсенето, 
+ * source=Class:Method($params - Параметрите на типa,
+ *                     $limit = 0 - колко резултата да върнем,
+ *                     $q = '' - пълнотекстова заявка,
+ *                     $sectionWith = array() - id-та, само сред които се прави търсенето,
  *                     $includeHiddens = дали да се показват и скритите опции?)
- * 
+ *
  * Тази функция трябва да връща масив в възможни опции
  */
 class type_Key2 extends type_Int
@@ -34,7 +34,7 @@ class type_Key2 extends type_Int
     
     /**
      * Хендлър на класа
-     * 
+     *
      * @var string
      */
     public $handler;
@@ -49,15 +49,17 @@ class type_Key2 extends type_Int
     /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
-    function toVerbal_($value)
+    public function toVerbal_($value)
     {
-        if ($value === NULL || $value === '') return NULL;
+        if ($value === null || $value === '') {
+            return;
+        }
         
         $resArr = $this->getOptions(1, '', $value);
         
-        $res = NULL;
+        $res = null;
         
-        if(count($resArr)) {
+        if (count($resArr)) {
             $res = reset($resArr);
             $res = core_Type::escape($res);
         }
@@ -69,66 +71,67 @@ class type_Key2 extends type_Int
     /**
      * Връща вътрешното представяне на вербалната стойност
      */
-    function fromVerbal_($value)
+    public function fromVerbal_($value)
     {
-        if(empty($value)) return NULL;
+        if (empty($value)) {
+            return;
+        }
 
         // Вербалната стойност може да бъде:
         // 1. Число - тогава се третира като ключ към модела
         // 2. Стринг, съдържащ число в скоби най-накрая. Тогава чизслото най-накрая се третира като ид
         // 3. Друг стринг - тогава той точно трябва да отговаря на title в модела
 
-        if(ctype_digit("{$value}")) {
+        if (ctype_digit("{$value}")) {
             $key = $value;
         } else {
             $key = self::getKeyFromTitle($value);
         }
  
-        if($key) {
-            $resArr = $this->getOptions(1, '', $key, TRUE);
+        if ($key) {
+            $resArr = $this->getOptions(1, '', $key, true);
         } else {
-            $resArr = $this->getOptions(1, "\"{$value}", TRUE);
+            $resArr = $this->getOptions(1, "\"{$value}", true);
         }
         
-        if(count($resArr) == 1) {
-
+        if (count($resArr) == 1) {
             return key($resArr);
-        } elseif(count($resArr) > 1) {
+        } elseif (count($resArr) > 1) {
             $this->error = 'Нееднозначно определяне';
         } else {
             $this->error = 'Несъществуващ обект';
         }
 
-        return FALSE;
+        return false;
     }
 
 
     /**
      * Връща опците, съответсващи на избраните параметри
      */
-    public function getOptions($limit = NULL, $search = '', $ids = NULL, $includeHiddens = FALSE)
-    { 
-        if(!$this->params['selectSourceArr']) {
-            if($this->params['selectSource']) {
+    public function getOptions($limit = null, $search = '', $ids = null, $includeHiddens = false)
+    {
+        if (!$this->params['selectSourceArr']) {
+            if ($this->params['selectSource']) {
                 $this->params['selectSourceArr'] = explode('::', $this->params['selectSource']);
             } else {
                 $this->params['selectSourceArr'] = array($this->params['mvc'], 'getSelectArr');
             }
         }
 
-        if(!$this->params['titleFld']) {
+        if (!$this->params['titleFld']) {
             $mvc = cls::get($this->params['mvc']);
-            if($mvc->getField('name', FALSE)) {
+            if ($mvc->getField('name', false)) {
                 $this->params['titleFld'] = 'name';
             }
-            if($mvc->getField('title', FALSE)) {
+            if ($mvc->getField('title', false)) {
                 $this->params['titleFld'] = 'title';
             }
         }
         
         expect($this->params['titleFld']);
 
-        $resArr = call_user_func($this->params['selectSourceArr'], $this->params, $limit,  $search, $ids, $includeHiddens);
+        $resArr = call_user_func($this->params['selectSourceArr'], $this->params, $limit, $search, $ids, $includeHiddens);
 
         return $resArr;
     }
@@ -137,29 +140,34 @@ class type_Key2 extends type_Int
     
     /**
      * Опитва се да извлече ключа от текста
-     * 
+     *
      * @param string $title
-     * 
+     *
      * return integer|NULL
      */
     protected static function getKeyFromTitle($title)
     {
-        
         $len = mb_strlen($title);
         
         $lastCloseBracketPos = mb_strrpos($title, ')');
         
-        if (!$lastCloseBracketPos) return $title;
+        if (!$lastCloseBracketPos) {
+            return $title;
+        }
         
-        if ($len != ($lastCloseBracketPos+1)) return $title;
+        if ($len != ($lastCloseBracketPos + 1)) {
+            return $title;
+        }
         
         $lastOpenBracketPos = mb_strrpos($title, ' (');
         
-        if (!$lastOpenBracketPos) return $title;
+        if (!$lastOpenBracketPos) {
+            return $title;
+        }
         
         $lastOpenBracketPos += 2;
         
-        $key = mb_substr($title, $lastOpenBracketPos, $lastCloseBracketPos-$lastOpenBracketPos);
+        $key = mb_substr($title, $lastOpenBracketPos, $lastCloseBracketPos - $lastOpenBracketPos);
 
         return $key;
     }
@@ -170,7 +178,7 @@ class type_Key2 extends type_Int
     /**
      * Рендира HTML поле за въвеждане на данни чрез форма
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
         // Варианти за генериране на селекта
         // 1. Ако има Select2 - винаги използваме неговото рендиане
@@ -178,8 +186,8 @@ class type_Key2 extends type_Int
         // 2. Комбобокс с id вградени в титлата, ако нямаме селект 2
         
 
-        if(!$this->params['maxSuggestions']) {
-            $maxSuggestions = $this->params['maxSuggestions'] = core_Setup::get('TYPE_KEY_MAX_SUGGESTIONS', TRUE);
+        if (!$this->params['maxSuggestions']) {
+            $maxSuggestions = $this->params['maxSuggestions'] = core_Setup::get('TYPE_KEY_MAX_SUGGESTIONS', true);
         }
         
         $options = array();
@@ -188,11 +196,11 @@ class type_Key2 extends type_Int
             $options = $this->getOptions($maxSuggestions);
         }
         
-        if(ctype_digit("{$value}")) {
-            $currentOpt = $this->getOptions(1, '', $value, TRUE);
+        if (ctype_digit("{$value}")) {
+            $currentOpt = $this->getOptions(1, '', $value, true);
             $key = reset($currentOpt);
-            if($key) {
-                if(!isset($options[$key])) {
+            if ($key) {
+                if (!isset($options[$key])) {
                     $options = arr::combine($currentOpt, $options);
                 }
             }
@@ -200,17 +208,17 @@ class type_Key2 extends type_Int
         
         $optionsCnt = count($options);
         
-        if($this->params['allowEmpty']) {
+        if ($this->params['allowEmpty']) {
             $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : ' ', 'attr' =>
                     array('style' => 'color:#777;')));
             $options = arr::combine($placeHolder, $options);
-        } elseif($attr['placeholder'] && $optionsCnt != 1) {
+        } elseif ($attr['placeholder'] && $optionsCnt != 1) {
             $placeHolder = array('' => (object) array('title' => $attr['placeholder'], 'attr' =>
                     array('style' => 'color:#777;', 'disabled' => 'disabled')));
             $options = arr::combine($placeHolder, $options);
         }
 
-        $this->setFieldWidth($attr, NULL, $options);
+        $this->setFieldWidth($attr, null, $options);
 
         if (core_Packs::isInstalled('select2') && !Mode::is('javascript', 'no')) {
            
@@ -220,39 +228,39 @@ class type_Key2 extends type_Int
             
             $ajaxUrl = '';
             $handler = $this->getHandler();
-            if ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions-1)) {
+            if ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions - 1)) {
                 $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute-force');
             }
           
-            $allowClear = FALSE;
+            $allowClear = false;
             if ($this->params['allowEmpty'] || isset($options[''])) {
-                $allowClear = TRUE;
+                $allowClear = true;
             }
             
             // Добавяме необходимите файлове и стартирам select2
-            select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, NULL, $ajaxUrl);
-
+            select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, null, $ajaxUrl);
         } elseif ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no'))) {
             // Показваме Combobox
             
             $this->params['inputType'] = 'combo';
             $handler = $this->getHandler();
 
-            foreach($options as $key => $title) {
-                if(is_object($title)) continue;
+            foreach ($options as $key => $title) {
+                if (is_object($title)) {
+                    continue;
+                }
                 $title = $title . ' (' . $key . ')';
                 $comboOpt[$title] = $title;
-                if($key == $value) {
+                if ($key == $value) {
                     $value = $title;
                 }
             }
 
-            $attr['ajaxAutoRefreshOptions'] = "{Ctr:\"type_Key2\"" .
+            $attr['ajaxAutoRefreshOptions'] = '{Ctr:"type_Key2"' .
                 ", Act:\"GetOptions\", hnd:\"{$handler}\", maxSugg:\"{$maxSuggestions}\", ajax_mode:1}";
                 
              
             $tpl = ht::createCombo($name, $value, $attr, $comboOpt);
-
         } else {
             // Показваме обикновен Select
             $tpl = ht::createSelect($name, $options, $value, $attr);
@@ -263,33 +271,29 @@ class type_Key2 extends type_Int
     }
 
     
-    /**
-     *
-     */
+    
     private function getHandler()
     {
         $hnd = core_Crypt::encodeVar($this->params, EF_CRYPT_CODE . 'Key2');
 
         return $hnd;
-
     }
     
     
     /**
      * Връща списък е елементи <option> при ajax заявка
      */
-    function act_GetOptions()
+    public function act_GetOptions()
     {
         // Приключваме, ако няма заявка за търсене
         $hnd = Request::get('hnd');
  
         $hnd = core_Crypt::decodeVar($hnd, EF_CRYPT_CODE . 'Key2');
-        if (!$hnd) { 
+        if (!$hnd) {
             $res = array(
                 'error' => 'Липсва данни за елемента за избор'
             );
         } else {
-            
             $res = array();
             
             $this->params = $hnd;
@@ -300,38 +304,35 @@ class type_Key2 extends type_Int
             
             $options = $this->getOptions($this->params['maxSuggestions'], $q);
             
-            if(is_array($options)) {
-               
+            if (is_array($options)) {
                 foreach ($options as $key => $title) {
-                    
-                    $isGroup = FALSE;
+                    $isGroup = false;
                     
                     if (is_object($title)) {
-                        $isGroup = $title->group ? TRUE : FALSE;
+                        $isGroup = $title->group ? true : false;
                         $title = $title->title;
                     }
-                    if($this->params['inputType'] == 'combo') {
+                    if ($this->params['inputType'] == 'combo') {
                         $key = $title . ' (' . $key . ')';
                         $attr = array('value' => $key);
                         
-                        $select->append(ht::createElement("option", $attr, $key));
+                        $select->append(ht::createElement('option', $attr, $key));
                     } else {
                         $obj = (object) array('id' => $key, 'text' => $title);
                         
                         if ($isGroup) {
-                            $obj->group = TRUE;
+                            $obj->group = true;
                             $obj->element = new stdClass();
                             $obj->element->className = 'group';
-                            $obj->element->group = TRUE;
-                            $obj->id = NULL;
+                            $obj->element->group = true;
+                            $obj->id = null;
                         }
                         $res[] = $obj;
                     }
                 }
             }
-            if($this->params['inputType'] == 'combo') {
+            if ($this->params['inputType'] == 'combo') {
                 $res = array('content' => $select->getContent());
-               
             }
         }
                            
@@ -342,18 +343,20 @@ class type_Key2 extends type_Int
     
     /**
      * Връща шаблон за прескачане на най-често използваните символи в преди думите
-     * 
+     *
      * @param boolean $addEmpty
-     * 
+     *
      * @return string
      */
-    public static function getRegexPatterForSQLBegin($addEmpty = TRUE)
+    public static function getRegexPatterForSQLBegin($addEmpty = true)
     {
         $key = 'sqlBeginQuery' . '_' . $addEmpty;
         
         $rStr = core_Cache::get(key2, $key);
         
-        if ($rStr) return $rStr;
+        if ($rStr) {
+            return $rStr;
+        }
         
         $rOrdStr = '31|33|34|35|37|38|39|40|41|42|43|44|45|46|47|58|59|64|91|93|95|96|124';
         
@@ -361,7 +364,9 @@ class type_Key2 extends type_Int
         
         $rStr = '';
         foreach ($rArr as $ord) {
-            if ($ord > 127) continue;
+            if ($ord > 127) {
+                continue;
+            }
             $rStr .= '\\\\\\' . chr($ord) . '|';
         }
         

@@ -17,8 +17,8 @@
  */
 class purchase_Services extends deals_ServiceMaster
 {
-	
-	
+    
+    
     /**
      * Заглавие
      */
@@ -54,14 +54,14 @@ class purchase_Services extends deals_ServiceMaster
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo, purchase';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo, purchase';
 
 
     /**
-	* Кой може да разглежда сингъла на документите?
-	*/
+     * Кой може да разглежда сингъла на документите?
+     */
     public $canSingle = 'ceo, purchase';
     
     
@@ -122,7 +122,7 @@ class purchase_Services extends deals_ServiceMaster
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "4.5|Логистика";
+    public $newBtnGroup = '4.5|Логистика';
     
     
     /**
@@ -172,24 +172,24 @@ class purchase_Services extends deals_ServiceMaster
     }
     
     
-	/**
+    /**
      * Зарежда шаблоните на продажбата в doc_TplManager
      */
     protected function setTemplates(&$res)
     {
-    	$tplArr[] = array('name' => 'Приемателен протокол за услуги', 
-    					  'content' => 'purchase/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/SingleLayoutServicesNarrow.shtml',
-    					  'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
-    	$tplArr[] = array('name' => 'Приемателен протокол за услуги с цени', 
-    					  'content' => 'purchase/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/SingleLayoutServicesPricesNarrow.shtml',
-    					  'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
-    	$tplArr[] = array('name' => 'Acceptance protocol',
-		    			'content' => 'purchase/tpl/SingleLayoutServicesEN.shtml', 'lang' => 'en',  'narrowContent' => 'purchase/tpl/SingleLayoutServicesNarrowEN.shtml',
-		    			'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
-    	$tplArr[] = array('name' => 'Acceptance protocol with prices',
-		    			'content' => 'purchase/tpl/SingleLayoutServicesPricesEN.shtml', 'lang' => 'en',  'narrowContent' => 'purchase/tpl/SingleLayoutServicesPricesNarrowEN.shtml',
-		    			'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
-    	 
+        $tplArr[] = array('name' => 'Приемателен протокол за услуги',
+                          'content' => 'purchase/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/SingleLayoutServicesNarrow.shtml',
+                          'toggleFields' => array('masterFld' => null, 'purchase_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
+        $tplArr[] = array('name' => 'Приемателен протокол за услуги с цени',
+                          'content' => 'purchase/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/SingleLayoutServicesPricesNarrow.shtml',
+                          'toggleFields' => array('masterFld' => null, 'purchase_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        $tplArr[] = array('name' => 'Acceptance protocol',
+                        'content' => 'purchase/tpl/SingleLayoutServicesEN.shtml', 'lang' => 'en',  'narrowContent' => 'purchase/tpl/SingleLayoutServicesNarrowEN.shtml',
+                        'toggleFields' => array('masterFld' => null, 'purchase_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
+        $tplArr[] = array('name' => 'Acceptance protocol with prices',
+                        'content' => 'purchase/tpl/SingleLayoutServicesPricesEN.shtml', 'lang' => 'en',  'narrowContent' => 'purchase/tpl/SingleLayoutServicesPricesNarrowEN.shtml',
+                        'toggleFields' => array('masterFld' => null, 'purchase_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+         
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
@@ -199,9 +199,9 @@ class purchase_Services extends deals_ServiceMaster
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	$dealInfo = static::getOrigin($data->form->rec)->getAggregateDealInfo();
-    	$data->form->dealInfo = $dealInfo;
-    	$data->form->setDefault('received', core_Users::getCurrent('names'));
+        $dealInfo = static::getOrigin($data->form->rec)->getAggregateDealInfo();
+        $data->form->dealInfo = $dealInfo;
+        $data->form->setDefault('received', core_Users::getCurrent('names'));
     }
     
     
@@ -210,14 +210,14 @@ class purchase_Services extends deals_ServiceMaster
      */
     protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
-    	if ($form->isSubmitted()) {
-    		$rec = &$form->rec;
-    		$dealInfo = $form->dealInfo;
-    		$operations = $dealInfo->get('allowedShipmentOperations');
-    		$operation = $operations[$mvc::$defOperationSysId];
-    		
-    		$rec->accountId = $operation['credit'];
-    		$rec->isReverse = (isset($operation['reverse'])) ? 'yes' : 'no';
-    	}
+        if ($form->isSubmitted()) {
+            $rec = &$form->rec;
+            $dealInfo = $form->dealInfo;
+            $operations = $dealInfo->get('allowedShipmentOperations');
+            $operation = $operations[$mvc::$defOperationSysId];
+            
+            $rec->accountId = $operation['credit'];
+            $rec->isReverse = (isset($operation['reverse'])) ? 'yes' : 'no';
+        }
     }
 }

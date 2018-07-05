@@ -16,13 +16,13 @@
 class cash_reports_CashImpl extends acc_reports_PeriodHistoryImpl
 {
     
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'cash_CashReportImpl';
-	
-	
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'cash_CashReportImpl';
+    
+    
     /**
      * Кой може да избира драйвъра
      */
@@ -52,24 +52,24 @@ class cash_reports_CashImpl extends acc_reports_PeriodHistoryImpl
      */
     public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
     {
-    	$cItemPosition = acc_Lists::getPosition($mvc->defaultAccount, 'cash_CaseAccRegIntf');
-    	$currencyPosition = acc_Lists::getPosition($mvc->defaultAccount, 'currency_CurrenciesAccRegIntf');
-    	 
-    	$form->setField("ent{$cItemPosition}Id", 'caption=Каса');
-    	$form->setField("ent{$currencyPosition}Id", 'caption=Валута');
-    	
-    	$form->setFieldTypeParams("ent{$cItemPosition}Id", array('select' => 'title'));
-    	$form->setFieldTypeParams("ent{$currencyPosition}Id", array('select' => 'title'));
-    	
-    	// Слагаме избраната каса, ако има такава
-    	if($curCase = cash_Cases::getCurrent('id', FALSE)){
-    		$caseItemId = acc_Items::fetchItem('cash_Cases', $curCase)->id;
-    		$form->setDefault("ent{$cItemPosition}Id", $caseItemId);
-    	}
-    	
-    	$curCurrecy = acc_Periods::getBaseCurrencyId();
-    	$curItemId = acc_Items::fetchItem('currency_Currencies', $curCurrecy)->id;
-    	$form->setDefault("ent{$currencyPosition}Id", $curItemId);
+        $cItemPosition = acc_Lists::getPosition($mvc->defaultAccount, 'cash_CaseAccRegIntf');
+        $currencyPosition = acc_Lists::getPosition($mvc->defaultAccount, 'currency_CurrenciesAccRegIntf');
+         
+        $form->setField("ent{$cItemPosition}Id", 'caption=Каса');
+        $form->setField("ent{$currencyPosition}Id", 'caption=Валута');
+        
+        $form->setFieldTypeParams("ent{$cItemPosition}Id", array('select' => 'title'));
+        $form->setFieldTypeParams("ent{$currencyPosition}Id", array('select' => 'title'));
+        
+        // Слагаме избраната каса, ако има такава
+        if ($curCase = cash_Cases::getCurrent('id', false)) {
+            $caseItemId = acc_Items::fetchItem('cash_Cases', $curCase)->id;
+            $form->setDefault("ent{$cItemPosition}Id", $caseItemId);
+        }
+        
+        $curCurrecy = acc_Periods::getBaseCurrencyId();
+        $curItemId = acc_Items::fetchItem('currency_Currencies', $curCurrecy)->id;
+        $form->setDefault("ent{$currencyPosition}Id", $curItemId);
     }
     
     
@@ -78,11 +78,11 @@ class cash_reports_CashImpl extends acc_reports_PeriodHistoryImpl
      */
     public static function on_AfterPrepareListFields($mvc, &$res, $data)
     {
-    	$data->listFields['baseQuantity'] = 'Начално';
-    	$data->listFields['blQuantity'] = 'Остатък';
-    	$data->listFields['debitQuantity'] = 'Приход';
-    	$data->listFields['creditQuantity'] = 'Разход';
-    	
-    	unset($data->listFields['baseAmount'],$data->listFields['debitAmount'],$data->listFields['creditAmount'],$data->listFields['blAmount']);
+        $data->listFields['baseQuantity'] = 'Начално';
+        $data->listFields['blQuantity'] = 'Остатък';
+        $data->listFields['debitQuantity'] = 'Приход';
+        $data->listFields['creditQuantity'] = 'Разход';
+        
+        unset($data->listFields['baseAmount'],$data->listFields['debitAmount'],$data->listFields['creditAmount'],$data->listFields['blAmount']);
     }
 }

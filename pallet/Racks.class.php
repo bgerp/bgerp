@@ -17,106 +17,106 @@ class pallet_Racks extends core_Master
 {
     
     
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'store_Racks';
-	
-	
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'store_Racks';
+    
+    
     /**
      * Заглавие
      */
-    var $title = 'Стелажи';
+    public $title = 'Стелажи';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_LastUsedKeys, plg_RowTools, pallet_Wrapper';
+    public $loadList = 'plg_Created, plg_LastUsedKeys, plg_RowTools, pallet_Wrapper';
     
     
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
-    var $lastUsedKeys = 'storeId';
+    public $lastUsedKeys = 'storeId';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,pallet';
+    public $canRead = 'ceo,pallet';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,pallet';
+    public $canEdit = 'ceo,pallet';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,pallet';
+    public $canAdd = 'ceo,pallet';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo,pallet';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,pallet';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,pallet';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,pallet';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,pallet';
+    public $canView = 'ceo,pallet';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,pallet';
+    public $canDelete = 'ceo,pallet';
     
     
     /**
      * Брой записи на страница
      */
-    var $listItemsPerPage = 10;
+    public $listItemsPerPage = 10;
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'rackView=Стелаж';
+    public $listFields = 'rackView=Стелаж';
     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'pallet_RackDetails';
+    public $details = 'pallet_RackDetails';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'num';
+    public $rowToolsField = 'num';
     
 
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/rack.png';
+    public $singleIcon = 'img/16/rack.png';
 
 
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden');
         $this->FLD('num', 'int', 'caption=Стелаж №,mandatory');
@@ -134,13 +134,13 @@ class pallet_Racks extends core_Master
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      * Забранява изтриването/редакцията на стелажите, които не са празни
      *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
      * @param stdClass|NULL $rec
-     * @param int|NULL $userId
+     * @param int|NULL      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($rec->id && ($action == 'delete')) {
             $mvc->palletsInStoreArr = pallet_Pallets::getPalletsInStore();
@@ -162,8 +162,8 @@ class pallet_Racks extends core_Master
      */
     protected static function on_AfterPrepareListTitle($mvc, $data)
     {
-        $selectedStoreName = store_Stores::getHyperlink(store_Stores::getCurrent(), TRUE);
-    	$data->title = "|Стелажи в склад|* <b style='color:green'>{$selectedStoreName}</b>";
+        $selectedStoreName = store_Stores::getHyperlink(store_Stores::getCurrent(), true);
+        $data->title = "|Стелажи в склад|* <b style='color:green'>{$selectedStoreName}</b>";
     }
     
     
@@ -216,11 +216,11 @@ class pallet_Racks extends core_Master
         // В случай на add
         if (!$data->form->rec->id) {
             $query = $mvc->getQuery();
-            $where = "1=1";
+            $where = '1=1';
             $query->limit(1);
             $query->orderBy('num', 'DESC');
             
-            while($recRacks = $query->fetch($where)) {
+            while ($recRacks = $query->fetch($where)) {
                 $maxNum = $recRacks->num;
             }
             
@@ -239,7 +239,7 @@ class pallet_Racks extends core_Master
      * редовете и (или) колоните не се премахват палет места, които са
      * заети и (или) за които има наредени движения.
      *
-     * @param core_Mvc $mvc
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
@@ -270,11 +270,11 @@ class pallet_Racks extends core_Master
                     if (!empty($rowsForDeleteInUse)) {
                         foreach ($rowsForDeleteInUse as $k => $v) {
                             if ($k < (count($rowsForDeleteInUse) - 2)) {
-                                $rowsForDeleteInUseLetters .= $v . ", ";
+                                $rowsForDeleteInUseLetters .= $v . ', ';
                             }
                             
                             if ($k == (count($rowsForDeleteInUse) - 2)) {
-                                $rowsForDeleteInUseLetters .= $v . " и ";
+                                $rowsForDeleteInUseLetters .= $v . ' и ';
                             }
                             
                             if ($k == (count($rowsForDeleteInUse) - 1)) {
@@ -311,11 +311,11 @@ class pallet_Racks extends core_Master
                     if (!empty($columnsForDeleteInUse)) {
                         foreach ($columnsForDeleteInUse as $k => $v) {
                             if ($k < (count($columnsForDeleteInUse) - 2)) {
-                                $columnsForDeleteInUseLetters .= $v . ", ";
+                                $columnsForDeleteInUseLetters .= $v . ', ';
                             }
                             
                             if ($k == (count($columnsForDeleteInUse) - 2)) {
-                                $columnsForDeleteInUseLetters .= $v . " и ";
+                                $columnsForDeleteInUseLetters .= $v . ' и ';
                             }
                             
                             if ($k == (count($columnsForDeleteInUse) - 1)) {
@@ -367,7 +367,7 @@ class pallet_Racks extends core_Master
                     if (!in_array($v, $groupsAllowedArr)) {
                         $groupName = cat_Groups::fetchField($v, 'name');
                         
-                        $groupsInUseForDeleteNames .= $groupName . ", ";
+                        $groupsInUseForDeleteNames .= $groupName . ', ';
                     }
                 }
                 
@@ -415,24 +415,24 @@ class pallet_Racks extends core_Master
         if ($rec->num) {
             $html .= $rec->num;
         } else {
-            $html .= "<span style='color: #777777;'>ID</span> <span style='color: red;'>" . $rec->id . "</span>";
+            $html .= "<span style='color: #777777;'>ID</span> <span style='color: red;'>" . $rec->id . '</span>';
         }
         
          
-        $html .= "</div>";
+        $html .= '</div>';
         
         $html .= "<table cellspacing='1' class='pallet-table'>";
         
         /* За всеки ред от стелажа */
         for ($r = $rec->rows; $r >= 1; $r--) {
-            $html .= "<tr>";
+            $html .= '<tr>';
             
             /* Филтъра не е активиран */
             if (!$mvc->productIdFilter) {
                 /* За всяка колона от стелажа */
                 for ($c = 1; $c <= $rec->columns; $c++) {
                     // Палет място
-                    $palletPlace = $rec->id . "-" . $mvc->rackRowConv($r) . "-" . $c;
+                    $palletPlace = $rec->id . '-' . $mvc->rackRowConv($r) . '-' . $c;
                     
                     /* Проверка дали има палет на това палет място */
                     // Ако има палет на това палет място
@@ -447,12 +447,18 @@ class pallet_Racks extends core_Master
                             if ($stateMovements == 'active') {
                                 $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_active'>";
                             }
-                        } else $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " in_use'>";
+                        } else {
+                            $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " in_use'>";
+                        }
                         
-                        $html .= Ht::createLink($mvc->rackRowConv($r) . $c,
+                        $html .= Ht::createLink(
+                        
+                            $mvc->rackRowConv($r) . $c,
                             array('pallet_Pallets', 'list', $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['palletId']),
-                            FALSE,
-                            array('title' => $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['title']));
+                            false,
+                            array('title' => $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['title'])
+                        
+                        );
                     } else { // Ако няма палет на това палет място
                         /* Проверка за това палет място в детайлите */
                         if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
@@ -478,7 +484,7 @@ class pallet_Racks extends core_Master
                     
                     /* END Проверка дали има палет на това палет място */
                     
-                    $html .= "</td>";
+                    $html .= '</td>';
                 }
                 
                 /* END За всяка колона от стелажа */
@@ -491,7 +497,7 @@ class pallet_Racks extends core_Master
                 /* За всяка колона от стелажа */
                 for ($c = 1; $c <= $rec->columns; $c++) {
                     // Палет място
-                    $palletPlace = $rec->id . "-" . $mvc->rackRowConv($r) . "-" . $c;
+                    $palletPlace = $rec->id . '-' . $mvc->rackRowConv($r) . '-' . $c;
                     
                     /* Проверка дали има палет на това палет място */
                     // Ако има палет на това палет място
@@ -522,12 +528,16 @@ class pallet_Racks extends core_Master
                             }
                         }
                         
-                        $html .= Ht::createLink($mvc->rackRowConv($r) . $c,
-                            array('pallet_Pallets', 'list', $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['palletId']),
-                            FALSE,
-                            array('title' => $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['title']));
+                        $html .= Ht::createLink(
                         
-                        // Ако няма палет на това палет място
+                            $mvc->rackRowConv($r) . $c,
+                            array('pallet_Pallets', 'list', $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['palletId']),
+                            false,
+                            array('title' => $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['title'])
+                        
+                        );
+                        
+                    // Ако няма палет на това палет място
                     } else {
                         /* Проверка за това палет място в детайлите */
                         if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
@@ -554,7 +564,7 @@ class pallet_Racks extends core_Master
                     
                     /* END Проверка дали има палет на това палет място */
                     
-                    $html .= "</td>";
+                    $html .= '</td>';
                 }
                 
                 /* END За всяка колона от стелажа */
@@ -562,12 +572,12 @@ class pallet_Racks extends core_Master
             
             /* ENDOF Филтъра е активиран */
             
-            $html .= "</tr>";
+            $html .= '</tr>';
         }
         
         /* END За всеки ред от стелажа */
         
-        $html .= "</table>";
+        $html .= '</table>';
         
         // END html
         
@@ -578,15 +588,15 @@ class pallet_Racks extends core_Master
     /**
      * Подготвя шаблона за единичния изглед
      */
-    function renderSingleLayout_(&$data)
+    public function renderSingleLayout_(&$data)
     {
-        if(isset($this->singleLayoutFile)) {
+        if (isset($this->singleLayoutFile)) {
             $layout = new ET(file_get_contents(getFullPath($this->singleLayoutFile)));
-        } elseif(isset($this->singleLayoutTpl)) {
+        } elseif (isset($this->singleLayoutTpl)) {
             $layout = new ET($this->singleLayoutTpl);
         } else {
-            if(count($data->singleFields)) {
-                foreach($data->singleFields as $field => $caption) {
+            if (count($data->singleFields)) {
+                foreach ($data->singleFields as $field => $caption) {
                     $fieldsHtml .= "<tr><td>[#CAPTION_{$field}#]</td><td>[#{$field}#]</td></tr>";
                 }
             }
@@ -594,7 +604,7 @@ class pallet_Racks extends core_Master
             $class = $this->cssClass ? $this->cssClass : $this->className;
             
             $layout = new ET("[#SingleToolbar#]<div class='{$class}'><h2>[#SingleTitle#]</h2>" .
-                "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>");
+                '<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>');
         }
         
         $layout->translate();
@@ -624,9 +634,9 @@ class pallet_Racks extends core_Master
      * Ако е минала проверката за state в on_BeforeDelete, след като е изтрит записа изтриваме всички движения за него
      *
      * @param core_Mvc $mvc
-     * @param int $numRows
+     * @param int      $numRows
      * @param stdClass $query
-     * @param string $cond
+     * @param string   $cond
      */
     protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
@@ -639,35 +649,37 @@ class pallet_Racks extends core_Master
     /**
      * Връща CSS клас за оцветяване на палет място в зависимост от носещите колони
      *
-     * @param int $c
-     * @param int $rackColumns
-     * @param int $constrColumnsStep
+     * @param  int    $c
+     * @param  int    $rackColumns
+     * @param  int    $constrColumnsStep
      * @return string
      */
     public static function checkConstrColumns($c, $rackColumns, $constrColumnsStep)
     {
         if ($c == 1) {
-            return "constrColumnLeft";
+            return 'constrColumnLeft';
         }
         
         if ($c == $rackColumns) {
-            return "constrColumnRight";
+            return 'constrColumnRight';
         }
         
         if ($c % $constrColumnsStep == 0) {
-            return "constrColumnRight";
-        } else return "";
+            return 'constrColumnRight';
+        }
+
+        return '';
     }
     
     
     /**
      * Проверка дали групите за продукта от палета са допустими за стелажа
      *
-     * @param int $rackId
-     * @param int $palletId
+     * @param  int     $rackId
+     * @param  int     $palletId
      * @return boolean
      */
-    public static function checkIfProductGroupsAreAllowed($rackId, $productId) 
+    public static function checkIfProductGroupsAreAllowed($rackId, $productId)
     {
         $selectedStoreId = store_Stores::getCurrent();
         
@@ -677,7 +689,7 @@ class pallet_Racks extends core_Master
             $groupField = ($inst->groupField) ? $inst->groupField : 'groups';
             $productGroups = $inst->fetchField($pRec->productId, 'groups');
         } catch (core_exception_Expect $e) {
-            return FALSE;
+            return false;
         }
         
         $productGroupsArr = keylist::toArray($productGroups);
@@ -686,31 +698,35 @@ class pallet_Racks extends core_Master
         $groupsAllowedArr = keylist::toArray($groupsAllowed);
         
         if (count($groupsAllowedArr)) {
-            $groupsCheck = FALSE;
+            $groupsCheck = false;
             
             foreach ($productGroupsArr as $v) {
                 if (in_array($v, $groupsAllowedArr)) {
-                    $groupsCheck = TRUE;
+                    $groupsCheck = true;
                 } else {
-                    $groupsCheck = FALSE;
+                    $groupsCheck = false;
                     break;
                 }
             }
             
-            if ($groupsCheck === FALSE) {
-                return FALSE;
-            } else return TRUE;
-        } else return TRUE;
+            if ($groupsCheck === false) {
+                return false;
+            }
+
+            return true;
+        }
+
+        return true;
     }
     
     
     /**
      * Проверка дали е валидно палет мястото - дали съществува палет id-то, и дали реда и колоната са реални
      *
-     * @param string $palletPlace
+     * @param  string  $palletPlace
      * @return boolean
      */
-    public static function checkIfPalletPlaceExists($palletPlace) 
+    public static function checkIfPalletPlaceExists($palletPlace)
     {
         // array letter to digit
         $rackRowsArr = array('A' => 1,
@@ -724,25 +740,33 @@ class pallet_Racks extends core_Master
         
         $selectedStoreId = store_Stores::getCurrent();
         
-        $positionArr = explode("-", $palletPlace);
+        $positionArr = explode('-', $palletPlace);
         
         $rackId = $positionArr[0];
         $rackRow = $positionArr[1];
         $rackColumn = $positionArr[2];
         
         // Ако няма стелаж с това id
-        if (!$recRacks = pallet_Racks::fetch(array("#id = '[#1#]' AND #storeId = '[#2#]'", $rackId, $selectedStoreId))) return FALSE;
+        if (!$recRacks = pallet_Racks::fetch(array("#id = '[#1#]' AND #storeId = '[#2#]'", $rackId, $selectedStoreId))) {
+            return false;
+        }
         
         // Ако реда не е сред ключовете на масива $rackRowsArr
-        if (!array_key_exists($rackRow, $rackRowsArr)) return FALSE;
+        if (!array_key_exists($rackRow, $rackRowsArr)) {
+            return false;
+        }
         
         // Ако реда е по-голям от броя на редовете в стелажа
-        if ($rackRowsArr[$rackRow] > $recRacks->rows) return FALSE;
+        if ($rackRowsArr[$rackRow] > $recRacks->rows) {
+            return false;
+        }
         
         // Ако колоната е по-голяма от броя на колоните в стелажа
-        if ($rackColumn > $recRacks->columns) return FALSE;
+        if ($rackColumn > $recRacks->columns) {
+            return false;
+        }
         
-        return TRUE;
+        return true;
     }
     
     
@@ -751,10 +775,10 @@ class pallet_Racks extends core_Master
      * на базата на пет проверки:
      * съществуващо ПМ, свободно ПМ, неизползваемо ПМ, допустими продуктови групи, резервирано ПМ
      *
-     * @param int $rackId
-     * @param int $palletId
-     * @param string $palletPlace
-     * @return array $fResult
+     * @param  int    $rackId
+     * @param  int    $palletId
+     * @param  string $palletPlace
+     * @return array  $fResult
      */
     public static function isSuitable($rackId, $productId, $palletPlace)
     {
@@ -762,27 +786,27 @@ class pallet_Racks extends core_Master
         $fErrors = array();
         
         // Съществува в склада
-        if (pallet_Racks::checkIfPalletPlaceExists($palletPlace) === FALSE) {
+        if (pallet_Racks::checkIfPalletPlaceExists($palletPlace) === false) {
             array_push($fErrors, array('PPNE', 'Позицията не съществува в склада'));
         }
         
         // Заето
-        if (pallet_Pallets::checkIfPalletPlaceIsFree($palletPlace) === FALSE) {
+        if (pallet_Pallets::checkIfPalletPlaceIsFree($palletPlace) === false) {
             array_push($fErrors, array('PPNF', 'Позицията е заета'));
         }
         
         // Продуктовите групи
-        if (pallet_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === FALSE) {
+        if (pallet_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === false) {
             array_push($fErrors, array('PGNA', 'Тази продуктова група не е разрешена'));
         }
         
         // Неизползваемо
-        if (pallet_RackDetails::checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) === FALSE) {
+        if (pallet_RackDetails::checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) === false) {
             array_push($fErrors, array('PPOOFU', 'Позицията е неизползваема'));
         }
         
         // Резервирано
-        if (pallet_RackDetails::checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) === FALSE) {
+        if (pallet_RackDetails::checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) === false) {
             array_push($fErrors, array('PPR', 'Позицията е резервирана'));
         }
         
@@ -793,10 +817,14 @@ class pallet_Racks extends core_Master
         */
         
         // Ако има грешки
-        if (!empty($fErrors)) $fResult = array(FALSE, $fErrors);
+        if (!empty($fErrors)) {
+            $fResult = array(false, $fErrors);
+        }
         
         // Ако няма грешки
-        if (empty($fErrors)) $fResult = array(TRUE);
+        if (empty($fErrors)) {
+            $fResult = array(true);
+        }
         
         return $fResult;
     }
@@ -811,20 +839,20 @@ class pallet_Racks extends core_Master
     public static function ppRackNum2rackId($stringForExplode)
     {
         $stringForExplode = str::utf2ascii($stringForExplode);
-        $positionArr = explode("-", $stringForExplode);
+        $positionArr = explode('-', $stringForExplode);
         
         $rackNum = $positionArr[0];
         $rackId = pallet_Racks::fetchField("#num = {$rackNum}", 'id');
         
         if (!$rackId) {
-            $fResult[0] = FALSE;
+            $fResult[0] = false;
         } else {
-            $fResult[0] = TRUE;
+            $fResult[0] = true;
             $rackRow = $positionArr[1];
             $rackColumn = $positionArr[2];
             
             $fResult['rackId'] = $rackId;
-            $fResult['position'] = $rackId . "-" . $rackRow . "-" . $rackColumn;
+            $fResult['position'] = $rackId . '-' . $rackRow . '-' . $rackColumn;
         }
         
         return $fResult;
@@ -840,21 +868,21 @@ class pallet_Racks extends core_Master
     public static function ppRackId2RackNum($stringForExplode)
     {
         $stringForExplode = str::utf2ascii($stringForExplode);
-        $positionArr = explode("-", $stringForExplode);
+        $positionArr = explode('-', $stringForExplode);
         
         $rackId = $positionArr[0];
         
         $rackNum = pallet_Racks::fetchField($rackId, 'num');
         
         if (!$rackNum) {
-            $fResult[0] = FALSE;
+            $fResult[0] = false;
         } else {
-            $fResult[0] = TRUE;
+            $fResult[0] = true;
             $rackRow = $positionArr[1];
             $rackColumn = $positionArr[2];
             
             $fResult['rackNum'] = $rackNum;
-            $fResult['position'] = $rackNum . "-" . $rackRow . "-" . $rackColumn;
+            $fResult['position'] = $rackNum . '-' . $rackRow . '-' . $rackColumn;
         }
         
         return $fResult;
@@ -866,10 +894,10 @@ class pallet_Racks extends core_Master
      * Ако string-а е 'ALL' връща 100.
      * Ако string-а не е 'ALL" връща съответния номер на ред (за A - 1, за B -2 и т.н.)
      *
-     * @param string|int $value
+     * @param  string|int $value
      * @return string|int
      */
-    public static function rackRowConv($value) 
+    public static function rackRowConv($value)
     {
         $value = str::utf2ascii($value);
         
@@ -879,17 +907,17 @@ class pallet_Racks extends core_Master
         if (in_array($value, $rowStringArr)) {
             if ($value == 'ALL') {
                 return 100;
-            } else {
-                return (ord($value) - 64);
             }
+
+            return (ord($value) - 64);
         }
         
         if (in_array($value, $rowIntArr)) {
             if ($value == 100) {
                 return 'ALL';
-            } else {
-                return (chr($value + 64));
             }
+
+            return (chr($value + 64));
         }
     }
 }

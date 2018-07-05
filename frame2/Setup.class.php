@@ -52,7 +52,7 @@ class frame2_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "Динамични справки";
+    public $info = 'Динамични справки';
 
     
     /**
@@ -60,8 +60,8 @@ class frame2_Setup extends core_ProtoSetup
      */
     public $managers = array(
             'frame2_Reports',
-    		'frame2_ReportVersions',
-    		'frame2_AllReports',
+            'frame2_ReportVersions',
+            'frame2_AllReports',
     );
     
 
@@ -75,7 +75,7 @@ class frame2_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-    	'FRAME2_CLOSE_LAST_SEEN_BEFORE_MONTHS' => array ('int', 'caption=Затваряне на последно видяни справки преди->Месеца'),
+        'FRAME2_CLOSE_LAST_SEEN_BEFORE_MONTHS' => array('int', 'caption=Затваряне на последно видяни справки преди->Месеца'),
     );
     
     
@@ -83,7 +83,7 @@ class frame2_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-    		array(2.56, 'Обслужване', 'Отчети', 'frame2_Reports', 'default', "report, ceo, admin"),
+            array(2.56, 'Обслужване', 'Отчети', 'frame2_Reports', 'default', 'report, ceo, admin'),
     );
     
     

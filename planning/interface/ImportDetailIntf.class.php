@@ -16,5 +16,4 @@
  */
 class planning_interface_ImportDetailIntf extends import2_DriverIntf
 {
-	
 }

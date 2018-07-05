@@ -19,32 +19,32 @@ class label_Setup extends core_ProtoSetup
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'label_Prints';
+    public $startCtr = 'label_Prints';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Отпечатване на етикети";
+    public $info = 'Отпечатване на етикети';
     
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.66, 'Производство', 'Етикетиране', 'label_Prints', 'default', "label, admin, ceo"),
+    public $menuItems = array(
+            array(3.66, 'Производство', 'Етикетиране', 'label_Prints', 'default', 'label, admin, ceo'),
         );
     
         
@@ -59,10 +59,10 @@ class label_Setup extends core_ProtoSetup
         'migrate::addDefaultMedia',
         'migrate::labelsToPrint',
         'migrate::counterItemsLabels',
-    	'migrate::removePlugin3',
-    	'migrate::barcodeToSerial',
-    	'migrate::templateSource',
-    	'migrate::repairSerchKeywords',
+        'migrate::removePlugin3',
+        'migrate::barcodeToSerial',
+        'migrate::templateSource',
+        'migrate::repairSerchKeywords',
     );
     
 
@@ -70,17 +70,17 @@ class label_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
-    		array('seeLabel'),
-    		array('label', 'seeLabel'),
-    		array('labelMaster', 'label'),
+            array('seeLabel'),
+            array('label', 'seeLabel'),
+            array('labelMaster', 'label'),
     );
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
-    {   
+    public function install()
+    {
         $html = parent::install();
         
         $Plugins = cls::get('core_Plugins');
@@ -94,7 +94,7 @@ class label_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
@@ -113,14 +113,18 @@ class label_Setup extends core_ProtoSetup
         while ($mRec = $mQuery->fetch()) {
             $sizes = label_Media::getSize($mRec->width, $mRec->height);
             
-            if ($sizes) break;
+            if ($sizes) {
+                break;
+            }
         }
         
-        if (!$sizes) return ;
+        if (!$sizes) {
+            return ;
+        }
         
         // Добавяме размера към всички шаблони, които нямат размери
         $tQuery = label_Templates::getQuery();
-        $tQuery->where("#sizes IS NULL");
+        $tQuery->where('#sizes IS NULL');
         $tQuery->orWhere("#sizes = ''");
         
         while ($tRec = $tQuery->fetch()) {
@@ -137,32 +141,42 @@ class label_Setup extends core_ProtoSetup
     {
         $clsName = 'label_Labels';
         
-        if (!cls::load($clsName, TRUE)) return;
+        if (!cls::load($clsName, true)) {
+            return;
+        }
         
         $clsInst = cls::get($clsName);
         
-        if (!$clsInst->db->tableExists($clsInst->dbTableName)) return;
+        if (!$clsInst->db->tableExists($clsInst->dbTableName)) {
+            return;
+        }
         
         $pInst = cls::get('label_Prints');
         
-        if (!$pInst->db->isFieldExists($pInst->dbTableName, str::phpToMysqlName('labelId'))) return;
+        if (!$pInst->db->isFieldExists($pInst->dbTableName, str::phpToMysqlName('labelId'))) {
+            return;
+        }
         
         $pInst->FLD('labelId', 'key(mvc=label_Labels, select=title)', 'caption=Етикет, mandatory, silent, input=none');
         
         $pQuery = $pInst->getQuery();
-        $pQuery->where("#labelId IS NOT NULL");
+        $pQuery->where('#labelId IS NOT NULL');
         $pQuery->where("#labelId != ''");
         
         while ($pRec = $pQuery->fetch()) {
-            if (!$pRec->labelId) continue;
+            if (!$pRec->labelId) {
+                continue;
+            }
             
             $lRec = $clsInst->fetch($pRec->labelId);
             
-            if (!$lRec) continue;
+            if (!$lRec) {
+                continue;
+            }
             
             $vArr = array('templateId', 'title', 'classId', 'objectId' => 'objId', 'params');
             
-            $vArr = arr::make($vArr, TRUE);
+            $vArr = arr::make($vArr, true);
             
             foreach ($vArr as $fName => $lFName) {
                 $pRec->{$fName} = $lRec->{$lFName};
@@ -173,7 +187,7 @@ class label_Setup extends core_ProtoSetup
                 $vArr['state'] = 'state';
             }
             
-            $pRec->_notModified = TRUE;
+            $pRec->_notModified = true;
             
             $pInst->save($pRec, $vArr);
         }
@@ -187,35 +201,47 @@ class label_Setup extends core_ProtoSetup
     {
         $clsName = 'label_Labels';
         
-        if (!cls::load($clsName, TRUE)) return;
+        if (!cls::load($clsName, true)) {
+            return;
+        }
         
         $clsInst = cls::get($clsName);
         
-        if (!$clsInst->db->tableExists($clsInst->dbTableName)) return;
+        if (!$clsInst->db->tableExists($clsInst->dbTableName)) {
+            return;
+        }
         
         $cItemsInst = cls::get('label_CounterItems');
         
-        if (!$cItemsInst->db->isFieldExists($cItemsInst->dbTableName, str::phpToMysqlName('labelId'))) return;
+        if (!$cItemsInst->db->isFieldExists($cItemsInst->dbTableName, str::phpToMysqlName('labelId'))) {
+            return;
+        }
         
         $pInst = cls::get('label_Prints');
         
-        if (!$pInst->db->isFieldExists($pInst->dbTableName, str::phpToMysqlName('labelId'))) return;
+        if (!$pInst->db->isFieldExists($pInst->dbTableName, str::phpToMysqlName('labelId'))) {
+            return;
+        }
         
         $pInst->FLD('labelId', 'key(mvc=label_Labels, select=title)', 'caption=Етикет, mandatory, silent, input=none');
         $cItemsInst->FLD('labelId', 'key(mvc=label_Labels, select=title)', 'caption=Етикет');
         
         $cQuery = $cItemsInst->getQuery();
-        $cQuery->where("#labelId IS NOT NULL");
+        $cQuery->where('#labelId IS NOT NULL');
         $cQuery->where("#labelId != ''");
         $cQuery->where("#printId = ''");
-        $cQuery->orWhere("#printId IS NULL");
+        $cQuery->orWhere('#printId IS NULL');
         
         while ($cRec = $cQuery->fetch()) {
-            if (!$cRec->labelId) continue;
+            if (!$cRec->labelId) {
+                continue;
+            }
             
             $pRec = $pInst->fetch(array("#labelId = '[#1#]'", $cRec->labelId));
             
-            if (!$pRec) continue;
+            if (!$pRec) {
+                continue;
+            }
             
             $cRec->printId = $pRec->id;
             
@@ -229,11 +255,11 @@ class label_Setup extends core_ProtoSetup
      */
     public static function removePlugin3()
     {
-    	$Plugins = core_Plugins::getQuery();
-    	$Plugins2 = clone $Plugins;
-    	$Plugins->delete("#class LIKE 'planning_Jobs' AND #plugin LIKE 'label_plg_Print'");
-    	
-    	$Plugins2->delete("#class LIKE 'planning_Tasks' AND #plugin LIKE 'label_plg_Print'");
+        $Plugins = core_Plugins::getQuery();
+        $Plugins2 = clone $Plugins;
+        $Plugins->delete("#class LIKE 'planning_Jobs' AND #plugin LIKE 'label_plg_Print'");
+        
+        $Plugins2->delete("#class LIKE 'planning_Tasks' AND #plugin LIKE 'label_plg_Print'");
     }
     
     
@@ -245,11 +271,11 @@ class label_Setup extends core_ProtoSetup
         $tQuery = label_Templates::getQuery();
         
         while ($tRec = $tQuery->fetch()) {
+            if (stripos($tRec->template, '[#BARCODE#]') === false) {
+                continue;
+            }
             
-            if (stripos($tRec->template, '[#BARCODE#]') === FALSE) continue;
-            
-            if (stripos($tRec->template, '[#SERIAL#]') !== FALSE) {
-                
+            if (stripos($tRec->template, '[#SERIAL#]') !== false) {
                 label_Templates::logErr('Не е мигриран плейсхолдер BARCODE към SERIAL, поради дублиране', $tRec->id);
                 
                 continue;
@@ -283,24 +309,30 @@ class label_Setup extends core_ProtoSetup
         $oldClsArr = array();
         
         foreach (array('planning_Jobs', 'planning_Tasks') as $clsName) {
-            if (cls::load($clsName, TRUE)) {
+            if (cls::load($clsName, true)) {
                 $cId = $clsName::getClassId();
                 
-                if (!$cId) continue;
+                if (!$cId) {
+                    continue;
+                }
                 
                 $oldClsArr[] = $cId;
             }
         }
         
-        if (empty($oldClsArr)) return ;
+        if (empty($oldClsArr)) {
+            return ;
+        }
         
-        $pId = NULL;
+        $pId = null;
         
-        if (cls::load('cat_products_Packagings', TRUE)) {
+        if (cls::load('cat_products_Packagings', true)) {
             $pId = cat_products_Packagings::getClassId();
         }
         
-        if (!$pId) return ;
+        if (!$pId) {
+            return ;
+        }
         
         $tQuery = label_Templates::getQuery();
         $tQuery->orWhereArr('classId', $oldClsArr);

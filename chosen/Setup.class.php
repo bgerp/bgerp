@@ -25,46 +25,45 @@ defIfNot('CHOSEN_MIN_ITEMS', 30);
  * @since     v 0.1
  * @link      http://harvesthq.github.com/chosen/
  */
-class chosen_Setup extends core_ProtoSetup {
+class chosen_Setup extends core_ProtoSetup
+{
     
     
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Удобно избиране от множества. По-стара алтернатива на Select2";
+    public $info = 'Удобно избиране от множества. По-стара алтернатива на Select2';
     
     
-    /**
-     * 
-     */
-    public $deprecated = TRUE;
+    
+    public $deprecated = true;
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
     
             // Минималния брой елементи, за които няма да сработи Chosen
-            'CHOSEN_MIN_ITEMS' => array ('int', 'caption=Минимален брой опции за да сработи Chosen->Опции, suggestions=10|20|30|40|50'),
+            'CHOSEN_MIN_ITEMS' => array('int', 'caption=Минимален брой опции за да сработи Chosen->Опции, suggestions=10|20|30|40|50'),
     
         );
     
@@ -72,7 +71,7 @@ class chosen_Setup extends core_ProtoSetup {
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = '';
         if (core_Packs::isInstalled('select2')) {
@@ -80,8 +79,8 @@ class chosen_Setup extends core_ProtoSetup {
             $html .= $packs->deinstall('select2');
         }
         
-    	$html .= parent::install();
-    	
+        $html .= parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -101,10 +100,10 @@ class chosen_Setup extends core_ProtoSetup {
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

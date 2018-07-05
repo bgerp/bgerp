@@ -17,24 +17,22 @@
  */
 class calculator_Setup extends core_ProtoSetup
 {
-	
-	
-	/**
-	 * Версия на пакета
-	 */
-	public $version = '0.1';
-	
-	
-	/**
-	 * Описание на модула
-	 */
-	public $info = "Калкулатор";
-	
-	
-	/**
-	 * Пакет без инсталация
-	 */
-	public $noInstall = TRUE;
-	
+    
+    
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
+    
+    
+    /**
+     * Описание на модула
+     */
+    public $info = 'Калкулатор';
+    
+    
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = true;
 }
-

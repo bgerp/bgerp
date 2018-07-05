@@ -17,24 +17,22 @@
  */
 class punymce_Setup extends core_ProtoSetup
 {
-	
-	
-	/**
-	 * Версия на пакета
-	 */
-	public $version = '0.1';
-	
-	
-	/**
-	 * Описание на модула
-	 */
-	public $info = "Лек текстов редактор";
-	
+    
+    
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
+    
+    
+    /**
+     * Описание на модула
+     */
+    public $info = 'Лек текстов редактор';
+    
 
-	/**
-	 * Пакет без инсталация
-	 */
-	public $noInstall = TRUE;
-	
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = true;
 }
-

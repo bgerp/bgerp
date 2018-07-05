@@ -32,36 +32,36 @@ class oembed_Setup extends core_ProtoSetup
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Вграждане на външни обекти в текст чрез линкове";
+    public $info = 'Вграждане на външни обекти в текст чрез линкове';
     
 
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'oembed_Cache';
+    public $startCtr = 'oembed_Cache';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
 
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
         
-           'OEMBED_MAX_WIDTH' => array ('int', 'caption=Максимална широчина на вградените елементи->Размер в пиксели'),
-           'OEMBED_SERVICES' => array ('set(blip.tv,Dailymotion,Flickr Photos,Hulu,Qik Video,Revision3,
+           'OEMBED_MAX_WIDTH' => array('int', 'caption=Максимална широчина на вградените елементи->Размер в пиксели'),
+           'OEMBED_SERVICES' => array('set(blip.tv,Dailymotion,Flickr Photos,Hulu,Qik Video,Revision3,
            Scribd,Viddler Video,Vimeo,YouTube,dotSUB.com,YFrog,Clikthrough,Photobucket,Picasa,Slideshare,Vbox7,Cacco,Embed.ly,GoogleDrive)',
-    		'caption=Услуги на които по подразбиране се вграждат връзките към тяхно съдържание->Списък')
+            'caption=Услуги на които по подразбиране се вграждат връзките към тяхно съдържание->Списък')
 
      );
 
@@ -76,7 +76,7 @@ class oembed_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
         
@@ -96,7 +96,6 @@ class oembed_Setup extends core_ProtoSetup
      */
     public static function removeLongUrl()
     {
-        
-        return oembed_Cache::delete("CHAR_LENGTH(#url) = 128");
+        return oembed_Cache::delete('CHAR_LENGTH(#url) = 128');
     }
 }

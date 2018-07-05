@@ -32,7 +32,7 @@ class store_Stores extends core_Master
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Склад";
+    public $singleTitle = 'Склад';
     
     
     /**
@@ -54,24 +54,24 @@ class store_Stores extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo,storeWorker';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,storeWorker';
 
-	
-	/**
-	 * Кой може да пише
-	 */
-	public $canReject = 'ceo, admin';
-	
-	
-	/**
-	 * Кой може да пише
-	 */
-	public $canRestore = 'ceo, admin';
-	
-	
-	/**
+    
+    /**
+     * Кой може да пише
+     */
+    public $canReject = 'ceo, admin';
+    
+    
+    /**
+     * Кой може да пише
+     */
+    public $canRestore = 'ceo, admin';
+    
+    
+    /**
      * Детайла, на модела
      */
     public $details = 'AccReports=acc_ReportDetails,store_Products';
@@ -86,7 +86,7 @@ class store_Stores extends core_Master
     /**
      * Да се показват ли в репортите нулевите редове
      */
-    public $balanceRefShowZeroRows = TRUE;
+    public $balanceRefShowZeroRows = true;
     
     
     /**
@@ -96,7 +96,7 @@ class store_Stores extends core_Master
     
     
     /**
-     * По кой итнерфейс ще се групират сметките 
+     * По кой итнерфейс ще се групират сметките
      */
     public $balanceRefGroupBy = 'store_AccRegIntf';
     
@@ -113,10 +113,10 @@ class store_Stores extends core_Master
     public $canAddacclimits = 'ceo,storeMaster,accMaster,accLimits';
     
     
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'ceo,storeWorker';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,storeWorker';
     
     
     /**
@@ -129,12 +129,12 @@ class store_Stores extends core_Master
      * Кой може да пише
      */
     public $canWrite = 'ceo, admin';
-	
-	
-   /**
-	* Кой може да активира?
-	*/
-	public $canActivate = 'ceo, store, production';
+    
+    
+    /**
+     * Кой може да активира?
+     */
+    public $canActivate = 'ceo, store, production';
     
     
     /**
@@ -143,8 +143,8 @@ class store_Stores extends core_Master
      * @see bgerp_plg_FLB
      */
     public $canActivateUserFld = 'chiefs';
-	
-	
+    
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -178,22 +178,22 @@ class store_Stores extends core_Master
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
         $this->FLD('chiefs', 'userList(roles=store|ceo|production)', 'caption=Контиране на документи->Потребители,mandatory');
         $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Допълнително->Товарачи');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Допълнително->Локация');
-    	$this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
-    	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,notNull,default=active,input=none');
-    	$this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
+        $this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
+        $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,notNull,default=active,input=none');
+        $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
 
-        if(core_Packs::isInstalled('pallet')) {
+        if (core_Packs::isInstalled('pallet')) {
             $this->FLD('strategy', 'class(interface=pallet_ArrangeStrategyIntf,allowEmpty)', 'caption=Управление на стелажите->Стратегия');
         }
 
-    	$this->setDbUnique('name');
+        $this->setDbUnique('name');
     }
     
     
@@ -205,13 +205,13 @@ class store_Stores extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$rec = $data->rec;
-    	
-    	if($rec->state != 'rejected'){
-    		if(store_InventoryNotes::haveRightFor('add', (object)array('folderId' => $rec->folderId))){
-    			$data->toolbar->addBtn('Инвентаризация', array('store_InventoryNotes', 'add', 'folderId' => $rec->folderId, 'ret_url' => TRUE), 'ef_icon=img/16/invertory.png,title = Създаване на протокол за инвентаризация');
-    		}
-    	}
+        $rec = $data->rec;
+        
+        if ($rec->state != 'rejected') {
+            if (store_InventoryNotes::haveRightFor('add', (object) array('folderId' => $rec->folderId))) {
+                $data->toolbar->addBtn('Инвентаризация', array('store_InventoryNotes', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'ef_icon=img/16/invertory.png,title = Създаване на протокол за инвентаризация');
+            }
+        }
     }
     
     
@@ -222,11 +222,11 @@ class store_Stores extends core_Master
     public static function getItemRec($objectId)
     {
         $self = cls::get(__CLASS__);
-        $result = NULL;
+        $result = null;
         
         if ($rec = $self->fetch($objectId)) {
-            $result = (object)array(
-                'num' => $rec->id . " st",
+            $result = (object) array(
+                'num' => $rec->id . ' st',
                 'title' => $rec->name,
                 'features' => 'foobar' // @todo!
             );
@@ -240,7 +240,7 @@ class store_Stores extends core_Master
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
      */
-    static function itemInUse($objectId)
+    public static function itemInUse($objectId)
     {
         // @todo!
     }
@@ -249,36 +249,36 @@ class store_Stores extends core_Master
     /**
      * След показване на едит формата
      */
-	protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
-	{
-		$company = crm_Companies::fetchOwnCompany();
-		$locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $company->companyId);
-		$data->form->setOptions('locationId', $locations);
-		
-		// Ако сме в тесен режим
-		if (Mode::is('screenMode', 'narrow')) {
-	
-			// Да има само 2 колони
-			$data->form->setField('workersIds', array('maxColumns' => 2));
-		}
-	}
-	
-	
-	/**
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    {
+        $company = crm_Companies::fetchOwnCompany();
+        $locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $company->companyId);
+        $data->form->setOptions('locationId', $locations);
+        
+        // Ако сме в тесен режим
+        if (Mode::is('screenMode', 'narrow')) {
+    
+            // Да има само 2 колони
+            $data->form->setField('workersIds', array('maxColumns' => 2));
+        }
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-    	if($action == 'select' && $rec){
-    		
-    		// Ако не може да избира склада, проверяваме дали е складов работник, и имали още тази роля
-    		if($res == 'no_one'){
-    			$cu = core_Users::getCurrent();
-    			if(keylist::isIn($cu, $rec->workersIds) && haveRole($mvc->getFieldType('workersIds')->getRoles())){
-    				$res = 'ceo,storeWorker';
-    			}
-    		}
-    	}
+        if ($action == 'select' && $rec) {
+            
+            // Ако не може да избира склада, проверяваме дали е складов работник, и имали още тази роля
+            if ($res == 'no_one') {
+                $cu = core_Users::getCurrent();
+                if (keylist::isIn($cu, $rec->workersIds) && haveRole($mvc->getFieldType('workersIds')->getRoles())) {
+                    $res = 'ceo,storeWorker';
+                }
+            }
+        }
     }
     
     
@@ -287,11 +287,11 @@ class store_Stores extends core_Master
      */
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if(is_object($rec)){
-    		if(isset($fields['-list'])){
-    			$rec->name =  $mvc->singleTitle . " \"{$rec->name}\"";
-    		}
-    	}
+        if (is_object($rec)) {
+            if (isset($fields['-list'])) {
+                $rec->name = $mvc->singleTitle . " \"{$rec->name}\"";
+            }
+        }
     }
     
     
@@ -300,27 +300,27 @@ class store_Stores extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if($fields['-single']){
-    		if($rec->locationId){
-    			$row->locationId = crm_Locations::getHyperLink($rec->locationId, TRUE);
-    		}
-    	}
+        if ($fields['-single']) {
+            if ($rec->locationId) {
+                $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
+            }
+        }
     }
     
     
     /**
      * Кои документи да се показват като бързи бутони в папката на корицата
      *
-     * @param int $id - ид на корицата
+     * @param  int   $id - ид на корицата
      * @return array $res - възможните класове
      */
     public function getDocButtonsInFolder($id)
     {
-    	$res = array();
-    	$res[] = planning_ConsumptionNotes::getClassId();
-    	$res[] = store_Transfers::getClassId();
-    	$res[] = store_InventoryNotes::getClassId();
-    	
-    	return $res;
+        $res = array();
+        $res[] = planning_ConsumptionNotes::getClassId();
+        $res[] = store_Transfers::getClassId();
+        $res[] = store_InventoryNotes::getClassId();
+        
+        return $res;
     }
 }

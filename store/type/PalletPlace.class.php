@@ -13,17 +13,20 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_type_PalletPlace extends type_Varchar {
+class store_type_PalletPlace extends type_Varchar
+{
     
     
     /**
      * Преобразуване от вербална стойност, към вътрешно представяне
      */
-    function fromVerbal($position)
+    public function fromVerbal($position)
     {
         $position = trim($position);
         
-        if(empty($position)) return FALSE;
+        if (empty($position)) {
+            return false;
+        }
         
         $rowLettersArr = array('a', 'b', 'c', 'd', 'e', 'f', 'g',
             'A', 'B', 'C', 'D', 'E', 'F', 'G');
@@ -34,7 +37,9 @@ class store_type_PalletPlace extends type_Varchar {
             }
         }
         
-        if (empty($letterPos)) return FALSE;
+        if (empty($letterPos)) {
+            return false;
+        }
         
         /* process $rackId */
         $rackId = substr($position, 0, $letterPos);
@@ -46,16 +51,16 @@ class store_type_PalletPlace extends type_Varchar {
             // test failed
             unset($match);
             
-            return FALSE;
-        } else {
-            // test passed
-            
-            // extract pattern
-            $pattern = "/^[0-9]+/";
-            preg_match($pattern, $rackId, $match);
-            $rackId = $match[0];
-            unset($match);
+            return false;
         }
+        // test passed
+            
+        // extract pattern
+        $pattern = '/^[0-9]+/';
+        preg_match($pattern, $rackId, $match);
+        $rackId = $match[0];
+        unset($match);
+        
         
         /* ENDOF test pattern */
         /* ENDOF process $rackId */
@@ -76,21 +81,21 @@ class store_type_PalletPlace extends type_Varchar {
             // test failed
             unset($match);
             
-            return FALSE;
-        } else {
-            // test passed
-            
-            // extract pattern
-            $pattern = "/[0-9]+$/";
-            preg_match($pattern, $rackColumn, $match);
-            $rackColumn = $match[0];
-            unset($match);
+            return false;
         }
+        // test passed
+            
+        // extract pattern
+        $pattern = '/[0-9]+$/';
+        preg_match($pattern, $rackColumn, $match);
+        $rackColumn = $match[0];
+        unset($match);
+        
         
         /* test pattern */
         /* ENDOF process $rackColumn */
         
-        $position = $rackId . "-" . $rackRow . "-" . $rackColumn;
+        $position = $rackId . '-' . $rackRow . '-' . $rackColumn;
         
         return $position;
     }

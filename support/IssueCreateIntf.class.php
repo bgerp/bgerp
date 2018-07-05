@@ -18,14 +18,14 @@ class support_IssueCreateIntf
     
     /**
      * Връща запис с подразбиращи се данни за сигнала
-     * 
+     *
      * @param integer $id Кой е пораждащия обект
-     * 
+     *
      * @return stdClass за support_Issues
-     * 
+     *
      * @see support_IssueCreateIntf
      */
-    function getDefaultIssueRec($id)
+    public function getDefaultIssueRec($id)
     {
         return $this->class->getDefaultIssueRec($id);
     }
@@ -35,13 +35,12 @@ class support_IssueCreateIntf
     
     /**
      * След създаване на сигнал от документа
-     * 
+     *
      * @param integer $id
-     * @param object $iRec
+     * @param object  $iRec
      */
-    function afterCreateIssue($id, $iRec)
+    public function afterCreateIssue($id, $iRec)
     {
-        
         return $this->class->afterCreateIssue($id, $iRec);
     }
 }

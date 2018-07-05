@@ -20,13 +20,13 @@ class cms_VerbalId extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Регистър за вербални id-та";
+    public $title = 'Регистър за вербални id-та';
 
 
     /**
      * Заглавие в единично число
      */
-    public $singleTitle = "вербалнo id-та";
+    public $singleTitle = 'вербалнo id-та';
     
     
     /**
@@ -48,15 +48,15 @@ class cms_VerbalId extends core_Manager
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo,admin,cms';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,admin,cms';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'ceo,admin,cms';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,admin,cms';
     
 
     /**
@@ -81,8 +81,8 @@ class cms_VerbalId extends core_Manager
      * Описание на модела (таблицата)
      */
     public function description()
-    {   
-        $this->FLD('vid',   'varchar(128)', 'caption=Вербално ID,mandatory');
+    {
+        $this->FLD('vid', 'varchar(128)', 'caption=Вербално ID,mandatory');
         $this->FLD('mvc', 'class(interface=cms_SourceIntf, allowEmpty, select=title)', 'caption=Източник,mandatory');
         $this->FLD('recId', 'int', 'caption=Запис,mandatory');
  
@@ -98,7 +98,7 @@ class cms_VerbalId extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-       // expect($mvc = cls::get($rec->source));
+        // expect($mvc = cls::get($rec->source));
 
       //  $title = $mvc->getTitleById($rec->recId);
 
@@ -112,10 +112,10 @@ class cms_VerbalId extends core_Manager
     public static function saveVid($vid, $mvc, $id)
     {
         $rec = new stdClass();
-        $rec->id    = self::fetchField(array("#vid = '[#1#]'", $vid), 'id');
-        $rec->mvc   = core_Classes::getId($mvc);
+        $rec->id = self::fetchField(array("#vid = '[#1#]'", $vid), 'id');
+        $rec->mvc = core_Classes::getId($mvc);
         $rec->recId = $id;
-        $rec->vid   = $vid;
+        $rec->vid = $vid;
 
         self::save($rec);
     }
@@ -125,18 +125,17 @@ class cms_VerbalId extends core_Manager
      * Извлича id от $vid
      */
     public static function fetchId($vid, $mvc)
-    { 
+    {
         $mvcId = core_Classes::getId($mvc);
 
         $rec = self::fetch(array("#vid = '[#1#]'", $vid));
 
-        if($rec && $rec->mvc == $mvcId) {
+        if ($rec && $rec->mvc == $mvcId) {
             $id = $rec->recId;
         } else {
-            $id = FALSE;
+            $id = false;
         }
 
         return $id;
     }
-
- }
+}

@@ -3,8 +3,8 @@
 
 /**
  * Интерфейс за експорт към CSV на детайл
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   export
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -24,42 +24,39 @@ class export_DetailExportCsvIntf
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @return string
      */
-    function getExportMasterFieldName()
+    public function getExportMasterFieldName()
     {
-        
         return $this->class->getExportMasterFieldName();
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @return array
      */
-    function getExportFieldsNameFromMaster()
+    public function getExportFieldsNameFromMaster()
     {
-        
         return $this->class->getExportFieldsNameFromMaster();
     }
     
     
     /**
      * Инпортиране на csv-файл в даден мениджър
-     * 
-     * @param core_Master $masterMvc
-     * @param stdClass $mRec
+     *
+     * @param core_Master   $masterMvc
+     * @param stdClass      $mRec
      * @param core_FieldSet $csvFields
-     * @param integer $activatedBy
-     * 
+     * @param integer       $activatedBy
+     *
      * @return array
      */
-    function getRecsForExportInDetails($masterMvc, $mRec, &$csvFields, $activatedBy)
+    public function getRecsForExportInDetails($masterMvc, $mRec, &$csvFields, $activatedBy)
     {
-        
         return $this->class->getRecsForExportInDetails($masterMvc, $mRec, $csvFields, $activatedBy);
     }
 }

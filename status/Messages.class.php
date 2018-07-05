@@ -18,55 +18,55 @@ class status_Messages extends core_Manager
     /**
      * Заглавие на модела
      */
-    var $title = 'Статус съобщения';
+    public $title = 'Статус съобщения';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin';
+    public $canView = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
+    public $canList = 'admin';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'status_Wrapper, plg_Created';
+    public $loadList = 'status_Wrapper, plg_Created';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('text', 'html', 'caption=Текст');
         $this->FLD('type', 'enum(success=Успех, notice=Известие, warning=Предупреждение, error=Грешка)', 'caption=Тип');
@@ -81,16 +81,16 @@ class status_Messages extends core_Manager
     
     /**
      * Добавя статус съобщение към избрания потребител
-     * 
-     * @param string $text - Съобщение, което ще добавим
-     * @param enum $type - Типа на съобщението - success, notice, warning, error
-     * @param integer $userId - Потребителя, към когото ще се добавя. Ако не е подаден потребител, тогава взема текущия потребител.
+     *
+     * @param string  $text     - Съобщение, което ще добавим
+     * @param enum    $type     - Типа на съобщението - success, notice, warning, error
+     * @param integer $userId   - Потребителя, към когото ще се добавя. Ако не е подаден потребител, тогава взема текущия потребител.
      * @param integer $lifeTime - След колко време да е неактивно
-     * @param string $hitId - Уникално ID на хита
-     * 
+     * @param string  $hitId    - Уникално ID на хита
+     *
      * @return integer - При успешен запис връща id' то на записа
      */
-    static function newStatus($text, $type='notice', $userId=NULL, $lifeTime=60, $hitId=NULL)
+    public static function newStatus($text, $type = 'notice', $userId = null, $lifeTime = 60, $hitId = null)
     {
         // Ако не е бил сетнат преди
         if (!Mode::get('hitTime')) {
@@ -126,10 +126,10 @@ class status_Messages extends core_Manager
     
     /**
      * Генерира sid на текущия потребител
-     * 
+     *
      * @return string - md5 стойността на sid
      */
-    static function getSid()
+    public static function getSid()
     {
         //Перманентния ключ на текущия потребител
         $permanentKey = Mode::getPermanentKey();
@@ -147,16 +147,16 @@ class status_Messages extends core_Manager
     
     /**
      * Връща всички статуси на текущия потребител, на които не им е изтекъл lifeTime' а
-     * 
-     * @param integer $hitTime - timestamp на изискване на страницата
+     *
+     * @param integer $hitTime  - timestamp на изискване на страницата
      * @param integer $idleTime - Време на бездействие на съответния таб
      * @param integer $maxLimit - Максимален брой на статусите, които да се връщат при едно извикване
-     * @param boolean $once - Еднакви (стринг и тип) статус съобщения да се показват само веднъж
-     * @param string $hitId - Уникално ID на хита
-     * 
+     * @param boolean $once     - Еднакви (стринг и тип) статус съобщения да се показват само веднъж
+     * @param string  $hitId    - Уникално ID на хита
+     *
      * @return array $resArr - Масив със съобщението и типа на статуса
      */
-    static function getStatuses($hitTime, $idleTime, $maxLimit=4, $once=TRUE, $hitId=NULL)
+    public static function getStatuses($hitTime, $idleTime, $maxLimit = 4, $once = true, $hitId = null)
     {
         $resArr = array();
         
@@ -192,7 +192,7 @@ class status_Messages extends core_Manager
         
         // Само логнатите потребители могат да видят статусите без sid
         if ($userId > 0) {
-            $query->orWhere("#sid IS NULL");
+            $query->orWhere('#sid IS NULL');
         }
         
         $query->orderBy('createdOn', 'ASC');
@@ -208,14 +208,15 @@ class status_Messages extends core_Manager
         $limit = 0;
         
         while ($rec = $query->fetch()) {
-            
-            $skip = FALSE;
+            $skip = false;
             
             // Проверяваме дали е извличан преди
             $isRetrived = status_Retrieving::isRetrived($rec->id, $hitTime, $idleTime, $sid, $userId, $hitId);
             
             // Ако е извличан преди в съответния таб, да не се показва пак
-            if ($isRetrived) continue;
+            if ($isRetrived) {
+                continue;
+            }
             
             // Ако ще се показват само веднъж
             if ($once) {
@@ -224,7 +225,7 @@ class status_Messages extends core_Manager
                 $strHash = md5($rec->text . $rec->type);
                 
                 if ($checkedArr[$strHash]) {
-                    $skip = TRUE;
+                    $skip = true;
                 }
                 
                 // Добавяме в масива
@@ -235,10 +236,12 @@ class status_Messages extends core_Manager
             if (!$skip) {
                 
                 // Ако сме достигнали лимита
-                if ($limit >= $maxLimit) continue;
+                if ($limit >= $maxLimit) {
+                    continue;
+                }
                 
                 // Двумерен масив с типа и текста
-                $resArr[$rec->id]['text'] = tr("|*" . $rec->text);
+                $resArr[$rec->id]['text'] = tr('|*' . $rec->text);
                 $resArr[$rec->id]['type'] = $rec->type;
                 $limit++;
             }
@@ -253,10 +256,10 @@ class status_Messages extends core_Manager
     
     /**
      * Абонира за извличане на статус съобщения
-     * 
+     *
      * @return core_ET
      */
-    static function subscribe_()
+    public static function subscribe_()
     {
         $res = new ET();
         
@@ -277,13 +280,15 @@ class status_Messages extends core_Manager
     /**
      * Връща статус съобщенията
      */
-    static function act_getStatuses()
+    public static function act_getStatuses()
     {
         // Ако се вика по AJAX
         if (Request::get('ajax_mode')) {
             
             // Ако се принтира
-            if (Request::get('Printing')) return array();
+            if (Request::get('Printing')) {
+                return array();
+            }
             
             // Времето на отваряне на таба
             $hitTime = Request::get('hitTime', 'int');
@@ -297,16 +302,18 @@ class status_Messages extends core_Manager
             $statusesArr = self::getStatusesData($hitTime, $idleTime, $hitId);
             
             // Ако няма нищо за показване
-            if (!$statusesArr) return array();
+            if (!$statusesArr) {
+                return array();
+            }
             
-            // При възникване на статус от тип грешка, да се нотифицира в таба 
-            foreach ((array)$statusesArr as $statusDesc) {
+            // При възникване на статус от тип грешка, да се нотифицира в таба
+            foreach ((array) $statusesArr as $statusDesc) {
                 if ($statusDesc->arg['type'] == 'error') {
                     $errIcon = sbf('img/16/dialog_error.png', '');
                     
                     $resObj = new stdClass();
                     $resObj->func = 'Notify';
-                    $resObj->arg =  array('title' => 'Грешка', 'blinkTimes' => 3,  'favicon' => $errIcon);
+                    $resObj->arg = array('title' => 'Грешка', 'blinkTimes' => 3,  'favicon' => $errIcon);
                     
                     $statusesArr[] = $resObj;
                     
@@ -321,22 +328,21 @@ class status_Messages extends core_Manager
     
     /**
      * Връща 'div' със статус съобщенията
-     * 
-     * @param integer $hitTime - Timestamp на показване на страницата
+     *
+     * @param integer $hitTime  - Timestamp на показване на страницата
      * @param integer $idleTime - Време на бездействие на съответния таб
-     * @param string $hitId - Уникално ID на хита
-     * 
+     * @param string  $hitId    - Уникално ID на хита
+     *
      * @return array
      */
-    static function getStatusesData_($hitTime, $idleTime, $hitId=NULL)
+    public static function getStatusesData_($hitTime, $idleTime, $hitId = null)
     {
         // Всички статуси за текущия потребител преди времето на извикване на страницата
-        $statusArr = self::getStatuses($hitTime, $idleTime, 4, TRUE, $hitId);
+        $statusArr = self::getStatuses($hitTime, $idleTime, 4, true, $hitId);
         
         $resStatus = array();
         
         foreach ($statusArr as $value) {
-            
             $res = '';
             
             // Записваме всеки статус в отделен div и класа се взема от типа на статуса
@@ -345,7 +351,7 @@ class status_Messages extends core_Manager
             // Добавяме резултата
             $resObj = new stdClass();
             $resObj->func = 'html';
-            $resObj->arg = array('id'=>'statuses', 'html' => $res, 'replace' => FALSE);
+            $resObj->arg = array('id' => 'statuses', 'html' => $res, 'replace' => false);
             
             $resStatus[] = $resObj;
             
@@ -360,21 +366,20 @@ class status_Messages extends core_Manager
     
     /**
      * Връща обект за звукава нотификация
-     * 
+     *
      * @param string $type
-     * 
+     *
      * @return stdClass|NULL
      */
     public static function getSoundNotifications($type)
     {
         if ($type == 'error') {
-            
             $obj = new stdClass();
             
             $notifyArr = array('title' => tr('Грешка'), 'blinkTimes' => 2);
             
-            $notifyArr['soundOgg'] = sbf("sounds/error.ogg", '');
-            $notifyArr['soundMp3'] = sbf("sounds/error.mp3", '');
+            $notifyArr['soundOgg'] = sbf('sounds/error.ogg', '');
+            $notifyArr['soundMp3'] = sbf('sounds/error.mp3', '');
             
             $obj->func = 'Notify';
             $obj->arg = $notifyArr;
@@ -387,7 +392,7 @@ class status_Messages extends core_Manager
     /**
      * Извиква се от крона. Премахва старите статус съобщения
      */
-    function cron_removeOldStatuses()
+    public function cron_removeOldStatuses()
     {
         // Текущото време
         $now = dt::verbal2mysql();
@@ -413,10 +418,10 @@ class status_Messages extends core_Manager
     }
     
     
-	/**
+    /**
      * Изпълнява се след създаването на модела
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         // Данни за работата на cron
         $rec = new stdClass();
@@ -438,11 +443,11 @@ class status_Messages extends core_Manager
      */
     public static function returnStatusesArray()
     {
-    	$hitTime = Request::get('hitTime', 'int');
-    	$idleTime = Request::get('idleTime', 'int');
-    	$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+        $hitTime = Request::get('hitTime', 'int');
+        $idleTime = Request::get('idleTime', 'int');
+        $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
     
-    	// Връщаме статусите ако има
-    	return (array)$statusData;
+        // Връщаме статусите ако има
+        return (array) $statusData;
     }
 }

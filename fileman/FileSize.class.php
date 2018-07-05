@@ -12,46 +12,49 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class fileman_FileSize extends type_Bigint {
+class fileman_FileSize extends type_Bigint
+{
     
     
     /**
      * @todo Чака за документация...
      */
-    var $sizes = array("Bytes", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB");
+    public $sizes = array('Bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
     
     
     /**
      * @todo Чака за документация...
      */
-    function toVerbal_($size)
+    public function toVerbal_($size)
     {
-        if($size === NULL) return NULL;
+        if ($size === null) {
+            return;
+        }
         
         $space = '&nbsp;';
 
-        if(Mode::is(text, 'plain')) {
+        if (Mode::is(text, 'plain')) {
             $space = ' ';
         }
 
         if ($size == 0) {
             return($space . 'Bytes');
-        } else {
-            return (round($size / pow(1024, ($i = floor(log($size, 1024)))), $i > 1 ? 2 : 0) . $space . $this->sizes[$i]);
         }
+
+        return (round($size / pow(1024, ($i = floor(log($size, 1024)))), $i > 1 ? 2 : 0) . $space . $this->sizes[$i]);
     }
     
     
     /**
      * @todo Чака за документация...
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
-        if($this->params[0]) {
+        if ($this->params[0]) {
             $attr['maxlength'] = $this->params[0];
         }
         
-        if($this->params['size']) {
+        if ($this->params['size']) {
             $attr['size'] = $this->params['size'];
         }
         
@@ -70,13 +73,17 @@ class fileman_FileSize extends type_Bigint {
     /**
      * Преобразуване от вербална стойност, към вътрешно представяне
      */
-    function fromVerbal_($value)
+    public function fromVerbal_($value)
     {
-        if($value === NULL) return NULL;
+        if ($value === null) {
+            return;
+        }
         
-        if($value === 0) return 0;
+        if ($value === 0) {
+            return 0;
+        }
         
-        if((round(trim($value)) . '') == trim($value)) {
+        if ((round(trim($value)) . '') == trim($value)) {
             $value .= 'b';
         }
         
@@ -89,10 +96,10 @@ class fileman_FileSize extends type_Bigint {
         
         $res = trim($arr[0]) * trim($arr[1]);
         
-        if(!$res && $value>0) {
+        if (!$res && $value > 0) {
             $this->error = 'Некоректен размер на файл';
             
-            return FALSE;
+            return false;
         }
         
         return $res;

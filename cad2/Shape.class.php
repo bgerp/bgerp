@@ -13,32 +13,32 @@
  */
 abstract class cad2_Shape extends core_BaseClass
 {
-		
-	/**
-	 * Кой може да избира драйвъра
-	 */
-	public $canSelectSource = 'cad,ceo,admin';
-	
-	
-	/**
-	 * Интерфейси които имплементира
-	 */
-	public $interfaces = 'cad2_ShapeIntf';
-	
- 	
+        
+    /**
+     * Кой може да избира драйвъра
+     */
+    public $canSelectSource = 'cad,ceo,admin';
+    
+    
+    /**
+     * Интерфейси които имплементира
+     */
+    public $interfaces = 'cad2_ShapeIntf';
+    
+    
     /**
      * Дали може да се избира драйвера от текущия потребител
      */
-    function canSelectDriver($userId = NULL)
+    public function canSelectDriver($userId = null)
     {
-        return TRUE;
+        return true;
     }
 
 
     /**
      * Връща обект, поддъжащ интерфейса на класа cad2_SvgCanvas
      */
-    function getCanvas()
+    public function getCanvas()
     {
         $svg = cls::get('cad2_SvgCanvas');
         
@@ -46,6 +46,4 @@ abstract class cad2_Shape extends core_BaseClass
 
         return $svg;
     }
-
-	
 }

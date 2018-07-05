@@ -19,82 +19,82 @@ class cms_GalleryGroups extends core_Manager
     /**
      * Кой има право да чете
      */
-    var $canRead = 'user';
+    public $canRead = 'user';
     
 
     /**
      * Кой  може да пише?
      */
-    var $canWrite = 'user';
+    public $canWrite = 'user';
 
     
     /**
      * Заглавие
      */
-    var $title = 'Групи от картинки';
+    public $title = 'Групи от картинки';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = 'Група от картинки';
+    public $singleTitle = 'Група от картинки';
     
     
     
     /**
-	 * Кой може да използва групите
-	 */
-    var $canUsegroup = 'user';
+     * Кой може да използва групите
+     */
+    public $canUsegroup = 'user';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'user';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'user';
     
-	
-	/**
-	 * Кой може да променя съсъоянието
-	 * @see plg_State2
-	 */
-    var $canChangestate = 'user';
+    
+    /**
+     * Кой може да променя съсъоянието
+     * @see plg_State2
+     */
+    public $canChangestate = 'user';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,cms_Wrapper,plg_Created, plg_Modified, cms_GalleryTitlePlg, plg_Clone, plg_State2, cms_GalleryDialogWrapper";
+    public $loadList = 'plg_RowTools,cms_Wrapper,plg_Created, plg_Modified, cms_GalleryTitlePlg, plg_Clone, plg_State2, cms_GalleryDialogWrapper';
     
     
     /**
      * Полета за изглед
      */
-    var $listFields = 'id,title,position,roles,sharedTo,tWidth,tHeight,width,height,createdOn,createdBy,state';
+    public $listFields = 'id,title,position,roles,sharedTo,tWidth,tHeight,width,height,createdOn,createdBy,state';
     
     
     /**
      * Името на полето, което ще се използва от плъгина
      * @see cms_GalleryTitlePlg
      */
-    var $galleryTitleFieldName = 'title';
+    public $galleryTitleFieldName = 'title';
     
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    var $oldClassName = 'fileman_GalleryGroups';
+    public $oldClassName = 'fileman_GalleryGroups';
     
     
     /**
      * Брой елементи при показване на страница в диалогов прозорец
      */
-    var $galleryListItemsPerPage = 10;
+    public $galleryListItemsPerPage = 10;
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('position', 'enum(none=Без стил,center=Център,left=Ляво,right=Дясно)', 'caption=Позиция,mandatory');
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие');
@@ -120,28 +120,28 @@ class cms_GalleryGroups extends core_Manager
      */
     public function loadSetupData()
     {
-    	// Пътя до файла с данните 
-    	$file = "cms/csv/GalleryGroups.csv";
-    	
-    	// Кои колонки ще вкарваме
-    	$fields = array( 
-    		0 => "title", 
-    		1 => "position",
-    		2 => "tpl",
-    		3 => "style",
-    		4 => "tWidth",
-    		5 => "tHeight",
-    		6 => "width",
-    		7 => "height",
-    		8 => "roles",
-    	);
-    	    	
-    	// Импортираме данните от CSV файла. 
-    	// Ако той не е променян - няма да се импортират повторно 
-    	$cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, array('delimiter' => '|'), FALSE); 
-     	
-    	// Записваме в лога вербалното представяне на резултата от импортирането 
-    	$res = $cntObj->html;
+        // Пътя до файла с данните
+        $file = 'cms/csv/GalleryGroups.csv';
+        
+        // Кои колонки ще вкарваме
+        $fields = array(
+            0 => 'title',
+            1 => 'position',
+            2 => 'tpl',
+            3 => 'style',
+            4 => 'tWidth',
+            5 => 'tHeight',
+            6 => 'width',
+            7 => 'height',
+            8 => 'roles',
+        );
+                
+        // Импортираме данните от CSV файла.
+        // Ако той не е променян - няма да се импортират повторно
+        $cntObj = csv_Lib::importOnce($this, $file, $fields, null, array('delimiter' => '|'), false);
+         
+        // Записваме в лога вербалното представяне на резултата от импортирането
+        $res = $cntObj->html;
 
         return $res;
     }
@@ -153,16 +153,19 @@ class cms_GalleryGroups extends core_Manager
     public static function on_BeforeImportRec($mvc, &$rec)
     {
         // Ако не са подадени роли
-        if (!$rec->roles) return ;
+        if (!$rec->roles) {
+            return ;
+        }
         
         // Обхождаме всички роли и от името им определяме id-то
         $rolesStrArr = arr::make($rec->roles);
         $roleArr = array();
         foreach ($rolesStrArr as $role) {
-            
             $roleId = core_Roles::fetchByName($role);
             
-            if (!$roleId) continue;
+            if (!$roleId) {
+                continue;
+            }
             
             $roleArr[$roleId] = $roleId;
         }
@@ -174,10 +177,10 @@ class cms_GalleryGroups extends core_Manager
     
     /**
      * Връща id на групата по подразбиране
-     * 
+     *
      * @return integer
      */
-    static function getDefaultGroupId()
+    public static function getDefaultGroupId()
     {
         
         // По подразбиране да се използва групата централни
@@ -189,12 +192,12 @@ class cms_GalleryGroups extends core_Manager
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако има запис и потребителя не е CEO или admin
         if ($rec && !haveRole('ceo, admin')) {
@@ -245,14 +248,14 @@ class cms_GalleryGroups extends core_Manager
     
     /**
      * Преди записване на клонирания запис
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param object $rec
-     * @param object $nRec
-     * 
+     * @param object   $rec
+     * @param object   $nRec
+     *
      * @see plg_Clone
      */
-    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    public function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
         // Премахваме ненужните полета
         unset($nRec->createdOn);
@@ -264,19 +267,19 @@ class cms_GalleryGroups extends core_Manager
     
     
     /**
-	 *  Подготовка на филтър формата
-	 */
-	static function on_AfterPrepareListFilter($mvc, &$data)
-	{
-	    // Ограничаваме записите, които да се показват
-	    $mvc->restrictQuery($data->query);
-	}
-	
-	
-	/**
+     *  Подготовка на филтър формата
+     */
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        // Ограничаваме записите, които да се показват
+        $mvc->restrictQuery($data->query);
+    }
+    
+    
+    /**
      * Поставя изискване да се селектират достъпните записи
      */
-    function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
+    public function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = null, &$where = null)
     {
         $nQuery = $mvc->getQuery();
         
@@ -285,29 +288,29 @@ class cms_GalleryGroups extends core_Manager
         
         $mvc->restrictQuery($nQuery);
         
-        $nWhere = $nQuery->getWhereAndHaving(TRUE)->w;
+        $nWhere = $nQuery->getWhereAndHaving(true)->w;
         
         $where = trim($nWhere);
     }
-	
     
-	/**
-	 * 
-	 * 
-	 * @param core_Query $query
-	 */
-    static function restrictQuery(&$query, $userId=NULL)
+    
+    /**
+     *
+     *
+     * @param core_Query $query
+     */
+    public static function restrictQuery(&$query, $userId = null)
     {
-        $orToPrevious = FALSE;
+        $orToPrevious = false;
         
         // Ограничаваме заявката да се показват само групите споделени с определени потребители
         if (static::restrictRoles($query, $orToPrevious, 'roles', $userId)) {
-            $orToPrevious = TRUE;
+            $orToPrevious = true;
         }
         
         // Ограничаваме заявката да се показват само групите споделени до определени потребители
         if (static::restrictSharedTo($query, $orToPrevious, 'sharedTo', $userId)) {
-            $orToPrevious = TRUE;
+            $orToPrevious = true;
         }
         
         // Ограничаваме да се показва само групите създадени от съответния потребител
@@ -317,25 +320,29 @@ class cms_GalleryGroups extends core_Manager
     
     /**
      * Ограничаваме заявката да се показват само групите споделени с определени потребители
-     * 
-     * @param core_Query $query - Заявката
-     * @param boolean $orToPrevious - Дали да се залепи с OR към предишната заявка
-     * @param string $rolesFieldName - Името на полето
-     * @param integer $userId - id на потребителя
-     * 
+     *
+     * @param core_Query $query          - Заявката
+     * @param boolean    $orToPrevious   - Дали да се залепи с OR към предишната заявка
+     * @param string     $rolesFieldName - Името на полето
+     * @param integer    $userId         - id на потребителя
+     *
      * @return boolean
      */
-    static function restrictRoles(&$query, $orToPrevious=FALSE, $rolesFieldName='roles', $userId=NULL)
+    public static function restrictRoles(&$query, $orToPrevious = false, $rolesFieldName = 'roles', $userId = null)
     {
         // Ако име роля ceo да може да вижда всички
-        if (haveRole('ceo')) return ;
+        if (haveRole('ceo')) {
+            return ;
+        }
         
         // Ако не е подаден потребител, да се изпозлва текущия
         if (!$userId) {
             $userId = core_Users::getCurrent();
         }
         
-        if ($userId <= 0) return ;
+        if ($userId <= 0) {
+            return ;
+        }
         
         // Ролите на текущия потребител
         $userRoles = core_Users::getRoles($userId);
@@ -343,79 +350,87 @@ class cms_GalleryGroups extends core_Manager
         // Да се показва групите за които е зададене някоя роля от тези на потребителя
         $query->likeKeylist($rolesFieldName, $userRoles, $orToPrevious);
         
-        return TRUE;
+        return true;
     }
     
 
     
     /**
      * Ограничаваме заявката да се показват само групите споделени до определени потребители
-     * 
-     * @param core_Query $query - Заявката
-     * @param boolean $orToPrevious - Дали да се залепи с OR към предишната заявка
-     * @param string $rolesFieldName - Името на полето
-     * @param integer $userId - id на потребителя
-     * 
+     *
+     * @param core_Query $query          - Заявката
+     * @param boolean    $orToPrevious   - Дали да се залепи с OR към предишната заявка
+     * @param string     $rolesFieldName - Името на полето
+     * @param integer    $userId         - id на потребителя
+     *
      * @return boolean
      */
-    static function restrictSharedTo(&$query, $orToPrevious=FALSE, $rolesFieldName='sharedTo', $userId=NULL)
+    public static function restrictSharedTo(&$query, $orToPrevious = false, $rolesFieldName = 'sharedTo', $userId = null)
     {
         // Ако име роля ceo да може да вижда всички
-        if (haveRole('ceo')) return ;
+        if (haveRole('ceo')) {
+            return ;
+        }
         
         // Ако не е подаден потребител, да се изпозлва текущия
         if (!$userId) {
             $userId = core_Users::getCurrent();
         }
         
-        if ($userId <= 0) return ;
+        if ($userId <= 0) {
+            return ;
+        }
         
         // Масив с текущия потребител
-        $userIdArr = type_Keylist::fromArray(array($userId=>$userId));
+        $userIdArr = type_Keylist::fromArray(array($userId => $userId));
         
         // Да се показва групите за които е зададен е зададен потребителя
         $query->likeKeylist($rolesFieldName, $userIdArr, $orToPrevious);
         
-        return TRUE;
+        return true;
     }
     
     
-	/**
+    /**
      * Ограничаваме да се показва само групите създадени от съответния потребител
-     * 
-     * @param core_Query $query - Заявката
-     * @param boolean $orToPrevious - Дали да се залепи с OR към предишната заявка
-     * @param string $rolesFieldName - Името на полето
-     * @param integer $userId - id на потребителя
-     * 
+     *
+     * @param core_Query $query          - Заявката
+     * @param boolean    $orToPrevious   - Дали да се залепи с OR към предишната заявка
+     * @param string     $rolesFieldName - Името на полето
+     * @param integer    $userId         - id на потребителя
+     *
      * @return boolean
      */
-    static function restrictCreated(&$query, $orToPrevious=FALSE, $rolesFieldName='createdBy', $userId=NULL)
+    public static function restrictCreated(&$query, $orToPrevious = false, $rolesFieldName = 'createdBy', $userId = null)
     {
         // Ако име роля ceo да може да вижда всички
-        if (haveRole('ceo')) return ;
+        if (haveRole('ceo')) {
+            return ;
+        }
         
         // Ако не е подаден потребител, да се изпозлва текущия
         if (!$userId) {
             $userId = core_Users::getCurrent();
         }
         
-        if ($userId <= 0) return ;
+        if ($userId <= 0) {
+            return ;
+        }
         
         // Да се показва групите, които са създадени от потребителя
         $query->where("#{$rolesFieldName} = '{$userId}'", $orToPrevious);
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Подготвя полето за заглавие
-     * 
+     *
      * @param object $rec
      * @see cms_GalleryTitlePlg
      */
-    function prepareRecTitle(&$rec)
+    public function prepareRecTitle(&$rec)
     {
         // Името на полето
         $titleField = $this->galleryTitleFieldName;
@@ -432,9 +447,9 @@ class cms_GalleryGroups extends core_Manager
     /**
      * Екшън за показване на диалогов прозорец за с изображенията в галерията
      */
-    function act_DialogList()
+    public function act_DialogList()
     {
-        Mode::set('dialogOpened', TRUE);
+        Mode::set('dialogOpened', true);
         
         // Очакваме да е има права за добавяне
         $this->requireRightFor('list');
@@ -449,7 +464,7 @@ class cms_GalleryGroups extends core_Manager
         $this->prepareListFilter($data);
     
         // По - новите добавени да са по - напред
-        $data->query->orderBy("#createdOn", "DESC");
+        $data->query->orderBy('#createdOn', 'DESC');
         
         Request::setProtected('callback');
         
@@ -491,14 +506,14 @@ class cms_GalleryGroups extends core_Manager
     
     /**
      * Подготвя вербалната стойност на данните
-     * 
+     *
      * @param stdClass
-     * 
+     *
      * @return stdClass
-     * 
+     *
      * @see core_Manager::prepareListRows_()
      */
-    function prepareListRows_(&$data)
+    public function prepareListRows_(&$data)
     {
         parent::prepareListRows_($data);
         
@@ -529,7 +544,7 @@ class cms_GalleryGroups extends core_Manager
     /**
      * Рендираме общия изглед за 'List'
      */
-    function renderGalleryDialogList($data)
+    public function renderGalleryDialogList($data)
     {
         // Рендираме общия лейаут
         $tpl = new ET("
@@ -559,16 +574,16 @@ class cms_GalleryGroups extends core_Manager
     
     /**
      * Рендира таблицата за показване в диалоговия прозорец на галерията
-     * 
+     *
      * @param stdClass $data
      */
-    function renderGalleryDialogListTable($data)
+    public function renderGalleryDialogListTable($data)
     {
         // Инстанция на класа
         $table = cls::get('core_TableView', array('mvc' => $this));
         
         // Полетата, които ще се показва
-        $listFields = array('title' => 'Заглавие', 'position' => 'Позиция', 'WH' => 'Размери->Картинка', 'tWH' => 'Размери->Тъмб');    
+        $listFields = array('title' => 'Заглавие', 'position' => 'Позиция', 'WH' => 'Размери->Картинка', 'tWH' => 'Размери->Тъмб');
         
         // Рендираме таблицата
         $tpl = $table->get($data->rows, $listFields);

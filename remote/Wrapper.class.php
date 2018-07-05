@@ -21,7 +21,7 @@ class remote_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('remote_Authorizations', 'Връзки', 'powerUser');
         $this->TAB('remote_Tokens', 'Кодове', 'debug,admin');
@@ -29,5 +29,4 @@ class remote_Wrapper extends plg_ProtoWrapper
         // $this->title = 'Новини « Сайт';
         // Mode::set('menuPage','Сайт:Новини');
     }
-
 }

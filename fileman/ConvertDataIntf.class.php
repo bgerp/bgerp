@@ -3,7 +3,7 @@
 
 /**
  * Интерфейс за конвертирани на данните на файла след обновяване
- * 
+ *
  * @category  bgerp
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -24,14 +24,13 @@ class fileman_ConvertDataIntf
     
     /**
      * Обработките на данните, за файла
-     * 
+     *
      * @param string $data
-     * 
+     *
      * @return string
      */
-    function convertData($data)
+    public function convertData($data)
     {
-        
         return $this->class->convertData($data);
     }
 }

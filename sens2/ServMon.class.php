@@ -14,22 +14,22 @@
  * @since     v 0.1
  * @title     Сървърен мониторинг
  */
-class sens2_ServMon  extends sens2_ProtoDriver
+class sens2_ServMon extends sens2_ProtoDriver
 {
     
     /**
      * Заглавие на драйвера
      */
-    var $title = 'Сървърен мониторинг';
+    public $title = 'Сървърен мониторинг';
     
     
     /**
      * Интерфeйси, поддържани от всички наследници
      */
-    var $interfaces = 'sens2_DriverIntf';
+    public $interfaces = 'sens2_DriverIntf';
 
     
-    function getInputPorts($config = NULL)
+    public function getInputPorts($config = null)
     {
         return array(
                 'freeRam' => (object) array('caption' => 'Свободна RAM', 'uom' => '%'),
@@ -53,7 +53,7 @@ class sens2_ServMon  extends sens2_ProtoDriver
 
  
 
-    function prepareConfigForm($form)
+    public function prepareConfigForm($form)
     {
         $form->FLD('dir1', 'varchar', 'caption=Пътища->Dir1');
         $form->FLD('dir2', 'varchar', 'caption=Пътища->Dir1');
@@ -66,11 +66,10 @@ class sens2_ServMon  extends sens2_ProtoDriver
         $form->FLD('conn2', 'varchar', 'caption=Връзки->Conn2');
         $form->FLD('conn3', 'varchar', 'caption=Връзки->Conn3');
         $form->FLD('cpuLoad', 'varchar', 'caption=Процесор->cpuLoad');
-        
     }
 
 
-    function checkConfigForm($form)
+    public function checkConfigForm($form)
     {
     }
 
@@ -78,52 +77,52 @@ class sens2_ServMon  extends sens2_ProtoDriver
     /**
      * Прочитане на входовете
      */
-    function readInputs($inputs, $config, &$persistentState)
+    public function readInputs($inputs, $config, &$persistentState)
     {
-        if($inputs['freeRam']) {
+        if ($inputs['freeRam']) {
             $os = cls::get('core_Os');
-            $res['freeRam'] = $os->getMemoryUsage();  
+            $res['freeRam'] = $os->getMemoryUsage();
         }
 
-        if($inputs['freeDir1']) {
+        if ($inputs['freeDir1']) {
             $res['freeDir1'] = $this->getFreeDiskSpace($config->dir1);
         }
         
-        if($inputs['freeDir2']) {
+        if ($inputs['freeDir2']) {
             $res['freeDir2'] = $this->getFreeDiskSpace($config->dir2);
         }
         
-        if($inputs['mysqlCnt']) {
+        if ($inputs['mysqlCnt']) {
             $res['mysqlCnt'] = $this->countMysqlConnections();
         }
        
         // Проверка на броя процеси
-        if($inputs['proc1cnt']) {
+        if ($inputs['proc1cnt']) {
             $os = cls::get('core_Os');
             $res['proc1cnt'] = $os->countProc($config->proc1);
         }
         
-        if($inputs['proc2cnt']) {
+        if ($inputs['proc2cnt']) {
             $os = cls::get('core_Os');
             $res['proc2cnt'] = $os->countProc($config->proc2);
         }
 
-        if($inputs['proc3cnt']) {
+        if ($inputs['proc3cnt']) {
             $os = cls::get('core_Os');
             $res['proc3cnt'] = $os->countProc($config->proc3);
         }
      
         
         // Проверка на връзката към отдалечени сървъри
-        if($inputs['conn1']) {
+        if ($inputs['conn1']) {
             $res['conn1'] = $this->checkConnection($config->conn1);
         }
 
-        if($inputs['conn2']) {
+        if ($inputs['conn2']) {
             $res['conn2'] = $this->checkConnection($config->conn2);
         }
 
-        if($inputs['conn3']) {
+        if ($inputs['conn3']) {
             $res['conn3'] = $this->checkConnection($config->conn3);
         }
         
@@ -139,19 +138,18 @@ class sens2_ServMon  extends sens2_ProtoDriver
      */
     public static function getServerLoad()
     {
-   
         if (stristr(PHP_OS, 'win')) {
             exec('wmic cpu get LoadPercentage', $p);
       
-            return $p[2];           
-        } else {
-       
-            $sysLoad = sys_getloadavg();
-
-            if($inputs['cpuLoad']) {
-                $load = $sysLoad[0];
-            }       
+            return $p[2];
         }
+       
+        $sysLoad = sys_getloadavg();
+
+        if ($inputs['cpuLoad']) {
+            $load = $sysLoad[0];
+        }
+        
        
         return (int) $load;
     }
@@ -160,11 +158,11 @@ class sens2_ServMon  extends sens2_ProtoDriver
     /**
      * Проверява дали имаме http връзка с даден адрес
      */
-    function checkConnection($url) 
+    public function checkConnection($url)
     {
         list($domain, $port) = explode(':', $url);
         
-        if(!$port) {
+        if (!$port) {
             $port = '80';
         }
 
@@ -177,9 +175,8 @@ class sens2_ServMon  extends sens2_ProtoDriver
     /**
      * Връща броя на MySQL връзките
      */
-    function countMysqlConnections()
+    public function countMysqlConnections()
     {
-        
         $db = cls::get('core_Db');
         $dbRes = $db->query("SHOW STATUS WHERE `variable_name` = 'Threads_connected'");
         $res = $db->fetchObject($dbRes);
@@ -191,12 +188,12 @@ class sens2_ServMon  extends sens2_ProtoDriver
     /**
      * Проверява колко свободно място има на дадената директория
      */
-    function getFreeDiskSpace($path)
+    public function getFreeDiskSpace($path)
     {
-        if(file_exists($path)) {
+        if (file_exists($path)) {
             $res = disk_free_space($path);
         } else {
-            $res = "Не съществуваща директория $path";
+            $res = "Не съществуваща директория ${path}";
         }
 
         return $res;
@@ -207,14 +204,13 @@ class sens2_ServMon  extends sens2_ProtoDriver
     /**
      * Записва стойностите на изходите на контролера
      *
-     * @param   array   $outputs            масив със системните имена на изходите и стойностите, които трябва да бъдат записани
-     * @param   array   $config             конфигурациони параметри
-     * @param   array   $persistentState    персистентно състояние на контролера от базата данни
+     * @param array $outputs         масив със системните имена на изходите и стойностите, които трябва да бъдат записани
+     * @param array $config          конфигурациони параметри
+     * @param array $persistentState персистентно състояние на контролера от базата данни
      *
-     * @return  array                       Mасив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
+     * @return array Mасив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
      */
-    function writeOutputs($outputs, $config, &$persistentState)
+    public function writeOutputs($outputs, $config, &$persistentState)
     {
     }
-
 }

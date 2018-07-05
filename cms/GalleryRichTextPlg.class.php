@@ -30,13 +30,12 @@ class cms_GalleryRichTextPlg extends core_Plugin
     /**
      * Обработваме елементите линковете, които сочат към докоментната система
      */
-    function on_AfterCatchRichElements($mvc, &$html)
+    public function on_AfterCatchRichElements($mvc, &$html)
     {
-       
         $this->mvc = $mvc;
         
         //Ако намери съвпадение на регулярния израз изпълнява функцията
-        // Обработваме елементите [images=????]  
+        // Обработваме елементите [images=????]
         $html = preg_replace_callback(self::IMG_PATTERN, array($this, 'catchImages'), $html);
 //        $html = preg_replace_callback(self::GALLERY_PATTERN, array($this, 'catchGallery'), $html);
     }
@@ -52,15 +51,15 @@ class cms_GalleryRichTextPlg extends core_Plugin
 //    	$title = $match[2];
 //        $groupRec = cms_GalleryGroups::fetch(array("#title = '[#1#]'", $title));
 //    	if(!$groupRec) return "[img=#{$groupRec}]";
-//    	
+//
 //    	$tArr = array($groupRec->tWidth ? $groupRec->tWidth : 128, $groupRec->tHeight ? $groupRec->tHeight : 128);
 //        $mArr = array($groupRec->width ? $groupRec->width : 600, $groupRec->height ? $groupRec->width : 600);
-//        
+//
 //        $imgagesRec = cms_GalleryImages::getQuery();
 //        $imgagesRec->where("#groupId={$groupRec->id}");
 //        $tpl = new ET(getFileContent('cms/tpl/gallery.shtml'));
 //        $tpl->replace($groupRec->tWidth,'width');
-//        
+//
 //        $Fancybox = cls::get('fancybox_Fancybox');
 //        $table = new ET();
 //
@@ -69,9 +68,9 @@ class cms_GalleryRichTextPlg extends core_Plugin
 //
 //        // извличаме изображенията от групата и генерираме шаблона им
 //        $count = 1;
-//        
+//
 //        while($img = $imgagesRec->fetch()) {
-//            
+//
 //            $attr = array();
 //
 //            if($img->style || $groupRec->style) {
@@ -80,7 +79,7 @@ class cms_GalleryRichTextPlg extends core_Plugin
 //
 //            $res = $Fancybox->getImage($img->src, $tArr, $mArr, $img->title, $attr);
 //            $row = $tpl->getBlock('ROW');;
-//        	 
+//
 //            $row->replace($res, 'TPL');
 //            if(!$groupRec->columns || $count % $groupRec->columns == 0) {
 //                $row->append("</tr><tr>");
@@ -89,10 +88,10 @@ class cms_GalleryRichTextPlg extends core_Plugin
 //            $row->append2master();
 //            $count++;
 //         }
-//         
+//
 //         $place = $this->mvc->getPlace();
 //         $this->mvc->_htmlBoard[$place] = $tpl;
-//        
+//
 //         return "[#{$place}#]";
 //    }
     
@@ -104,13 +103,15 @@ class cms_GalleryRichTextPlg extends core_Plugin
      *
      * @return string $res - Ресурса, който ще се замества
      */
-    function catchImages($match)
+    public function catchImages($match)
     {
         $title = $match['title'];
         
         $imgRec = cms_GalleryImages::fetch(array("#title = '[#1#]'", $title));
         
-        if(!$imgRec) return $match[0];
+        if (!$imgRec) {
+            return $match[0];
+        }
 
         $groupRec = cms_GalleryGroups::fetch($imgRec->groupId);
         
@@ -121,7 +122,7 @@ class cms_GalleryRichTextPlg extends core_Plugin
         
         $attr = array();
 
-        if($groupRec->style) {
+        if ($groupRec->style) {
             $attr['style'] = $groupRec->style;
         }
         
@@ -129,14 +130,14 @@ class cms_GalleryRichTextPlg extends core_Plugin
         if ((Mode::is('text', 'xhtml')) || (Mode::is('text', 'plain'))) {
             
             // Добавяме атрибута за да използваме абсолютни линкове
-            $attr['isAbsolute'] = TRUE;
+            $attr['isAbsolute'] = true;
         }
 
         $res = $Fancybox->getImage($imgRec->src, $tArr, $mArr, $imgRec->title, $attr);
         
-        if($groupRec->position && $groupRec->position != 'none') { 
-        	$tpl = ($groupRec->tpl) ? $groupRec->tpl : "<div class='clear-{$groupRec->position}'>[#1#]</div>";
-        	$res = new ET($tpl, $res);
+        if ($groupRec->position && $groupRec->position != 'none') {
+            $tpl = ($groupRec->tpl) ? $groupRec->tpl : "<div class='clear-{$groupRec->position}'>[#1#]</div>";
+            $res = new ET($tpl, $res);
         }
         
         $place = $this->mvc->getPlace();
@@ -149,19 +150,19 @@ class cms_GalleryRichTextPlg extends core_Plugin
     
     /**
      * Връща всички картинки в подадения ричтекст
-     * 
+     *
      * @param string $rt
-     * 
+     *
      * @return array
      */
-    static function getImages($rt)
+    public static function getImages($rt)
     {
         preg_match_all(static::IMG_PATTERN, $rt, $matches);
         
         $imagesArr = array();
         
-        if(count($matches['title'])) {
-            foreach($matches['title'] as $name) {
+        if (count($matches['title'])) {
+            foreach ($matches['title'] as $name) {
                 $imagesArr[$name] = $name;
             }
         }
@@ -172,10 +173,10 @@ class cms_GalleryRichTextPlg extends core_Plugin
     /**
      * Добавя бутон за качване на документ
      */
-    function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
+    public function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
     {
         // Ако има група
-        if (cms_GalleryGroups::fetch("1=1") && cms_GalleryImages::haveRightFor('add')) {
+        if (cms_GalleryGroups::fetch('1=1') && cms_GalleryImages::haveRightFor('add')) {
             
             // id
             $id = $attr['id'];
@@ -184,7 +185,7 @@ class cms_GalleryRichTextPlg extends core_Plugin
             $windowName = $callbackName = 'placeImg_' . $id;
             
             // Ако е мобилен/тесем режим
-            if(Mode::is('screenMode', 'narrow')) {
+            if (Mode::is('screenMode', 'narrow')) {
                 
                 // Парамтери към отварянето на прозореца
                 $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
@@ -208,7 +209,7 @@ class cms_GalleryRichTextPlg extends core_Plugin
             openWindow(url, '{$windowName}', '{$args}'); return false;";
             
             // Бутон за отвяряне на прозореца
-            $documentUpload = new ET("<a class=rtbutton title='" . tr("Добавяне на картинка") . "' onclick=\"{$js}\">" . tr("Картинка") . "</a>");
+            $documentUpload = new ET("<a class=rtbutton title='" . tr('Добавяне на картинка') . "' onclick=\"{$js}\">" . tr('Картинка') . '</a>');
             
             // JS функцията
             $callback = "function {$callbackName}(title) {

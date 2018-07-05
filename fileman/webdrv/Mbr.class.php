@@ -3,7 +3,7 @@
 
 /*
  * Драйвер за работа с .mbr файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -13,5 +13,4 @@
  */
 class fileman_webdrv_Mbr extends fileman_webdrv_Archive
 {
-    
 }

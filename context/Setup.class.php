@@ -18,12 +18,12 @@ defIfNot('CONTEXT_VERSION', '1.4.0');
  * @license   GPL 3
  * @since     v 0.1
  */
-class context_Setup extends core_ProtoSetup 
+class context_Setup extends core_ProtoSetup
 {
     /**
      * контекстно меню за бутоните
      */
-    var $info = "Контекстно меню за бутоните от тулбара";
+    public $info = 'Контекстно меню за бутоните от тулбара';
 
 
     /**
@@ -31,7 +31,7 @@ class context_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
 
-        'CONTEXT_VERSION' => array ('enum(1.4.0)', 'mandatory, caption=Версията на плъгина->Версия')
+        'CONTEXT_VERSION' => array('enum(1.4.0)', 'mandatory, caption=Версията на плъгина->Версия')
 
     );
 
@@ -57,10 +57,10 @@ class context_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -74,10 +74,10 @@ class context_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

@@ -16,5 +16,4 @@
  */
 class store_AccRegIntf extends acc_RegisterIntf
 {
-
 }

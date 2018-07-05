@@ -46,7 +46,7 @@ class unipi_Neuron extends sens2_ProtoDriver
                 'M203' => array(20, 4,  14, 1, 1, 1, 1),
                 'M303' => array(34, 4,  0,  1, 1, 1, 1),
                 'M403' => array(4,  4,  28, 1, 1, 1, 1),
-                'M503' => array(10, 4,  5,  5 ,5, 2, 1),
+                'M503' => array(10, 4,  5,  5,5, 2, 1),
 
                 'L203' => array(36, 4,  28, 1,  1, 1, 1),
                 'L303' => array(64, 4,  1,  1,  1, 1, 1),
@@ -67,7 +67,7 @@ class unipi_Neuron extends sens2_ProtoDriver
      *
      * @see  sens2_DriverIntf
      *
-     * @return  array
+     * @return array
      */
     public function getInputPorts($config = null)
     {
@@ -83,7 +83,7 @@ class unipi_Neuron extends sens2_ProtoDriver
      *
      * @see  sens2_DriverIntf
      *
-     * @return  array
+     * @return array
      */
     public function getOutputPorts($config = null)
     {
@@ -170,11 +170,11 @@ class unipi_Neuron extends sens2_ProtoDriver
 
     /**
      * Връща масив със портовете на устройството
-     * 
+     *
      * @return array
      */
     public function getSlotCnt()
-    {   
+    {
         $config = $this->driverRec->config;
         $model = $this->models[$config->model];
 

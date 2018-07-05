@@ -2,7 +2,7 @@
 
 /**
  * Драйвер за работа с .html файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -12,5 +12,4 @@
  */
 class fileman_webdrv_Html extends fileman_webdrv_Webpage
 {
-    
 }

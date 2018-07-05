@@ -3,8 +3,8 @@
 
 /**
  * Клас, който служи за създаване на Gauge с canvas
- * 
- * 
+ *
+ *
  * @category  vendors
  * @package   jsgauge
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -18,56 +18,54 @@ class canvasgauge_Gauge
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param NULL|integer $value
-     * @param NULL|string $canvasId
-     * @param array $valArr
-     * 
+     * @param NULL|string  $canvasId
+     * @param array        $valArr
+     *
      * @return ET
-     * 
+     *
      * Допълнителните параметри за разчертаване се добавят в $valArr
      * $see https://canvas-gauges.com/documentation/user-guide/configuration
      */
-    public static function drawLinear($value = NULL, $canvasId = NULL, $valArr = array())
+    public static function drawLinear($value = null, $canvasId = null, $valArr = array())
     {
-        
         return self::renderGauge($value, $canvasId, $valArr, 'linear');
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param NULL|integer $value
-     * @param NULL|string $canvasId
-     * @param array $valArr
-     * 
+     * @param NULL|string  $canvasId
+     * @param array        $valArr
+     *
      * @return ET
-     * 
+     *
      * Допълнителните параметри за разчертаване се добавят в $valArr
      * @see https://canvas-gauges.com/documentation/user-guide/configuration
      */
-    public static function drawRadial($value = NULL, $canvasId = NULL, $valArr = array())
+    public static function drawRadial($value = null, $canvasId = null, $valArr = array())
     {
-        
         return self::renderGauge($value, $canvasId, $valArr, 'radial');
     }
     
     
     /**
      * Помощна функция за разчертване
-     * 
+     *
      * @param NULL|integer $value
-     * @param NULL|string $canvasId
-     * @param array $valArr
-     * 
+     * @param NULL|string  $canvasId
+     * @param array        $valArr
+     *
      * @return ET
-     * 
+     *
      * Допълнителните параметри за разчертаване се добавят в $valArr
      * @link https://canvas-gauges.com/documentation/user-guide/configuration
      */
-    protected static function renderGauge($value = NULL, $canvasId = NULL, $valArr = array(), $type = 'radial')
+    protected static function renderGauge($value = null, $canvasId = null, $valArr = array(), $type = 'radial')
     {
         setIfNot($value, $valArr['value'], '0');
         setIfNot($canvasId, $valArr['canvasId'], str::getRand());
@@ -82,9 +80,9 @@ class canvasgauge_Gauge
         setIfNot($valArr['valueInt'], 1);
         setIfNot($valArr['animationDuration'], 4000);
         setIfNot($valArr['animationRule'], 'elastic');
-        setIfNot($valArr['animation'], TRUE);
-        setIfNot($valArr['animatedValue'], TRUE);
-        setIfNot($valArr['animateOnInit'], TRUE);
+        setIfNot($valArr['animation'], true);
+        setIfNot($valArr['animatedValue'], true);
+        setIfNot($valArr['animateOnInit'], true);
         
         $valArr['gaugeType'] = 'RadialGauge';
         if ($type == 'linear') {
@@ -94,7 +92,7 @@ class canvasgauge_Gauge
         // Това е защита, когата са зададени стойности но не е начертано добре
         if (isset($valArr['minValue']) || isset($valArr['maxValue'])) {
             if (!$valArr['majorTicks']) {
-                setIfNot($valArr['exactTicks'], TRUE);
+                setIfNot($valArr['exactTicks'], true);
                 expect($valArr['exactTicks'], 'Трябва да се зададе стойност на majorTicks');
             }
         }
@@ -107,7 +105,7 @@ class canvasgauge_Gauge
         
         $tpl = new ET('<canvas id="[#renderTo#]" height="[#height#]" width="[#width#]"></canvas>');
         $tpl->appendOnce($jsTpl, 'SCRIPTS');
-        $tpl->push('canvasgauge/' . canvasgauge_Setup::get('VERSION') . '/' . "gauge.min.js", "JS");
+        $tpl->push('canvasgauge/' . canvasgauge_Setup::get('VERSION') . '/' . 'gauge.min.js', 'JS');
         $tpl->placeArray($valArr);
       
         return $tpl;

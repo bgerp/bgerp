@@ -16,12 +16,12 @@ class jqueryui_Ui
 {
     
 
-	/**
-	 * 
-	 * 
-	 * @param core_ET $tpl
-	 */
-    static function enable(&$tpl)
+    /**
+     *
+     *
+     * @param core_ET $tpl
+     */
+    public static function enable(&$tpl)
     {
         // Активираме JQUERY (ако не е активен)
         jquery_Jquery::enable($tpl);
@@ -36,31 +36,30 @@ class jqueryui_Ui
     
     /**
      * Активира JS
-     * 
+     *
      * @param core_ET $tpl
      */
-    static function enableJS(&$tpl)
+    public static function enableJS(&$tpl)
     {
         $conf = core_Packs::getConfig('jqueryui');
         
-        $jsPath = "jqueryui/" . $conf->JQUERYUI_VERSION . "/jquery-ui.js";
+        $jsPath = 'jqueryui/' . $conf->JQUERYUI_VERSION . '/jquery-ui.js';
         
-        $tpl->push($jsPath, "JS");
+        $tpl->push($jsPath, 'JS');
     }
     
     
     /**
      * Активира CSS
-     * 
+     *
      * @param core_ET $tpl
      */
-    static function enableCSS(&$tpl)
+    public static function enableCSS(&$tpl)
     {
         $conf = core_Packs::getConfig('jqueryui');
         
-        $cssPath = "jqueryui/" . $conf->JQUERYUI_VERSION . "/jquery-ui.min.css";
+        $cssPath = 'jqueryui/' . $conf->JQUERYUI_VERSION . '/jquery-ui.min.css';
         
-        $tpl->push($cssPath, "CSS");
-        
+        $tpl->push($cssPath, 'CSS');
     }
 }

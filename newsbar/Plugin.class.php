@@ -18,26 +18,22 @@
  */
 class newsbar_Plugin extends core_Plugin
 {
-	
-	
-	
-    static function on_Output(&$invoker)
+    public static function on_Output(&$invoker)
     {
-       // взимаме всички нови новини
-       $str = newsbar_News::getTopNews();
+        // взимаме всички нови новини
+        $str = newsbar_News::getTopNews();
        
-       if($str->news !== NULL && $str->color !== NULL && $str->transparency !== NULL) { 
-           $convertText = cls::get('type_Richtext');
-           $barNews = $convertText->toVerbal($str->news);
+        if ($str->news !== null && $str->color !== null && $str->transparency !== null) {
+            $convertText = cls::get('type_Richtext');
+            $barNews = $convertText->toVerbal($str->news);
                      
-           $html = newsbar_News::generateHTML($str);
-           $html->replace("newsbar", 'class');
-           $html->replace("<marquee scrollamount='4'>", 'marquee');
-           $html->replace('</marquee>', 'marquee2');
+            $html = newsbar_News::generateHTML($str);
+            $html->replace('newsbar', 'class');
+            $html->replace("<marquee scrollamount='4'>", 'marquee');
+            $html->replace('</marquee>', 'marquee2');
            
            
-           $invoker->appendOnce($html, 'PAGE_HEADER');
-       }
+            $invoker->appendOnce($html, 'PAGE_HEADER');
+        }
     }
-
 }

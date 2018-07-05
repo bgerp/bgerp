@@ -35,29 +35,29 @@ class csstoinline_Setup extends core_ProtoSetup
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Конвертиране на CSS стилове в inline";
+    public $info = 'Конвертиране на CSS стилове в inline';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
     
         // Клас за инлайн вмъкване на CSS дефиниции
-        'CSSTOINLINE_CONVERTER_CLASS' => array ('class(interface=csstoinline_ConverterIntf, select=title)', 'mandatory, caption=Клас за инлайн вмъкване на CSS дефиниции->Клас'),
+        'CSSTOINLINE_CONVERTER_CLASS' => array('class(interface=csstoinline_ConverterIntf, select=title)', 'mandatory, caption=Клас за инлайн вмъкване на CSS дефиниции->Клас'),
     );
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'csstoinline_CssToInline',
             'csstoinline_Emogrifier',
         );
@@ -66,7 +66,7 @@ class csstoinline_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

@@ -4,7 +4,7 @@
 /**
  * class satec_Setup
  *
- * Драйвери за електромер SATEC - Израел 
+ * Драйвери за електромер SATEC - Израел
  *
  * @category  bgerp
  * @package   satec
@@ -20,25 +20,25 @@ class satec_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * От кои други пакети зависи
      */
-    var $depends = '';
+    public $depends = '';
     
       
     /**
      * Описание на модула
      */
-    var $info = "Драйвер за електромер SATEC - Израел";
+    public $info = 'Драйвер за електромер SATEC - Израел';
     
             
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
                                  
@@ -53,5 +53,4 @@ class satec_Setup extends core_ProtoSetup
          
         return $html;
     }
-    
 }

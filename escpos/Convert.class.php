@@ -21,27 +21,19 @@ class escpos_Convert extends core_Manager
     public $title = 'Конвертор на вътрешен markup към esc/pos команди за отпечатване';
     
     
-    /**
-     * 
-     */
+    
     public $canAdd = 'no_one';
     
     
-    /**
-     * 
-     */
+    
     public $canDelete = 'no_one';
     
     
-    /**
-     * 
-     */
+    
     public $canEdit = 'no_one';
     
     
-    /**
-     *
-     */
+    
     public $canList = 'no_one';
     
 
@@ -61,64 +53,64 @@ class escpos_Convert extends core_Manager
         $i = 0;
         $l = '';
  
-        foreach($elArr as $el) {
-
-            $col  = 0;
-            $bold    = FALSE;
+        foreach ($elArr as $el) {
+            $col = 0;
+            $bold = false;
             $underline = '';
             $font = '';
-            $tab  = $driver->getSpace();
+            $tab = $driver->getSpace();
             $width = $driver->getWidth();
             
-            if(strpos($el, '>') !== FALSE) {
+            if (strpos($el, '>') !== false) {
                 list($tag, $text) = explode('>', $el);
 
                 $textLen = mb_strlen($text);
 
-                if(strlen($tag)) {
+                if (strlen($tag)) {
                     $cmd = strtolower($tag{0});
                     $attr = substr($tag, 1);
                     $attrArr = explode(' ', trim($attr));
-                    foreach($attrArr as $a) {
+                    foreach ($attrArr as $a) {
+                        if (!trim($a)) {
+                            continue;
+                        }
 
-                        if(!trim($a)) continue;
-
-                        if(is_numeric($a)) {
+                        if (is_numeric($a)) {
                             $col = (int) $a;
                             continue;
                         }
 
-                        if($a == 'b' || $a == 'B') {
-                            $bold = TRUE;
+                        if ($a == 'b' || $a == 'B') {
+                            $bold = true;
                             continue;
                         }
 
-                        if($a == 'u' ) {
+                        if ($a == 'u') {
                             $underline = 1;
                             continue;
                         }
 
-                        if($a == 'U' ) {
+                        if ($a == 'U') {
                             $underline = 2;
                             continue;
                         }
                         
-                        if($a == 'F' || $a == 'f') {
+                        if ($a == 'F' || $a == 'f') {
                             $font = $a;
                             $width = $driver->getWidth($font);
                             continue;
                         }
 
-                        if($a == '.' || $a == '_' || $a == '=' || $a == '-') {
+                        if ($a == '.' || $a == '_' || $a == '=' || $a == '-') {
                             $tab = $a;
                             continue;
                         }
 
-                        expect(FALSE, "Непознат атрибут", $a, $el);
+                        expect(false, 'Непознат атрибут', $a, $el);
                     }
 
                     $fontTxt = $driver->getFont($font, $bold, $underline);
-                    $fontPad = $driver->getFont($font, $bold, FALSE);
+                    $fontPad = $driver->getFont($font, $bold, false);
 
                     $fontEnd = $driver->getFontEnd();
                     $newLine = $driver->GetNewLine();
@@ -128,7 +120,7 @@ class escpos_Convert extends core_Manager
                     
                     foreach ($textArr as $text) {
                         $textLen = mb_strlen($text);
-                        switch($cmd) {
+                        switch ($cmd) {
                             // Нова линия
                             case 'p':
                                 $res .= $l;
@@ -139,11 +131,11 @@ class escpos_Convert extends core_Manager
                             case 'c':
                                 $res .= $l;
                                 // Код за преместване на хартията
-                                $r = (int) (($width-$textLen)/2);
-    							
+                                $r = (int) (($width - $textLen) / 2);
+                                
                                 $r = max($r, 0);
-                                if($r) {
-                                    $pad = str_repeat($tab , $r);
+                                if ($r) {
+                                    $pad = str_repeat($tab, $r);
                                 } else {
                                     $pad = '';
                                 }
@@ -153,22 +145,22 @@ class escpos_Convert extends core_Manager
                             case 'l':
                                 $r = $col - $lLen;
                                 $r = max($r, 0);
-                                if($r) {
-                                    $pad = str_repeat($tab , $r);
+                                if ($r) {
+                                    $pad = str_repeat($tab, $r);
                                 } else {
                                     $pad = '';
                                 }
-    							
-                                $l .=  $fontPad . $pad . $fontTxt .  $driver->encode($text) . $fontEnd;
+                                
+                                $l .= $fontPad . $pad . $fontTxt .  $driver->encode($text) . $fontEnd;
                                 $lLen += $r + $textLen;
                                 break;
-    							
+                                
                             case 'r':
                                 $r = $col - $lLen - $textLen;
-    							
+                                
                                 $r = max($r, 0);
-                                if($r) {
-                                    $pad = str_repeat($tab , $r);
+                                if ($r) {
+                                    $pad = str_repeat($tab, $r);
                                 } else {
                                     $pad = '';
                                 }
@@ -176,11 +168,10 @@ class escpos_Convert extends core_Manager
                                 $lLen = $r + $textLen;
                                 break;
                             default:
-                                expect(FALSE, "Непозната команда", $cmd, $el);
-    						
+                                expect(false, 'Непозната команда', $cmd, $el);
+                            
                         }
                     }
-                    
                 }
             } else {
                 $l .= $el;
@@ -196,10 +187,10 @@ class escpos_Convert extends core_Manager
     
     
     /**
-     * 
+     *
      * @param unknown $tpl
-     * @param string $driver
-     * 
+     * @param string  $driver
+     *
      * @return string
      */
     public static function getContent($tpl, $driver = 'escpos_driver_Html')
@@ -219,63 +210,74 @@ class escpos_Convert extends core_Manager
     
     
     /**
-     * 
-     * @param string $text
-     * @param string $nl
+     *
+     * @param string  $text
+     * @param string  $nl
      * @param integer $lineMaxLen
-     * 
+     *
      * @return string
      */
     public static function hyphenText($text, $nl, $lineMaxLen)
     {
-        if (!trim($text)) return $text;
+        if (!trim($text)) {
+            return $text;
+        }
         
         $textLen = mb_strlen($text);
         
-        if ($textLen <= $lineMaxLen) return $text;
+        if ($textLen <= $lineMaxLen) {
+            return $text;
+        }
         
         $delimiter = ' ';
         
         $lastSpacePos = $bestLastSpacePos = mb_strrpos($text, $delimiter);
         
         // Правим опит да намерим най-добрия разделител
-        if ($bestLastSpacePos !== FALSE) {
+        if ($bestLastSpacePos !== false) {
             $cnt = 0;
             $lText = $text;
             $l = 0;
-            while (TRUE) {
+            while (true) {
                 
                 // Ако лявата част е по-малка от максимума, няма смисъл повече да се режи
                 $lText = mb_substr($text, 0, $bestLastSpacePos);
-                if ((mb_strlen($lText) <= $lineMaxLen) && ($l++ == 1)) break;
+                if ((mb_strlen($lText) <= $lineMaxLen) && ($l++ == 1)) {
+                    break;
+                }
                 
                 // Определяме нова най-добра позиция
                 $newBestLastSpacePos = mb_strrpos($lText, $delimiter);
                 
-                if ($newBestLastSpacePos === FALSE) break;
+                if ($newBestLastSpacePos === false) {
+                    break;
+                }
                 
                 $lText = mb_substr($text, 0, $newBestLastSpacePos);
-                $rText = mb_substr($text, $newBestLastSpacePos+1);
+                $rText = mb_substr($text, $newBestLastSpacePos + 1);
                 
                 // Ако дясната част става по-дълга от лявата, пак прекъсваме
 //                 if (mb_strlen($rText) > mb_strlen($lText)) break;
                 
                 // Ако дясната част е по-голяма от максималната дължина, пак се прекъсва
-                if (mb_strlen($rText) > $lineMaxLen) break;
+                if (mb_strlen($rText) > $lineMaxLen) {
+                    break;
+                }
                 
                 // Промянеме най-добрата позиция
                 $bestLastSpacePos = $newBestLastSpacePos;
                 
-                if ($cnt++ > 20) break;
+                if ($cnt++ > 20) {
+                    break;
+                }
             }
             
             $lastSpacePos = $bestLastSpacePos;
         }
         
-        if ($lastSpacePos !== FALSE) {
-            
+        if ($lastSpacePos !== false) {
             $lText = mb_substr($text, 0, $lastSpacePos);
-            $rText = mb_substr($text, $lastSpacePos+1);
+            $rText = mb_substr($text, $lastSpacePos + 1);
             
             $lText = self::hyphenText($lText, $nl, $lineMaxLen);
             $rText = self::hyphenText($rText, $nl, $lineMaxLen);
@@ -303,18 +305,18 @@ class escpos_Convert extends core_Manager
     /**
      * Тестване на печата
      */
-    function act_Test()
+    public function act_Test()
     {
-        $test = "<c F b>Фактура №123/28.02.17" .
-        "<p><r32 =>" .
-        "<p b>1.<l3 b>Кисело мляко" .
-        "<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
-        "<p b>2.<l3 b>Хляб \"Добруджа\"" . "<l f> | годност: 03.03" .
-        "<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
-        "<p b>3.<l3 b>Минерална вода" .
-        "<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
-        "<p><r32 =>" .
-        "<p><r29 F b>Общо: 34.23 лв.";
+        $test = '<c F b>Фактура №123/28.02.17' .
+        '<p><r32 =>' .
+        '<p b>1.<l3 b>Кисело мляко' .
+        '<p><l4>2.00<l12>х 0.80<r32>= 1.60' .
+        '<p b>2.<l3 b>Хляб "Добруджа"' . '<l f> | годност: 03.03' .
+        '<p><l4>2.00<l12>х 0.80<r32>= 1.60' .
+        '<p b>3.<l3 b>Минерална вода' .
+        '<p><l4>2.00<l12>х 0.80<r32>= 1.60' .
+        '<p><r32 =>' .
+        '<p><r29 F b>Общо: 34.23 лв.';
 
         if (Request::get('p')) {
             $res = self::process($test, 'escpos_driver_Ddp250');

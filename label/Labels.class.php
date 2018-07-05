@@ -4,7 +4,7 @@
 
 /**
  * Модел за създаване на етикети за печатане
- * 
+ *
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -60,9 +60,9 @@ class label_Labels extends core_Master
     
     
     /**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'label, admin, ceo, seeLabel';
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'label, admin, ceo, seeLabel';
     
     
     /**
@@ -77,9 +77,7 @@ class label_Labels extends core_Master
     public $canDelete = 'no_one';
     
     
-    /**
-     * 
-     */
+    
     public $canUselabel = 'label, admin, ceo';
     
     
@@ -113,10 +111,10 @@ class label_Labels extends core_Master
     public $searchFields = 'title, templateId';
     
     
-	/**
+    /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%, silent');
         $this->FLD('templateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон, silent, input=hidden');
@@ -130,11 +128,11 @@ class label_Labels extends core_Master
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @see core_Manager::act_Add()
      */
-    function act_Manage()
+    public function act_Manage()
     {
         wp('Deprecated');
         
@@ -143,7 +141,7 @@ class label_Labels extends core_Master
     
     /**
      * Обновява броя на отпечатванията
-     * 
+     *
      * @param integer $id
      * @param integer $printedCnt
      */
@@ -162,62 +160,64 @@ class label_Labels extends core_Master
     }
     
     
-	/**
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	$form = &$data->form;
+        $form = &$data->form;
         $rec = &$form->rec;
-    	
+        
         // Вземаме данните от предишния запис
         $readOnlyArr = $dataArr = $rec->params;
         
         // Ако формата не е субмитната и не я редактираме
         if (!$rec->id) {
-             // id на шаблона
-             $templateId = Request::get('templateId', 'int');
-             $lang = label_Templates::fetchField($templateId, 'lang');
+            // id на шаблона
+            $templateId = Request::get('templateId', 'int');
+            $lang = label_Templates::fetchField($templateId, 'lang');
              
-             // Ако не е избрано id на шаблона
-             if (!$templateId) redirect(array($mvc, 'selectTemplate'));
+            // Ако не е избрано id на шаблона
+            if (!$templateId) {
+                redirect(array($mvc, 'selectTemplate'));
+            }
              
-             // Ако се създава етикет от обект, използваме неговите данни
-             Request::setProtected('classId, objId');
-             $classId = Request::get('classId');
-             $objId = Request::get('objId');
-             if ($classId && $objId) {
-             	  $clsInst = cls::getInterface('label_SequenceIntf', $classId);
-             	
-             	  core_Lg::push($lang);
-                  $arr = (array)$clsInst->getLabelData($objId, 0);
-                  core_Lg::pop();
-                  
-                  $dataArr = arr::make($arr, TRUE);
-                  $readOnlyArr = $clsInst->getReadOnlyPlaceholders($objId);
+            // Ако се създава етикет от обект, използваме неговите данни
+            Request::setProtected('classId, objId');
+            $classId = Request::get('classId');
+            $objId = Request::get('objId');
+            if ($classId && $objId) {
+                $clsInst = cls::getInterface('label_SequenceIntf', $classId);
                  
-                  $form->setDefault('classId', $objId);
-                  $form->setDefault('objId', $classId);
-                    
-                  $cls = cls::get($classId);
-                  if(method_exists($cls, 'getRecTitle')){
-                  	$title = $cls->getRecTitle($objId);
-                  } else {
-                  	$title = $cls->getHandle($objId);
-                  	$title = "#{$title}/" . dt::mysql2verbal(dt::now(), 'd.m.y H:i:s');
-                  }
+                core_Lg::push($lang);
+                $arr = (array) $clsInst->getLabelData($objId, 0);
+                core_Lg::pop();
                   
-                  $form->setDefault('title', $title);
-              }
-         } else {
-             // Полетата, които идват от обекта, да не могат да се редактират
-             if ($rec->classId && $rec->objId) {
-             	$clsInst = cls::getInterface('label_SequenceIntf', $rec->classId);
-             	$readOnlyArr = $clsInst->getReadOnlyPlaceholders($rec->objId);
-             }
+                $dataArr = arr::make($arr, true);
+                $readOnlyArr = $clsInst->getReadOnlyPlaceholders($objId);
+                 
+                $form->setDefault('classId', $objId);
+                $form->setDefault('objId', $classId);
+                    
+                $cls = cls::get($classId);
+                if (method_exists($cls, 'getRecTitle')) {
+                    $title = $cls->getRecTitle($objId);
+                } else {
+                    $title = $cls->getHandle($objId);
+                    $title = "#{$title}/" . dt::mysql2verbal(dt::now(), 'd.m.y H:i:s');
+                }
+                  
+                $form->setDefault('title', $title);
+            }
+        } else {
+            // Полетата, които идват от обекта, да не могат да се редактират
+            if ($rec->classId && $rec->objId) {
+                $clsInst = cls::getInterface('label_SequenceIntf', $rec->classId);
+                $readOnlyArr = $clsInst->getReadOnlyPlaceholders($rec->objId);
+            }
         }
         
         // Ако няма templateId
@@ -234,10 +234,10 @@ class label_Labels extends core_Master
         label_TemplateFormats::addFieldForTemplate($data->form, $templateId);
         
         // Обхождаме масива
-        foreach ((array)$dataArr as $fieldName => $value) {
+        foreach ((array) $dataArr as $fieldName => $value) {
             $oFieldName = $fieldName;
             $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
-        	
+            
             // Добавяме данните от записите
             $rec->{$fieldName} = $value;
             
@@ -256,21 +256,21 @@ class label_Labels extends core_Master
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	$data->form->title = core_Detail::getEditTitle('label_Templates', $data->form->rec->templateId, $mvc->singleTitle, $data->form->rec->id);
+        $data->form->title = core_Detail::getEditTitle('label_Templates', $data->form->rec->templateId, $mvc->singleTitle, $data->form->rec->id);
     }
     
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
+     *
      * @param label_Labels $mvc
-     * @param core_Form $form
+     * @param core_Form    $form
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         // Инпутваме пак формата, за да може да вкараме silent полетата,
-        // които идват от шаблона 
-        $form->input(NULL, TRUE);
+        // които идват от шаблона
+        $form->input(null, true);
         
         // Ако формата е субмитната
         if ($form->isSubmitted()) {
@@ -297,10 +297,10 @@ class label_Labels extends core_Master
             $dataArr = array();
             
             // Обхождаме масива
-            foreach ((array)$fncForm->fields as $fieldName => $dummy) {
+            foreach ((array) $fncForm->fields as $fieldName => $dummy) {
                 
                 // Ако има масив за старите данни и новта стойност е NULL
-                if ($oldDataArr && ($form->rec->$fieldName === NULL)) {
+                if ($oldDataArr && ($form->rec->$fieldName === null)) {
                     
                     // Използваме старата стойност
                     $dataArr[$fieldName] = $oldDataArr[$fieldName];
@@ -322,21 +322,21 @@ class label_Labels extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-    	$row->templateId = label_Templates::getHyperlink($rec->templateId, TRUE);
+        $row->templateId = label_Templates::getHyperlink($rec->templateId, true);
         
         // Показваме линк към обекта, от който е създаден етикета
-        if (isset($rec->classId) && isset($rec->objId)) {
-        	if(cls::load($rec->classId, TRUE)) {
-        		if(!cls::haveInterface('label_SequenceIntf', $rec->classId)){
-        			$row->title = strip_tags($row->title);
-        			$row->title = ht::createHint($row->title, 'Проблем при печатането на етикета', 'error', FALSE);
-        			unset($row->_rowTools);
-        		}
-        		
-        		$row->Object = cls::get($rec->classId)->getHyperlink($rec->objId, TRUE);
-        	} else {
-        		$row->Object = tr('Проблем при зареждането на класа');
-        	}
+        if (isset($rec->classId, $rec->objId)) {
+            if (cls::load($rec->classId, true)) {
+                if (!cls::haveInterface('label_SequenceIntf', $rec->classId)) {
+                    $row->title = strip_tags($row->title);
+                    $row->title = ht::createHint($row->title, 'Проблем при печатането на етикета', 'error', false);
+                    unset($row->_rowTools);
+                }
+                
+                $row->Object = cls::get($rec->classId)->getHyperlink($rec->objId, true);
+            } else {
+                $row->Object = tr('Проблем при зареждането на класа');
+            }
         }
     }
     
@@ -346,18 +346,18 @@ class label_Labels extends core_Master
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-    	// Документа не може да се създава  в нова нишка, ако е възоснова на друг
-		if(!empty($data->toolbar->buttons['btnAdd'])){
-			$data->toolbar->removeBtn('btnAdd');
-			$data->toolbar->addBtn('Нов запис', array($mvc, 'selectTemplate'), "ef_icon=img/16/star_2.png,title=Добавяне на нов етикет");
-		}
+        // Документа не може да се създава  в нова нишка, ако е възоснова на друг
+        if (!empty($data->toolbar->buttons['btnAdd'])) {
+            $data->toolbar->removeBtn('btnAdd');
+            $data->toolbar->addBtn('Нов запис', array($mvc, 'selectTemplate'), 'ef_icon=img/16/star_2.png,title=Добавяне на нов етикет');
+        }
     }
     
     
     /**
      * Екшън за избор на шаблон
      */
-    function act_SelectTemplate()
+    public function act_SelectTemplate()
     {
         // Права за работа с екшън-а
         $this->requireRightFor('add');
@@ -378,20 +378,19 @@ class label_Labels extends core_Master
         
         // Вземаме формата към този модел
         $form = $this->getForm();
-        $form->title = "Избор на шаблон за етикет";
+        $form->title = 'Избор на шаблон за етикет';
         
         if ($classId && $objId) {
-        	
-        	$form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getLabelSourceLink($objId);
-        	
+            $form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getLabelSourceLink($objId);
+            
 //         	try{
-				// Взимане на данни от шаблона
-				$intfInst = cls::getInterface('label_SequenceIntf', $classId);
-				$labelDataArr = $intfInst->getLabelData($objId, 0);
-				$readOnlyArr = $intfInst->getReadOnlyPlaceholders($objId);
-				$labelDataArr = arr::make(array_keys($labelDataArr), TRUE);
-				$labelDataArr = array_diff_key($labelDataArr, $readOnlyArr);
-// 			} catch (label_exception_Redirect $e){
+            // Взимане на данни от шаблона
+            $intfInst = cls::getInterface('label_SequenceIntf', $classId);
+            $labelDataArr = $intfInst->getLabelData($objId, 0);
+            $readOnlyArr = $intfInst->getReadOnlyPlaceholders($objId);
+            $labelDataArr = arr::make(array_keys($labelDataArr), true);
+            $labelDataArr = array_diff_key($labelDataArr, $readOnlyArr);
+            // 			} catch (label_exception_Redirect $e){
 // 				followRetUrl(NULL, $e->getMessage(), 'error');
 // 			}
         }
@@ -399,22 +398,24 @@ class label_Labels extends core_Master
         // Добавяме функционално поле
         $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\',allowEmpty)', 'caption=Шаблон,mandatory');
         
-        $redirect = FALSE;
+        $redirect = false;
         $optArr = array();
         
         if (!empty($labelDataArr)) {
-        	$templates = label_Templates::getTemplatesByDocument($classId, $objId);
-            if (!count($templates)) return new Redirect($retUrl, '|Няма шаблон, който да се използва');
+            $templates = label_Templates::getTemplatesByDocument($classId, $objId);
+            if (!count($templates)) {
+                return new Redirect($retUrl, '|Няма шаблон, който да се използва');
+            }
             
-            foreach ($templates as $tRec){
+            foreach ($templates as $tRec) {
                 $template = label_Templates::getTemplate($tRec->id);
                 $templatePlaceArr = label_Templates::getPlaceHolders($template);
                 
                 $cnt = 0;
                 foreach ($labelDataArr as $key => $v) {
-                	if (isset($templatePlaceArr[$key])) {
-                		$cnt++;
-                	}
+                    if (isset($templatePlaceArr[$key])) {
+                        $cnt++;
+                    }
                 }
                
                 // Оцветяваме имената на шаблоните, в зависимост от съвпаданието на плейсхолдерите
@@ -439,11 +440,13 @@ class label_Labels extends core_Master
             }
            
             // Сортиране по цвят
-            uasort($optArr, function($a, $b){ return strcmp($a->attr['data-color'], $b->attr['data-color']);});
+            uasort($optArr, function ($a, $b) {
+                return strcmp($a->attr['data-color'], $b->attr['data-color']);
+            });
             $form->setOptions('selectTemplateId', array('' => '') + $optArr);
             
             if (count($optArr) == 1) {
-                $redirect = TRUE;
+                $redirect = true;
             }
         }
         
@@ -465,8 +468,8 @@ class label_Labels extends core_Master
                 Request::setProtected('classId, objId');
                 $redirectUrl['classId'] = $classId;
                 $redirectUrl['objId'] = $objId;
-                if($title = Request::get('title', 'varchar')){
-                	$redirectUrl['title'] = $title;
+                if ($title = Request::get('title', 'varchar')) {
+                    $redirectUrl['title'] = $title;
                 }
             } else {
                 foreach ($labelDataArr as $labelName => $val) {
@@ -474,10 +477,10 @@ class label_Labels extends core_Master
                 }
             }
             
-            if($redirect){
-            	$redirectUrl['ret_url'] = $retUrl;
+            if ($redirect) {
+                $redirectUrl['ret_url'] = $retUrl;
             } else {
-            	$redirectUrl['ret_url'] = TRUE;
+                $redirectUrl['ret_url'] = true;
             }
             
             // Редиректваме към екшъна за добавяне
@@ -498,7 +501,7 @@ class label_Labels extends core_Master
     
     /**
      * Добавя бутон за настройки в единичен изглед
-     * 
+     *
      * @param stdClass $mvc
      * @param stdClass $data
      */
@@ -506,17 +509,17 @@ class label_Labels extends core_Master
     {
         // Ако има права за отпечатване
         if (label_Prints::haveRightFor('print') && label_Labels::haveRightFor('uselabel', $data->rec)) {
-            $data->toolbar->addBtn('Отпечатване', array('label_Prints', 'new', 'labelId' => $data->rec->id, 'ret_url' => TRUE), "ef_icon=img/16/print_go.png, order=30, title=Започване на принтиране");
+            $data->toolbar->addBtn('Отпечатване', array('label_Prints', 'new', 'labelId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/print_go.png, order=30, title=Започване на принтиране');
         }
     }
     
     
     /**
      * След подготовка на сингъла
-     * 
+     *
      * @param label_Labels $mvc
-     * @param object $res
-     * @param object $data
+     * @param object       $res
+     * @param object       $data
      */
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
@@ -525,7 +528,7 @@ class label_Labels extends core_Master
         $previewLabelData->Label = new stdClass();
         $previewLabelData->Label->rec = $data->rec;
         $previewLabelData->Label->id = $data->rec->id;
-        $previewLabelData->updateTempData = FALSE;
+        $previewLabelData->updateTempData = false;
         
         $previewLabelData->pageLayout = new stdClass();
         $previewLabelData->pageLayout->columnsCnt = 1;
@@ -540,10 +543,10 @@ class label_Labels extends core_Master
     
     /**
      * Преди рендиране на сингъла
-     * 
+     *
      * @param label_Labels $mvc
-     * @param object $res
-     * @param object $data
+     * @param object       $res
+     * @param object       $data
      */
     protected static function on_BeforeRenderSingle($mvc, &$res, $data)
     {
@@ -554,7 +557,7 @@ class label_Labels extends core_Master
     
     /**
      * Подготвяме етикета
-     * 
+     *
      * @param object $data
      */
     public static function prepareLabel(&$data)
@@ -601,16 +604,16 @@ class label_Labels extends core_Master
         setIfNot($params[$printCntField], $data->printCnt, $data->cnt, 1);
         
         // Ако не е зададена стойност за текущия отпечатван етикет
-        $updatePrintCnt = FALSE;
+        $updatePrintCnt = false;
         if (!$params[$currPrintCntField]) {
-            $updatePrintCnt = TRUE;
+            $updatePrintCnt = true;
             $params[$currPrintCntField] = 0;
         }
         
         // Ако не е зададена стойност за текущата страница
-        $updatePageCnt = FALSE;
+        $updatePageCnt = false;
         if (!$params[$currPageCntField]) {
-            $updatePageCnt = TRUE;
+            $updatePageCnt = true;
             $params[$currPageCntField] = 0;
         }
         
@@ -627,7 +630,7 @@ class label_Labels extends core_Master
                 
                 $lang = label_Templates::fetchField($rec->templateId, 'lang');
 
-                core_Mode::push('prepareLabel', TRUE);
+                core_Mode::push('prepareLabel', true);
                 core_Lg::push($lang);
                 $labelDataArr = (array) $intfInst->getLabelData($rec->objId, $lDataNo++);
                 core_Lg::pop();
@@ -637,12 +640,12 @@ class label_Labels extends core_Master
                 foreach ($labelDataArr as $key => $val) {
                     $keyNormalized = label_TemplateFormats::getPlaceholderFieldName($key);
                    
-                    if(!array_key_exists($keyNormalized, $params)){
-                    	$params[$keyNormalized] = $val;
+                    if (!array_key_exists($keyNormalized, $params)) {
+                        $params[$keyNormalized] = $val;
                     }
                     
-                    if(array_key_exists($key, $readOnlyArr)){
-                    	$params[$keyNormalized] = $val;
+                    if (array_key_exists($key, $readOnlyArr)) {
+                        $params[$keyNormalized] = $val;
                     }
                 }
             }
@@ -654,7 +657,6 @@ class label_Labels extends core_Master
             
             // Ако сме минали на нова страница увеличаваме брояча за страници
             if (($updatePageCnt) && ($perPageCnt % $itemsPerPage == 0)) {
-                
                 $params[$currPageCntField]++;
             }
             $perPageCnt++;
@@ -664,7 +666,7 @@ class label_Labels extends core_Master
             }
             
             // Обхождаме масива с шаблоните
-            foreach ((array)$placesArr as $place) {
+            foreach ((array) $placesArr as $place) {
                 
                 // Вземаме името на плейсхолдера
                 $fPlace = label_TemplateFormats::getPlaceholderFieldName($place);
@@ -673,7 +675,7 @@ class label_Labels extends core_Master
                 $data->rows[$rowId][$place] = label_TemplateFormats::getVerbalTemplate($rec->templateId, $place, $params[$fPlace], $rec->id, $data->updateTempData);
             }
             
-            $newCurrPage = FALSE;
+            $newCurrPage = false;
             
             // За всяко копие добавяме по едно копие
             for ($copyId; $copyId < $data->copyCnt; $copyId++) {
@@ -682,7 +684,6 @@ class label_Labels extends core_Master
                 
                 // При копиятата, ако сме минали на нова страница, да се увеличи брояча за всички следващи копия
                 if (($updatePageCnt) && ($perPageCnt % $itemsPerPage == 0)) {
-                    
                     $params[$currPageCntField]++;
                     $newCurrPage = label_TemplateFormats::getVerbalTemplate($rec->templateId, $currPageCntField, $params[$currPageCntField], $rec->id, $data->updateTempData);
                 }
@@ -701,11 +702,11 @@ class label_Labels extends core_Master
     
     /**
      * Рендираме етикете
-     * 
-     * @param object $data
+     *
+     * @param  object  $data
      * @return core_ET - Шаблона, който ще връщаме
      */
-    public static function renderLabel(&$data, $labelLayout=NULL)
+    public static function renderLabel(&$data, $labelLayout = null)
     {
         // Генерираме шаблона
         $allTpl = new core_ET();
@@ -714,14 +715,13 @@ class label_Labels extends core_Master
         setIfNot($itemsPerPage, $data->pageLayout->itemsPerPage, 1);
         
         // Обхождаме резултатите
-        foreach ((array)$data->rows as $rowId => $row) {
+        foreach ((array) $data->rows as $rowId => $row) {
             
             // Номера на вътрешния шаблон
             $n = $rowId % $itemsPerPage;
             
             // Ако е първа или нямам шаблон
             if ($n === 0 || !$tpl) {
-                
                 if (is_object($labelLayout)) {
                     // Рендираме изгледа за една страница
                     $tpl = clone $labelLayout;
@@ -742,19 +742,19 @@ class label_Labels extends core_Master
             
             // За всяка колона без първата и се добавя междината за колоните
             if (isset($data->pageLayout->columnsDist) && ($n !== 0) && ($cCol != 0)) {
-                $divStyle =  "margin-left: {$data->pageLayout->columnsDist}; ";
+                $divStyle = "margin-left: {$data->pageLayout->columnsDist}; ";
             }
             
             // За всеки ред без първия се добавя междината за редовете
             if (isset($data->pageLayout->linesDist) && $n >= $data->pageLayout->columnsCnt) {
-                $divStyle .=  "margin-top: {$data->pageLayout->linesDist};";
+                $divStyle .= "margin-top: {$data->pageLayout->linesDist};";
             }
             
             if ($divStyle) {
                 $divStyle = "style='{$divStyle}'";
             }
             
-            $template = "<div {$divStyle}>" . $template . "</div>";
+            $template = "<div {$divStyle}>" . $template . '</div>';
             
             // Заместваме шаблона в таблицата на страницата
             $tpl->replace($template, $n);
@@ -776,10 +776,10 @@ class label_Labels extends core_Master
     
     /**
      * Пренасочва URL за връщане след запис към сингъл изгледа
-     * 
+     *
      * @param label_Labels $mvc
-     * @param object $res
-     * @param object $data
+     * @param object       $res
+     * @param object       $data
      */
     protected static function on_AfterPrepareRetUrl($mvc, &$res, &$data)
     {
@@ -796,12 +796,12 @@ class label_Labels extends core_Master
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param label_Labels $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
+     * @param string       $requiredRoles
+     * @param string       $action
+     * @param stdClass     $rec
+     * @param int          $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако има запис
         if ($rec) {
@@ -847,12 +847,12 @@ class label_Labels extends core_Master
     }
     
     
- 	/**
- 	 * Изпълнява се след подготовката на формата за филтриране
- 	 * 
- 	 * @param label_Labels $mvc
- 	 * @param stdClass $data
- 	 */
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     *
+     * @param label_Labels $mvc
+     * @param stdClass     $data
+     */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Формата
@@ -866,7 +866,7 @@ class label_Labels extends core_Master
         
         $form->FNC('fState', 'enum(, draft=Чернови, active=Отпечатани)', 'caption=Състояние, allowEmpty,autoFilter');
         
-        // Показваме само това поле. Иначе и другите полета 
+        // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $form->showFields = 'search, fState';
         
@@ -889,8 +889,8 @@ class label_Labels extends core_Master
      * Извиква се след успешен запис в модела
      *
      * @param label_Labels $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
+     * @param int          $id  първичния ключ на направения запис
+     * @param stdClass     $rec всички полета, които току-що са били записани
      */
     protected static function on_AfterSave($mvc, &$id, $rec)
     {
@@ -906,10 +906,10 @@ class label_Labels extends core_Master
     /**
      * Премахваме някои полета преди да клонираме
      * @see plg_Clone
-     * 
+     *
      * @param label_Labels $mvc
-     * @param object $rec
-     * @param object $nRec
+     * @param object       $rec
+     * @param object       $nRec
      */
     protected static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {

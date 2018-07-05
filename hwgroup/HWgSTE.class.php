@@ -20,15 +20,15 @@ class hwgroup_HWgSTE extends sens2_ProtoDriver
     /**
      * Заглавие на драйвера
      */
-    var $title = 'HWgSTE';
+    public $title = 'HWgSTE';
 
 
     /**
      * Описание на входовете
      */
-    var $inputs = array(
-        'T' => array('caption'=>'Температура', 'uom' => 'ºC', 'xmlPath' => '/SenSet[1]/Entry[1]/Value[1]'),
-        'Hr' => array('caption'=>'Влажност', 'uom' => '%', 'xmlPath' => '/SenSet[1]/Entry[2]/Value[1]'),
+    public $inputs = array(
+        'T' => array('caption' => 'Температура', 'uom' => 'ºC', 'xmlPath' => '/SenSet[1]/Entry[1]/Value[1]'),
+        'Hr' => array('caption' => 'Влажност', 'uom' => '%', 'xmlPath' => '/SenSet[1]/Entry[2]/Value[1]'),
     );
 
 
@@ -39,7 +39,7 @@ class hwgroup_HWgSTE extends sens2_ProtoDriver
      *
      * @param core_Form
      */
-    function prepareConfigForm($form)
+    public function prepareConfigForm($form)
     {
         $form->FNC('ip', 'ip', 'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory');
@@ -54,13 +54,13 @@ class hwgroup_HWgSTE extends sens2_ProtoDriver
      *
      * @see  sens2_DriverIntf
      *
-     * @param   array   $inputs
-     * @param   array   $config
-     * @param   array   $persistentState
-     * 
-     * @return  mixed
+     * @param array $inputs
+     * @param array $config
+     * @param array $persistentState
+     *
+     * @return mixed
      */
-    function readInputs($inputs, $config, &$persistentState)
+    public function readInputs($inputs, $config, &$persistentState)
     {
         $state = array();
         
@@ -68,10 +68,9 @@ class hwgroup_HWgSTE extends sens2_ProtoDriver
         
         $context = stream_context_create(array('http' => array('timeout' => 4)));
         
-        $xml = @file_get_contents($url, FALSE, $context);
+        $xml = @file_get_contents($url, false, $context);
         
         if (empty($xml) || !$xml) {
-            
             return "Грешка при четене от {$config->ip}:{$config->port}";
         }
         
@@ -85,5 +84,4 @@ class hwgroup_HWgSTE extends sens2_ProtoDriver
                 
         return $res;
     }
-    
 }

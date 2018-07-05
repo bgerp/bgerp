@@ -16,20 +16,23 @@ cls::load('fileman_Files');
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class fileman_FileType extends type_Varchar {
+class fileman_FileType extends type_Varchar
+{
     
 
     /**
      * Дължина на полето в mySql таблица
      */
-    var $dbFieldLen = FILEMAN_HANDLER_LEN;
+    public $dbFieldLen = FILEMAN_HANDLER_LEN;
 
     /**
      * @todo Чака за документация...
      */
-    function toVerbal($fh)
+    public function toVerbal($fh)
     {
-        if(!$fh) return "";
+        if (!$fh) {
+            return '';
+        }
         
         return fileman_Files::getLink($fh);
     }
@@ -38,27 +41,27 @@ class fileman_FileType extends type_Varchar {
     /**
      * @todo Чака за документация...
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
         $Files = cls::get('fileman_Files');
         $Buckets = cls::get('fileman_Buckets');
         
-        if($value) {
+        if ($value) {
             $fileName = $Files->fetchByFh($value, 'name');
         }
         
         unset($attr['ondblclick']);
         
         $attrInp = $attr;
-        $attrInp['id'] = $name . "_file_name_id";
+        $attrInp['id'] = $name . '_file_name_id';
         $attrInp['style'] = 'padding:5px;font-weight:bold;';
         
-        if($fileName) {
-            $crossImg = "<img src=" . sbf('img/16/delete.png') . " align=\"absmiddle\" title=\"" . tr("Премахване на файла") . "\" alt=\"\">";
+        if ($fileName) {
+            $crossImg = '<img src=' . sbf('img/16/delete.png') . ' align="absmiddle" title="' . tr('Премахване на файла') . '" alt="">';
             $html = $this->toVerbal($value) . "&nbsp;<a style=\"color:red;\" href=\"javascript:void(0)\" onclick=\"unsetInputFile('" . $name . "')\">" . $crossImg . '</a>';
         }
         
-        $tpl = ht::createElement("span", $attrInp, $html, TRUE);
+        $tpl = ht::createElement('span', $attrInp, $html, true);
         
         $tpl->append("<input name='{$name}' value='{$value}' id='{$name}_id' type='hidden'>");
         
@@ -68,7 +71,7 @@ class fileman_FileType extends type_Varchar {
         
         expect($bucketId, 'Очаква се валидна кофа', $bucket);
         
-        $tpl->prepend($Files->makeBtnToAddFile("+", $bucketId, 'setInputFile' . $name, array('class' => 'noicon', 'title' => 'Добавяне или промяна на файл')));
+        $tpl->prepend($Files->makeBtnToAddFile('+', $bucketId, 'setInputFile' . $name, array('class' => 'noicon', 'title' => 'Добавяне или промяна на файл')));
         
         $this->addJavascript($tpl, $name);
         
@@ -79,7 +82,7 @@ class fileman_FileType extends type_Varchar {
     /**
      * @todo Чака за документация...
      */
-    function addJavascript($tpl, $name)
+    public function addJavascript($tpl, $name)
     {
         $tpl->appendOnce("
             function setInputFile(name, fh, fName) {

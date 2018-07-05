@@ -15,7 +15,7 @@ class distro_ArchiveDriver extends core_Mvc
 {
     
     
-	/**
+    /**
      * Поддържа интерфейса за драйвер
      */
     public $interfaces = 'distro_ActionsDriverIntf';
@@ -30,18 +30,17 @@ class distro_ArchiveDriver extends core_Mvc
     /**
      * Плъгини и класове за зареждане
      */
-    public  $loadList = 'distro_Wrapper';
+    public $loadList = 'distro_Wrapper';
     
     
     /**
-	 * Добавя полетата на драйвера към Fieldset
-	 * 
-	 * @param core_Fieldset $fieldset
-	 */
-	public function addFields(core_Fieldset &$fieldset)
-	{
-	    
-	}
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+    }
     
     
     /**
@@ -49,52 +48,55 @@ class distro_ArchiveDriver extends core_Mvc
      *
      * @see distro_ActionsDriverIntf
      */
-    public function canSelectDriver($userId = NULL)
+    public function canSelectDriver($userId = null)
     {
-        
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Дали може да се направи действието в екшъна към съответния файл
-     * 
-     * @param integer $groupId
-     * @param integer $repoId
-     * @param integer $fileId
-     * @param string|NULL $name
-     * @param string|NULL $md5
+     *
+     * @param integer      $groupId
+     * @param integer      $repoId
+     * @param integer      $fileId
+     * @param string|NULL  $name
+     * @param string|NULL  $md5
      * @param integer|NULL $userId
-     * 
+     *
      * @return boolean
-     * 
+     *
      * @see distro_ActionsDriverIntf
      */
-    function canMakeAction($groupId, $repoId, $fileId, $name = NULL, $md5 = NULL, $userId = NULL)
+    public function canMakeAction($groupId, $repoId, $fileId, $name = null, $md5 = null, $userId = null)
     {
         if ($fileId) {
             $fRec = distro_Files::fetch($fileId);
             
-            if (isset($fRec->sourceFh)) return FALSE;
+            if (isset($fRec->sourceFh)) {
+                return false;
+            }
         }
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Връща стринга, който ще се пуска за обработка
-     * 
+     *
      * @param stdClass $rec
-     * 
+     *
      * @return string
-     * 
+     *
      * @see distro_ActionsDriverIntf
      */
-    function getActionStr($rec)
+    public function getActionStr($rec)
     {
         $fRec = distro_Files::fetch($rec->fileId);
-        if ($fRec->sourceFh) return '';
+        if ($fRec->sourceFh) {
+            return '';
+        }
         
         Request::setProtected(array('repoId', 'fileId'));
         
@@ -108,16 +110,15 @@ class distro_ArchiveDriver extends core_Mvc
     
     /**
      * Вика се след приключване на обработката
-     * 
+     *
      * @param stdClass $rec
      *
      * @see distro_ActionsDriverIntf
      */
-    function afterProcessFinish($rec)
+    public function afterProcessFinish($rec)
     {
         // Обновяваме всички файлове със същия хеш, да имат същия sourceFh
         if ($rec->fileId) {
-            
             $fRec = distro_Files::fetch((int) $rec->fileId);
             
             $fQuery = distro_Files::getQuery();
@@ -135,36 +136,34 @@ class distro_ArchiveDriver extends core_Mvc
     
     /**
      * Може ли вградения обект да се избере
-     * 
+     *
      * @return array
-     * 
+     *
      * @see distro_ActionsDriverIntf
      */
     public function getLinkParams()
     {
-        
         return array('ef_icon' => 'img/16/upload.png', 'warning' => 'Сигурни ли сте, че искате да архивирате файла?');
     }
     
     
     /**
      * Дали може да се форсира записването
-     * 
+     *
      * @return boolean
      *
      * @see distro_ActionsDriverIntf
      */
     public function canForceSave()
     {
-        
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Предизвиква уплоад на файла в системата
      */
-    function act_UploadFile()
+    public function act_UploadFile()
     {
         Request::setProtected(array('repoId', 'fileId'));
         
@@ -177,11 +176,15 @@ class distro_ArchiveDriver extends core_Mvc
         
         expect($fRec);
         
-        if ($fRec->sourceFh) return FALSE;
+        if ($fRec->sourceFh) {
+            return false;
+        }
         
         $conn = distro_Repositories::connectToRepo($repoId);
         
-        if (!$conn) return FALSE;
+        if (!$conn) {
+            return false;
+        }
         
         $fPath = $DFiles->getRealPathOfFile($fileId, $repoId);
         
@@ -192,7 +195,7 @@ class distro_ArchiveDriver extends core_Mvc
         
         expect($fileHnd);
         
-        $fRec->sourceFh = $fileHnd; 
+        $fRec->sourceFh = $fileHnd;
         $DFiles->save($fRec, 'sourceFh');
     }
 }

@@ -18,10 +18,10 @@ class distro_CopyDriver extends core_Mvc
     /**
      * Дали да се използва sshpass
      */
-    public $useSSHPass = TRUE;
+    public $useSSHPass = true;
     
     
-	/**
+    /**
      * Поддържа интерфейса за драйвер
      */
     public $interfaces = 'distro_ActionsDriverIntf';
@@ -36,20 +36,20 @@ class distro_CopyDriver extends core_Mvc
     /**
      * Плъгини и класове за зареждане
      */
-    public  $loadList = 'distro_Wrapper';
+    public $loadList = 'distro_Wrapper';
     
     
     /**
-	 * Добавя полетата на драйвера към Fieldset
-	 * 
-	 * @param core_Fieldset $fieldset
-	 */
-	public function addFields(core_Fieldset &$fieldset)
-	{
-	    $fieldset->FLD('sourceRepoId', 'key(mvc=distro_Repositories, select=name)', 'caption=Копиране в');
-	    $fieldset->FLD('newFileName', 'varchar', 'caption=Име на файла, input=none');
-	    $fieldset->FLD('newFileId', 'key(mvc=distro_Files, select=name)', 'caption=Изходен файл, input=none');
-	}
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        $fieldset->FLD('sourceRepoId', 'key(mvc=distro_Repositories, select=name)', 'caption=Копиране в');
+        $fieldset->FLD('newFileName', 'varchar', 'caption=Име на файла, input=none');
+        $fieldset->FLD('newFileId', 'key(mvc=distro_Files, select=name)', 'caption=Изходен файл, input=none');
+    }
     
     
     /**
@@ -57,53 +57,56 @@ class distro_CopyDriver extends core_Mvc
      *
      * @see distro_ActionsDriverIntf
      */
-    public function canSelectDriver($userId = NULL)
+    public function canSelectDriver($userId = null)
     {
-        
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Дали може да се направи действието в екшъна към съответния файл
-     * 
-     * @param integer $groupId
-     * @param integer $repoId
-     * @param integer $fileId
-     * @param string|NULL $name
-     * @param string|NULL $md5
+     *
+     * @param integer      $groupId
+     * @param integer      $repoId
+     * @param integer      $fileId
+     * @param string|NULL  $name
+     * @param string|NULL  $md5
      * @param integer|NULL $userId
-     * 
+     *
      * @return boolean
-     * 
+     *
      * @see distro_ActionsDriverIntf
      */
-    function canMakeAction($groupId, $repoId, $fileId, $name = NULL, $md5 = NULL, $userId = NULL)
+    public function canMakeAction($groupId, $repoId, $fileId, $name = null, $md5 = null, $userId = null)
     {
         // Ако същия файл липсва в другото хранилище, тогава ще има възможност за копиране
         
-        if (!distro_Group::canAddDetail($groupId, $userId)) return FALSE;
+        if (!distro_Group::canAddDetail($groupId, $userId)) {
+            return false;
+        }
         
-        $dFileArr = distro_Files::getRepoWithFile($groupId, $md5, NULL, TRUE);
+        $dFileArr = distro_Files::getRepoWithFile($groupId, $md5, null, true);
         
         $reposArr = distro_Group::getReposArr($groupId);
         
-        if (count($dFileArr) >= count($reposArr)) return FALSE;
+        if (count($dFileArr) >= count($reposArr)) {
+            return false;
+        }
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Връща стринга, който ще се пуска за обработка
-     * 
+     *
      * @param stdClass $rec
-     * 
+     *
      * @return string
-     * 
+     *
      * @see distro_ActionsDriverIntf
      */
-    function getActionStr($rec)
+    public function getActionStr($rec)
     {
         $fRec = distro_Files::fetch($rec->fileId);
         
@@ -147,19 +150,18 @@ class distro_CopyDriver extends core_Mvc
      */
     public function getLinkParams()
     {
-        
         return array('ef_icon' => 'img/16/copy16.png');
     }
     
 
     /**
      * Вика се след приключване на обработката
-     * 
+     *
      * @param stdClass $rec
      *
      * @see distro_ActionsDriverIntf
      */
-    function afterProcessFinish($rec)
+    public function afterProcessFinish($rec)
     {
         $fRec = distro_Files::fetch($rec->fileId);
         
@@ -176,13 +178,13 @@ class distro_CopyDriver extends core_Mvc
             $sudoUser = core_Users::sudo($rec->createdBy);
         }
         
-        $newFileId = distro_Files::save($nRec, NULL, 'IGNORE');
+        $newFileId = distro_Files::save($nRec, null, 'IGNORE');
         
         core_Users::exitSudo($sudoUser);
         
         if ($newFileId) {
             $rec->newFileId = $newFileId;
-            $rec->StopExec = TRUE;
+            $rec->StopExec = true;
             distro_Actions::save($rec);
         }
     }
@@ -190,15 +192,14 @@ class distro_CopyDriver extends core_Mvc
     
     /**
      * Дали може да се форсира записването
-     * 
+     *
      * @return boolean
      *
      * @see distro_ActionsDriverIntf
      */
     public function canForceSave()
     {
-        
-        return FALSE;
+        return false;
     }
     
     
@@ -206,8 +207,8 @@ class distro_CopyDriver extends core_Mvc
      * Преди показване на форма за добавяне/промяна.
      *
      * @param distro_CopyDriver $mvc
-     * @param distro_Actions $embeder
-     * @param stdClass $data
+     * @param distro_Actions    $embeder
+     * @param stdClass          $data
      */
     public static function on_AfterPrepareEditForm($mvc, $embeder, $data)
     {
@@ -223,7 +224,7 @@ class distro_CopyDriver extends core_Mvc
         
         $fRec = distro_Files::fetch($rec->fileId);
         
-        $rArr = distro_Files::getRepoWithFile($rec->groupId, $fRec->md5, NULL, TRUE);
+        $rArr = distro_Files::getRepoWithFile($rec->groupId, $fRec->md5, null, true);
         
         // Премахваме, хранилищата, които съдържат сътоветния файл
         foreach ($rArr as $rRec) {
@@ -231,16 +232,15 @@ class distro_CopyDriver extends core_Mvc
         }
         
         $form->setOptions('sourceRepoId', $reposArr);
-        
     }
     
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
+     *
      * @param distro_CopyDriver $mvc
-     * @param distro_Actions $embeder
-     * @param core_Form $form
+     * @param distro_Actions    $embeder
+     * @param core_Form         $form
      */
     public static function on_AfterInputEditForm($mvc, $embeder, $form)
     {
@@ -258,9 +258,9 @@ class distro_CopyDriver extends core_Mvc
      * След преобразуване на записа в четим за хора вид.
      *
      * @param distro_CopyDriver $mvc
-     * @param distro_Actions $embeder
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param distro_Actions    $embeder
+     * @param stdClass          $row     Това ще се покаже
+     * @param stdClass          $rec     Това е записа в машинно представяне
      */
     public static function on_AfterRecToVerbal($mvc, $embeder, &$row, $rec)
     {
@@ -270,10 +270,9 @@ class distro_CopyDriver extends core_Mvc
             $row->Info .= ' ' . tr('в') . ' ' . distro_Repositories::getLinkToSingle($rec->sourceRepoId, 'name');
             
             if ($rec->newFileId && $rec->newFileName && ($rec->newFileName != $rec->fileName)) {
-                
                 $newName = type_Varchar::escape($rec->newFileName);
                 
-                $row->Info .=  ' ' . tr('с нов име') . " \"{$newName}\"";
+                $row->Info .= ' ' . tr('с нов име') . " \"{$newName}\"";
             }
         }
     }

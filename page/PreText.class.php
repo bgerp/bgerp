@@ -19,7 +19,7 @@ class page_PreText extends page_Empty
     /**
      * Генериране на изход, съдържащ само $content, без никакви доп. елементи с подреден текст
      */
-    function output($content = '', $place = "PAGE_CONTENT")
+    public function output($content = '', $place = 'PAGE_CONTENT')
     {
         $this->appendOnce('body{white-space: pre-wrap; width: auto; overflow: auto; background-color: transparent;}', 'STYLES');
         

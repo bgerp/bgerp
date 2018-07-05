@@ -15,7 +15,7 @@ class distro_RenameDriver extends core_Mvc
 {
     
     
-	/**
+    /**
      * Поддържа интерфейса за драйвер
      */
     public $interfaces = 'distro_ActionsDriverIntf';
@@ -30,21 +30,21 @@ class distro_RenameDriver extends core_Mvc
     /**
      * Плъгини и класове за зареждане
      */
-    public  $loadList = 'distro_Wrapper';
+    public $loadList = 'distro_Wrapper';
     
     
     /**
-	 * Добавя полетата на драйвера към Fieldset
-	 * 
-	 * @param core_Fieldset $fieldset
-	 */
-	public function addFields(core_Fieldset &$fieldset)
-	{
-	    $fieldset->FLD('newFileName', 'varchar', 'caption=Име');
-	    $fieldset->FLD('oldFileName', 'varchar', 'caption=Файл, input=none');
-	    $fieldset->FLD('newFileInfo', 'varchar', 'caption=Информация');
-	    $fieldset->FLD('oldFileInfo', 'varchar', 'caption=Информация, input=none');
-	}
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        $fieldset->FLD('newFileName', 'varchar', 'caption=Име');
+        $fieldset->FLD('oldFileName', 'varchar', 'caption=Файл, input=none');
+        $fieldset->FLD('newFileInfo', 'varchar', 'caption=Информация');
+        $fieldset->FLD('oldFileInfo', 'varchar', 'caption=Информация, input=none');
+    }
     
     
     /**
@@ -52,53 +52,53 @@ class distro_RenameDriver extends core_Mvc
      *
      * @see distro_ActionsDriverIntf
      */
-    public function canSelectDriver($userId = NULL)
+    public function canSelectDriver($userId = null)
     {
-        
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Дали може да се направи действието в екшъна към съответния файл
-     * 
-     * @param integer $groupId
-     * @param integer $repoId
-     * @param integer $fileId
-     * @param string|NULL $name
-     * @param string|NULL $md5
+     *
+     * @param integer      $groupId
+     * @param integer      $repoId
+     * @param integer      $fileId
+     * @param string|NULL  $name
+     * @param string|NULL  $md5
      * @param integer|NULL $userId
-     * 
+     *
      * @return boolean
-     * 
+     *
      * @see distro_ActionsDriverIntf
      */
-    function canMakeAction($groupId, $repoId, $fileId, $name = NULL, $md5 = NULL, $userId = NULL)
+    public function canMakeAction($groupId, $repoId, $fileId, $name = null, $md5 = null, $userId = null)
     {
-        
-        return TRUE;        
+        return true;
     }
     
     
     /**
      * Връща стринга, който ще се пуска за обработка
-     * 
+     *
      * @param stdClass $rec
-     * 
+     *
      * @return string
-     * 
+     *
      * @see distro_ActionsDriverIntf
      */
-    function getActionStr($rec)
+    public function getActionStr($rec)
     {
-        if (!$rec->RenameFile) return 'mv --help';
+        if (!$rec->RenameFile) {
+            return 'mv --help';
+        }
         
         $DFiles = cls::get('distro_Files');
         
         $fPath = $DFiles->getRealPathOfFile($rec->fileId, $rec->repoId);
         $fPath = escapeshellarg($fPath);
         
-        $destPath = $DFiles->getRealPathOfFile($rec->fileId, $rec->repoId, NULL, $rec->newFileName);
+        $destPath = $DFiles->getRealPathOfFile($rec->fileId, $rec->repoId, null, $rec->newFileName);
         $destPath = escapeshellarg($destPath);
         
         $renameExec = "mv -i {$fPath} {$destPath}";
@@ -106,15 +106,15 @@ class distro_RenameDriver extends core_Mvc
         return $renameExec;
     }
     
-	
+    
     /**
      * Вика се след приключване на обработката
-     * 
+     *
      * @param stdClass $rec
      *
      * @see distro_ActionsDriverIntf
      */
-    function afterProcessFinish($rec)
+    public function afterProcessFinish($rec)
     {
         $fRec = distro_Files::fetch($rec->fileId);
         
@@ -138,29 +138,27 @@ class distro_RenameDriver extends core_Mvc
     
     /**
      * Може ли вградения обект да се избере
-     * 
+     *
      * @return array
-     * 
+     *
      * @see distro_ActionsDriverIntf
      */
     public function getLinkParams()
     {
-        
         return array('ef_icon' => 'img/16/edit-icon.png');
     }
     
     
     /**
      * Дали може да се форсира записването
-     * 
+     *
      * @return boolean
      *
      * @see distro_ActionsDriverIntf
      */
     public function canForceSave()
     {
-        
-        return FALSE;
+        return false;
     }
     
     
@@ -168,8 +166,8 @@ class distro_RenameDriver extends core_Mvc
      * Преди показване на форма за добавяне/промяна.
      *
      * @param distro_RenameDriver $mvc
-     * @param distro_Actions $embeder
-     * @param stdClass $data
+     * @param distro_Actions      $embeder
+     * @param stdClass            $data
      */
     public static function on_AfterPrepareEditForm($mvc, $embeder, &$data)
     {
@@ -181,17 +179,17 @@ class distro_RenameDriver extends core_Mvc
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
+     *
      * @param distro_RenameDriver $mvc
-     * @param distro_Actions $embeder
-     * @param core_Form $form
+     * @param distro_Actions      $embeder
+     * @param core_Form           $form
      */
     public static function on_AfterInputEditForm($mvc, $embeder, &$form)
     {
         if ($form->isSubmitted()) {
             $fRec = distro_Files::fetch((int) $form->rec->fileId);
             
-            $haveChange = FALSE;
+            $haveChange = false;
             
             // Ако е преименуван файла, проверяваме да няма файл, със същото име
             if ($fRec->name != $form->rec->newFileName) {
@@ -202,32 +200,31 @@ class distro_RenameDriver extends core_Mvc
                     
                     if ($sshObj) {
                         $dFile = cls::get('distro_Files');
-                        $filePath = $dFile->getRealPathOfFile($form->rec->fileId, $form->rec->repoId, NULL, $form->rec->newFileName);
+                        $filePath = $dFile->getRealPathOfFile($form->rec->fileId, $form->rec->repoId, null, $form->rec->newFileName);
                         
                         $filePath = escapeshellarg($filePath);
                         
                         $sshObj->exec("if [ -f {$filePath} ]; then echo 'EXIST'; fi", $res);
                         
-                        if (trim($res) == "EXIST") {
+                        if (trim($res) == 'EXIST') {
                             $form->setError('newFileName', 'Файлът със същото име съществува в хранилището');
                         }
                     }
                 }
                 
-                $haveChange = TRUE;
-                $form->rec->RenameFile = TRUE;
+                $haveChange = true;
+                $form->rec->RenameFile = true;
             }
             
             // Ако е редактирана информацията за файла
             if ($fRec->info != $form->rec->newFileInfo) {
-
-                $haveChange = TRUE;
+                $haveChange = true;
                 $form->rec->oldFileInfo = $fRec->info;
             }
             
             // Ако няма никакви промени по полетата, да не се пускат обработки
             if (!$haveChange) {
-                $form->setError('newFileName, newFileInfo', "Не сте направили никакви промени");
+                $form->setError('newFileName, newFileInfo', 'Не сте направили никакви промени');
             }
         }
     }
@@ -237,9 +234,9 @@ class distro_RenameDriver extends core_Mvc
      * След преобразуване на записа в четим за хора вид.
      *
      * @param distro_RenameDriver $mvc
-     * @param distro_Actions $embeder
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param distro_Actions      $embeder
+     * @param stdClass            $row     Това ще се покаже
+     * @param stdClass            $rec     Това е записа в машинно представяне
      */
     public static function on_AfterRecToVerbal($mvc, $embeder, &$row, $rec)
     {

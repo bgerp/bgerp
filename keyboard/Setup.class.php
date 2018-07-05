@@ -19,39 +19,39 @@ defIfNot('VKI_version', '1.28');
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class keyboard_Setup extends core_ProtoSetup 
+class keyboard_Setup extends core_ProtoSetup
 {
     
     
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Виртуална клавиатура. Показва се с двоен клик в десния край на полето";
+    public $info = 'Виртуална клавиатура. Показва се с двоен клик в десния край на полето';
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
         
-           'VKI_version' => array ('enum(1.28)', 'mandatory, caption=Версията на програмата->Версия')
+           'VKI_version' => array('enum(1.28)', 'mandatory, caption=Версията на програмата->Версия')
     
              );
     
@@ -59,10 +59,10 @@ class keyboard_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -79,18 +79,18 @@ class keyboard_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме клавиатурата към password полета
-        if($delCnt = $Plugins->deinstallPlugin('keyboard_Plugin')) {
+        if ($delCnt = $Plugins->deinstallPlugin('keyboard_Plugin')) {
             $html .= "<li>Премахнати са {$delCnt} закачания на 'keyboard_Plugin'";
         } else {
-            $html .= "<li>Не са премахнати закачания на плъгина";
+            $html .= '<li>Не са премахнати закачания на плъгина';
         }
         
         return $html;

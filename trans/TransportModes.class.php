@@ -19,12 +19,12 @@ class trans_TransportModes extends core_Manager
 {
     
     
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'transsrv_TransportModes';
-	
-	
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'transsrv_TransportModes';
+    
+    
     /**
      * Заглавие
      */
@@ -81,17 +81,17 @@ class trans_TransportModes extends core_Manager
     /**
      * Динамично изчисляване на необходимите роли за дадения потребител, за извършване на определено действие към даден запис
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = null, $userId = null)
     {
-        if(isset($rec) && is_int($rec)) {
+        if (isset($rec) && is_int($rec)) {
             $rec = $mvc->fetch($rec);
-        } elseif(isset($rec->id)) {
+        } elseif (isset($rec->id)) {
             $rec = $mvc->fetch($rec->id);
         }
 
-        if(($action == 'delete' || $action == 'edit') && $rec->id) {  
-            if($rec->createdBy != core_Users::getCurrent()) { 
-                $roles = 'ceo'; 
+        if (($action == 'delete' || $action == 'edit') && $rec->id) {
+            if ($rec->createdBy != core_Users::getCurrent()) {
+                $roles = 'ceo';
             }
         }
     }

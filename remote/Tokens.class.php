@@ -19,25 +19,25 @@ class remote_Tokens extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Временни кодове";
+    public $title = 'Временни кодове';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Кодове";
+    public $singleTitle = 'Кодове';
 
     
     /**
      * Разглеждане на листов изглед
      */
-    var $canSingle = 'powerUser';
+    public $canSingle = 'powerUser';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'remote_Wrapper';
+    public $loadList = 'remote_Wrapper';
     
 
 
@@ -51,19 +51,19 @@ class remote_Tokens extends core_Master
     /**
      * Поле за инструментите на реда
      */
-    var $rowToolsField = '✍';
+    public $rowToolsField = '✍';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'debug';
+    public $canRead = 'debug';
         
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'no_one';
+    public $canWrite = 'no_one';
 
 
     /**
@@ -75,10 +75,10 @@ class remote_Tokens extends core_Master
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-		$this->FLD('authId', 'key(mvc=remote_Authorizations)', 'caption=Оторизация,mandatory');
-		$this->FLD('token', 'password(64)', 'caption=Временен код,input=none');
+        $this->FLD('authId', 'key(mvc=remote_Authorizations)', 'caption=Оторизация,mandatory');
+        $this->FLD('token', 'password(64)', 'caption=Временен код,input=none');
         $this->FLD('expiredOn', 'datetime', 'caption=Годен до');
         
         $this->setDbUnique('token, authId');
@@ -89,7 +89,7 @@ class remote_Tokens extends core_Master
     /**
      * Изпълнява се след подготовката на формата за филтриране
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    public function on_AfterPrepareListFilter($mvc, $data)
     {
     }
 
@@ -99,9 +99,8 @@ class remote_Tokens extends core_Master
      */
     public static function storeToken($authId, $token, $expiredOn)
     {
-        if(self::fetch(array("#authId = [#1#] AND #token = '[#2#]'", $authId, $token))) {
-
-            return FALSE;
+        if (self::fetch(array("#authId = [#1#] AND #token = '[#2#]'", $authId, $token))) {
+            return false;
         }
 
         $rec = (object) array('authId' => $authId, 'token' => $token, 'expiredOn' => $expiredOn);
@@ -115,15 +114,12 @@ class remote_Tokens extends core_Master
     /**
      * Изтриване на изтеклите токъни
      */
-    function cron_DeleteExpiredTokens()
+    public function cron_DeleteExpiredTokens()
     {
         $now = dt::now();
         
         $cnt = self::delete("#expiredOn < '{$now}'");
 
-        return "Изтрити са $cnt tokens";
+        return "Изтрити са ${cnt} tokens";
     }
-
-
-
 }

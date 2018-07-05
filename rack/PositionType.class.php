@@ -14,21 +14,22 @@
  * @since     v 0.1
  * @link
  */
-class rack_PositionType extends type_Varchar {
+class rack_PositionType extends type_Varchar
+{
     
-	
-	/**
-	 * Параметър определящ максималната широчина на полето
-	 */
-	var $maxFieldSize = 9;
+    
+    /**
+     * Параметър определящ максималната широчина на полето
+     */
+    public $maxFieldSize = 9;
     
 
     /**
      * Колко символа е дълго полето в базата
      */
-    var $dbFieldLen = 9;
+    public $dbFieldLen = 9;
 
-	
+    
     /**
      * Клас за <td> елемент, който показва данни от този тип
      */
@@ -38,31 +39,32 @@ class rack_PositionType extends type_Varchar {
     /**
      * Този метод трябва да конвертира от вербално към вътрешно представяне дадената стойност
      */
-    function fromVerbal($value)
+    public function fromVerbal($value)
     {
-        if(!trim($value)) return NULL;
+        if (!trim($value)) {
+            return;
+        }
         
         $matches = array();
 
-        preg_match("/([0-9]{1,3})[\\-]{0,1}([a-z])[\\-]{0,1}([0-9]{1,3})/i", $value, $matches);
+        preg_match('/([0-9]{1,3})[\\-]{0,1}([a-z])[\\-]{0,1}([0-9]{1,3})/i', $value, $matches);
 
-        if(!is_array($matches) || count($matches) != 4) {
-            $this->error = "Невалиден синтаксис";
+        if (!is_array($matches) || count($matches) != 4) {
+            $this->error = 'Невалиден синтаксис';
 
-            return FALSE;
+            return false;
         }
         
-        return strtoupper(((int)$matches[1]) . '-' . $matches[2] . '-' . ((int) $matches[3]));
+        return strtoupper(((int) $matches[1]) . '-' . $matches[2] . '-' . ((int) $matches[3]));
     }
 
 
     /**
      * Преобразува позицията във вербален вид
      */
-    function toVerbal($value)
+    public function toVerbal($value)
     {
-        if(!strpos($value, '-') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('text', 'printing')) {
-
+        if (!strpos($value, '-') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('text', 'printing')) {
             return $value;
         }
         
@@ -77,7 +79,7 @@ class rack_PositionType extends type_Varchar {
     /**
      * @todo Чака за документация...
      */
-    function defVal()
+    public function defVal()
     {
         return '';
     }

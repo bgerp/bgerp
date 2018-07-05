@@ -19,7 +19,7 @@ class cms_ObjectSourceIntf
     /**
      * Подготвя данните за публикуването на обекта
      */
-    function prepareCmsObject(&$data)
+    public function prepareCmsObject(&$data)
     {
         return $this->class->prepareCmsObject($data);
     }
@@ -28,7 +28,7 @@ class cms_ObjectSourceIntf
     /**
      * Връща ЕТ шаблон по подразбиране за рендирането на този обект
      */
-    function getDefaultCmsTpl($data)
+    public function getDefaultCmsTpl($data)
     {
         return $this->class->getDefaultCmsTpl($data, $tpl);
     }
@@ -37,12 +37,8 @@ class cms_ObjectSourceIntf
     /**
      * Връща HTML кода на обекта, като рендира данните
      */
-    function renderCmsObject($data, $tpl)
+    public function renderCmsObject($data, $tpl)
     {
         return $this->class->renderCmsObject($data, $tpl);
     }
-
-
-
-    
 }

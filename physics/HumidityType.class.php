@@ -27,7 +27,7 @@ class physics_HumidityType extends type_Percent
     /**
      * Инициализиране на типа
      */
-    function init($params = array())
+    public function init($params = array())
     {
         parent::init($params);
         $this->params['decimals'] = EF_HUMIDITYTYPE_DECIMALS;
@@ -37,11 +37,11 @@ class physics_HumidityType extends type_Percent
     /**
      * Преобразуване от вербална стойност, към вътрешно представяне за процент (0 - 1)
      */
-    function fromVerbal($value)
+    public function fromVerbal($value)
     {
         $value = parent::fromVerbal($value);
         
-        if (($value<0) || ($value>1)) {
+        if (($value < 0) || ($value > 1)) {
             $this->error = 'Стойността на полето трябва да е между 0 и 100%';
             
             return false;

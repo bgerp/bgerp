@@ -14,19 +14,19 @@
  * @since     v 0.1
  */
 class email_Unparsable extends email_ServiceEmails
-{    
+{
     /**
      * Заглавие на таблицата
      */
-    var $title = "Имейли, които не могат да се парсират";
+    public $title = 'Имейли, които не могат да се парсират';
     
 
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-        $this->addFields();  
+        $this->addFields();
     }
 
     
@@ -34,7 +34,7 @@ class email_Unparsable extends email_ServiceEmails
     /**
      * Добавяне на писмо, което не може да се парсира
      */
-    static function add($rawEmail, $accId, $uid)
+    public static function add($rawEmail, $accId, $uid)
     {
         $rec = new stdClass();
         $rec->data = $rawEmail;
@@ -44,4 +44,4 @@ class email_Unparsable extends email_ServiceEmails
 
         self::save($rec);
     }
- }
+}

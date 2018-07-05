@@ -17,60 +17,58 @@ class fileman_Indexes extends core_Manager
     /**
      * Заглавие на таблицата
      */
-    var $title = "Информация за файловете";
+    public $title = 'Информация за файловете';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo';
+    public $canRead = 'ceo';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin';
+    public $canView = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, debug';
+    public $canList = 'admin, debug';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'no_one';
+    public $canReject = 'no_one';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'fileman_Wrapper, plg_RowTools, plg_Created';
+    public $loadList = 'fileman_Wrapper, plg_RowTools, plg_Created';
     
     
-    /**
-     * 
-     */
+    
     public $interfaces = 'fileman_ProcessIntf';
     
     
@@ -101,7 +99,7 @@ class fileman_Indexes extends core_Manager
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Файл,notNull');
         $this->FLD('type', 'varchar(32)', 'caption=Тип');
@@ -114,7 +112,7 @@ class fileman_Indexes extends core_Manager
     /**
      * Подготвя данните за информацията за файла
      */
-    static function prepare_(&$data, $fh)
+    public static function prepare_(&$data, $fh)
     {
         // Записи за текущия файл
         $data->fRec = fileman_Files::fetchByFh($fh);
@@ -126,7 +124,7 @@ class fileman_Indexes extends core_Manager
         $webdrvArr = self::getDriver($ext, $data->fRec->name);
         
         // Обикаляме всички открити драйвери
-        foreach($webdrvArr as $drv) {
+        foreach ($webdrvArr as $drv) {
             
             // Стартираме процеса за извличане на данни
             $drv->startProcessing($data->fRec);
@@ -140,12 +138,14 @@ class fileman_Indexes extends core_Manager
     /**
      * Рендира информацията за файла
      */
-    static function render_($data)
+    public static function render_($data)
     {
         // Масив с всички табове
         $tabsArr = $data->tabs;
         
-        if(! count($data->tabs)) return FALSE;
+        if (! count($data->tabs)) {
+            return false;
+        }
         
         setIfNot($data->fhName, 'id');
         
@@ -156,27 +156,28 @@ class fileman_Indexes extends core_Manager
         if ($tabsArr[$data->currentTab]) {
             
             // Задаваме той да е текущия
-            $currentTab = $data->currentTab;    
+            $currentTab = $data->currentTab;
         } elseif ($tabsArr[$tabsArr['__defaultTab']]) {
             
             // Ако не е избран таб, избираме таба по подразбиране зададен от класа
             $currentTab = $tabsArr['__defaultTab'];
         } else {
-            
             unset($tabsArr['__defaultTab']);
             
             // Ако нито едно от двете не сработи, вземаме първия таб
-            $currentTab = key($tabsArr);    
+            $currentTab = key($tabsArr);
         }
         
         // Създаваме рендер на табове
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
         
         // Обикаляме всички табове
-        foreach($tabsArr as $name => $rec) {
+        foreach ($tabsArr as $name => $rec) {
            
             // Ако не е таб
-            if (strpos($name, '__') === 0) continue;
+            if (strpos($name, '__') === 0) {
+                continue;
+            }
             
             if ($data->localUrl) {
                 $urlArr = core_App::parseLocalUrl($data->localUrl);
@@ -191,11 +192,11 @@ class fileman_Indexes extends core_Manager
             }
             
             // Ако е текущия таб таб
-            if($name == $currentTab) {
+            if ($name == $currentTab) {
                 $tabs->TAB($name, $rec->title, $urlArr);
                  
-                 // Вземаме съдържанеито на тялот
-                 $body = $rec->html;
+                // Вземаме съдържанеито на тялот
+                $body = $rec->html;
             } else {
 
                 // Създаваме таб
@@ -210,7 +211,7 @@ class fileman_Indexes extends core_Manager
         if ($tabsArr[$currentTab]->tpl) {
             
             // Добавяме чакащите елементи от шаблона
-            $tpl->processContent($tabsArr[$currentTab]->tpl); // TODO вероятно ще се промени    
+            $tpl->processContent($tabsArr[$currentTab]->tpl); // TODO вероятно ще се промени
         }
         
         return $tpl;
@@ -220,20 +221,20 @@ class fileman_Indexes extends core_Manager
     /**
      * Връща масив от инстанции на уеб-драйвери за съответното разширение
      * Първоначалните уеб-драйвери на файловете се намират в директорията 'fileman_webdrv'
-     * 
-     * @param string $ext
+     *
+     * @param string      $ext
      * @param NULL|string $fName
-     * @param array $pathArr
-     * 
+     * @param array       $pathArr
+     *
      * @return array
      */
-    static function getDriver_($ext, $fName = NULL, $pathArr = array('fileman_webdrv'))
-    {   
+    public static function getDriver_($ext, $fName = null, $pathArr = array('fileman_webdrv'))
+    {
         // Разширението на файла
         $ext = strtolower($ext);
         
         // Ако тово разширение трябва да се игнорира
-        $ignoreExtArr = arr::make(self::$ignoreExtArr, TRUE);
+        $ignoreExtArr = arr::make(self::$ignoreExtArr, true);
         if ($ignoreExtArr[$ext]) {
             $fArr = fileman_Files::getNameAndExt($fName);
             
@@ -244,7 +245,6 @@ class fileman_Indexes extends core_Manager
                 $res = self::getDriver($nExt, $fArr['name'], $pathArr);
                 
                 if ($res[0] && ($res[0]->className != 'fileman_webdrv_Generic')) {
-                    
                     return $res;
                 }
             }
@@ -254,13 +254,13 @@ class fileman_Indexes extends core_Manager
         $res = array();
         
         // Обхождаме масива с пътищата
-        foreach($pathArr as $path) {
+        foreach ($pathArr as $path) {
             
             // Към пътя добавяме разширението за да получим драйвера
             $className = $path . '_' . $ext;
             
             // Ако има такъв клас
-            if(cls::load($className, TRUE)) {
+            if (cls::load($className, true)) {
                 
                 // Записваме инстанцията му
                 $res[] = cls::get($className);
@@ -268,7 +268,7 @@ class fileman_Indexes extends core_Manager
         }
 
         // Ако не може да се намери нито един драйвер
-        if(count($res) == 0) {
+        if (count($res) == 0) {
             
             // Създаваме инстанция на прародителя на драйверите
             $res[] = cls::get('fileman_webdrv_Generic');
@@ -281,13 +281,13 @@ class fileman_Indexes extends core_Manager
 
     /**
      * Връща десериализараната информация за съответния файл и съответния тип
-     * 
+     *
      * @param fileHandler $fileHnd - Манипулатор на файла
-     * @param string $type - Типа на файла
-     * 
+     * @param string      $type    - Типа на файла
+     *
      * @return mixed $content - Десериализирания стринг
      */
-    static function getInfoContentByFh($fileHnd, $type)
+    public static function getInfoContentByFh($fileHnd, $type)
     {
         // Записите за файла
         $fRec = fileman_Files::fetchByFh($fileHnd);
@@ -308,34 +308,38 @@ class fileman_Indexes extends core_Manager
                 $content = $driver::getInfoContentByFh($fileHnd, $type);
                 
                 // Ако открием съдържание, връщаме него
-                if ($content !== FALSE) return $content;
+                if ($content !== false) {
+                    return $content;
+                }
             }
         }
         
         // Вземаме текстовата част за съответното $dataId
-        $rec = fileman_Indexes::fetch(array("#dataId = '[#1#]' AND #type = '[#2#]'", $fRec->dataId, $type), '*', FALSE);
+        $rec = fileman_Indexes::fetch(array("#dataId = '[#1#]' AND #type = '[#2#]'", $fRec->dataId, $type), '*', false);
 
         // Ако няма такъв запис
-        if (!$rec) return FALSE;
+        if (!$rec) {
+            return false;
+        }
         
         return static::decodeContent($rec->content);
     }
     
     
-	/**
+    /**
      * Декодираме подадения текст
-     * 
+     *
      * @param string $content - Текста, който да декодираме
-     * 
+     *
      * @return string $content - Променения текст
      */
-    static function decodeContent($content)
+    public static function decodeContent($content)
     {
         // Вземаме конфигурацията
         $conf = core_Packs::getConfig('fileman');
         
         // Променяме мемори лимита
-        ini_set("memory_limit", $conf->FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT);
+        ini_set('memory_limit', $conf->FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT);
 
         // Декодваме
         $content = base64_decode($content);
@@ -353,7 +357,7 @@ class fileman_Indexes extends core_Manager
     /**
      * Подреждане на табовете в зависимост от order
      */
-    static function orderTabs($tabsArr)
+    public static function orderTabs($tabsArr)
     {
         // Подреждаме масива
         core_Array::orderA($tabsArr);
@@ -364,15 +368,15 @@ class fileman_Indexes extends core_Manager
 
     /**
      * Проверява дали файла е заключен или записан в БД
-     * 
-     * @param array $params - Масив с допълнителни променливи
+     *
+     * @param array   $params - Масив с допълнителни променливи
      * @param boolean $trim
-     * 
+     *
      * @return boolean - Връща TRUE ако файла е заключен или има запис в БД
-     * 
+     *
      * @access protected
      */
-    static function isProcessStarted($params, $trim=FALSE)
+    public static function isProcessStarted($params, $trim = false)
     {
         // Ако няма lockId
         if (!$params['lockId']) {
@@ -380,11 +384,12 @@ class fileman_Indexes extends core_Manager
         }
 
         // Ако процеса е заключен
-        if (core_Locks::isLocked($params['lockId'])) return TRUE;
+        if (core_Locks::isLocked($params['lockId'])) {
+            return true;
+        }
         
         // Ако има такъв запис
         if ($params['dataId'] && $rec = fileman_Indexes::fetch("#dataId = '{$params['dataId']}' AND #type = '{$params['type']}'")) {
-            
             $conf = core_Packs::getConfig('fileman');
             
             // Времето след което ще се изтрият
@@ -397,44 +402,45 @@ class fileman_Indexes extends core_Manager
             if (($content->errorProc) && (dt::mysql2timestamp($rec->createdOn) < $time)) {
                 
                 // Изтрива съответния запис
-                fileman_Indexes::delete($rec->id); 
+                fileman_Indexes::delete($rec->id);
                 
                 // Връщаме FALSE, за да укажем, че няма запис
-                return FALSE;   
-            } else {
+                return false;
+            }
                 
-                // Ако е обект
-                if (is_object($content)) {
+            // Ако е обект
+            if (is_object($content)) {
                     
                     // Вземаме грешката
-                    $content = $content->errorProc;
-                }
+                $content = $content->errorProc;
+            }
                 
-                // Ако е задедено да се провери съдържанието
-                if (($trim) && (!trim($content))) return FALSE;
+            // Ако е задедено да се провери съдържанието
+            if (($trim) && (!trim($content))) {
+                return false;
+            }
                 
-                return TRUE;
-            } 
+            return true;
         }
 
-        return FALSE;
+        return false;
     }
 
     
     /**
      * Подготвяме content частта за по добър запис
-     * 
+     *
      * @param string $text - Текста, който да променяме
-     * 
+     *
      * @return string $text - Променения текст
      */
-    static function prepareContent($text)
+    public static function prepareContent($text)
     {
         // Вземаме конфигурацията
         $conf = core_Packs::getConfig('fileman');
         
         // Променяме мемори лимита
-        ini_set("memory_limit", $conf->FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT);
+        ini_set('memory_limit', $conf->FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT);
 
         // Сериализираме
         $text = serialize($text);
@@ -443,7 +449,7 @@ class fileman_Indexes extends core_Manager
         $text = gzcompress($text);
         
         // Енкодваме
-        $text = base64_encode($text);    
+        $text = base64_encode($text);
                 
         return $text;
     }
@@ -451,17 +457,19 @@ class fileman_Indexes extends core_Manager
     
     /**
      * Записваме подадени параметри в модела
-     * 
+     *
      * @param array $params - Подадените параметри
-     * $params['dataId'] - key fileman_Data
-     * $params['type'] - Типа на файла
-     * $params['createdBy'] - Създадено от
-     * $params['content'] - Съдържанието
-     * 
+     *                      $params['dataId'] - key fileman_Data
+     *                      $params['type'] - Типа на файла
+     *                      $params['createdBy'] - Създадено от
+     *                      $params['content'] - Съдържанието
+     *
      */
-    static function saveContent($params)
+    public static function saveContent($params)
     {
-        if (!$params['dataId'] && !is_numeric($params['dataId'])) return ;
+        if (!$params['dataId'] && !is_numeric($params['dataId'])) {
+            return ;
+        }
         
         $rec = new stdClass();
         $rec->dataId = $params['dataId'];
@@ -483,21 +491,21 @@ class fileman_Indexes extends core_Manager
             }
         }
         
-        $saveId = static::save($rec, NULL, $saveType);
+        $saveId = static::save($rec, null, $saveType);
         
         return $saveId;
     }
     
     
-	/**
+    /**
      * Проверява дали има грешка. Ако има грешка, записваме грешката в БД.
-     * 
-     * @param string $file - Пътя до файла, който ще се проверява
-     * @param array $params - Други допълнителни параметри
-     * 
+     *
+     * @param string $file   - Пътя до файла, който ще се проверява
+     * @param array  $params - Други допълнителни параметри
+     *
      * @return boolean - Ако не открие грешка, връща FALSE
      */
-    static function haveErrors($file, $params)
+    public static function haveErrors($file, $params)
     {
         // Ако е файл в директория
         if (strstr($file, '/')) {
@@ -506,14 +514,12 @@ class fileman_Indexes extends core_Manager
             $isValid = is_file($file);
             
             if (($errFilePath = $params['errFilePath']) && is_file($errFilePath)) {
-                
                 $errContent = @file_get_contents($errFilePath);
                 
                 $errContent = trim($errContent);
                 
                 // Записваме грешката в дебъг лога
                 if ($errContent) {
-                    
                     $fileContent = '';
                     if ($isValid) {
                         $fileContent = @file_get_contents($file);
@@ -521,7 +527,6 @@ class fileman_Indexes extends core_Manager
                     }
                     
                     if (!$fileContent) {
-                        
                         if ($isValid) {
                             fileman_Indexes::logNotice($errContent);
                         } else {
@@ -537,7 +542,9 @@ class fileman_Indexes extends core_Manager
         }
         
         // Ако има файл
-        if ($isValid) return FALSE;
+        if ($isValid) {
+            return false;
+        }
         
         // Създаваме запис за грешка
         static::createError($params);
@@ -545,18 +552,18 @@ class fileman_Indexes extends core_Manager
         // Записваме грешката в лога
         static::createErrorLog($params['dataId'], $params['type']);
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Записваме грешка в модела
      */
-    static function createError($params) 
+    public static function createError($params)
     {
         // Ако няма файл, записваме грешката
         $error = new stdClass();
-        $error->errorProc = "Възникна грешка при обработка.";
+        $error->errorProc = 'Възникна грешка при обработка.';
         
         // Текстовата част
         $params['content'] = $error;
@@ -566,13 +573,13 @@ class fileman_Indexes extends core_Manager
     }
     
     
-	/**
+    /**
      * Записва в лога ако възникне греша при асинхронното обработване на даден файл
-     * 
+     *
      * @param fileman_Data $dataId - id' то на данните на файла
-     * @param string $type - Типа на файла
+     * @param string       $type   - Типа на файла
      */
-    static function createErrorLog($dataId, $type)
+    public static function createErrorLog($dataId, $type)
     {
         fileman_Data::logWarning("Възникна грешка при обработката на файла към '{$type}'", $dataId);
     }
@@ -580,15 +587,17 @@ class fileman_Indexes extends core_Manager
     
     /**
      * Изтрива индекса за съответните данни
-     * 
+     *
      * @param fileman_Data $dataId - id' то на данните
      */
-    static function deleteIndexesForData($dataId)
+    public static function deleteIndexesForData($dataId)
     {
-        if (!$dataId) return ;
+        if (!$dataId) {
+            return ;
+        }
         
         // Изтриваме всички записи със съответното dataId
-        fileman_Indexes::delete(array("#dataId = [#1#]", $dataId));
+        fileman_Indexes::delete(array('#dataId = [#1#]', $dataId));
         
         fileman_Data::resetProcess($dataId);
     }
@@ -598,7 +607,7 @@ class fileman_Indexes extends core_Manager
     /**
      * Регенериране на ключови думи и индексирани записи
      */
-    function act_Regenerate()
+    public function act_Regenerate()
     {
         requireRole('admin');
         
@@ -610,12 +619,11 @@ class fileman_Indexes extends core_Manager
         $form->FNC('rType', 'enum(all=Всички, indexes=Индекси, keywords=Ключови думи)', 'caption=На, input=input, mandatory');
         $form->FNC('rLimit', 'int(min=0)', 'caption=Ограничение, input=input');
         
-        $form->input('rType, rLimit', TRUE);
+        $form->input('rType, rLimit', true);
         
         $form->setDefault('rLimit', 1000);
         
         if ($form->isSubmitted()) {
-            
             core_App::setTimeLimit(300);
             
             $type = $form->rec->rType;
@@ -632,7 +640,6 @@ class fileman_Indexes extends core_Manager
                 }
                 
                 while ($iRec = $iQuery->fetch()) {
-                    
                     fileman_Data::resetProcess($iRec->dataId);
                     
                     self::delete($iRec->id);
@@ -675,12 +682,14 @@ class fileman_Indexes extends core_Manager
      *
      * @param stdClass $dRec
      * @param datetime $endOn
-     * 
+     *
      * @return boolean
      */
-    function processFile($dRec, $endOn)
+    public function processFile($dRec, $endOn)
     {
-        if (dt::now() >= $endOn) return FALSE;
+        if (dt::now() >= $endOn) {
+            return false;
+        }
         
         // Намираме всички файлове
         $fQuery = fileman_Files::getQuery();
@@ -697,45 +706,53 @@ class fileman_Indexes extends core_Manager
         
         // Правим обработка, докато намерим някоя съдържание на файл
         $extArr = array();
-        $content = FALSE;
-        $break = FALSE;
+        $content = false;
+        $break = false;
         
         $ignoreBucketIdArr = array();
         foreach (self::$ignoreBucketsForIndex as $bucketName => $ext) {
             $bucketId = fileman_Buckets::fetchByName($bucketName);
-            $ignoreBucketIdArr[$bucketId] = arr::make($ext, TRUE);
+            $ignoreBucketIdArr[$bucketId] = arr::make($ext, true);
         }
         
         foreach ($fArr as $hnd => $fRec) {
-            
             if (dt::now() >= $endOn) {
-                $break = TRUE;
+                $break = true;
                 break;
             }
             
-            if (!$fRec) continue;
+            if (!$fRec) {
+                continue;
+            }
             
             $fName = $fRec->name;
             
-            if (!$fRec) continue;
-        	
+            if (!$fRec) {
+                continue;
+            }
+            
             $ext = fileman_Files::getExt($fName);
             
             // Игнорираме файлове, не трябва да индексираме
             if ($fRec->bucketId && ($ignoreExtArr = $ignoreBucketIdArr[$fRec->bucketId])) {
+                if ($ignoreExtArr['*']) {
+                    continue;
+                }
                 
-                if ($ignoreExtArr['*']) continue;
-                
-                if ($ignoreExtArr[$ext]) continue;
+                if ($ignoreExtArr[$ext]) {
+                    continue;
+                }
             }
             
             // Няма нужда за същото разширение да се прави обработка
-            if ($extArr[$ext]) continue;
+            if ($extArr[$ext]) {
+                continue;
+            }
             $extArr[$ext] = $ext;
             
             // Ако от преди това е извличано текстовата част, използваме нея
             $content = self::getTextForIndex($hnd);
-            if ($content === FALSE || !trim($content)) {
+            if ($content === false || !trim($content)) {
                 
                 // Намираме драйвера
                 $drvInst = self::getDrvForMethod($ext, 'extractText', $fName);
@@ -754,7 +771,7 @@ class fileman_Indexes extends core_Manager
                     $lockId = fileman_webdrv_Generic::getLockId('text', $dId);
                     while (core_Locks::isLocked($lockId)) {
                         if (dt::now() >= $endOn) {
-                            $break = TRUE;
+                            $break = true;
                             break;
                         }
                         usleep(500000);
@@ -767,18 +784,25 @@ class fileman_Indexes extends core_Manager
                 $minSize = self::$ocrIndexArr[$ext];
                 
                 $ocrText = fileman_Indexes::getInfoContentByFh($hnd, 'textOcr');
-                if ($ocrText === FALSE) {
-                    if (($content === FALSE || !trim($content)) && isset($minSize) && ($dRec->fileLen > $minSize) && ($dRec->fileLen < self::$ocrMax)) {
-                        
+                if ($ocrText === false) {
+                    if (($content === false || !trim($content)) && isset($minSize) && ($dRec->fileLen > $minSize) && ($dRec->fileLen < self::$ocrMax)) {
                         $filemanOcr = fileman_Setup::get('OCR');
                         
-                        if (!$filemanOcr || !cls::load($filemanOcr, TRUE)) continue;
+                        if (!$filemanOcr || !cls::load($filemanOcr, true)) {
+                            continue;
+                        }
                         
                         $intf = cls::getInterface('fileman_OCRIntf', $filemanOcr);
                         
-                        if (!$intf) continue;
-                        if (!$intf->canExtract($fRec)) continue;
-                        if (!$intf->haveTextForOcr($fRec)) continue;
+                        if (!$intf) {
+                            continue;
+                        }
+                        if (!$intf->canExtract($fRec)) {
+                            continue;
+                        }
+                        if (!$intf->haveTextForOcr($fRec)) {
+                            continue;
+                        }
                         
                         try {
                             $intf->getTextByOcr($fRec);
@@ -790,7 +814,7 @@ class fileman_Indexes extends core_Manager
                         $lockId = fileman_webdrv_Generic::getLockId('textOcr', $dId);
                         while (core_Locks::isLocked($lockId)) {
                             if (dt::now() >= $endOn) {
-                                $break = TRUE;
+                                $break = true;
                                 break;
                             }
                             usleep(500000);
@@ -804,14 +828,20 @@ class fileman_Indexes extends core_Manager
             }
             
             // Ако открием текстова част, спираме процеса
-            if ($content !== FALSE) break;
+            if ($content !== false) {
+                break;
+            }
             
-            if ($break) break;
+            if ($break) {
+                break;
+            }
         }
         
-        if ($break) return FALSE;
+        if ($break) {
+            return false;
+        }
         
-        if ($content === FALSE) {
+        if ($content === false) {
             $content = '';
         }
         
@@ -823,20 +853,23 @@ class fileman_Indexes extends core_Manager
         
         fileman_Data::save($dRec, 'searchKeywords');
         
-        $break = FALSE;
-        $bGet = $hGet = FALSE;
+        $break = false;
+        $bGet = $hGet = false;
         foreach ($fArr as $hnd => $fRec) {
-            
             if (dt::now() >= $endOn) {
-                $break = TRUE;
+                $break = true;
                 break;
             }
         
-            if (!$fRec) continue;
+            if (!$fRec) {
+                continue;
+            }
         
             $fName = $fRec->name;
         
-            if (!$fRec) continue;
+            if (!$fRec) {
+                continue;
+            }
              
             $ext = fileman_Files::getExt($fName);
             
@@ -846,7 +879,7 @@ class fileman_Indexes extends core_Manager
                     try {
                         usleep(500000);
                         $drvInst->getBarcodes($fRec);
-                        $bGet = TRUE;
+                        $bGet = true;
                     } catch (ErrorException $e) {
                         reportException($e);
                     }
@@ -859,44 +892,54 @@ class fileman_Indexes extends core_Manager
                     try {
                         usleep(500000);
                         $drvInst->convertToHtml($fRec);
-                        $hGet = TRUE;
+                        $hGet = true;
                     } catch (ErrorException $e) {
                         reportException($e);
                     }
                 }
             }
             
-            if ($hGet && $bGet) break;
+            if ($hGet && $bGet) {
+                break;
+            }
         }
         
-        if ($break) return FALSE;
+        if ($break) {
+            return false;
+        }
         
-        return TRUE;
+        return true;
     }
     
     
     /**
-     * 
-     * 
-     * @param string $ext
-     * @param string $methodName
+     *
+     *
+     * @param string      $ext
+     * @param string      $methodName
      * @param string|NULL $fName
-     * 
-     * 
+     *
+     *
      * @return FALSE|stdClass
      */
-    protected static function getDrvForMethod($ext, $methodName, $fName = NULL)
+    protected static function getDrvForMethod($ext, $methodName, $fName = null)
     {
         $webdrvArr = self::getDriver($ext, $fName);
         
-        $drvInst = FALSE;
+        $drvInst = false;
         
-        if (empty($webdrvArr)) return $drvInst;
+        if (empty($webdrvArr)) {
+            return $drvInst;
+        }
         
         foreach ($webdrvArr as $drv) {
-            if (!$drv) continue;
+            if (!$drv) {
+                continue;
+            }
              
-            if (!method_exists($drv, $methodName)) continue;
+            if (!method_exists($drv, $methodName)) {
+                continue;
+            }
              
             $drvInst = $drv;
              
@@ -908,9 +951,9 @@ class fileman_Indexes extends core_Manager
     
     
     /**
-     * 
+     *
      * @param string $fh
-     * 
+     *
      * @return FALSE|string
      */
     public static function getTextForIndex($fh)
@@ -918,13 +961,13 @@ class fileman_Indexes extends core_Manager
         $text = fileman_Indexes::getInfoContentByFh($fh, 'text');
         $textOcr = fileman_Indexes::getInfoContentByFh($fh, 'textOcr');
         
-        $content = FALSE;
+        $content = false;
         
-        if ($text !== FALSE && is_string($text)) {
+        if ($text !== false && is_string($text)) {
             $content = $text;
         }
         
-        if ($textOcr !== FALSE && is_string($textOcr)) {
+        if ($textOcr !== false && is_string($textOcr)) {
             $content = $textOcr;
         }
         
@@ -934,9 +977,9 @@ class fileman_Indexes extends core_Manager
     
     /**
      * След извличане на записите от базата данни
-     * 
+     *
      * @param fileman_Indexes $mvc
-     * @param stdClass $data
+     * @param stdClass        $data
      */
     public static function on_AfterPrepareListRecs(fileman_Indexes $mvc, $data)
     {
@@ -951,9 +994,9 @@ class fileman_Indexes extends core_Manager
     
     /**
      * След преобразуване на записа в четим за хора вид
-     * 
+     *
      * @param fileman_Indexes $mvc
-     * @param stdClass $data
+     * @param stdClass        $data
      */
     public static function on_AfterPrepareListRows(fileman_Indexes $mvc, $data)
     {
@@ -963,7 +1006,7 @@ class fileman_Indexes extends core_Manager
             
             $fileLink = '';
             while ($fRec = $fileQuery->fetch()) {
-                $fileLink .= ($fileLink) ? "<br>" : '';
+                $fileLink .= ($fileLink) ? '<br>' : '';
                 $fileLink .= fileman::getLinkToSingle($fRec->fileHnd);
                 
                 if ($fRec->bucketId) {
@@ -981,12 +1024,12 @@ class fileman_Indexes extends core_Manager
      * Подготовка на филтър формата
      *
      * @param fileman_Indexes $mvc
-     * @param stdClass $data
+     * @param stdClass        $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
-    	$data->listFilter->view = 'horizontal';
-    	
+        $data->listFilter->view = 'horizontal';
+        
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('indexType', 'enum(,text=Текст)', 'caption=Тип, allowEmpty,autoFilter');
         
@@ -996,12 +1039,11 @@ class fileman_Indexes extends core_Manager
         
         $data->listFilter->input('indexType', 'silent');
         
-        $data->query->orderBy("#createdOn", 'DESC');
+        $data->query->orderBy('#createdOn', 'DESC');
         
         if ($data->listFilter->isSubmitted()) {
             if ($data->listFilter->rec->indexType) {
                 if ($data->listFilter->rec->indexType == 'text') {
-                    
                     $data->listFields = 'id, dataId, type, searchKeywords=Ключови думи,content, createdOn, createdBy';
                     
                     $data->query->where("#type = 'text' OR #type = 'textOcr'");
@@ -1009,5 +1051,4 @@ class fileman_Indexes extends core_Manager
             }
         }
     }
- }
- 
+}

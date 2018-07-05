@@ -17,20 +17,19 @@ class crm_ProfilesPlg extends core_Plugin
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param core_Mvc $mvc
      * @param stdClass $row
      * @param stdClass $rec
-     * @param array $fields
+     * @param array    $fields
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
-    {           
+    public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    {
 
-        // В случаите, когато генерираме html за цел, различна от нормалното 
+        // В случаите, когато генерираме html за цел, различна от нормалното
         // показване на обектите, не правим никаква обработка
-        if(Mode::is('text', 'plain') || Mode::is('text', 'xhtml') || Mode::is('printing')) {
-
+        if (Mode::is('text', 'plain') || Mode::is('text', 'xhtml') || Mode::is('printing')) {
             return;
         }
         
@@ -38,19 +37,20 @@ class crm_ProfilesPlg extends core_Plugin
         $fieldsCnt = count($fields);
         
         // Показваме никовете, като линкове, само при лист и сингъл изглед
-        if($fields['-list'] || $fields['-single'] || !$fieldsCnt) {
+        if ($fields['-list'] || $fields['-single'] || !$fieldsCnt) {
             $fieldsArr = $mvc->selectFields();
-            foreach($fieldsArr as $name => $field) {
-                
-                if ($fieldsCnt && !$fields[$name]) continue;
+            foreach ($fieldsArr as $name => $field) {
+                if ($fieldsCnt && !$fields[$name]) {
+                    continue;
+                }
                 
                 $type = $field->type;
 
                 // Ако е от type_Key
-                if(cls::isSubclass($type, 'type_Key')) { 
-                    if(cls::isSubclass($type->params['mvc'], 'core_Users')) {
-                        if($type->params['select'] == 'nick' || !$type->params['select']) { 
-                            if(($rec->{$name} > 0) && !strpos($row->{$name}, '<')) {
+                if (cls::isSubclass($type, 'type_Key')) {
+                    if (cls::isSubclass($type->params['mvc'], 'core_Users')) {
+                        if ($type->params['select'] == 'nick' || !$type->params['select']) {
+                            if (($rec->{$name} > 0) && !strpos($row->{$name}, '<')) {
                                 $row->{$name} = crm_Profiles::createLink($rec->{$name});
                             }
                         }
@@ -58,13 +58,13 @@ class crm_ProfilesPlg extends core_Plugin
                 }
                 
                 // Ако е от тип type_Keylist
-                if(cls::isSubclass($type, 'type_Keylist')) {
-                    if(cls::isSubclass($type->params['mvc'], 'core_Users')) {
-                        if($type->params['select'] == 'nick' || !$type->params['select']) { 
-                            if($rec->{$name} && !strpos($row->{$name}, '<')) {
+                if (cls::isSubclass($type, 'type_Keylist')) {
+                    if (cls::isSubclass($type->params['mvc'], 'core_Users')) {
+                        if ($type->params['select'] == 'nick' || !$type->params['select']) {
+                            if ($rec->{$name} && !strpos($row->{$name}, '<')) {
                                 $usersArr = keylist::toArray($rec->{$name});
                                 $row->{$name} = '';
-                                foreach($usersArr as $userId) {
+                                foreach ($usersArr as $userId) {
                                     $row->{$name} .= ($row->{$name} ? ', ' : '') . crm_Profiles::createLink($userId);
                                 }
                             }
@@ -73,6 +73,5 @@ class crm_ProfilesPlg extends core_Plugin
                 }
             }
         }
-
     }
 }

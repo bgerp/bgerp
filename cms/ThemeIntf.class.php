@@ -20,9 +20,8 @@ class cms_ThemeIntf extends core_InnerObjectIntf
      * Връща шаблона за статия от cms-а за широк режим
      * @return файла на шаблона
      */
-    function wrapContent($content)
+    public function wrapContent($content)
     {
-    	return $this->class->wrapContent($content);
+        return $this->class->wrapContent($content);
     }
-    
 }

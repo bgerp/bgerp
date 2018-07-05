@@ -15,15 +15,15 @@ class hclean_JSSanitizer extends core_Manager
 {
     
     
-	/**
+    /**
      * Санитаризира HTML линка
-     * 
+     *
      * @placeholder core_Et - SANITIZEJS - JS който ще се изпълнява
      * @placeholder core_Et - SANITIZEID - id' то на елемента
-     * 
+     *
      * @return core_ET - Шаблон със санитаризиран текст
      */
-    static function sanitizeHtml($tpl, $link)
+    public static function sanitizeHtml($tpl, $link)
     {
         // Подготвяме HTML'а
         $jsHtml = static::prepareHtml($link);
@@ -49,10 +49,10 @@ class hclean_JSSanitizer extends core_Manager
     
     /**
      * Подготвяме HTML
-     * 
+     *
      * @param link $htmlLink - Линк към HTML файла
      */
-    static function prepareHtml($htmlLink)
+    public static function prepareHtml($htmlLink)
     {
         // Вземаме съдържанието на линка
         $content = static::getHtmlFromLink($htmlLink);
@@ -60,22 +60,22 @@ class hclean_JSSanitizer extends core_Manager
         $content = preg_replace('/\\xA0|\\x00/', '', $content);
         $content = trim($content);
         
-        $content = i18n_Charset::convertToUtf8($content, array(), TRUE);
+        $content = i18n_Charset::convertToUtf8($content, array(), true);
         
         // Конфигурационни константи
-        $conf = core_Packs::getConfig('hclean');        
+        $conf = core_Packs::getConfig('hclean');
         
         // Ако е зададено да се вкара CSS' а като inline
         if ($conf->HCLEAN_JSSANITIZER_PLACE_CSS_TO_INLINE == 'yes') {
-          $content = csstoinline_ToInline::inlineCssFromHtml($content);
-          $content = csstoinline_ToInline::inlineCssFromHtmlLink($content);
+            $content = csstoinline_ToInline::inlineCssFromHtml($content);
+            $content = csstoinline_ToInline::inlineCssFromHtmlLink($content);
         }
         
-        $content = i18n_Charset::convertToUtf8($content, '', TRUE);
+        $content = i18n_Charset::convertToUtf8($content, '', true);
         
         $content = html_entity_decode($content);
         
-        $content = preg_replace("/(<![\[\-][^>]*>)/i", "", $content);
+        $content = preg_replace("/(<![\[\-][^>]*>)/i", '', $content);
         
         // Преобразуваме HTML' а в текст, който може да се използва в променливи на JS
         $jsHtml = static::htmlToJsText($content);
@@ -87,9 +87,9 @@ class hclean_JSSanitizer extends core_Manager
     /**
      * Превръщаме HTML текста в JS текст, който да може да се използва в променлива
      */
-    static function htmlToJsText($html)
+    public static function htmlToJsText($html)
     {
-        $jsHtml = preg_replace(array("/\r?\n/", "/\//"), array("\\n", "\/"), addslashes($html));
+        $jsHtml = preg_replace(array("/\r?\n/", "/\//"), array('\\n', "\/"), addslashes($html));
         
         return $jsHtml;
     }
@@ -97,10 +97,10 @@ class hclean_JSSanitizer extends core_Manager
     
     /**
      * Връща HTML'а от линка
-     * 
+     *
      * @param string $htmlLink - Линка до HTML файла
      */
-    static function getHtmlFromLink($htmlLink)
+    public static function getHtmlFromLink($htmlLink)
     {
         // Извличаме съдържанието на линка
         $content = @file_get_contents($htmlLink);
@@ -111,13 +111,13 @@ class hclean_JSSanitizer extends core_Manager
     
     /**
      * Скрипта, който санитаризира HTML' а
-     * 
+     *
      * @placeholder core_Et - SANITIZEHTML - HTML'а който ще се санитаризира
      * @placeholder core_Et - SANITIZEID - id' то на елемента
      */
-    static function JSSanitizer()
+    public static function JSSanitizer()
     {
-        $jsSanitize = sbf('hclean/jssanitize/html-css-sanitizer-minified.js', "'", TRUE);
+        $jsSanitize = sbf('hclean/jssanitize/html-css-sanitizer-minified.js', "'", true);
         
         // Скрипта за санитаризирана на HTML
         $script = " <script src={$jsSanitize}></script>

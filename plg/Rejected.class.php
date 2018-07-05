@@ -24,14 +24,17 @@ class plg_Rejected extends core_Plugin
     public static function on_AfterDescription(&$mvc)
     {
         // Добавяне на необходимите полета
-        $mvc->FLD('state', 'enum(draft=Чернова,active=Активирано,closed=Затворено,rejected=Оттеглено)',
-                'caption=Състояние,column=none,input=none,notNull,forceField');
+        $mvc->FLD(
+            'state',
+            'enum(draft=Чернова,active=Активирано,closed=Затворено,rejected=Оттеглено)',
+                'caption=Състояние,column=none,input=none,notNull,forceField'
+        );
         
-        if(!isset($mvc->fields['state']->type->options['rejected'])) {
+        if (!isset($mvc->fields['state']->type->options['rejected'])) {
             $mvc->fields['state']->type->options['rejected'] = 'Оттеглено';
         }
 
-        $mvc->FLD('exState', clone($mvc->fields['state']->type), "caption=Пред. състояние,column=none,input=none,single=none,notNull,forceField");
+        $mvc->FLD('exState', clone($mvc->fields['state']->type), 'caption=Пред. състояние,column=none,input=none,single=none,notNull,forceField');
         
         $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none,forceField');
 
@@ -49,24 +52,32 @@ class plg_Rejected extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec)) {
-            $data->toolbar->addBtn('Оттегляне', array(
+            $data->toolbar->addBtn(
+                'Оттегляне',
+                array(
                     $mvc,
                     'reject',
                     $data->rec->id,
-                    'ret_url' => TRUE
+                    'ret_url' => true
                 ),
-                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите записа?,order=32,row=2,', 'ef_icon = img/16/reject.png, title=Оттегляне на документа');
+                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите записа?,order=32,row=2,',
+                'ef_icon = img/16/reject.png, title=Оттегляне на документа'
+            );
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec)) {
-            $data->toolbar->removeBtn("*");
-            $data->toolbar->addBtn('Възстановяване', array(
+            $data->toolbar->removeBtn('*');
+            $data->toolbar->addBtn(
+                'Възстановяване',
+                array(
                     $mvc,
                     'restore',
                     $data->rec->id,
-                    'ret_url' => TRUE
+                    'ret_url' => true
                 ),
-                'id=btnRestore,warning=Наистина ли желаете да възстановите записа?,order=32', 'ef_icon = img/16/restore.png');
+                'id=btnRestore,warning=Наистина ли желаете да възстановите записа?,order=32',
+                'ef_icon = img/16/restore.png'
+            );
         }
     }
     
@@ -75,45 +86,45 @@ class plg_Rejected extends core_Plugin
      * Добавя бутон за показване на оттеглените записи
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
-    {   
-        if(Request::get('Rejected')) {
+    {
+        if (Request::get('Rejected')) {
             $data->toolbar->removeBtn('*', 'with_selected');
-            $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', "ef_icon = img/16/application_view_list.png,title=Всички " . mb_strtolower($mvc->title));
+            $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', 'ef_icon = img/16/application_view_list.png,title=Всички ' . mb_strtolower($mvc->title));
         } else {
             $rejCnt = $data->rejQuery->count();
 
-            if($rejCnt) {
+            if ($rejCnt) {
                 $data->rejQuery->orderBy('#modifiedOn', 'DESC', 100);
                 $data->rejQuery->limit(1);
                 $lastRec = $data->rejQuery->fetch();
                 $color = dt::getColorByTime($lastRec->modifiedOn);
                 $curUrl = getCurrentUrl();
-                $curUrl['Rejected'] = 1; 
-                if(isset($data->pager->pageVar)) {
+                $curUrl['Rejected'] = 1;
+                if (isset($data->pager->pageVar)) {
                     unset($curUrl[$data->pager->pageVar]);
                 }
-                $data->toolbar->addBtn("Кош|* ({$rejCnt})", $curUrl, 'id=binBtn,class=fright,' . (Mode::is('screenMode', 'narrow') ? 'row=2,' : '') . 'order=50,title=Преглед на оттеглените ' . mb_strtolower($mvc->title),  "ef_icon = img/16/bin_closed.png, style=color:#{$color};");
+                $data->toolbar->addBtn("Кош|* ({$rejCnt})", $curUrl, 'id=binBtn,class=fright,' . (Mode::is('screenMode', 'narrow') ? 'row=2,' : '') . 'order=50,title=Преглед на оттеглените ' . mb_strtolower($mvc->title), "ef_icon = img/16/bin_closed.png, style=color:#{$color};");
             }
         }
-        if(Request::get('Rejected')) {
+        if (Request::get('Rejected')) {
             $data->title = new ET('[#1#]', tr($data->title ? $data->title : $mvc->title));
-            $data->title->append("&nbsp;<span class='state-rejected stateIndicator'>&nbsp;" . tr('оттеглени') . "&nbsp;</span>");
-        } 
+            $data->title->append("&nbsp;<span class='state-rejected stateIndicator'>&nbsp;" . tr('оттеглени') . '&nbsp;</span>');
+        }
     }
     
     
     /**
      * Оттегляне на обект
-     * 
+     *
      * Реализация по подразбиране на метода $mvc->reject($id)
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
+     *
+     * @param core_Mvc     $mvc
+     * @param mixed        $res
      * @param int|stdClass $id
      */
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
-        $res = FALSE;
+        $res = false;
         $rec = $mvc->fetchRec($id);
         
         if (!isset($rec->id) || $rec->state == 'rejected') {
@@ -131,16 +142,16 @@ class plg_Rejected extends core_Plugin
     
     /**
      * Възстановяване на оттеглен обект
-     * 
+     *
      * Реализация по подразбиране на метода $mvc->restore($id)
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
+     *
+     * @param core_Mvc     $mvc
+     * @param mixed        $res
      * @param int|stdClass $id
      */
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
-        $res = FALSE;
+        $res = false;
         $rec = $mvc->fetchRec($id);
         
         if (!isset($rec->id) || $rec->state != 'rejected') {
@@ -153,7 +164,7 @@ class plg_Rejected extends core_Plugin
     }
 
 
-	/**
+    /**
      * Смяна статута на 'rejected'
      *
      * @return core_Redirect
@@ -170,7 +181,7 @@ class plg_Rejected extends core_Plugin
 
             $mvc->logInAct('Оттегляне', $rec);
             
-            return FALSE;
+            return false;
         }
         
         if ($action == 'restore') {
@@ -183,7 +194,7 @@ class plg_Rejected extends core_Plugin
             
             $mvc->logInAct('Възстановяване', $rec);
             
-            return FALSE;
+            return false;
         }
     }
     
@@ -193,24 +204,23 @@ class plg_Rejected extends core_Plugin
      *
      * Забранява изтриването на вече използвани сметки
      *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
      * @param stdClass|NULL $rec
-     * @param int|NULL $userId
+     * @param int|NULL      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($rec->id) {
-            if($action == 'delete' && $rec->lastUsedOn) {
+            if ($action == 'delete' && $rec->lastUsedOn) {
                 $requiredRoles = 'no_one';
             }
             
             // Кога може да се оттеглят записи?
-            if($action == 'reject') {
+            if ($action == 'reject') {
                 // Системните записи, оттеглените и тези, които могат да се изтриват
-                if($rec->state == 'rejected' || $mvc->haveRightFor('delete', $rec, $userId)) {
-                    
+                if ($rec->state == 'rejected' || $mvc->haveRightFor('delete', $rec, $userId)) {
                     $requiredRoles = 'no_one';
                 }
                 
@@ -220,7 +230,7 @@ class plg_Rejected extends core_Plugin
             }
 
             // Не могат да се възстановяват не-оттеглении записи
-            if($action == 'restore' && $rec->state != 'rejected') {
+            if ($action == 'restore' && $rec->state != 'rejected') {
                 $requiredRoles = 'no_one';
             }
             
@@ -232,8 +242,7 @@ class plg_Rejected extends core_Plugin
                 }
             }
             
-            if(!$requiredRoles && ($action == 'restore' || $action == 'reject') && $mvc->haveRightFor('single', $rec, $userId)) {
-                
+            if (!$requiredRoles && ($action == 'restore' || $action == 'reject') && $mvc->haveRightFor('single', $rec, $userId)) {
                 $requiredRoles = 'user';
             }
         }
@@ -248,10 +257,10 @@ class plg_Rejected extends core_Plugin
      * @param stdClass $data
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
-    { 
+    {
         
         // Добавяме скрито полето за оттегляне
-        if(!isset($data->listFilter->fields['Rejected'])) {
+        if (!isset($data->listFilter->fields['Rejected'])) {
             $data->listFilter->FNC('Rejected', 'varchar', 'input=hidden,silent');
         }
         
@@ -261,7 +270,6 @@ class plg_Rejected extends core_Plugin
             // Задаваме стойността от заявката
             $data->listFilter->setDefault('Rejected', $rejectedId);
         }
-        
     }
 
 
@@ -274,8 +282,8 @@ class plg_Rejected extends core_Plugin
      */
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        if($data->query) {
-            if(Request::get('Rejected')) {
+        if ($data->query) {
+            if (Request::get('Rejected')) {
                 $data->query->where("#state = 'rejected'");
             } else {
                 $data->rejQuery = clone($data->query);

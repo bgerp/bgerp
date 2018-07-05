@@ -3,7 +3,7 @@
 
 /**
  * Действия в разпределена файлова група
- * 
+ *
  * @category  bgerp
  * @package   distro
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -18,13 +18,13 @@ class distro_Actions extends embed_Manager
     /**
      * Дали да се създаде директория (ако липсва), при пускане на процеси
      */
-    public $checkAndCreateDir = TRUE;
+    public $checkAndCreateDir = true;
     
     
     /**
      * Заглавие
      */
-    public $title = "Действия";
+    public $title = 'Действия';
     
     
     /**
@@ -36,7 +36,7 @@ class distro_Actions extends embed_Manager
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = "Дейстие";
+    public $singleTitle = 'Дейстие';
 
     
     /**
@@ -103,38 +103,43 @@ class distro_Actions extends embed_Manager
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('groupId', 'key(mvc=distro_Group, select=title)', 'caption=Група, silent, input=hidden');
         $this->FLD('repoId', 'key(mvc=distro_Repositories, select=name)', 'caption=Хранилище, silent, input=hidden');
         $this->FLD('fileId', 'key(mvc=distro_Files, select=name)', 'caption=Файл, silent, input=hidden');
-	    $this->FLD('completedOn', 'datetime(format=smartTime)', 'caption=Приключено->На,input=none');
-	    $this->FLD('fileName', 'varchar', 'caption=Име на файл,input=none');
-	    $this->FLD('fileSourceFh', 'fileman_FileType(bucket=' . distro_Group::$bucket . ')', 'caption=Файл,input=none');
+        $this->FLD('completedOn', 'datetime(format=smartTime)', 'caption=Приключено->На,input=none');
+        $this->FLD('fileName', 'varchar', 'caption=Име на файл,input=none');
+        $this->FLD('fileSourceFh', 'fileman_FileType(bucket=' . distro_Group::$bucket . ')', 'caption=Файл,input=none');
     }
     
     
     /**
      * Добавя екшъните от драйверите
-     * 
+     *
      * @param core_RowToolbar $rowTools
-     * @param stdClass $fRec
+     * @param stdClass        $fRec
      */
     public static function addActionToFile(&$rowTools, $fRec)
     {
         foreach ((array) self::getAvailableDriverOptions() as $driverId => $name) {
-            
             $rec = new stdClass();
             $rec->groupId = $fRec->groupId;
             $rec->fileId = $fRec->id;
             $rec->repoId = $fRec->repoId;
             
-            if (!self::haveRightFor('add', $rec)) return ;
+            if (!self::haveRightFor('add', $rec)) {
+                return ;
+            }
             
-            if (!cls::load($driverId, TRUE)) continue ;
+            if (!cls::load($driverId, true)) {
+                continue ;
+            }
             $driverInst = cls::getInterface('distro_ActionsDriverIntf', $driverId);
             
-            if (!$driverInst->canMakeAction($fRec->groupId, $fRec->repoId, $fRec->id, $fRec->name, $fRec->md5)) continue ;
+            if (!$driverInst->canMakeAction($fRec->groupId, $fRec->repoId, $fRec->id, $fRec->name, $fRec->md5)) {
+                continue ;
+            }
 
             $me = cls::get(get_called_class());
             
@@ -142,7 +147,7 @@ class distro_Actions extends embed_Manager
             
             $params = $driverInst->getLinkParams();
             
-            $url = array('distro_Actions', 'add', $me->driverClassField => $driverId, 'groupId' => $fRec->groupId, 'repoId' => $fRec->repoId, 'fileId' => $fRec->id, 'ret_url' => TRUE);
+            $url = array('distro_Actions', 'add', $me->driverClassField => $driverId, 'groupId' => $fRec->groupId, 'repoId' => $fRec->repoId, 'fileId' => $fRec->id, 'ret_url' => true);
             
             if ($driverInst->canForceSave()) {
                 $url['CfDrv'] = core_Request::getSessHash($driverId);
@@ -155,16 +160,18 @@ class distro_Actions extends embed_Manager
     
     /**
      * Извиква драйвера за абсорбиране на файл
-     * 
+     *
      * @param stdClass $fRec
-     * @param string $driverName
-     * @param bollean $onlyCallback
+     * @param string   $driverName
+     * @param bollean  $onlyCallback
      */
-    public static function addToRepo($fRec, $driverName = 'distro_AbsorbDriver', $onlyCallback = FALSE)
+    public static function addToRepo($fRec, $driverName = 'distro_AbsorbDriver', $onlyCallback = false)
     {
         $driverInst = cls::getInterface('distro_ActionsDriverIntf', $driverName);
         
-        if (!$driverInst || !$driverInst->canMakeAction($fRec->groupId, $fRec->repoId, $fRec->id, $fRec->name, $fRec->md5)) return ;
+        if (!$driverInst || !$driverInst->canMakeAction($fRec->groupId, $fRec->repoId, $fRec->id, $fRec->name, $fRec->md5)) {
+            return ;
+        }
         
         $me = cls::get(get_called_class());
         
@@ -181,9 +188,9 @@ class distro_Actions extends embed_Manager
     
     /**
      * Връща линк към файла или името му
-     * 
+     *
      * @param stdObjec $rec
-     * 
+     *
      * @return string
      */
     public function getFileName($rec)
@@ -208,10 +215,10 @@ class distro_Actions extends embed_Manager
     
     /**
      * Връща стринг, който ще се използва за прихващане на грешки при пускане на процесите
-     * 
+     *
      * @param integer $id
      * @param integer $repoId
-     * 
+     *
      * @return string
      */
     protected static function getErrHandleExec($id, $repoId)
@@ -232,10 +239,10 @@ class distro_Actions extends embed_Manager
     
     /**
      * Връща пътя на файла за грешките
-     * 
+     *
      * @param integer $id
      * @param integer $repoId
-     * 
+     *
      * @return string
      */
     protected static function getErrFilePath($id, $repoId)
@@ -254,9 +261,9 @@ class distro_Actions extends embed_Manager
     
     /**
      * Връща URL-то за прихващане на грешки
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return string
      */
     protected static function getErrUrl($id)
@@ -271,14 +278,13 @@ class distro_Actions extends embed_Manager
      * Нотифицира за грешки
      * Праща нотификация до инициатора на събитието
      * Сменя състояниет
-     * 
+     *
      * @param stdClass $rec
      */
     protected function notifyErr($rec)
     {
         // Нотифицираме инициатора на екшъна
         if ($rec->createdBy > 0) {
-            
             $driverInst = $this->getDriver($rec);
         
             $title = $driverInst ? mb_strtolower($driverInst->title) : 'действие';
@@ -289,7 +295,7 @@ class distro_Actions extends embed_Manager
         }
         
         $rec->state = 'rejected';
-        $rec->StopExec = TRUE;
+        $rec->StopExec = true;
         
         $this->save($rec, 'state');
     }
@@ -298,19 +304,23 @@ class distro_Actions extends embed_Manager
     /**
      * След приключване на обработката
      */
-    function act_Callback()
+    public function act_Callback()
     {
         $id = Request::get('id', 'int');
         
         $rec = $this->fetch($id);
         
-        if ($rec->state == 'rejected') return ;
+        if ($rec->state == 'rejected') {
+            return ;
+        }
         
-        if ($rec->state == 'closed') return ;
+        if ($rec->state == 'closed') {
+            return ;
+        }
         
         $rec->state = 'closed';
         $rec->completedOn = dt::now();
-        $rec->StopExec = TRUE;
+        $rec->StopExec = true;
         
         $this->save($rec, 'state, completedOn');
         
@@ -341,18 +351,20 @@ class distro_Actions extends embed_Manager
     /**
      * Записва грешката от екшъна и нотифицира инициатора
      */
-    function act_Error()
+    public function act_Error()
     {
         $id = Request::get('id', 'int');
         
         $rec = $this->fetch($id);
         
-        if ($rec->state == 'rejected') return ;
+        if ($rec->state == 'rejected') {
+            return ;
+        }
         
         $this->notifyErr($rec);
 
         $rec->completedOn = dt::now();
-        $rec->StopExec = TRUE;
+        $rec->StopExec = true;
         $this->save($rec, 'completedOn');
         
         // Записваме в лога
@@ -366,9 +378,8 @@ class distro_Actions extends embed_Manager
             // Опитваме се да вземем съдържанието на файла с грешките
             // След това изтриваме файла
             $content = @$ssh->getContents($errFile);
-            $ssh->exec("rm " . escapeshellarg($errFile));
+            $ssh->exec('rm ' . escapeshellarg($errFile));
         } catch (core_exception_Expect $e) {
-            
             return ;
         }
         
@@ -376,8 +387,6 @@ class distro_Actions extends embed_Manager
         if ($tContent = trim($content)) {
             $this->logWarning($tContent, $rec->id);
         }
-        
-        return ;
     }
     
     
@@ -433,7 +442,7 @@ class distro_Actions extends embed_Manager
      */
     public function renderDetail_($data)
     {
-        if(!isset($data->listClass)) {
+        if (!isset($data->listClass)) {
             $data->listClass = 'listRowsDetail';
         }
 
@@ -509,12 +518,12 @@ class distro_Actions extends embed_Manager
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param distro_Actions $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
+     * @param string         $requiredRoles
+     * @param string         $action
+     * @param stdClass       $rec
+     * @param int            $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако ще добавяме/редактираме записа
         if ($action == 'add') {
@@ -535,14 +544,14 @@ class distro_Actions extends embed_Manager
     
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
-     * 
+     *
      * @param distro_Actions $mvc
-     * @param stdClass $data
+     * @param stdClass       $data
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         // Премахваме бутона за добавяне от тулбара
-    	$data->toolbar->removeBtn('btnAdd');
+        $data->toolbar->removeBtn('btnAdd');
     }
     
     
@@ -550,7 +559,7 @@ class distro_Actions extends embed_Manager
      * Преди показване на форма за добавяне/промяна.
      *
      * @param distro_Actions $mvc
-     * @param stdClass $data
+     * @param stdClass       $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
@@ -565,7 +574,6 @@ class distro_Actions extends embed_Manager
         // Ако е зададено да се форсира записването
         if ($driverInst) {
             if ($rec->fileId && $driverInst->canForceSave() && !$data->form->isSubmitted()) {
-                
                 expect(core_Request::getSessHash(core_Request::get($mvc->driverClassField, 'int')) === Request::get('CfDrv'));
                 
                 $retUrl = getRetUrl();
@@ -573,7 +581,7 @@ class distro_Actions extends embed_Manager
                     $retUrl = array('distro_Group', 'single', $rec->groupId);
                 }
                 
-                $mvc->requireRightFor('Add', $data->form->rec, NULL, $retUrl);
+                $mvc->requireRightFor('Add', $data->form->rec, null, $retUrl);
                 
                 $mvc->addToRepo($fRec, $driverInst->className);
                 
@@ -584,7 +592,6 @@ class distro_Actions extends embed_Manager
         $data->form->setHidden($mvc->driverClassField);
         
         if ($data->form->isSubmitted() && $data->form->rec->fileId) {
-            
             if ($driverInst) {
                 if (!$driverInst->canMakeAction($fRec->groupId, $fRec->repoId, $fRec->id, $fRec->name, $fRec->md5)) {
                     $data->form->setError($mvc->driverClassField, 'Не може да се направи това действие');
@@ -599,7 +606,7 @@ class distro_Actions extends embed_Manager
      */
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-        $data->form->title = "Действия с файла";
+        $data->form->title = 'Действия с файла';
         
         if ($data->form->rec->repoId) {
             $repoName = distro_Repositories::getVerbal($data->form->rec->repoId, 'name');
@@ -610,16 +617,15 @@ class distro_Actions extends embed_Manager
     
     /**
      * След успешен запис
-     * 
+     *
      * @param distro_Actions $mvc
-     * @param stdClass $res
-     * @param stdClass $rec
+     * @param stdClass       $res
+     * @param stdClass       $rec
      */
     public static function on_AfterSave($mvc, $res, $rec)
     {
         // Ако ще се пускат обработки на файла
         if (!$rec->StopExec) {
-            
             if (!$rec->OnlyCallback) {
                 $driverInst = $mvc->getDriver($rec);
                 if ($driverInst) {
@@ -647,7 +653,7 @@ class distro_Actions extends embed_Manager
                         return ;
                     }
                     
-                    $callBackUrl = toUrl(array($mvc, 'Callback', $rec->id), TRUE);
+                    $callBackUrl = toUrl(array($mvc, 'Callback', $rec->id), true);
                     
                     $mvc->logDebug("Стартирана команда: {$command}", $rec->id);
                     
@@ -669,10 +675,10 @@ class distro_Actions extends embed_Manager
     
     /**
      * След успешен запис
-     * 
+     *
      * @param distro_Actions $mvc
-     * @param stdClass $res
-     * @param stdClass $rec
+     * @param stdClass       $res
+     * @param stdClass       $rec
      */
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
@@ -686,7 +692,7 @@ class distro_Actions extends embed_Manager
      * Подготовка на филтър формата
      *
      * @param distro_Actions $mvc
-     * @param StdClass $data
+     * @param StdClass       $data
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
@@ -698,8 +704,8 @@ class distro_Actions extends embed_Manager
      * След преобразуване на записа в четим за хора вид.
      *
      * @param distro_Actions $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param stdClass       $row Това ще се покаже
+     * @param stdClass       $rec Това е записа в машинно представяне
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {

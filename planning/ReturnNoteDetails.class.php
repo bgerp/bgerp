@@ -17,7 +17,7 @@
 class planning_ReturnNoteDetails extends deals_ManifactureDetail
 {
     
-	
+    
     /**
      * Заглавие
      */

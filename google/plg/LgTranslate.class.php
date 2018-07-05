@@ -13,12 +13,7 @@
  */
 class google_plg_LgTranslate extends core_Plugin
 {
-    
-
-    /**
-     * 
-     */
-    static function on_AfterRenderWrapping($mvc, $res, &$tpl, $data=NULL)
+    public static function on_AfterRenderWrapping($mvc, $res, &$tpl, $data = null)
     {
         // Ако има шаблон
         if ($data->form->tpl) {
@@ -29,13 +24,13 @@ class google_plg_LgTranslate extends core_Plugin
     }
     
     
-    /**
-     * 
-     */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
         // Ако текущия език е български, да не се показва
-        if ($data->form->rec->lg == 'bg') return ;
+        if ($data->form->rec->lg == 'bg') {
+            return ;
+        }
         
         // Ако не е обейт
         if (!is_object($data->form->tpl)) {
@@ -48,14 +43,14 @@ class google_plg_LgTranslate extends core_Plugin
         $tpl = &$data->form->tpl;
         
         // Вземаме променливите, необходими за превеждане
-        $markup = google_Translate1::getMarkupTpl('', TRUE);
+        $markup = google_Translate1::getMarkupTpl('', true);
         $tpl->push(google_Translate1::getElementJsUrl('en'), 'JS');
         $tpl->appendOnce(google_Translate1::getInitJs(), 'SCRIPTS');
         $tpl->appendOnce(google_Translate1::getCss(), 'STYLES');
         
         // Добавяме скрипта
         jquery_Jquery::run($tpl, "
-        	$('.formFields table tbody').append('<tr><td style=\'text-align:right\'>Google:</td><td>$markup</td>');
+        	$('.formFields table tbody').append('<tr><td style=\'text-align:right\'>Google:</td><td>${markup}</td>');
         	
         	$('.goog-trans-text').text($('.translated').val());
         ");

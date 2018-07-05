@@ -19,17 +19,17 @@ class fileman_FileActionsIntf
     
     /**
      * Интерфейсен метод на fileman_FileActionsIntf
-     * 
+     *
      * Връща масив с действия, които могат да се извършат с дадения файл
-     * 
+     *
      * @param stdClass $fRec - Обект са данни от модела
-     * 
+     *
      * @return array $arr - Масив с данните
-     * $arr['url'] - array URL на действието
-     * $arr['title'] - Заглавието на бутона
-     * $arr['icon'] - Иконата
+     *               $arr['url'] - array URL на действието
+     *               $arr['title'] - Заглавието на бутона
+     *               $arr['icon'] - Иконата
      */
-    function getActionsForFile($rec)
+    public function getActionsForFile($rec)
     {
         $this->class->getActionsForFile($rec);
     }

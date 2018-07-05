@@ -3,7 +3,7 @@
 
 /**
  * Отчет за имейлите, по техния СПАМ рейтинг
- * 
+ *
  * @category  bgerp
  * @package   email
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
@@ -12,7 +12,6 @@
  * @since     v 0.1
  * @title     Имейли » Спам филтър
  */
-
 class email_reports_Spam extends frame2_driver_TableData
 {
     
@@ -40,9 +39,9 @@ class email_reports_Spam extends frame2_driver_TableData
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param frame2_driver_Proto $Driver $Driver
-     * @param embed_Manager $Embedder
-     * @param stdClass $data
+     * @param frame2_driver_Proto $Driver   $Driver
+     * @param embed_Manager       $Embedder
+     * @param stdClass            $data
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
@@ -51,7 +50,7 @@ class email_reports_Spam extends frame2_driver_TableData
             $emailsLimit = 0;
         }
         
-        $fQuery = self::getFolderQuery('title', NULL, $emailsLimit);
+        $fQuery = self::getFolderQuery('title', null, $emailsLimit);
         
         $fArr = array();
         while ($fRec = $fQuery->fetch()) {
@@ -69,14 +68,14 @@ class email_reports_Spam extends frame2_driver_TableData
     
     /**
      * Помощна фунция за връщане на всички папки
-     * 
-     * @param string $show
+     *
+     * @param string       $show
      * @param NULL|integer $userId
-     * @param integer $emailsLimit
-     * 
+     * @param integer      $emailsLimit
+     *
      * @return core_Query
      */
-    protected static function getFolderQuery($show = 'title', $userId = NULL, $emailsLimit = 10000)
+    protected static function getFolderQuery($show = 'title', $userId = null, $emailsLimit = 10000)
     {
         if ($userId) {
             core_Users::sudo($userId);
@@ -89,15 +88,14 @@ class email_reports_Spam extends frame2_driver_TableData
         
         $fQuery->show($show);
         
-        doc_Folders::restrictAccess($fQuery, NULL, FALSE);
+        doc_Folders::restrictAccess($fQuery, null, false);
         
         if ($userId) {
             core_Users::exitSudo($userId);
         }
         
-		// Ако има ограничение за папки с имейли
+        // Ако има ограничение за папки с имейли
         if ($emailsLimit) {
-            
             $eQuery = email_Incomings::getQuery();
             
             $eQuery->show('folderId');
@@ -123,9 +121,9 @@ class email_reports_Spam extends frame2_driver_TableData
     /**
      * След изпращане на формата
      *
-     * @param frame2_driver_Proto $Driver $Driver
-     * @param embed_Manager $Embedder
-     * @param core_Form $form
+     * @param frame2_driver_Proto $Driver   $Driver
+     * @param embed_Manager       $Embedder
+     * @param core_Form           $form
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
@@ -144,16 +142,16 @@ class email_reports_Spam extends frame2_driver_TableData
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param stdClass $rec
-     * @param stdClass $data
+     * @param  stdClass $rec
+     * @param  stdClass $data
      * @return array
      */
-    protected function prepareRecs($rec, &$data = NULL)
+    protected function prepareRecs($rec, &$data = null)
     {
         $eQuery = email_Incomings::getQuery();
         
         if ($rec->folders) {
-            $eQuery->orWhereArr("folderId", type_Keylist::toArray($rec->folders));
+            $eQuery->orWhereArr('folderId', type_Keylist::toArray($rec->folders));
         } else {
             
             // Ако не е избрана папка - да са всички достъпни на създателя
@@ -163,19 +161,19 @@ class email_reports_Spam extends frame2_driver_TableData
             $fArr = array_keys($fArr);
             $eQuery->in('folderId', $fArr);
         }
-		
+        
         $eQuery->where(array("#modifiedOn >= '[#1#]'", dt::subtractSecs($rec->period)));
         $eQuery->where(array("#spamScore >= '[#1#]'", $rec->spamFrom));
         $eQuery->where(array("#spamScore <= '[#1#]'", $rec->spamTo));
         
         $eQuery->EXT('docCnt', 'doc_Threads', 'externalName=allDocCnt, remoteKey=firstContainerId, externalFieldName=containerId');
-        $eQuery->where("#docCnt <= 1");
+        $eQuery->where('#docCnt <= 1');
         
         $eQuery->orderBy('createdOn', 'DESC');
         
         $resArr = array();
         
-        while($eRec = $eQuery->fetch()) {
+        while ($eRec = $eQuery->fetch()) {
             
             // Проверяваме оттеглените документи дали са сами в нишката
             if (($eRec->state == 'rejected') && $eRec->docCnt == 0) {
@@ -183,7 +181,9 @@ class email_reports_Spam extends frame2_driver_TableData
                 $cQuery->where(array("#threadId = '[#1#]'", $eRec->threadId));
                 $cQuery->limit(2);
                 $cQuery->show('threadId');
-                if ($cQuery->count() > 1) continue;
+                if ($cQuery->count() > 1) {
+                    continue;
+                }
             }
             
             $resArr[$eRec->id] = new stdClass();
@@ -206,11 +206,11 @@ class email_reports_Spam extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param stdClass $rec      - записа
-     * @param boolean $export    - таблицата за експорт ли е
-     * @return core_FieldSet     - полетата
+     * @param  stdClass      $rec    - записа
+     * @param  boolean       $export - таблицата за експорт ли е
+     * @return core_FieldSet - полетата
      */
-    protected function getTableFieldSet($rec, $export = FALSE)
+    protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
         $fld->FLD('subject', 'varchar', 'caption=Документ');
@@ -225,8 +225,8 @@ class email_reports_Spam extends frame2_driver_TableData
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param stdClass $rec  - записа
-     * @param stdClass $dRec - чистия запис
+     * @param  stdClass $rec  - записа
+     * @param  stdClass $dRec - чистия запис
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -245,7 +245,7 @@ class email_reports_Spam extends frame2_driver_TableData
         }
         
         setIfNot($attr['ef_icon'], cls::get('email_Incomings')->getIcon($dRec->id));
-        $row->subject = ht::createLink(type_Varchar::escape(str::limitLen($dRec->subject, 50)), $urlWithAccess, NULL, $attr);
+        $row->subject = ht::createLink(type_Varchar::escape(str::limitLen($dRec->subject, 50)), $urlWithAccess, null, $attr);
         
         $data = $dRec->id . '|' . $rec->id . '|' . core_Users::getCurrent();
         $data = str::addHash($data);
@@ -281,7 +281,7 @@ class email_reports_Spam extends frame2_driver_TableData
         
         $attr['data-url'] = toUrl($urlArr, 'local');
         
-        $row->action = ht::createBtn($act, array(''), FALSE, FALSE, $attr);
+        $row->action = ht::createBtn($act, array(''), false, false, $attr);
         
         return $row;
     }
@@ -292,7 +292,7 @@ class email_reports_Spam extends frame2_driver_TableData
      *
      * @return Redirect
      */
-    function act_UpdateEmailState()
+    public function act_UpdateEmailState()
     {
         expect(Request::get('ajax_mode'));
         
@@ -326,12 +326,10 @@ class email_reports_Spam extends frame2_driver_TableData
         $resArr = array();
         
         if ($action == 'restore' && cls::get('email_Incomings')->restore($emailId)) {
-            
             doc_Threads::restoreThread($eRec->threadId);
             
             cls::get('email_Incomings')->logInAct('Възстановяване', $eRec);
         } elseif ($action == 'reject' && cls::get('email_Incomings')->reject($emailId)) {
-            
             doc_Threads::rejectThread($eRec->threadId);
             
             cls::get('email_Incomings')->logInAct('Оттегляне', $eRec);

@@ -2,7 +2,7 @@
 
 
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   cal
@@ -10,16 +10,11 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * 
+ *
  * @deprecated
  */
 class cal_TaskDocuments extends core_Detail
 {
-    
-    
-    /**
-     * 
-     */
     public static $lastThreadsCnt = 3;
     
     
@@ -32,13 +27,13 @@ class cal_TaskDocuments extends core_Detail
     /**
      * Заглавие
      */
-    public $title = "Документи към задача";
-	
-	
+    public $title = 'Документи към задача';
+    
+    
     /**
      * Заглавие
      */
-    public $singleTitle = "Документ към задача";
+    public $singleTitle = 'Документ към задача';
     
     
     /**
@@ -63,13 +58,13 @@ class cal_TaskDocuments extends core_Detail
      * Кой има право да изтрива?
      */
     public $canDelete = 'no_one';
-	
-	
+    
+    
     /**
      * Кой има право да оттегле?
      */
     public $canReject = 'powerUser';
-	
+    
     
     /**
      * Кой има право да възстановява?
@@ -82,7 +77,7 @@ class cal_TaskDocuments extends core_Detail
      */
     public $loadList = 'cal_Wrapper, plg_Created, plg_State, plg_Rejected, plg_RowTools2';
     
-	
+    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
@@ -95,16 +90,14 @@ class cal_TaskDocuments extends core_Detail
     public $currentTab = 'Задачи';
     
     
-    /**
-     * 
-     */
+    
     public $listFields = 'containerId, comment';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('taskId', 'key(mvc=cal_Tasks, name=title)', 'caption=Задача, silent');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Документ, input=none');
@@ -117,15 +110,17 @@ class cal_TaskDocuments extends core_Detail
     
     /**
      * Добавя запис
-     * 
+     *
      * @param integer $taskId
      * @param integer $cId
-     * 
+     *
      * @return NULL|number
      */
     public static function add($taskId, $cId)
     {
-        if (!$taskId || !$cId) return ;
+        if (!$taskId || !$cId) {
+            return ;
+        }
         
         $rec = new stdClass();
         $rec->state = 'active';
@@ -138,13 +133,13 @@ class cal_TaskDocuments extends core_Detail
             cal_Tasks::touchRec($taskId);
         }
         
-        return $sId; 
+        return $sId;
     }
     
     /**
      * Връща първия документ, добавен към задачата
-     * 
-     * @param integer $taskId
+     *
+     * @param  integer       $taskId
      * @return integer|FALSE
      */
     public static function getFirstDocumentCid($taskId)
@@ -152,14 +147,13 @@ class cal_TaskDocuments extends core_Detail
         $query = self::getQuery();
         $query->where(array("#taskId = '[#1#]'", $taskId));
         $query->where("#state != 'rejected'");
-        $query->orderBy("createdOn", 'ASC');
+        $query->orderBy('createdOn', 'ASC');
         $query->limit(1);
         
         $rec = $query->fetch();
         
         if (!$rec) {
-            
-            return FALSE;
+            return false;
         }
         
         return $rec->containerId;
@@ -171,8 +165,8 @@ class cal_TaskDocuments extends core_Detail
      * @param cal_TaskDocuments $mvc
      * @param stdClass          $rec
      */
-	public static function on_AfterCreate($mvc, $rec)
-	{
+    public static function on_AfterCreate($mvc, $rec)
+    {
         if ($rec->containerId) {
             $document = doc_Containers::getDocument($rec->containerId);
 
@@ -184,13 +178,13 @@ class cal_TaskDocuments extends core_Detail
     
     
     /**
-     * 
+     *
      * @param cal_TaskDocuments $mvc
-     * @param integer       $id
-     * @param stdClass      $rec
-     * @param NULL|string   $fields
+     * @param integer           $id
+     * @param stdClass          $rec
+     * @param NULL|string       $fields
      */
-    static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
+    public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
         if ($rec->taskId) {
             $cId = cal_Tasks::fetchField($rec->taskId, 'containerId');
@@ -205,14 +199,16 @@ class cal_TaskDocuments extends core_Detail
     
     /**
      * Логва действието
-     * 
-     * @param string $msg
+     *
+     * @param string                $msg
      * @param NULL|stdClass|integer $rec
-     * @param string $type
+     * @param string                $type
      */
-    function logInAct($msg, $rec = NULL, $type = 'write')
+    public function logInAct($msg, $rec = null, $type = 'write')
     {
-        if ($msg == 'Създаване') return ;
+        if ($msg == 'Създаване') {
+            return ;
+        }
         
         return parent::logInAct($msg, $rec, $type);
     }
@@ -222,7 +218,7 @@ class cal_TaskDocuments extends core_Detail
      * Преди показване на форма за добавяне/промяна.
      *
      * @param cal_TaskDocuments $mvc
-     * @param stdClass $data
+     * @param stdClass          $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
@@ -238,7 +234,7 @@ class cal_TaskDocuments extends core_Detail
         
         // Документите от последните посещавани нишки от потребителя
         $threadsArr = bgerp_Recently::getLastThreadsId(self::$lastThreadsCnt);
-        $docThreadIdsArr = doc_Containers::getAllDocIdFromThread($threadsArr, NULL, 'DESC');
+        $docThreadIdsArr = doc_Containers::getAllDocIdFromThread($threadsArr, null, 'DESC');
         
         // Документа, към който ще се добавя да не се показва в списъка
         $mRec = $mvc->Master->fetch($data->form->rec->taskId);
@@ -246,10 +242,10 @@ class cal_TaskDocuments extends core_Detail
         
         $docIdsArr = array();
         foreach ($threadsArr as $threadId => $dummy) {
-            
-            foreach ((array)$docThreadIdsArr[$threadId] as $cRec) {
-                
-                if ($existDocArr[$cRec->id]) continue;
+            foreach ((array) $docThreadIdsArr[$threadId] as $cRec) {
+                if ($existDocArr[$cRec->id]) {
+                    continue;
+                }
                 
                 $docIdsArr[$cRec->id] = $mvc->getDocTitle($cRec->id);
             }
@@ -282,9 +278,9 @@ class cal_TaskDocuments extends core_Detail
     
     /**
      * Подготвя заглавието на документа, за избор в опциите
-     * 
+     *
      * @param integer $cId
-     * 
+     *
      * @return string
      */
     protected static function getDocTitle($cId)
@@ -300,9 +296,9 @@ class cal_TaskDocuments extends core_Detail
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
+     *
      * @param cal_TaskDocuments $mvc
-     * @param core_Form $form
+     * @param core_Form         $form
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
@@ -316,12 +312,12 @@ class cal_TaskDocuments extends core_Detail
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param cal_TaskDocuments $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
+     * @param string            $requiredRoles
+     * @param string            $action
+     * @param stdClass          $rec
+     * @param int               $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'add' && $rec && $requiredRoles != 'no_one') {
             $cRec = cal_Tasks::fetch($rec->taskId);
@@ -336,8 +332,8 @@ class cal_TaskDocuments extends core_Detail
      * След преобразуване на записа в четим за хора вид.
      *
      * @param cal_TaskDocuments $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param stdClass          $row Това ще се покаже
+     * @param stdClass          $rec Това е записа в машинно представяне
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
@@ -360,7 +356,7 @@ class cal_TaskDocuments extends core_Detail
             $attr['ef_icon'] = $doc->getIcon($doc->that);
             $attr['title'] = 'Документ|*: ' . $docRow->title;
             
-            $row->containerId = ht::createLink($hnd, $url, NULL, $attr);
+            $row->containerId = ht::createLink($hnd, $url, null, $attr);
             
             $folderId = doc_Containers::fetchField($rec->containerId, 'folderId');
             if ($folderId) {
@@ -377,65 +373,68 @@ class cal_TaskDocuments extends core_Detail
     
     /**
      * Проверява дали документа се цитира в източника
-     * 
+     *
      * @param integer $id
      * @param integer $cid
-     * 
+     *
      * @return boolean
      */
     public static function checkDocExist($id, $cid)
     {
-        if (self::fetch(array("#id = '[#1#]' AND #containerId = '[#2#]' AND #state != 'rejected'", $id, $cid))) return TRUE;
+        if (self::fetch(array("#id = '[#1#]' AND #containerId = '[#2#]' AND #state != 'rejected'", $id, $cid))) {
+            return true;
+        }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Преди подготовката на полетата за листовия изглед
-     * 
+     *
      * @param cal_TaskDocuments $mvc
-     * @param stdClass $res
-     * @param stdClass $data
+     * @param stdClass          $res
+     * @param stdClass          $data
      */
     public static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-    	$data->query->orderBy('createdOn', 'DESC');
+        $data->query->orderBy('createdOn', 'DESC');
     }
-	
-	
-	/**
-	 * 
-	 * 
-	 * @param stdClass $data
-	 */
-	public function prepareDetail_($data)
-	{
-	    $data->TabCaption = 'Документи';
-	    $data->Tab = 'top';
-		
-	    $res = parent::prepareDetail_($data);
-		
-		if (empty($data->recs)) {
-		    
-		    if (!self::fetch("#state = 'rejected' && #taskId = '{$data->masterData->rec->id}'")) {
-		        $data->disabled = TRUE;
-		    }
-		}
-		
-		return $res;
-	}
-	
-	
-	/**
-	 * 
-	 * 
-	 * @param stdClass $data
-	 */
-	public function renderDetail_($data)
-	{
-	    if ($data->disabled) return ;
-		
-		return parent::renderDetail_($data);
-	}
+    
+    
+    /**
+     *
+     *
+     * @param stdClass $data
+     */
+    public function prepareDetail_($data)
+    {
+        $data->TabCaption = 'Документи';
+        $data->Tab = 'top';
+        
+        $res = parent::prepareDetail_($data);
+        
+        if (empty($data->recs)) {
+            if (!self::fetch("#state = 'rejected' && #taskId = '{$data->masterData->rec->id}'")) {
+                $data->disabled = true;
+            }
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     *
+     *
+     * @param stdClass $data
+     */
+    public function renderDetail_($data)
+    {
+        if ($data->disabled) {
+            return ;
+        }
+        
+        return parent::renderDetail_($data);
+    }
 }

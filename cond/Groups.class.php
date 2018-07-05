@@ -17,49 +17,49 @@ class cond_Groups extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Групи";
+    public $title = 'Групи';
 
 
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, cond_Wrapper";
+    public $loadList = 'plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, cond_Wrapper';
 
 
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,admin';
+    public $canRead = 'ceo,admin';
 
 
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,admin';
+    public $canEdit = 'ceo,admin';
 
 
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,admin';
+    public $canAdd = 'ceo,admin';
 
 
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,admin';
+    public $canList = 'ceo,admin';
 
 
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,admin';
+    public $canView = 'ceo,admin';
 
 
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,admin';
+    public $canDelete = 'ceo,admin';
 
 
     /**
@@ -71,7 +71,7 @@ class cond_Groups extends core_Manager
         $this->setDbUnique('title');
     }
 
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         $rec = new stdClass();
 
@@ -81,7 +81,6 @@ class cond_Groups extends core_Manager
         
         $id = $mvc->save($rec, 'title', 'IGNORE');
 
-        $res .= $id ? "<li>Добавен е един запис успешно!</li>" : "<li>Не е добавено ново поле</li>";
-
+        $res .= $id ? '<li>Добавен е един запис успешно!</li>' : '<li>Не е добавено ново поле</li>';
     }
 }

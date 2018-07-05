@@ -20,7 +20,7 @@ class purchase_InvoiceDetails extends deals_InvoiceDetail
     /**
      * Заглавие
      */
-    public $title = "Детайли на фактурата";
+    public $title = 'Детайли на фактурата';
     
     
     /**
@@ -41,7 +41,7 @@ class purchase_InvoiceDetails extends deals_InvoiceDetail
     /**
      * Кое е активното меню
      */
-    public $pageMenu = "Фактури";
+    public $pageMenu = 'Фактури';
     
     
     /**
@@ -77,9 +77,9 @@ class purchase_InvoiceDetails extends deals_InvoiceDetail
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('invoiceId', 'key(mvc=purchase_Invoices)', 'caption=Фактура, input=hidden, silent');
         parent::setInvoiceDetailFields($this);
-	}
+    }
 }

@@ -3,7 +3,7 @@
 
 /**
  * Потребителски правила за СПАМ рейтинг
- * 
+ *
  * @category  bgerp
  * @package   email
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
@@ -18,61 +18,55 @@ class email_SpamRules extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, email_Wrapper, plg_RowTools, plg_Clone';
+    public $loadList = 'plg_Created, plg_State2, email_Wrapper, plg_RowTools, plg_Clone';
     
     
     /**
      * Заглавие
      */
-    var $title = "Потребителски правила за определяне на СПАМ рейтинг";
-	
+    public $title = 'Потребителски правила за определяне на СПАМ рейтинг';
+    
      
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = 'Правило за рутиране по СПАМ';
+    public $singleTitle = 'Правило за рутиране по СПАМ';
     
     
-    /**
-     * 
-     */
-    var $canList = 'admin, email';
+    
+    public $canList = 'admin, email';
     
     
-    /**
-     * 
-     */
-    var $canEdit = 'admin, email';
+    
+    public $canEdit = 'admin, email';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead   = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой има право да пише?
      */
-    var $canWrite  = 'admin';
+    public $canWrite = 'admin';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'admin';
-    
-    
-    /**  
-     * Кой има право да променя системните данни?  
-     */  
-    var $canEditsysdata = 'admin';
+    public $canReject = 'admin';
     
     
     /**
-     * 
+     * Кой има право да променя системните данни?
      */
-    var $listFields =  'id, email, subject, body, points, note, state, createdOn, createdBy';
+    public $canEditsysdata = 'admin';
+    
+    
+    
+    public $listFields = 'id, email, subject, body, points, note, state, createdOn, createdBy';
     
     
     /**
@@ -86,30 +80,32 @@ class email_SpamRules extends core_Manager
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
-        $this->FLD('systemId' ,  'varchar(32)', 'caption=Ключ,input=none');
-        $this->FLD('email' , 'varchar', 'caption=Условие->Изпращач', array('attr'=>array('style'=>'width: 350px;')));
-        $this->FLD('subject' , 'varchar', 'caption=Условие->Относно', array('attr'=>array('style'=>'width: 350px;')));
-        $this->FLD('body' , 'varchar', 'caption=Условие->Текст', array('attr'=>array('style'=>'width: 350px;')));
-        $this->FLD('points' , 'double(min=-100, max=100, decimals=2, smartRound)', 'caption=Точки, mandatory');
-        $this->FLD('note' , 'text', 'caption=@Забележка', array('attr'=>array('style'=>'width: 100%;', 'rows'=>4)));
+        $this->FLD('systemId', 'varchar(32)', 'caption=Ключ,input=none');
+        $this->FLD('email', 'varchar', 'caption=Условие->Изпращач', array('attr' => array('style' => 'width: 350px;')));
+        $this->FLD('subject', 'varchar', 'caption=Условие->Относно', array('attr' => array('style' => 'width: 350px;')));
+        $this->FLD('body', 'varchar', 'caption=Условие->Текст', array('attr' => array('style' => 'width: 350px;')));
+        $this->FLD('points', 'double(min=-100, max=100, decimals=2, smartRound)', 'caption=Точки, mandatory');
+        $this->FLD('note', 'text', 'caption=@Забележка', array('attr' => array('style' => 'width: 100%;', 'rows' => 4)));
         
         $this->setDbUnique('systemId');
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param NULL|email_Mime $mime
-     * @param NULL|stdClass $rec
-     * 
+     * @param NULL|stdClass   $rec
+     *
      * @return double|NULL
      */
     public static function getSpamScore($mime, $rec)
     {
-        if (!$mime && !$rec) return ;
+        if (!$mime && !$rec) {
+            return ;
+        }
         
         $sDataArr = array();
         if ($rec) {
@@ -122,9 +118,11 @@ class email_SpamRules extends core_Manager
             $sDataArr['subject'] = $mime->getSubject();
         }
         
-        if (empty($sDataArr)) return ;
+        if (empty($sDataArr)) {
+            return ;
+        }
         
-        static $allFilters = NULL;
+        static $allFilters = null;
         
         if (!isset($allFilters)) {
             $query = static::getQuery();
@@ -135,13 +133,14 @@ class email_SpamRules extends core_Manager
             $allFilters = $query->fetchAll();
         }
         
-        if (!$allFilters) return ;
+        if (!$allFilters) {
+            return ;
+        }
         
-        $points = NULL;
+        $points = null;
         
         foreach ($allFilters as $filterRec) {
             if (email_Filters::match($sDataArr, $filterRec)) {
-                
                 $points += $filterRec->points;
             }
         }
@@ -157,7 +156,9 @@ class email_SpamRules extends core_Manager
      */
     public static function getSystemId($rec)
     {
-        if ($rec->systemId) return $rec->systemId;
+        if ($rec->systemId) {
+            return $rec->systemId;
+        }
         
         $str = trim($rec->email) . '|' . trim($rec->subject) . '|' . trim($rec->body);
         $systemId = md5($str);
@@ -169,7 +170,7 @@ class email_SpamRules extends core_Manager
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param core_Mvc $mvc
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm($mvc, &$form)
@@ -188,9 +189,9 @@ class email_SpamRules extends core_Manager
      * Преди запис на документ, изчислява стойността на полето `isContable`
      *
      * @param email_Filters $mvc
-     * @param stdClass $res
-     * @param stdClass $rec
-     * 
+     * @param stdClass      $res
+     * @param stdClass      $rec
+     *
      * @return NULL|double
      */
     public static function on_BeforeSave($mvc, $res, $rec)

@@ -3,7 +3,7 @@
 
 /**
  * Драйвер за работа с видео файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -20,20 +20,20 @@ class fileman_webdrv_Video extends fileman_webdrv_Media
      * @Override
      * @see fileman_webdrv_Generic::$defaultTab
      */
-    static $defaultTab = 'video';
+    public static $defaultTab = 'video';
     
     
     /**
      * Връща всички табове, които ги има за съответния файл
-     * 
+     *
      * @param object $fRec - Записите за файла
-     * 
+     *
      * @return array
-     * 
+     *
      * @Override
      * @see fileman_webdrv_Generic::getTabs
      */
-    static function getTabs($fRec)
+    public static function getTabs($fRec)
     {
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
@@ -51,14 +51,14 @@ class fileman_webdrv_Video extends fileman_webdrv_Media
         $videoTpl = mejs_Adapter::createVideo($fRec->fileHnd, array('width' => $width, 'height' => $height));
         
         // Таб за съдържанието
-		$tabsArr['video'] = (object) 
-			array(
-				'title'   => 'Видео',
-				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr("Видео") . "</div>{$videoTpl}</div></div>",
-				'order' => 2,
-				'tpl' => $videoTpl,
-			);
-			
+        $tabsArr['video'] = (object)
+            array(
+                'title' => 'Видео',
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr('Видео') . "</div>{$videoTpl}</div></div>",
+                'order' => 2,
+                'tpl' => $videoTpl,
+            );
+            
         return $tabsArr;
     }
 }

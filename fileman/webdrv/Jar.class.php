@@ -3,7 +3,7 @@
 
 /**
  * Драйвер за работа с .jar файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -13,5 +13,4 @@
  */
 class fileman_webdrv_Jar extends fileman_webdrv_Archive
 {
-    
 }

@@ -22,12 +22,12 @@ class jqplot_Plugin extends core_Plugin
      * Домакина може да реализира свой собствен getChartConfig() като по този начин дефинира
      * друг механизъм за указване на наличните графики
      *
-     * @param core_Mvc $mvc домакин
-     * @param array $res конфигурация на графика (на изхода)
-     * @param string $name име на графика; ако е NULL, метода връща всички налични конфигурации
-     *                 на графики, описани в домакина.
+     * @param core_Mvc $mvc  домакин
+     * @param array    $res  конфигурация на графика (на изхода)
+     * @param string   $name име на графика; ако е NULL, метода връща всички налични конфигурации
+     *                       на графики, описани в домакина.
      */
-    static function on_AfterGetChartConfig($mvc, &$res, $name = NULL)
+    public static function on_AfterGetChartConfig($mvc, &$res, $name = null)
     {
         $res = array();
 
@@ -35,15 +35,17 @@ class jqplot_Plugin extends core_Plugin
             $res = $mvc::$charts;
         }
 
-        if (isset($name) && isset($res[$name])) {
+        if (isset($name, $res[$name])) {
             $res = $res[$name];
+
             return;
         }
 
         $res += static::modelChartConfigs($mvc);
 
-        if (isset($name) && isset($res[$name])) {
+        if (isset($name, $res[$name])) {
             $res = $res[$name];
+
             return;
         }
 
@@ -108,9 +110,9 @@ class jqplot_Plugin extends core_Plugin
      * дефинира друг механизъм за определяне на заявената за показване графика.
      *
      * @param core_Mvc $mvc домакин
-     * @param string $res име на графика, или празно, ако не е заявена
+     * @param string   $res име на графика, или празно, ако не е заявена
      */
-    static function on_AfterGetRequestedChartName($mvc, &$res)
+    public static function on_AfterGetRequestedChartName($mvc, &$res)
     {
         $res = core_Request::get('Chart');
     }
@@ -126,11 +128,11 @@ class jqplot_Plugin extends core_Plugin
      * Домакина може да реализира свой собствен getChartUrl() като по този начин
      * дефинира друг механизъм за генериране на URL към графика.
      *
-     * @param core_Mvc $mvc домакин
-     * @param array $url URL на графиката $chartName (на изхода)
-     * @param string $chartName име на графика
+     * @param core_Mvc $mvc       домакин
+     * @param array    $url       URL на графиката $chartName (на изхода)
+     * @param string   $chartName име на графика
      */
-    static function on_AfterGetChartUrl($mvc, &$url, $chartName)
+    public static function on_AfterGetChartUrl($mvc, &$url, $chartName)
     {
         $url = getCurrentUrl();
         $url['Chart'] = $chartName;
@@ -145,9 +147,8 @@ class jqplot_Plugin extends core_Plugin
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterRenderListTitle($mvc, &$title, $data)
+    public static function on_AfterRenderListTitle($mvc, &$title, $data)
     {
-
         $menu = static::buildChartsMenu($mvc);
 
         if (empty($menu)) {
@@ -157,13 +158,13 @@ class jqplot_Plugin extends core_Plugin
         $title = new ET('[#1#]', $title);
         $title->append('<div style="margin-top:5px;margin-bottom:15px;font-size:0.80em;font-family:arial;" id="chartMenu">', 'ListSummary');
 
-        $first = TRUE;
+        $first = true;
         foreach ($menu as $item) {
             if (!$first) {
-                $title->append("&nbsp;|&nbsp;", 'ListSummary');
+                $title->append('&nbsp;|&nbsp;', 'ListSummary');
             }
             $title->append($item, 'ListSummary');
-            $first = FALSE;
+            $first = false;
         }
 
         $title->append('</div>', 'ListSummary');
@@ -173,25 +174,24 @@ class jqplot_Plugin extends core_Plugin
     /**
      * Подменя табличния изглед на домакина с указана в HTTP заявката графика
      *
-     * @param core_Mvc $mvc домакин
-     * @param core_ET $tpl
+     * @param core_Mvc $mvc  домакин
+     * @param core_ET  $tpl
      * @param stdClass $data
      */
-    static function on_AfterRenderListTable($mvc, $tpl, $data)
+    public static function on_AfterRenderListTable($mvc, $tpl, $data)
     {
-
         static $defaultChartConfig = array(
-            'menu'     => NULL,         // заглавие на графиката в менюто
-            'per'      => NULL,         // име на поле от $mvc: по една графика за всяка различна стойност на това поле
-            'titleTpl' => NULL,         // core_ET: Шаблон за заглавие на всяка графика
-            'labelTpl' => NULL,         // core_ET: Шаблон за етикет на стойност
-            'ax'       => NULL,         // string: име на поле от $mvc
-            'ay'       => NULL,         // масив от имена на полета
-            'series'   => NULL,         // string: име на поле от $mvc
+            'menu' => null,         // заглавие на графиката в менюто
+            'per' => null,         // име на поле от $mvc: по една графика за всяка различна стойност на това поле
+            'titleTpl' => null,         // core_ET: Шаблон за заглавие на всяка графика
+            'labelTpl' => null,         // core_ET: Шаблон за етикет на стойност
+            'ax' => null,         // string: име на поле от $mvc
+            'ay' => null,         // масив от имена на полета
+            'series' => null,         // string: име на поле от $mvc
 
-            'type'     => 'lines',      // lines | bars
-            'dir'      => 'vertical',   // horizontal | vertical
-            'log'      => FALSE,        // използване на логаритмична скала за стойностите
+            'type' => 'lines',      // lines | bars
+            'dir' => 'vertical',   // horizontal | vertical
+            'log' => false,        // използване на логаритмична скала за стойностите
             'htmlAttr' => array(),      // допълнителни HTML атрибути
         );
 
@@ -225,7 +225,7 @@ class jqplot_Plugin extends core_Plugin
      *
      * Списъка се добавя след заглавието на списъчния изглед на домакина
      *
-     * @param core_Mvc $mvc
+     * @param  core_Mvc $mvc
      * @return array
      */
     protected static function buildChartsMenu($mvc)
@@ -238,12 +238,12 @@ class jqplot_Plugin extends core_Plugin
             $reqestedChartName = $mvc::getRequestedChartName();
 
             if ($reqestedChartName) {
-                $menu[] = ht::createLink(tr('Tаблица'), $mvc::getChartUrl(NULL));
+                $menu[] = ht::createLink(tr('Tаблица'), $mvc::getChartUrl(null));
             } else {
                 $menu[] = tr('Tаблица');
             }
 
-            foreach ($chartConfigs as $chartName=>$chartConfig) {
+            foreach ($chartConfigs as $chartName => $chartConfig) {
                 $caption = isset($chartConfig['menu']) ? $chartConfig['menu'] : $chartName;
 
                 if ($reqestedChartName != $chartName) {
@@ -261,15 +261,15 @@ class jqplot_Plugin extends core_Plugin
     /**
      * Създава една или повече графики според конфигурацията и данните на модела на домакина
      *
-     * @param array $config
-     * @param stdClass $data данните на модела на домакина
-     * @return array масив от jqplot_Chart
+     * @param  array    $config
+     * @param  stdClass $data   данните на модела на домакина
+     * @return array    масив от jqplot_Chart
      */
     protected static function createCharts($config, $data)
     {
         $charts = array();
 
-        foreach ($data->recs as $i=>$rec) {
+        foreach ($data->recs as $i => $rec) {
             $row = $data->rows[$i];
 
             if ($config['per']) {
@@ -291,7 +291,8 @@ class jqplot_Plugin extends core_Plugin
             // Добавяме данните
             $seriesKey = $config['series'] ? $rec->{$config['series']} : 0;
 
-            $chart->addPoint($seriesKey,
+            $chart->addPoint(
+                $seriesKey,
                 $row->{$config['ax']},
                 floatval($rec->{$config['ay']}),
                 static::calcPointLabel($config, $row)
@@ -305,8 +306,8 @@ class jqplot_Plugin extends core_Plugin
     /**
      * Помощен метод за изчисляване на заглавие на графика
      *
-     * @param array $config конфигурация на графи
-     * @param stdClass $row вербални стойности на запис на модела-домакин
+     * @param  array    $config конфигурация на графи
+     * @param  stdClass $row    вербални стойности на запис на модела-домакин
      * @return string
      */
     protected static function calcChartTitle($config, $row)
@@ -316,21 +317,21 @@ class jqplot_Plugin extends core_Plugin
         if ($config['titleTpl']) {
             $title = new core_ET($config['titleTpl']);
             $title->placeObject($row);
-        } elseif ($config['titleTpl'] !== FALSE) {
+        } elseif ($config['titleTpl'] !== false) {
             if ($config['per']) {
                 $title = $row->{$config['per']};
             }
         }
 
-       return (string)$title;
+        return (string) $title;
     }
 
 
     /**
      * Помощен метод за изчисляване на етикет на точка от графика
      *
-     * @param array $config конфигурация на графи
-     * @param stdClass $row вербални стойности на запис на модела-домакин
+     * @param  array    $config конфигурация на графи
+     * @param  stdClass $row    вербални стойности на запис на модела-домакин
      * @return string
      */
     protected static function calcPointLabel($config, $row)
@@ -340,10 +341,10 @@ class jqplot_Plugin extends core_Plugin
         if ($config['labelTpl']) {
             $label = new core_ET($config['labelTpl']);
             $label->placeObject($row);
-        } elseif ($config['labelTpl'] !== FALSE) {
+        } elseif ($config['labelTpl'] !== false) {
             $label = $row->{$config['ay']};
         }
 
-        return (string)$label;
+        return (string) $label;
     }
 }

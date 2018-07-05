@@ -16,7 +16,4 @@
  */
 class currency_CurrenciesAccRegIntf extends acc_RegisterIntf
 {
-    
-    
-
 }

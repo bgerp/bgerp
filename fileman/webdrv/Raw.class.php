@@ -3,7 +3,7 @@
 
 /**
  * Драйвер за работа с .raw файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -24,7 +24,7 @@ class fileman_webdrv_Raw extends fileman_webdrv_ImageT
      * @Override
      * @see fileman_webdrv_Image::convertToJpg
      */
-    static function convertToJpg($fRec, $callBack = 'fileman_webdrv_Image::afterConvertToJpg')
+    public static function convertToJpg($fRec, $callBack = 'fileman_webdrv_Image::afterConvertToJpg')
     {
         $className = get_called_class();
     
@@ -32,7 +32,7 @@ class fileman_webdrv_Raw extends fileman_webdrv_ImageT
         $params = array(
                 'callBack' => "{$className}::afterConvertToJpg",
                 'dataId' => $fRec->dataId,
-                'asynch' => TRUE,
+                'asynch' => true,
                 'createdBy' => core_Users::getCurrent('id'),
                 'type' => 'jpg',
         );
@@ -41,10 +41,12 @@ class fileman_webdrv_Raw extends fileman_webdrv_ImageT
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
     
         // Проверявама дали няма извлечена информация или не е заключен
-        if (fileman_Indexes::isProcessStarted($params)) return ;
+        if (fileman_Indexes::isProcessStarted($params)) {
+            return ;
+        }
     
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 250, 0, FALSE)) {
+        if (core_Locks::get($params['lockId'], 250, 0, false)) {
     
             // Стартираме конвертирането към JPG
             static::startConvertingToJpg($fRec, $params);
@@ -55,10 +57,10 @@ class fileman_webdrv_Raw extends fileman_webdrv_ImageT
     /**
      * Стартира конвертиране към PNG формат
      *
-     * @param object $fRec - Записите за файла
-     * @param array $params - Допълнителни параметри
+     * @param object $fRec   - Записите за файла
+     * @param array  $params - Допълнителни параметри
      */
-    static function startConvertingToJpg($fRec, $params)
+    public static function startConvertingToJpg($fRec, $params)
     {
         // Инстанция на класа
         $Script = cls::get(fconv_Script);
@@ -95,7 +97,7 @@ class fileman_webdrv_Raw extends fileman_webdrv_ImageT
     
         $Script->setCheckProgramsArr('dcraw, convert');
         // Стартираме скрипта синхронно
-        if ($Script->run() === FALSE) {
+        if ($Script->run() === false) {
             fileman_Indexes::createError($params);
         }
     }

@@ -3,7 +3,7 @@
 
 /**
  * Експортиране на документи като HTML
- * 
+ *
  * @category  bgerp
  * @package   export
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -18,26 +18,23 @@ class export_Html extends core_Mvc
     /**
      * Заглавие на таблицата
      */
-    public $title = "Експортиране на документ като HTML";
+    public $title = 'Експортиране на документ като HTML';
     
     
-    /**
-     *  
-     */
+    
     public $interfaces = 'export_ExportTypeIntf';
     
     
     /**
      * Инпортиране на csv-файл в даден мениджър
-     * 
+     *
      * @param integer $clsId
      * @param integer $objId
-     * 
+     *
      * @return boolean
      */
-    function canUseExport($clsId, $objId)
+    public function canUseExport($clsId, $objId)
     {
-        
         return export_Export::canUseExport($clsId, $objId);
     }
     
@@ -50,23 +47,22 @@ class export_Html extends core_Mvc
      *
      * @return string
      */
-    function getExportTitle($clsId, $objId)
+    public function getExportTitle($clsId, $objId)
     {
-        
         return 'HTML файл';
     }
     
     
     /**
      * Инпортиране на csv-файл в даден мениджър
-     * 
-     * @param core_Form $form
-     * @param integer $clsId
+     *
+     * @param core_Form        $form
+     * @param integer          $clsId
      * @param integer|stdClass $objId
      *
      * @return NULL|string
      */
-    function makeExport($form, $clsId, $objId)
+    public function makeExport($form, $clsId, $objId)
     {
         $clsInst = cls::get($clsId);
         $cRec = $clsInst->fetchRec($objId);
@@ -79,9 +75,9 @@ class export_Html extends core_Mvc
         } else {
             $opt->rec->__mid = doclog_Documents::saveAction(
                             array(
-                                    'action'      => doclog_Documents::ACTION_PRINT,
+                                    'action' => doclog_Documents::ACTION_PRINT,
                                     'containerId' => $cRec->containerId,
-                                    'threadId'    => $cRec->threadId,
+                                    'threadId' => $cRec->threadId,
                             )
                     );
             
@@ -96,23 +92,22 @@ class export_Html extends core_Mvc
         // Вкарваме CSS-а инлайн
         $css = doc_PdfCreator::getCssStr($html);
         $html = doc_PdfCreator::removeFormAttr($html);
-        $html = "<div class='wide'><div class='external'>" . $html . "</div></div>";
+        $html = "<div class='wide'><div class='external'>" . $html . '</div></div>';
         $CssToInlineInst = cls::get(csstoinline_Setup::get('CONVERTER_CLASS'));
         $html = $CssToInlineInst->convert($html, $css);
         
         $fileHnd = fileman::absorbStr($html, 'exportFiles', $fileName);
         
-        $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/html.png, title=Сваляне на документа");
+        $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/html.png, title=Сваляне на документа');
         
         // Ако линка ще сочи към частна мрежа, показваме предупреждение
         if (core_App::checkCurrentHostIsPrivate()) {
-            
             $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
             
-            $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в Интернет|*.") . "</div>";
+            $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в Интернет|*.") . '</div>';
         }
         
-        $form->info .= "<b>" . tr('Файл|*: ') . "</b>" . fileman::getLink($fileHnd);
+        $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
         
         $clsInst->logWrite('Генериране на HTML', $objId);
         
@@ -125,15 +120,15 @@ class export_Html extends core_Mvc
      *
      * @param integer $clsId
      * @param integer $objId
-     * @param string $mid
+     * @param string  $mid
      *
      * @return core_ET|NULL
      */
-    function getExternalExportLink($clsId, $objId, $mid)
+    public function getExternalExportLink($clsId, $objId, $mid)
     {
         Request::setProtected(array('objId', 'clsId', 'mid', 'typeCls'));
         
-        $link = ht::createLink('HTML', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => TRUE), NULL, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/html.png'));
+        $link = ht::createLink('HTML', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => true), null, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/html.png'));
         
         return $link;
     }

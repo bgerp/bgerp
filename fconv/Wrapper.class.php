@@ -20,13 +20,11 @@ class fconv_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('fconv_Processes', 'Процеси', 'admin');
         $this->TAB('fconv_Remote', 'Отдалечени', 'admin');
         
         $this->title = 'Процеси';
     }
-    
-    
 }

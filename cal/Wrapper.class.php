@@ -23,15 +23,15 @@ class cal_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $from = Request::get('from', 'date');
         
-        if(!$from) {
+        if (!$from) {
             $from = dt::verbal2mysql();
         }
-		
-        $from = dt::mysql2verbal($from, 'd.m.Y', NULL, FALSE);
+        
+        $from = dt::mysql2verbal($from, 'd.m.Y', null, false);
         
         $this->TAB(array('cal_Calendar', 'list',  'from' => $from), 'Календар->Списък', 'powerUser,admin');
         $this->TAB(array('cal_Calendar', 'day',  'from' => $from), 'Календар->Ден', 'powerUser,admin');
@@ -47,6 +47,5 @@ class cal_Wrapper extends plg_ProtoWrapper
         
        
         $this->title = 'Календар';
-
     }
 }

@@ -3,7 +3,7 @@
 
 /**
  * Медии за отпечатване
- * 
+ *
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -68,10 +68,10 @@ class label_Media extends core_Manager
     public $loadList = 'label_Wrapper, plg_RowTools2, plg_Created, plg_State';
     
     
-	/**
+    /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%, silent');
         
@@ -93,14 +93,16 @@ class label_Media extends core_Manager
     
     /**
      * Сменяме състоянието на активно
-     * 
+     *
      * @param integer $id
      */
     public static function markMediaAsUsed($id)
     {
         $rec = self::fetch($id);
         
-        if ($rec->state == 'active') return ;
+        if ($rec->state == 'active') {
+            return ;
+        }
         
         $rec->state = 'active';
         
@@ -110,9 +112,9 @@ class label_Media extends core_Manager
     
     /**
      * Връща броя на квадратчетата за попълване в една страница на медията
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return integer
      */
     public static function getCountInPage($id)
@@ -126,7 +128,7 @@ class label_Media extends core_Manager
     
     /**
      * Връща масив с всички възможни размери
-     * 
+     *
      * @return array
      */
     public static function getAllSizes()
@@ -136,7 +138,7 @@ class label_Media extends core_Manager
         
         while ($rec = $query->fetch()) {
             $size = self::getSize($rec->width, $rec->height);
-            $resArr[$size] = $size; 
+            $resArr[$size] = $size;
         }
         
         return $resArr;
@@ -145,10 +147,10 @@ class label_Media extends core_Manager
     
     /**
      * Връща размера от широчината и височината
-     * 
+     *
      * @param integer $width
      * @param integer $heigh
-     * 
+     *
      * @return string
      */
     public static function getSize($width, $heigh)
@@ -161,9 +163,9 @@ class label_Media extends core_Manager
     
     /**
      * Връща масив с ключове id-та и заглавие на всички медии които отговарят на размера
-     * 
+     *
      * @param string $sizes
-     * 
+     *
      * @return array
      */
     public static function getMediaArrFromSizes($sizes)
@@ -179,7 +181,6 @@ class label_Media extends core_Manager
         $query->orderBy('createdOn', 'DESC');
         
         while ($rec = $query->fetch()) {
-            
             $resArr[$rec->id] = self::recToVerbal($rec)->title;
         }
         
@@ -188,16 +189,18 @@ class label_Media extends core_Manager
     
     
     /**
-     * Подготвя данните за лейаулта на медията 
-     * 
+     * Подготвя данните за лейаулта на медията
+     *
      * @param object $data
      */
-    static function prepareMediaPageLayout(&$data)
+    public static function prepareMediaPageLayout(&$data)
     {
         $rec = $data->Media->rec;
         
         // Ако някоя от необходимите стойности не е сетната
-        if (!$rec->columnsCnt || !$rec->linesCnt || !$data->cnt) return FALSE;
+        if (!$rec->columnsCnt || !$rec->linesCnt || !$data->cnt) {
+            return false;
+        }
         
         // Ако не е сетнат
         if (!$data->pageLayout) {
@@ -210,10 +213,10 @@ class label_Media extends core_Manager
         $data->pageLayout->itemsPerPage = self::getCountInPage($rec->id);
         
         // Брой страници
-        $data->pageLayout->pageCnt = (int)ceil($data->cnt / $data->pageLayout->itemsPerPage);
+        $data->pageLayout->pageCnt = (int) ceil($data->cnt / $data->pageLayout->itemsPerPage);
         
         // Брой записи в поседната страница
-        $data->pageLayout->lastPageCnt = (int)($data->cnt % $data->pageLayout->itemsPerPage);
+        $data->pageLayout->lastPageCnt = (int) ($data->cnt % $data->pageLayout->itemsPerPage);
         
         // Брой на колоните
         $data->pageLayout->columnsCnt = $rec->columnsCnt;
@@ -232,17 +235,17 @@ class label_Media extends core_Manager
         // Отместване на колона
         $data->pageLayout->columnsDist = (double) $rec->columnsDist . 'mm';
         
-        // Отместване на ред 
+        // Отместване на ред
         $data->pageLayout->linesDist = (double) $rec->linesDist . 'mm';
     }
 
     
     /**
      * Рендираме лейаулта за съответната медия
-     * 
+     *
      * @param object $data
      */
-    static function renderMediaPageLayout(&$data)
+    public static function renderMediaPageLayout(&$data)
     {
         // Брой колоени
         $columns = $data->pageLayout->columnsCnt;
@@ -273,14 +276,14 @@ class label_Media extends core_Manager
             for ($s = 0; $s < $columns; $s++) {
                 
                 // Добавяме колона
-                $t .= "<td>[#$cnt#]</td>";
+                $t .= "<td>[#${cnt}#]</td>";
                 
                 // Увеличаваме брояча
                 $cnt++;
             }
             
             // Добавяме край на ред
-            $t .= "</tr>";
+            $t .= '</tr>';
         }
         
         // Добавяме край на таблица
@@ -294,12 +297,12 @@ class label_Media extends core_Manager
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Активните записи да не може да се редактират или изтриват
         if ($rec && ($action == 'edit' || $action == 'delete')) {
@@ -315,7 +318,7 @@ class label_Media extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->title = $row->title . " " . self::getSize($row->width, $row->height);
+        $row->title = $row->title . ' ' . self::getSize($row->width, $row->height);
     }
     
     
@@ -324,29 +327,29 @@ class label_Media extends core_Manager
      */
     public function loadSetupData()
     {
-    	// Подготвяме пътя до файла с данните
-    	$file = "label/csv/Media.csv";
+        // Подготвяме пътя до файла с данните
+        $file = 'label/csv/Media.csv';
     
-    	// Кои колонки ще вкарваме
-    	$fields = array(
-    			0 => "title",
-    			1 => "width",
-    			2 => "height",
-    			3 => "fieldUp",
-    			4 => "fieldLeft",
-    			5 => "columnsCnt",
-    			6 => "columnsDist",
-    			7 => "linesCnt",
-    			8 => "linesDist",
-    	);
+        // Кои колонки ще вкарваме
+        $fields = array(
+                0 => 'title',
+                1 => 'width',
+                2 => 'height',
+                3 => 'fieldUp',
+                4 => 'fieldLeft',
+                5 => 'columnsCnt',
+                6 => 'columnsDist',
+                7 => 'linesCnt',
+                8 => 'linesDist',
+        );
     
-    	// Импортираме данните от CSV файла.
-    	// Ако той не е променян - няма да се импортират повторно
-    	$cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, NULL);
-    	
-    	// Записваме в лога вербалното представяне на резултата от импортирането
-    	$res = $cntObj->html;
+        // Импортираме данните от CSV файла.
+        // Ако той не е променян - няма да се импортират повторно
+        $cntObj = csv_Lib::importOnce($this, $file, $fields, null, null);
+        
+        // Записваме в лога вербалното представяне на резултата от импортирането
+        $res = $cntObj->html;
     
-    	return $res;
+        return $res;
     }
 }

@@ -43,31 +43,31 @@ class tesseract_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Адаптер за tesseract - разпознаване на текст в сканирани документи";
+    public $info = 'Адаптер за tesseract - разпознаване на текст в сканирани документи';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
         'tesseract_Converter'
     );
     
@@ -77,36 +77,36 @@ class tesseract_Setup extends core_ProtoSetup
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-       'TESSERACT_LANGUAGES' => array ('varchar', 'caption=Езици за разпознаване, title=Инсталирани езици за разпознаване'),
-       'TESSERACT_PAGES_MODE' => array ('int', 'caption=Стойността на psm, title=Page segmentation modes от настройките'),
-       'TESSERACT_OCR_MODE' => array ('int', 'caption=Стойността на oem, title=OCR Engine modes от настройките'),
+    public $configDescription = array(
+       'TESSERACT_LANGUAGES' => array('varchar', 'caption=Езици за разпознаване, title=Инсталирани езици за разпознаване'),
+       'TESSERACT_PAGES_MODE' => array('int', 'caption=Стойността на psm, title=Page segmentation modes от настройките'),
+       'TESSERACT_OCR_MODE' => array('int', 'caption=Стойността на oem, title=OCR Engine modes от настройките'),
      );
      
      
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Вземаме конфига
-    	$conf = core_Packs::getConfig('fileman');
-    	
-    	$data = array();
-    	
-    	// Ако текущия клас е избран по подразбиране
-    	if ($conf->_data['FILEMAN_OCR'] == core_Classes::getId('tesseract_Converter')) {
-    	    
+        $conf = core_Packs::getConfig('fileman');
+        
+        $data = array();
+        
+        // Ако текущия клас е избран по подразбиране
+        if ($conf->_data['FILEMAN_OCR'] == core_Classes::getId('tesseract_Converter')) {
+            
             // Премахваме го
-	        $data['FILEMAN_OCR'] = NULL;
-			
-	        // Добавяме в записите
+            $data['FILEMAN_OCR'] = null;
+            
+            // Добавяме в записите
             core_Packs::setConfig('fileman', $data);
             
             $html .= "<li class=\"green\">Премахнат е 'tesseract_Converter' от конфигурацията</li>";
-    	}
+        }
         
         return $html;
     }
@@ -114,30 +114,31 @@ class tesseract_Setup extends core_ProtoSetup
 
     /**
      * Проверява дали програмата е инсталирана в сървъра
-     * 
+     *
      * @return NULL|string
      */
-    function checkConfig()
+    public function checkConfig()
     {
-        if (fconv_Remote::canRunRemote('tesseract')) return ;
+        if (fconv_Remote::canRunRemote('tesseract')) {
+            return ;
+        }
         
         $tesseract = escapeshellcmd(self::get('PATH'));
- 		
+        
         if (core_Os::isWindows()) {
             $res = @exec($tesseract . ' --help', $output, $code);
             if ($code != 0) {
-                $haveError = TRUE;
+                $haveError = true;
             }
         } else {
             $res = @exec('which ' . $tesseract, $output, $code);
             if (!$res) {
-                $haveError = TRUE;
+                $haveError = true;
             }
         }
         
         if ($haveError) {
-            
-            return "Програмата " . type_Varchar::escape(self::get('PATH')) . " не е инсталирана.";
+            return 'Програмата ' . type_Varchar::escape(self::get('PATH')) . ' не е инсталирана.';
         }
         
         $versionArr = self::getVersionAndSubVersion();
@@ -146,27 +147,29 @@ class tesseract_Setup extends core_ProtoSetup
     
             // Добавяме съобщение
             return "Версията на tesseract e {$versionArr['version']}.{$versionArr['subVersion']}. За по-добро разпознаване трябва да инсталирате версия над 4.x";
-        } else {
+        }
             
-            @exec($tesseract . ' -v', $outputArr, $code);
+        @exec($tesseract . ' -v', $outputArr, $code);
             
-            // Проверка на версията на leptonica - под 1.74 не работи добре с невронна мрежа
-            if ($outputArr) {
-                foreach ($outputArr as $oStr) {
-                    if (stripos($oStr, 'leptonica') === FALSE) continue;
+        // Проверка на версията на leptonica - под 1.74 не работи добре с невронна мрежа
+        if ($outputArr) {
+            foreach ($outputArr as $oStr) {
+                if (stripos($oStr, 'leptonica') === false) {
+                    continue;
+                }
                     
-                    list(,$lVersion) = explode('-', $oStr);
+                list(, $lVersion) = explode('-', $oStr);
                     
-                    $lVersion = trim($lVersion);
+                $lVersion = trim($lVersion);
                     
-                    if (!$lVersion) continue;
+                if (!$lVersion) {
+                    continue;
+                }
                     
-                    list($v, $sv) = explode('.', $lVersion);
+                list($v, $sv) = explode('.', $lVersion);
                     
-                    if (($v <= 1) && ($sv < 74)) {
-                        
-                        return "Версията на 'leptonica' e {$lVersion}. С тази версия има проблем.";
-                    }
+                if (($v <= 1) && ($sv < 74)) {
+                    return "Версията на 'leptonica' e {$lVersion}. С тази версия има проблем.";
                 }
             }
         }
@@ -175,20 +178,22 @@ class tesseract_Setup extends core_ProtoSetup
     
     /**
      * Връща масив с версията и подверсията
-     * 
+     *
      * @return array
-     * ['version']
-     * ['subVersion']
+     *               ['version']
+     *               ['subVersion']
      */
-    static function getVersionAndSubVersion()
+    public static function getVersionAndSubVersion()
     {
         $versionArr = array();
         $tesseract = escapeshellcmd(self::get('PATH'));
-        @exec($tesseract . " --version", $resArr, $erroCode);
+        @exec($tesseract . ' --version', $resArr, $erroCode);
         
         $tVerStr = $resArr[0];
         
-        if (!$tVerStr) return $versionArr;
+        if (!$tVerStr) {
+            return $versionArr;
+        }
         
         $tVerStrArr = explode(' ', $tVerStr);
         $tVerStrArr = explode('.', $tVerStrArr[1], 2);
@@ -203,7 +208,7 @@ class tesseract_Setup extends core_ProtoSetup
     /**
      * Зареждане на данни
      */
-    function loadSetupData($itr = '')
+    public function loadSetupData($itr = '')
     {
         $res = parent::loadSetupData($itr);
         
@@ -213,7 +218,6 @@ class tesseract_Setup extends core_ProtoSetup
         // И се използва tesseract по подразбиране
         // Караме да се регенерират OCR-натит изображения
         if ($versionArr['version'] >= 4) {
-            
             $defaultOcr = fileman_Setup::get('OCR');
             
             if ($defaultOcr) {
@@ -240,7 +244,9 @@ class tesseract_Setup extends core_ProtoSetup
         $iQuery->where("#type = 'textOcr'");
         
         while ($iRec = $iQuery->fetch()) {
-            if (!$iRec->dataId) continue;
+            if (!$iRec->dataId) {
+                continue;
+            }
             
             $dRec = fileman_Data::fetch($iRec->dataId);
             
@@ -264,7 +270,7 @@ class tesseract_Setup extends core_ProtoSetup
             $confData['TESSERACT_OCR_MODE'] = 1;
             core_Packs::setConfig('tesseract', $confData);
             
-            tesseract_Converter::logDebug("OCR_MODE е променен на 1");
+            tesseract_Converter::logDebug('OCR_MODE е променен на 1');
         }
         
         return $res;

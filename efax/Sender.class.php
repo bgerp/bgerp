@@ -13,26 +13,24 @@
  */
 class efax_Sender
 {
-	
     
-	/**
-	 * Интерфейсния клас за изпращане на факс
-	 */
-	var $interfaces = 'email_SentFaxIntf'; 
-	
-	
-	/**
-	 * 
-	 */
-	var $title = 'EFax.com';
-	
-	
-	/**
-	 * Интерфейсния метод за изпращане на факс
-	 */
-	function sendFax($rec, $faxTo)
-	{
-	    $conf = core_Packs::getConfig('efax');
+    
+    /**
+     * Интерфейсния клас за изпращане на факс
+     */
+    public $interfaces = 'email_SentFaxIntf';
+    
+    
+    
+    public $title = 'EFax.com';
+    
+    
+    /**
+     * Интерфейсния метод за изпращане на факс
+     */
+    public function sendFax($rec, $faxTo)
+    {
+        $conf = core_Packs::getConfig('efax');
         
         //Очаква да има факс на изпращача
         expect(($faxSender = $conf->EFAX_SENDER_BOX), 'Не сте дефинирали факс на изпращача.');
@@ -58,7 +56,7 @@ class efax_Sender
         if (!is_numeric($conf->EFAX_SENDER_BOX)) {
             
             //Вземаме id' то на получателя
-            $faxSender = email_Inboxes::fetchField("#email='$faxSender'");
+            $faxSender = email_Inboxes::fetchField("#email='${faxSender}'");
             
             //Очакваме да има такъв имейл
             expect($faxSender, 'Няма такъв имейл в системата Ви.');
@@ -68,5 +66,5 @@ class efax_Sender
         $res = email_Sent::sendOne($faxSender, $recipientFaxEmail, $rec->subject, $rec, $options);
         
         return $res;
-	}
+    }
 }

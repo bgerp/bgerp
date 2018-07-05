@@ -19,31 +19,32 @@ defIfNot('EF_NUMBER_DECIMALS', 4);
  * @since     v 0.1
  * @link
  */
-class type_Double extends core_Type {
+class type_Double extends core_Type
+{
     
     
     /**
      * Тип на полето в mySql таблица
      */
-    var $dbFieldType = 'double';
+    public $dbFieldType = 'double';
     
     
     /**
      * Стойност по подразбиране
      */
-    var $defaultValue = 0;
+    public $defaultValue = 0;
     
     
     /**
      * Параметър определящ максималната широчина на полето
      */
-    var $maxFieldSize = 12;
+    public $maxFieldSize = 12;
 
 
     /**
      * Клас за <td> елемент, който показва данни от този тип
      */
-    var $tdClass = 'rightCol';
+    public $tdClass = 'rightCol';
 
 
     /**
@@ -51,7 +52,7 @@ class type_Double extends core_Type {
      * Входния стринг може да не е форматиран добре, също може да съдържа прости
      * аритметически изрази
      */
-    function fromVerbal($value)
+    public function fromVerbal($value)
     {
         $value = trim($value);
         
@@ -67,47 +68,52 @@ class type_Double extends core_Type {
         
         $value = str_replace($from, $to, trim($value));
         
-        if(!strlen($value)) return NULL;
+        if (!strlen($value)) {
+            return;
+        }
         
         $value = $this->prepareVal($value, $allowOct, $allowHex);
         
-        if(!strlen($value)) return NULL;
+        if (!strlen($value)) {
+            return;
+        }
         
         // Превръщаме 16-тичните числа в десетични
         //$value = trim(preg_replace('/[^0123456789]{0,1}0x([a-fA-F0-9]*)/e', "substr('\\0',0,1).hexdec('\\0')", ' '.$value));
         
         // Ако имаме букви или др. непозволени символи - връщаме грешка
-        if(preg_replace('`([^+x\-*=/\(\)\d\^<>&|\.]*)`', '', $value) != $value) {
-            $this->error = "Недопустими символи в число/израз";
+        if (preg_replace('`([^+x\-*=/\(\)\d\^<>&|\.]*)`', '', $value) != $value) {
+            $this->error = 'Недопустими символи в число/израз';
             
-            return FALSE;
+            return false;
         }
         
-        if(empty($value)) $value = '0';
-        $code = "\$val = $value;";
+        if (empty($value)) {
+            $value = '0';
+        }
+        $code = "\$val = ${value};";
 
         // Шаблон за намиране на повтарящи се знаци или изрази, които започват и/или завършват с тях
         $signP = '(\*|\/|\+|\-|\.|\,)';
         $pattern = "/(^(\s*(\*|\/)\s*))|({$signP}{1}\s*{$signP}+)|((\s*{$signP}\s*)$|([^\.|\,]*(\.|\,)[^{$signP}]*(\.|\,)[^\.|\,]*))|\=|[^0-9\(\)]{1}[^0-9\(\)]{1}/";
         
-        if(!preg_match($pattern, $value) && @eval('return TRUE;' . $code)) {
+        if (!preg_match($pattern, $value) && @eval('return TRUE;' . $code)) {
             @eval($code);
             
             return (float) $val;
-        } else {
-            $this->error = "Грешка при превръщане на |*<b>'" . parent::escape($originalVal) . "'</b> |в число";
-            
-            return FALSE;
         }
+        $this->error = "Грешка при превръщане на |*<b>'" . parent::escape($originalVal) . "'</b> |в число";
+            
+        return false;
     }
     
     
     /**
      * Генерира input-поле за числото
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
-        if($this->params[0] + $this->params[1] > 0) {
+        if ($this->params[0] + $this->params[1] > 0) {
             $attr['size'] = $this->params[0] + $this->params[1] + 1;
         }
         
@@ -120,34 +126,36 @@ class type_Double extends core_Type {
     /**
      * Форматира числото в удобна за четене форма
      */
-    function toVerbal($value)
+    public function toVerbal($value)
     {
-        if(!strlen($value)) return NULL;
+        if (!strlen($value)) {
+            return;
+        }
         
         $conf = core_Packs::getConfig('core');
 
-        if(!$this->params['decPoint']) {
+        if (!$this->params['decPoint']) {
             $this->params['decPoint'] = html_entity_decode($conf->EF_NUMBER_DEC_POINT);
         }
 
-        if(!isset($this->params['thousandsSep'])) {
+        if (!isset($this->params['thousandsSep'])) {
             $this->params['thousandsSep'] = html_entity_decode($conf->EF_NUMBER_THOUSANDS_SEP);
         }
         
-        if(!isset($this->params['decimals'])) {
+        if (!isset($this->params['decimals'])) {
             $this->params['decimals'] = $this->params['decimals'];
         }
         
-        if(!isset($this->params['decimals'])) {
-        	$this->params['decimals'] = EF_NUMBER_DECIMALS;
+        if (!isset($this->params['decimals'])) {
+            $this->params['decimals'] = EF_NUMBER_DECIMALS;
         }
         
         // Ако закръгляме умно
-        if($this->params['smartRound']){
-        	$oldDecimals = $this->params['decimals'];
-        	
-        	// Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
-        	$this->params['decimals'] = min(strlen(substr(strrchr($value, '.'), 1)), $this->params['decimals']);
+        if ($this->params['smartRound']) {
+            $oldDecimals = $this->params['decimals'];
+            
+            // Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
+            $this->params['decimals'] = min(strlen(substr(strrchr($value, '.'), 1)), $this->params['decimals']);
         }
 
         // Закръгляме числото преди да го обърнем в нормален вид
@@ -155,14 +163,14 @@ class type_Double extends core_Type {
         $ts = Mode::is('forSearch') ? '' : $this->params['thousandsSep'];
         $value = number_format($value, $this->params['decimals'], $this->params['decPoint'], $ts);
         
-        if(!Mode::is('text', 'plain')) {
+        if (!Mode::is('text', 'plain')) {
             $value = str_replace(' ', '&nbsp;', $value);
         }
         
-        if($this->params['smartRound']){
-        	// След умното закръгляне, връщаме старата стойност за брой десетични знаци.
-        	// Така се подсигуряваме че след последователно викане на стойноста винаги ще се изчислява на момента
-        	$this->params['decimals'] = $oldDecimals;
+        if ($this->params['smartRound']) {
+            // След умното закръгляне, връщаме старата стойност за брой десетични знаци.
+            // Така се подсигуряваме че след последователно викане на стойноста винаги ще се изчислява на момента
+            $this->params['decimals'] = $oldDecimals;
         }
         
         return $value;
@@ -171,18 +179,22 @@ class type_Double extends core_Type {
     
     /**
      * Премахва символите за осмична и шестнайсетична бройна система, ако не са позволени
-     * 
-     * @param string $double
+     *
+     * @param string  $double
      * @param boolean $allowOct
      * @param boolean $allowHex
-     * 
+     *
      * @return string
      */
-    protected function prepareVal($double, $allowOct = FALSE, $allowHex = FALSE)
+    protected function prepareVal($double, $allowOct = false, $allowHex = false)
     {
-        if (!$double) return $double;
+        if (!$double) {
+            return $double;
+        }
         
-        if ($allowOct && $allowHex) return $double;
+        if ($allowOct && $allowHex) {
+            return $double;
+        }
         
         if (!$allowOct && !$allowHex) {
             $pattern = '0|0x';
@@ -196,7 +208,7 @@ class type_Double extends core_Type {
         
         $pattern = "/(^|[^\.0-9]+)({$pattern})+([0-9][\.0-9]*)/";
         
-        $double = preg_replace($pattern, "$1$3", $double);
+        $double = preg_replace($pattern, '$1$3', $double);
         
         return $double;
     }

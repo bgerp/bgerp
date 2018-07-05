@@ -21,7 +21,7 @@ class rfid_HolderIntf
     /**
      * Връща запис с IP четеца или база данни
      */
-    function getData($date)
+    public function getData($date)
     {
         $this->class->getData($date);
     }
@@ -30,8 +30,8 @@ class rfid_HolderIntf
     /**
      * Връща запис с IP четеца или база данни
      */
-    function getDocComment()
+    public function getDocComment()
     {
-    	$this->class->getData();
+        $this->class->getData();
     }
 }

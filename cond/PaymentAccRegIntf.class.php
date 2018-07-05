@@ -16,5 +16,4 @@
  */
 class cond_PaymentAccRegIntf extends acc_RegisterIntf
 {
-
 }

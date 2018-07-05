@@ -18,10 +18,10 @@ class jquery_Jquery
     
     /**
      * Пътя до JQuery библиотеката
-     * 
+     *
      * @return string
      */
-    static function getPath()
+    public static function getPath()
     {
         $conf = core_Packs::getConfig('jquery');
         $jQueryPath = 'jquery/' . $conf->JQUERY_VERSION . '/jquery.min.js';
@@ -32,37 +32,41 @@ class jquery_Jquery
     
     /**
      * Добавя JQuery библиотеката към шаблона
-     * 
+     *
      * @param core_ET $tpl
      */
-    static function enable(&$tpl)
+    public static function enable(&$tpl)
     {
         // Ако не е подаден обект, създаваме празен шаблон
-        if (!is_object($tpl)) $tpl = new ET();
+        if (!is_object($tpl)) {
+            $tpl = new ET();
+        }
         
         // Ако не е шаблон
-        if (!($tpl instanceof core_ET)) return FALSE;
+        if (!($tpl instanceof core_ET)) {
+            return false;
+        }
         
         // Пътя до библиотеката
         $jQueryPath = static::getPath();
         
         // Добавяме библиотеката
-        $tpl->push($jQueryPath, "JS");
+        $tpl->push($jQueryPath, 'JS');
     }
     
     
     /**
      * Добавя подадения код във функция, на JQuery, която се вика след зареждане на страницата
-     * 
+     *
      * @param core_ET $tpl
-     * @param string $code
+     * @param string  $code
      * @param boolean $once
      */
-    static function run(&$tpl, $code, $once = FALSE)
+    public static function run(&$tpl, $code, $once = false)
     {
         $code = trim($code);
         
-        if($once) {
+        if ($once) {
             $tpl->appendOnce("\n$(document).ready(function(){ {$code} });", 'JQRUN');
         } else {
             $tpl->append("\n$(document).ready(function(){ {$code} });", 'JQRUN');
@@ -72,12 +76,12 @@ class jquery_Jquery
     
     /**
      * Функция, която да се изпълни след получаване на резултата по AJAX
-     * 
+     *
      * @param core_ET $tpl
-     * @param string $func
+     * @param string  $func
      * @param boolean $once
      */
-    static function runAfterAjax(&$tpl, $func, $once = TRUE)
+    public static function runAfterAjax(&$tpl, $func, $once = true)
     {
         if (!is_object($tpl)) {
             $tpl = new ET();

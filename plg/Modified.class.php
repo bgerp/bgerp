@@ -32,9 +32,9 @@ class plg_Modified extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL)
+    public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = null)
     {
-        if(!$rec->_notModified) {
+        if (!$rec->_notModified) {
             // Определяме кой е модифицирал записа
             $rec->modifiedBy = Users::getCurrent();
             
@@ -48,10 +48,10 @@ class plg_Modified extends core_Plugin
      * Добавя ново поле, което съдържа датата, в чист вид
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
-    {   
-        if($rec->modifiedBy == -1) {
+    {
+        if ($rec->modifiedBy == -1) {
             $row->modifiedBy = core_Setup::get('SYSTEM_NICK');
-        } elseif($rec->modifiedBy == 0) {
+        } elseif ($rec->modifiedBy == 0) {
             $row->modifiedBy = '@anonym';
         } else {
             $row->modifiedBy = core_Users::getVerbal($rec->modifiedBy, 'nick');
@@ -65,11 +65,11 @@ class plg_Modified extends core_Plugin
      */
     public static function on_AfterSetupMVC($mvc, &$res)
     {
-        if($mvc->count('1=1') && !$mvc->count("#modifiedOn > '1971-01-01 00:00:00'")) {
+        if ($mvc->count('1=1') && !$mvc->count("#modifiedOn > '1971-01-01 00:00:00'")) {
             $query = $mvc->getQuery();
             $query->show('createdOn,createdBy,modifiedOn');
-            while($rec = $query->fetch()) {
-                if(!$rec->modifiedOn) {
+            while ($rec = $query->fetch()) {
+                if (!$rec->modifiedOn) {
                     $rec->modifiedOn = $rec->createdOn;
                     $rec->modifiedBy = $rec->createdBy;
                     $mvc->save_($rec, 'modifiedOn,modifiedBy');
@@ -78,8 +78,8 @@ class plg_Modified extends core_Plugin
             }
         }
 
-        if($modRecs) {
-            $res .= "<li style='color:green'>Обновено времето за модифициране на $modRecs запис(а)</li>";
+        if ($modRecs) {
+            $res .= "<li style='color:green'>Обновено времето за модифициране на ${modRecs} запис(а)</li>";
         }
     }
 }

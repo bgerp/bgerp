@@ -15,32 +15,32 @@
  */
 class transsrv_ProductDrv extends cat_ProductDriver
 {
-	
-	
-	/**
-	 * Интерфейси които имплементира
-	 */
-	public $interfaces = 'cat_ProductDriverIntf';
-	
-	
-	/**
-	 * Дефолт мета данни за всички продукти
-	 */
-	protected $defaultMetaData = 'canSell,canBuy';
-	
-	
-	/**
-	 * Стандартна мярка за ЕП продуктите
-	 */
-	public $uom = 'pcs';
-	
-	
-	/**
-	 * Допълва дадената форма с параметрите на фигурата
-	 * Връща масив от имената на параметрите
-	 */
-	function addFields(core_Fieldset &$form)
-	{
+    
+    
+    /**
+     * Интерфейси които имплементира
+     */
+    public $interfaces = 'cat_ProductDriverIntf';
+    
+    
+    /**
+     * Дефолт мета данни за всички продукти
+     */
+    protected $defaultMetaData = 'canSell,canBuy';
+    
+    
+    /**
+     * Стандартна мярка за ЕП продуктите
+     */
+    public $uom = 'pcs';
+    
+    
+    /**
+     * Допълва дадената форма с параметрите на фигурата
+     * Връща масив от имената на параметрите
+     */
+    public function addFields(core_Fieldset &$form)
+    {
         // Локация за натоварване
         $form->FLD('fromCountry', 'key(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Натоварване->Държава');
         $form->FLD('fromPCode', 'varchar(16)', 'caption=Натоварване->П. код');
@@ -83,24 +83,24 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $form->FLD('ourReff', 'varchar', 'caption=Обща информация->Наш реф.№');
         $form->FLD('auction', 'varchar', 'caption=Обща информация->Търг');
         $form->FLD('auctionId', 'varchar', 'caption=Обща информация->Търг,input=hidden');
-	}
-	
+    }
+    
 
     /**
      * Връща дефолтното име на артикула
-     * 
-     * @param stdClass $rec
-	 * @return NULL|string
+     *
+     * @param  stdClass    $rec
+     * @return NULL|string
      */
     public function getProductTitle($rec)
     {
-    	$myCompany = crm_Companies::fetchOurCompany();
-    	
-        if(!$rec->fromCountry) {
+        $myCompany = crm_Companies::fetchOurCompany();
+        
+        if (!$rec->fromCountry) {
             $rec->fromCountry = $myCompany->country;
         }
 
-    	if(!$rec->toCountry) {
+        if (!$rec->toCountry) {
             $rec->toCountry = $myCompany->country;
         }
 
@@ -109,9 +109,9 @@ class transsrv_ProductDrv extends cat_ProductDriver
         
         $title = $from2let . '»' . $to2let;
  
-        if($rec->unitQty && $rec->transUnit) {
+        if ($rec->unitQty && $rec->transUnit) {
             $title .= ', ' . $rec->unitQty . ' ' . type_Varchar::escape($rec->transUnit);
-        } elseif($rec->transUnit) {
+        } elseif ($rec->transUnit) {
             $title .= ', ' . type_Varchar::escape($rec->transUnit);
         }
 
@@ -121,145 +121,150 @@ class transsrv_ProductDrv extends cat_ProductDriver
 
 
     /**
-	 * Преди показване на форма за добавяне/промяна.
-	 *
-	 * @param cat_ProductDriver $Driver
-	 * @param embed_Manager $Embedder
-	 * @param stdClass $data
-	 */
-	public static function on_AfterInputEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$form)
-	{
-		$form->rec->name = $Driver->getProductTitle($form->rec);
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager     $Embedder
+     * @param stdClass          $data
+     */
+    public static function on_AfterInputEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$form)
+    {
+        $form->rec->name = $Driver->getProductTitle($form->rec);
 
-        if($form->isSubmitted()) {
+        if ($form->isSubmitted()) {
             $fields = $form->selectFields("#input != 'none'");
      
-            foreach($fields as $name => $fld) {
-                if($form->rec->{$name} === '' && cls::getClassName($fld->type) == 'type_Varchar') {
-                
-                    $form->rec->{$name} = NULL;
+            foreach ($fields as $name => $fld) {
+                if ($form->rec->{$name} === '' && cls::getClassName($fld->type) == 'type_Varchar') {
+                    $form->rec->{$name} = null;
                 }
             }
         }
     }
 
 
-	/**
-	 * Преди показване на форма за добавяне/промяна.
-	 *
-	 * @param cat_ProductDriver $Driver
-	 * @param embed_Manager $Embedder
-	 * @param stdClass $data
-	 */
-	public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
-	{
-        if($data->form->getField('meta', FALSE)){
-			$data->form->setField('meta', 'input=hidden');
-		}
-		
-        if($data->form->getField('measureId', FALSE)){
-			$data->form->setField('measureId', 'input=hidden');
-		}
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager     $Embedder
+     * @param stdClass          $data
+     */
+    public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
+    {
+        if ($data->form->getField('meta', false)) {
+            $data->form->setField('meta', 'input=hidden');
+        }
+        
+        if ($data->form->getField('measureId', false)) {
+            $data->form->setField('measureId', 'input=hidden');
+        }
 
-        if($data->form->getField('info', FALSE)){
-			$data->form->setField('info', 'input=hidden');
-		}
+        if ($data->form->getField('info', false)) {
+            $data->form->setField('info', 'input=hidden');
+        }
 
-        if($data->form->getField('packQuantity', FALSE)){
-			$data->form->setField('packQuantity', 'input=hidden');
-		}
+        if ($data->form->getField('packQuantity', false)) {
+            $data->form->setField('packQuantity', 'input=hidden');
+        }
 
-        if($data->form->getField('name', FALSE)){
-			$data->form->setField('name', 'input=hidden');
-		}
-        if($data->form->getField('notes', FALSE)){
-			$data->form->setField('notes', 'input=hidden');
-		}
-	}
-	
-	
-	/**
-	 * Връща стойността на параметъра с това име, или
-	 * всички параметри с техните стойностти
-	 *
-	 * @param int $classId    - ид на клас
-	 * @param string $id      - ид на записа
-	 * @param string $name    - име на параметъра, или NULL ако искаме всички
-	 * @param boolean $verbal - дали да са вербални стойностите
-	 * @return mixed  $params - стойност или FALSE ако няма
-	 */
-	public function getParams($classId, $id, $name = NULL, $verbal = FALSE)
-	{
-		$rec = cls::get($classId)->fetchField($id, 'driverRec');
-	
-		$params = array();
-		$toleranceId = cat_Params::force('tolerance', 'Толеранс', 'cond_type_Percent', NULL, '%');
-		$params[$toleranceId] = 0;
-		
-		if(!is_numeric($name)) {
-			$nameId = cat_Params::fetch(array("#sysId = '[#1#]'", $name))->id;
-		} else {
-			$nameId = $name;
-		}
-			
-		if($nameId && isset($params[$nameId])) return $params[$nameId];
-		
-		if($name && isset($rec->_params[$name])) return $rec->_params[$name];
-		
-		if(isset($name) && !isset($params[$nameId])) return NULL;
-		
-		return $params;
-	}
-	
-	
-	/**
+        if ($data->form->getField('name', false)) {
+            $data->form->setField('name', 'input=hidden');
+        }
+        if ($data->form->getField('notes', false)) {
+            $data->form->setField('notes', 'input=hidden');
+        }
+    }
+    
+    
+    /**
+     * Връща стойността на параметъра с това име, или
+     * всички параметри с техните стойностти
+     *
+     * @param  int     $classId - ид на клас
+     * @param  string  $id      - ид на записа
+     * @param  string  $name    - име на параметъра, или NULL ако искаме всички
+     * @param  boolean $verbal  - дали да са вербални стойностите
+     * @return mixed   $params - стойност или FALSE ако няма
+     */
+    public function getParams($classId, $id, $name = null, $verbal = false)
+    {
+        $rec = cls::get($classId)->fetchField($id, 'driverRec');
+    
+        $params = array();
+        $toleranceId = cat_Params::force('tolerance', 'Толеранс', 'cond_type_Percent', null, '%');
+        $params[$toleranceId] = 0;
+        
+        if (!is_numeric($name)) {
+            $nameId = cat_Params::fetch(array("#sysId = '[#1#]'", $name))->id;
+        } else {
+            $nameId = $name;
+        }
+            
+        if ($nameId && isset($params[$nameId])) {
+            return $params[$nameId];
+        }
+        
+        if ($name && isset($rec->_params[$name])) {
+            return $rec->_params[$name];
+        }
+        
+        if (isset($name) && !isset($params[$nameId])) {
+            return;
+        }
+        
+        return $params;
+    }
+    
+    
+    /**
      * Допълнителните условия за дадения продукт,
      * които автоматично се добавят към условията на договора
-     * 
-     * @param stdClass $rec   - ид/запис на артикул
-     * @param string $docType - тип на документа sale/purchase/quotation
-     * @param string|NULL $lg - език
+     *
+     * @param stdClass    $rec     - ид/запис на артикул
+     * @param string      $docType - тип на документа sale/purchase/quotation
+     * @param string|NULL $lg      - език
      */
-    public function getConditions($rec, $docType, $lg = NULL)
-	{
-		if($condition = transsrv_Setup::get('SALE_DEFAULT_CONDITION')){
-			return array($condition);
-		}
-		
-		return array();
-	}
-	
-	
-	/**
-	 * Връща хеша на артикула (стойност която показва дали е уникален)
-	 *
-	 * @param embed_Manager $Embedder - Ембедър
-	 * @param mixed $rec              - Ид или запис на артикул
-	 * @return NULL|varchar           - Допълнителните условия за дадения продукт
-	 */
-	public function getHash(embed_Manager $Embedder, $rec)
-	{
-		$objectToHash = new stdClass();
-		$fields = $Embedder->getDriverFields($this);
-		foreach ($fields as $name => $caption){
-			$objectToHash->{$name} = $rec->{$name};
-		}
-		
-		$hash = md5(serialize($objectToHash));
-	
-		return $hash;
-	}
-	
-	
-	/**
-	 * Връща задължителната основна мярка
-	 *
-	 * @return int|NULL - ид на мярката, или NULL ако може да е всяка
-	 */
-	public function getDefaultUomId()
-	{
-		return cat_UoM::fetchBySinonim($this->uom)->id;
-	}
+    public function getConditions($rec, $docType, $lg = null)
+    {
+        if ($condition = transsrv_Setup::get('SALE_DEFAULT_CONDITION')) {
+            return array($condition);
+        }
+        
+        return array();
+    }
+    
+    
+    /**
+     * Връща хеша на артикула (стойност която показва дали е уникален)
+     *
+     * @param  embed_Manager $Embedder - Ембедър
+     * @param  mixed         $rec      - Ид или запис на артикул
+     * @return NULL|varchar  - Допълнителните условия за дадения продукт
+     */
+    public function getHash(embed_Manager $Embedder, $rec)
+    {
+        $objectToHash = new stdClass();
+        $fields = $Embedder->getDriverFields($this);
+        foreach ($fields as $name => $caption) {
+            $objectToHash->{$name} = $rec->{$name};
+        }
+        
+        $hash = md5(serialize($objectToHash));
+    
+        return $hash;
+    }
+    
+    
+    /**
+     * Връща задължителната основна мярка
+     *
+     * @return int|NULL - ид на мярката, или NULL ако може да е всяка
+     */
+    public function getDefaultUomId()
+    {
+        return cat_UoM::fetchBySinonim($this->uom)->id;
+    }
     
     
     /**
@@ -269,60 +274,60 @@ class transsrv_ProductDrv extends cat_ProductDriver
      */
     public function getInquiryQuantities()
     {
-    	return 0;
+        return 0;
     }
 
 
     /**
-	 * Може ли вградения обект да се избере
-	 */
-	public function canSelectDriver($userId = NULL)
-	{
-		 return haveRole('powerUser', $userId) || (transsrv_Setup::get('AVIABLE_FOR_PARTNERS') == 'yes' && haveRole('partner', $userId));
-	}
+     * Може ли вградения обект да се избере
+     */
+    public function canSelectDriver($userId = null)
+    {
+        return haveRole('powerUser', $userId) || (transsrv_Setup::get('AVIABLE_FOR_PARTNERS') == 'yes' && haveRole('partner', $userId));
+    }
 
-	
-	/**
-	 * Рендиране на описанието на драйвера
-	 *
-	 * @param stdClass $data
-	 * @return core_ET $tpl
-	 */
-	public function renderProductDescription($data)
-	{
-		// Шаблон
-		$tpl = getTplFromFile('transsrv/tpl/TransportProduct.shtml');
-		
-		// ще се заместват само полетата от драйвера
-		$fields = cat_Products::getDriverFields($this);
-		$row = new stdClass();
-		foreach ($fields as $name => $caption){
-			$row->{$name} = $data->row->{$name};
-		}
-		
-		if(!Mode::isReadOnly()){
-			$systemId = remote_Authorizations::getSystemId(transsrv_Setup::get('BID_DOMAIN'));
-			if(haveRole('officer')){
-				if(!empty($data->rec->auction) && haveRole('officer')){
-					if($systemId){
-						$url = array("transbid_Auctions/single/{$data->rec->auctionId}");
-						$url = remote_Authorizations::getRemoteUrl($systemId, $url);
-						$row->auction = ht::createLink($row->auction, $url);
-					} else {
-						$row->auction = ht::createHint($row->auction, 'За да видите търга, ви е нужно оторизация за trans.bid', 'warning');
-					}
-				}
-			}
-		}
-		
-		if(!empty($data->rec->ourReff)){
-			$reff = str_replace('#', '', $row->ourReff);
-			$reffLink = array('doc_Search', 'list', 'search' => "#{$reff}");
-			$row->ourReff = ht::createLink("#{$reff}", $reffLink);
-		}
-		
-		$tpl->placeObject($row);
-		
-		return $tpl;
-	}
+    
+    /**
+     * Рендиране на описанието на драйвера
+     *
+     * @param  stdClass $data
+     * @return core_ET  $tpl
+     */
+    public function renderProductDescription($data)
+    {
+        // Шаблон
+        $tpl = getTplFromFile('transsrv/tpl/TransportProduct.shtml');
+        
+        // ще се заместват само полетата от драйвера
+        $fields = cat_Products::getDriverFields($this);
+        $row = new stdClass();
+        foreach ($fields as $name => $caption) {
+            $row->{$name} = $data->row->{$name};
+        }
+        
+        if (!Mode::isReadOnly()) {
+            $systemId = remote_Authorizations::getSystemId(transsrv_Setup::get('BID_DOMAIN'));
+            if (haveRole('officer')) {
+                if (!empty($data->rec->auction) && haveRole('officer')) {
+                    if ($systemId) {
+                        $url = array("transbid_Auctions/single/{$data->rec->auctionId}");
+                        $url = remote_Authorizations::getRemoteUrl($systemId, $url);
+                        $row->auction = ht::createLink($row->auction, $url);
+                    } else {
+                        $row->auction = ht::createHint($row->auction, 'За да видите търга, ви е нужно оторизация за trans.bid', 'warning');
+                    }
+                }
+            }
+        }
+        
+        if (!empty($data->rec->ourReff)) {
+            $reff = str_replace('#', '', $row->ourReff);
+            $reffLink = array('doc_Search', 'list', 'search' => "#{$reff}");
+            $row->ourReff = ht::createLink("#{$reff}", $reffLink);
+        }
+        
+        $tpl->placeObject($row);
+        
+        return $tpl;
+    }
 }

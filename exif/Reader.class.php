@@ -17,10 +17,10 @@ class exif_Reader
     
     /**
      * Връща exif информация за файла
-     * 
+     *
      * @param string $fileHnd - Манипулатор на файл
      */
-    static function get($fileHnd)
+    public static function get($fileHnd)
     {
         // Името на файла
         $name = fileman_Files::fetchByFh($fileHnd, 'name');
@@ -32,13 +32,17 @@ class exif_Reader
         $ext = strtolower($namesAndExt['ext']);
         
         // Разширението трябва да е един от посочните
-        if (($ext != 'jpg') && ($ext != 'jpeg') && ($ext != 'tiff') && ($ext != 'tif')) return NULL;
+        if (($ext != 'jpg') && ($ext != 'jpeg') && ($ext != 'tiff') && ($ext != 'tif')) {
+            return;
+        }
         
         // Пътя до файла
         $path = fileman::extract($fileHnd);
         
         // Трябва да има валиден път
-        if (!$path) return NULL;
+        if (!$path) {
+            return;
+        }
         
         // ЕXIF информация
         $exif = @exif_read_data($path);
@@ -53,25 +57,29 @@ class exif_Reader
     
     /**
      * Връща GPS координатите на файла от exif
-     * 
+     *
      * @param string $fileHnd - Манипулатор на файл
-     * 
+     *
      * @return array $gps - Масив с GPS позиция
-     * 		   double $gps['lon'] - Дължнина
-     * 		   double $gps['lat'] - Ширина
+     *               double $gps['lon'] - Дължнина
+     *               double $gps['lat'] - Ширина
      */
-    static function getGps($fileHnd)
+    public static function getGps($fileHnd)
     {
         // Ако няма exif информация
-        if (!($exif = static::get($fileHnd))) return NULL;
+        if (!($exif = static::get($fileHnd))) {
+            return;
+        }
 
         // Ако няма такава информация
-        if (!$exif["GPSLongitude"] || !$exif["GPSLatitude"]) return NULL;
+        if (!$exif['GPSLongitude'] || !$exif['GPSLatitude']) {
+            return;
+        }
         
         // Вземаме координатите
         $gps = array();
-        $gps['lon'] = static::getGpsCoord($exif["GPSLongitude"], $exif['GPSLongitudeRef']);
-        $gps['lat'] = static::getGpsCoord($exif["GPSLatitude"], $exif['GPSLatitudeRef']);
+        $gps['lon'] = static::getGpsCoord($exif['GPSLongitude'], $exif['GPSLongitudeRef']);
+        $gps['lat'] = static::getGpsCoord($exif['GPSLatitude'], $exif['GPSLatitudeRef']);
         
         return $gps;
     }
@@ -79,13 +87,13 @@ class exif_Reader
     
     /**
      * Пресмята GPS координатите
-     * 
+     *
      * @param string $exifCoord
      * @param string $hemi
-     * 
+     *
      * @return double
      */
-    protected static function getGpsCoord($exifCoord, $hemi) 
+    protected static function getGpsCoord($exifCoord, $hemi)
     {
         // Броя на координатите в масива
         $countExif = count($exifCoord);
@@ -109,9 +117,9 @@ class exif_Reader
     
     /**
      * Преобразува GPS в число
-     * 
+     *
      * @param string $coordPart
-     * 
+     *
      * @return double
      */
     protected static function gps2Num($coordPart)
@@ -124,10 +132,14 @@ class exif_Reader
         $counts = count($parts);
         
         // Ако няма части
-        if (!$counts) return 0;
+        if (!$counts) {
+            return 0;
+        }
     
         // Ако имаме само една част, връщаме нея
-        if (count($parts) == 1) return $parts[0];
+        if (count($parts) == 1) {
+            return $parts[0];
+        }
         
         // Изчислява и връщаме стойността
         return floatval($parts[0]) / floatval($parts[1]);

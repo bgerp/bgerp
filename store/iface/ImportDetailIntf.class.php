@@ -12,7 +12,6 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_iface_ImportDetailIntf extends import2_DriverIntf 
+class store_iface_ImportDetailIntf extends import2_DriverIntf
 {
-	
 }

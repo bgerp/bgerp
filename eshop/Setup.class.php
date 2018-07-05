@@ -46,85 +46,85 @@ class eshop_Setup extends core_ProtoSetup
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'eshop_Groups';
+    public $startCtr = 'eshop_Groups';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Уеб каталог с продукти и услуги за сайта";
+    public $info = 'Уеб каталог с продукти и услуги за сайта';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'eshop_Groups',
             'eshop_Products',
-    		'eshop_Settings',
-    		'eshop_ProductDetails',
-    		'eshop_Carts',
-    		'eshop_CartDetails',
+            'eshop_Settings',
+            'eshop_ProductDetails',
+            'eshop_Carts',
+            'eshop_CartDetails',
         );
 
         
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'eshop';
+    public $roles = 'eshop';
  
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.55, 'Сайт', 'Е-маг', 'eshop_Groups', 'default', "ceo, eshop"),
+    public $menuItems = array(
+            array(3.55, 'Сайт', 'Е-маг', 'eshop_Groups', 'default', 'ceo, eshop'),
         );
     
     
     /**
-	 * Описание на конфигурационните константи
-	 */
-	var $configDescription = array(
-         'ESHOP_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
-         'ESHOP_MIN_GROUPS_FOR_NAVIGATION' => array ('int', 'caption=Минимален брой групи за навигация->Брой'),
-	     'ESHOP_CART_EXTERNAL_NAME' => array ('varchar', 'caption=Стрингове във външната част->Кошница'),
-		 'ESHOP_NOT_IN_STOCK_TEXT' => array ('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
-	);
-	
-	
-	/**
-	 * Настройки за Cron
-	 */
-	public $cronSettings = array(
-			array(
-					'systemId' => "Delete Carts",
-					'description' => "Изтриване на старите колички",
-					'controller' => "eshop_Carts",
-					'action' => "DeleteDraftCarts",
-					'period' => 1440,
-					'offset' => 60,
-					'timeLimit' => 100
-			),
-	);
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+         'ESHOP_BROWSER_CACHE_EXPIRES' => array('time', 'caption=Кеширане в браузъра->Време'),
+         'ESHOP_MIN_GROUPS_FOR_NAVIGATION' => array('int', 'caption=Минимален брой групи за навигация->Брой'),
+         'ESHOP_CART_EXTERNAL_NAME' => array('varchar', 'caption=Стрингове във външната част->Кошница'),
+         'ESHOP_NOT_IN_STOCK_TEXT' => array('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
+    );
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+            array(
+                    'systemId' => 'Delete Carts',
+                    'description' => 'Изтриване на старите колички',
+                    'controller' => 'eshop_Carts',
+                    'action' => 'DeleteDraftCarts',
+                    'period' => 1440,
+                    'offset' => 60,
+                    'timeLimit' => 100
+            ),
+    );
 
 
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
         
@@ -143,7 +143,7 @@ class eshop_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

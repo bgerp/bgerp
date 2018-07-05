@@ -45,38 +45,38 @@ class crm_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'crm_Companies';
+    public $startCtr = 'crm_Companies';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'drdata=0.1, callcenter=0.1';
+    public $depends = 'drdata=0.1, callcenter=0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Визитник и управление на контактите";
+    public $info = 'Визитник и управление на контактите';
     
     
     /**
      * Описание на системните действия
      */
-    var $systemActions = array(
-        array('title' => 'Ключови думи', 'url' => array ('crm_Persons', 'repairKeywords', 'ret_url' => TRUE), 'params' => array('title' => 'Ре-индексиране на визитките'))
+    public $systemActions = array(
+        array('title' => 'Ключови думи', 'url' => array('crm_Persons', 'repairKeywords', 'ret_url' => true), 'params' => array('title' => 'Ре-индексиране на визитките'))
     );
     
     
@@ -84,22 +84,22 @@ class crm_Setup extends core_ProtoSetup
      * Настройки за Cron
      */
     public $cronSettings = array(
-    		array(
-    				'systemId' => "Gather_contragent_info",
-    				'description' => "Събиране на информация за контрагентите",
-    				'controller' => "crm_ext_ContragentInfo",
-    				'action' => "GatherInfo",
-    				'period' => 720,
-    				'offset' => 70,
-    				'timeLimit' => 300
-    		),
+            array(
+                    'systemId' => 'Gather_contragent_info',
+                    'description' => 'Събиране на информация за контрагентите',
+                    'controller' => 'crm_ext_ContragentInfo',
+                    'action' => 'GatherInfo',
+                    'period' => 720,
+                    'offset' => 70,
+                    'timeLimit' => 300
+            ),
     );
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'crm_Groups',
             'crm_Persons',
             'crm_Companies',
@@ -109,7 +109,7 @@ class crm_Setup extends core_ProtoSetup
             'crm_Profiles',
             'crm_Locations',
             'crm_Formatter',
-    		'crm_ext_ContragentInfo',
+            'crm_ext_ContragentInfo',
             'migrate::movePersonalizationData',
             'migrate::addCountryToCompaniesAndPersons',
             'migrate::updateSettingsKey',
@@ -123,34 +123,33 @@ class crm_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'crm';
+    public $roles = 'crm';
     
 
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', "crm, user"),
+    public $menuItems = array(
+            array(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', 'crm, user'),
         );
 
              
     /**
      * Скрипт за инсталиране
      */
-    function install()
+    public function install()
     {
-        
         $html = parent::install();
                 
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg,image/jpeg,png', '3MB', 'user', 'every_one');
         
-         // Кофа за снимки
+        // Кофа за снимки
         $html .= $Bucket->createBucket('location_Images', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
         
         // Кофа за crm файлове
-        $html .= $Bucket->createBucket('crmFiles', 'CRM Файлове', NULL, '300 MB', 'user', 'user');
+        $html .= $Bucket->createBucket('crmFiles', 'CRM Файлове', null, '300 MB', 'user', 'user');
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
@@ -162,15 +161,15 @@ class crm_Setup extends core_ProtoSetup
         
         $html .= $Plugins->forcePlugin('Персонални настройки на системата', 'crm_PersonalConfigPlg', 'core_ObjectConfiguration', 'private');
 
-        // Нагласяване на Cron        
+        // Нагласяване на Cron
         $rec = new stdClass();
-        $rec->systemId    = 'PersonsToCalendarEvents';
-        $rec->description = "Обновяване на събитията за хората";
-        $rec->controller  = 'crm_Persons';
-        $rec->action      = 'UpdateCalendarEvents';
-        $rec->period      = 24*60*60;
-        $rec->offset      = 16;
-        $rec->delay       = 0;
+        $rec->systemId = 'PersonsToCalendarEvents';
+        $rec->description = 'Обновяване на събитията за хората';
+        $rec->controller = 'crm_Persons';
+        $rec->action = 'UpdateCalendarEvents';
+        $rec->period = 24 * 60 * 60;
+        $rec->offset = 16;
+        $rec->delay = 0;
         $html .= core_Cron::addOnce($rec);
         
         return $html;
@@ -180,7 +179,7 @@ class crm_Setup extends core_ProtoSetup
     /**
      * Деинсталиране
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);
@@ -193,13 +192,12 @@ class crm_Setup extends core_ProtoSetup
      * Фунцкия за миграция
      * Премества персонализационните данни за потребителя от crm_Personalization в core_Users
      */
-    static function movePersonalizationData()
+    public static function movePersonalizationData()
     {
         $query = crm_Personalization::getQuery();
         $query->where('1=1');
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             try {
-                
                 $nArr = array();
                 
                 $userId = crm_Profiles::fetchField($rec->profileId, 'userId');
@@ -237,13 +235,14 @@ class crm_Setup extends core_ProtoSetup
                 }
                 
                 if ($nArr) {
-                    $nArr = (array)$nArr + (array)$oldConfigData;
+                    $nArr = (array) $nArr + (array) $oldConfigData;
                     $nRec = new stdClass();
                     $nRec->id = $userId;
                     $nRec->configData = $nArr;
                     core_Users::save($nRec, 'configData');
                 }
-            } catch (core_exception_Expect $e) { }
+            } catch (core_exception_Expect $e) {
+            }
         }
     }
     
@@ -257,11 +256,13 @@ class crm_Setup extends core_ProtoSetup
             $conf = core_Packs::getConfig('crm');
             $coutryId = drdata_Countries::fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
             
-            if (!$coutryId) return ;
+            if (!$coutryId) {
+                return ;
+            }
             
             foreach (array('crm_Persons', 'crm_Companies') as $clsName) {
                 $query = $clsName::getQuery();
-                $query->where("#country IS NULL");
+                $query->where('#country IS NULL');
                 $query->orWhere("#country = ''");
                 while ($rec = $query->fetch()) {
                     $rec->country = $coutryId;
@@ -269,7 +270,6 @@ class crm_Setup extends core_ProtoSetup
                 }
             }
         } catch (core_exception_Expect $e) {
-            
             return ;
         }
     }
@@ -284,16 +284,14 @@ class crm_Setup extends core_ProtoSetup
         $query = core_Settings::getQuery();
         $query->where("#key LIKE 'core_Users::%'");
         while ($rec = $query->fetch()) {
-            
             try {
                 $cRec = clone $rec;
                 
                 core_Settings::delete($cRec->id);
                 
                 $cRec->key = $newKey;
-                core_Settings::save($cRec, NULL, 'IGNORE');
-            } catch(ErrorException $e) {
-                
+                core_Settings::save($cRec, null, 'IGNORE');
+            } catch (ErrorException $e) {
                 continue;
             }
         }
@@ -308,26 +306,25 @@ class crm_Setup extends core_ProtoSetup
         try {
             $groupClassId = core_Classes::getId('crm_Groups');
         } catch (core_exception_Expect $e) {
-            
             return ;
         }
         
-        if (!$groupClassId) return ;
+        if (!$groupClassId) {
+            return ;
+        }
         
         try {
             $unsortedClassId = core_Classes::getId('doc_UnsortedFolders');
         } catch (core_exception_Expect $e) {
-            
             return ;
         }
         
         $Unsorted = cls::get('doc_UnsortedFolders');
-        $Unsorted->autoCreateFolder = NULL;
+        $Unsorted->autoCreateFolder = null;
         
         $dQuery = doc_Folders::getQuery();
         $dQuery->where("#coverClass = {$groupClassId}");
         while ($rec = $dQuery->fetch()) {
-            
             $unsortedRec = clone $rec;
             unset($unsortedRec->id);
             unset($unsortedRec->title);
@@ -337,7 +334,7 @@ class crm_Setup extends core_ProtoSetup
             
             $unsortedRec->name = $rec->title;
             $i = 0;
-            while($Unsorted->fetch(array("#name = '[#1#]'", $unsortedRec->name))) {
+            while ($Unsorted->fetch(array("#name = '[#1#]'", $unsortedRec->name))) {
                 $unsortedRec->name .= '_' . ++$i;
             }
             $rec->coverId = $Unsorted->save($unsortedRec);
@@ -356,7 +353,7 @@ class crm_Setup extends core_ProtoSetup
      */
     public static function updateLocationType()
     {
-        $types = array( 'correspondence' => 'За кореспонденция',
+        $types = array('correspondence' => 'За кореспонденция',
                         'headquoter' => 'Главна квартира',
                         'shipping' => 'За получаване на пратки',
                         'office' => 'Офис',
@@ -366,8 +363,8 @@ class crm_Setup extends core_ProtoSetup
                         'other' => 'Друг');
 
         $query = crm_Locations::getQuery();
-        while($rec = $query->fetch()) {
-            if($type = $types[$rec->type]) {
+        while ($rec = $query->fetch()) {
+            if ($type = $types[$rec->type]) {
                 $rec->type = $type;
                 crm_Locations::save($rec, 'type');
                 $upd++;
@@ -377,7 +374,7 @@ class crm_Setup extends core_ProtoSetup
         return "Обновени са {$upd} типа на локации";
     }
 
-	/**
+    /**
      * Добавя държавата на два езика в лицата
      */
     public static function addCountryIn2LgPersons()
@@ -390,9 +387,11 @@ class crm_Setup extends core_ProtoSetup
         Mode::push('text', 'plain');
         Mode::push('htmlEntity', 'none');
         
-        while($rec = $query->fetchAndCache()) {
+        while ($rec = $query->fetchAndCache()) {
             // Прескачаме България, защото в ключовите думи ще е по-един и същи начин
-            if ($rec->country == $countryId || !$rec->country) continue;
+            if ($rec->country == $countryId || !$rec->country) {
+                continue;
+            }
             $rec->searchKeywords = $mvcInst->getSearchKeywords($rec);
             $mvcInst->save_($rec, 'searchKeywords');
         }
@@ -402,7 +401,7 @@ class crm_Setup extends core_ProtoSetup
     }
 
 
-	/**
+    /**
      * Добавя държавата на два езика в лицата
      */
     public static function addCountryIn2LgCompanies()
@@ -415,9 +414,11 @@ class crm_Setup extends core_ProtoSetup
         Mode::push('text', 'plain');
         Mode::push('htmlEntity', 'none');
         
-        while($rec = $query->fetchAndCache()) {
+        while ($rec = $query->fetchAndCache()) {
             // Прескачаме България, защото в ключовите думи ще е по-един и същи начин
-            if ($rec->country == $countryId || !$rec->country) continue;
+            if ($rec->country == $countryId || !$rec->country) {
+                continue;
+            }
             $rec->searchKeywords = $mvcInst->getSearchKeywords($rec);
             $mvcInst->save_($rec, 'searchKeywords');
         }

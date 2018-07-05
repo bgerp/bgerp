@@ -62,19 +62,18 @@ class tracking_Vehicles extends core_Manager
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('trackerId', 'varchar(12)', 'caption=Тракер Id');
         $this->FLD('make', 'varchar(12)', 'caption=марка');
         $this->FLD('model', 'varchar(12)', 'caption=модел');
         $this->FLD('number', 'varchar(10)', 'caption=рег. номер');
         $this->FLD('personId', 'key(mvc=crm_Persons, select=name)', 'caption=Водач');
-        
     }
     
     /**
      * Връща запис по зададен номер на тракер или FALSE, ако няма такъв номер
-     * 
+     *
      * @param int - номер на тракер
      * @return stdClass
      */
@@ -85,7 +84,9 @@ class tracking_Vehicles extends core_Manager
         $query->where(array("#trackerId = '[#1#]'", $trackerId));
         $query->limit(1);
         $rec = $query->fetch();
-        if (!$rec) return FALSE;
+        if (!$rec) {
+            return false;
+        }
         
         return $rec;
     }

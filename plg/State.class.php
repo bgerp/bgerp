@@ -27,10 +27,11 @@ class plg_State extends core_Plugin
     }
 
 
-    static function setStateField($mvc)
+    public static function setStateField($mvc)
     {
         if (!$mvc->fields['state']) {
-            $mvc->FLD('state',
+            $mvc->FLD(
+                'state',
                  'enum(draft=Чернова,
                   pending=Заявка,
             	  waiting=Чакащ,
@@ -42,11 +43,12 @@ class plg_State extends core_Plugin
                   stopped=Спрян,
                   wakeup=Събуден,
                   free=Освободен,template=Шаблон)',
-                 'caption=Състояние,column=none,input=none');
+                 'caption=Състояние,column=none,input=none'
+            );
         }
 
-        foreach($mvc->fields['state']->type->options as $state => $verbal) {
-            if(is_object($verbal)) {
+        foreach ($mvc->fields['state']->type->options as $state => $verbal) {
+            if (is_object($verbal)) {
                 $optArr[$state] = $verbal;
             } else {
                 $opt = new stdClass();
@@ -54,17 +56,16 @@ class plg_State extends core_Plugin
                 $opt->attr = array('class' => "state-{$state}");
                 $optArr[$state] = $opt;
             }
-            
         }
  
-        $mvc->fields['state']->type->options = $optArr; 
+        $mvc->fields['state']->type->options = $optArr;
     }
     
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    public static function on_BeforeSave($mvc, &$id, &$rec, &$fields = NULL)
+    public static function on_BeforeSave($mvc, &$id, &$rec, &$fields = null)
     {
         if (!$rec->state && !$rec->id) {
             $rec->state = $mvc->defaultState ? $mvc->defaultState : 'draft';

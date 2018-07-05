@@ -19,10 +19,10 @@ class tcost_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
-       $this->TAB('tcost_FeeZones', 'Навла', 'ceo, tcost');
+        $this->TAB('tcost_FeeZones', 'Навла', 'ceo, tcost');
        
-       $this->title = 'Навла';
+        $this->title = 'Навла';
     }
 }

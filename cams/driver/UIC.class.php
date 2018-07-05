@@ -13,17 +13,18 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cams_driver_UIC extends cams_driver_IpDevice {
+class cams_driver_UIC extends cams_driver_IpDevice
+{
     
     
     /**
      * Инициализиране на обекта
      */
-    function init($params = array())
+    public function init($params = array())
     {
         parent::init($params);
         
-        if(!isset($this->id)) {
+        if (!isset($this->id)) {
             $this->id = 1;
         }
         setIfNot($this->width, 704);
@@ -38,10 +39,13 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     /**
      * Подготвя формата за настройки на камерата
      */
-    function prepareSettingsForm($form)
+    public function prepareSettingsForm($form)
     {
-        $form->FNC('ip', 'ip',
-            'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory');
+        $form->FNC(
+            'ip',
+            'ip',
+            'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory'
+        );
         $form->FNC('codec', 'enum(mpeg4=MPEG-4)', 'caption=Кодек,hint=Кодек на RTSP стрийма,input');
         $form->FNC('width', 'int(min=176,max=704)', 'caption=Ширина,hint=Хоризонтална резолюция,input');
         $form->FNC('height', 'int(min=120,max=576)', 'caption=Височина,hint=Вертикална резолюция,input');
@@ -59,7 +63,7 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     /**
      * Подготвя формата за PTZ контрола
      */
-    function preparePtzForm($form)
+    public function preparePtzForm($form)
     {
         $form->FNC('rpan', 'enum(0,-45,-30,-15,-10,-5,-1,0.0,1,5,10,15,30,45)', 'caption=Pan');
         $form->FNC('tilt', 'enum(0,3,9,12,15,18,21,24,27,30,35,40,45,50,55,60,65,70,75,80,85,90)', 'caption=Tilt');
@@ -74,18 +78,18 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     /**
      * Изпълнява отдалечените команди
      */
-    function applyPtzCommands($cmdArr)
+    public function applyPtzCommands($cmdArr)
     {
         $cmdArr = (array) $cmdArr;
         
-        foreach($cmdArr as $key => $value) {
-            if($value) {
-                if($key == 'rpan' || $key == 'tilt') {
-                    if($value != '0.0') {
+        foreach ($cmdArr as $key => $value) {
+            if ($value) {
+                if ($key == 'rpan' || $key == 'tilt') {
+                    if ($value != '0.0') {
                         $value .= '.0';
                     }
                 }
-                $params .= "&" . $key . "=" . $value;
+                $params .= '&' . $key . '=' . $value;
             }
         }
         

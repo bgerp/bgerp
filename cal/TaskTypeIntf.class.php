@@ -2,8 +2,8 @@
 
 
 /**
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   cal
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -17,39 +17,36 @@ class cal_TaskTypeIntf extends embed_DriverIntf
     
     /**
      * Връща подсказките за добавяне на прогрес
-     * 
+     *
      * @param stdClass $tRec
-     * 
+     *
      * @return array
      */
     public function getProgressSuggestions($tRec)
     {
-        
         return $this->class->getProgressSuggestions($tRec);
     }
     
     
     /**
      * Подготвя формата за добавя на сигнал от външната част
-     * 
+     *
      * @param core_Form $form
      */
     public function prepareFieldForIssue($form)
     {
-        
         return $this->class->prepareFieldForIssue($form);
     }
     
     
     /**
      * Подготвя documentRow за функцията
-     * 
+     *
      * @param stdClass $rec
      * @param stdClass $row
      */
     public function prepareDocumentRow($rec, $row)
     {
-        
         return $this->class->prepareDocumentRow($rec, $row);
     }
     
@@ -62,7 +59,6 @@ class cal_TaskTypeIntf extends embed_DriverIntf
      */
     public function prepareContragentData($rec, $contrData)
     {
-        
         return $this->class->prepareContragentData($rec, $contrData);
     }
 }

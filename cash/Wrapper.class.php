@@ -20,7 +20,7 @@ class cash_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('cash_Cases', 'Каси', 'cash, ceo');
         $this->TAB('cash_Pko', 'ПКО', 'cash, ceo');

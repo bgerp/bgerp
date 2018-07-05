@@ -3,7 +3,7 @@
 
 /**
  * Тип за добавяне за качване на няколко файла едновременно
- * 
+ *
  * @category  bgerp
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -18,7 +18,7 @@ class fileman_type_Files extends type_Keylist
     /**
      * Инициализиране на обекта
      */
-    function init($params = array())
+    public function init($params = array())
     {
         $params['params']['mvc'] = 'fileman_Files';
         
@@ -29,15 +29,15 @@ class fileman_type_Files extends type_Keylist
     
     
     /**
-     * Конвертира стойността от вербална към (int)  
-     * 
+     * Конвертира стойността от вербална към (int)
+     *
      * @param mixed $value
-     * 
+     *
      * @see type_Keylist::fromVerbal_()
-     * 
+     *
      * @return mixed
      */
-    function fromVerbal_($value)
+    public function fromVerbal_($value)
     {
         $nVal = arr::make($value);
         
@@ -46,7 +46,9 @@ class fileman_type_Files extends type_Keylist
         foreach ($nVal as $fileHnd) {
             $fId = fileman_Files::fetchByFh($fileHnd, 'id');
             
-            if (!$fId) continue;
+            if (!$fId) {
+                continue;
+            }
             
             $rVal[$fId] = $fId;
         }
@@ -59,9 +61,9 @@ class fileman_type_Files extends type_Keylist
     /**
      * @todo Чака за документация...
      */
-    function toVerbal($fhList)
-    {   
-        if(fileman::isFileHnd($fhList)) {
+    public function toVerbal($fhList)
+    {
+        if (fileman::isFileHnd($fhList)) {
             $fhList = '|' . fileman::fhToId($fhList) . '|';
         }
 
@@ -73,43 +75,45 @@ class fileman_type_Files extends type_Keylist
             $fh = fileman_Files::fetchField($id, 'fileHnd');
             $res .= fileman_Files::getLink($fh);
         }
-        if (!$res) return "";
+        if (!$res) {
+            return '';
+        }
         
         $align = $this->params['align'] ? $this->params['align'] : 'horizontal';
         $align = 'align_' . $align;
-        $res = "<span class='{$align}' style='padding-bottom:5px'>" . $res . "</span>";
+        $res = "<span class='{$align}' style='padding-bottom:5px'>" . $res . '</span>';
          
         return $res;
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param string $name
      * @param string $value
-     * @param array $attr
-     * 
+     * @param array  $attr
+     *
      * @see type_Keylist::renderInput_()
-     * 
+     *
      * @return core_ET
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
         $Files = cls::get('fileman_Files');
         
         unset($attr['ondblclick']);
         
         $attrInp = $attr;
-        $attrInp['id'] = $name . "_files_name_id";
+        $attrInp['id'] = $name . '_files_name_id';
         $align = $this->params['align'] ? $this->params['align'] : 'horizontal';
         $attrInp['class'] .= $attr['class'] . ' input_align_' . $align;
         
         $valueFhArr = array();
-        if(fileman::isFileHnd($value)) {
+        if (fileman::isFileHnd($value)) {
             $value = '|' . fileman::fhToId($value) . '|';
         }
-        if ($value && (strpos($value, '|') !== FALSE)) {
+        if ($value && (strpos($value, '|') !== false)) {
             $valueArr = $this->toArray($value);
             
             foreach ($valueArr as $vId) {
@@ -117,12 +121,12 @@ class fileman_type_Files extends type_Keylist
                 
                 $valueFhArr[$fRec->fileHnd] = $fRec->fileHnd;
                 
-                $crossImg = "<img src=" . sbf('img/16/delete.png') . " align=\"absmiddle\" title=\"" . tr("Премахване на файла") . "\" alt=\"\">";
+                $crossImg = '<img src=' . sbf('img/16/delete.png') . ' align="absmiddle" title="' . tr('Премахване на файла') . '" alt="">';
                 $html .= "<span class='{$name}_{$fRec->fileHnd} multipleFiles'>" . $this->toVerbal($vId) . "&nbsp;<a class=\"remove-file-link\" href=\"javascript:void(0)\" onclick=\"unsetOneFile('" . $name . "', '" . $fRec->fileHnd . "')\">" . $crossImg . '</a></span>';
             }
         }
         
-        $tpl = ht::createElement("span", $attrInp, $html, TRUE);
+        $tpl = ht::createElement('span', $attrInp, $html, true);
         
         $valueStr = implode(',', $valueFhArr);
         
@@ -134,7 +138,7 @@ class fileman_type_Files extends type_Keylist
         
         expect($bucketId, 'Очаква се валидна кофа', $bucket);
         
-        $tpl->prepend($Files->makeBtnToAddFile("+", $bucketId, 'placeFile_setInputFile' . $name, array('class' => 'noicon ' . $attrInp['class'] . '_btn', 'title' => 'Добавяне или промяна на файлове')));
+        $tpl->prepend($Files->makeBtnToAddFile('+', $bucketId, 'placeFile_setInputFile' . $name, array('class' => 'noicon ' . $attrInp['class'] . '_btn', 'title' => 'Добавяне или промяна на файлове')));
         
         $this->addJavascript($tpl, $name);
         
@@ -145,7 +149,7 @@ class fileman_type_Files extends type_Keylist
     /**
      * @todo Чака за документация...
      */
-    function addJavascript($tpl, $name)
+    public function addJavascript($tpl, $name)
     {
         $tpl->appendOnce("
             function placeFile_setInputFile(name, fh, fName) {

@@ -14,24 +14,25 @@
  * @since     v 0.1
  * @link
  */
-class type_Object extends type_Blob {
+class type_Object extends type_Blob
+{
     
     
     /**
      * Стойност по подразбиране
      */
-    var $defaultValue = '';
+    public $defaultValue = '';
     
     
     /**
      * Връща представяне подходящо за MySQL за структурни данни
      *
-     * @param string $value
+     * @param  string $value
      * @return string
      */
     public function toMysql($value, $db, $notNull, $defValue)
     {
-        if ($value !== NULL) {
+        if ($value !== null) {
             $value = json_encode($value);
         }
         
@@ -41,12 +42,12 @@ class type_Object extends type_Blob {
     
     /**
      * @see core_Type::fromMysql()
-     * @param string $value
+     * @param  string $value
      * @return mixed
      */
     public function fromMysql($value)
     {
-        if ($value !== NULL) {
+        if ($value !== null) {
             $value = @json_decode($value);
         }
         

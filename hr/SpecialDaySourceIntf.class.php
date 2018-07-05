@@ -18,8 +18,8 @@ class hr_SpecialDaySourceIntf
 {
     /**
      * Мотод, който взима специалните дни по графиците
-     * 
-     * 
+     *
+     *
      * @param $timeline $timeline  $datetime    Времето, след което да се вземат всички модифицирани/създадени графици
      */
     public function getSpecialDayValues($timeline)

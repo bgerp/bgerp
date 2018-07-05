@@ -17,7 +17,7 @@
 class plg_State2 extends core_Plugin
 {
 
-	
+    
     /**
      * Наименование на активното състояние
      */
@@ -48,32 +48,36 @@ class plg_State2 extends core_Plugin
     public function on_AfterDescription(&$mvc)
     {
         if (!isset($mvc->fields['state'])) {
-            $mvc->FLD('state',
+            $mvc->FLD(
+                'state',
                 'enum(active=Активен,closed=Затворен)',
-                'caption=Видимост,input=none,notSorting,notNull,value=active,smartCenter');
+                'caption=Видимост,input=none,notSorting,notNull,value=active,smartCenter'
+            );
             $this->activeState = 'active';
             $this->closedState = 'closed';
-        } 
+        }
     }
 
 
     /**
      * Определя активното и затвореното състояние
      */
-    function getActiveAndClosedState($mvc)
+    public function getActiveAndClosedState($mvc)
     {
-        if($this->activeState && $this->closedState) return;
+        if ($this->activeState && $this->closedState) {
+            return;
+        }
         $opt = $mvc->getFieldType('state')->options;
             
-        foreach($this->castToActive as $state) {
-            if($opt[$state]) {
+        foreach ($this->castToActive as $state) {
+            if ($opt[$state]) {
                 $this->activeState = $state;
                 break;
             }
         }
 
-        foreach($this->castToClosed as $state) {
-            if($opt[$state]) {
+        foreach ($this->castToClosed as $state) {
+            if ($opt[$state]) {
                 $this->closedState = $state;
                 break;
             }
@@ -88,7 +92,7 @@ class plg_State2 extends core_Plugin
      */
     public static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
-        if(!$mvc->state2PreventOrderingByState) {
+        if (!$mvc->state2PreventOrderingByState) {
             $data->query->orderBy('#state');
         }
     }
@@ -97,8 +101,8 @@ class plg_State2 extends core_Plugin
     /**
      * Гарантира, че новите записи ще имат state по подразбиране - 'active'
      */
-    public function on_BeforeSave(&$invoker, &$id, &$rec, $fields = NULL)
-    {   
+    public function on_BeforeSave(&$invoker, &$id, &$rec, $fields = null)
+    {
         if (!$rec->state) {
             $this->getActiveAndClosedState($invoker);
             $rec->state = $this->activeState;
@@ -109,56 +113,63 @@ class plg_State2 extends core_Plugin
     /**
      * Ще има ли предупреждение при смяна на състоянието
      *
-     * @param stdClass $rec
+     * @param  stdClass     $rec
      * @return string|FALSE
      */
     public static function on_AfterGetChangeStateWarning($mvc, &$res, $rec)
     {
-    	if(!isset($res)){
-    		$res = FALSE;
-    	}
+        if (!isset($res)) {
+            $res = false;
+        }
     }
     
     /**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Manager $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param stdClass     $row Това ще се покаже
+     * @param stdClass     $rec Това е записа в машинно представяне
      */
     public function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $row->STATE_CLASS = "state-{$rec->state}";
-    	$row->ROW_ATTR['class'] .= " state-{$rec->state}";
+        $row->ROW_ATTR['class'] .= " state-{$rec->state}";
         $warning = $mvc->getChangeStateWarning($rec);
-        $warning = !empty($warning) ? $warning : FALSE;
+        $warning = !empty($warning) ? $warning : false;
         $warningToolbar = !empty($warning) ? "warning={$warning}" : '';
        
         if ($mvc->haveRightFor('changeState', $rec)) {
             $this->getActiveAndClosedState($mvc);
 
-            $add = "<img src=" . sbf("img/16/lightbulb_off.png") . " width='16' height='16'>";
-            $cancel = "<img src=" . sbf("img/16/lightbulb.png") . " width='16' height='16'>";
+            $add = '<img src=' . sbf('img/16/lightbulb_off.png') . " width='16' height='16'>";
+            $cancel = '<img src=' . sbf('img/16/lightbulb.png') . " width='16' height='16'>";
             
-            if($rec->state == $this->activeState || $rec->state == $this->closedState) {
-                $row->state = ht::createLink($rec->state == $this->activeState ? $cancel : $add ,
-                    array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE),
+            if ($rec->state == $this->activeState || $rec->state == $this->closedState) {
+                $row->state = ht::createLink(
+                    $rec->state == $this->activeState ? $cancel : $add ,
+                    array($mvc, 'changeState', $rec->id, 'ret_url' => true),
                     $warning,
-                    array('title' => $rec->state == $this->activeState ? 'Деактивиране' : 'Активиране'));
+                    array('title' => $rec->state == $this->activeState ? 'Деактивиране' : 'Активиране')
+                );
             
-                $row->state = ht::createElement('div',
-                    array('style' => "text-align:center;"), $row->state);
+                $row->state = ht::createElement(
+            
+                    'div',
+                    array('style' => 'text-align:center;'),
+            
+                    $row->state
+            
+                );
 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $singleTitle = tr($mvc->singleTitle);
                 $singleTitle = mb_strtolower($singleTitle);
                 
-                if($rec->state == $this->activeState) {
-                    $row->_rowTools->addLink('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), "ef_icon=img/16/lightbulb.png,title=Деактивиране на|* {$singleTitle},{$warningToolbar}");
+                if ($rec->state == $this->activeState) {
+                    $row->_rowTools->addLink('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => true), "ef_icon=img/16/lightbulb.png,title=Деактивиране на|* {$singleTitle},{$warningToolbar}");
                 } else {
-                    $row->_rowTools->addLink('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), "ef_icon=img/16/lightbulb_off.png,title=Активиране на|* {$singleTitle},{$warningToolbar}");
+                    $row->_rowTools->addLink('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => true), "ef_icon=img/16/lightbulb_off.png,title=Активиране на|* {$singleTitle},{$warningToolbar}");
                 }
-
             }
         }
     }
@@ -169,22 +180,23 @@ class plg_State2 extends core_Plugin
      */
     public function on_BeforeAction($mvc, &$content, &$act)
     {
-        if($act != 'changestate') return;
+        if ($act != 'changestate') {
+            return;
+        }
         
         $retUrl = getRetUrl();
         
-        $mvc->requireRightFor($act, NULL, NULL, $retUrl);
+        $mvc->requireRightFor($act, null, null, $retUrl);
         
         expect($id = Request::get('id', 'int'));
         
         expect($rec = $mvc->fetch($id));
         
-        $mvc->requireRightFor($act, $rec, NULL, $retUrl);
+        $mvc->requireRightFor($act, $rec, null, $retUrl);
         
         $this->getActiveAndClosedState($mvc);
 
-        if($rec->state == $this->activeState || $rec->state == $this->closedState) {
-
+        if ($rec->state == $this->activeState || $rec->state == $this->closedState) {
             $rec->state = ($rec->state == $this->activeState ? $this->closedState : $this->activeState);
             
             $act = '';
@@ -203,7 +215,7 @@ class plg_State2 extends core_Plugin
         
         $content = new Redirect($retUrl);
         
-        return FALSE;
+        return false;
     }
     
     
@@ -212,16 +224,16 @@ class plg_State2 extends core_Plugin
      */
     public static function on_BeforePrepareSuggestions($mvc, &$suggestions, core_Type $type)
     {
-    	$type->params['where'] .= ($type->params['where'] ? " AND " : "") . " #state = 'active'";
+        $type->params['where'] .= ($type->params['where'] ? ' AND ' : '') . " #state = 'active'";
     }
     
     
     /**
      * Поставя изискване да се селектират само активните записи
      */
-    public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
+    public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = null, &$where = null)
     {
-        $where .= ($where ? " AND " : "") . " #state = 'active'";
+        $where .= ($where ? ' AND ' : '') . " #state = 'active'";
     }
 
     
@@ -229,15 +241,14 @@ class plg_State2 extends core_Plugin
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if($action == 'changestate' && !isset($mvc->canChangestate) && $requiredRoles != 'no_one' && is_object($rec) && $rec->id) {
-            
+        if ($action == 'changestate' && !isset($mvc->canChangestate) && $requiredRoles != 'no_one' && is_object($rec) && $rec->id) {
             $requiredRoles = $mvc->getRequiredRoles('edit', $rec, $userId);
         }
     }

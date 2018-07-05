@@ -28,45 +28,45 @@ class currency_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'currency_Currencies';
+    public $startCtr = 'currency_Currencies';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'drdata=0.1';
+    public $depends = 'drdata=0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Валути и хронология на техните курсове";
+    public $info = 'Валути и хронология на техните курсове';
     
 
     /**
      * Описание на конфигурационните константи за този модул
      */
-    var $configDescription = array(
-		'EXCHANGE_DEVIATION' => array ('percent', 'mandatory, caption=Толеранс за валутния курс->Процент'),
+    public $configDescription = array(
+        'EXCHANGE_DEVIATION' => array('percent', 'mandatory, caption=Толеранс за валутния курс->Процент'),
 );
     
 
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'currency_Currencies',
             //'currency_CurrencyGroups',
             'currency_CurrencyRates',
@@ -77,14 +77,14 @@ class currency_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'currency';
+    public $roles = 'currency';
     
 
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(2.2, 'Финанси', 'Валути', 'currency_Currencies', 'default', "ceo,admin,cash,bank,currency,acc"),
+    public $menuItems = array(
+            array(2.2, 'Финанси', 'Валути', 'currency_Currencies', 'default', 'ceo,admin,cash,bank,currency,acc'),
         );
 
  
@@ -92,7 +92,7 @@ class currency_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

@@ -19,37 +19,35 @@ class drdata_CountryGroups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'drdata_Wrapper, plg_RowTools2, plg_Created';
+    public $loadList = 'drdata_Wrapper, plg_RowTools2, plg_Created';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Групи държави';
+    public $title = 'Групи държави';
     
     
     /**
      * Кой  може да редактира
      */
-    var $canEdit = 'admin';
+    public $canEdit = 'admin';
     
     
-    /**
-     *
-     */
-    var $canAdd = 'admin';
+    
+    public $canAdd = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
+    public $canList = 'admin';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar(128, ci)', 'caption=Име');
         $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg)', 'caption=Държави');
@@ -60,12 +58,12 @@ class drdata_CountryGroups extends core_Manager
     
     /**
      * Връща масив с групите, в които се съдържа съответната държава
-     * 
+     *
      * @param integer|NULL $countryId
-     * 
+     *
      * @return array
      */
-    public static function getGroupsArr($countryId = NULL)
+    public static function getGroupsArr($countryId = null)
     {
         $query = self::getQuery();
         if (isset($countryId)) {
@@ -80,10 +78,10 @@ class drdata_CountryGroups extends core_Manager
     
     /**
      * Връща общите групи в които участват двете държави
-     * 
+     *
      * @param integer $countryId1
      * @param integer $countryId2
-     * 
+     *
      * @return array
      */
     public static function getGroupUnion($countryId1, $countryId2)

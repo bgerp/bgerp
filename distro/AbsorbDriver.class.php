@@ -15,7 +15,7 @@ class distro_AbsorbDriver extends core_Mvc
 {
     
     
-	/**
+    /**
      * Поддържа интерфейса за драйвер
      */
     public $interfaces = 'distro_ActionsDriverIntf';
@@ -30,17 +30,17 @@ class distro_AbsorbDriver extends core_Mvc
     /**
      * Плъгини и класове за зареждане
      */
-    public  $loadList = 'distro_Wrapper';
+    public $loadList = 'distro_Wrapper';
     
     
     /**
-	 * Добавя полетата на драйвера към Fieldset
-	 * 
-	 * @param core_Fieldset $fieldset
-	 */
-	public function addFields(core_Fieldset &$fieldset)
-	{
-	}
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+    }
     
     
     /**
@@ -48,54 +48,57 @@ class distro_AbsorbDriver extends core_Mvc
      *
      * @see distro_ActionsDriverIntf
      */
-    public function canSelectDriver($userId = NULL)
+    public function canSelectDriver($userId = null)
     {
-        
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Дали може да се направи действието в екшъна към съответния файл
-     * 
-     * @param integer $groupId
-     * @param integer $repoId
-     * @param integer $fileId
-     * @param string|NULL $name
-     * @param string|NULL $md5
+     *
+     * @param integer      $groupId
+     * @param integer      $repoId
+     * @param integer      $fileId
+     * @param string|NULL  $name
+     * @param string|NULL  $md5
      * @param integer|NULL $userId
-     * 
+     *
      * @return boolean
-     * 
+     *
      * @see distro_ActionsDriverIntf
      */
-    function canMakeAction($groupId, $repoId, $fileId, $name = NULL, $md5 = NULL, $userId = NULL)
+    public function canMakeAction($groupId, $repoId, $fileId, $name = null, $md5 = null, $userId = null)
     {
         if ($fileId) {
             $fRec = distro_Files::fetch($fileId);
             
-            if (isset($fRec->sourceFh)) return TRUE;
+            if (isset($fRec->sourceFh)) {
+                return true;
+            }
             
-            return FALSE;
+            return false;
         }
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Връща стринга, който ще се пуска за обработка
-     * 
+     *
      * @param stdClass $rec
-     * 
+     *
      * @return string
-     * 
+     *
      * @see distro_ActionsDriverIntf
      */
-    function getActionStr($rec)
+    public function getActionStr($rec)
     {
         $fRec = distro_Files::fetch($rec->fileId);
-        if (!$fRec->sourceFh) return '';
+        if (!$fRec->sourceFh) {
+            return '';
+        }
         
         $fUrl = fileman_Download::getDownloadUrl($fRec->sourceFh);
         $fUrl = escapeshellarg($fUrl);
@@ -123,41 +126,38 @@ class distro_AbsorbDriver extends core_Mvc
 
     /**
      * Вика се след приключване на обработката
-     * 
+     *
      * @param stdClass $rec
      *
      * @see distro_ActionsDriverIntf
      */
-    function afterProcessFinish($rec)
+    public function afterProcessFinish($rec)
     {
-        
     }
     
     
     /**
      * Може ли вградения обект да се избере
-     * 
+     *
      * @return array
-     * 
+     *
      * @see distro_ActionsDriverIntf
      */
     public function getLinkParams()
     {
-        
         return array();
     }
     
     
     /**
      * Дали може да се форсира записването
-     * 
+     *
      * @return boolean
      *
      * @see distro_ActionsDriverIntf
      */
     public function canForceSave()
     {
-        
-        return FALSE;
+        return false;
     }
 }

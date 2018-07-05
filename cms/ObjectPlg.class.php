@@ -16,13 +16,13 @@
 class cms_ObjectPlg extends core_Plugin
 {
 
-	
-	/**
+    
+    /**
      * След дефиниране на полетата на модела
      */
     public static function on_AfterDescription($mvc)
     {
-    	$mvc->declareInterface('cms_ObjectSourceIntf');
+        $mvc->declareInterface('cms_ObjectSourceIntf');
     }
     
     
@@ -31,16 +31,18 @@ class cms_ObjectPlg extends core_Plugin
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if(haveRole('cms,admin,ceo') && $data->rec->state != 'rejected' ) {
-            
+        if (haveRole('cms,admin,ceo') && $data->rec->state != 'rejected') {
             Request::setProtected('sourceClass,type,sourceId');
             
-            $data->toolbar->addBtn('Вграждане', 
+            $data->toolbar->addBtn(
+            
+                'Вграждане',
                     toUrl(array('cms_Objects', 'add', 'sourceClass' => $mvc->className, 'type' => 'object', 'sourceId' => $data->rec->id)),
-                    'ef_icon=img/16/world_go.png,order=19,row=3,title=Вземи таг за вграждане');
+                    'ef_icon=img/16/world_go.png,order=19,row=3,title=Вземи таг за вграждане'
+            
+            );
             
             Request::removeProtected('sourceClass,type,sourceId');
-            
         }
     }
 
@@ -48,42 +50,38 @@ class cms_ObjectPlg extends core_Plugin
     /**
      * След подготовка на обекта
      */
-     public static function on_AfterPrepareCmsObject($mvc, &$res, &$data)
-     {
-        if($data->cmsType == 'object') { 
+    public static function on_AfterPrepareCmsObject($mvc, &$res, &$data)
+    {
+        if ($data->cmsType == 'object') {
             $data->rec = $mvc->fetch($data->cmsObjectId);
-            $mvc->prepareSingle($data);  
+            $mvc->prepareSingle($data);
         }
-     }
+    }
     
     
-    /**
-     *
-     */
+    
     public static function on_AfterRenderCmsObject($mvc, &$res, $data, $tpl)
     {
-        if(!$res) {
+        if (!$res) {
             $data->singleLayout = $tpl;
             $res = $mvc->renderSingle($data);
         }
     }
     
     
-    /**
-     *
-     */
+    
     public static function on_AfterGetDefaultCmsTpl($mvc, &$res, $data)
     {
-    	if(isset($mvc->singleLayoutFile)) {
-    		$file = str_replace(".shtml", "Public.shtml", $mvc->singleLayoutFile);
-    		$path = getFullPath($file);
-    		if($path) {
-    			$res = new ET (tr('|*' . getFileContent($file)));
-    		}
-    	}
-    	
-       	if(!$res) {
+        if (isset($mvc->singleLayoutFile)) {
+            $file = str_replace('.shtml', 'Public.shtml', $mvc->singleLayoutFile);
+            $path = getFullPath($file);
+            if ($path) {
+                $res = new ET(tr('|*' . getFileContent($file)));
+            }
+        }
+        
+        if (!$res) {
             $res = $mvc->renderSingleLayout($data);
-       	}
+        }
     }
 }

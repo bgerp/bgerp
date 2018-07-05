@@ -1,16 +1,14 @@
 <?php
 
 
-/**
- * 
- */
+
 defIfNot('LOCATION_DEFAULT_REGION', '');
 
 
  
 /**
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   location
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -31,13 +29,13 @@ class location_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "Локация";
+    public $info = 'Локация';
     
     
     /**
      * Пакет без инсталация
      */
-    public $noInstall = TRUE;
+    public $noInstall = true;
     
     
     /**
@@ -45,6 +43,6 @@ class location_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
     
-        'LOCATION_DEFAULT_REGION' => array ('varchar', 'mandatory, caption=Кой регион да се използва по подрабиране->Регион'),
+        'LOCATION_DEFAULT_REGION' => array('varchar', 'mandatory, caption=Кой регион да се използва по подрабиране->Регион'),
     );
 }

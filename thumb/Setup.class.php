@@ -9,13 +9,13 @@ defIfNot('THUMB_IMG_DIR', '_tb_');
 /**
  * Пълен път до директорията, където се съхраняват умалените картинки
  */
-defIfNot('THUMB_IMG_PATH',  EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . THUMB_IMG_DIR);
+defIfNot('THUMB_IMG_PATH', EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . THUMB_IMG_DIR);
 
 
 /**
  * Кои външни програми - оптимизатори да се използват за картинките
  */
-defIfNot('THUMB_OPTIMIZATORS',  '');
+defIfNot('THUMB_OPTIMIZATORS', '');
 
 
 /**
@@ -29,7 +29,8 @@ defIfNot('THUMB_OPTIMIZATORS',  '');
  * @license   GPL 3
  * @since     v 0.1
  */
-class thumb_Setup extends core_ProtoSetup {
+class thumb_Setup extends core_ProtoSetup
+{
     
     
     /**
@@ -42,7 +43,7 @@ class thumb_Setup extends core_ProtoSetup {
      */
     public $configDescription = array(
         
-       'THUMB_OPTIMIZATORS' => array ('set(jpegoptim/jpg,jpegtran/jpg,optipng/png,pngquant/png)', 'caption=Оптимизатори за графични файлове->Избор')
+       'THUMB_OPTIMIZATORS' => array('set(jpegoptim/jpg,jpegtran/jpg,optipng/png,pngquant/png)', 'caption=Оптимизатори за графични файлове->Избор')
 
      );
     
@@ -50,12 +51,12 @@ class thumb_Setup extends core_ProtoSetup {
     /**
      * Описание на системните действия
      */
-    var $systemActions = array(
-        array('title' => 'Изтриване', 'url' => array('thumb_M', 'clear', 'ret_url' => TRUE), 'params' => array('title' => 'Изтриване на кешираните изобажения'))
+    public $systemActions = array(
+        array('title' => 'Изтриване', 'url' => array('thumb_M', 'clear', 'ret_url' => true), 'params' => array('title' => 'Изтриване на кешираните изобажения'))
     );
 
      
-     /**
+    /**
      * Мениджър - входна точка в пакета
      */
     public $startCtr = '';
@@ -70,21 +71,20 @@ class thumb_Setup extends core_ProtoSetup {
     /**
      * Описание на модула
      */
-    public $info = "Скалиране на картинки";
+    public $info = 'Скалиране на картинки';
     
     
     /**
      * Дали пакета е системен
      */
-    public $isSystem = TRUE;
+    public $isSystem = true;
     
         
-    protected $folders = THUMB_IMG_PATH; 
+    protected $folders = THUMB_IMG_PATH;
 
     
     /**
      * Пакет без инсталация
      */
-    public $noInstall = TRUE;
-    
+    public $noInstall = true;
 }

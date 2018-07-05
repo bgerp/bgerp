@@ -14,36 +14,39 @@
  * @since     v 0.1
  * @link
  */
-class type_Nick extends type_Varchar {
+class type_Nick extends type_Varchar
+{
     
     
     /**
      * Дължина на полето в mySql таблица
      */
-    var $dbFieldLen = 64;
+    public $dbFieldLen = 64;
     
 
     /**
      * Параметър определящ максималната широчина на полето
      */
-    var $maxFieldSize = 10;
+    public $maxFieldSize = 10;
 
     
     /**
      * Конвертира от вербална стойност
      */
-    function fromVerbal($value)
+    public function fromVerbal($value)
     {
         $value = parent::fromVerbal(trim($value));
         
-        if($value === '') return NULL;
+        if ($value === '') {
+            return;
+        }
         
         $value = self::normalize($value);
         
         if (!$this->isValidNick($value, $this->params['allowEmail'])) {
             $this->error = 'Въвели сте недопустима стойност:|* ' . parent::escape($value);
 
-            return FALSE;
+            return false;
         }
         
         return $value;
@@ -55,7 +58,7 @@ class type_Nick extends type_Varchar {
      */
     public static function normalize($nick)
     {
-        if(!strpos($nick, '@')) {
+        if (!strpos($nick, '@')) {
             $nick = trim(str_replace(array('  ', '. ', ' ', '__'), array(' ', '.', '_', '_'), $nick));
             $nick = str::toUpperAfter($nick);
             $nick = str::toUpperAfter($nick, '.');
@@ -69,31 +72,29 @@ class type_Nick extends type_Varchar {
     /**
      * Проверява дали е валиден
      *
-     * @param string $nick
+     * @param string  $nick
      * @param boolean $allowEmail
-     * 
+     *
      * @return boolean
      */
-    public function isValidNick($value, $allowEmail = FALSE)
+    public function isValidNick($value, $allowEmail = false)
     {
-        if($allowEmail && type_Email::isValidEmail($value)) {
-
-            return TRUE;
+        if ($allowEmail && type_Email::isValidEmail($value)) {
+            return true;
         }
 
-        // Шаблон за потребителско име. 
+        // Шаблон за потребителско име.
         // Позволени са малки и големи латински букви, цифри, долни черти и точки.
         // Трябва да започва с буква.
-        // Между началото и края може да има букви, цифри и долни черти и точки. 
+        // Между началото и края може да има букви, цифри и долни черти и точки.
         // Трябва да завършва с буква или цифра.
         $pattern = "/^[a-z]{1}([a-z0-9\._]*)[a-z0-9]+$/i";
 
-        if(!preg_match($pattern, $value)) {
-            
-            return FALSE;
+        if (!preg_match($pattern, $value)) {
+            return false;
         }
         
-        return TRUE;
+        return true;
     }
     
     
@@ -101,7 +102,7 @@ class type_Nick extends type_Varchar {
      * Преобразува във вербална стойност
      * Прави никовете с първа главна буква и главна буква след точката и долна черта
      */
-    function toVerbal($value)
+    public function toVerbal($value)
     {
         $value = parent::toVerbal($value);
         
@@ -115,7 +116,7 @@ class type_Nick extends type_Varchar {
      * Конвертира текста във формат за показване на никове
      * Първа главна буква. След точката и долното тире пак главна буква.
      */
-    static function convertValueToNick($value)
+    public static function convertValueToNick($value)
     {
         $value = trim($value);
 
@@ -124,23 +125,25 @@ class type_Nick extends type_Varchar {
         $len = strlen($value);
         
         //Ако дължината е 0 връщаме
-        if (!$len) return ;
+        if (!$len) {
+            return ;
+        }
         
         $nick = '';
         
-        for ($i = 0; $i<$len; $i++) {
+        for ($i = 0; $i < $len; $i++) {
             //Текущата буква
             $char = $value{$i};
             
             //Ако е първата буква, или преди точка и долна черта
-            if (($i == 0) || ($value{$i-1} == '.') || ($value{$i-1} == '_')) {
+            if (($i == 0) || ($value{$i - 1} == '.') || ($value{$i - 1} == '_')) {
                 //Номера в ASCII таблицата
                 $lowChar = ord($value{$i});
                 
                 //Ако е малка латинска буква
                 if (($lowChar >= 97) && ($lowChar <= 122)) {
                     //Изваждаме 32 за да получим голяма латинска буква
-                    $bigChar = chr ($lowChar - 32);
+                    $bigChar = chr($lowChar - 32);
                     $char = $bigChar;
                 }
             }
@@ -154,12 +157,11 @@ class type_Nick extends type_Varchar {
     /**
      * Връща локалната част на имейл-а
      */
-    static function parseEmailToNick($value)
+    public static function parseEmailToNick($value)
     {
         //Ако не е валиден имейл връща FALSE
         if (!type_Email::isValidEmail($value)) {
-
-            return FALSE;
+            return false;
         }
 
         //Разделяме имейл-а на локална част и домейн

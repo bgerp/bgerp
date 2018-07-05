@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Токен за работа с GitHub API 
+ * Токен за работа с GitHub API
  */
 defIfNot('GIT_GITHUB_TOKEN', '');
 
 /**
- * Ключ за извикване от GitHub на hooks 
+ * Ключ за извикване от GitHub на hooks
  */
 defIfNot('GIT_GITHUB_HOOK_KEY', '');
 
@@ -27,23 +27,23 @@ defIfNot('GIT_GITHUB_HOOK_KEY', '');
  */
 class git_Setup extends core_ProtoSetup
 {
-	
-	/**
-	 * Версия на пакета
-	 */
-	public $version = '0.1';
-	
-	
-	/**
-	 * Описание на модула
-	 */
-	public $info = "Пакет за работа с git репозиторита";
-	
+    
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
+    
+    
+    /**
+     * Описание на модула
+     */
+    public $info = 'Пакет за работа с git репозиторита';
+    
 
-	/**
-	 * Пакет без инсталация
-	 */
-	public $noInstall = TRUE;
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = true;
     
     
     /**
@@ -54,6 +54,4 @@ class git_Setup extends core_ProtoSetup
             'GIT_GITHUB_HOOK_KEY' => array('password(show)', 'caption=GitHub API->Hook key'),
 
     );
-	
 }
-

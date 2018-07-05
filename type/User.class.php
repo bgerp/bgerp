@@ -27,7 +27,7 @@ class type_User extends type_Key
     /**
      * Инициализиране на обекта
      */
-    function init($params = array())
+    public function init($params = array())
     {
         setIfNot($params['params']['mvc'], 'core_Users');
         setIfNot($params['params']['select'], 'nick');
@@ -35,13 +35,13 @@ class type_User extends type_Key
         parent::init($params);
         
         setIfNot($this->params['roles'], 'executive,officer,manager,ceo');
-        $this->params['roles'] = str_replace("|", ",", $this->params['roles']);
+        $this->params['roles'] = str_replace('|', ',', $this->params['roles']);
         
         setIfNot($this->params['rolesForTeams'], 'officer,manager,ceo');
-        $this->params['rolesForTeams'] = str_replace("|", ",", $this->params['rolesForTeams']);
+        $this->params['rolesForTeams'] = str_replace('|', ',', $this->params['rolesForTeams']);
         
         setIfNot($this->params['rolesForAll'], 'ceo');
-        $this->params['rolesForAll'] = str_replace("|", ",", $this->params['rolesForAll']);
+        $this->params['rolesForAll'] = str_replace('|', ',', $this->params['rolesForAll']);
         
         setIfNot($this->params['cuFirst'], 'yes');
     }
@@ -50,7 +50,7 @@ class type_User extends type_Key
     /**
      * Подготвя опциите според зададените параметри.
      */
-    public function prepareOptions($value = NULL)
+    public function prepareOptions($value = null)
     {
         $mvc = cls::get($this->params['mvc']);
         
@@ -64,8 +64,8 @@ class type_User extends type_Key
             
             // Към екипните роли добавяме ролите за всички потребители
             if ($this->params['rolesForAll'] && $this->params['rolesForAll'] != 'no_one') {
-                $rolesForAll = arr::make($this->params['rolesForAll'], TRUE);
-                $rolesForTeams = arr::make($this->params['rolesForTeams'], TRUE);
+                $rolesForAll = arr::make($this->params['rolesForAll'], true);
+                $rolesForTeams = arr::make($this->params['rolesForTeams'], true);
                 
                 $rolesForTeams += $rolesForAll;
                 
@@ -76,8 +76,8 @@ class type_User extends type_Key
             
             // Вариант 1: Потребителя няма права да вижда екипите
             // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
-            if(!haveRole($this->params['rolesForTeams'])) {
-                if(haveRole($this->params['roles'])) {
+            if (!haveRole($this->params['rolesForTeams'])) {
+                if (haveRole($this->params['roles'])) {
                     $userIdKey = self::getUserFromTeams($cu);
                     
                     $userIdKey = reset($userIdKey);
@@ -89,11 +89,10 @@ class type_User extends type_Key
                     $this->options[$userIdKey]->value = $cu;
                 }
             } else {
-                
                 $uQuery = core_Users::getQuery();
-                if($value > 0) {
-                    if ($value && (strpos($value, '_') !== FALSE)) {
-                        list(,$userId) = explode('_', $value);
+                if ($value > 0) {
+                    if ($value && (strpos($value, '_') !== false)) {
+                        list(, $userId) = explode('_', $value);
                         
                         if ($userId) {
                             $value = $userId;
@@ -110,18 +109,18 @@ class type_User extends type_Key
                 $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
                 $uQuery->likeKeylist('roles', $roles);
                 
-                $removeClosedGroups = TRUE;
+                $removeClosedGroups = true;
                 if ($this->params['showClosedGroups']) {
-                    $removeClosedGroups = FALSE;
+                    $removeClosedGroups = false;
                 }
                 
-                if(haveRole($this->params['rolesForAll'])) {
+                if (haveRole($this->params['rolesForAll'])) {
                     
                     // Показваме всички екипи
                     $teams = core_Roles::getRolesByType('team', 'keylist', $removeClosedGroups);
                 } else {
                     // Показваме само екипите на потребителя
-                    $teams = core_Users::getUserRolesByType(NULL, 'team', 'keylist', $removeClosedGroups);
+                    $teams = core_Users::getUserRolesByType(null, 'team', 'keylist', $removeClosedGroups);
                 }
                 
                 $teams = keylist::toArray($teams);
@@ -129,20 +128,22 @@ class type_User extends type_Key
                 $cuRecArr = array();
                 
                 if (haveRole($this->params['rolesForTeams']) && $this->params['additionalRoles']) {
-                    foreach(arr::make($this->params['additionalRoles']) as $rName) {
+                    foreach (arr::make($this->params['additionalRoles']) as $rName) {
                         $rId = core_Roles::fetchByName($rName);
-                        if (!$rId) continue;
+                        if (!$rId) {
+                            continue;
+                        }
                         
                         $teams[$rId] = $rId;
                     }
                 }
                 
-                foreach($teams as $t) {
+                foreach ($teams as $t) {
                     $group = new stdClass();
                     $tRole = core_Roles::getVerbal($t, 'role');
-                    $group->title = tr('Екип') . " \"" . $tRole . "\"";
+                    $group->title = tr('Екип') . ' "' . $tRole . '"';
                     $group->attr = array('class' => 'team');
-                    $group->group = TRUE;
+                    $group->group = true;
                     $this->options[$t . ' team'] = $group;
                     
                     $uQueryCopy = clone($uQuery);
@@ -151,16 +152,16 @@ class type_User extends type_Key
                     
                     $teamMembers = '';
                     
-                    while($uRec = $uQueryCopy->fetch()) {
+                    while ($uRec = $uQueryCopy->fetch()) {
                         $key = $t . '_' . $uRec->id;
-                        if(!$this->options[$key]) {
+                        if (!$this->options[$key]) {
                             $this->options[$key] = new stdClass();
                         }
     
-                        if($part && $this->params['useSelectAsTitle']) {
+                        if ($part && $this->params['useSelectAsTitle']) {
                             $this->options[$key]->title = $uRec->$part;
                         } else {
-                            $this->options[$key]->title = type_Nick::normalize($uRec->nick) . " (" . $uRec->names . ")";
+                            $this->options[$key]->title = type_Nick::normalize($uRec->nick) . ' (' . $uRec->names . ')';
                         }
     
                         $this->options[$key]->value = $uRec->id;
@@ -174,7 +175,7 @@ class type_User extends type_Key
                         }
                     }
                     
-                    if($teamMembers) {
+                    if ($teamMembers) {
                         $this->options[$t. ' team']->keylist = "|{$teamMembers}|";
                     } else {
                         unset($this->options[$t . ' team']);
@@ -189,7 +190,7 @@ class type_User extends type_Key
         
         $this->options = parent::prepareOptions();
         
-        if(isset($this->params['filter'])) {
+        if (isset($this->params['filter'])) {
             call_user_func($this->params['filter'], $this);
         }
  
@@ -198,10 +199,10 @@ class type_User extends type_Key
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param mixed $key
-     * 
+     *
      * @return mixed
      */
     public function prepareKey($key)
@@ -216,7 +217,7 @@ class type_User extends type_Key
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
         if (is_null($value) && !$this->params['allowEmpty']) {
             $value = core_Users::getCurrent();
@@ -235,16 +236,16 @@ class type_User extends type_Key
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param string $value
-     * 
+     *
      * @return object
      */
     protected function fetchVal(&$value)
     {
-        if ($value && (strpos($value, '_') !== FALSE)) {
-            list(,$userId) = explode('_', $value);
+        if ($value && (strpos($value, '_') !== false)) {
+            list(, $userId) = explode('_', $value);
             
             if ($userId) {
                 $value = $userId;
@@ -257,14 +258,14 @@ class type_User extends type_Key
     
     /**
      * Проверява дали подадения ключ го има в опциите и ако го няма връща първия възможен
-     * 
+     *
      * @param string $key - Ключа от опциите
-     * 
+     *
      * @return string - Стринг, с възможните стойности
      */
-    function fitInDomain($key)
+    public function fitInDomain($key)
     {
-        $firstVal = NULL;
+        $firstVal = null;
         
         // Подготвяме опциите
         $this->prepareOptions();
@@ -278,10 +279,14 @@ class type_User extends type_Key
             if ($val) {
                 
                 // Ако стойността е равна на търсената връщаме я
-                if ($val == $key) return $val;
+                if ($val == $key) {
+                    return $val;
+                }
                 
                 // Ако има стойност и няма първа стойност сетваме я
-                if (!$firstVal) $firstVal = $val;    
+                if (!$firstVal) {
+                    $firstVal = $val;
+                }
             }
         }
         
@@ -291,13 +296,13 @@ class type_User extends type_Key
     
     /**
      * Връща масив с групите със съответния потребители
-     * 
+     *
      * @param integer|NULL $userId
-     * 
+     *
      * @return array
      * @see type_Users::getUserFromTeams
      */
-    static function getUserFromTeams($userId = NULL)
+    public static function getUserFromTeams($userId = null)
     {
         $arr = array();
         
@@ -315,9 +320,11 @@ class type_User extends type_Key
             
             $me = cls::get(get_called_class());
             if ($me->params['additionalRoles'] && empty($teams)) {
-                foreach(arr::make($me->params['additionalRoles']) as $rName) {
+                foreach (arr::make($me->params['additionalRoles']) as $rName) {
                     $rId = core_Roles::fetchByName($rName);
-                    if (!$rId) continue;
+                    if (!$rId) {
+                        continue;
+                    }
                     
                     $teams[$rId] = $rId;
                 }
@@ -344,14 +351,13 @@ class type_User extends type_Key
     
     /**
      * Връща възможните стойности за ключа
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return array
      */
-    function getAllowedKeyVal($id)
+    public function getAllowedKeyVal($id)
     {
-        
         return self::getUserFromTeams($id);
     }
 }

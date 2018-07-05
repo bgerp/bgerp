@@ -18,19 +18,19 @@ class export_Setup extends core_ProtoSetup
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Експортване на документи";
+    public $info = 'Експортване на документи';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'export_Link',
             'export_Pdf',
             'export_Html',
@@ -43,7 +43,7 @@ class export_Setup extends core_ProtoSetup
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
         

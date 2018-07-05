@@ -13,11 +13,10 @@
  * @since     v 0.1
  * @title     Продажби » Платежни документи в състояние 'заявка'
  */
-
 class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 {
-	
-	
+    
+    
     /**
      * Кой може да избира драйвъра
      */
@@ -64,9 +63,9 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param frame2_driver_Proto $Driver $Driver
-     * @param embed_Manager $Embedder
-     * @param stdClass $data
+     * @param frame2_driver_Proto $Driver   $Driver
+     * @param embed_Manager       $Embedder
+     * @param stdClass            $data
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
@@ -78,18 +77,17 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
         $docOptions = array();
 
-        foreach ($documents as $className){
+        foreach ($documents as $className) {
             $classId = $className::getClassId();
-            $docOptions[$classId] = core_Classes::getTitleById($classId, FALSE);
-            
+            $docOptions[$classId] = core_Classes::getTitleById($classId, false);
         }
 
-        $form->setSuggestions('documentType',  $docOptions);
+        $form->setSuggestions('documentType', $docOptions);
     }
     
     /**
      * Връща банковите сметки, които може да контира потребителя
-     * 
+     *
      * @return array $res
      */
     public static function getContableAccounts($rec)
@@ -102,13 +100,10 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
         $sQuery->where("#state != 'rejected'");
 
-        while($sRec = $sQuery->fetch()){
-        	
-            if(bgerp_plg_FLB::canUse('bank_OwnAccounts', $sRec, $cu,select)){
-
+        while ($sRec = $sQuery->fetch()) {
+            if (bgerp_plg_FLB::canUse('bank_OwnAccounts', $sRec, $cu, select)) {
                 $res[$sRec->id] = bank_OwnAccounts::getTitleById($sRec->id, FdocumentALSE);
             }
-
         }
 
         return $res;
@@ -127,11 +122,9 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
         $sQuery = cash_Cases::getQuery();
         $sQuery->where("#state != 'rejected'");
-        while($sRec = $sQuery->fetch()){
-
-            if(bgerp_plg_FLB::canUse('cash_Cases', $sRec, $cu,select)){
-
-                $res[$sRec->id] = cash_Cases::getTitleById($sRec->id, FALSE);
+        while ($sRec = $sQuery->fetch()) {
+            if (bgerp_plg_FLB::canUse('cash_Cases', $sRec, $cu, select)) {
+                $res[$sRec->id] = cash_Cases::getTitleById($sRec->id, false);
             }
         }
 
@@ -142,13 +135,13 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param stdClass $rec
-     * @param stdClass $data
+     * @param  stdClass $rec
+     * @param  stdClass $data
      * @return array
      */
-    protected function prepareRecs($rec, &$data = NULL)
+    protected function prepareRecs($rec, &$data = null)
     {
-		$docClasses = $caseRecs = $bankRecs = $recs = array();
+        $docClasses = $caseRecs = $bankRecs = $recs = array();
 
         $accountsId = isset($rec->accountId) ? array($rec->accountId => $rec->accountId) : array_keys(self::getContableAccounts($rec));
         
@@ -158,116 +151,103 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         
         $docClasses = keylist::toArray($rec->documentType);
      
-        $both = (!isset($rec->accountId) && !isset($rec->caseId) ) || (isset($rec->accountId) && isset($rec->caseId) );
+        $both = (!isset($rec->accountId) && !isset($rec->caseId)) || (isset($rec->accountId, $rec->caseId));
 
         // Банкови платежни документи
-        if ($both || isset($rec->accountId)){
-
-        foreach (array('bank_SpendingDocuments', 'bank_IncomeDocuments') as $pDoc) {
-
-            if (empty($docClasses) || in_array($pDoc::getClassId(),$docClasses)) {
-            	
-                $cQuery = $pDoc::getQuery();
+        if ($both || isset($rec->accountId)) {
+            foreach (array('bank_SpendingDocuments', 'bank_IncomeDocuments') as $pDoc) {
+                if (empty($docClasses) || in_array($pDoc::getClassId(), $docClasses)) {
+                    $cQuery = $pDoc::getQuery();
                 
-                $cQuery->in("ownAccount", $accountsId);
+                    $cQuery->in('ownAccount', $accountsId);
                 
-                $cQuery->orWhere("#ownAccount IS NULL");
+                    $cQuery->orWhere('#ownAccount IS NULL');
 
-                $cQuery->where("#state = 'pending'");
+                    $cQuery->where("#state = 'pending'");
 
-                $cQuery->orderBy('termDate', 'ASC');
+                    $cQuery->orderBy('termDate', 'ASC');
 
-                while ($cRec = $cQuery->fetch()) {
+                    while ($cRec = $cQuery->fetch()) {
+                        $payDate = ($cRec->termDate) ? $cRec->termDate : $cRec->valior;
 
-                    $payDate = ($cRec->termDate) ? $cRec->termDate : $cRec->valior;
+                        if (!empty($rec->horizon)) {
+                            $horizon = dt::addSecs($rec->horizon, dt::today(), false);
 
-                    if (!empty($rec->horizon)) {
+                            if ($payDate && ($payDate > $horizon)) {
+                                unset($payDate);
 
-                        $horizon = dt::addSecs($rec->horizon, dt::today(), FALSE);
-
-                        if ($payDate && ($payDate > $horizon)) {
-
-                            unset($payDate);
-
-                            continue;
+                                continue;
+                            }
                         }
-                    }
                     
-                    $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
+                        $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
                   
-                    if (core_Users::getCurrent() != $cRec->createdBy) {
-                    	
-						$Document = doc_Containers::getDocument($cRec->containerId);
-												
-                        if (!$Document->haveRightFor('single',$rec->createdBy)) continue;
+                        if (core_Users::getCurrent() != $cRec->createdBy) {
+                            $Document = doc_Containers::getDocument($cRec->containerId);
+                                                
+                            if (!$Document->haveRightFor('single', $rec->createdBy)) {
+                                continue;
+                            }
+                        }
+
+                        $bankRecs[$cRec->containerId] = (object) array('containerId' => $cRec->containerId,
+                                                                    'amountDeal' => $cRec->amountDeal,
+                                                                    'className' => $className,
+                                                                    'payDate' => $payDate,
+                                                                    'termDate' => $cRec->termDate,
+                                                                    'valior' => $cRec->valior,
+                                                                    'currencyId' => $cRec->currencyId,
+                                                                    'documentId' => $cRec->id,
+                                                                    'folderId' => $cRec->folderId,
+                                                                    'createdOn' => $cRec->createdOn,
+                                                                    'createdBy' => $cRec->createdBy,
+                                                                    'ownAccount' => $cRec->ownAccount,
+                                                                    'peroCase' => $cRec->peroCase,
+                                                                );
                     }
-
-                    $bankRecs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
-											                        'amountDeal' => $cRec->amountDeal,
-											                        'className' => $className,
-											                        'payDate' => $payDate,
-											                        'termDate' => $cRec->termDate,
-											                        'valior' => $cRec->valior,
-											                        'currencyId' => $cRec->currencyId,
-											                        'documentId' => $cRec->id,
-											                        'folderId' => $cRec->folderId,
-											                        'createdOn' => $cRec->createdOn,
-											                        'createdBy' => $cRec->createdBy,
-											                        'ownAccount' => $cRec->ownAccount,
-											                        'peroCase' => $cRec->peroCase,
-											                    );
-
                 }
             }
-
         }
-
-     }
 
         /*
          * Касови платежни документи
          */
         if ($both || isset($rec->caseId)) {
             foreach (array('cash_Rko', 'cash_Pko') as $pDoc) {
-
-                if (empty($docClasses) || in_array($pDoc::getClassId(),$docClasses)) {
-
+                if (empty($docClasses) || in_array($pDoc::getClassId(), $docClasses)) {
                     $cQuery = $pDoc::getQuery();
 
-                    $cQuery->in("peroCase", $casesId);
+                    $cQuery->in('peroCase', $casesId);
 
-                    $cQuery->orWhere("#peroCase IS NULL");
+                    $cQuery->orWhere('#peroCase IS NULL');
                    
                     $cQuery->where("#state = 'pending'");
  
                     $cQuery->orderBy('termDate', 'ASC');
 
                     while ($cRec = $cQuery->fetch()) {
-
                         $payDate = ($cRec->termDate) ? $cRec->termDate : $cRec->valior;
 
                         if (!empty($rec->horizon)) {
-
-                            $horizon = dt::addSecs($rec->horizon, dt::today(), FALSE);
+                            $horizon = dt::addSecs($rec->horizon, dt::today(), false);
 
                             if ($payDate && ($payDate > $horizon)) {
-
                                 unset($payDate);
 
                                 continue;
                             }
-
                         }
 
                         $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
 
                         if (core_Users::getCurrent() != $cRec->credatedBy) {
-
                             $Document = doc_Containers::getDocument($cRec->containerId);
-												
-                       		 if (!$Document->haveRightFor('single',$rec->createdBy)) continue;
+                                                
+                            if (!$Document->haveRightFor('single', $rec->createdBy)) {
+                                continue;
+                            }
                         }
-                        $caseRecs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
+                        $caseRecs[$cRec->containerId] = (object) array('containerId' => $cRec->containerId,
                             'amountDeal' => $cRec->amountDeal,
                             'className' => $className,
                             'payDate' => $payDate,
@@ -281,24 +261,21 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                             'ownAccount' => $cRec->ownAccount,
                             'peroCase' => $cRec->peroCase,
                         );
-
                     }
                 }
             }
         }
         
-        $recs=$bankRecs+$caseRecs;
+        $recs = $bankRecs + $caseRecs;
 
         usort($recs, array($this, 'orderByPayDate'));
 
         return $recs;
-
     }
 
     
-    function orderByPayDate($a, $b)
+    public function orderByPayDate($a, $b)
     {
-
         return $a->payDate > $b->payDate;
     }
 
@@ -307,19 +284,19 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param stdClass $rec   - записа
-     * @param boolean $export - таблицата за експорт ли е
-     * @return core_FieldSet  - полетата
+     * @param  stdClass      $rec    - записа
+     * @param  boolean       $export - таблицата за експорт ли е
+     * @return core_FieldSet - полетата
      */
-    protected function getTableFieldSet($rec, $export = FALSE)
+    protected function getTableFieldSet($rec, $export = false)
     {
-		$fld = cls::get('core_FieldSet');
-		$fld->FLD('documentId', 'varchar', 'caption=Документ');
-		$fld->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума,smartCenter');
-		$fld->FLD('payDate', 'date', 'caption=Срок->за плащане');
-		$fld->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,smartCenter');
-		
-        if($export === FALSE){
+        $fld = cls::get('core_FieldSet');
+        $fld->FLD('documentId', 'varchar', 'caption=Документ');
+        $fld->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума,smartCenter');
+        $fld->FLD('payDate', 'date', 'caption=Срок->за плащане');
+        $fld->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,smartCenter');
+        
+        if ($export === false) {
             $fld->FLD('created', 'varchar', 'caption=Създаване,smartCenter');
         } else {
             $fld->FLD('createdOn', 'datetime', 'caption=Създаване->На');
@@ -333,36 +310,36 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param stdClass $rec  - записа
-     * @param stdClass $dRec - чистия запис
+     * @param  stdClass $rec  - записа
+     * @param  stdClass $dRec - чистия запис
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-		$Int = cls::get('type_Int');
+        $Int = cls::get('type_Int');
         $Double = core_Type::getByName('double(smartRound)');
         $Date = cls::get('type_Date');
 
         $row = new stdClass();
         $row->documentId = cls::get($dRec->className)->getLink($dRec->documentId, 0);
 
-        if(isset($dRec->createdBy)) {
+        if (isset($dRec->createdBy)) {
             $row->createdBy = crm_Profiles::createLink($dRec->createdBy);
             $row->createdOn = $Date->toVerbal($dRec->createdOn);
         }
         
         $hint = ($dRec->ownAccount) ? bank_OwnAccounts::getTitleById($dRec->ownAccount) : cash_Cases::getTitleById($dRec->peroCase) ;
         $hint = $hint ? $hint:'не посочена';
-		
+        
         $row->created = $row->createdOn . ' от '. $row->createdBy;
         
         if (isset($dRec->amountDeal)) {
-			$row->amountDeal = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal);
-			$row->amountDeal = ht::createHint($row->amountDeal, "$hint", 'notice');
-			$row->payDate = ($dRec->payDate) ? $Date->toVerbal($dRec->payDate) : 'не посочен';
+            $row->amountDeal = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal);
+            $row->amountDeal = ht::createHint($row->amountDeal, "${hint}", 'notice');
+            $row->payDate = ($dRec->payDate) ? $Date->toVerbal($dRec->payDate) : 'не посочен';
         }
 
-        if(isset($dRec->currencyId)) {
+        if (isset($dRec->currencyId)) {
             $row->currencyId = currency_Currencies::getCodeById($dRec->currencyId);
         }
         
@@ -371,16 +348,16 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     
     
     /**
-	 * След подготовка на реда за експорт
-	 * 
-	 * @param frame2_driver_Proto $Driver - драйвер
-	 * @param stdClass $res               - резултатен запис
-	 * @param stdClass $rec               - запис на справката
-	 * @param stdClass $dRec              - запис на реда
-	 * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
-	 */
-	protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
+     * След подготовка на реда за експорт
+     *
+     * @param frame2_driver_Proto $Driver      - драйвер
+     * @param stdClass            $res         - резултатен запис
+     * @param stdClass            $rec         - запис на справката
+     * @param stdClass            $dRec        - запис на реда
+     * @param core_BaseClass      $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+     */
+    protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-    	$res->documentId = "#" . cls::get($dRec->className)->getHandle($dRec->documentId, 0);
+        $res->documentId = '#' . cls::get($dRec->className)->getHandle($dRec->documentId, 0);
     }
 }

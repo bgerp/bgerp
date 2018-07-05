@@ -30,115 +30,109 @@ class callcenter_Talks extends core_Master
     /**
      * Заглавие на модела
      */
-    var $title = 'Телефонни разговори';
+    public $title = 'Телефонни разговори';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = 'Разговор';
+    public $singleTitle = 'Разговор';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    public $canView = 'powerUser';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'powerUser';
+    public $canList = 'powerUser';
+    
+    
+    
+    public $canAddto = 'powerUser';
     
     
     /**
-     * 
+     * Кой може да разглежда сингъла на документите?
      */
-    var $canAddto = 'powerUser';
+    public $canSingle = 'powerUser';
     
     
     /**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'powerUser';
-    
-    
-    /**
-	 * Кой може да архивира разговорите?
-	 */
-	var $canArchivetalk = 'powerUser';
+     * Кой може да архивира разговорите?
+     */
+    public $canArchivetalk = 'powerUser';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'powerUser';
+    public $canReject = 'powerUser';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_SelectPeriod,callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Sorting, plg_RefreshRows, plg_GroupByDate, callcenter_ListOperationsPlg';
+    public $loadList = 'plg_SelectPeriod,callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Sorting, plg_RefreshRows, plg_GroupByDate, callcenter_ListOperationsPlg';
     
 
     /**
      * Името на полито, по което плъгина GroupByDate ще групира редовете
      */
-    var $groupByDateField = 'startTime';
+    public $groupByDateField = 'startTime';
 
 
-    /**
-     * 
-     */
-    var $refreshRowsTime = 3000;
+    
+    public $refreshRowsTime = 3000;
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'callcenter/tpl/SingleLayoutTalks.shtml';
+    public $singleLayoutFile = 'callcenter/tpl/SingleLayoutTalks.shtml';
     
     
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/incoming.png';
+    public $singleIcon = 'img/16/incoming.png';
     
     
-    /**
-     * 
-     */
-    var $listFields = '_rowTools, externalData, externalNum, singleLink=-, internalNum, internalData, startTime, duration';
+    
+    public $listFields = '_rowTools, externalData, externalNum, singleLink=-, internalNum, internalData, startTime, duration';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'singleLink';
+    public $rowToolsSingleField = 'singleLink';
     
     
     /**
@@ -147,10 +141,10 @@ class callcenter_Talks extends core_Master
 //    var $singleFields = 'externalNum, contragent, internalNum, users, dialStatus, uniqId, startTime, answerTime, endTime, duration';
     
     
-	/**
+    /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('externalNum', 'drdata_PhoneType', 'caption=Външен->Номер, width=100%, oldFieldName=callerNum');
         $this->FLD('externalData', 'key(mvc=callcenter_Numbers)', 'caption=Външен->Контакт, width=100%, oldFieldName=callerData');
@@ -178,8 +172,8 @@ class callcenter_Talks extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {   
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
         core_RowToolbar::createIfNotExists($row->_rowTools);
 //         $row->_rowTools->removeBtn("single{$rec->id}");
         
@@ -192,8 +186,8 @@ class callcenter_Talks extends core_Master
             // Ако е мобилен, класа също да е мобилен
             $externalClass = ($externalNumArr[0]->mobile) ? 'mobile' : 'telephone';
             
-            // Добавяме стил за телефони        
-            $row->externalNum = "<div class='{$externalClass} crm-icon'>" . $row->externalNum . "</div>";
+            // Добавяме стил за телефони
+            $row->externalNum = "<div class='{$externalClass} crm-icon'>" . $row->externalNum . '</div>';
         } else {
             
             // Вероятно е обаждане от вътрешен номер. Да няма оцветяване.
@@ -213,12 +207,12 @@ class callcenter_Talks extends core_Master
             if ($externalNumRow->contragent) {
                 
                 // Флаг, за да отбележим, че има данни
-                $haveExternalData = TRUE;
+                $haveExternalData = true;
                 
                 // Добавяме данните
                 $row->externalData = $externalNumRow->contragent;
             }
-        } 
+        }
         
         // Ако флага не е дигнат
         if (!$haveExternalData) {
@@ -237,7 +231,7 @@ class callcenter_Talks extends core_Master
         if ($rec->internalData) {
             
             // Нулираме полето
-            $row->internalData = NULL;
+            $row->internalData = null;
             
             // Масив с всички данни
             $internalDataArr = type_Keylist::toArray($rec->internalData);
@@ -255,7 +249,7 @@ class callcenter_Talks extends core_Master
                 if ($internalNumRow->contragent) {
                      
                     // Флаг, за да отбележим, че има данни
-                    $haveInternalData = TRUE;
+                    $haveInternalData = true;
                     
                     // Добавяме данните
                     $row->internalData .= ($row->internalData) ? (", {$internalNumRow->contragent}") : $internalNumRow->contragent;
@@ -263,7 +257,7 @@ class callcenter_Talks extends core_Master
             }
         }
         
-        // Ако флага не е дигнат 
+        // Ако флага не е дигнат
         if (!$haveInternalData) {
             
             // Ако има номер
@@ -281,14 +275,14 @@ class callcenter_Talks extends core_Master
             
             // Ако не сме в сингъла
             // Добавяме данните към номера
-            if(!$fields['-single']) {
+            if (!$fields['-single']) {
                 
                 // Дива за разстояние
                 $div = "<div style='margin-top:5px;'>";
                 
                 // Добавяме данните към номерата
-                $row->externalNum .= $div . $row->externalData . "</div>";
-                $row->internalNum .= $div . $row->internalData . "</div>";
+                $row->externalNum .= $div . $row->externalData . '</div>';
+                $row->internalNum .= $div . $row->internalData . '</div>';
             
                 // Ако има продължителност
                 if ($rec->duration) {
@@ -301,7 +295,7 @@ class callcenter_Talks extends core_Master
                     }
                     
                     // Добавяме след времето на позвъняване
-                    $row->startTime .= $div . $duration . "</div>";
+                    $row->startTime .= $div . $duration . '</div>';
                 }
             }
         }
@@ -350,7 +344,7 @@ class callcenter_Talks extends core_Master
         }
         
         if ($mvc->haveRightFor('archivetalk', $rec)) {
-            $row->_rowTools->addLink('Архивиране', array($mvc, 'archive', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/upload.png, title=Архивиране на обаждането');
+            $row->_rowTools->addLink('Архивиране', array($mvc, 'archive', $rec->id, 'ret_url' => true), 'ef_icon=img/16/upload.png, title=Архивиране на обаждането');
         }
     }
     
@@ -358,7 +352,7 @@ class callcenter_Talks extends core_Master
     /**
      * Екшън за архивиране на обаждането
      */
-    function act_Archive()
+    public function act_Archive()
     {
         $id = Request::get('id', 'int');
         
@@ -376,8 +370,7 @@ class callcenter_Talks extends core_Master
         
         $fh = callcenter_Hosts::archiveTalk($nRec->host, $archivePlacesArr);
         
-        if ($fh === FALSE) {
-            
+        if ($fh === false) {
             $retUrl = getRetUrl();
             
             if (empty($retUrl)) {
@@ -385,25 +378,26 @@ class callcenter_Talks extends core_Master
             }
             
             return new Redirect($retUrl, '|Грешка при архивиране на обаждането', 'error');
-        } else {
-            
-            return new Redirect(array('fileman_Files', 'single', $fh), '|Успешно архивирахте обаждането');
         }
+            
+        return new Redirect(array('fileman_Files', 'single', $fh), '|Успешно архивирахте обаждането');
     }
     
     
     /**
      * Връща масив с данни, които ще се използват за определяне на файла при архивиране
-     * 
+     *
      * @param stdClass $rec
-     * 
+     *
      * @return array
      */
-    protected static function getDataForArchive($rec) 
+    protected static function getDataForArchive($rec)
     {
-        $recArr = (array)$rec;
+        $recArr = (array) $rec;
         
-        if (empty($recArr)) return $recArr;
+        if (empty($recArr)) {
+            return $recArr;
+        }
         
         list($recArr['uniqId']) = explode('|', $recArr['uniqId']);
         
@@ -412,11 +406,11 @@ class callcenter_Talks extends core_Master
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param callcenter_Talks $mvc
-     * @param object $res
-     * @param object $data
+     * @param object           $res
+     * @param object           $data
      */
     public static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
@@ -426,7 +420,7 @@ class callcenter_Talks extends core_Master
         bgerp_Notifications::clear($url);
         
         // Добавяме номерата от които са пренасочени обажданията
-        foreach ((array)$data->rows as $row) {
+        foreach ((array) $data->rows as $row) {
             if ($row->RedirectFrom) {
                 $row->internalNum = $row->RedirectFrom . ' » ' . $row->internalNum;
             }
@@ -440,17 +434,17 @@ class callcenter_Talks extends core_Master
     
     /**
      * Обновява записите за съответния номер
-     * 
+     *
      * @param string $numStr - Номера
      */
-    static function updateRecsForNum($numStr)
+    public static function updateRecsForNum($numStr)
     {
         // Вземаме всички записи за съответния номер
         $query = static::getQuery();
         $query->where(array("#externalNum = '[#1#]' || #internalNum = '[#1#]'", $numStr));
         
         // Вземаме всички записи за съответния номер
-        $nRecArr = callcenter_Numbers::getRecForNum($numStr, FALSE, TRUE);
+        $nRecArr = callcenter_Numbers::getRecForNum($numStr, false, true);
         
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {
@@ -489,7 +483,7 @@ class callcenter_Talks extends core_Master
     /**
      * Екшън за регистриран на обаждане
      */
-    function act_RegisterCall()
+    public function act_RegisterCall()
     {
         $conf = core_Packs::getConfig('callcenter');
         
@@ -504,7 +498,9 @@ class callcenter_Talks extends core_Master
         $protectKey = Request::get('p');
         
         // Проверяваме дали има права за добавяне на запис
-        if (!static::isAuthorized($protectKey)) return FALSE;
+        if (!static::isAuthorized($protectKey)) {
+            return false;
+        }
         
         // Вземаме променливите
         $startTime = Request::get('starttime');
@@ -543,7 +539,7 @@ class callcenter_Talks extends core_Master
             $startTime = dt::now();
             
             // Добавяме грешката
-            $errArr[] = "Не е подадено начално време";
+            $errArr[] = 'Не е подадено начално време';
         }
 
         // Ако е изходящо обаждане
@@ -594,10 +590,10 @@ class callcenter_Talks extends core_Master
         }
         
         // Вземаме записите за търсения номера
-        $dRecArr = callcenter_Numbers::getRecForNum($internalNum, 'internal', TRUE);
+        $dRecArr = callcenter_Numbers::getRecForNum($internalNum, 'internal', true);
 
         // Обхождаме резултата
-        foreach ((array)$dRecArr as $dRec) {
+        foreach ((array) $dRecArr as $dRec) {
             
             // Ако има такъв запис
             if ($dRec) {
@@ -626,7 +622,7 @@ class callcenter_Talks extends core_Master
         }
         
         // Записваме
-        $savedId = static::save($nRec, NULL, 'IGNORE');
+        $savedId = static::save($nRec, null, 'IGNORE');
         
         // Когато uniqId съществува, предполагаме, че разговора е пренасочен
         if (!$savedId) {
@@ -637,7 +633,7 @@ class callcenter_Talks extends core_Master
                 
                 if ($newUniqId != $uniqId) {
                     $nRec->uniqId = $newUniqId;
-                    $savedId = static::save($nRec, NULL, 'IGNORE');
+                    $savedId = static::save($nRec, null, 'IGNORE');
                 }
             } else {
                 // Добавяме грешката
@@ -661,7 +657,6 @@ class callcenter_Talks extends core_Master
                     // Да се използва номера
                     $externalData = $externalNum;
                 } else {
-                    
                     $externalData = $cRecArr;
                 }
                 
@@ -673,14 +668,14 @@ class callcenter_Talks extends core_Master
         // Ако има грешки, ги записваме в лога
         static::errToLog($errArr, $savedId, getSelfURL());
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Екшън за отбелязване на край на разговора
      */
-    function act_RegisterEndCall()
+    public function act_RegisterEndCall()
     {
         $conf = core_Packs::getConfig('callcenter');
         
@@ -695,7 +690,9 @@ class callcenter_Talks extends core_Master
         $protectKey = Request::get('p');
         
         // Проверяваме дали има права за добавяне на запис
-        if (!static::isAuthorized($protectKey)) return FALSE;
+        if (!static::isAuthorized($protectKey)) {
+            return false;
+        }
         
         // Вземаме уникалното id на разговора
         $uniqId = Request::get('uniqueId');
@@ -845,7 +842,7 @@ class callcenter_Talks extends core_Master
             $rec->duration = self::getDuration($rec->answerTime, $rec->endTime);
             
             // Обновяваме записа
-            $savedId = static::save($rec, NULL, 'UPDATE');
+            $savedId = static::save($rec, null, 'UPDATE');
             
             // Добавяме нотификация
             static::addNotification($rec);
@@ -866,27 +863,27 @@ class callcenter_Talks extends core_Master
         static::errToLog($errArr, $savedId, getSelfURL());
         
         // Връщаме
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Генерира ново уникално id
-     * 
+     *
      * @param string $uniqId
-     * 
+     *
      * @return string
      */
     protected static function getUniqId($uniqId)
     {
         $i = 0;
         do {
-            
-            if ($i++ > 100) error('@Unable to generate uniqId', $uniqId);
+            if ($i++ > 100) {
+                error('@Unable to generate uniqId', $uniqId);
+            }
             
             $newUniqId = self::prepareUniqId($uniqId, $i);
-            
-        } while(self::fetch(array("#uniqId = '[#1#]'", $newUniqId)));
+        } while (self::fetch(array("#uniqId = '[#1#]'", $newUniqId)));
         
         return $newUniqId;
     }
@@ -894,10 +891,10 @@ class callcenter_Talks extends core_Master
     
     /**
      * Подготва стринг с uniqId
-     * 
-     * @param string $uniqId
+     *
+     * @param string  $uniqId
      * @param integer $str
-     * 
+     *
      * @return string
      */
     protected static function prepareUniqId($uniqId, $id)
@@ -914,29 +911,33 @@ class callcenter_Talks extends core_Master
 
     /**
      * Проверява дали е редиректнато обаждането
-     * 
+     *
      * @param object $rec
-     * 
+     *
      * @return boolean
      */
     protected static function isRedirected($rec)
     {
-        if (strpos($rec->uniqId, self::$callUniqIdDelimiter)) return TRUE;
+        if (strpos($rec->uniqId, self::$callUniqIdDelimiter)) {
+            return true;
+        }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Маркира обаждането от което е пренасочено, като redirected
-     * 
+     *
      * @param string $uniqId
      */
     protected static function markParentAsRedirected($uniqId)
     {
         $parentRec = self::getParentRecForUniqId($uniqId);
         
-        if (!$parentRec) return;
+        if (!$parentRec) {
+            return;
+        }
         
         $parentRec->dialStatus = 'REDIRECTED';
         
@@ -949,20 +950,22 @@ class callcenter_Talks extends core_Master
     
     /**
      * Връща последния запис в модела за uniqId, като се броят и пренасочените
-     * 
+     *
      * @param string $uniqId
-     * 
+     *
      * @return object
      */
     protected static function getLastTalksRec($uniqId)
     {
-        if (!$uniqId) return FALSE;
+        if (!$uniqId) {
+            return false;
+        }
         
         $query = self::getQuery();
         $query->where(array("#uniqId LIKE '[#1#]%'", $uniqId . self::$callUniqIdDelimiter));
         $query->orWhere(array("#uniqId = '[#1#]'", $uniqId));
         
-        $query->orderBy("id", 'DESC');
+        $query->orderBy('id', 'DESC');
         $query->limit(1);
         $rec = $query->fetch();
         
@@ -972,18 +975,22 @@ class callcenter_Talks extends core_Master
     
     /**
      * Връща номера, от който е пренасочено обаждането
-     * 
+     *
      * @param object $rec
-     * 
+     *
      * @return string
      */
     protected static function getRedirectedFromNum($rec)
     {
-        if (!self::isRedirected($rec)) return ;
+        if (!self::isRedirected($rec)) {
+            return ;
+        }
         
         $parentRec = self::getParentRecForUniqId($rec->uniqId);
         
-        if (!$parentRec) return ;
+        if (!$parentRec) {
+            return ;
+        }
         
         return $parentRec->internalNum;
     }
@@ -991,14 +998,16 @@ class callcenter_Talks extends core_Master
     
     /**
      * Връща родителя от който е генерирано съответното uniqId
-     * 
+     *
      * @param string $uniqId
-     * 
+     *
      * @return object
      */
     protected static function getParentRecForUniqId($uniqId)
     {
-        if (!strpos($uniqId, self::$callUniqIdDelimiter)) return FALSE;
+        if (!strpos($uniqId, self::$callUniqIdDelimiter)) {
+            return false;
+        }
         
         $uniqIdArr = explode(self::$callUniqIdDelimiter, $uniqId);
         
@@ -1024,16 +1033,18 @@ class callcenter_Talks extends core_Master
     
     /**
      * Връща номера към който е пренасочено обаждането
-     * 
+     *
      * @param object $rec
-     * 
+     *
      * @return string
      */
     protected static function getRedirectedToNum($rec)
     {
         $parentRec = self::getChildRecForUniqId($rec->uniqId);
         
-        if (!$parentRec) return ;
+        if (!$parentRec) {
+            return ;
+        }
         
         return $parentRec->internalNum;
     }
@@ -1041,9 +1052,9 @@ class callcenter_Talks extends core_Master
     
     /**
      * Връща записа за новото uniqId, генерирано от подадения стринг
-     * 
+     *
      * @param string $uniqId
-     * 
+     *
      * @return object
      */
     protected static function getChildRecForUniqId($uniqId)
@@ -1073,17 +1084,16 @@ class callcenter_Talks extends core_Master
     
     /**
      * Връща продълбителността на разговора
-     * 
+     *
      * @param datetime $answerTime
      * @param datetime $endTime
-     * 
+     *
      * @return NULL|integer
      */
     public static function getDuration($answerTime, $endTime)
     {
-        $duration = NULL;
+        $duration = null;
         if ($answerTime && $endTime) {
-                
             $dateTime = cls::get('type_Datetime');
             $defVal = $dateTime->defVal();
             
@@ -1098,27 +1108,31 @@ class callcenter_Talks extends core_Master
     
     /**
      * Нотифицира потребителите за входящо обождане
-     * 
-     * @param mixed $externalData - Масив с данните за позвъняващия
-     * @param array $internalDataArr - Масив с данни за търсените
-     * @param integer $id - id на записа
+     *
+     * @param mixed   $externalData    - Масив с данните за позвъняващия
+     * @param array   $internalDataArr - Масив с данни за търсените
+     * @param integer $id              - id на записа
      */
-    static function notifyUsersForIncoming($externalData, $internalDataArr, $id)
+    public static function notifyUsersForIncoming($externalData, $internalDataArr, $id)
     {
         // Обхождаме масива с вътрешните номера
-        foreach ((array)$internalDataArr as $intData) {
+        foreach ((array) $internalDataArr as $intData) {
             
             // Масив с номерата на позвъняващия
             $numbersArr = array();
             
             // Ако няма клас или контрагент за вътрешните номера
-            if (!$intData->classId || !$intData->contragentId) continue;
+            if (!$intData->classId || !$intData->contragentId) {
+                continue;
+            }
             
             // Инстанция на класа
             $class = cls::get($intData->classId);
             
             // Ако класа не е профил, прескачаме
-            if (!($class instanceof crm_Profiles)) continue;
+            if (!($class instanceof crm_Profiles)) {
+                continue;
+            }
             
             // id на потребител, който е от отговорниците за номера
             $userId = crm_Profiles::fetchField($intData->contragentId, 'userId');
@@ -1127,7 +1141,7 @@ class callcenter_Talks extends core_Master
             if (is_array($externalData)) {
             
                 // Обхождаме всички външни номера / по принцип трябва да е един
-                foreach ((array)$externalData as $data) {
+                foreach ((array) $externalData as $data) {
                     $user = '';
                     $number = '';
                     // Името на позвъняващия
@@ -1135,7 +1149,6 @@ class callcenter_Talks extends core_Master
                     
                     // Ако има име
                     if ($data->classId && $data->contragentId && $name) {
-                        
                         $extClass = cls::get($data->classId);
                         
                         // Ако имаме права за сингъл до името
@@ -1149,7 +1162,7 @@ class callcenter_Talks extends core_Master
                     $number = $data->number;
                     
                     // Ако има права за листване на централата, линка да сочи там
-                    if (static::haveRightFor('list', NULL, $userId)) {
+                    if (static::haveRightFor('list', null, $userId)) {
                         $number = ht::createLink($number, array('callcenter_Talks', 'list', 'number' => $data->number));
                     }
                     
@@ -1166,19 +1179,17 @@ class callcenter_Talks extends core_Master
                 
                 // Ако не е подаден и номер
                 if ($externalData) {
-                    
                     $number = $externalData;
                     
                     // Ако има права за листване на централата, линка да сочи там
-                    if (static::haveRightFor('list', NULL, $userId)) {
+                    if (static::haveRightFor('list', null, $userId)) {
                         $number = ht::createLink($number, array('callcenter_Talks', 'list', 'number' => $number));
                     }
                 } else {
-                    
                     $number = tr('Скрит номер');
                     
                     // Ако има права за листване на централата, линка да сочи там
-                    if (static::haveRightFor('list', NULL, $userId)) {
+                    if (static::haveRightFor('list', null, $userId)) {
                         $number = ht::createLink($number, array('callcenter_Talks', 'list'));
                     }
                 }
@@ -1191,7 +1202,7 @@ class callcenter_Talks extends core_Master
             $numbersStr = implode(', ', $numbersArr);
             
             // Съобщението, което да се покаже
-            $text = "|Входящо обаждане от|*: " . $numbersStr;
+            $text = '|Входящо обаждане от|*: ' . $numbersStr;
             
             // Добавяме известие към съответния потребител
             status_Messages::newStatus($text, 'notice', $userId);
@@ -1201,21 +1212,21 @@ class callcenter_Talks extends core_Master
     
     /**
      * Записва грешките в масива в лога
-     * 
-     * @param array $errArr
+     *
+     * @param array  $errArr
      * @param intege $id
-     * @param URL $url
+     * @param URL    $url
      */
-    static function errToLog($errArr, $id=FALSE, $url=FALSE)
+    public static function errToLog($errArr, $id = false, $url = false)
     {
         // Обхождаме подадения масив
-        foreach ((array)$errArr as $err) {
+        foreach ((array) $errArr as $err) {
             
             // Ако има URL
             if ($url) {
                 
                 // Добавяме към грешката
-                $err .= ": " . $url;
+                $err .= ': ' . $url;
             }
             
             // Записваме грешката
@@ -1226,30 +1237,29 @@ class callcenter_Talks extends core_Master
     
     /**
      * Проверява дали имаме права за регистриране на обаждане
-     * 
+     *
      * @param string $protectKey - Защитен ключ
-     * 
+     *
      * @retun boolean - Ако нямаме права, връща FALSE
      */
-    static function isAuthorized($protectKey)
+    public static function isAuthorized($protectKey)
     {
         // Вземам конфигурационните данни
         $conf = core_Packs::getConfig('callcenter');
         
         // Ако не отговаря на посочения от нас
         if ($protectKey != $conf->CALLCENTER_PROTECT_KEY) {
-            
             $errMsg = 'Невалиден публичен ключ за обаждането';
             
             // Записваме в лога
             self::logErr($errMsg . ': ' . $protectKey);
             
             // Връщаме
-            return FALSE;
+            return false;
         }
         
         // Масив с разрешените IP' та
-        $allowedIpArr = arr::make($conf->CALLCENTER_ALLOWED_IP_ADDRESS, TRUE);
+        $allowedIpArr = arr::make($conf->CALLCENTER_ALLOWED_IP_ADDRESS, true);
         
         // Ако е зададено
         if (count($allowedIpArr)) {
@@ -1263,24 +1273,26 @@ class callcenter_Talks extends core_Master
                 // Записваме в лога
                 self::logErr('Недопустим IP адрес в конфигурацията');
                 
-                return FALSE;
+                return false;
             }
         }
         
         // Ако проверките минат успешно
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Добавяме нотификация, за пропуснато повикване
      */
-    static function addNotification($rec)
+    public static function addNotification($rec)
     {
         // Ако е изходящо обаждане или е отговорено
-        if ($rec->dialStatus == 'ANSWERED' || $rec->callType == 'outgoing') return;
+        if ($rec->dialStatus == 'ANSWERED' || $rec->callType == 'outgoing') {
+            return;
+        }
         
-        $isRedirected = FALSE;
+        $isRedirected = false;
         
         // Параметри на нотификацията
         $priority = 'normal';
@@ -1289,7 +1301,7 @@ class callcenter_Talks extends core_Master
         if ($rec->dialStatus == 'REDIRECTED') {
             // Линка да сочи към пренасочените повиквания
             $customUrl['dialStatusType'] = 'incoming_REDIRECTED';
-            $isRedirected = TRUE;
+            $isRedirected = true;
         } else {
             // Линка да сочи към всички пропуснати повиквания
             $customUrl['dialStatusType'] = 'incoming_MISSED';
@@ -1299,7 +1311,7 @@ class callcenter_Talks extends core_Master
         $usersArr = callcenter_Numbers::getUserForNum($rec->internalNum);
         
         // Обхождаме всички потребители
-        foreach ((array)$usersArr as $user) {
+        foreach ((array) $usersArr as $user) {
             
             // Времето на последно виждане на листовия изглед
             $lastClosedTime = bgerp_Notifications::getLastClosedTime($customUrl, $user);
@@ -1335,16 +1347,16 @@ class callcenter_Talks extends core_Master
             $qCnt = $query->count();
             
             // Ако няма пропуснати повиквания, да прескача
-            if (!$qCnt) continue;
+            if (!$qCnt) {
+                continue;
+            }
             
             // В зависимост от броя, определяме стринга за съобещение
             if ($qCnt > 1) {
-                
                 $dialTypeText = ($isRedirected) ? 'пренасочени' : 'пропуснати';
                 
                 $message = "|Имате| {$qCnt} |{$dialTypeText} повиквания от|*";
             } else {
-                
                 $dialTypeText = ($isRedirected) ? 'пренасочено' : 'пропуснато';
                 
                 $message = "|Имате {$dialTypeText} повикване от|*";
@@ -1367,7 +1379,9 @@ class callcenter_Talks extends core_Master
                 }
                 
                 // Ако все още няма име, прескачаме
-                if (!$callerName) continue;
+                if (!$callerName) {
+                    continue;
+                }
                 
                 // Увеличваме брояча за номера в масива
                 $CallerArr[$callerName]++;
@@ -1411,10 +1425,8 @@ class callcenter_Talks extends core_Master
     }
     
     
-    /**
-     * 
-     */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Използваме собсвен лейаут за тъсене
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('callcenter/tpl/TalksFilterForm.shtml')));
@@ -1430,8 +1442,8 @@ class callcenter_Talks extends core_Master
         
         // Полета за търсене по дата
         $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,input');
-		$data->listFilter->FNC('to', 'date', 'width=6em,caption=До,input');
-		
+        $data->listFilter->FNC('to', 'date', 'width=6em,caption=До,input');
+        
         // Опции за търсене
         $statusOptions[''] = '';
         
@@ -1480,7 +1492,7 @@ class callcenter_Talks extends core_Master
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        // Показваме само това поле. Иначе и другите полета 
+        // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $data->listFilter->showFields .= ($data->listFilter->showFields ? ',':'') . 'number, usersSearch, dialStatusType, from, to';
         
@@ -1488,7 +1500,7 @@ class callcenter_Talks extends core_Master
         $data->listFilter->input('number, usersSearch, dialStatusType, from, to', 'silent');
         
         // Ако не е избран потребител по подразбиране
-        if(!$data->listFilter->rec->usersSearch) {
+        if (!$data->listFilter->rec->usersSearch) {
             
             // Да е текущия
             $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
@@ -1499,7 +1511,7 @@ class callcenter_Talks extends core_Master
         $data->query->orderBy('id', 'DESC');
         
         // Ако има филтър
-        if($filter = $data->listFilter->rec) {
+        if ($filter = $data->listFilter->rec) {
             
             // Ако се търси по номера
             if ($number = $filter->number) {
@@ -1522,31 +1534,29 @@ class callcenter_Talks extends core_Master
             // Ако филтъра е по потребители
             if ($filter->usersSearch) {
                 
-    			// Ако се търси по всички и има права admin или ceo
-    			if (strpos($filter->usersSearch, '|-1|') === FALSE) {
-    			    // Масив с потребителите
-    			    $usersArr = type_Keylist::toArray($filter->usersSearch);
-    			    
-    			    // Масив с номерата на съответните потребители
-    			    $numbersArr = callcenter_Numbers::getInternalNumbersForUsers($usersArr);
-    			    
-    			    // Ако има такива номера
-    			    if (count((array)$numbersArr)) {
-    			    
-    			        // Показваме обажданията към и от тях
-    			        $data->query->orWhereArr('internalNum', $numbersArr);
-    			    } else {
-    			    
-    			        // Не показваме нищо
-    			        $data->query->where("1=2");
-    			    }
-    			    
+                // Ако се търси по всички и има права admin или ceo
+                if (strpos($filter->usersSearch, '|-1|') === false) {
+                    // Масив с потребителите
+                    $usersArr = type_Keylist::toArray($filter->usersSearch);
+                    
+                    // Масив с номерата на съответните потребители
+                    $numbersArr = callcenter_Numbers::getInternalNumbersForUsers($usersArr);
+                    
+                    // Ако има такива номера
+                    if (count((array) $numbersArr)) {
+                    
+                        // Показваме обажданията към и от тях
+                        $data->query->orWhereArr('internalNum', $numbersArr);
+                    } else {
+                    
+                        // Не показваме нищо
+                        $data->query->where('1=2');
+                    }
                 }
-    		}
-    		
+            }
+            
             // Ако се търси по статус или вид
             if ($filter->dialStatusType) {
-                
                 $dialStatusType = $filter->dialStatusType;
                 
                 // Разделяме статуса от типа
@@ -1559,7 +1569,7 @@ class callcenter_Talks extends core_Master
                 if ($callType == 'incoming') {
                     
                     // Търсим по статус
-                    $data->query->orWhere("#callType IS NULL");
+                    $data->query->orWhere('#callType IS NULL');
                 }
                 
                 // Ако е избран статуса на разговора
@@ -1578,58 +1588,60 @@ class callcenter_Talks extends core_Master
             
             // Масив с датите
             $dateRange = array();
-	        
+            
             // Ако е зададено от
-	        if ($filter->from) {
-	            
-	            // Добавяме в масива
-	            $dateRange[0] = $filter->from; 
-	        }
-	        
-	        // Ако е зададено до
-	        if ($filter->to) {
-	            
-	            // Добавяме в масива
-	            $dateRange[1] = $filter->to; 
-	        }
-	        
-	        // Ако има от и до
-	        if (count($dateRange) == 2) {
-	            
-	            // Подреждаме масива
-	            sort($dateRange);
-	        }
-	        
-	        // Ако има от
-            if($dateRange[0]) {
+            if ($filter->from) {
+                
+                // Добавяме в масива
+                $dateRange[0] = $filter->from;
+            }
+            
+            // Ако е зададено до
+            if ($filter->to) {
+                
+                // Добавяме в масива
+                $dateRange[1] = $filter->to;
+            }
+            
+            // Ако има от и до
+            if (count($dateRange) == 2) {
+                
+                // Подреждаме масива
+                sort($dateRange);
+            }
+            
+            // Ако има от
+            if ($dateRange[0]) {
                 
                 // Разговори приети От дата
-    			$data->query->where(array("#startTime >= '[#1#]'", $dateRange[0]));
-    		}
+                $data->query->where(array("#startTime >= '[#1#]'", $dateRange[0]));
+            }
             
-    		// Ако има до
-			if($dateRange[1]) {
-			    
-			    // Разговори До дата
-    			$data->query->where(array("#startTime <= '[#1#] 23:59:59'", $dateRange[1]));
-    		}
+            // Ако има до
+            if ($dateRange[1]) {
+                
+                // Разговори До дата
+                $data->query->where(array("#startTime <= '[#1#] 23:59:59'", $dateRange[1]));
+            }
         }
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param unknown_type $mvc
      * @param unknown_type $res
      * @param unknown_type $data
      */
-    static function on_AfterPrepareListSummary($mvc, &$res, &$data)
+    public static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
         // Ако няма заявка, да не се изпълнява
-        if (!$data->listSummary->query) return ;
+        if (!$data->listSummary->query) {
+            return ;
+        }
         
-    	// Обхождаме всички клонирани записи
+        // Обхождаме всички клонирани записи
         while ($rec = $data->listSummary->query->fetch()) {
             
             // Статус на разговора
@@ -1677,42 +1689,44 @@ class callcenter_Talks extends core_Master
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param unknown_type $mvc
      * @param unknown_type $tpl
      * @param unknown_type $data
      */
-    static function on_AfterRenderListSummary($mvc, &$tpl, &$data)
+    public static function on_AfterRenderListSummary($mvc, &$tpl, &$data)
     {
         // Ако няма данни, няма да се показва нищо
-        if (!$data->listSummary->statVerb) return ;
+        if (!$data->listSummary->statVerb) {
+            return ;
+        }
         
-    	// Зареждаме и подготвяме шаблона
-    	$tpl = getTplFromFile(("callcenter/tpl/CallSummary.shtml"));
-    	
-    	// Заместваме продължителността на разговора
-    	$tpl->append($data->listSummary->statVerb['duration'], 'duration');
-    	
-    	// Заместваме статусите на обажданията
-    	$tpl->placeArray($data->listSummary->statVerb['dialStatus']);
-    	
-    	// Премахваме празните блокове
-		$tpl->removeBlocks();
-		$tpl->append2master();
+        // Зареждаме и подготвяме шаблона
+        $tpl = getTplFromFile(('callcenter/tpl/CallSummary.shtml'));
+        
+        // Заместваме продължителността на разговора
+        $tpl->append($data->listSummary->statVerb['duration'], 'duration');
+        
+        // Заместваме статусите на обажданията
+        $tpl->placeArray($data->listSummary->statVerb['dialStatus']);
+        
+        // Премахваме празните блокове
+        $tpl->removeBlocks();
+        $tpl->append2master();
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param callcenter_Talks $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param NULL|stdClass $rec
-     * @param NULL|integer $userId
+     * @param string           $requiredRoles
+     * @param string           $action
+     * @param NULL|stdClass    $rec
+     * @param NULL|integer     $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако искаме да отворим сингъла на документа
         if ($rec->id && $action == 'single' && $userId) {
@@ -1731,7 +1745,6 @@ class callcenter_Talks extends core_Master
                     
                     // Връща номерата на всички съотборници
                     $numbersArr = callcenter_Numbers::getInternalNumbersForUsers($teemMatesArr);
-                    
                 } else {
                     
                     // Връща номерата на потребителя
@@ -1771,7 +1784,6 @@ class callcenter_Talks extends core_Master
                             $requiredRoles = 'no_one';
                         } else {
                             if (!$uArr[$userId]) {
-                                
                                 $userIsCeo = haveRole('ceo', $userId);
                                 
                                 foreach ($uArr as $uId) {
@@ -1798,13 +1810,13 @@ class callcenter_Talks extends core_Master
     }
 
     
-    /**
-     * 
-     */
-    function getIcon($id)
+    
+    public function getIcon($id)
     {
         // Ако няма id връщаме
-        if (!$id) return ;
+        if (!$id) {
+            return ;
+        }
         
         // Вземаме записа
         $rec = static::fetch($id);
@@ -1833,7 +1845,7 @@ class callcenter_Talks extends core_Master
                 // Ако в входящо
                 $this->singleIcon = 'img/16/incoming-failed.png';
             }
-        } else if ($rec->dialStatus == 'REDIRECTED') {
+        } elseif ($rec->dialStatus == 'REDIRECTED') {
             
             // Ако е изходящо обаждане
             if ($rec->callType != 'outgoing') {
@@ -1848,12 +1860,12 @@ class callcenter_Talks extends core_Master
     
     
     /**
-     * 
+     *
      * Enter description here ...
      * @param unknown_type $mvc
      * @param unknown_type $data
      */
-    static function on_AfterPrepareListFields($mvc, $data)
+    public static function on_AfterPrepareListFields($mvc, $data)
     {
         // Ако сме в тесен режим
         if (mode::is('screenMode', 'narrow')) {
@@ -1866,17 +1878,17 @@ class callcenter_Talks extends core_Master
     
     /**
      * Връща стринг с линкове за добавяне на номера във фирма, лица или номера
-     * 
+     *
      * @param core_RowToolbar $rowTools
-     * @param string $num - Номера, за който се отнася
-     * @param string $uniqId - Уникално id
-     * @param string $numArr - Масив с номера
-     * @param NULL|string $type
+     * @param string          $num      - Номера, за който се отнася
+     * @param string          $uniqId   - Уникално id
+     * @param string          $numArr   - Масив с номера
+     * @param NULL|string     $type
      */
-    static function getTemplateForAddNum($rowTools, $num, $uniqId, $numArr = FALSE, $type = NULL)
+    public static function getTemplateForAddNum($rowTools, $num, $uniqId, $numArr = false, $type = null)
     {
         // Ако не е подаден масив с номера
-        if ($numArr === FALSE) {
+        if ($numArr === false) {
             
             // Вземаме масива
             $numArr = drdata_PhoneType::toArray($num);
@@ -1887,31 +1899,31 @@ class callcenter_Talks extends core_Master
         if (!$numArr) {
             
             // Ако няма роля admin, да не се показва шаблона за нов
-            if (!haveRole('admin')) return ;
+            if (!haveRole('admin')) {
+                return ;
+            }
             
-            $rowTools->addLink('Добави', array('callcenter_Numbers', 'add', 'number' => $num, 'ret_url' => TRUE), 'ef_icon=img/16/telephone2-add.png, title=Добави към потребител');
+            $rowTools->addLink('Добави', array('callcenter_Numbers', 'add', 'number' => $num, 'ret_url' => true), 'ef_icon=img/16/telephone2-add.png, title=Добави към потребител');
         } else {
-            
             if (isset($type)) {
                 $personNumField = $type;
             } else {
                 $personNumField = 'tel';
             }
             
-            $rowTools->addLink('Нова фирма', array('crm_Companies', 'add', $personNumField => $num, 'ret_url' => TRUE), 'ef_icon=img/16/office-building-add.png, title=Създай нова фирма от номера');
+            $rowTools->addLink('Нова фирма', array('crm_Companies', 'add', $personNumField => $num, 'ret_url' => true), 'ef_icon=img/16/office-building-add.png, title=Създай нова фирма от номера');
             
             if (!isset($type)) {
                 // Ако е мобилен номер, полето ще сочи към мобилен
                 $personNumField = ($numArr[0]->mobile) ? 'mobile' : 'tel';
             }
-            $rowTools->addLink('Ново лице', array('crm_Persons', 'add', $personNumField => $num, 'ret_url' => TRUE), 'ef_icon=img/16/vcard-add.png, title=Създай нова фирма от номера');
+            $rowTools->addLink('Ново лице', array('crm_Persons', 'add', $personNumField => $num, 'ret_url' => true), 'ef_icon=img/16/vcard-add.png, title=Създай нова фирма от номера');
             
             if (self::haveRightFor('addto')) {
-                
                 Request::setProtected(array('num'));
                 
                 // Бутон за добавяне на номера към
-                $rowTools->addLink('Добави към...', array(get_called_class(), 'addTo', 'num' => $num, 'ret_url' => TRUE), 'ef_icon=img/16/add.png, title=Добавяне на номера към съществуващ контрагент');
+                $rowTools->addLink('Добави към...', array(get_called_class(), 'addTo', 'num' => $num, 'ret_url' => true), 'ef_icon=img/16/add.png, title=Добавяне на номера към съществуващ контрагент');
             }
         }
     }
@@ -1920,13 +1932,13 @@ class callcenter_Talks extends core_Master
     /**
      * Екшън за прикачане на номер към контрагент
      */
-    function act_AddTo()
+    public function act_AddTo()
     {
         Request::setProtected(array('num'));
         
         $this->requireRightFor('addto');
         $form = cls::get('core_Form');
-        $form->title = "Добавяне на номера към фирма или лице";
+        $form->title = 'Добавяне на номера към фирма или лице';
         
         $form->FNC('sel', 'enum(, company_tel=Телефон на фирма, company_fax=Факс на фирма,
                                   person_buzTel=Служебен номер на лице, person_buzFax=Служебен факс на лице,
@@ -1936,7 +1948,7 @@ class callcenter_Talks extends core_Master
         
         $form->input();
         
-        $class = $field = $className = NULL;
+        $class = $field = $className = null;
         
         if ($form->rec->sel) {
             list($class, $field) = explode('_', $form->rec->sel);
@@ -1944,7 +1956,6 @@ class callcenter_Talks extends core_Master
         
         // Ако е избран клас, показваме избор на контрагент
         if (isset($class)) {
-            
             $className = 'crm_Persons';
             $caption = 'Лице';
             
@@ -1964,8 +1975,7 @@ class callcenter_Talks extends core_Master
         }
         
         // Добавяме номера към съответния контрагент
-        if($form->isSubmitted()){
-            
+        if ($form->isSubmitted()) {
             expect($className && $form->rec->num);
             
             $inst = cls::get($className);
@@ -1979,12 +1989,11 @@ class callcenter_Talks extends core_Master
             
             if ($inst->save($iRec, $field)) {
                 $inst->logWrite('Добавен номер', $iRec->id);
-                $this->logWrite("Добавяне на телефонен номер към контрагент");
+                $this->logWrite('Добавяне на телефонен номер към контрагент');
                 
                 return new Redirect($retUrl, 'Успешно добавихте номера');
-            } else {
-                $form->setError('sel', 'Възникна грешка при добавяне');
             }
+            $form->setError('sel', 'Възникна грешка при добавяне');
         }
         
         // Добавяне на бутони
@@ -1998,7 +2007,7 @@ class callcenter_Talks extends core_Master
     /**
      * Извиква се от крона. Променя статуса на разговорите без статус на без отговор
      */
-    function cron_FixDialStatus()
+    public function cron_FixDialStatus()
     {
         // Вземаме конфигурационните данни
         $conf = core_Packs::getConfig('callcenter');
@@ -2013,7 +2022,7 @@ class callcenter_Talks extends core_Master
         // Вземаме всички записи, които нямат dialStatus и са по стари от посоченото време
         $query = static::getQuery();
         $query->where("#dialStatus IS NULL OR #dialStatus = ''");
-        $query->where("#startTime < '$before'");
+        $query->where("#startTime < '${before}'");
         
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {
@@ -2037,10 +2046,10 @@ class callcenter_Talks extends core_Master
     }
     
     
-	/**
+    /**
      * Изпълнява се след създаването на модела
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         //Данни за работата на cron
         $rec = new stdClass();
@@ -2063,9 +2072,9 @@ class callcenter_Talks extends core_Master
             
             // Всички разговори, които са над допостимата дължината
             $query = static::getQuery();
-            $query->where(array("ADDDATE(#answerTime, INTERVAL [#1#] SECOND) < #endTime", $conf->CALLCENTER_MAX_CALL_DURATION));
+            $query->where(array('ADDDATE(#answerTime, INTERVAL [#1#] SECOND) < #endTime', $conf->CALLCENTER_MAX_CALL_DURATION));
             
-            while($rec = $query->fetch()) {
+            while ($rec = $query->fetch()) {
                 
                 // Променяме края на разговора, да е в допустимите граници
                 $rec->endTime = dt::addSecs($conf->CALLCENTER_MAX_CALL_DURATION, $rec->answerTime);
@@ -2085,7 +2094,7 @@ class callcenter_Talks extends core_Master
                 
                 if ($cnt == 1) {
                     $word = 'разговор';
-                } else { 
+                } else {
                     $word = 'разговорa';
                 }
                 
@@ -2099,7 +2108,7 @@ class callcenter_Talks extends core_Master
         
         // Всички отговорени разговори с некоректни времена за endTime или answerTime
         $nQuery = static::getQuery();
-        $unixNull = date("Y-m-d h:i:s", 0);
+        $unixNull = date('Y-m-d h:i:s', 0);
         $nQuery->where("#dialStatus = 'ANSWERED'");
         $nQuery->where("#endTime <= '{$unixNull}'");
         $nQuery->orWhere("#answerTime <= '{$unixNull}'");
@@ -2107,7 +2116,7 @@ class callcenter_Talks extends core_Master
         while ($nRec = $nQuery->fetch()) {
             
             // Флаг, дали да се записва
-            $save = FALSE;
+            $save = false;
             
             // Ако времето на отговор е лошо
             if ($nRec->answerTime <= $unixNull) {
@@ -2119,7 +2128,7 @@ class callcenter_Talks extends core_Master
                     $nRec->answerTime = dt::subtractSecs($conf->CALLCENTER_MAX_CALL_DURATION, $nRec->endTime);
                     
                     // Вдигаме флага
-                    $save = TRUE;
+                    $save = true;
                 } else {
                     
                     // Ако няма време на край, тогава използваме началото за позвъняване за начало на разговора
@@ -2137,14 +2146,14 @@ class callcenter_Talks extends core_Master
                     $nRec->endTime = dt::addSecs($conf->CALLCENTER_MAX_CALL_DURATION, $nRec->answerTime);
                     
                     // Вдигаме флага
-                    $save = TRUE;
+                    $save = true;
                 }
             }
             
             // Ако флага е вдигнат
             if ($save) {
                 
-                // Записваме 
+                // Записваме
                 static::save($nRec);
                 
                 // Добавяме в масива
@@ -2160,7 +2169,7 @@ class callcenter_Talks extends core_Master
             
             if ($cnt == 1) {
                 $word = 'разговор';
-            } else { 
+            } else {
                 $word = 'разговорa';
             }
             
@@ -2175,7 +2184,7 @@ class callcenter_Talks extends core_Master
      * Екшън за тестване
      * Генерира "фалшиви" обаждане
      */
-    function act_Mockup()
+    public function act_Mockup()
     {
         requireRole('admin');
         
@@ -2278,13 +2287,13 @@ class callcenter_Talks extends core_Master
     
     /**
      * Връща хеша за листовия изглед. Вика се от plg_RefreshRows
-     * 
+     *
      * @param string $status
-     * 
+     *
      * @return string
      * @see plg_RefreshRows
      */
-    function getContentHash($status)
+    public function getContentHash($status)
     {
         // Премахваме всички тагове
         $hash = md5(trim(strip_tags($status)));
@@ -2293,22 +2302,26 @@ class callcenter_Talks extends core_Master
     }
     
     
-	/**
+    /**
      * Връща запис с подразбиращи се данни за сигнала
-	 * 
-	 * @param integer $id Кой е пораждащия комит
-	 * 
-	 * @return stdClass за cal_Tasks
-	 * 
-	 * @see support_IssueCreateIntf
-	 */
-    function getDefaultIssueRec($id)
+     *
+     * @param integer $id Кой е пораждащия комит
+     *
+     * @return stdClass за cal_Tasks
+     *
+     * @see support_IssueCreateIntf
+     */
+    public function getDefaultIssueRec($id)
     {
-        if (!$id) return ;
+        if (!$id) {
+            return ;
+        }
         
         $rec = $this->fetch($id);
         
-        if (!$rec) return ;
+        if (!$rec) {
+            return ;
+        }
         
         $iRec = new stdClass();
         
@@ -2319,52 +2332,49 @@ class callcenter_Talks extends core_Master
         }
         
         $iRec->title = tr('Разговор с') . ' "' . $phoneInfo . '"';
-        $iRec->description = tr('Във връзка с') . ' ' . toUrl(array($this, 'Single', $id), TRUE);
+        $iRec->description = tr('Във връзка с') . ' ' . toUrl(array($this, 'Single', $id), true);
         
         return $iRec;
     }
     
     
     /**
-	 * След създаване на сигнал от документа
-	 * 
-	 * @param integer $id
-	 * @param stdClass $iRec
-	 * 
-	 * @see support_IssueCreateIntf
-	 */
-    function afterCreateIssue($id, $iRec)
+     * След създаване на сигнал от документа
+     *
+     * @param integer  $id
+     * @param stdClass $iRec
+     *
+     * @see support_IssueCreateIntf
+     */
+    public function afterCreateIssue($id, $iRec)
     {
-        
-        return ;
     }
     
-	
+    
     /**
      * След подготовка на тулбара на единичен изглед.
-	 * 
-	 * @param core_Mvc $mvc
-	 * @param object $data
-	 */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+     *
+     * @param core_Mvc $mvc
+     * @param object   $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if ($data->rec->id && cal_Tasks::haveRightFor('add')) {
             $urlArr = cal_Tasks::getUrlForCreate($data->rec->id, $mvc->className);
-            $data->toolbar->addBtn('Сигнал', $urlArr,'ef_icon = img/16/support.png,title=Създаване на сигнал');
+            $data->toolbar->addBtn('Сигнал', $urlArr, 'ef_icon = img/16/support.png,title=Създаване на сигнал');
         }
     }
     
     
     /**
      * Преобразува линка към single' на файла richtext линк
-     * 
+     *
      * @param integer $id - id на записа
-     * 
+     *
      * @return string $res - Линка в richText формат
      */
-    function getVerbalLinkFromClass($id)
+    public function getVerbalLinkFromClass($id)
     {
-        
         return self::getLinkToSingle($id);
     }
 }

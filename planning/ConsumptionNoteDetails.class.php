@@ -113,16 +113,18 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-    	if(!count($data->rows)) return;
-    	 
-    	foreach ($data->rows as $id => &$row){
-    		$rec = $data->recs[$id];
-    	
-    		$warning = deals_Helper::getQuantityHint($rec->productId, $data->masterData->rec->storeId, $rec->quantity);
-    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
-    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
-    		}
-    	}
+        if (!count($data->rows)) {
+            return;
+        }
+         
+        foreach ($data->rows as $id => &$row) {
+            $rec = $data->recs[$id];
+        
+            $warning = deals_Helper::getQuantityHint($rec->productId, $data->masterData->rec->storeId, $rec->quantity);
+            if (strlen($warning) && $data->masterData->rec->state == 'draft') {
+                $row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', false);
+            }
+        }
     }
     
     
@@ -131,15 +133,15 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
-    	$rec = &$form->rec;
-    	if(isset($rec->productId)){
-    		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
-    		$storeId = planning_ConsumptionNotes::fetchField($rec->noteId, 'storeId');
-    		
-    		if(isset($storeId) && $canStore == 'yes'){
-    			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
-    			$form->info = $storeInfo->formInfo;
-    		}
-    	}
+        $rec = &$form->rec;
+        if (isset($rec->productId)) {
+            $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+            $storeId = planning_ConsumptionNotes::fetchField($rec->noteId, 'storeId');
+            
+            if (isset($storeId) && $canStore == 'yes') {
+                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
+                $form->info = $storeInfo->formInfo;
+            }
+        }
     }
 }

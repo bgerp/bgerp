@@ -3,8 +3,8 @@
 
 /**
  * Интерфейс за експорт към XLS
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   export
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>

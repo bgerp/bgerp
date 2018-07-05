@@ -16,24 +16,24 @@ defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * 
+ *
  * @deprecated
  */
-class fileman_Files2 extends core_Master 
+class fileman_Files2 extends core_Master
 {
     
     
     /**
      * Създаване на файл от файл в ОС. Връща fh на новосъздания файл.
-     * 
-     * @param string $path - Пътя до файла в ОС
-     * @param string $bucket - Името на кофата
-     * @param string|NULL $name - Името на файла
-     * @param string $type - Типа
-     * 
+     *
+     * @param string      $path   - Пътя до файла в ОС
+     * @param string      $bucket - Името на кофата
+     * @param string|NULL $name   - Името на файла
+     * @param string      $type   - Типа
+     *
      * @return string $fh - Манипулатора на файла
      */
-    public static function absorb($path, $bucket, $name = NULL, $type = 'file')
+    public static function absorb($path, $bucket, $name = null, $type = 'file')
     {
         wp('deprecated');
         
@@ -42,7 +42,9 @@ class fileman_Files2 extends core_Master
             expect(is_file($path), 'Не е подаден валиден файл.');
             
             // Опитваме се да определим името на файла
-            if(!$name) $name = basename($path);
+            if (!$name) {
+                $name = basename($path);
+            }
         }
         
         // Очакваме да има такава кофа
@@ -64,7 +66,7 @@ class fileman_Files2 extends core_Master
         if ($data->new || !($fh = static::checkFileNameExist($dataId, $bucketId, $name))) {
             
             // Създаваме запис за файла
-            $fh = static::createFile($name, $bucketId, $dataId);    
+            $fh = static::createFile($name, $bucketId, $dataId);
         }
         
         // Ако има манипулатор
@@ -80,11 +82,11 @@ class fileman_Files2 extends core_Master
     
     /**
      * Създаване на файл от стринг. Връща fh на новосъздания файл.
-     * 
-     * @param string $data - Данните от които ще се създаде файла
+     *
+     * @param string $data   - Данните от които ще се създаде файла
      * @param string $bucket - Името на кофата
-     * @param string $name - Името на файла 
-     * 
+     * @param string $name   - Името на файла
+     *
      * @return string $fh - Манипулатора на файла
      */
     public static function absorbStr($data, $bucket, $name)
@@ -97,10 +99,10 @@ class fileman_Files2 extends core_Master
     
     /**
      * Нова версия от файл в ОС
-     * 
-     * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
+     *
+     * @param string $fh   - Манипулатор на файла, за който ще се създаде нова версия
      * @param string $path - Пътя до новата версия на файла
-     * 
+     *
      * @return fileman_Versions $versionId - id от запис
      */
     public static function addVersion($fh, $path)
@@ -130,10 +132,10 @@ class fileman_Files2 extends core_Master
     
     /**
      * Нова версия от стринг
-     * 
-     * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
+     *
+     * @param string $fh   - Манипулатор на файла, за който ще се създаде нова версия
      * @param string $data - Данните от които ще се създаде весия на файла
-     * 
+     *
      * @return fileman_Versions $versionId - id от запис
      */
     public static function addVersionStr($fh, $data)
@@ -160,14 +162,14 @@ class fileman_Files2 extends core_Master
     
     /**
      * Екстрактване на файл в ОС. Връща пълния път до новия файл
-     * 
-     * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
-     * @param string|NULL $path - Пътя, където да се абсорбира файла
+     *
+     * @param string      $fh       - Манипулатор на файла, за който ще се създаде нова версия
+     * @param string|NULL $path     - Пътя, където да се абсорбира файла
      * @param string|NULL $fileName - Името на файла
-     * 
+     *
      * @return string $copyPath - Пътя до файла
      */
-    public static function extract($fh, $path=NULL, $fileName=NULL)
+    public static function extract($fh, $path = null, $fileName = null)
     {
         // Вземаме записите за файла
         expect($rec = fileman_Files::fetchByFh($fh), 'Няма такъв запис');
@@ -196,7 +198,7 @@ class fileman_Files2 extends core_Master
         }
         
         // Пътя до файла
-        $copyPath = $path . "/" . $fileName;
+        $copyPath = $path . '/' . $fileName;
         
         // Копираме файла
         $copied = @copy($originalPath, $copyPath);
@@ -226,9 +228,9 @@ class fileman_Files2 extends core_Master
     
     /**
      * Екстрактване на файл в string. Връща стринга.
-     * 
+     *
      * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
-     * 
+     *
      * @return string $content - Данните на файла
      */
     public static function extractStr($fh)
@@ -255,10 +257,10 @@ class fileman_Files2 extends core_Master
     
     /**
      * Преименуване на файл
-     * 
-     * @param string $fh - Манипулатор на файла
+     *
+     * @param string $fh      - Манипулатор на файла
      * @param string $newName - Новото име на файла
-     * 
+     *
      * @return string - Новото име на файла
      */
     public static function rename($fh, $newName)
@@ -267,10 +269,10 @@ class fileman_Files2 extends core_Master
         expect($rec = fileman_Files::fetchByFh($fh), 'Няма такъв запис.');
         
         // Ако имена не са еднакви
-        if($rec->name != $newName) {
+        if ($rec->name != $newName) {
             
             // Вземаме възможното има за съответната кофа
-            $rec->name = fileman_Files::getPossibleName($newName, $rec->bucketId); 
+            $rec->name = fileman_Files::getPossibleName($newName, $rec->bucketId);
             
             // Записваме
             fileman_Files::save($rec);
@@ -288,14 +290,14 @@ class fileman_Files2 extends core_Master
     
     /**
      * Копиране на файл
-     * 
-     * @param string $fh - Манипулатора на файла
+     *
+     * @param string      $fh        - Манипулатора на файла
      * @param string|NULL $newBucket - Името на новата кофа
-     * @param string|NULL $newName - Новото име на файла
-     * 
+     * @param string|NULL $newName   - Новото име на файла
+     *
      * @return string $newRec->fileHnd - Манипулатора на файла
      */
-    public static function copy($fh, $newBucket = NULL, $newName = NULL)
+    public static function copy($fh, $newBucket = null, $newName = null)
     {
         // Очакваме да има такъв файл
         expect($rec = fileman_Files::fetchByFh($fh), 'Няма такъв запис');
@@ -339,9 +341,9 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща id на посочения fileHnd
-     * 
+     *
      * @param string $fh - Манипулатора на файла
-     * 
+     *
      * @return fileman_Files $id - id на файла
      */
     public static function fhToId($fh)
@@ -355,9 +357,9 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща масив от id-та  на файлове. Като аргумент получава масив или keylist от fileHandles.
-     * 
+     *
      * @param array $fhKeylist - масив или keylist от манипулатора на файлове
-     * 
+     *
      * @return array $idsArr - Масив с id' то във fileman_Files
      */
     public static function fhKeylistToIds($fhKeylist)
@@ -380,7 +382,9 @@ class fileman_Files2 extends core_Master
         foreach ($fhArr as $fh) {
             
             //Ако няма стойност, прескачаме
-            if (!$fh) continue;
+            if (!$fh) {
+                continue;
+            }
             
             try {
                 
@@ -390,7 +394,7 @@ class fileman_Files2 extends core_Master
                 
                 // Ако възникне грешка
                 continue;
-            }   
+            }
             
             // Добавяме в масива
             $idsArr[$id] = $id;
@@ -402,9 +406,9 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща fileHnd на посоченото id
-     * 
+     *
      * @param fileman_Files $id - id на файла
-     * 
+     *
      * @return string $fh - Манипулатора на файла
      */
     public static function idToFh($id)
@@ -418,9 +422,9 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща масив от fh-ри  на файлове. Като аргумент получава масив или keylist от id-та на файлове
-     * 
+     *
      * @param array $idKeylist - масив или keylist от id (от fileman_Files) на файлове
-     * 
+     *
      * @return array $idsArr - Масив с манипулатор
      */
     public static function idKeylistToFhs($idKeylist)
@@ -442,7 +446,9 @@ class fileman_Files2 extends core_Master
         foreach ($idArr as $id) {
             
             //Ако няма стойност, прескачаме
-            if (!$id) continue;
+            if (!$id) {
+                continue;
+            }
             
             try {
                 
@@ -452,7 +458,7 @@ class fileman_Files2 extends core_Master
                 
                 // Ако няма такъв fh, тогава прескачаме
                 continue;
-            }   
+            }
             
             // Добавяме в масива
             $fhsArr[$fh] = $fh;
@@ -464,9 +470,9 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща всички мета-характеристики на файла
-     * 
+     *
      * @param strign $fh - Манипулатор на файла
-     * 
+     *
      * @param return array(
      *      'name' => '...',
      *      'bucket' => '...',
@@ -500,13 +506,13 @@ class fileman_Files2 extends core_Master
     }
     
     
-	/**
+    /**
      * Създава нов файл
-     * 
-     * @param string $name - Името на файла
+     *
+     * @param string          $name     - Името на файла
      * @param fileman_Buckets $bucketId - Кофата, в която ще създадем
-     * @param fileman_Data $dataId - Данните за файла
-     * 
+     * @param fileman_Data    $dataId   - Данните за файла
+     *
      * @return string $rec->fileHnd - Манипуалатор на файла
      */
     protected static function createFile($name, $bucketId, $dataId)
@@ -530,7 +536,7 @@ class fileman_Files2 extends core_Master
     
     /**
      * Създава нова директория, където ще се записват файловете
-     * 
+     *
      * @return string $tempPath - Пътя до новата директория
      */
     public static function getTempPath()
@@ -544,13 +550,13 @@ class fileman_Files2 extends core_Master
         // Опитваме се да генерираме име, което не се среща в директория
         do {
             $newName = str::getRand();
-        }while(in_array($newName, (array)$dirs));
+        } while (in_array($newName, (array) $dirs));
         
         // Пътя на директорията
         $tempPath = $dir . '/' . $newName;
         
         // Създаваме директорията
-        expect(mkdir($tempPath, 0777, TRUE), 'Не може да се създаде директория.');
+        expect(mkdir($tempPath, 0777, true), 'Не може да се създаде директория.');
         
         return $tempPath;
     }
@@ -558,7 +564,7 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща директорията с временните файлове
-     * 
+     *
      * @return string - Пътя до директорията, където се съхраняват времените файлове
      */
     public static function getTempDir()
@@ -566,7 +572,7 @@ class fileman_Files2 extends core_Master
         // TODO
 //    	$conf = core_Packs::getConfig('fileman');
 //    	$tempPath = $conf->FILEMAN_TEMP_PATH;
-    	
+        
         // Пътя до директория с временните файлове
         $tempDir = FILEMAN_TEMP_PATH;
         
@@ -576,9 +582,9 @@ class fileman_Files2 extends core_Master
     
     /**
      * Изтрива временната директория
-     * 
+     *
      * @param string $tempFile - Файла, който ще бъде изтрит с директорията
-     * 
+     *
      * @return boolean $deleted - Връща TRUE, ако изтриването протече коректно
      */
     public static function deleteTempPath($tempFile)
@@ -599,20 +605,17 @@ class fileman_Files2 extends core_Master
     }
     
     
-	/**
-	 * 
-	 */
-    static function on_AfterSetupMvc($mvc, &$res)
+    
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
         // Пътя до временните файлове
         $tempPath = static::getTempDir();
         
         // Ако не същестува
-        if(!is_dir($tempPath)) {
+        if (!is_dir($tempPath)) {
             
             // Ако не може да се създаде
-            if(!mkdir($tempPath, 0777, TRUE)) {
-                
+            if (!mkdir($tempPath, 0777, true)) {
                 $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') . ': "' . $tempPath . '"</li>';
             } else {
                 $res .= '<li class="debug-new">' . tr('Създадена е директорията') . ': "' . $tempPath . '"</li>';
@@ -627,14 +630,14 @@ class fileman_Files2 extends core_Master
     
     /**
      * Проверява дали файла със съответните данни съществува
-     * 
-     * @param fileman_Data $dataId - id на данните на файла
-     * @param fileman_Buckets $bucketId - id на кофата
-     * @param string $inputFileName - Името на файла
-     * 
+     *
+     * @param fileman_Data    $dataId        - id на данните на файла
+     * @param fileman_Buckets $bucketId      - id на кофата
+     * @param string          $inputFileName - Името на файла
+     *
      * @return string|FALSE - Ако открие съвпадение връща манипулатора на файла
      */
-    static function checkFileNameExist($dataId, $bucketId, $inputFileName)
+    public static function checkFileNameExist($dataId, $bucketId, $inputFileName)
     {
         // Името на файла в долния регистър
         $inputFileName = strtolower($inputFileName);
@@ -656,7 +659,7 @@ class fileman_Files2 extends core_Master
         $recFileNameArr['ext'] = preg_quote($recFileNameArr['ext'], '/');
         
         // Регулярният израз за откриване на подобни файлове
-        $regExp = "^" . $recFileNameArr['name'] . "(\_[0-9]+)*";
+        $regExp = '^' . $recFileNameArr['name'] . "(\_[0-9]+)*";
         
         // Ако има разширение на файла
         if ($recFileNameArr['ext']) {
@@ -664,7 +667,7 @@ class fileman_Files2 extends core_Master
         }
         
         // Край на регулярния израз
-        $regExp .= "$";
+        $regExp .= '$';
         
         // Добавяме регулярния израз за търсене
         $query->where("LOWER(#name) REGEXP '{$regExp}'");
@@ -676,18 +679,18 @@ class fileman_Files2 extends core_Master
             return $rec->fileHnd;
         }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Проверява дали пътя е коректен файл
-     * 
+     *
      * @param string $path - Пътя до файла
-     * 
+     *
      * @return boolean
      */
-    static function isCorrectPath($path)
+    public static function isCorrectPath($path)
     {
         static $isCorrect;
         
@@ -698,10 +701,9 @@ class fileman_Files2 extends core_Master
             if (is_file($path)) {
                 
                 // Добавяме в масива
-                $isCorrect[$path] = TRUE;
+                $isCorrect[$path] = true;
             } else {
-                
-                $isCorrect[$path] = FALSE;
+                $isCorrect[$path] = false;
             }
         }
         
@@ -711,15 +713,17 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща mimе типа за съответния файл
-     * 
+     *
      * @param string $path - Пътя до файла
-     * 
+     *
      * @return string - Миме типа на файла
      */
-    static function getMimeTypeFromFilePath($path)
+    public static function getMimeTypeFromFilePath($path)
     {
         // Очакваме да е валиден път иначе се отказваме
-        if(!static::isCorrectPath($path)) return FALSE;
+        if (!static::isCorrectPath($path)) {
+            return false;
+        }
         
         // Вземаме конфигурацията
         $conf = core_Packs::getConfig('fileman');
@@ -738,9 +742,9 @@ class fileman_Files2 extends core_Master
         $mime = strtolower(trim($mime));
         
         // Доуточняване, ако е изпълним файл, дали не е за MS Windows
-        if($mime == 'application/octet-stream') {
+        if ($mime == 'application/octet-stream') {
             $res = exec("{$fileCmd} \"{$path}\"");
-            if(stripos($res, 'PE32 executable for MS Windows')) {
+            if (stripos($res, 'PE32 executable for MS Windows')) {
                 $mime = 'application/x-msdownload';
             }
         }
@@ -752,12 +756,12 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща времето на последната модификация на файла
-     * 
+     *
      * @param string $path - Пътя до файла
-     * 
+     *
      * @return timeStamp - Времето на последна промяна на файла
      */
-    static function getModificationTimeFromFilePath($path)
+    public static function getModificationTimeFromFilePath($path)
     {
         // Очакваме да е валиден път
         expect(static::isCorrectPath($path));
@@ -768,12 +772,12 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща времето на създаване на файла
-     * 
+     *
      * @param string $path - Пътя до файла
-     * 
+     *
      * @return timeStamp - Времето на създаване на файла
      */
-    static function getCreationTimeFromFilePath($path)
+    public static function getCreationTimeFromFilePath($path)
     {
         // Очакваме да е валиден път
         expect(static::isCorrectPath($path));
@@ -784,12 +788,12 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща времето на последен достъп до файла
-     * 
+     *
      * @param string $path - Пътя до файла
-     * 
+     *
      * @return timeStamp - Времето на последен достъп до файла
      */
-    static function getAccessTimeFromFilePath($path)
+    public static function getAccessTimeFromFilePath($path)
     {
         // Очакваме да е валиден път
         expect(static::isCorrectPath($path));
@@ -800,12 +804,12 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща размера на файла
-     * 
+     *
      * @param string $path - Пътя до файла
-     * 
+     *
      * @return integer - Размера на файла в байтове
      */
-    static function getFileSizeFromFilePath($path)
+    public static function getFileSizeFromFilePath($path)
     {
         // Очакваме да е валиден път
         expect(static::isCorrectPath($path));
@@ -816,12 +820,12 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща типа на файла. Позволените са: fifo, char, dir, block, link, file, socket and unknown
-     * 
+     *
      * @param string $path - Пътя до файла
-     * 
+     *
      * @return string - Типа на файла
      */
-    static function getFileTypeFromFilePath($path)
+    public static function getFileTypeFromFilePath($path)
     {
         // Очакваме да е валиден път
         expect(static::isCorrectPath($path));
@@ -832,11 +836,11 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща масив с всички данни за файла
-     * 
+     *
      * @param string $filePath - Пътя до файла
-     * 
+     *
      * @return array $res - Масив с резултатите
-     * 
+     *
      * $res['modificationTime'] - Време на последна модификация
      * $res['creationTime'] - Време на създаване
      * $res['accessTime'] - Време на последен достъп до файла
@@ -846,7 +850,7 @@ class fileman_Files2 extends core_Master
      * $res['extension'] - Разширението на файла
      * $res['isCorrectExt'] - Дали разширението на файла е в допусмите за миме типа
      */
-    static function getInfoFromFilePath($filePath)
+    public static function getInfoFromFilePath($filePath)
     {
         // Време на последна модификация
         $res['modificationTime'] = static::getModificationTimeFromFilePath($filePath);
@@ -878,15 +882,15 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща линк към сингъла на файла
-     * 
-     * @param fileHnd $fh - Манипулатор на файла
-     * @param boolean $absolute - Дали линка да е абсолютен
-     * @param array $attr - Други параметри
-     * @param string|NULL $name - Името, което да се използва
-     * 
+     *
+     * @param fileHnd     $fh       - Манипулатор на файла
+     * @param boolean     $absolute - Дали линка да е абсолютен
+     * @param array       $attr     - Други параметри
+     * @param string|NULL $name     - Името, което да се използва
+     *
      * @return core_Et - Линк
      */
-    static function getLinkToSingle($fh, $absolute=FALSE, $attr=array(), $name=NULL)
+    public static function getLinkToSingle($fh, $absolute = false, $attr = array(), $name = null)
     {
         // Вземаме записа
         $rec = fileman_Files::fetchByFh($fh);
@@ -903,7 +907,7 @@ class fileman_Files2 extends core_Master
             $name = $rec->name;
             
             // Вербалното име
-            $vName = fileman_Files::getVerbal($rec,'name');
+            $vName = fileman_Files::getVerbal($rec, 'name');
         }
         
         if (isset($attr['limitName'])) {
@@ -921,7 +925,7 @@ class fileman_Files2 extends core_Master
         if (!is_file(getFullPath($icon))) {
             
             // Използваме иконата по подразбиране
-            $icon = "fileman/icons/16/default.png";
+            $icon = 'fileman/icons/16/default.png';
         }
         
         // Вербалното име на файла
@@ -932,13 +936,13 @@ class fileman_Files2 extends core_Master
         
         $attr['rel'] = 'nofollow';
         
-        $isAbsolute = (boolean)(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'));
+        $isAbsolute = (boolean) (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'));
         if (!$isAbsolute && fileman_Files::isDanger($rec)) {
             $attr['class'] .= ' dangerFile';
         }
         
         // Вземаме линка
-        $link = ht::createLink($fileName, $url, FALSE, $attr);
+        $link = ht::createLink($fileName, $url, false, $attr);
         
         return $link;
     }
@@ -946,13 +950,13 @@ class fileman_Files2 extends core_Master
     
     /**
      * Връща URL към сингъла на файла
-     * 
-     * @param fileHnd $fh - Манипулатор на файла
+     *
+     * @param fileHnd $fh       - Манипулатор на файла
      * @param boolean $absolute - Дали URL-то да е абсолютен
-     * 
+     *
      * @return string - URL към сингъла
      */
-    static function getUrlToSingle($fh, $absolute=FALSE)
+    public static function getUrlToSingle($fh, $absolute = false)
     {
         // Вземаме URL' то
         $url = toUrl(array('fileman_Files', 'single', $fh), $absolute);
@@ -975,7 +979,7 @@ class fileman_Files2 extends core_Master
     {
         $tempDir = fileman::getTempPath() . '/' . $name;
     
-        expect(@file_put_contents($tempDir, $fileStr) !== FALSE);
+        expect(@file_put_contents($tempDir, $fileStr) !== false);
     
         return $tempDir;
     }
@@ -983,13 +987,13 @@ class fileman_Files2 extends core_Master
     
     /**
      * Обновява времето на последно използване на файла
-     * 
+     *
      * @param string|stdClass $fh
-     * @param NULL|datetime $lastUse
-     * 
+     * @param NULL|datetime   $lastUse
+     *
      * @return boolean
      */
-    public static function updateLastUse($fh, $lastUse = NULL)
+    public static function updateLastUse($fh, $lastUse = null)
     {
         if (is_object($fh)) {
             $fRec = $fh;

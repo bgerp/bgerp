@@ -14,7 +14,7 @@
 class remote_BgerpDriver extends core_Mvc
 {
 
-	/**
+    /**
      * Поддържа интерфейса за драйвер
      */
     public $interfaces = 'remote_ServiceDriverIntf';
@@ -29,7 +29,7 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * Плъгини и класове за зареждане
      */
-    public  $loadList = 'crm_Wrapper';
+    public $loadList = 'crm_Wrapper';
     
 
     /**
@@ -65,62 +65,59 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * Дали да се прави обновяване по крон на shutdown
      */
-    private $cronUpdate = FALSE;
+    private $cronUpdate = false;
 
 
     /**
-	 * Добавя полетата на драйвера към Fieldset
-	 * 
-	 * @param core_Fieldset $fieldset
-	 */
-	public function addFields(core_Fieldset &$fieldset)
-	{
-        if(isset($fieldset->fields['url'])) {
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        if (isset($fieldset->fields['url'])) {
             $fieldset->setField('url', 'hint=Адрес на друга bgERP система');
         }
-	}
+    }
 
     
     /**
      * След конвертиране към вербални стойности на записа
      */
-    function on_AfterRecToVerbal($driver, $mvc, $row, $rec)
+    public function on_AfterRecToVerbal($driver, $mvc, $row, $rec)
     {
-        if(!$rec->data->lKeyCC) {
-            
+        if (!$rec->data->lKeyCC) {
             if ($rec->userId == core_Users::getCurrent()) {
                 $authOutArr = array($driver, 'AuthOut', $rec->id);
             } else {
                 $authOutArr = array();
             }
             
-            $row->auth = ht::createBtn("Получаване", $authOutArr, NULL, 'target=_blank');
+            $row->auth = ht::createBtn('Получаване', $authOutArr, null, 'target=_blank');
         } else {
-            
             if ($rec->userId == core_Users::getCurrent()) {
                 $row->url = ht::createLink($rec->url, array($driver, 'Autologin', $rec->id, 'url' => $rec->url));
             }
             
-            $row->auth = ht::createLink('Получена', NULL, NULL, 'ef_icon=img/16/checked-green.png');
+            $row->auth = ht::createLink('Получена', null, null, 'ef_icon=img/16/checked-green.png');
         }
-        if($rec->data->rKeyCC) {
-            $row->auth .= '&nbsp;' . ht::createLink('Дадена', NULL, NULL, 'ef_icon=img/16/checked-orange.png');
+        if ($rec->data->rKeyCC) {
+            $row->auth .= '&nbsp;' . ht::createLink('Дадена', null, null, 'ef_icon=img/16/checked-orange.png');
         }
 
         $icon = sbf('img/16/bgerp.png', '');
 
-        $row->url = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $row->url . "</span>";
- 
+        $row->url = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $row->url . '</span>';
     }
 
 
     /**
      * За да не могат да се редактират оторизациите с получен ключ
      */
-    public static function on_AfterGetRequiredRoles($driver, $mvc, &$res, $action, $rec = NULL, $userId = NULL)
-	{  
-        if($action == 'edit' && is_object($rec)) {
-            if($rec->data->lKeyCC) {
+    public static function on_AfterGetRequiredRoles($driver, $mvc, &$res, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'edit' && is_object($rec)) {
+            if ($rec->data->lKeyCC) {
                 $res = 'no_one';
             }
         }
@@ -132,11 +129,11 @@ class remote_BgerpDriver extends core_Mvc
      *
      * @param $rec      stdClass    Запис на оторизация
      * @param $type     string      'remote' или 'local'
-     * 
+     *
      */
-    static function getCryptKey($rec, $type = 'local')
+    public static function getCryptKey($rec, $type = 'local')
     {
-        if($type == 'local') {
+        if ($type == 'local') {
             $key = $rec->data->lKey . $rec->data->lKeyCC;
         } else {
             $key = $rec->data->rKey . $rec->data->rKeyCC;
@@ -145,20 +142,20 @@ class remote_BgerpDriver extends core_Mvc
         return $key;
     }
 
-	
-	/**
-	 * Може ли вградения обект да се избере
-	 */
-	public function canSelectDriver($userId = NULL)
-	{
-    	return TRUE;
-	}
+    
+    /**
+     * Може ли вградения обект да се избере
+     */
+    public function canSelectDriver($userId = null)
+    {
+        return true;
+    }
 
 
     /**
      * Изходящо оторизиране. Създава изходяща връзка към bgERP
      */
-    function act_AuthOut()
+    public function act_AuthOut()
     {
         expect($id = Request::get('id', 'int'));
 
@@ -175,10 +172,10 @@ class remote_BgerpDriver extends core_Mvc
         // ->rKey - ключа с който ще са кодирани заявките към нас
         // ->confirmed - оторизацията е потвърдена и ние можем да изпращаме заявки
 
-        if(!is_object($rec->data)) {
+        if (!is_object($rec->data)) {
             $rec->data = new stdClass();
         }
-        if(!isset($rec->data->lKey)) {
+        if (!isset($rec->data->lKey)) {
             $rec->data->lKey = str::getRand(self::KEY_PATTERN);
         }
 
@@ -202,16 +199,16 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * Входящ екщън за оторизиране
      */
-    function act_AuthIn()
+    public function act_AuthIn()
     {
         requireRole('powerUser');
         
-        if(!core_Packs::isInstalled('remote')) {
-            if(haveRole('admin')) {
-                return new Redirect(array('core_Packs', 'search' => 'remote'), "За оторизиране на отдалечена bgERP система, трябва да бъде инсталиран пакета `remote`", 'error');
-            } else {
-                return new Redirect(array('Portal', 'Show'), "За оторизиране на отдалечена bgERP система, трябва да бъде инсталиран пакета `remote`. Свържете се с вашия IT администратор.", 'error');
+        if (!core_Packs::isInstalled('remote')) {
+            if (haveRole('admin')) {
+                return new Redirect(array('core_Packs', 'search' => 'remote'), 'За оторизиране на отдалечена bgERP система, трябва да бъде инсталиран пакета `remote`', 'error');
             }
+
+            return new Redirect(array('Portal', 'Show'), 'За оторизиране на отдалечена bgERP система, трябва да бъде инсталиран пакета `remote`. Свържете се с вашия IT администратор.', 'error');
         }
 
         expect($Fw = Request::get('Fw'));
@@ -225,14 +222,15 @@ class remote_BgerpDriver extends core_Mvc
         expect(is_numeric($params['authId']) && $params['authId'] > 0, $params['authId']);
 
         $form->title = 'Потвърждение на отдалечен потребител';
-        $form->info = new ET(tr("Желаете ли да оторизирате потребителя |*<b>[#1#]</b>| от |*<b>[#2#]</b>| да следи вашите съобщения?"), 
+        $form->info = new ET(
+            tr('Желаете ли да оторизирате потребителя |*<b>[#1#]</b>| от |*<b>[#2#]</b>| да следи вашите съобщения?'),
                             type_Varchar::escape($params['nick']),
-                            type_Varchar::escape($params['url'])    
+                            type_Varchar::escape($params['url'])
                             );
         $form->setHidden('Fw', $Fw);
         $form->FNC('captcha', 'captcha_Type', 'caption=Разпознаване,hint=Въведи кода от картинката,input');
 
-        $form->toolbar->addSbBtn('Напред', 'default', array('class'=>'fright'), 'ef_icon = img/16/move.png');
+        $form->toolbar->addSbBtn('Напред', 'default', array('class' => 'fright'), 'ef_icon = img/16/move.png');
         $form->toolbar->addBtn('Отказ', toUrl(array('Portal')), 'ef_icon = img/16/close-red.png');
 
         $r = $form->input();
@@ -240,18 +238,24 @@ class remote_BgerpDriver extends core_Mvc
         $cu = core_Users::getCurrent();
         $rec = remote_Authorizations::fetch(array("#userId = [#1#] AND #url = '[#2#]'", $cu, $params['url']));
         
-        if($rec->data->rKey && $rec->data->rKeyCC) {
+        if ($rec->data->rKey && $rec->data->rKeyCC) {
             $nick = type_Varchar::escape($params['nick']);
             $url = type_Varchar::escape($params['url']);
             
             remote_Authorizations::logErr('Опит за нова оторизация на отдалечения потребител', $rec->id);
             
-            return new Redirect(crm_Profiles::getUrl(core_Users::getCurrent()), 
-                "|Опит за нова оторизация на отдалечения потребител|* <b>{$nick}</b> ({$url}) |да следи вашите съобщения", 'error');
+            return new Redirect(
+            
+                crm_Profiles::getUrl(core_Users::getCurrent()),
+                "|Опит за нова оторизация на отдалечения потребител|* <b>{$nick}</b> ({$url}) |да следи вашите съобщения",
+            
+                'error'
+            
+            );
         }
 
-        if($form->isSubmitted()) {
-            if($rec) {
+        if ($form->isSubmitted()) {
+            if ($rec) {
                 expect($rec->driverClass == core_Classes::getId(__CLASS__));
             } else {
                 $rec = new stdClass();
@@ -259,7 +263,7 @@ class remote_BgerpDriver extends core_Mvc
                 $rec->data = new stdClass();
             }
             $rec->data->rKey = $params['key'];
-            $rec->data->rId =  $params['authId'];
+            $rec->data->rId = $params['authId'];
             $rec->data->rKeyCC = str::getRand(self::KEY_PATTERN);
             $rec->url = $params['url'];
             $rec->userId = $cu;
@@ -278,15 +282,19 @@ class remote_BgerpDriver extends core_Mvc
             $confirm = file_get_contents($url);
 
                 
-            if($confirm == md5($rec->data->rKey . $rec->rKeyCC)) {
+            if ($confirm == md5($rec->data->rKey . $rec->rKeyCC)) {
                 $rec->data->rConfirmed = $confirm;
                 remote_Authorizations::save($rec);
             }
             
             remote_Authorizations::logInfo('Успешна оторизация за следене на съобщения', $rec->id);
             
-            return new Redirect(crm_Profiles::getUrl(core_Users::getCurrent()), 
-                "|Отдалечения потребител|* " . type_Varchar::escape($params['nick']) . " |е оторизиран да следи вашите съобщения");
+            return new Redirect(
+            
+                crm_Profiles::getUrl(core_Users::getCurrent()),
+                '|Отдалечения потребител|* ' . type_Varchar::escape($params['nick']) . ' |е оторизиран да следи вашите съобщения'
+            
+            );
         }
 
         return $this->renderWrapping($form->renderHtml());
@@ -299,7 +307,7 @@ class remote_BgerpDriver extends core_Mvc
      * o $authId - ид на оторизацията
      * o $params - кодирани с $lKey на връзката параметри, id, url, nick, $lKeyConfirmCode
      */
-    function act_AuthConfirm()
+    public function act_AuthConfirm()
     {
         expect($authId = Request::get('authId'));
 
@@ -329,25 +337,25 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * Крон процес за обновяване на известията от оторизираните системи
      */
-    function cron_UpdateRemoteNotification()
+    public function cron_UpdateRemoteNotification()
     {
-
         $query = remote_Authorizations::getQuery();
         
         $dc = core_Classes::getId(__CLASS__);
 
-        while($rec = $query->fetch("#driverClass = $dc AND #state = 'active'")) {
+        while ($rec = $query->fetch("#driverClass = ${dc} AND #state = 'active'")) {
             
             // Ако нотификациите са изключени за този потребител, не вадим нищо
-            $getNotifys = remote_Setup::get('RECEIVE_NOTIFICATIONS', FALSE, $rec->userId);
+            $getNotifys = remote_Setup::get('RECEIVE_NOTIFICATIONS', false, $rec->userId);
 
-            if($getNotifys == 'no') continue;
+            if ($getNotifys == 'no') {
+                continue;
+            }
 
-            if($rec->data->lKeyCC && $rec->data->rId) {
-
-                $nCnt = self::sendQuestion($rec, __CLASS__, 'getNotifications', array('priority' => TRUE));
+            if ($rec->data->lKeyCC && $rec->data->rId) {
+                $nCnt = self::sendQuestion($rec, __CLASS__, 'getNotifications', array('priority' => true));
                 
-                if(is_array($nCnt)) { 
+                if (is_array($nCnt)) {
                     $priority = $nCnt['priority'];
                     $nCnt = $nCnt['cnt'];
                 } else {
@@ -355,14 +363,16 @@ class remote_BgerpDriver extends core_Mvc
                 }
 
                 // Прескачаме, ако липсва отговор на въпроса
-                if($nCnt === NULL) continue;;
+                if ($nCnt === null) {
+                    continue;
+                }
 
                 $nUrl = array($this, 'Autologin', $rec->id);
                 
                 $userId = $rec->userId;
 
-                if($nCnt > 0) {
-                    if($nCnt == 1) {
+                if ($nCnt > 0) {
+                    if ($nCnt == 1) {
                         $nCnt = '|едно ново известие|*';
                     } else {
                         $nCnt .= ' |нови известия|*';
@@ -371,7 +381,7 @@ class remote_BgerpDriver extends core_Mvc
                     $message = "|Имате|* {$nCnt} |в|* {$url}";
 
                     // Добавя, ако няма нофификация
-                    bgerp_Notifications::add($message, $nUrl, $userId, $priority, NULL, TRUE);
+                    bgerp_Notifications::add($message, $nUrl, $userId, $priority, null, true);
                 } else {
                     bgerp_Notifications::clear($nUrl, $userId);
                 }
@@ -383,7 +393,7 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * Автоматично логване в оталечена система
      */
-    function act_Autologin()
+    public function act_Autologin()
     {
         expect($id = Request::get('id', 'int'));
         
@@ -395,7 +405,7 @@ class remote_BgerpDriver extends core_Mvc
 
         $arr = array();
 
-        if(!$url) {
+        if (!$url) {
             bgerp_Notifications::clear(array($this, 'Autologin', $id), $userId);
         } else {
             expect(filter_var($url, FILTER_VALIDATE_URL));
@@ -410,7 +420,7 @@ class remote_BgerpDriver extends core_Mvc
         
         remote_Authorizations::logLogin('Автоматично логване', $id);
 
-        $this->cronUpdate = TRUE;
+        $this->cronUpdate = true;
         
         return new Redirect($url);
     }
@@ -419,10 +429,10 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * Извиква се на on_Shutdown и обновява състоянието на нотификлациите
      */
-    function on_Shutdown()
+    public function on_Shutdown()
     {
         $me = cls::get('remote_BgerpDriver');
-        if($me->cronUpdate) {
+        if ($me->cronUpdate) {
             core_App::flushAndClose();
             sleep(5);
             Debug::log('Sleep 5 sec. in' . __CLASS__);
@@ -435,17 +445,17 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * Генерира редирект за автоматично логване в отдаличена система
      */
-    function remote_Autologin($auth, $args)
+    public function remote_Autologin($auth, $args)
     {
         expect($auth);
 
-        expect($auth =  self::prepareAuth($auth));
+        expect($auth = self::prepareAuth($auth));
  
-        if(!haveRole('user')) {
+        if (!haveRole('user')) {
             core_Users::loginUser($auth->userId);
         }
  
-        if($url = $args['url']) {
+        if ($url = $args['url']) {
             redirect($url);
         } else {
             redirect(array('bgerp_Portal', 'Show'));
@@ -456,7 +466,7 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * Връща броя на нотификациите за посочения потребител от оторизацията
      */
-    function remote_getNotifications($authId, $arg = NULL)
+    public function remote_getNotifications($authId, $arg = null)
     {
         expect($authId);
         
@@ -464,7 +474,7 @@ class remote_BgerpDriver extends core_Mvc
 
         $res = bgerp_Notifications::getNewCntFromLastOpen($rec->userId, $arg);
 
-        return $res;        
+        return $res;
     }
 
 
@@ -473,7 +483,7 @@ class remote_BgerpDriver extends core_Mvc
      */
     public static function getToken()
     {
-        $token = round(time()/60) . '-' . str::getRand(self::TOKEN_RAND_PATTERN);
+        $token = round(time() / 60) . '-' . str::getRand(self::TOKEN_RAND_PATTERN);
         
         return $token;
     }
@@ -487,26 +497,23 @@ class remote_BgerpDriver extends core_Mvc
         list($t, $r) = explode('-', $token);
         
         // Невалиден $token, ако времевата компонента не е по-голяма от 0
-        if(!($t>0)) {
-
-            return FALSE;
+        if (!($t > 0)) {
+            return false;
         }
         
         /**
          * Невалиден $token, ако случайната част не отговаря на дължината на шаблона
          */
-        if(strlen($r) != strlen(self::TOKEN_RAND_PATTERN)) {
-
-            return FALSE;
+        if (strlen($r) != strlen(self::TOKEN_RAND_PATTERN)) {
+            return false;
         }
 
         // Невалиден $token, ако между времето на издаване и използване има повече от MAX_TOKEN_DEVIATION минути
-        if(abs($t*60-time()) > self::MAX_TOKEN_DEVIATION_TIME) {
-
-            return FALSE;
+        if (abs($t * 60 - time()) > self::MAX_TOKEN_DEVIATION_TIME) {
+            return false;
         }
 
-        $expiryDate = date('Y-m-d H:i:s', $t*60 + 2*self::MAX_TOKEN_DEVIATION_TIME);
+        $expiryDate = date('Y-m-d H:i:s', $t * 60 + 2 * self::MAX_TOKEN_DEVIATION_TIME);
 
         return $expiryDate;
     }
@@ -514,14 +521,14 @@ class remote_BgerpDriver extends core_Mvc
 
     /**
      * Кодира въпроса
-     * 
-     * @return  string  BASE64 кодиран и криптиран стринг 
+     *
+     * @return string BASE64 кодиран и криптиран стринг
      */
     public static function encode($auth, $params, $type = 'question')
     {
-        $auth =  self::prepareAuth($auth);
+        $auth = self::prepareAuth($auth);
         
-        if($type == 'question') {
+        if ($type == 'question') {
             $key = $auth->data->lKey . $auth->data->lKeyCC;
         } else {
             expect($type == 'answer');
@@ -539,13 +546,13 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * Декодира отговора
      *
-     * @return  array
+     * @return array
      */
     public static function decode($auth, $encodedParams, $type = 'answer')
     {
-        $auth =  self::prepareAuth($auth);
+        $auth = self::prepareAuth($auth);
         
-        if($type == 'answer') {
+        if ($type == 'answer') {
             $key = $auth->data->lKey . $auth->data->lKeyCC;
         } else {
             expect($type == 'question');
@@ -553,13 +560,17 @@ class remote_BgerpDriver extends core_Mvc
         }
         $params = core_Crypt::decodeVar($encodedParams, $key, 'json');
 
-        if(!is_array($params)) return FALSE;
+        if (!is_array($params)) {
+            return false;
+        }
 
         $expiryDate = self::getTokenExpiry($params['_token']);
 
-        if(!$expiryDate) return FALSE;
+        if (!$expiryDate) {
+            return false;
+        }
 
-        if(remote_Tokens::storeToken($auth->id, $params['_token'], $expiryDate)) {
+        if (remote_Tokens::storeToken($auth->id, $params['_token'], $expiryDate)) {
             unset($params['_token']);
 
             return $params;
@@ -569,9 +580,9 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * Подготвя URL за извикване на отдалечена функция
      */
-    public static function prepareQuestionUrl($auth, $ctr, $act, $args = NULL)
+    public static function prepareQuestionUrl($auth, $ctr, $act, $args = null)
     {
-        $auth =  self::prepareAuth($auth);
+        $auth = self::prepareAuth($auth);
         
         $params = array('Ctr' => $ctr, 'Act' => $act, 'args' => $args);
 
@@ -588,7 +599,7 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * Задава въпрос и връща отговора по криптиран канал
      */
-    public static function sendQuestion($auth, $ctr, $act, $args = NULL)
+    public static function sendQuestion($auth, $ctr, $act, $args = null)
     {
         $url = self::prepareQuestionUrl($auth, $ctr, $act, $args);
         
@@ -596,13 +607,13 @@ class remote_BgerpDriver extends core_Mvc
         
         $res = @file_get_contents($url);
 
-        if($res) {
+        if ($res) {
             $params = self::decode($auth, $res, 'answer');
      
             return $params['result'];
         }
         
-        if ($res === FALSE) {
+        if ($res === false) {
             self::logWarning('Грешка при вземане на данни от URL: ' . $url);
         }
     }
@@ -616,14 +627,14 @@ class remote_BgerpDriver extends core_Mvc
         expect($authId = Request::get('authId', 'int'));
         expect($encodedParams = Request::get('E'));
 
-        $auth =  self::prepareAuth($authId);
+        $auth = self::prepareAuth($authId);
 
         $params = self::decode($auth, $encodedParams, 'question');
  
         expect($ctr = $params['Ctr']);
         expect($act = $params['Act']);
 
-        $act = "remote_" . $act;
+        $act = 'remote_' . $act;
         
         $inst = cls::get($ctr);
  
@@ -644,7 +655,7 @@ class remote_BgerpDriver extends core_Mvc
      */
     private static function prepareAuth($auth)
     {
-        if(!is_object($auth)) {
+        if (!is_object($auth)) {
             expect($auth = (int) $auth);
             $auth = remote_Authorizations::fetch($auth);
         } else {
@@ -654,25 +665,24 @@ class remote_BgerpDriver extends core_Mvc
         return $auth;
     }
 
-/*
-    function remote_Test($authId, $args)
-    {
-        return $args . " - OK - $authId";
-    }
-
-
-    function act_Test()
-    {
-        $args = 'test';
-        $ctr = 'remote_BgerpDriver';
-        $act = 'test';
-
-        $auth = remote_Authorizations::fetch('1=1');
-
-        $res = self::sendQuestion($auth, $ctr, $act, $args);
-
-        return $res;
-    }
-    */
-
+    /*
+        function remote_Test($authId, $args)
+        {
+            return $args . " - OK - $authId";
+        }
+    
+    
+        function act_Test()
+        {
+            $args = 'test';
+            $ctr = 'remote_BgerpDriver';
+            $act = 'test';
+    
+            $auth = remote_Authorizations::fetch('1=1');
+    
+            $res = self::sendQuestion($auth, $ctr, $act, $args);
+    
+            return $res;
+        }
+        */
 }

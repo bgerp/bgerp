@@ -21,43 +21,43 @@ class sms_Sender extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_Sorting';
+    public $loadList = 'plg_Sorting';
     
     
     /**
      * Интерфeйси
      */
-    var $interfaces = 'bgerp_SMSIntf';
+    public $interfaces = 'bgerp_SMSIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Изпратени SMS-и';
+    public $title = 'Изпратени SMS-и';
     
     
     /**
      * Права за запис
      */
-    var $canWrite = 'bgerp, admin';
+    public $canWrite = 'bgerp, admin';
     
     
     /**
      * Права за четене
      */
-    var $canRead = 'bgerp, admin';
+    public $canRead = 'bgerp, admin';
     
     
     /**
      * Брой записи на страница
      */
-    var $listItemsPerPage = 100;
+    public $listItemsPerPage = 100;
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('gateway', 'varchar(255)', 'caption=Шлюз');
         $this->FLD('uid', 'varchar(16)', 'caption=Хендлър');
@@ -73,7 +73,7 @@ class sms_Sender extends core_Manager
      * Обновява запис в логовете
      * Използва се от изпращачите за обновяване на състоянието
      */
-    function update($uid, $status)
+    public function update($uid, $status)
     {
         $rec = new stdClass();
         $rec->id = $uid;
@@ -90,24 +90,24 @@ class sms_Sender extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $rowColors = array(
-            'received'        => '#a0ffa0',
-            'sended'        => '#e0ffa0',
-            'receiveError'    => '#ffdddd',
-            'sendError'        => '#ffdddd'
+            'received' => '#a0ffa0',
+            'sended' => '#e0ffa0',
+            'receiveError' => '#ffdddd',
+            'sendError' => '#ffdddd'
         );
         
         // Променяме цвета на реда в зависимост от стойността на $row->status
-        $row->ROW_ATTR['style'] .= "background-color: " . $rowColors[$rec->status] . ";";
+        $row->ROW_ATTR['style'] .= 'background-color: ' . $rowColors[$rec->status] . ';';
     }
     
     
     /**
      * Добавя филтър за изпратените SMS-и
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->showFields = 'status';
         
@@ -117,11 +117,10 @@ class sms_Sender extends core_Manager
         
         $rec = $data->listFilter->input();
         
-        if($rec->status) {
+        if ($rec->status) {
             $data->query->where("#status = '{$rec->status}'");
         }
         
         $data->query->orderBy('#time', 'DESC');
     }
-    
 }

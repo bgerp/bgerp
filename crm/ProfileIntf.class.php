@@ -14,5 +14,4 @@
  */
 class crm_ProfileIntf
 {
-
 }

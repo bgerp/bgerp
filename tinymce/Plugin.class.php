@@ -21,12 +21,12 @@ class tinymce_Plugin extends core_Plugin
     
     /**
      * Изпълнява се преди рендирането на input
-     * 
-     * @param type_Key $invoker
-     * @param core_ET $tpl
-     * @param string $name
+     *
+     * @param type_Key          $invoker
+     * @param core_ET           $tpl
+     * @param string            $name
      * @param string|array|NULL $value
-     * @param array $attr
+     * @param array             $attr
      */
     public static function on_BeforeRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
@@ -37,11 +37,13 @@ class tinymce_Plugin extends core_Plugin
     /**
      * Извиква се след рендирането на HTML input
      */
-    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr, $options = array())
+    public function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr, $options = array())
     {
         setIfNot($invoker->params['tinyEditor'], 'yes');
         
-        if ($invoker->params['tinyEditor'] == 'no') return ;
+        if ($invoker->params['tinyEditor'] == 'no') {
+            return ;
+        }
         
         $tinyPlugins = '';
         if ($invoker->params['tinyPlugins']) {
@@ -57,7 +59,7 @@ class tinymce_Plugin extends core_Plugin
             }
         }
         
-		$fs = '';
+        $fs = '';
         if ($invoker->params['tinyFullScreen']) {
             $fs = "setup: function(editor) {editor.on('init', function(e) {editor.execCommand('mceFullScreen');});},";
         }
@@ -72,9 +74,9 @@ class tinymce_Plugin extends core_Plugin
                 },";
         }
         
-        $tpl->push("tinymce/4.7.13/tinymce.min.js", 'JS');
+        $tpl->push('tinymce/4.7.13/tinymce.min.js', 'JS');
         
-        if(core_Lg::getCurrent() == 'bg') {
+        if (core_Lg::getCurrent() == 'bg') {
             $locale = 'bg_BG';
         } else {
             $locale = 'en_GB';
@@ -96,6 +98,6 @@ class tinymce_Plugin extends core_Plugin
                 ]
             }
         
-        });", TRUE);
+        });", true);
     }
 }

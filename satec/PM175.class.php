@@ -21,21 +21,21 @@ class satec_PM175 extends sens2_ProtoDriver
     /**
      * Заглавие на драйвера
      */
-    var $title = 'SATEC PM175';
+    public $title = 'SATEC PM175';
     
     
     /**
      * Описание на входовете
      */
-    var $inputs = array(
-        'kvahTotal'   => array('caption'=>'Обща енергия', 'uom' => 'kVAh'),
-        'kWhImport'   => array('caption'=>'Входяща енергия', 'uom' => 'kWh'),
-        'kvarhExport' => array('caption'=>'Реакт. изх. енергия', 'uom' => 'kVArh'),
-        'kvarhImport' => array('caption'=>'Реакт. вх. енергия', 'uom' => 'kVArh'),
-    	'kWTotal'     => array('caption'=>'1 сек. мощност', 'uom' => 'kW'),
-        'kvarTotal'   => array('caption'=>'1 сек. реакт. мощност', 'uom'=>'kVAr'),
-        'kVATotal'    => array('caption'=>'1 сек. акт. мощност', 'uom'=>'kVA'),
-        'PFTotal'     => array('caption'=>'Косинус Фи', 'uom'=>''),
+    public $inputs = array(
+        'kvahTotal' => array('caption' => 'Обща енергия', 'uom' => 'kVAh'),
+        'kWhImport' => array('caption' => 'Входяща енергия', 'uom' => 'kWh'),
+        'kvarhExport' => array('caption' => 'Реакт. изх. енергия', 'uom' => 'kVArh'),
+        'kvarhImport' => array('caption' => 'Реакт. вх. енергия', 'uom' => 'kVArh'),
+        'kWTotal' => array('caption' => '1 сек. мощност', 'uom' => 'kW'),
+        'kvarTotal' => array('caption' => '1 сек. реакт. мощност', 'uom' => 'kVAr'),
+        'kVATotal' => array('caption' => '1 сек. акт. мощност', 'uom' => 'kVA'),
+        'PFTotal' => array('caption' => 'Косинус Фи', 'uom' => ''),
     );
 
     
@@ -44,11 +44,11 @@ class satec_PM175 extends sens2_ProtoDriver
      *
      * @see  sens2_DriverIntf
      *
-     * @return  array
+     * @return array
      */
-    function getInputPorts($config = NULL)
+    public function getInputPorts($config = null)
     {
-        foreach($this->inputs as $name => $params) {
+        foreach ($this->inputs as $name => $params) {
             $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);
         }
 
@@ -64,7 +64,7 @@ class satec_PM175 extends sens2_ProtoDriver
      *
      * @param core_Form
      */
-    function prepareConfigForm($form)
+    public function prepareConfigForm($form)
     {
         $form->FNC('ip', 'ip', 'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory,value=502');
@@ -73,18 +73,17 @@ class satec_PM175 extends sens2_ProtoDriver
         // Стойности по подразбиране
         $form->setDefault('port', 502);
         $form->setDefault('unit', 1);
-
     }
     
     
     /**
      * Връща масив със стойностите на изразходваната активна мощност
      */
-    function readInputs($inputs, $config, &$persistentState)
+    public function readInputs($inputs, $config, &$persistentState)
     {
         $driver = new modbus_Driver();
         
-        $driver->ip   = $config->ip;
+        $driver->ip = $config->ip;
         $driver->port = $config->port;
         $driver->unit = $config->unit;
         $driver->type = 'words';
@@ -120,5 +119,4 @@ class satec_PM175 extends sens2_ProtoDriver
                 
         return $res;
     }
-    
 }

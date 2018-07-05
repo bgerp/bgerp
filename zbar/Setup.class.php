@@ -18,51 +18,49 @@
 class zbar_Setup extends core_ProtoSetup
 {
 
-	
-	/**
-	 * Версия на пакета
-	 */
-	public $version = '0.1';
-	
-	
-	/**
-	 * Описание на модула
-	 */
-	public $info = "Пакет за прочитана на баркодове от файл";
-	
-	
-	/**
-	 * Пакет без инсталация
-	 */
-	public $noInstall = TRUE;
+    
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
     
     
-	/**
-	 * Проверява дали програмата е инсталирана в сървъра
-	 *
-	 * @return NULL|string
-	 */
-	function checkConfig()
-	{
-	    $program = 'zbarimg';
-	    $haveError = FALSE;
-	    
-	    if (core_Os::isWindows()) {
-	        $res = @exec("{$program} --help", $output, $code);
-	        if ($code !== 0) {
-	            $haveError = TRUE;
-	        }
-	    } else {
-	        $res = @exec("which {$program}", $output, $code);
-	        if (!$res) {
-	            $haveError = TRUE;
-	        }
-	    }
-	
-	    if ($haveError) {
-		
-	        return "Програмата '{$program}' не е инсталирана.";
-	    }
-	}
+    /**
+     * Описание на модула
+     */
+    public $info = 'Пакет за прочитана на баркодове от файл';
+    
+    
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = true;
+    
+    
+    /**
+     * Проверява дали програмата е инсталирана в сървъра
+     *
+     * @return NULL|string
+     */
+    public function checkConfig()
+    {
+        $program = 'zbarimg';
+        $haveError = false;
+        
+        if (core_Os::isWindows()) {
+            $res = @exec("{$program} --help", $output, $code);
+            if ($code !== 0) {
+                $haveError = true;
+            }
+        } else {
+            $res = @exec("which {$program}", $output, $code);
+            if (!$res) {
+                $haveError = true;
+            }
+        }
+    
+        if ($haveError) {
+            return "Програмата '{$program}' не е инсталирана.";
+        }
+    }
 }
-

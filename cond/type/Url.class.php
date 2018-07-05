@@ -15,10 +15,10 @@
  */
 class cond_type_Url extends cond_type_abstract_Proto
 {
-	
-	
-	/**
-	 * Кой базов тип наследява
-	 */
-	protected $baseType = 'type_Url';
+    
+    
+    /**
+     * Кой базов тип наследява
+     */
+    protected $baseType = 'type_Url';
 }

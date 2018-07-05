@@ -20,7 +20,7 @@ class plg_SystemWrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->pageMenu = 'Настройки';
         

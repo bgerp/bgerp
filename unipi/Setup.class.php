@@ -31,7 +31,7 @@ class unipi_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "Драйвери за Unipi Neuron";
+    public $info = 'Драйвери за Unipi Neuron';
     
             
     /**

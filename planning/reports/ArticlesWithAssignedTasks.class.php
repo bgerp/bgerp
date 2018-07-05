@@ -59,23 +59,29 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     /**
      * Добавя полетата на драйвера към Fieldset
      *
-     * @param core_Fieldset $fieldset            
+     * @param core_Fieldset $fieldset
      */
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('assignedUsers', 'userList(roles=powerUser)', 'caption=Отговорници,mandatory,after = title');
-        $fieldset->FLD('typeOfSorting', 'enum(up=Възходящо,down=Низходящо)', 
-            'caption=Подредени по->Ред,maxRadio=2,columns=2,mandatory,after=title');
-        $fieldset->FLD('orderingDate', 'enum(activated=Дата на активиране,pay=Дата на падеж)', 
-            'caption=Подредени по->Дата,maxRadio=2,columns=2,mandatory,after=title');
+        $fieldset->FLD(
+            'typeOfSorting',
+            'enum(up=Възходящо,down=Низходящо)',
+            'caption=Подредени по->Ред,maxRadio=2,columns=2,mandatory,after=title'
+        );
+        $fieldset->FLD(
+            'orderingDate',
+            'enum(activated=Дата на активиране,pay=Дата на падеж)',
+            'caption=Подредени по->Дата,maxRadio=2,columns=2,mandatory,after=title'
+        );
     }
 
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param frame2_driver_Proto $Driver            
-     * @param embed_Manager $Embedder            
-     * @param stdClass $data            
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager       $Embedder
+     * @param stdClass            $data
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
@@ -87,11 +93,11 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param stdClass $rec            
-     * @param stdClass $data            
+     * @param  stdClass $rec
+     * @param  stdClass $data
      * @return array
      */
-    protected function prepareRecs($rec, &$data = NULL)
+    protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
         $productsForJobs = array();
@@ -105,13 +111,10 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
          * Масив с артикули по задания за производство
          */
         while ($jobses = $jobsQuery->fetch()) {
-            
             $deliveryDate = $jobses->deliveryDate;
             
             if (! $jobses->activatedOn) {
-                
                 foreach ($jobses->history as $v) {
-                    
                     if ($v['action'] == 'Активиране');
                     {
                         
@@ -119,7 +122,6 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                     }
                 }
             } else {
-                
                 $activatedDate = $jobses->activatedOn;
             }
             
@@ -128,36 +130,36 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $jobsesId = $jobses->id;
             
             // Връзки към задачи от задание
-            $resArrJobses = doc_Linked::getRecsForType('doc', $jobses->containerId, FALSE);
+            $resArrJobses = doc_Linked::getRecsForType('doc', $jobses->containerId, false);
             
             foreach ($resArrJobses as $d) {
-                
                 $linkFrom = 'job';
                 
-                if ($d->inType != 'doc')
+                if ($d->inType != 'doc') {
                     continue;
+                }
                 $Document = doc_Containers::getDocument($d->inVal);
                 
                 if (core_Users::getCurrent() != $d->credatedBy) {
-                    
-                    if (! $Document->haveRightFor('single', $rec->createdBy))
+                    if (! $Document->haveRightFor('single', $rec->createdBy)) {
                         continue;
+                    }
                 }
                 
-                if (! $Document->isInstanceOf('cal_Tasks'))
+                if (! $Document->isInstanceOf('cal_Tasks')) {
                     continue;
+                }
                 
                 $task = cal_Tasks::fetch($Document->that);
                 
-                if ($task->state == 'rejected')
+                if ($task->state == 'rejected') {
                     continue;
+                }
                 
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
                 
                 if (keylist::isIn($assignedUsers, $task->assign)) {
-                    
                     if (! array_key_exists($jobsesId, $recs)) {
-                        
                         $recs[$jobsesId] = (object) array(
                             
                             'productId' => $jobsProdId,
@@ -172,7 +174,6 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                             'activatedDate' => $activatedDate
                         );
                     } else {
-                        
                         $obj = &$recs[$jobsesId];
                         
                         $obj->tasksFolderId .= ',' . $task->folderId;
@@ -187,36 +188,36 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             // Връзки към задачи от артикул
             $recArt = cat_Products::fetch($jobses->productId);
             
-            $resArrProduct = doc_Linked::getRecsForType('doc', $recArt->containerId, FALSE);
+            $resArrProduct = doc_Linked::getRecsForType('doc', $recArt->containerId, false);
             
             foreach ($resArrProduct as $d) {
-                
                 $linkFrom = 'art';
                 
-                if ($d->inType != 'doc')
+                if ($d->inType != 'doc') {
                     continue;
+                }
                 $Document = doc_Containers::getDocument($d->inVal);
                 
                 if (core_Users::getCurrent() != $d->credatedBy) {
-                    
-                    if (! $Document->haveRightFor('single', $rec->createdBy))
+                    if (! $Document->haveRightFor('single', $rec->createdBy)) {
                         continue;
+                    }
                 }
                 
-                if (! $Document->isInstanceOf('cal_Tasks'))
+                if (! $Document->isInstanceOf('cal_Tasks')) {
                     continue;
+                }
                 
                 $task = cal_Tasks::fetch($Document->that);
                 
-                if ($task->state == 'rejected')
+                if ($task->state == 'rejected') {
                     continue;
+                }
                 
                 $assignedUsers = keylist::toArray($rec->assignedUsers);
                 
                 if (keylist::isIn($assignedUsers, $task->assign)) {
-                    
                     if (! array_key_exists($jobsesId, $recs)) {
-                        
                         $recs[$jobsesId] = (object) array(
                             
                             'productId' => $jobsProdId,
@@ -231,7 +232,6 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                             'activatedDate' => $activatedDate
                         );
                     } else {
-                        
                         $obj = &$recs[$jobsesId];
                         
                         $obj->tasksFolderId .= ',' . $task->folderId;
@@ -247,32 +247,28 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         // Подрежда по дата на падеж
         if ($rec->orderingDate == 'pay') {
             if ($rec->typeOfSorting == 'up') {
-                
                 $sorting = 'orderByPayDateUp';
             } else {
-                
                 $sorting = 'orderByPayDateDown';
             }
             
             usort($recs, array(
                 $this,
-                "$sorting"
+                "${sorting}"
             ));
         }
         
         // Подрежда по дата на активиране
         if ($rec->orderingDate == 'activated') {
             if ($rec->typeOfSorting == 'up') {
-                
                 $sorting = 'orderByActivatedDateUp';
             } else {
-                
                 $sorting = 'orderByActivatedDateDown';
             }
             
             usort($recs, array(
                 $this,
-                "$sorting"
+                "${sorting}"
             ));
         }
         
@@ -280,23 +276,23 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     }
     
     // Подреждане на масива по дата на падеж
-    function orderByPayDateUp($a, $b)
+    public function orderByPayDateUp($a, $b)
     {
         return $a->deliveryDate > $b->deliveryDate;
     }
 
-    function orderByPayDateDown($a, $b)
+    public function orderByPayDateDown($a, $b)
     {
         return $a->deliveryDate < $b->deliveryDate;
     }
     
     // Подреждане на масива по дата на активиране
-    function orderByActivatedDateUp($a, $b)
+    public function orderByActivatedDateUp($a, $b)
     {
         return $a->activatedDate > $b->activatedDate;
     }
 
-    function orderByActivatedDateDown($a, $b)
+    public function orderByActivatedDateDown($a, $b)
     {
         return $a->activatedDate < $b->activatedDate;
     }
@@ -304,19 +300,19 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param stdClass $rec
-     *            - записа
-     * @param boolean $export
-     *            - таблицата за експорт ли е
+     * @param  stdClass      $rec
+     *                               - записа
+     * @param  boolean       $export
+     *                               - таблицата за експорт ли е
      * @return core_FieldSet - полетата
      */
-    protected function getTableFieldSet($rec, $export = FALSE)
+    protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
         
         $fld->FLD('jobsId', 'varchar', 'caption=Задание');
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        if ($export === FALSE) {
+        if ($export === false) {
             $fld->FLD('btn', 'varchar', 'caption=Връзка');
         } else {
             $fld->FLD('tasks', 'varchar', 'caption=Задачи');
@@ -328,10 +324,10 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param stdClass $rec
-     *            - записа
-     * @param stdClass $dRec
-     *            - чистия запис
+     * @param  stdClass $rec
+     *                        - записа
+     * @param  stdClass $dRec
+     *                        - чистия запис
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -357,28 +353,30 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         
         $linkFromArr = explode(',', $dRec->linkFrom);
         
-        $row->jobsId = planning_Jobs::getHyperlink($dRec->jobsId) . "<br>";
+        $row->jobsId = planning_Jobs::getHyperlink($dRec->jobsId) . '<br>';
         
         if ($dRec->saleId) {
-            
             $Sale = doc_Containers::getDocument(sales_Sales::fetch($dRec->saleId)->containerId);
             
             $saleNandle = sales_Sales::getHandle($dRec->saleId);
             $saleState = (sales_Sales::fetch($dRec->saleId)->state);
             $singleUrl = $Sale->getUrlWithAccess($Sale->getInstance(), $Sale->that);
             
-            $row->jobsId .= "<span class= 'small' >" . "$typeOfDateText" . $Date->toVerbal($typeOfDate) . "</span>" .
-                 ' »  ' . "<span class= 'state-{$saleState} document-handler' >" . ht::createLink("#{$saleNandle}", 
-                    $singleUrl, FALSE, "ef_icon={$Sale->singleIcon}") . "</span>";
+            $row->jobsId .= "<span class= 'small' >" . "${typeOfDateText}" . $Date->toVerbal($typeOfDate) . '</span>' .
+                 ' »  ' . "<span class= 'state-{$saleState} document-handler' >" . ht::createLink(
+                     "#{$saleNandle}",
+                    $singleUrl,
+                     false,
+                     "ef_icon={$Sale->singleIcon}"
+                 ) . '</span>';
         } else {
-            
-            $row->jobsId .= "<span class= 'small' >" . "$typeOfDateText" . $Date->toVerbal($typeOfDate) . "</span>";
+            $row->jobsId .= "<span class= 'small' >" . "${typeOfDateText}" . $Date->toVerbal($typeOfDate) . '</span>';
         }
         
         foreach ($tasksContainerIdArr as $k => $v) {
-            
-            if ($linkFromArr[$k] != 'job')
+            if ($linkFromArr[$k] != 'job') {
                 continue;
+            }
             
             $folderLink = doc_Folders::recToVerbal(doc_Folders::fetch($tasksFolderIdArr[$k]))->title;
             
@@ -393,16 +391,24 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
             
             $row->jobsId .= "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" . ht::createLink(
-                "#{$handle}", $singleUrl, FALSE, "ef_icon={$Task->singleIcon}") . "</span>" . ' »  ' .
-                 "<span class= 'quiet small'>" . $folderLink . "</span>" . ' »  ' . "</div>";
+                "#{$handle}",
+            
+                $singleUrl,
+            
+                false,
+            
+                "ef_icon={$Task->singleIcon}"
+            
+            ) . '</span>' . ' »  ' .
+                 "<span class= 'quiet small'>" . $folderLink . '</span>' . ' »  ' . '</div>';
         }
         
         $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name') . '<br>';
         
         foreach ($tasksContainerIdArr as $k => $v) {
-            
-            if ($linkFromArr[$k] != 'art')
+            if ($linkFromArr[$k] != 'art') {
                 continue;
+            }
             
             $folderLink = doc_Folders::recToVerbal(doc_Folders::fetch($tasksFolderIdArr[$k]))->title;
             
@@ -417,32 +423,42 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
             
             $row->productId .= "<div ><span class= 'state-{$state} document-handler' >" .
-                 ht::createLink("#{$handle}", $singleUrl, FALSE, "ef_icon={$Task->singleIcon}") . "</span>" . ' »  ' .
-                 "<span class= 'quiet small'>" . $folderLink . "</span></div>";
+                 ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Task->singleIcon}") . '</span>' . ' »  ' .
+                 "<span class= 'quiet small'>" . $folderLink . '</span></div>';
         }
         
         // Добавяме бутон за създаване на задача
         
         if ($dRec->containerId && doc_Linked::haveRightFor('addlink')) {
-            
             Request::setProtected(
                 array(
                     'inType',
                     'foreignId'
-                ));
+                )
+            
+            );
             
             $doc = doc_Containers::getDocument($dRec->containerId);
             
             if ($doc->haveRightFor('single')) {
+                $row->btn = ht::createBtn(
                 
-                $row->btn = ht::createBtn('Връзка', 
+                    'Връзка',
                     array(
                         'doc_Linked',
                         'Link',
                         'foreignId' => $dRec->containerId,
                         'inType' => 'doc',
-                        'ret_url' => TRUE
-                    ), FALSE, FALSE, 'ef_icon = img/16/doc_tag.png, title=Връзка към документа');
+                        'ret_url' => true
+                    ),
+                
+                    false,
+                
+                    false,
+                
+                    'ef_icon = img/16/doc_tag.png, title=Връзка към документа'
+                
+                );
             }
         }
         
@@ -453,15 +469,15 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      * След подготовка на реда за експорт
      *
      * @param frame2_driver_Proto $Driver
-     *            - драйвер
-     * @param stdClass $res
-     *            - резултатен запис
-     * @param stdClass $rec
-     *            - запис на справката
-     * @param stdClass $dRec
-     *            - запис на реда
-     * @param core_BaseClass $ExportClass
-     *            - клас за експорт (@see export_ExportTypeIntf)
+     *                                         - драйвер
+     * @param stdClass            $res
+     *                                         - резултатен запис
+     * @param stdClass            $rec
+     *                                         - запис на справката
+     * @param stdClass            $dRec
+     *                                         - запис на реда
+     * @param core_BaseClass      $ExportClass
+     *                                         - клас за експорт (@see export_ExportTypeIntf)
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
@@ -470,7 +486,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $taskArr = array();
             $tasks = explode(',', $dRec->tasksContainerId);
             foreach ($tasks as $contId) {
-                $taskArr[] = "#" . doc_Containers::getDocument($contId)->getHandle();
+                $taskArr[] = '#' . doc_Containers::getDocument($contId)->getHandle();
             }
             $res->tasks = implode(', ', $taskArr);
         }
@@ -479,8 +495,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     /**
      * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
      *
-     * @param stdClass $rec            
-     * @return boolean $res
+     * @param  stdClass $rec
+     * @return boolean  $res
      */
     public function canSendNotificationOnRefresh($rec)
     {
@@ -495,37 +511,41 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         unset($all[key($all)]);
         
         // Ако няма предпоследна, бие се нотификация
-        if (! count($all))
-            return TRUE;
+        if (! count($all)) {
+            return true;
+        }
         $oldRec = $all[key($all)]->oldRec;
         $dataRecsNew = $rec->data->recs;
         $dataRecsOld = $oldRec->data->recs;
         
-        if (! is_array($dataRecsOld))
-            return TRUE;
+        if (! is_array($dataRecsOld)) {
+            return true;
+        }
         
         if (is_array($dataRecsNew)) {
             foreach ($dataRecsNew as $index => $new) {
                 $old = $dataRecsNew[$index];
                 
                 // Ако има нов документ - известяване
-                if (! array_key_exists($index, $dataRecsOld))
-                    return TRUE;
+                if (! array_key_exists($index, $dataRecsOld)) {
+                    return true;
+                }
                     
-                    // Ако има промяна в крайния срок - известяване
-                if ($new->dueDate != $old->dueDate)
-                    return TRUE;
+                // Ако има промяна в крайния срок - известяване
+                if ($new->dueDate != $old->dueDate) {
+                    return true;
+                }
             }
         }
         
-        return FALSE;
+        return false;
     }
 
     /**
      * Връща следващите три дати, когато да се актуализира справката
      *
-     * @param stdClass $rec
-     *            - запис
+     * @param  stdClass    $rec
+     *                          - запис
      * @return array|FALSE - масив с три дати или FALSE ако не може да се обновява
      */
     public function getNextRefreshDates($rec)

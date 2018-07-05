@@ -20,13 +20,13 @@ class prosms_Plugin extends core_Plugin
     /**
      * Изпраща SMS
      */
-    function on_BeforeSend($mvc, &$res, $number, $message, $sender)
+    public function on_BeforeSend($mvc, &$res, $number, $message, $sender)
     {
-    	$conf = core_Packs::getConfig('prosms');
-    	
+        $conf = core_Packs::getConfig('prosms');
+        
         // Записваме в модела данните за SMS-а
         $rec = new stdClass();
-        $rec->gateway = "PRO-SMS";
+        $rec->gateway = 'PRO-SMS';
         $rec->uid = str::getRand('aaa');
         $rec->number = $number;
         $rec->message = $message;
@@ -37,7 +37,9 @@ class prosms_Plugin extends core_Plugin
         $mvc->save($rec);
         
         // Ако константата за УРЛ-то не е зададена връщаме TRUE за да се пробва да бъде изпратен от друг плъгин
-        if ($conf->PROSMS_URL == '') return TRUE;
+        if ($conf->PROSMS_URL == '') {
+            return true;
+        }
         
         $tpl = new ET($conf->PROSMS_URL);
         
@@ -52,18 +54,18 @@ class prosms_Plugin extends core_Plugin
         $res = file_get_contents($url, 0, $ctx);
         
         // Дали има грешка при изпращането
-        if ((int)$res != 0) {
+        if ((int) $res != 0) {
             // Маркираме в базата - грешка при изпращането.
             $rec->status = 'sendError';
             $mvc->save($rec);
-            $res = FALSE;
+            $res = false;
             
-            return TRUE;  // Ако някой друг може да изпрати SMS-а - да заповяда
+            return true;  // Ако някой друг може да изпрати SMS-а - да заповяда
         }
         
         // Всичко е ОК
-        $res = TRUE;
+        $res = true;
         
-        return FALSE;
+        return false;
     }
 }

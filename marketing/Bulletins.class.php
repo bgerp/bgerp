@@ -18,7 +18,7 @@ class marketing_Bulletins extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Бюлетини";
+    public $title = 'Бюлетини';
     
 
     /**
@@ -27,9 +27,7 @@ class marketing_Bulletins extends core_Master
     public $singleTitle = 'Бюлетин';
     
     
-    /**
-     * 
-     */
+    
     public $recTitleTpl = '[#domain#]';
     
     
@@ -42,49 +40,49 @@ class marketing_Bulletins extends core_Master
     /**
      * Кой има право да го чете?
      */
-    var $canRead = 'ceo, marketing';
+    public $canRead = 'ceo, marketing';
     
     
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'ceo, marketing';
+    public $canEdit = 'ceo, marketing';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo, marketing';
+    public $canAdd = 'ceo, marketing';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'ceo, marketing';
+    public $canView = 'ceo, marketing';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo, marketing';
+    public $canList = 'ceo, marketing';
     
     
     /**
      * Кой има право да изтрива?
      */
-    var $canDelete = 'ceo, marketing';
+    public $canDelete = 'ceo, marketing';
     
     
     /**
      * Кой има право да разглежда сингъла?
      */
-    var $canSingle = 'ceo, marketing';
+    public $canSingle = 'ceo, marketing';
     
 
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'marketing_Wrapper,  plg_RowTools2, plg_Created, plg_State2, plg_Sorting';
+    public $loadList = 'marketing_Wrapper,  plg_RowTools2, plg_Created, plg_State2, plg_Sorting';
     
     
     /**
@@ -156,9 +154,9 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Връща запис за съответния домейн, ако е активен
-     * 
+     *
      * @param string $domain
-     * 
+     *
      * @return FALSE|object
      */
     public static function getRecForDomain($domain)
@@ -171,9 +169,9 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Връща линк към екшъна за показване на съдържанието на JS файла
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return string
      */
     public static function getJsLink($id)
@@ -190,10 +188,10 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Връща домейна с езика
-     * 
+     *
      * @param string $domain
      * @param string $lg
-     * 
+     *
      * @return string
      */
     public static function getDomain($domain, $lg)
@@ -206,56 +204,54 @@ class marketing_Bulletins extends core_Master
 
     /**
      * Връща хешираната стойност за id
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return string
      */
     protected static function getHashId($id)
     {
-        
         return str::addHash($id);
     }
     
     
     /**
      * Проверява стойността на id-то
-     * 
+     *
      * @param string $str
-     * 
+     *
      * @return boolean|integer
      */
     protected static function checkHashId($str)
     {
-        
         return str::checkHash($str);
     }
     
     
     /**
      * Подготвя подадения линк за екшъна
-     * 
-     * @param integer $id
-     * @param string $act
+     *
+     * @param integer        $id
+     * @param string         $act
      * @param boolean|string $rand
-     * 
+     *
      * @return string
      */
-    protected static function prepareLinkFor($id, $act, $rand = TRUE)
+    protected static function prepareLinkFor($id, $act, $rand = true)
     {
-        if ($rand === FALSE) {
-            $domain = toUrl(array('marketing_Bulletins', $act, self::getHashId($id)), TRUE);
+        if ($rand === false) {
+            $domain = toUrl(array('marketing_Bulletins', $act, self::getHashId($id)), true);
         } else {
-            if ($rand === TRUE) {
+            if ($rand === true) {
                 $randStr = rand();
             } else {
                 $randStr = $rand;
             }
             
-            $domain = toUrl(array('marketing_Bulletins', $act, self::getHashId($id), 'r' => $randStr), TRUE, TRUE, array('r'));
+            $domain = toUrl(array('marketing_Bulletins', $act, self::getHashId($id), 'r' => $randStr), true, true, array('r'));
         }
         
-        $domain = preg_replace("/^https?\:\/\//", "//", $domain, 1);
+        $domain = preg_replace("/^https?\:\/\//", '//', $domain, 1);
         
         return $domain;
     }
@@ -263,52 +259,49 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Връща линк към екшъна за показване на съдържанието на CSS файла
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return string
      */
     protected static function getCssLink($id)
     {
-        
         return self::prepareLinkFor($id, 'getCSS');
     }
     
     
     /**
      * Връща линк към екшъна за показване формата за регистрация
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return string
      */
     protected static function getLinkForShowForm($id)
     {
-        
-        return self::prepareLinkFor($id, 'ShowWindowJS', FALSE);
+        return self::prepareLinkFor($id, 'ShowWindowJS', false);
     }
     
     
     
     /**
      * Връща линк към екшъна за показване на img файла
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return string
      */
     protected static function getLinkForShowImg($id)
     {
-        
         return self::prepareLinkFor($id, 'getImg');
     }
     
     
     /**
      * Подготвя JS файла, който следи за показване на формата
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return string
      */
     protected static function prepareJS($id)
@@ -324,8 +317,8 @@ class marketing_Bulletins extends core_Master
         $jsTpl = new ET($js);
         
         $jsTpl->replace($bRec->delayAfterClose, 'delayAfterClose');
-        $jsTpl->replace($bRec->delayBeforeOpen, 'delayBeforeOpen');        
-        $jsTpl->replace($bRec->delayBeforeOpenInHit, 'delayBeforeOpenInHit');        
+        $jsTpl->replace($bRec->delayBeforeOpen, 'delayBeforeOpen');
+        $jsTpl->replace($bRec->delayBeforeOpenInHit, 'delayBeforeOpenInHit');
         
         // Заглавие на формата
         // Пушваме `xhtml` за да направим линковете абсолютни
@@ -340,8 +333,7 @@ class marketing_Bulletins extends core_Master
         $formTitle = addslashes($formTitle);
 
         if ($bRec->logo) {
-            
-            $thmb = new thumb_Img(array($bRec->logo, 400, 400, 'isAbsolute' => TRUE));
+            $thmb = new thumb_Img(array($bRec->logo, 400, 400, 'isAbsolute' => true));
             
             $logoUrl = $thmb->getUrl('deferred');
             
@@ -415,23 +407,22 @@ class marketing_Bulletins extends core_Master
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param integer $id
-     * 
+     *
      * @return string
      */
     protected static function getCookieName($id)
     {
-        
         return self::prepareCookieKey('nlst', $id);
     }
     
     
     /**
-     * 
-     * 
-     * @param string $name
+     *
+     *
+     * @param string  $name
      * @param integer $id
      */
     protected static function prepareCookieKey($name, $id)
@@ -446,15 +437,15 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Вкарва CSS-a, като инлай в подадения стринг
-     * 
+     *
      * @param string $content
-     * 
+     *
      * @return string
      */
     protected static function addInlineCSS($str)
     {
-        $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
-        	"\n" . file_get_contents(sbf('css/Application.css', "", TRUE));
+        $css = file_get_contents(sbf('css/common.css', '', true)) .
+            "\n" . file_get_contents(sbf('css/Application.css', '', true));
         
         $str = '<div id="begin">' . $str . '<div id="end">';
         
@@ -464,13 +455,15 @@ class marketing_Bulletins extends core_Master
         // Класа
         $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
         
-        if (!$CssToInline) return $str;
+        if (!$CssToInline) {
+            return $str;
+        }
         
         // Инстанция на класа
         $inst = cls::get($CssToInline);
         
         // Стартираме процеса
-        $str =  $inst->convert($str, $css);
+        $str = $inst->convert($str, $css);
         
         $str = str::cut($str, '<div id="begin">', '<div id="end">');
         
@@ -480,9 +473,9 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Подготвя CSS файла, който рендира стиловете
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return string
      */
     protected static function prepareCSS($id)
@@ -510,9 +503,9 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Разделя езика и домейна
-     * 
+     *
      * @param string $domain
-     * 
+     *
      * @return array
      */
     protected static function parseDomain($domain)
@@ -527,9 +520,9 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Връща масив с всички цветове, които ще се използват в CSS за формата, текста и бутоните
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return array
      */
     protected static function prepareColors($id)
@@ -574,7 +567,7 @@ class marketing_Bulletins extends core_Master
         
         $resArr['darkBtnColor'] = '#' . $darkBtnColor;
         
-        if(phpcolor_Adapter::checkColor($btnColor, 'light'))  {
+        if (phpcolor_Adapter::checkColor($btnColor, 'light')) {
             $resArr['btnColorShadow'] = ' ';
         }
         
@@ -584,7 +577,7 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Подготвя JS функцията за показване на формата
-     * 
+     *
      * @return string
      */
     protected static function prepareShowWindowJS()
@@ -596,17 +589,21 @@ class marketing_Bulletins extends core_Master
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param marketing_Bulletins $mvc
-     * @param object $rec
+     * @param object              $rec
      */
     protected function on_CalcScriptTag($mvc, $rec)
     {
-        if (!$rec->domain || !$rec->id) return ;
+        if (!$rec->domain || !$rec->id) {
+            return ;
+        }
         
         // За локалхост няма нужда да се показва
-        if (strpos($rec->domain, 'localhost/') === 0) return ;
+        if (strpos($rec->domain, 'localhost/') === 0) {
+            return ;
+        }
         
         $rec->scriptTag = '<script src="' . self::getJsLink($rec->id) . '"></script>';
     }
@@ -648,7 +645,7 @@ class marketing_Bulletins extends core_Master
         
         $langQuery = drdata_Languages::getQuery();
         $langOpt = array();
-        while($lRec = $langQuery->fetch()) {
+        while ($lRec = $langQuery->fetch()) {
             $langOpt[$lRec->code] = $lRec->languageName;
         }
         $data->form->setOptions('lg', $langOpt);
@@ -664,19 +661,23 @@ class marketing_Bulletins extends core_Master
     {
         $bid = Request::get('id');
         
-        if (!($id = self::checkHashId($bid))) shutdown();
+        if (!($id = self::checkHashId($bid))) {
+            shutdown();
+        }
         
         $bRec = self::fetch((int) $id);
         
-        if (!$bRec || ($bRec->state != 'active')) shutdown();
+        if (!$bRec || ($bRec->state != 'active')) {
+            shutdown();
+        }
         
         $js = $bRec->data['js'];
         
         header('Content-Type: application/javascript');
         
         // Хедъри за управлението на кеша в браузъра
-        header("Expires: " . gmdate("D, d M Y H:i:s", time() + 31536000) . " GMT");
-        header("Cache-Control: public, max-age=31536000");
+        header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
+        header('Cache-Control: public, max-age=31536000');
         
         // Поддържа ли се gzip компресиране на съдържанието?
         $isGzipSupported = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
@@ -684,13 +685,13 @@ class marketing_Bulletins extends core_Master
         if ($isGzipSupported) {
             // Компресираме в движение и подаваме правилния хедър
             $js = gzencode($js);
-            header("Content-Encoding: gzip");
-        } 
+            header('Content-Encoding: gzip');
+        }
         
         // Отпечатваме съдържанието и го изпращаме към браузъра
-        header("Content-Length: " . strlen($js));
+        header('Content-Length: ' . strlen($js));
         
-        header_remove("Pragma");
+        header_remove('Pragma');
         
         echo $js;
         
@@ -705,17 +706,21 @@ class marketing_Bulletins extends core_Master
     {
         $bid = Request::get('id');
         
-        if (!($id = self::checkHashId($bid))) shutdown();
+        if (!($id = self::checkHashId($bid))) {
+            shutdown();
+        }
         
         $bRec = self::fetch((int) $id);
         
-        if (!$bRec || ($bRec->state != 'active')) shutdown();
+        if (!$bRec || ($bRec->state != 'active')) {
+            shutdown();
+        }
         
         header('Content-Type: text/css');
         
         // Хедъри за управлението на кеша в браузъра
-        header("Expires: " . gmdate("D, d M Y H:i:s", time() + 31536000) . " GMT");
-        header("Cache-Control: public, max-age=31536000");
+        header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
+        header('Cache-Control: public, max-age=31536000');
         
         // Поддържа ли се gzip компресиране на съдържанието?
         $isGzipSupported = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
@@ -725,13 +730,13 @@ class marketing_Bulletins extends core_Master
         if ($isGzipSupported) {
             // Компресираме в движение и подаваме правилния хедър
             $css = gzencode($css);
-            header("Content-Encoding: gzip");
-        } 
+            header('Content-Encoding: gzip');
+        }
         
         // Отпечатваме съдържанието и го изпращаме към браузъра
-        header("Content-Length: " . strlen($css));
+        header('Content-Length: ' . strlen($css));
         
-        header_remove("Pragma");
+        header_remove('Pragma');
         
         echo $css;
         
@@ -742,22 +747,26 @@ class marketing_Bulletins extends core_Master
     /**
      * Подготвя и принтира формата за регистрация
      */
-    function act_ShowWindowJS()
+    public function act_ShowWindowJS()
     {
         $bid = Request::get('id');
         
-        if (!($id = self::checkHashId($bid))) shutdown();
+        if (!($id = self::checkHashId($bid))) {
+            shutdown();
+        }
         
         $bRec = self::fetch((int) $id);
         
-        if (!$bRec || ($bRec->state != 'active')) shutdown();
+        if (!$bRec || ($bRec->state != 'active')) {
+            shutdown();
+        }
         
         header('Content-Type: application/javascript');
         
         // Да не се кешира
         header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
-		header('Pragma: no-cache'); // HTTP 1.0.
-		header('Expires: 0'); // Proxies.
+        header('Pragma: no-cache'); // HTTP 1.0.
+        header('Expires: 0'); // Proxies.
         
         // Ако има имейл регистриран от този браузър
         // Ако име абонамент за бюлетина
@@ -765,7 +774,6 @@ class marketing_Bulletins extends core_Master
         if (($haveEmail = log_Browsers::getVars(array('email')))
             || ($haveRec = marketing_BulletinSubscribers::haveRecForIp($id))
             || ($isLogged = core_LoginLog::isLoggedBefore())) {
-            
             if ($haveEmail) {
                 vislog_History::add('Не показана форма за бюлетина (има имейл за brid)');
             }
@@ -789,7 +797,7 @@ class marketing_Bulletins extends core_Master
             shutdown();
         }
         
-        $cnt = (int) vislog_History::add('Автоматично показване на формата за бюлетина', TRUE);
+        $cnt = (int) vislog_History::add('Автоматично показване на формата за бюлетина', true);
         
         $js = $bRec->data['showWindowJS'] . " var showedTime = {$cnt};";
         
@@ -804,53 +812,53 @@ class marketing_Bulletins extends core_Master
      */
     public function act_Export()
     {
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
    
-    	// Проверка за права
-    	$this->requireRightFor('export', $rec);
+        // Проверка за права
+        $this->requireRightFor('export', $rec);
     
-    	$detail = cls::get('marketing_BulletinSubscribers');
-    	
-    	// Масива с избраните полета за export
-    	$exportFields = $detail->selectFields("#export");
-    	
-    	// Ако има избрани полета за export
-    	if (count($exportFields)) {
-    		foreach($exportFields as $name => $field) {
-    			$listFields[$name] = tr($field->caption);
-    		}
-    	}
-    	
-    	// взимаме от базата целия списък отговарящ на този бюлетин
-    	$queryDetail = marketing_BulletinSubscribers::getQuery();
-    	$queryDetail->where("#bulletinId = '{$id}'");
-    	
-    	while ($recs = $queryDetail->fetch()) {
-    		$detailRecs[] = $recs; 
-    	}
+        $detail = cls::get('marketing_BulletinSubscribers');
+        
+        // Масива с избраните полета за export
+        $exportFields = $detail->selectFields('#export');
+        
+        // Ако има избрани полета за export
+        if (count($exportFields)) {
+            foreach ($exportFields as $name => $field) {
+                $listFields[$name] = tr($field->caption);
+            }
+        }
+        
+        // взимаме от базата целия списък отговарящ на този бюлетин
+        $queryDetail = marketing_BulletinSubscribers::getQuery();
+        $queryDetail->where("#bulletinId = '{$id}'");
+        
+        while ($recs = $queryDetail->fetch()) {
+            $detailRecs[] = $recs;
+        }
 
-    	$csv = csv_Lib::createCsv($detailRecs, $detail, $listFields);
-    	
-    	$listTitle = $this->title. " за домейн ". self::fetchField("#id = '{$rec->id}'", 'domain');
-    	
-    	$fileName = str_replace(' ', '_', Str::utf2ascii($listTitle));
-    	
-    	// правим CSV-то
-    	header("Content-type: application/csv");
-    	header("Content-Disposition: attachment; filename={$fileName}.csv");
-    	header("Pragma: no-cache");
-    	header("Expires: 0");
-    	 
-    	echo $csv;
+        $csv = csv_Lib::createCsv($detailRecs, $detail, $listFields);
+        
+        $listTitle = $this->title. ' за домейн '. self::fetchField("#id = '{$rec->id}'", 'domain');
+        
+        $fileName = str_replace(' ', '_', Str::utf2ascii($listTitle));
+        
+        // правим CSV-то
+        header('Content-type: application/csv');
+        header("Content-Disposition: attachment; filename={$fileName}.csv");
+        header('Pragma: no-cache');
+        header('Expires: 0');
+         
+        echo $csv;
     
-    	shutdown();
+        shutdown();
     }
     
     
     /**
      * Задава стойност на кукито да е `no`
-     * 
+     *
      * @param integer $id
      */
     protected static function setCookieToNo($id)
@@ -862,16 +870,17 @@ class marketing_Bulletins extends core_Master
     /**
      * Записва подадените данни и показва .png файл
      */
-    function act_getImg()
+    public function act_getImg()
     {
         $bid = Request::get('id');
         
-        if (!($id = self::checkHashId($bid))) shutdown();
+        if (!($id = self::checkHashId($bid))) {
+            shutdown();
+        }
         
         $bRec = self::fetch((int) $id);
         
         if ($bRec && ($bRec->state == 'active')) {
-        
             $email = trim(Request::get('email'));
             
             try {
@@ -882,30 +891,29 @@ class marketing_Bulletins extends core_Master
             }
             
             if ($bRec->img) {
-                
                 $fRec = fileman_Files::fetchByFh($bRec->img);
-            	$ext = fileman_Files::getExt($fRec->name);
-            	
-            	$path = fileman::extract($bRec->img);
-            	
-            	switch ($ext) {
-            		case 'jpg':
-            		case 'jpeg':
-            				$imgSource = imagecreatefromjpeg($path);
-            				$contentType = 'image/jpg';
-            			break;
-            		case 'gif':
-            				$imgSource = imagecreatefromgif($path);
-            				$contentType = 'image/gif';
-            			break;
-            		case 'png':
-            				$imgSource = imagecreatefrompng($path);
-            				$contentType = 'image/png';
-            			break;
-            	}
+                $ext = fileman_Files::getExt($fRec->name);
+                
+                $path = fileman::extract($bRec->img);
+                
+                switch ($ext) {
+                    case 'jpg':
+                    case 'jpeg':
+                            $imgSource = imagecreatefromjpeg($path);
+                            $contentType = 'image/jpg';
+                        break;
+                    case 'gif':
+                            $imgSource = imagecreatefromgif($path);
+                            $contentType = 'image/gif';
+                        break;
+                    case 'png':
+                            $imgSource = imagecreatefrompng($path);
+                            $contentType = 'image/png';
+                        break;
+                }
             } else {
                 $imgSource = imagecreatefrompng(getFullPath('img/thanks.png'));
-    			$contentType = 'image/png';
+                $contentType = 'image/png';
             }
         } else {
             $imgSource = imagecreatefromgif(getFullPath('img/error.gif'));
@@ -929,11 +937,11 @@ class marketing_Bulletins extends core_Master
      * Извиква се след успешен запис в модела
      *
      * @param marketing_Bulletins $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
+     * @param int                 $id  първичния ключ на направения запис
+     * @param stdClass            $rec всички полета, които току-що са били записани
      * @param $fields array
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $fields=array())
+    public static function on_AfterSave($mvc, &$id, $rec, $fields = array())
     {
         // При обновяване на всички полета или само на посочните да се променя `data`
         if (!$fields || isset($fields['js']) || isset($fields['showWindowJS']) || isset($fields['css'])) {
@@ -948,15 +956,15 @@ class marketing_Bulletins extends core_Master
     
     /**
      * След промяна в детайлите на обект от този клас
-     * 
-     * @param marketing_Bulletins $mvc
-     * @param integer $id
+     *
+     * @param marketing_Bulletins           $mvc
+     * @param integer                       $id
      * @param marketing_BulletinSubscribers $detailMvc
      */
     protected static function on_AfterUpdateDetail(core_Master $mvc, $id, core_Manager $detailMvc)
     {
         $query = $detailMvc->getQuery();
-        $query->where("#bulletinId = $id");
+        $query->where("#bulletinId = ${id}");
         $cnt = $query->count();
         $query->orderBy('createdOn', 'DESC');
         $lastRec = $query->fetch();
@@ -974,12 +982,12 @@ class marketing_Bulletins extends core_Master
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($rec && $action == 'delete') {
             if ($rec->subscribersCnt > 0) {
@@ -988,33 +996,40 @@ class marketing_Bulletins extends core_Master
         }
         
         if ($rec && ($action == 'export')) {
-        	if (!haveRole('ceo, marketing', $userId)) {
-        		if ($rec->createdBy != $userId) {
-        			$requiredRoles = 'no_one';
-        		}
-        	}
+            if (!haveRole('ceo, marketing', $userId)) {
+                if ($rec->createdBy != $userId) {
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
     }
     
     
     /**
      * След подготовка на тулбара на единичен изглед.
-     * 
+     *
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if (blast_Emails::haveRightFor('add') && $data->rec->subscribersCnt) {
-            
             Request::setProtected(array('perSrcObjectId', 'perSrcClassId'));
             
-            $data->toolbar->addBtn('Циркулярен имейл', array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($mvc), 'perSrcObjectId' => $data->rec->id),
-            'id=btnEmails','ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
+            $data->toolbar->addBtn(
+            
+                'Циркулярен имейл',
+            
+                array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($mvc), 'perSrcObjectId' => $data->rec->id),
+            'id=btnEmails',
+            
+                'ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл'
+            
+            );
         }
         
-        if($mvc->haveRightFor('export', $data->rec)){
-        	$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $data->rec->id), NULL, 'ef_icon = img/16/file_extension_xls.png, title = Сваляне на записите в CSV формат,row=2');
+        if ($mvc->haveRightFor('export', $data->rec)) {
+            $data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $data->rec->id), null, 'ef_icon = img/16/file_extension_xls.png, title = Сваляне на записите в CSV формат,row=2');
         }
     }
     
@@ -1024,9 +1039,9 @@ class marketing_Bulletins extends core_Master
      * за съответния запис,
      * които са достъпни за посочения потребител
      * @see bgerp_PersonalizationSourceIntf
-     * 
+     *
      * @param integer $id
-     * 
+     *
      * @return array
      */
     public function getPersonalizationOptionsForId($id)
@@ -1045,12 +1060,12 @@ class marketing_Bulletins extends core_Master
      *
      * @return array
      */
-    public function getPersonalizationOptions($userId = NULL)
+    public function getPersonalizationOptions($userId = null)
     {
         $resArr = array();
         $query = $this->getQuery();
         $query->where("#state='active'");
-        $query->where("#subscribersCnt > 0");
+        $query->where('#subscribersCnt > 0');
         
         while ($rec = $query->fetch()) {
             $resArr[$rec->id] = $rec->domain;
@@ -1064,20 +1079,19 @@ class marketing_Bulletins extends core_Master
      * Дали потребителя може да използва дадения източник на персонализация
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param string $id
+     * @param string  $id
      * @param integer $userId
      *
      * @return boolean
      */
-    public function canUsePersonalization($id, $userId = NULL)
+    public function canUsePersonalization($id, $userId = null)
     {
         // Всеки който има права до листване на модела
         if ($this->haveRightFor('single', $id, $userId)) {
-            
-            return TRUE;
+            return true;
         }
         
-        return FALSE;
+        return false;
     }
     
     
@@ -1086,11 +1100,11 @@ class marketing_Bulletins extends core_Master
      * @see bgerp_PersonalizationSourceIntf
      *
      * @param string|object $id
-     * @param boolean $verbal
+     * @param boolean       $verbal
      *
      * @return string
      */
-    public function getPersonalizationTitle($id, $verbal = TRUE)
+    public function getPersonalizationTitle($id, $verbal = true)
     {
         $rec = $this->fetch((int) $id);
         
@@ -1128,7 +1142,7 @@ class marketing_Bulletins extends core_Master
     public function getPersonalizationSrcLink($id)
     {
         // Създаваме линк към сингъла листа
-        $title = $this->getPersonalizationTitle($id, TRUE);
+        $title = $this->getPersonalizationTitle($id, true);
         $link = ht::createLink($title, array($this, 'single', $id));
         
         return $link;
@@ -1155,7 +1169,7 @@ class marketing_Bulletins extends core_Master
      * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param string $id
+     * @param string  $id
      * @param integer $limit
      *
      * @return array
@@ -1164,7 +1178,7 @@ class marketing_Bulletins extends core_Master
     {
         $query = marketing_BulletinSubscribers::getQuery();
         
-        $query->where("#bulletinId = $id");
+        $query->where("#bulletinId = ${id}");
         
         if ($limit) {
             $query->limit($limit);

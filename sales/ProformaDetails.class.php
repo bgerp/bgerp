@@ -38,7 +38,7 @@ class sales_ProformaDetails extends deals_InvoiceDetail
     
     /**
      * Плъгини за зареждане
-     * 
+     *
      * var string|array
      */
     public $loadList = 'plg_RowTools2, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew,
@@ -66,7 +66,7 @@ class sales_ProformaDetails extends deals_InvoiceDetail
     
     /**
      * Кой може да го изтрие?
-     * 
+     *
      * @var string|array
      */
     public $canDelete = 'ceo, sales';

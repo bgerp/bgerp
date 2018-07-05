@@ -20,7 +20,7 @@ class type_UserOrRole extends type_User
     /**
      * Инициализиране на обекта
      */
-    function init($params = array())
+    public function init($params = array())
     {
         parent::init($params);
         
@@ -30,38 +30,38 @@ class type_UserOrRole extends type_User
         $this->params['select'] = $this->params['userSelect'];
         
         setIfNot($this->params['userRoles'], 'user');
-        $this->params['userRoles'] = str_replace("|", ",", $this->params['userRoles']);
+        $this->params['userRoles'] = str_replace('|', ',', $this->params['userRoles']);
         $this->params['roles'] = $this->params['userRoles'];
         
         setIfNot($this->params['userRolesForTeams'], 'ceo, admin');
-        $this->params['userRolesForTeams'] = str_replace("|", ",", $this->params['userRolesForTeams']);
+        $this->params['userRolesForTeams'] = str_replace('|', ',', $this->params['userRolesForTeams']);
         $this->params['rolesForTeams'] = $this->params['userRolesForTeams'];
         
         setIfNot($this->params['userRolesForAll'], 'ceo, admin');
-        $this->params['userRolesForAll'] = str_replace("|", ",", $this->params['userRolesForAll']);
+        $this->params['userRolesForAll'] = str_replace('|', ',', $this->params['userRolesForAll']);
         $this->params['rolesForAll'] = $this->params['userRolesForAll'];
         
         setIfNot($this->params['rolesForAllSysTeam'], 'ceo, admin');
-        $this->params['rolesForAllSysTeam'] = str_replace("|", ",", $this->params['rolesForAllSysTeam']);
+        $this->params['rolesForAllSysTeam'] = str_replace('|', ',', $this->params['rolesForAllSysTeam']);
         
         setIfNot($this->params['rolesForAllRoles'], 'ceo, admin');
-        $this->params['rolesForAllRoles'] = str_replace("|", ",", $this->params['rolesForAllRoles']);
+        $this->params['rolesForAllRoles'] = str_replace('|', ',', $this->params['rolesForAllRoles']);
         
         if ($this->params['rolesType']) {
-            $this->params['rolesType'] = str_replace("|", ",", $this->params['rolesType']);
+            $this->params['rolesType'] = str_replace('|', ',', $this->params['rolesType']);
         }
         
         setIfNot($this->params['additionalRoles'], 'partner, distributor, agent');
-        $this->params['additionalRoles'] = str_replace("|", ",", $this->params['additionalRoles']);
+        $this->params['additionalRoles'] = str_replace('|', ',', $this->params['additionalRoles']);
     }
     
     
     /**
      * Подготвя опциите според зададените параметри.
      */
-    public function prepareOptions($value = NULL)
+    public function prepareOptions($value = null)
     {
-        $this->prepareSelOpt = FALSE;
+        $this->prepareSelOpt = false;
         
         $this->handler = md5(serialize($this->params) . '|' . core_Users::getCurrent());
         
@@ -74,16 +74,15 @@ class type_UserOrRole extends type_User
             $group = new stdClass();
             $group->title = tr('Роли');
             $group->attr = array('class' => 'role');
-            $group->group = TRUE;
+            $group->group = true;
             $this->options['roles'] = $group;
             
             // Ако има права за избор на цялата система, добавяме съответния избор
             if (haveRole($this->params['rolesForAllSysTeam'])) {
-                
                 $allSysTeam = self::getAllSysTeamId();
                 
                 $roleObj = new stdClass();
-                $roleObj->title = tr("Всички потребители");
+                $roleObj->title = tr('Всички потребители');
                 $roleObj->value = $allSysTeam;
                 $roleObj->attr = array('clas' => 'all-sys-team');
                 $this->options['r_' . 'allSysTeam'] = $roleObj;
@@ -99,7 +98,7 @@ class type_UserOrRole extends type_User
                 $rQuery->orWhereArr('type', $this->params['rolesType']);
             }
             
-            while($rec = $rQuery->fetch()) {
+            while ($rec = $rQuery->fetch()) {
                 $roleObj = new stdClass();
                 $roleObj->title = core_Roles::getVerbal($rec, 'role');
                 $roleObj->id = $rec->id;
@@ -108,7 +107,7 @@ class type_UserOrRole extends type_User
             }
         }
         
-        $this->prepareSelOpt = TRUE;
+        $this->prepareSelOpt = true;
         
         $this->prepareSelectOpt($this->options);
         
@@ -117,14 +116,14 @@ class type_UserOrRole extends type_User
     
     
     /**
-     * 
+     *
      * @param string $value
-     * 
+     *
      * @see type_User::toVerbal_()
-     * 
+     *
      * @return string
      */
-    function toVerbal_($value)
+    public function toVerbal_($value)
     {
         if ($value < 0) {
             $this->params['mvc'] = &cls::get('core_Roles');
@@ -136,14 +135,14 @@ class type_UserOrRole extends type_User
     
     
     /**
-     * 
+     *
      * @param string $value
-     * 
+     *
      * @see type_User::fromVerbal_()
-     * 
+     *
      * @return string
      */
-    function fromVerbal_($value)
+    public function fromVerbal_($value)
     {
         $key = self::getKeyFromTitle($value);
         
@@ -163,12 +162,12 @@ class type_UserOrRole extends type_User
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param string $value
-     * 
+     *
      * @see type_User::fetchVal()
-     * 
+     *
      * @return object
      */
     protected function fetchVal(&$value)
@@ -176,7 +175,7 @@ class type_UserOrRole extends type_User
         if ($value < 0) {
             $roleId = self::getRoleIdFromSys($value);
             
-            return core_Roles::fetch((int)$roleId);
+            return core_Roles::fetch((int) $roleId);
         }
         
         return parent::fetchVal($value);
@@ -185,14 +184,14 @@ class type_UserOrRole extends type_User
     
     /**
      * @see type_User::renderInput_()
-     * 
+     *
      * @param string $name
      * @param string $value
-     * @param array $attr
-     * 
+     * @param array  $attr
+     *
      * @return core_ET
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
         if ($value < 0) {
             $value = self::getRoleIdFromSys($value);
@@ -211,7 +210,7 @@ class type_UserOrRole extends type_User
     
     /**
      * Връща ID-то за allSysTeam
-     * 
+     *
      * @return integer
      */
     public static function getAllSysTeamId()
@@ -219,7 +218,7 @@ class type_UserOrRole extends type_User
         static $allSysTeams = 0;
         
         if (!$allSysTeams) {
-            $allSysTeams = 1-pow(2,31);
+            $allSysTeams = 1 - pow(2, 31);
         }
         
         return $allSysTeams;
@@ -228,9 +227,9 @@ class type_UserOrRole extends type_User
     
     /**
      * Връща id за групата базирано на allSysTeam
-     * 
+     *
      * @param integer $roleId
-     * 
+     *
      * @return integer
      */
     public static function getSysRoleId($roleId)
@@ -245,18 +244,20 @@ class type_UserOrRole extends type_User
     
     /**
      * Връща id на запис от модел core_Roles от id-то определено от getSysRoleId()
-     * 
+     *
      * @param integer $sysRoleId
-     * 
+     *
      * @return int|NULL
      */
     public static function getRoleIdFromSys($sysRoleId)
     {
-        if ($sysRoleId >= 0) return NULL;
+        if ($sysRoleId >= 0) {
+            return;
+        }
         
         $allSysTeam = self::getAllSysTeamId();
         
-        $roleId = (int)($sysRoleId - $allSysTeam);
+        $roleId = (int) ($sysRoleId - $allSysTeam);
         
         return $roleId;
     }
@@ -264,16 +265,20 @@ class type_UserOrRole extends type_User
     
     /**
      * Връща ключа на опциията за тази стойност
-     * 
+     *
      * @param string|integer $userOrRole
-     * 
+     *
      * @return NULL|string
      */
     public static function getOptVal($userOrRole)
     {
-        if (strpos($userOrRole, '_')) return $userOrRole;
+        if (strpos($userOrRole, '_')) {
+            return $userOrRole;
+        }
         
-        if (!$userOrRole) return ;
+        if (!$userOrRole) {
+            return ;
+        }
         
         $inst = cls::get(get_called_class());
         
@@ -287,7 +292,9 @@ class type_UserOrRole extends type_User
                 reset($userTeamsArr);
                 $userGroupId = key($userTeamsArr);
                 
-                if ($userGroupId) return $userGroupId;
+                if ($userGroupId) {
+                    return $userGroupId;
+                }
             }
             
             $inst->params['rolesForAllRoles'] = 'no_one';
@@ -295,9 +302,8 @@ class type_UserOrRole extends type_User
         
         $inst->prepareOptions();
         
-        foreach ((array)$inst->options as $optVal => $vals) {
+        foreach ((array) $inst->options as $optVal => $vals) {
             if ($vals->value == $userOrRole) {
-                
                 return $optVal;
             }
         }
@@ -305,10 +311,10 @@ class type_UserOrRole extends type_User
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param mixed $key
-     * 
+     *
      * @return mixed
      */
     public function prepareKey($key)

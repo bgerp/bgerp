@@ -55,102 +55,102 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'cat=0.1';
+    public $depends = 'cat=0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'planning_Setup';
+    public $startCtr = 'planning_Setup';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'getStartCtr';
+    public $startAct = 'getStartCtr';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Производствено планиране";
+    public $info = 'Производствено планиране';
     
     
     /**
      * Описание на конфигурационните константи за този модул
      */
-    var $configDescription = array(
-    		'PLANNING_TASK_SERIAL_COUNTER'           => array('int', 'caption=Производствени операции->Стартов сериен номер'),
-    		'PLANNING_TASK_LABEL_PREVIEW_WIDTH'      => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
-    		'PLANNING_TASK_LABEL_PREVIEW_HEIGHT'     => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
-    		'PLANNING_CONSUMPTION_USE_AS_RESOURCE'   => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
-    		'PLANNING_PRODUCTION_NOTE_REJECTION'     => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
-    		'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределенен център на дейност->Име'),
+    public $configDescription = array(
+            'PLANNING_TASK_SERIAL_COUNTER' => array('int', 'caption=Производствени операции->Стартов сериен номер'),
+            'PLANNING_TASK_LABEL_PREVIEW_WIDTH' => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
+            'PLANNING_TASK_LABEL_PREVIEW_HEIGHT' => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
+            'PLANNING_CONSUMPTION_USE_AS_RESOURCE' => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
+            'PLANNING_PRODUCTION_NOTE_REJECTION' => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
+            'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределенен център на дейност->Име'),
     );
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
-    		'planning_Jobs',
-    		'planning_ConsumptionNotes',
-    		'planning_ConsumptionNoteDetails',
-    		'planning_DirectProductionNote',
-    		'planning_DirectProductNoteDetails',
-    		'planning_ReturnNotes',
-    		'planning_ReturnNoteDetails',
-    		'planning_ObjectResources',
-    		'planning_Tasks',
-    		'planning_AssetResources',
+    public $managers = array(
+            'planning_Jobs',
+            'planning_ConsumptionNotes',
+            'planning_ConsumptionNoteDetails',
+            'planning_DirectProductionNote',
+            'planning_DirectProductNoteDetails',
+            'planning_ReturnNotes',
+            'planning_ReturnNoteDetails',
+            'planning_ObjectResources',
+            'planning_Tasks',
+            'planning_AssetResources',
             'planning_AssetResourceFolders',
-    		'planning_ProductionTaskDetails',
-    		'planning_ProductionTaskProducts',
-    		'planning_AssetGroups',
-    		'planning_AssetResourcesNorms',
-    		'planning_Centers',
-    		'planning_Hr',
-    		'planning_FoldersWithResources',
+            'planning_ProductionTaskDetails',
+            'planning_ProductionTaskProducts',
+            'planning_AssetGroups',
+            'planning_AssetResourcesNorms',
+            'planning_Centers',
+            'planning_Hr',
+            'planning_FoldersWithResources',
         );
 
         
     /**
      * Роли за достъп до модула
      */
-    var $roles = array(
-    		array('production'),
-    		array('taskWorker'),
-    		array('taskPlanning', 'taskWorker'),
-    		array('planning', 'taskPlanning'),
-    		array('planningMaster', 'planning'),
-    		array('job')
+    public $roles = array(
+            array('production'),
+            array('taskWorker'),
+            array('taskPlanning', 'taskWorker'),
+            array('planning', 'taskPlanning'),
+            array('planningMaster', 'planning'),
+            array('job')
     );
 
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.21, 'Производство', 'Планиране', 'planning_Wrapper', 'getStartCtr', "planning, ceo, job, store, taskWorker, taskPlanning"),
+    public $menuItems = array(
+            array(3.21, 'Производство', 'Планиране', 'planning_Wrapper', 'getStartCtr', 'planning, ceo, job, store, taskWorker, taskPlanning'),
         );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,planning_interface_ImportFromLastBom";
+    public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,planning_interface_ImportFromLastBom';
     
     
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

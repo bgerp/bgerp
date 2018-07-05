@@ -18,20 +18,20 @@ class sales_InvoiceExportIntf
 {
     
     
-	/**
-	 * Клас имплементиращ мениджъра
-	 */
-	public $class;
-	
-	
-	/**
-	 * Инпортиране на csv-файл в даден мениджър
-     * 
-     * @param date $recs - записите на фактурите, които ще се експортират
+    /**
+     * Клас имплементиращ мениджъра
+     */
+    public $class;
+    
+    
+    /**
+     * Инпортиране на csv-файл в даден мениджър
+     *
+     * @param  date  $recs - записите на фактурите, които ще се експортират
      * @return mixed - експортираните данни
-	 */
-    function export($recs)
+     */
+    public function export($recs)
     {
-    	$this->class->export($recs);
+        $this->class->export($recs);
     }
 }

@@ -3,7 +3,7 @@
 
 /**
  * Драйвер за работа с .jp2 файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -13,5 +13,4 @@
  */
 class fileman_webdrv_Jp2 extends fileman_webdrv_ImageT
 {
-    
 }

@@ -21,7 +21,7 @@ class label_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на опаковката от табове
      */
-    function description()
+    public function description()
     {
         $this->TAB('label_Prints', 'Отпечатвания', 'label, admin, ceo');
         $this->TAB('label_Templates', 'Шаблони', 'label, admin, ceo');

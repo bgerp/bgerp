@@ -25,9 +25,9 @@ class cond_RichTextPlg extends core_Plugin
     /**
      * Добавя бутон за качване на документ
      *
-     * @param core_Mvc $mvc
+     * @param core_Mvc              $mvc
      * @param core_ObjectCollection $toolbarArr
-     * @param array $attr
+     * @param array                 $attr
      */
     public static function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
     {
@@ -41,7 +41,7 @@ class cond_RichTextPlg extends core_Plugin
             $callbackName = 'placePassage_' . $id;
 
             // Ако е мобилен/тесем режим
-            if(Mode::is('screenMode', 'narrow')) {
+            if (Mode::is('screenMode', 'narrow')) {
                 // Парамтери към отварянето на прозореца
                 $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
             } else {
@@ -57,7 +57,7 @@ class cond_RichTextPlg extends core_Plugin
             $js = "openWindow('{$url}', '{$callbackName}', '{$args}'); return false;";
 
             // Бутон за отвяряне на прозореца
-            $addPassage = new ET("<a class=rtbutton title='" . tr("Добавяне на пасаж ") . "' onclick=\"{$js}\">" . tr("Пасаж") . "</a>");
+            $addPassage = new ET("<a class=rtbutton title='" . tr('Добавяне на пасаж ') . "' onclick=\"{$js}\">" . tr('Пасаж') . '</a>');
 
             // JS функцията
             $callback = "function {$callbackName}(passage) {
@@ -70,7 +70,7 @@ class cond_RichTextPlg extends core_Plugin
             $addPassage->appendOnce($callback, 'SCRIPTS');
 
             // Добавяне в групата за добавяне на документ
-            $toolbarArr->add($addPassage , 'filesAndDoc', 1000.056);
+            $toolbarArr->add($addPassage, 'filesAndDoc', 1000.056);
         }
     }
 }

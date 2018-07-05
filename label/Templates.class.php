@@ -3,7 +3,7 @@
 
 /**
  * Шаблони за създаване на етикети
- * 
+ *
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -58,9 +58,9 @@ class label_Templates extends core_Master
     
     
     /**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'label, admin, ceo';
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'label, admin, ceo';
     
     
     /**
@@ -145,10 +145,10 @@ class label_Templates extends core_Master
     public static $systemPlaceholders = array('Текущ_етикет', 'Общо_етикети', 'Страница');
     
     
-	/**
+    /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('sizes', 'varchar(128)', 'caption=Размери, mandatory, width=100%');
@@ -165,24 +165,24 @@ class label_Templates extends core_Master
     
     /**
      * След подготовка на тулбара за еденичния изглед
-     * 
+     *
      * @param labeL_Templates $mvc
-     * @param stdClass $data
+     * @param stdClass        $data
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         // Ако имаме права за добавяне на етикет
-        if (label_Prints::haveRightFor('add', (object)array('templateId' => $data->rec->id))) {
+        if (label_Prints::haveRightFor('add', (object) array('templateId' => $data->rec->id))) {
         
-        	// Добавяме бутон за нов етикет
-            $data->toolbar->addBtn('Нов етикет', array('label_Prints', 'add', 'templateId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/price_tag_label.png, title=Създаване на нов етикет');
+            // Добавяме бутон за нов етикет
+            $data->toolbar->addBtn('Нов етикет', array('label_Prints', 'add', 'templateId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/price_tag_label.png, title=Създаване на нов етикет');
         }
     }
     
     
     /**
      * Връща всички медии, които отговарят на размерите на медията на шаблона
-     * 
+     *
      * @param integer $id
      */
     public static function getMediaForTemplate($id)
@@ -196,9 +196,9 @@ class label_Templates extends core_Master
     
     /**
      * Връща шаблона
-     * 
+     *
      * @param integer $id - id на записа
-     * 
+     *
      * @return core_Et - Шаблона на записа
      */
     public static function getTemplate($id)
@@ -207,7 +207,9 @@ class label_Templates extends core_Master
         static $tplArr = array();
         
         // Ако преди е бил извлечен
-        if ($tplArr[$id]) return $tplArr[$id];
+        if ($tplArr[$id]) {
+            return $tplArr[$id];
+        }
         
         // Вземаме записа
         $rec = self::fetch($id);
@@ -221,32 +223,32 @@ class label_Templates extends core_Master
     
     /**
      * Връща плейсхолдерите на стринга
-     * 
+     *
      * @param string $content
-     * 
+     *
      * @return array
      */
     public static function getPlaceholders($content)
     {
         $hash = md5($content);
-    	if(!array_key_exists($hash, static::$cache)){
-    		preg_match_all('/\[#([\wа-я\(\)]{1,})#\]/ui', $content, $matches);
-    		$placesArr = arr::make($matches[1], TRUE);
-    		
-    		static::$cache[$hash] = $placesArr;
-    	}
+        if (!array_key_exists($hash, static::$cache)) {
+            preg_match_all('/\[#([\wа-я\(\)]{1,})#\]/ui', $content, $matches);
+            $placesArr = arr::make($matches[1], true);
+            
+            static::$cache[$hash] = $placesArr;
+        }
         
-    	return static::$cache[$hash];
+        return static::$cache[$hash];
     }
     
     
     /**
      * Вкарва CSS-a към шаблона, като инлайн
-     * 
+     *
      * @param integer $id
      * @param core_Et $template
      */
-    public static function addCssToTemplate($id, $template=NULL)
+    public static function addCssToTemplate($id, $template = null)
     {
         // Масив с шаблоните
         static $templateArrCss = array();
@@ -259,7 +261,9 @@ class label_Templates extends core_Master
         $hash = md5($template);
         
         // Ако преди е бил извлечен
-        if ($templateArrCss[$hash]) return $templateArrCss[$hash];
+        if ($templateArrCss[$hash]) {
+            return $templateArrCss[$hash];
+        }
         
         // Вземаме записа
         $rec = self::fetch($id);
@@ -273,10 +277,10 @@ class label_Templates extends core_Master
     
     /**
      * Проверява подадения плейсхолдер дали се съдържа в шаблона
-     * 
-     * @param integer $id - id на записа
-     * @param string $placeHolder - Име на плейсхолдера
-     * 
+     *
+     * @param integer $id          - id на записа
+     * @param string  $placeHolder - Име на плейсхолдера
+     *
      * @return boolean
      */
     public static function isPlaceExistInTemplate($id, $placeHolder)
@@ -294,29 +298,28 @@ class label_Templates extends core_Master
             $placesArrAll = self::getPlaceHolders($template);
             
             // Ключовете и стойностите да са равни
-            $placesArr[$id] = arr::make($placesArrAll, TRUE);
+            $placesArr[$id] = arr::make($placesArrAll, true);
         }
         
         // Ако плейсхолдера се съдържа в шаблона
         if ($placesArr[$id][$placeHolder]) {
-            
-            return TRUE;
+            return true;
         }
     }
     
     
     /**
      * Вкарва CSS'a в шаблона, като инлайн стил
-     * 
+     *
      * @param string $template - HTML
-     * @param string $css - CSS
-     * 
+     * @param string $css      - CSS
+     *
      * @return string
      */
     public static function templateWithInlineCSS($template, $css)
     {
         // Вкарваме темплейта в блок, който после ще отрежим
-        $template = '<div id="begin">' . $template . '<div id="end">'; 
+        $template = '<div id="begin">' . $template . '<div id="end">';
         
         // Вземаме пакета
         $conf = core_Packs::getConfig('csstoinline');
@@ -328,13 +331,13 @@ class label_Templates extends core_Master
         $inst = cls::get($CssToInline);
         
         // Стартираме процеса
-        $template =  $inst->convert($template, $css);
+        $template = $inst->convert($template, $css);
         
         // Вземамема само шаблона, без допълнителните добавки
         $template = str::cut($template, '<div id="begin">', '<div id="end">');
         
         // Очакваме да не е NULL
-        expect($template !== NULL);
+        expect($template !== null);
         
         return $template;
     }
@@ -346,16 +349,16 @@ class label_Templates extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Вземаме шаблона с вкарания css
-    	$row->template = static::templateWithInlineCSS($row->template, $rec->css);
+        $row->template = static::templateWithInlineCSS($row->template, $rec->css);
     }
     
     
- 	/**
- 	 * Изпълнява се след подготовката на формата за филтриране
- 	 * 
- 	 * @param label_Templates $mvc
- 	 * @param stdClass $data
- 	 */
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     *
+     * @param label_Templates $mvc
+     * @param stdClass        $data
+     */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Формата
@@ -372,47 +375,51 @@ class label_Templates extends core_Master
         $form->setOptions('fClassId', array('' => '') + $sourceOptions);
         
         $form->showFields = 'search,fClassId';
-        if(!core_Request::get('Rejected', 'int')){
-        	$form->FNC('fState', 'enum(, active=Използвани, closed=Затворени)', 'caption=Всички, allowEmpty,autoFilter');
-        	$form->showFields .= ', fState';
-        	$form->setDefault('fState', 'active');
-        	
-        	// Инпутваме полетата
-        	$form->input('fState,fClassId', 'silent');
+        if (!core_Request::get('Rejected', 'int')) {
+            $form->FNC('fState', 'enum(, active=Използвани, closed=Затворени)', 'caption=Всички, allowEmpty,autoFilter');
+            $form->showFields .= ', fState';
+            $form->setDefault('fState', 'active');
+            
+            // Инпутваме полетата
+            $form->input('fState,fClassId', 'silent');
         }
         
         // Подреждане по състояние
         $data->query->orderBy('createdOn', 'DESC');
 
-        if($state = $data->listFilter->rec->fState) {
+        if ($state = $data->listFilter->rec->fState) {
             $data->query->where(array("#state = '[#1#]'", $state));
         }
         
-        if($classId = $data->listFilter->rec->fClassId) {
-        	if($classId == '-1'){
-        		$data->query->where("#classId IS NULL");
-        	} else {
-        		$data->query->where(array("#classId = '[#1#]'", $classId));
-        	}
+        if ($classId = $data->listFilter->rec->fClassId) {
+            if ($classId == '-1') {
+                $data->query->where('#classId IS NULL');
+            } else {
+                $data->query->where(array("#classId = '[#1#]'", $classId));
+            }
         }
     }
     
     
     /**
      * Активира шаблона
-     * 
+     *
      * @param integer $id - id на записа
-     * 
+     *
      * @retunr integer|NULL - id на записа
      */
     public static function activateTemplate($id)
     {
-        if (!$id) return ;
+        if (!$id) {
+            return ;
+        }
         
         // Вземаме записа
         $rec = static::fetch($id);
         
-        if (!$rec) return ;
+        if (!$rec) {
+            return ;
+        }
         
         // Очакваме да не е оттеглен
         expect($rec->state != 'rejected');
@@ -438,7 +445,7 @@ class label_Templates extends core_Master
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
@@ -451,37 +458,39 @@ class label_Templates extends core_Master
     
     /**
      * Замества плейсхолдерите с тяхната стойност
-     * 
+     *
      * @param string $string
-     * @param array $placeArr
-     * 
+     * @param array  $placeArr
+     *
      * @return string
      */
     public static function placeArray($string, $placeArr)
     {
-        if (!$string || !$placeArr) return $string;
+        if (!$string || !$placeArr) {
+            return $string;
+        }
         
         $nArr = array();
         $placeholders = self::getPlaceholders($string);
        
         // Всички плейсхолдъри, подменяме ги с главни букви
-        if(is_array($placeholders)){
-        	$replacePlaceholders = array();
-        	foreach ($placeholders as $p){
-        		$new = mb_strtoupper($p);
-        		$newPlaceholder = self::toPlaceholder($new);
-        		$oldPlaceholder = self::toPlaceholder($p);
-        		$replacePlaceholders[$oldPlaceholder] = $newPlaceholder;
-        	}
-        	
-        	if(count($replacePlaceholders)){
-        		$string = strtr($string, $replacePlaceholders);
-        	}
+        if (is_array($placeholders)) {
+            $replacePlaceholders = array();
+            foreach ($placeholders as $p) {
+                $new = mb_strtoupper($p);
+                $newPlaceholder = self::toPlaceholder($new);
+                $oldPlaceholder = self::toPlaceholder($p);
+                $replacePlaceholders[$oldPlaceholder] = $newPlaceholder;
+            }
+            
+            if (count($replacePlaceholders)) {
+                $string = strtr($string, $replacePlaceholders);
+            }
         }
         
         // Заместване на плейсхолдърите със стойностите
-        foreach ((array)$placeArr as $key => $val) {
-        	$key = mb_strtoupper($key);
+        foreach ((array) $placeArr as $key => $val) {
+            $key = mb_strtoupper($key);
             $key = self::toPlaceholder($key);
             $nArr[$key] = $val;
         }
@@ -495,9 +504,9 @@ class label_Templates extends core_Master
     
     /**
      * Връща плейсхолдера от стринга
-     * 
+     *
      * @param string $str
-     * 
+     *
      * @return string
      */
     public static function toPlaceholder($str)
@@ -510,12 +519,12 @@ class label_Templates extends core_Master
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param label_Templates $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
+     * @param string          $requiredRoles
+     * @param string          $action
+     * @param stdClass        $rec
+     * @param int             $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако има запис
         if ($rec) {
@@ -543,145 +552,147 @@ class label_Templates extends core_Master
     
     /**
      * Добавя шаблон от файл. Обновява съществуващ файл само ако има промяна в някой от параметрите му
-     * 
-     * @param string $title     - име на шаблона
-     * @param string $filePath  - път към файла на шаблона
-     * @param string $sysId     - систем ид на шаблона
-     * @param array $sizes      - размери на шаблона, масив с 2 елемента: широчина и височина
-     * @param string|NULL $lang - език на шаблона
-     * @param mixed $class      - клас към който да е шаблона
-     * @return stdClass|FALSE   - записа на шаблона или FALSE ако не е променян
+     *
+     * @param  string         $title    - име на шаблона
+     * @param  string         $filePath - път към файла на шаблона
+     * @param  string         $sysId    - систем ид на шаблона
+     * @param  array          $sizes    - размери на шаблона, масив с 2 елемента: широчина и височина
+     * @param  string|NULL    $lang     - език на шаблона
+     * @param  mixed          $class    - клас към който да е шаблона
+     * @return stdClass|FALSE - записа на шаблона или FALSE ако не е променян
      */
-    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = NULL)
+    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = null)
     {
-    	// Проверки на данните
-    	expect(in_array($lang, array('bg', 'en')), $lang);
-    	expect(is_array($sizes) && count($sizes) == 2, $sizes);
-    	$sizes = array_values($sizes);
-    	$sizes = implode('x', $sizes) . " mm";
-    	expect($path = getFullPath($filePath), $path);
-    	$templateHash = md5_file($path);
-    	
-    	// Има ли шаблон с това систем ид
-    	$exRec = self::fetch(array("#sysId = '[#1#]'", $sysId));
-    	if(!$exRec){
-    		$exRec = new stdClass();
-    		$exRec->sysId = $sysId;
-    	}
-    	
-    	if(isset($class)){
-    		$classId = cls::get($class)->getClassId();
-    	}
-    	
-    	$isContentTheSame = md5($exRec->template) == $templateHash;
-    	
-    	// Ако подадените параметри са същите като съществуващите, не се обновява/създава нищо
-    	if($isContentTheSame && $exRec->title == $title && $exRec->title == $title && $exRec->sizes == $sizes && $exRec->lang == $lang && $exRec->classId == $classId){
-    		return FALSE;
-    	}
-    	
-    	// Обновяване на контента, ако има промяна
-    	if($isContentTheSame !== TRUE){
-    		$exRec->template = getFileContent($path);
-    	}
-    	
-    	if(isset($classId)){
-    		$exRec->classId = $classId;
-    	}
-    	$exRec->title = $title;
-    	$exRec->sizes = $sizes;
-    	$exRec->lang = $lang;
-    	$exRec->state = 'active';
-    	
-    	if(isset($classId)){
-    		$exRec->classId = $classId;
-    	}
-    	
-    	// Създаване/обновяване на шаблона
-    	static::save($exRec);
-    	
-    	return $exRec;
+        // Проверки на данните
+        expect(in_array($lang, array('bg', 'en')), $lang);
+        expect(is_array($sizes) && count($sizes) == 2, $sizes);
+        $sizes = array_values($sizes);
+        $sizes = implode('x', $sizes) . ' mm';
+        expect($path = getFullPath($filePath), $path);
+        $templateHash = md5_file($path);
+        
+        // Има ли шаблон с това систем ид
+        $exRec = self::fetch(array("#sysId = '[#1#]'", $sysId));
+        if (!$exRec) {
+            $exRec = new stdClass();
+            $exRec->sysId = $sysId;
+        }
+        
+        if (isset($class)) {
+            $classId = cls::get($class)->getClassId();
+        }
+        
+        $isContentTheSame = md5($exRec->template) == $templateHash;
+        
+        // Ако подадените параметри са същите като съществуващите, не се обновява/създава нищо
+        if ($isContentTheSame && $exRec->title == $title && $exRec->title == $title && $exRec->sizes == $sizes && $exRec->lang == $lang && $exRec->classId == $classId) {
+            return false;
+        }
+        
+        // Обновяване на контента, ако има промяна
+        if ($isContentTheSame !== true) {
+            $exRec->template = getFileContent($path);
+        }
+        
+        if (isset($classId)) {
+            $exRec->classId = $classId;
+        }
+        $exRec->title = $title;
+        $exRec->sizes = $sizes;
+        $exRec->lang = $lang;
+        $exRec->state = 'active';
+        
+        if (isset($classId)) {
+            $exRec->classId = $classId;
+        }
+        
+        // Създаване/обновяване на шаблона
+        static::save($exRec);
+        
+        return $exRec;
     }
     
     
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function loadSetupData()
+    public function loadSetupData()
     {
-    	$res = '';
-    	$modified = $skipped = 0;
-    	$array = array('defaultTplPack' => array('title' => 'Етикети от опаковки', 'path' => 'label/tpl/DefaultLabelPack.shtml', 'lang' => 'bg', 'class' => 'cat_products_Packagings', 'sizes' => array('100', '72')),
-    				   'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
-    	);
-    	
-    	core_Users::forceSystemUser();
-    	foreach ($array as $sysId => $cArr){
-    		$tRec = self::addFromFile($cArr['title'], $cArr['path'], $sysId, $cArr['sizes'], $cArr['lang'], $cArr['class']);
-    		
-    		if($tRec !== FALSE){
-    			label_TemplateFormats::delete("#templateId = {$tRec->id}");
-    			$arr = $this->getPlaceholders($tRec->template);
-    			if(is_array($arr)){
-    				foreach ($arr as $placeholder){
-    					if(in_array($placeholder, self::$systemPlaceholders)) continue;
-    					
-    					if($placeholder == 'BARCODE'){
-    						$params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '160', 'Height' => '60', 'Rotation' => 'yes');
-    						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
-    					} else {
-    						$type = 'caption';
-    						$params = array();
-    						if($placeholder == 'PREVIEW'){
-    							$type = ($placeholder == 'PREVIEW') ? 'image' : 'caption';
-    							$params = array('Width' => planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH'), 'Height' => planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT'));
-    						}
-    						
-    						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type, $params);
-    					}
-    				}
-    			}
-    			$modified++;
-    		} else {
-    			$skipped++;
-    		}
-    	}
-    	core_Users::cancelSystemUser();
-    	
-    	$class = ($modified > 0) ? ' class="green"' : '';
-    	$res = "<li{$class}>Променени са са {$modified} шаблона за етикети, пропуснати са {$skipped}</li>";
-    	 
-    	return $res;
+        $res = '';
+        $modified = $skipped = 0;
+        $array = array('defaultTplPack' => array('title' => 'Етикети от опаковки', 'path' => 'label/tpl/DefaultLabelPack.shtml', 'lang' => 'bg', 'class' => 'cat_products_Packagings', 'sizes' => array('100', '72')),
+                       'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
+        );
+        
+        core_Users::forceSystemUser();
+        foreach ($array as $sysId => $cArr) {
+            $tRec = self::addFromFile($cArr['title'], $cArr['path'], $sysId, $cArr['sizes'], $cArr['lang'], $cArr['class']);
+            
+            if ($tRec !== false) {
+                label_TemplateFormats::delete("#templateId = {$tRec->id}");
+                $arr = $this->getPlaceholders($tRec->template);
+                if (is_array($arr)) {
+                    foreach ($arr as $placeholder) {
+                        if (in_array($placeholder, self::$systemPlaceholders)) {
+                            continue;
+                        }
+                        
+                        if ($placeholder == 'BARCODE') {
+                            $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '160', 'Height' => '60', 'Rotation' => 'yes');
+                            label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                        } else {
+                            $type = 'caption';
+                            $params = array();
+                            if ($placeholder == 'PREVIEW') {
+                                $type = ($placeholder == 'PREVIEW') ? 'image' : 'caption';
+                                $params = array('Width' => planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH'), 'Height' => planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT'));
+                            }
+                            
+                            label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type, $params);
+                        }
+                    }
+                }
+                $modified++;
+            } else {
+                $skipped++;
+            }
+        }
+        core_Users::cancelSystemUser();
+        
+        $class = ($modified > 0) ? ' class="green"' : '';
+        $res = "<li{$class}>Променени са са {$modified} шаблона за етикети, пропуснати са {$skipped}</li>";
+         
+        return $res;
     }
     
     
     /**
      * Връща шаблоните достъпни за избор от даден документ
-     * 
-     * @param mixed $class
+     *
+     * @param mixed   $class
      * @param integer $objectId
      * @param boolean $onlyIds
-     * 
+     *
      * @return array $res
      */
-    public static function getTemplatesByDocument($class, $objectId, $onlyIds = FALSE)
+    public static function getTemplatesByDocument($class, $objectId, $onlyIds = false)
     {
-    	$Class = cls::get($class);
-    	$tQuery = label_Templates::getQuery();
-    	$tQuery->where("#classId = '{$Class->getClassId()}' AND #state != 'rejected' AND #state != 'closed'");
-    	if($onlyIds === TRUE){
-    		$tQuery->show('id');
-    	}
-    	
-    	$res = array();
-    	while($tRec = $tQuery->fetch()){
-			$res[$tRec->id] = $tRec;
-    	}
-    	
-    	if ($onlyIds === TRUE){
-    		$res = arr::extractValuesFromArray($res, 'id');
-    	}
-    	
-    	return $res;
+        $Class = cls::get($class);
+        $tQuery = label_Templates::getQuery();
+        $tQuery->where("#classId = '{$Class->getClassId()}' AND #state != 'rejected' AND #state != 'closed'");
+        if ($onlyIds === true) {
+            $tQuery->show('id');
+        }
+        
+        $res = array();
+        while ($tRec = $tQuery->fetch()) {
+            $res[$tRec->id] = $tRec;
+        }
+        
+        if ($onlyIds === true) {
+            $res = arr::extractValuesFromArray($res, 'id');
+        }
+        
+        return $res;
     }
 }

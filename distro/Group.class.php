@@ -3,7 +3,7 @@
 
 /**
  * Разпределена файлова група
- * 
+ *
  * @category  bgerp
  * @package   distro
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -21,9 +21,7 @@ class distro_Group extends core_Master
     public $title = 'Разпределени файлови групи';
     
     
-    /**
-     * 
-     */
+    
     public $singleTitle = 'Файлова група';
     
     
@@ -76,9 +74,9 @@ class distro_Group extends core_Master
     
     
     /**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'powerUser';
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'powerUser';
     
     
     /**
@@ -115,7 +113,7 @@ class distro_Group extends core_Master
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "18.8|Други"; 
+    public $newBtnGroup = '18.8|Други';
     
     
     /**
@@ -142,10 +140,10 @@ class distro_Group extends core_Master
     public static $bucket = 'distroFiles';
     
     
-	/**
+    /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('title', 'varchar(128,ci)', 'caption=Заглавие, mandatory, width=100%, silent');
         $this->FLD('repos', 'keylist(mvc=distro_Repositories, select=name, where=#state !\\= \\\'rejected\\\', select2MinItems=6)', 'caption=Хранилища, mandatory, width=100%, maxColumns=3');
@@ -159,9 +157,9 @@ class distro_Group extends core_Master
     
     
     /**
-     * 
+     *
      * @param string $path
-     * 
+     *
      * @return NULL|integer
      */
     public function getGroupIdFromFolder($path)
@@ -169,15 +167,16 @@ class distro_Group extends core_Master
         $handleArr = doc_Containers::parseHandle($path);
         
         if ($handleArr && (strtolower($handleArr['abbr']) == 'dst') && $handleArr['id']) {
-            
-            $dRec = self::fetch((int)$handleArr['id']);
+            $dRec = self::fetch((int) $handleArr['id']);
             
             if ($dRec) {
                 $subDirName = self::getSubDirName($dRec);
                 
-                if ($subDirName == $path) return $handleArr['id'];
+                if ($subDirName == $path) {
+                    return $handleArr['id'];
+                }
             }
-        } 
+        }
         
         // Ако името не е зададено с хендлър
         $query = self::getQuery();
@@ -185,38 +184,38 @@ class distro_Group extends core_Master
         while ($dRec = $query->fetch()) {
             $subDirName = self::getSubDirName($dRec);
             
-            if ($subDirName == $path) return $dRec->id;
+            if ($subDirName == $path) {
+                return $dRec->id;
+            }
         }
-        
-        return NULL;
     }
     
     
-	/**
+    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
      */
-	public static function canAddToThread($threadId)
+    public static function canAddToThread($threadId)
     {
         // Ако няма права за добавяне
         if (!static::haveRightFor('add')) {
             
             // Да не може да добавя
-            return FALSE;
+            return false;
         }
     }
     
     
-	/**
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param distro_Group $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
+     * @param string       $requiredRoles
+     * @param string       $action
+     * @param stdClass     $rec
+     * @param int          $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако добавяме или променяме запис
         if ($action == 'add' || $action == 'edit') {
@@ -259,7 +258,7 @@ class distro_Group extends core_Master
      * Функция, която се извиква след активирането на документа
      *
      * @param distro_Group $mvc
-     * @param stdClass $rec
+     * @param stdClass     $rec
      */
     public static function on_BeforeActivation($mvc, &$rec)
     {
@@ -270,21 +269,20 @@ class distro_Group extends core_Master
                 $dRepoArr = $mvc->getDuplicateFileRepoId($rRec);
                 
                 if (!empty($dRepoArr)) {
-                    
-                    redirect(array($mvc, 'single', $rec->id), FALSE, '|Не може да се активира, защото същестува такава директория|*. |Променете заглавието');
+                    redirect(array($mvc, 'single', $rec->id), false, '|Не може да се активира, защото същестува такава директория|*. |Променете заглавието');
                 }
             }
         }
     }
     
     
-	/**
-	 * 
+    /**
+     *
      * Функция, която се извиква след активирането на документа
-	 * 
-	 * @param distro_Group $mvc
-	 * @param stdClass $rec
-	 */
+     *
+     * @param distro_Group $mvc
+     * @param stdClass     $rec
+     */
     public static function on_AfterActivation($mvc, &$rec)
     {
         // Ако са избрани хранилища
@@ -294,7 +292,7 @@ class distro_Group extends core_Master
             $reposArr = type_Keylist::toArray($rec->repos);
             
             // Обхождаме масива
-            foreach ((array)$reposArr as $repoId) {
+            foreach ((array) $reposArr as $repoId) {
                 
                 // Активираме хранилището
                 distro_Repositories::activateRepo($repoId);
@@ -310,9 +308,9 @@ class distro_Group extends core_Master
     
     /**
      * Ако е натиснат бутона 'Активиране" добавя състоянието 'active' в $form->rec
-     * 
+     *
      * @param distro_Group $mvc
-     * @param core_Form $form
+     * @param core_Form    $form
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
@@ -328,9 +326,9 @@ class distro_Group extends core_Master
     
     /**
      * Връща хранилищата в които има дублиране на папки
-     * 
+     *
      * @param stdClass $rec
-     * 
+     *
      * @return array
      */
     protected function getDuplicateFileRepoId($rec)
@@ -342,7 +340,7 @@ class distro_Group extends core_Master
             $reposArr = type_Keylist::toArray($rec->repos);
             
             // Обхождаме масива
-            foreach ((array)$reposArr as $repoId) {
+            foreach ((array) $reposArr as $repoId) {
                 
                 // Активираме хранилището
                 $subDirName = $this->getSubDirName($rec);
@@ -359,10 +357,10 @@ class distro_Group extends core_Master
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param integer|stdClass $rec
-     * 
+     *
      * @return string
      */
     public static function getSubDirName($rec)
@@ -380,10 +378,9 @@ class distro_Group extends core_Master
             
             $clsName = $abbrArr[$abbr];
             
-            if ($clsName && cls::load($clsName, TRUE)) {
-                if ($mId && $clsName::fetch((int)$mId)) {
-                    
-                    $haveAbbr = TRUE;
+            if ($clsName && cls::load($clsName, true)) {
+                if ($mId && $clsName::fetch((int) $mId)) {
+                    $haveAbbr = true;
                     
                     break;
                 }
@@ -407,45 +404,45 @@ class distro_Group extends core_Master
     
     /**
      * Проверява дали може да се добави в детайла
-     * 
-     * @param integer $id - id на записи
+     *
+     * @param integer $id     - id на записи
      * @param integer $userId - id на потребител
-     * 
+     *
      * @return boolean - Ако имаме права
      */
-    static function canAddDetail($id, $userId=NULL)
+    public static function canAddDetail($id, $userId = null)
     {
         // Ако няма id
-        if (!$id) return FALSE;
+        if (!$id) {
+            return false;
+        }
             
         // Вземаме записа
         $rec = static::fetch($id);
         
         // Ако състоянието не е актвино
         if ($rec->state != 'active') {
-            
-            return FALSE;
+            return false;
         }
         
         // Ако имаме достъп до сингъла на документа
         if (static::haveRightFor('single', $rec, $userId)) {
-                
-            return TRUE;
+            return true;
         }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Връща масив с хранилищата, които се използват в групата
-     * 
-     * @param integer $id
+     *
+     * @param integer      $id
      * @param NULL|integer $userId
-     * 
-     * @return array 
+     *
+     * @return array
      */
-    static function getReposArr($id, $userId=NULL)
+    public static function getReposArr($id, $userId = null)
     {
         // Вземаме записа
         $rec = static::fetch($id);
@@ -454,7 +451,7 @@ class distro_Group extends core_Master
         $reposArr = type_Keylist::toArray($rec->repos);
         
         // Обхождаме масива
-        foreach ((array)$reposArr as $repoId) {
+        foreach ((array) $reposArr as $repoId) {
             
             // Добавяме вербалното име в масива
             $reposArr[$repoId] = distro_Repositories::getVerbal($repoId, 'name');
@@ -465,25 +462,26 @@ class distro_Group extends core_Master
     }
     
     
-	/**
+    /**
      * Реализация  на интерфейсния метод ::getThreadState()
      */
-    static function getThreadState($id)
+    public static function getThreadState($id)
     {
-        
         return 'opened';
     }
     
     
     /**
      * Интерфейсен метод на doc_DocumentInterface
-     * 
+     *
      * @param integer $id
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
         // Ако няма id
-        if(!$id) return;
+        if (!$id) {
+            return;
+        }
         
         // Вземаме записа
         $rec = $this->fetch($id);
@@ -499,27 +497,33 @@ class distro_Group extends core_Master
         return $row;
     }
     
-	
-	/**
-	 * Връща прикачените файлове
-     * 
+    
+    /**
+     * Връща прикачените файлове
+     *
      * @param object $rec - Запис
-     * 
+     *
      * @return array
      */
-    function getLinkedFiles($rec)
+    public function getLinkedFiles($rec)
     {
         $resArr = array();
         
-        if (!$rec->id) return $resArr;
+        if (!$rec->id) {
+            return $resArr;
+        }
         
         $fQuery = distro_Files::getQuery();
         $fQuery->where(array("#groupId = '[#1#]'", $rec->id));
         
-        while($dfRec = $fQuery->fetch()) {
-            if (!trim($dfRec->sourceFh)) continue;
+        while ($dfRec = $fQuery->fetch()) {
+            if (!trim($dfRec->sourceFh)) {
+                continue;
+            }
             
-            if ($resArr[$dfRec->sourceFh]) continue;
+            if ($resArr[$dfRec->sourceFh]) {
+                continue;
+            }
             
             $fRec = fileman_Files::fetchByFh($dfRec->sourceFh);
             $resArr[$dfRec->sourceFh] = fileman_Files::getVerbal($fRec, 'name');
@@ -531,10 +535,10 @@ class distro_Group extends core_Master
     
     /**
      * Екшън за форсирано обновяване на хранилище
-     * 
+     *
      * @return Redirect
      */
-    function act_Sync()
+    public function act_Sync()
     {
         $id = Request::get('id', 'int');
         
@@ -545,14 +549,13 @@ class distro_Group extends core_Master
         $this->logWrite('Синхронизиране на файловете', $id);
         
         $reposArr = type_Keylist::toArray($rec->repos);
-		
+        
         foreach ($reposArr as $repoId) {
-            
             $Files = cls::get('distro_Files');
             
             $res = $Files->forceSync($rec->id, $repoId);
             
-            if ($res === FALSE) {
+            if ($res === false) {
                 status_Messages::newStatus('|Грешка при свързване към хранилище|* ' . distro_Repositories::getLinkToSingle($repoId, 'name'), 'warning');
             } else {
                 if (empty($res)) {
@@ -565,16 +568,16 @@ class distro_Group extends core_Master
                     }
                     
                     if ($res['delFromDb']) {
-                        $msg .= $msg ? "<br>" : $msg;
+                        $msg .= $msg ? '<br>' : $msg;
                         $msg .= '|Изтрити файлове от хранилището|*: ' . $res['delFromDb'];
                     }
                     
                     if ($res['absorbFromDb']) {
-                        $msg .= $msg ? "<br>" : $msg;
+                        $msg .= $msg ? '<br>' : $msg;
                         $msg .= '|Свалени файлове в хранилището|*: ' . $res['absorbFromDb'];
                     }
                     
-                    status_Messages::newStatus('|Действия в хранилището|*: ' . distro_Repositories::getLinkToSingle($repoId, 'name') . "<br>" . $msg);
+                    status_Messages::newStatus('|Действия в хранилището|*: ' . distro_Repositories::getLinkToSingle($repoId, 'name') . '<br>' . $msg);
                 }
             }
         }
@@ -593,19 +596,17 @@ class distro_Group extends core_Master
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Използваме заглавието на първия документ в нишката или на originId
         $rec = $data->form->rec;
         if (!$rec->id && !$rec->title) {
-            
-            $cid = NULL;
+            $cid = null;
             
             //Ако имаме originId
             if ($rec->originId) {
-            
                 $cid = $rec->originId;
             } elseif ($rec->threadId) {
             
@@ -624,19 +625,18 @@ class distro_Group extends core_Master
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param core_Master $mvc
-     * @param stdClass $data
+     * @param stdClass    $data
      */
-    function on_AfterPrepareSingle($mvc, $res, &$data)
+    public function on_AfterPrepareSingle($mvc, $res, &$data)
     {
         // Вземаме масива с детайлите
         $detailsArr = arr::make($mvc->details);
         
         // Обхождаме записите
         foreach ($detailsArr as $className) {
-            
             try {
                 // Инстанция на класа
                 $inst = core_Cls::get($className);
@@ -651,7 +651,6 @@ class distro_Group extends core_Master
                     break;
                 }
             } catch (core_exception_Expect $e) {
-                
                 continue;
             }
         }
@@ -660,29 +659,32 @@ class distro_Group extends core_Master
     
     /**
      * След подготовка на тулбара на единичен изглед.
-     * 
+     *
      * @param distro_Group $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if ($mvc->haveRightFor('sync', $data->rec)) {
-            $data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', $data->rec->id, 'ret_url' => TRUE), 
-                        "id='btn-syncRepo', ef_icon=img/16/update-icon.png", 
-                        array('order'=>'30', 'row' => 2, 'title' => 'Форсира синхронизирането файловете в групата с хранилището'));
+            $data->toolbar->addBtn(
+                'Синхронизиране',
+                array($mvc, 'sync', $data->rec->id, 'ret_url' => true),
+                        "id='btn-syncRepo', ef_icon=img/16/update-icon.png",
+                        array('order' => '30', 'row' => 2, 'title' => 'Форсира синхронизирането файловете в групата с хранилището')
+            );
         }
     }
     
     
     /**
      * Изпълнява се след създаването на модела
-     * 
+     *
      * @param distro_Group $mvc
-     * @param string $res
+     * @param string       $res
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         //Създаваме, кофа, където ще държим всички прикачени файлове
-        $res .= fileman_Buckets::createBucket(self::$bucket, 'Качени файлове в дистрибутива', NULL, '300 MB', 'user', 'user');
+        $res .= fileman_Buckets::createBucket(self::$bucket, 'Качени файлове в дистрибутива', null, '300 MB', 'user', 'user');
     }
 }

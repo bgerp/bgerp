@@ -22,37 +22,37 @@ class draw_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * От кои други пакети зависи
      */
-    var $depends = '';
+    public $depends = '';
     
     
     /**
      * Начален контролер на пакета за връзката в core_Packs
      */
-    var $startCtr = 'draw_Designs';
+    public $startCtr = 'draw_Designs';
     
     
     /**
      * Начален екшън на пакета за връзката в core_Packs
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Параметрични дизайни";
+    public $info = 'Параметрични дизайни';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'draw_Designs',
             'draw_Pens',
         );
@@ -61,7 +61,7 @@ class draw_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = array(
+    public $roles = array(
         array('draw'),
         array('drawMaster', 'draw'),
     );
@@ -70,7 +70,7 @@ class draw_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

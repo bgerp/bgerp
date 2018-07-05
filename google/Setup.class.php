@@ -26,48 +26,48 @@ class google_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = NULL;
+    public $startCtr = null;
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = NULL;
+    public $startAct = null;
     
     
     /**
      * Описание на модула
      */
-    var $info = "Услуги на Google";
+    public $info = 'Услуги на Google';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = '';
+    public $depends = '';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-    		 
-    		'GOOGLE_API_KEY' => array ('varchar', 'caption=Ключ за приложенията на google->API KEY')
-    );		
+    public $configDescription = array(
+             
+            'GOOGLE_API_KEY' => array('varchar', 'caption=Ключ за приложенията на google->API KEY')
+    );
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         //
         // Инсталиране на плъгин за автоматичен превод
         //
@@ -80,18 +80,18 @@ class google_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
     
         // Инсталираме клавиатурата към password полета
-        if($delCnt = $Plugins->deinstallPlugin('google_plg_LgTranslate')) {
+        if ($delCnt = $Plugins->deinstallPlugin('google_plg_LgTranslate')) {
             $html .= "<li>Премахнати са {$delCnt} закачания на 'google_plg_LgTranslate'";
         } else {
-            $html .= "<li>Не са премахнати закачания на плъгина";
+            $html .= '<li>Не са премахнати закачания на плъгина';
         }
     
         return $html;

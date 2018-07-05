@@ -20,13 +20,13 @@ class catering_Requests extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Заявки за кетъринг";
+    public $title = 'Заявки за кетъринг';
     
     
     /**
      * Заглавие в единично число
      */
-    public $singleTitle = "Заявкa за кетъринг";
+    public $singleTitle = 'Заявкa за кетъринг';
     
     
     /**
@@ -78,7 +78,7 @@ class catering_Requests extends core_Master
     /**
      * Шаблон за единичен изглед
      */
-    public $singleLayoutTpl = "[#SingleToolbar#]<h2>[#SingleTitle#]</h2>[#DETAILS#]";
+    public $singleLayoutTpl = '[#SingleToolbar#]<h2>[#SingleTitle#]</h2>[#DETAILS#]';
     
     
     /**
@@ -98,14 +98,14 @@ class catering_Requests extends core_Master
     /**
      * Подготвя титлата в единичния изглед
      *
-     * @param stdClass $data
+     * @param  stdClass $data
      * @return stdClass $data
      */
     public function prepareSingleTitle_($data)
     {
-       /* $data->title = "Заявка за храна<br>№ " . $data->rec->id . " / Дата: " . $data->row->date;
-        
-        return $data;*/
+        /* $data->title = "Заявка за храна<br>№ " . $data->rec->id . " / Дата: " . $data->row->date;
+
+         return $data;*/
     }
     
     
@@ -118,11 +118,11 @@ class catering_Requests extends core_Master
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-       /* if(!count($data->recs)) {
-            $res = new ET('');
-            
-            return FALSE;
-        }*/
+        /* if(!count($data->recs)) {
+             $res = new ET('');
+
+             return FALSE;
+         }*/
     }
     
     
@@ -135,7 +135,7 @@ class catering_Requests extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        $data->form->title = "Добавяне на ден за столуване";
+        $data->form->title = 'Добавяне на ден за столуване';
         
         //$data->form->setHidden('state', 'active');
     }
@@ -150,7 +150,7 @@ class catering_Requests extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        // Ако потребителя не е 'admin' или 'catering' ще вижда сумата само на неговите поръчки за деня 
+        // Ако потребителя не е 'admin' или 'catering' ще вижда сумата само на неговите поръчки за деня
         if (!haveRole('admin,catering')) {
             $personId = $mvc->EmployeesList->getPersonIdForCurrentUser();
             
@@ -159,7 +159,7 @@ class catering_Requests extends core_Master
             
             $totalPriceForPersonForOneDay = 0;
             
-            while($recRequestDetails = $queryRequestDetails->fetch($where)) {
+            while ($recRequestDetails = $queryRequestDetails->fetch($where)) {
                 $priceForOne = $mvc->MenuDetails->fetchField($recRequestDetails->menuDetailsId, 'price');
                 $priceAdd = $priceForOne * $recRequestDetails->quantity;
                 $totalPriceForPersonForOneDay += $priceAdd;
@@ -167,12 +167,12 @@ class catering_Requests extends core_Master
             
             // Форматираме изгледа за 'totalPrice' в таблицата
             if ($rec->totalPrice == '') {
-                $row->totalPrice = number_format(0, 2, '.', ' ') . " лв";
+                $row->totalPrice = number_format(0, 2, '.', ' ') . ' лв';
             } else {
-                $row->totalPrice = number_format($totalPriceForPersonForOneDay, 2, '.', ' ') . " лв";
+                $row->totalPrice = number_format($totalPriceForPersonForOneDay, 2, '.', ' ') . ' лв';
             }
             
-            // ENDOF Форматираме изгледа за 'totalPrice' в таблицата            
+            // ENDOF Форматираме изгледа за 'totalPrice' в таблицата
         }
         
         // END Ако потребителя не е 'ceo' или 'catering' ще вижда сумата само на неговите поръчки за деня
@@ -181,12 +181,12 @@ class catering_Requests extends core_Master
         if (haveRole('ceo,catering')) {
             // Форматираме изгледа за 'totalPrice' в таблицата
             if ($rec->totalPrice == '') {
-                $row->totalPrice = number_format(0, 2, '.', ' ') . " лв";
+                $row->totalPrice = number_format(0, 2, '.', ' ') . ' лв';
             } else {
-                $row->totalPrice = number_format($rec->totalPrice, 2, '.', ' ') . " лв";
+                $row->totalPrice = number_format($rec->totalPrice, 2, '.', ' ') . ' лв';
             }
             
-            // ENDOF Форматираме изгледа за 'totalPrice' в таблицата            
+            // ENDOF Форматираме изгледа за 'totalPrice' в таблицата
         }
         
         // END Ако потребителя е 'ceo' или 'catering' показваме сумата от всички заявки за деня
@@ -197,20 +197,20 @@ class catering_Requests extends core_Master
         $dateToday = substr(dt::timestamp2Mysql(time()), 0, 10);
         
         if ($rec->date < $dateToday) {
-            $row->dateState = " Стара";
+            $row->dateState = ' Стара';
         } elseif ($rec->date == $dateToday) {
-            $row->dateState = " <b>ЗА ДНЕС</b>";
-            $row->date = "<b>" . $row->date . "</b>";
+            $row->dateState = ' <b>ЗА ДНЕС</b>';
+            $row->date = '<b>' . $row->date . '</b>';
         } elseif ($rec->date == $dateTomorrow) {
-            $row->dateState = " <b>За утре</b>";
+            $row->dateState = ' <b>За утре</b>';
         } else {
-            $row->dateState = "Предстояща";
+            $row->dateState = 'Предстояща';
         }
         
         // END Проверка за 'dateState'
         
         // Логика за редактиране в зависимост от 'dateState'
-        if ($row->dateState == " Стара") {
+        if ($row->dateState == ' Стара') {
             // ,,,
         }
         
@@ -223,7 +223,7 @@ class catering_Requests extends core_Master
             if ($rec->state == 'closed') {
                 $row->makeOrder = Ht::createLink('Създай', array('catering_Orders', 'makeOrder', $rec->id));
             } else {
-                $row->makeOrder = "Заявката не е приключена";
+                $row->makeOrder = 'Заявката не е приключена';
             }
         }
     }
@@ -241,7 +241,7 @@ class catering_Requests extends core_Master
         
         $totalPrice = 0;
         
-        while($rec = $queryRequestDetails->fetch($where)) {
+        while ($rec = $queryRequestDetails->fetch($where)) {
             $menuDetails = cls::get('catering_MenuDetails');
             $priceForOne = $menuDetails->fetchField($rec->menuDetailsId, 'price');
             $priceAdd = $priceForOne * $rec->quantity;
@@ -273,14 +273,14 @@ class catering_Requests extends core_Master
     /**
      * Смяна статута на 'active'
      */
-    function act_ActivateRequest()
+    public function act_ActivateRequest()
     {
         $id = Request::get('id', 'int');
         
         $recForActivation = new stdClass;
         
         $recForActivation->id = $id;
-        $recForActivation->state = "active";
+        $recForActivation->state = 'active';
         
         $this->save($recForActivation);
         
@@ -298,7 +298,7 @@ class catering_Requests extends core_Master
         $recForDeactivation = new stdClass;
         
         $recForDeactivation->id = $id;
-        $recForDeactivation->state = "closed";
+        $recForDeactivation->state = 'closed';
         
         $this->save($recForDeactivation);
         
@@ -315,22 +315,22 @@ class catering_Requests extends core_Master
         
         $data->toolbar->addBtn('Назад', array('Ctr' => $mvc,
                 'Act' => 'list',
-                'ret_url' => TRUE));
+                'ret_url' => true));
         
         if ($data->rec->state == 'active') {
             $data->toolbar->addBtn('Приключи', array('Ctr' => $mvc,
                     'Act' => 'deactivateRequest',
                     'id' => $data->rec->id,
-                    'ret_url' => TRUE));
+                    'ret_url' => true));
         }
         
         if ($data->rec->state == 'closed') {
-            // Само, ако няма създадени поръчки за този $requestId 
+            // Само, ако няма създадени поръчки за този $requestId
             if (!$recOrder = $mvc->Orders->fetch("#requestId = {$data->rec->id}")) {
                 $data->toolbar->addBtn('Активирай за корекция', array('Ctr' => $mvc,
                         'Act' => 'activateRequest',
                         'id' => $data->rec->id,
-                        'ret_url' => TRUE));
+                        'ret_url' => true));
             }
         }
     }
@@ -353,23 +353,22 @@ class catering_Requests extends core_Master
     /**
      * Ако state е closed, то не можем да редактираме и и изтриваме
      *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
      * @param stdClass|NULL $rec
-     * @param int|NULL $userId
+     * @param int|NULL      $userId
      */
     /*
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete' || $action == 'edit')  ) {
             $rec = $mvc->fetch($rec->id);
-            
+
             if ($rec->state == 'closed') {
                 $requiredRoles = 'no_one';
             }
         }
     }
     */
-
-} 
+}

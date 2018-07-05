@@ -66,7 +66,7 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     public $listFields = 'productId=Предадено на Клиент/Доставчик, packagingId, packQuantity, weight=Тегло,volume=Обем,packPrice, amount,transUnitId=ЛЕ';
 
     
-	/**
+    /**
      * Полета свързани с цени
      */
     public $priceFields = 'price, amount, discount, packPrice';
@@ -77,9 +77,9 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
      */
     public function description()
     {
-    	$this->FLD('protocolId', 'key(mvc=store_ConsignmentProtocols)', 'column=none,notNull,silent,hidden,mandatory');
-    	parent::setFields($this);
-    	$this->setDbUnique('protocolId,productId,packagingId');
+        $this->FLD('protocolId', 'key(mvc=store_ConsignmentProtocols)', 'column=none,notNull,silent,hidden,mandatory');
+        parent::setFields($this);
+        $this->setDbUnique('protocolId,productId,packagingId');
     }
     
     
@@ -88,10 +88,10 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
      */
     protected function getProducts($masterRec)
     {
-    	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell,canStore');
-    	 
-    	return $products;
+        // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
+        $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell,canStore');
+         
+        return $products;
     }
     
     
@@ -100,13 +100,13 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
-    	$rec = &$form->rec;
-    	
-    	if(isset($rec->productId)){
-    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
-    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
-    		$form->info = $storeInfo->formInfo;
-    	}
+        $rec = &$form->rec;
+        
+        if (isset($rec->productId)) {
+            $masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
+            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+            $form->info = $storeInfo->formInfo;
+        }
     }
 
     
@@ -115,17 +115,19 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
      */
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-    	$rows = &$data->rows;
-    	if(!count($data->recs)) return;
-    	
-    	$storeId = $data->masterData->rec->storeId;
-    	foreach ($data->rows as $id => $row){
-    		$rec = $data->recs[$id];
-    		
-    		$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
-    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
-    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
-    		}
-    	}
+        $rows = &$data->rows;
+        if (!count($data->recs)) {
+            return;
+        }
+        
+        $storeId = $data->masterData->rec->storeId;
+        foreach ($data->rows as $id => $row) {
+            $rec = $data->recs[$id];
+            
+            $warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
+            if (strlen($warning) && $data->masterData->rec->state == 'draft') {
+                $row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', false);
+            }
+        }
     }
 }

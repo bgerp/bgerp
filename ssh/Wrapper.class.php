@@ -8,7 +8,7 @@
  * Поддържа системното меню и табове-те на пакета 'ssh'
  *
  *
- * @category  bgerp   
+ * @category  bgerp
  * @package   ssh
  * @author    Dimitar Minekov <mitko@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
@@ -23,7 +23,7 @@ class ssh_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('ssh_Hosts', 'SSH', 'remote, admin');
 

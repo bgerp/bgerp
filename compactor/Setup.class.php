@@ -14,7 +14,7 @@ defIfNot('COMPACTOR_CSS_FILES', 'css/common.css, css/Application.css, toast/[#to
 
 
 /**
- * 
+ *
  *
  * @category  compactor
  * @package   toast
@@ -30,22 +30,22 @@ class compactor_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Компактиране на CSS и JS. Ускорява зареждането в браузъра";
+    public $info = 'Компактиране на CSS и JS. Ускорява зареждането в браузъра';
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html .= parent::install();
-    	
+        $html .= parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -87,13 +87,15 @@ class compactor_Setup extends core_ProtoSetup
         foreach ($usedPacksArr as $name) {
             
             // Ако няма име
-            if (!$name) continue;
+            if (!$name) {
+                continue;
+            }
             
             // Сетъп пакета
             $pack = $name  . '_Setup';
             
             // Ако файлът съществува
-            if (cls::load($pack, TRUE)) {
+            if (cls::load($pack, true)) {
                 
                 // Инстанция на пакета
                 $inst = cls::get($pack);
@@ -109,18 +111,20 @@ class compactor_Setup extends core_ProtoSetup
                 }
                 
                 // Ако няма файлове за добавяне
-                if (!$commonCss && !$commonJs) continue;
+                if (!$commonCss && !$commonJs) {
+                    continue;
+                }
                 
                 // Добавяме зададените CSS файлове към главния
                 if ($commonCss) {
-                    $commonCssArr = arr::make($commonCss, TRUE);
-                    $cssFilesArr = array_merge((array)$cssFilesArr, (array)$commonCssArr);
+                    $commonCssArr = arr::make($commonCss, true);
+                    $cssFilesArr = array_merge((array) $cssFilesArr, (array) $commonCssArr);
                 }
                 
                 // Добавяме зададените JS файлове към главния
                 if ($commonJs) {
-                    $commonJsArr = arr::make($commonJs, TRUE);
-                    $jsFilesArr = array_merge((array)$jsFilesArr, (array)$commonJsArr);
+                    $commonJsArr = arr::make($commonJs, true);
+                    $jsFilesArr = array_merge((array) $jsFilesArr, (array) $commonJsArr);
                 }
             }
         }

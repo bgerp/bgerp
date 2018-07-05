@@ -4,7 +4,7 @@
 
 /**
  * Декодира tnef файлове
- * 
+ *
  * @category  bgerp
  * @package   bgerp
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -18,21 +18,22 @@ class tnef_EmailPlg extends core_Plugin
     
     /**
      * Преди записване на файловете
-     * 
+     *
      * @param email_Mime $mvc
-     * @param NULL $res
+     * @param NULL       $res
      */
-    function on_BeforeSaveFiles($mvc, &$res)
+    public function on_BeforeSaveFiles($mvc, &$res)
     {
         $allFiles = $mvc->files;
         
-        $idNewFile = 100 * count((array)$allFiles);
+        $idNewFile = 100 * count((array) $allFiles);
         
-        foreach ((array)$mvc->files as $id => $fRec) {
-            
+        foreach ((array) $mvc->files as $id => $fRec) {
             $ext = fileman_Files::getExt($fRec->name);
             
-            if ($ext != 'dat' && $ext != 'tnef') continue;
+            if ($ext != 'dat' && $ext != 'tnef') {
+                continue;
+            }
             
             // Записваме файла, ако не е записан вече
             if (!$fileId = $fRec->fmId) {
@@ -46,15 +47,18 @@ class tnef_EmailPlg extends core_Plugin
             // Извличаме файловете
             $decodedArr = tnef_Decode::decode($fh);
             
-            if (!$decodedArr) continue;
+            if (!$decodedArr) {
+                continue;
+            }
             
             unset($allFiles[$id]);
             
             // Добавяме информация за файловете в масива
             foreach ($decodedArr as $fh) {
-                
                 $fRecN = fileman_Files::fetchByFh($fh);
-                if (!$fh) continue;
+                if (!$fh) {
+                    continue;
+                }
                 $nF = new stdClass();
                 $nF->name = $fRecN->name;
                 $nF->fmId = $fRecN->id;

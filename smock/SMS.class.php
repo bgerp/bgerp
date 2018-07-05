@@ -14,87 +14,82 @@
 class smock_SMS extends core_Manager
 {
     
-	
+    
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'no_one';
+    public $canRead = 'no_one';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin';
+    public $canView = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
+    public $canList = 'admin';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'admin';
-	
+    public $canDelete = 'admin';
     
-	/**
-	 * Интерфейсния клас за изпращане на SMS
-	 */
-	var $interfaces = 'callcenter_SentSMSIntf'; 
-	
-	
-	/**
-	 * 
-	 */
-	var $title = 'Smock';
+    
+    /**
+     * Интерфейсния клас за изпращане на SMS
+     */
+    public $interfaces = 'callcenter_SentSMSIntf';
+    
+    
+    
+    public $title = 'Smock';
             
     
-	/**
-	 * 
-	 */
-    function description()
+    
+    public function description()
     {
         $this->FLD('number', 'varchar(32)', 'caption=Номер');
         $this->FLD('message', 'varchar', 'caption=Съобщение');
         $this->FLD('sender', 'varchar(32)', 'caption=Изпращач');
-
     }
     
     
-	/**
+    /**
      * Интерфейсен метод за изпращане на SMS' и
-     * 
-     * @param string $number - Номера на получателя
+     *
+     * @param string $number  - Номера на получателя
      * @param string $message - Текста на съобщението
-     * @param string $sender - От кого се изпраща съобщението
-     * 
+     * @param string $sender  - От кого се изпраща съобщението
+     *
      * @return array $nRes - Mасив с информация, дали е получено
-     * $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
-     * $nRes['uid'] string - Уникалното id на съобщението
-     * $nRes['msg'] - Статуса
+     *               $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
+     *               $nRes['uid'] string - Уникалното id на съобщението
+     *               $nRes['msg'] - Статуса
      */
-    function sendSMS($number, $message, $sender)
+    public function sendSMS($number, $message, $sender)
     {
         $number = self::prepareNumberStr($number);
         
         $rec = (object) array(
-            'number'  => $number,
+            'number' => $number,
             'message' => $message,
-            'sender'  => $sender,
+            'sender' => $sender,
             );
         
         $this->save($rec);
@@ -103,7 +98,7 @@ class smock_SMS extends core_Manager
         
         $nRes['sendStatus'] = 'sended';
         $nRes['uid'] = $rec->id;
-        $nRes['msg'] = "|Успешно изпратен SMS";
+        $nRes['msg'] = '|Успешно изпратен SMS';
 
         return $nRes;
     }
@@ -111,29 +106,29 @@ class smock_SMS extends core_Manager
     
     /**
      * Интерфейсен метод, който връща масив с настройките за услугата
-     * 
+     *
      * @return array $paramsArr
-     * enum $paramsArr['utf8'] - no|yes - Дали поддържа UTF-8
-     * integer $paramsArr['maxStrLen'] - Максималната дължина на стринга
-     * string $paramsArr['allowedUserNames'] - Масив с позволените имена за изпращач
+     *               enum $paramsArr['utf8'] - no|yes - Дали поддържа UTF-8
+     *               integer $paramsArr['maxStrLen'] - Максималната дължина на стринга
+     *               string $paramsArr['allowedUserNames'] - Масив с позволените имена за изпращач
      */
-    function getParams()
+    public function getParams()
     {
         $paramsArr = array();
-        $paramsArr['utf8'] = TRUE;
+        $paramsArr['utf8'] = true;
         $paramsArr['maxStrLen'] = 140;
-        $paramsArr['allowedUserNames'] = FALSE;
+        $paramsArr['allowedUserNames'] = false;
         
         return $paramsArr;
     }
     
     
-	/**
+    /**
      * Инрерфейсен метод
      * Подготвя номера на получателя
-     * 
+     *
      * @param string $number
-     * 
+     *
      * @return string
      */
     protected function prepareNumberStr($number)
