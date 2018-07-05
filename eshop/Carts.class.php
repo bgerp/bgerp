@@ -446,7 +446,7 @@ class eshop_Carts extends core_Master
     	
     	// Рутиране в папка
     	if(isset($rec->saleFolderId)){
-    		$Cover = doc_Folders::getCover($folderId);
+    		$Cover = doc_Folders::getCover($rec->saleFolderId);
     		$folderId = $rec->saleFolderId;
     	} else {
     		$folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
