@@ -109,9 +109,6 @@ class findeals_DebitDocuments extends deals_Document
     	$rec = &$form->rec;
     	
     	if ($form->isSubmitted()){
-    		
-    		expect($rec->dealId);
-    		
     		$oprtations = $form->dealInfo->get('allowedPaymentOperations');
     		$operation = $oprtations[$rec->operationSysId];
     		$debitAcc = findeals_Deals::fetchField($rec->dealId, 'accountId');

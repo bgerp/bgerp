@@ -112,9 +112,6 @@ class findeals_CreditDocuments extends deals_Document
     	$rec = &$form->rec;
     	
     	if ($form->isSubmitted()){
-    		
-    		expect($rec->dealId);
-    		
     		$operations = $form->dealInfo->get('allowedPaymentOperations');
     		$operation = $operations[$rec->operationSysId];
     		
