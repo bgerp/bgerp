@@ -119,7 +119,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     		$rec = $data->recs[$id];
     	
     		$warning = deals_Helper::getQuantityHint($rec->productId, $data->masterData->rec->storeId, $rec->quantity);
-    		if(strlen($warning) && in_array($data->masterData->rec->state, array('draft', 'pending')){
+    		if(strlen($warning) && in_array($data->masterData->rec->state, array('draft', 'pending'))){
     			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE, NULL, 'class=doc-negative-quantiy');
     		}
     	}

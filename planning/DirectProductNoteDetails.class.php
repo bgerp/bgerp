@@ -323,7 +323,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     			if($rec->type != 'input') continue;
     			
     			$warning = deals_Helper::getQuantityHint($rec->productId, $rec->storeId, $rec->quantity);
-    			if(strlen($warning)  && in_array($data->masterData->rec->state, array('draft', 'pending')){
+    			if(strlen($warning)  && in_array($data->masterData->rec->state, array('draft', 'pending'))){
     				$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE, NULL, 'class=doc-negative-quantiy');
     			}
     		}
