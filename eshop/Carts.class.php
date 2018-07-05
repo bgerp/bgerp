@@ -686,7 +686,7 @@ class eshop_Carts extends core_Master
     		$tpl->replace(core_Type::getByName('richtext')->toVerbal($settings->info), 'COMMON_TEXT');
     	}
     	
-    	$cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
+    	$cartInfo = tr('Всички цени са ')  . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
     	$tpl->replace($cartInfo, 'VAT_STATUS');
     	
     	// Ако има последно активирана кошница да се показва като съобщение
