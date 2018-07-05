@@ -17,7 +17,7 @@ class blast_EmailSend extends core_Detail
     /**
      * Заглавие
      */
-    public $title = "Лог на изпращаните писма";
+    public $title = 'Лог на изпращаните писма';
     
     /**
      * Кой има право да чете?
@@ -70,15 +70,11 @@ class blast_EmailSend extends core_Detail
     public $listItemsPerPage = 20;
     
     
-    /**
-     * 
-     */
+    
     public $canActivate = 'ceo, blast, admin';
     
     
-    /**
-     * 
-     */
+    
     public $canStop = 'ceo, blast, admin';
     
     
@@ -91,7 +87,7 @@ class blast_EmailSend extends core_Detail
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('emailId', 'key(mvc=blast_Emails, select=subject)', 'caption=Списък');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
@@ -111,10 +107,10 @@ class blast_EmailSend extends core_Detail
     /**
      * Обновява списъка
      *
-     * @param integer $emailId - id на мастер (blast_Emails)
-     * @param array $dataArr - Масив с данните - ключ id на източника и стойност самите данни
-     * @param array $emailFieldsArr - Масив с полета, които се използва за имейл
-     * @param array $negativeEmailArr - Масив с имейли, които да се изключат
+     * @param integer $emailId          - id на мастер (blast_Emails)
+     * @param array   $dataArr          - Масив с данните - ключ id на източника и стойност самите данни
+     * @param array   $emailFieldsArr   - Масив с полета, които се използва за имейл
+     * @param array   $negativeEmailArr - Масив с имейли, които да се изключат
      *
      * @return array - Броят на добавените и премахнатите записи
      */
@@ -123,7 +119,7 @@ class blast_EmailSend extends core_Detail
         $addCnt = $rCnt = 0;
         
         // Обхождаме масива с данните
-        foreach ((array)$dataArr as $data) {
+        foreach ((array) $dataArr as $data) {
             $emailStr = '';
             
             $nRec = new stdClass();
@@ -135,26 +131,29 @@ class blast_EmailSend extends core_Detail
             if ($emailFieldsArr) {
                 
                 // Генерира стринг от всички имейли
-                foreach ((array)$emailFieldsArr as $name => $type) {
+                foreach ((array) $emailFieldsArr as $name => $type) {
                     if (isset($data[$name])) {
                         $emailStr .= $emailStr ? ', ' . $data[$name] : $data[$name];
                     }
                 }
             }
             
-            if (!$emailStr) continue;
+            if (!$emailStr) {
+                continue;
+            }
             
             // Масив с всички възможни имейли
             $emailsArr = type_Emails::toArray($emailStr);
             $toEmail = '';
             
             // Добавяме първия имейл, който не е списъка с блокирани
-            foreach ((array)$emailsArr as $email) {
-                if (blast_BlockedEmails::isBlocked($email)) continue;
+            foreach ((array) $emailsArr as $email) {
+                if (blast_BlockedEmails::isBlocked($email)) {
+                    continue;
+                }
                 
                 // Ако е в отрицателния списък - просто го игнорираме
                 if ($negativeEmailArr[$email]) {
-                    
                     $nRec->email = $email;
                     
                     // Хеша на имейла
@@ -172,7 +171,9 @@ class blast_EmailSend extends core_Detail
             }
             
             // Ако няма имейл за добавяне
-            if (!$toEmail) continue;
+            if (!$toEmail) {
+                continue;
+            }
             
             // Добаваме стринга с имейлите
             $nRec->email = $toEmail;
@@ -181,11 +182,11 @@ class blast_EmailSend extends core_Detail
             $nRec->hash = self::getHash($toEmail);
             
             // За всеки нов запис увеличаваме брояча
-            $id = self::save($nRec, NULL, 'IGNORE');
+            $id = self::save($nRec, null, 'IGNORE');
             
             if ($id) {
                 $addCnt++;
-                blast_BlockedEmails::addEmail($toEmail, FALSE);
+                blast_BlockedEmails::addEmail($toEmail, false);
             }
         }
         
@@ -197,11 +198,11 @@ class blast_EmailSend extends core_Detail
      * Връща данните за подадения emailId
      *
      * @param integer $emailId - id на мастер (blast_Emails)
-     * @param integer $count - Дали да има ограничени в броя на записите
+     * @param integer $count   - Дали да има ограничени в броя на записите
      *
      * @return array
      */
-    public static function getDataArrForEmailId($emailId, $count = NULL)
+    public static function getDataArrForEmailId($emailId, $count = null)
     {
         $resArr = array();
         
@@ -236,7 +237,7 @@ class blast_EmailSend extends core_Detail
     {
         $dataArr = self::fetchField($id, 'data');
         
-        return (array)$dataArr;
+        return (array) $dataArr;
     }
     
     
@@ -250,19 +251,19 @@ class blast_EmailSend extends core_Detail
         $dataArr = arr::make($dataArr);
         
         // Маркира всички подадени записи, като изпратени
-        foreach ((array)$dataArr as $id => $dummy) {
+        foreach ((array) $dataArr as $id => $dummy) {
             $nRec = new stdClass();
             $nRec->id = $id;
             $nRec->state = 'sended';
             
-            self::save($nRec, NULL, 'UPDATE');
+            self::save($nRec, null, 'UPDATE');
         }
     }
     
     
     /**
      * Премахва маркирането като изпратени
-     * 
+     *
      * @param array $dataArr
      */
     public static function removeMarkAsSent($dataArr)
@@ -270,12 +271,12 @@ class blast_EmailSend extends core_Detail
         $dataArr = arr::make($dataArr);
         
         // Маркира всички подадени записи, като изпратени
-        foreach ((array)$dataArr as $id => $dummy) {
+        foreach ((array) $dataArr as $id => $dummy) {
             $nRec = new stdClass();
             $nRec->id = $id;
             $nRec->state = 'waiting';
             
-            self::save($nRec, NULL, 'UPDATE');
+            self::save($nRec, null, 'UPDATE');
         }
     }
     
@@ -290,22 +291,22 @@ class blast_EmailSend extends core_Detail
         $idsArr = arr::make($idsArr);
         
         // Променя времето и имейла на всички подадени записи
-        foreach ((array)$idsArr as $id => $email) {
+        foreach ((array) $idsArr as $id => $email) {
             $nRec = new stdClass();
             $nRec->id = $id;
             $nRec->sentOn = dt::now();
             $nRec->email = $email;
             
-            self::save($nRec, NULL, 'UPDATE');
+            self::save($nRec, null, 'UPDATE');
         }
     }
     
     
     /**
      * Връща хеша за имейал
-     * 
+     *
      * @param string $email
-     * 
+     *
      * @return string
      */
     public static function getHash($email)
@@ -318,9 +319,9 @@ class blast_EmailSend extends core_Detail
     
     /**
      * Връща прогреса на изпращанията
-     * 
+     *
      * @param integer $emailId
-     * 
+     *
      * @return integer
      */
     public static function getSendingProgress($emailId)
@@ -330,13 +331,15 @@ class blast_EmailSend extends core_Detail
         
         $allCnt = $query->count();
         
-        if (!$allCnt) return 0;
+        if (!$allCnt) {
+            return 0;
+        }
         
         $query->where("#state = 'sended'");
         
         $sendedCnt = $query->count();
         
-        $progress = $sendedCnt/$allCnt;
+        $progress = $sendedCnt / $allCnt;
         
         if ($progress > 1) {
             $progress = 1;
@@ -350,15 +353,15 @@ class blast_EmailSend extends core_Detail
      * След подготвяне на формата за филтриране
      *
      * @param blast_EmailSend $mvc
-     * @param stdClass $data
+     * @param stdClass        $data
      */
-    function on_AfterPrepareListFilter($mvc, &$data)
+    public function on_AfterPrepareListFilter($mvc, &$data)
     {
         // Подреждаме записите, като неизпратените да се по-нагоре
-        $data->query->orderBy("stateAct", 'ASC');
-        $data->query->orderBy("state", 'ASC');
-        $data->query->orderBy("createdOn", 'DESC');
-        $data->query->orderBy("sentOn", 'DESC');
+        $data->query->orderBy('stateAct', 'ASC');
+        $data->query->orderBy('state', 'ASC');
+        $data->query->orderBy('createdOn', 'DESC');
+        $data->query->orderBy('sentOn', 'DESC');
     }
     
     
@@ -366,13 +369,13 @@ class blast_EmailSend extends core_Detail
      * След преобразуване на записа в четим за хора вид.
      *
      * @param blast_EmailSend $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param stdClass        $row Това ще се покаже
+     * @param stdClass        $rec Това е записа в машинно представяне
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    public function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // В зависимост от състоянието променяме класа на реда
-        if($rec->state == 'sended') {
+        if ($rec->state == 'sended') {
             $row->ROW_ATTR['class'] .= ' state-closed';
         } else {
             $row->ROW_ATTR['class'] .= ' state-pending';
@@ -381,18 +384,17 @@ class blast_EmailSend extends core_Detail
         if ($rec->stateAct != 'stopped') {
             $stopUrl = array();
             if ($mvc->haveRightFor('stop', $rec)) {
-                $stopUrl = array($mvc, 'stop', $rec->id, 'ret_url' => TRUE);
+                $stopUrl = array($mvc, 'stop', $rec->id, 'ret_url' => true);
             }
             // Бутон за спиране
-            $row->stateAct = ht::createBtn('Спиране', $stopUrl, FALSE, FALSE,'title=Прекратяване на изпращане към този имейл');
-            
+            $row->stateAct = ht::createBtn('Спиране', $stopUrl, false, false, 'title=Прекратяване на изпращане към този имейл');
         } else {
             $activateUrl = array();
             if ($mvc->haveRightFor('activate', $rec)) {
-                $activateUrl = array($mvc, 'activate', $rec->id, 'ret_url' => TRUE);
+                $activateUrl = array($mvc, 'activate', $rec->id, 'ret_url' => true);
             }
             // Бутон за активиране
-            $row->stateAct = ht::createBtn('Активиране', $activateUrl, FALSE, FALSE,'title=Започване на изпращане към този имейл');
+            $row->stateAct = ht::createBtn('Активиране', $activateUrl, false, false, 'title=Започване на изпращане към този имейл');
             
             $row->ROW_ATTR['class'] .= ' state-stopped';
         }
@@ -403,12 +405,12 @@ class blast_EmailSend extends core_Detail
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($rec && ($requiredRoles != 'no_one')) {
             if ($action == 'stop' || $action == 'activate') {
@@ -423,7 +425,7 @@ class blast_EmailSend extends core_Detail
     /**
      * Екшън за спиране
      */
-    function act_Stop()
+    public function act_Stop()
     {
         // id' то на записа
         $id = Request::get('id', 'int');
@@ -450,7 +452,7 @@ class blast_EmailSend extends core_Detail
     /**
      * Екшън за активиране
      */
-    function act_Activate()
+    public function act_Activate()
     {
         // id' то на записа
         $id = Request::get('id', 'int');

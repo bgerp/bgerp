@@ -20,67 +20,67 @@ class blast_LetterDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper, plg_RowNumbering, plg_RowTools2, plg_Select, plg_Created, plg_Sorting, plg_State, plg_PrevAndNext, plg_SaveAndNew';
+    public $loadList = 'blast_Wrapper, plg_RowNumbering, plg_RowTools2, plg_Select, plg_Created, plg_Sorting, plg_State, plg_PrevAndNext, plg_SaveAndNew';
     
     
     /**
      * Заглавие
      */
-    var $title = "Детайл на писма";
+    public $title = 'Детайл на писма';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'blast,ceo';
+    public $canRead = 'blast,ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'blast,ceo';
+    public $canReject = 'blast,ceo';
     
     
     /**
      * Кой може да го възстанови?
      */
-    var $canRestore = 'blast,ceo';
+    public $canRestore = 'blast,ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'blast, ceo';
+    public $canDelete = 'blast, ceo';
     
     
     /**
      * Кой  може да пише?
      */
-    var $canWrite = 'no_one';
+    public $canWrite = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Контакт за масово разпращане';
+    public $singleTitle = 'Контакт за масово разпращане';
     
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'letterId';
+    public $masterKey = 'letterId';
     
     
     /**
@@ -92,19 +92,19 @@ class blast_LetterDetails extends doc_Detail
     /**
      * Брой записи на страница
      */
-    var $listItemsPerPage = 10;
+    public $listItemsPerPage = 10;
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'listDetailsId, printedDate, print=Печат';
+    public $listFields = 'listDetailsId, printedDate, print=Печат';
     
     
     /**
      * Описание на полетата на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('letterId', 'key(mvc=blast_Letters, select=subject)', 'caption=Заглавие');
         $this->FLD('listDetailsId', 'keylist(mvc=blast_ListDetails, select=id)', 'caption=До:');
@@ -115,11 +115,16 @@ class blast_LetterDetails extends doc_Detail
     /**
      * Добавя бутон на файловете, за печатане
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         // Бутон за принтиране
-        $row->print = HT::createBtn('Печат', array('blast_Letters', 'print', 'detailId' => $rec->id, 'Printing' => 'yes'),
-            FALSE, array('target' => '_blank'), array('class' => 'print'));
+        $row->print = HT::createBtn(
+            'Печат',
+            array('blast_Letters', 'print', 'detailId' => $rec->id, 'Printing' => 'yes'),
+            false,
+            array('target' => '_blank'),
+            array('class' => 'print')
+        );
         
         // Масив с всички детайли
         $listDetArr = type_Keylist::toArray($rec->listDetailsId);
@@ -149,7 +154,7 @@ class blast_LetterDetails extends doc_Detail
                 $key = blast_ListDetails::getVerbal($listDetRec, 'key');
                 
                 // Добавяме към стринга
-                $str .= ht::createLink($listDet, array('blast_ListDetails', 'edit', $listDet, 'ret_url' => TRUE), FALSE, array('title'=> $key));
+                $str .= ht::createLink($listDet, array('blast_ListDetails', 'edit', $listDet, 'ret_url' => true), false, array('title' => $key));
             } elseif ($masterRec->group) {
                 
                 // Ако е грпа
@@ -167,7 +172,7 @@ class blast_LetterDetails extends doc_Detail
                         $name = crm_Companies::getVerbal($cRec, 'name');
                         
                         // Добавяме линка към сингъла на фирмата в стринга
-                        $str .= ht::createLink($listDet, array('crm_Companies', 'single', $listDet, 'ret_url' => TRUE), FALSE, array('title'=> $name));
+                        $str .= ht::createLink($listDet, array('crm_Companies', 'single', $listDet, 'ret_url' => true), false, array('title' => $name));
                     } else {
                         
                         // Ако нямаме права добавяме само стринга
@@ -185,7 +190,7 @@ class blast_LetterDetails extends doc_Detail
                         $name = crm_Persons::getVerbal($pRec, 'name');
                         
                         // Добавяме линка към сингъла на лицето в стринга
-                        $str .= ht::createLink($listDet, array('crm_Persons', 'single', $listDet, 'ret_url' => TRUE), FALSE, array('title'=> $name));
+                        $str .= ht::createLink($listDet, array('crm_Persons', 'single', $listDet, 'ret_url' => true), false, array('title' => $name));
                     } else {
                         
                         // Ако нямаме права добавяме само стринга

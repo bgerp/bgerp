@@ -20,7 +20,7 @@ class blast_Wrapper extends plg_ProtoWrapper
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('blast_ListDetails', 'Списъци', 'blast,ceo,admin');
         $this->TAB('blast_Lists', 'Списъци', 'blast,ceo,admin');

@@ -19,63 +19,62 @@ class blast_Labels extends core_Manager
     /**
      * Заглавие
      */
-    var $title = "Етикети";
+    public $title = 'Етикети';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo, blast';
+    public $canRead = 'ceo, blast';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo, blast';
+    public $canEdit = 'ceo, blast';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo, blast';
+    public $canAdd = 'ceo, blast';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo, blast';
+    public $canView = 'ceo, blast';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo, blast';
+    public $canList = 'ceo, blast';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo, blast';
+    public $canDelete = 'ceo, blast';
     
     
     /**
      * Кой може да праща информационните съобщения?
      */
-    var $canBlast = 'ceo, blast';
+    public $canBlast = 'ceo, blast';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper';
+    public $loadList = 'blast_Wrapper';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-    
     }
     
     
@@ -83,12 +82,12 @@ class blast_Labels extends core_Manager
      * Екшън по подразбиране.
      * Извежда картинка, че страницата е в процес на разработка
      */
-    function act_Default()
+    public function act_Default()
     {
         requireRole('blast, ceo');
         
         $text = tr('В процес на разработка');
-        $underConstructionImg = "<h2>$text</h2><img src=" . sbf('img/under_construction.png') . ">";
+        $underConstructionImg = "<h2>${text}</h2><img src=" . sbf('img/under_construction.png') . '>';
         
         return $this->renderWrapping($underConstructionImg);
     }
