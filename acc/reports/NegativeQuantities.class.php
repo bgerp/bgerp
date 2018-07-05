@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджър на отчети за артикули с отрицателни количества
  *
@@ -29,12 +30,13 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField;
+    protected $groupByField = 'articul';
 
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields;
+
 
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -43,12 +45,12 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        // $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
-        // $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
-        // $fieldset->FLD('ent1Id', 'key(mvc=acc_Items,select=titleLink)', 'caption=Сметка->перо,after=title');
-        $fieldset->FLD('accountId', 'key(mvc=acc_Accounts,title=title)', 'caption=Сметка->име,single=none');
-        $fieldset->FLD('period', 'key(mvc=acc_Periods,title=title)', 'caption=Период,single=none');
+        $fieldset->FLD('period', 'key(mvc=acc_Periods,title=title)', 'caption = Период,after=accountId,single=none');
+        $fieldset->FLD('accountId', 'key(mvc=acc_Accounts,title=title)', 'caption = Сметкa,after=title,single=none');
+        $fieldset->FLD('minval', 'double(decimals=2)', 'caption = Минимален праг за отчитане,unit= (количество),
+                        placeholder=Без праг,after=period');
     }
+
 
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -62,7 +64,10 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+
+        $form->setDefault('accountId', 81);
     }
+
 
     /**
      * Кои записи ще се показват в таблицата
@@ -74,44 +79,53 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = NULL)
     {
         $recs = array();
-        
+        $articulsForCheck = array();
+        $storesArr = array();
+
         $query = acc_BalanceDetails::getQuery();
-        
+
         $query->EXT('periodId', 'acc_Balances', 'externalName=periodId,externalKey=balanceId');
-        
+
         $query->where("#accountId = '$rec->accountId'");
-        
+
         $query->where("#periodId = '$rec->period'");
-        
+
+        $query->where("#ent1Id IS NOT NULL AND #ent2Id IS NOT NULL");
+
         while ($detail = $query->fetch()) {
-            
-            if (!is_null($detail->ent2Id)) {
-                $articul = acc_Items::fetch($detail->ent2Id);
+
+            $storesArr[$detail->ent1Id] = $detail->ent1Id;
+
+            if ($detail->blQuantity < 0) {
+
+                $articulsForCheck[$detail->ent2Id] = $detail->ent2Id;
             }
-            
-            if (!is_null($detail->ent1Id)) {
-                $store = acc_Items::fetch($detail->ent1Id);
-            }
-            
-            if ($detail->blQuantity >= 0)continue;
-            
-            if (!array_key_exists($articul->id, $recs)) {
-                
-                $recs[$articul->id] = (object) array(
-                    
-                    'artikulId' => $articul->id,
-                    'artikulName' => $articul->title,
-                    'storelId' => $store->id,
-                    'storeName' => $store->title,
-                    'period' => $rec->period,
-                    'quantity' => $detail->blQuantity
-                
-                );
+
+            if (in_array($detail->ent2Id, $articulsForCheck)) {
+
+                if (! array_key_exists($detail->ent2Id, $recs)) {
+
+                    $recs[$detail->ent2Id] = (object) array(
+
+                        'articulId' => $detail->ent2Id,
+                        'storeId' => $detail->ent1Id,
+                        'quantity' => $detail->blQuantity
+                    );
+                } else {
+                    $obj = &$recs[$detail->ent2Id];
+
+                    $obj->storeId .= ',' . $detail->ent1Id;
+
+                    $obj->quantity .= ',' . $detail->blQuantity;
+                }
             }
         }
-        
+
+        asort($recs);
+
         return $recs;
     }
+
 
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
@@ -125,15 +139,16 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = FALSE)
     {
         $fld = cls::get('core_FieldSet');
-        
+
         if ($export === FALSE) {
-            
-            $fld->FLD('artikulName', 'varchar', 'caption=Артикул');
-            $fld->FLD('storeName', 'varchar', 'caption=Склад,tdClass=centered');
-            $fld->FLD('quantity', 'varchar', 'caption=Количество,tdClass=centered');
+
+            $fld->FLD('articul', 'varchar', 'caption=Артикул');
+            $fld->FLD('store', 'varchar', 'caption=Склад');
+            $fld->FLD('quantity', 'varchar', 'caption=Количество');
         } else {}
         return $fld;
     }
+
 
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
@@ -149,16 +164,26 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         $isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
+        $resArr = array();
+
         $row = new stdClass();
-        
-        $row->artikulName = $dRec->artikulName;
-        
-        $row->storeName = $dRec->storeName;
-        
-        $row->quantity = $dRec->quantity;
-        
+
+        $row->articul = "<b>" . cat_Products::getShortHyperlink($dRec->articulId) . "</b>";
+
+        $stores = explode(',', $dRec->storeId);
+        $quantities = explode(',', $dRec->quantity);
+
+        $resArr = array_combine($stores, $quantities);
+        asort($resArr);
+        foreach ($resArr as $key => $val) {
+
+            $row->store .= acc_Items::fetch($key)->title . "</br>";
+
+            $row->quantity .= core_Type::getByName('double(decimals=2)')->toVerbal($val) . "</br>";
+        }
         return $row;
     }
+
 
     /**
      * След рендиране на единичния изглед
@@ -178,13 +203,14 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN employee-->|Служители|*: [#employee#]<!--ET_END employee--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
-        
+
         if (isset($data->rec->period)) {
             $fieldTpl->append("<b>" . acc_Periods::getTitleById($data->rec->period) . "</b>", 'period');
         }
-        
+
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
+
 
     /**
      * След подготовка на реда за експорт
@@ -197,9 +223,9 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
         $res->absencesDays = ($dRec->numberOfTripsesDays + $dRec->numberOfSickdays + $dRec->numberOfLeavesDays);
-        
+
         $employee = crm_Persons::getContragentData($dRec->personId)->person;
-        
+
         $res->employee = $employee;
     }
 }
