@@ -69,8 +69,8 @@ abstract class deals_Document extends deals_PaymentDocument
     	$mvc->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
     	$mvc->FLD('dealId', 'key(mvc=findeals_Deals,select=dealName,allowEmpty)', 'caption=Сделка,input=none');
     	$mvc->FLD('amount', 'double(decimals=2)', 'caption=Платени,mandatory,summary=amount');
-    	$mvc->FNC('dealFolderId', 'key2(mvc=doc_Folders, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf,allowEmpty)', 'caption=Насрещна сделка->Папка,mandatory,input,silent,removeAndRefreshForm=dealHandler|currencyId|rate|amountDeal');
-    	$mvc->FNC('dealHandler', 'varchar', 'caption=Насрещна сделка->Сделка,mandatory,input,silent,removeAndRefreshForm=currencyId|rate|amountDeal');
+    	$mvc->FNC('dealFolderId', 'key2(mvc=doc_Folders, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf,allowEmpty)', 'caption=Насрещна сделка->Папка,mandatory,input,silent,removeAndRefreshForm=dealHandler|currencyId|rate|amountDeal|dealId');
+    	$mvc->FNC('dealHandler', 'varchar', 'caption=Насрещна сделка->Сделка,mandatory,input,silent,removeAndRefreshForm=dealId|currencyId|rate|amountDeal');
     	$mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Насрещна сделка->Заверени,mandatory,input=none');
     	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,input=none');
     	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
@@ -222,6 +222,8 @@ abstract class deals_Document extends deals_PaymentDocument
 				if ($rec->dealId = findeals_Deals::createDraft($Cover->getClassId(), $Cover->that, $accountSysId, $params)){
 					findeals_Deals::conto($rec->dealId);
 				}
+			} else {
+				$rec->dealId = $rec->dealHandler;
 			}
 		}
 
