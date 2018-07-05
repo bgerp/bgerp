@@ -271,7 +271,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
+                                   <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN employee-->|Служители|*: [#employee#]<!--ET_END employee--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
