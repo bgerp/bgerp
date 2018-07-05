@@ -17,7 +17,8 @@
  * @since     v 0.1
  * @internal  да се поиска разрешението от автора за използването в GPL проект
  */
-class bglocal_BulgarianEGN {
+class bglocal_BulgarianEGN
+{
     
     /**
      * @var string
@@ -59,7 +60,7 @@ class bglocal_BulgarianEGN {
      *
      * @var array
      */
-    static private $regions = array(
+    private static $regions = array(
         'Благоевград' => 43, /* от 000 до 043 */
         'Бургас' => 93, /* от 044 до 093 */
         'Варна' => 139, /* от 094 до 139 */
@@ -94,18 +95,19 @@ class bglocal_BulgarianEGN {
     /**
      * @var array
      */
-    static private $parity_weights = array(2, 4, 8, 5, 10, 9, 7, 3, 6);
+    private static $parity_weights = array(2, 4, 8, 5, 10, 9, 7, 3, 6);
     
     
     /**
-     * @param string $egn_string
+     * @param  string                $egn_string
      * @throws bglocal_exception_EGN
      */
-    public function __construct($egn_string) {
+    public function __construct($egn_string)
+    {
         
         // must be 10-digit number:
         if (!preg_match('/^[0-9]{10}$/', $egn_string)) {
-            throw new bglocal_exception_EGN("Полето трябва да съдържа 10 цифри.");
+            throw new bglocal_exception_EGN('Полето трябва да съдържа 10 цифри.');
         }
         
         // parity digit must be correct:
@@ -115,9 +117,9 @@ class bglocal_BulgarianEGN {
         
         $this->egn = $egn_string;
         
-        $year = (int)substr($egn_string, 0, 2);
-        $month = (int)substr($egn_string, 2, 2);
-        $day = (int)substr($egn_string, 4, 2);
+        $year = (int) substr($egn_string, 0, 2);
+        $month = (int) substr($egn_string, 2, 2);
+        $day = (int) substr($egn_string, 4, 2);
         
         /**
          * Month:
@@ -126,21 +128,21 @@ class bglocal_BulgarianEGN {
          * 41-52 means year 20xx
          */
         switch (true) {
-            case $month >= 1 and $month <= 12 :
+            case $month >= 1 and $month <= 12:
             $year += 1900;
             break;
             
-            case $month >= 21 and $month <= 32 :
+            case $month >= 21 and $month <= 32:
             $year += 1800;
             $month -= 20;
             break;
             
-            case $month >= 41 and $month <= 52 :
+            case $month >= 41 and $month <= 52:
             $year += 2000;
             $month -= 40;
             break;
             
-            default :
+            default:
             throw new bglocal_exception_EGN('Месеца не е валиден');
         }
         
@@ -165,10 +167,11 @@ class bglocal_BulgarianEGN {
     /**
      * Performs the parity check - we expect a 10-digit number!
      *
-     * @param string $egn_string
+     * @param  string  $egn_string
      * @return boolean
      */
-    static public function isValid($egn_string) {
+    public static function isValid($egn_string)
+    {
         return self::getParityDigit($egn_string) == $egn_string{9};
     }
     
@@ -176,13 +179,14 @@ class bglocal_BulgarianEGN {
     /**
      * Computes the parity digit based on the first 9 digits
      *
-     * @param string $egn_string
+     * @param  string  $egn_string
      * @return integer
      */
-    static public function getParityDigit($egn_string) {
+    public static function getParityDigit($egn_string)
+    {
         $sum = 0;
         
-        foreach (self::$parity_weights as $k=>$weight) {
+        foreach (self::$parity_weights as $k => $weight) {
             $sum += $egn_string{$k} * $weight;
         }
         
@@ -194,10 +198,11 @@ class bglocal_BulgarianEGN {
      * Creates a new BulgarianEGN object
      * Usage example: echo BulgarianEGN::factory('0000000000')->region;
      *
-     * @param string $egn_string
+     * @param  string       $egn_string
      * @return BulgarianEGN
      */
-    static public function factory($egn_string) {
+    public static function factory($egn_string)
+    {
         return new self($egn_string);
     }
     
@@ -207,15 +212,18 @@ class bglocal_BulgarianEGN {
      * This is only relatively dependable, since it relies on common
      * practices instead of clear rules and regulations
      *
-     * @param string $egn_string
+     * @param  string $egn_string
      * @return string
      */
-    static private function getRegion($egn_string) {
+    private static function getRegion($egn_string)
+    {
         // extract the number on position 7 through 9
         $num = intval(substr($egn_string, 6, 3));
         
-        foreach (self::$regions as $region=>$boundary) {
-            if ($num <= $boundary) return $region;
+        foreach (self::$regions as $region => $boundary) {
+            if ($num <= $boundary) {
+                return $region;
+            }
         }
         
         return '';

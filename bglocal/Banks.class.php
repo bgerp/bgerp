@@ -19,52 +19,52 @@ class bglocal_Banks extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, bglocal_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, bglocal_Wrapper';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'name, bic';
+    public $listFields = 'name, bic';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Банки';
+    public $title = 'Банки';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, common';
+    public $canRead = 'admin, common';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, common';
+    public $canEdit = 'admin, common';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, common';
+    public $canAdd = 'admin, common';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin, common';
+    public $canDelete = 'admin, common';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-        $this->FLD('name',  'varchar(255)', 'caption=Име, mandatory');
-        $this->FLD('bic',  'varchar(8)', 'caption=BIC/SWIFT, mandatory');
+        $this->FLD('name', 'varchar(255)', 'caption=Име, mandatory');
+        $this->FLD('bic', 'varchar(8)', 'caption=BIC/SWIFT, mandatory');
         
         $this->setDbUnique('bic');
     }
@@ -73,7 +73,7 @@ class bglocal_Banks extends core_Manager
     /**
      * Подреждаме банките по азбучен ред
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('#name');
     }
@@ -85,10 +85,10 @@ class bglocal_Banks extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $res
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
-        $file = "bglocal/data/Banks.csv";
-        $fields = array(0 => "name", 1 => "bic");
+        $file = 'bglocal/data/Banks.csv';
+        $fields = array(0 => 'name', 1 => 'bic');
         $cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
         $res .= $cntObj->html;
     }
@@ -96,36 +96,36 @@ class bglocal_Banks extends core_Manager
     
     /**
      * Връща името на банката и нейния бик по зададен IBAN
-     * @param string $iban
+     * @param  string $iban
      * @return string $rec->bic or NULL
      */
-    static function getBankName($iban)
+    public static function getBankName($iban)
     {
-        if(preg_match("/^#/", $iban)) return NULL;
+        if (preg_match('/^#/', $iban)) {
+            return;
+        }
         $parts = iban_Type::getParts($iban);
         
-        if($parts['bank'] && $rec = static::fetch(array("#bic LIKE '%[#1#]%'", $parts['bank']))) {
+        if ($parts['bank'] && $rec = static::fetch(array("#bic LIKE '%[#1#]%'", $parts['bank']))) {
             return $rec->name;
-        } else {
-            return NULL;
         }
     }
     
     
     /**
      * Връща името на бика на банката  по зададен IBAN
-     * @param string $iban
+     * @param  string $iban
      * @return string $rec->bic or NULL
      */
-    static function getBankBic($iban)
+    public static function getBankBic($iban)
     {
-        if(preg_match("/^#/", $iban)) return NULL;
+        if (preg_match('/^#/', $iban)) {
+            return;
+        }
         $parts = iban_Type::getParts($iban);
         
-        if($parts['bank'] && $rec = static::fetch(array("#bic LIKE '%[#1#]%'", $parts['bank']))) {
+        if ($parts['bank'] && $rec = static::fetch(array("#bic LIKE '%[#1#]%'", $parts['bank']))) {
             return $rec->bic;
-        } else {
-            return NULL;
         }
     }
 }

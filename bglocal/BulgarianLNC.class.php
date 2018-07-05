@@ -20,22 +20,20 @@ class bglocal_BulgarianLNC
     /**
      * Тегла на числата
      */
-    var $weights = array(21, 19, 17, 13, 11, 9, 7, 3, 1, 0);
+    public $weights = array(21, 19, 17, 13, 11, 9, 7, 3, 1, 0);
     
     
     /**
      * Проверява за валиден номер на чужденец
      */
-    function isLnc($value)
+    public function isLnc($value)
     {
         if (!isset($value)) {
-            
-            return FALSE;
+            return false;
         }
         
         if (!preg_match('/^[0-9]{10}$/', $value)) {
-            
-            return FALSE;
+            return false;
         }
         
         $valArr = str_split($value);
@@ -48,10 +46,9 @@ class bglocal_BulgarianLNC
         $rest = $sum % 10;
         
         if ($rest == $valArr[9]) {
-            
-            return TRUE;
+            return true;
         }
         
-        return "|*<br>|Не е валидно ЛНЧ.";
+        return '|*<br>|Не е валидно ЛНЧ.';
     }
 }
