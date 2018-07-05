@@ -1476,4 +1476,32 @@ class sales_Sales extends deals_DealMaster
         
         return $costs;
     }
+    
+    
+    /**
+     * След инпут на формата за избор на действие
+     * @see deals_DealMaster::act_Chooseaction
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     * @param stdClass $rec
+     * @return void
+     */
+    public static function on_AfterInputSelectActionForm($mvc, &$form, $rec)
+    {
+    	if($form->isSubmitted()){
+    		
+    		$action = type_Set::toArray($form->rec->action);
+    		if(isset($action['ship'])){
+    			$dQuery = sales_SalesDetails::getQuery();
+    			$dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+    			$dQuery->where("#saleId = {$rec->id} AND #canStore = 'yes'");
+    			$dQuery->show('productId,quantity');
+    			
+    			if($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->shipmentStoreId)){
+    				$form->setWarning('action', $warning);
+    			}
+    		}
+    	}
+    }
 }

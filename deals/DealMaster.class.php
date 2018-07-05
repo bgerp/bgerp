@@ -1361,14 +1361,15 @@ abstract class deals_DealMaster extends deals_DealBase
                 $form->info .= tr("|*<br><span style='color:darkgreen'>|Избрани са едновременно каса и банкова сметка! Потвърдете че плащането е на момента или редактирайте сделката|*.</span>");
             }
         }
-        
+
         $form->setDefault('action', implode(',', $selected));
         $form->input();
+        $this->invoke('AfterInputSelectActionForm', array(&$form, $rec));
         
         // След като формата се изпрати
         if ($form->isSubmitted()) {
-             
-            // обновяване на записа с избраните операции
+        	
+        	// обновяване на записа с избраните операции
             $form->rec->action = 'activate' . (($form->rec->action) ? ',' : '') . $form->rec->action;
             $rec->contoActions = $form->rec->action;
             $rec->isContable = ($form->rec->action == 'activate') ? 'activate' : 'yes';
