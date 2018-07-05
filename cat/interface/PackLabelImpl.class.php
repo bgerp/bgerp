@@ -107,6 +107,7 @@ class cat_interface_PackLabelImpl
         $key = $id . '|' . $cnt . '|' . $onlyPreview . '|' . $lg;
         
         if (isset($resArr[$key])) {
+            
             return $resArr[$key];
         }
         

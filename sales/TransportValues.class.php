@@ -131,6 +131,7 @@ class sales_TransportValues extends core_Manager
         // Имали в условието на доставка, драйвер за изчисляване на цени?
         $TransportCostDriver = cond_DeliveryTerms::getTransportCalculator($deliveryTermId);
         if (!is_object($TransportCostDriver)) {
+            
             return false;
         }
         
@@ -206,6 +207,7 @@ class sales_TransportValues extends core_Manager
          
         // Ако теглото е 0 и няма обем, да не се изчислява транспорт
         if (empty($res['weight']) && isset($res['weight']) && empty($res['volume'])) {
+            
             return array();
         }
          
@@ -328,14 +330,17 @@ class sales_TransportValues extends core_Manager
                 $locationRec = crm_Locations::fetch($locationId);
                 $locationCountryId = (isset($locationRec->countryId)) ? $locationRec->countryId : $cData->countryId;
                 if (isset($locationCountryId) && !empty($locationRec->pCode)) {
+                    
                     return array('pCode' => $locationRec->pCode, 'countryId' => $locationCountryId);
                 }
                 
                 if (isset($locationRec->countryId)) {
+                    
                     return array('pCode' => null, 'countryId' => $locationRec->countryId);
                 }
             } else {
                 if ($parsePlace = drdata_Address::parsePlace($locationId)) {
+                    
                     return array('pCode' => $parsePlace->pCode, 'countryId' => $parsePlace->countryId);
                 }
             }
@@ -344,10 +349,12 @@ class sales_TransportValues extends core_Manager
         // Ако има от документа данни, взимат се тях
         $cId = isset($countryId) ? $countryId : $cData->countryId;
         if (isset($cId) && !empty($pCode)) {
+            
             return array('pCode' => $pCode, 'countryId' => $cId);
         }
         
         if (isset($countryId)) {
+            
             return array('pCode' => null, 'countryId' => $countryId);
         }
         
@@ -401,6 +408,7 @@ class sales_TransportValues extends core_Manager
     public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat)
     {
         if (!haveRole('powerUser') || !isset($amountRow)) {
+            
             return $amountRow;
         }
         
@@ -477,6 +485,7 @@ class sales_TransportValues extends core_Manager
     {
         $res = array('weight' => 0, 'volume' => 0);
         if (!is_array($products)) {
+            
             return $res;
         }
         
@@ -570,6 +579,7 @@ class sales_TransportValues extends core_Manager
         // Ако няма изчисляване на транспорт не се връща нищо
         $Driver = cond_DeliveryTerms::getTransportCalculator($deliveryTermId);
         if (empty($Driver)) {
+            
             return false;
         }
         

@@ -23,6 +23,7 @@ class context_Plugin extends core_Plugin
     public function on_BeforeAppendSecondRow($mvc, &$res, &$toolbar, $rowId)
     {
         if (!is_object($toolbar)) {
+            
             return ;
         }
 

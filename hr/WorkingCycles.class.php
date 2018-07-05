@@ -636,6 +636,7 @@ class hr_WorkingCycles extends core_Master
         $data->masterId = $id;
         
         if (Mode::is('printing')) {
+            
             return self::renderGrafic($data);
         }
     }

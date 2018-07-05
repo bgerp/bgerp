@@ -152,6 +152,7 @@ class email_Pop3
     protected function checkIsCorrect($str)
     {
         if (stristr($str, '+OK') !== false) {
+            
             return true;
         }
         
@@ -198,6 +199,7 @@ class email_Pop3
         $readStr = $this->setBuffer($read);
         
         if (!$this->checkIsCorrect($readStr)) {
+            
             return false;
         }
         

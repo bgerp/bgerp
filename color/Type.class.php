@@ -67,6 +67,7 @@ class color_Type extends type_Varchar
         $cObj = new color_Object($value);
         
         if ($this->error = $cObj->error) {
+            
             return false;
         }
             

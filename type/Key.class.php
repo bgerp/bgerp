@@ -81,6 +81,7 @@ class type_Key extends type_Int
                 }
                 
                 if (!$rec) {
+                    
                     return '??????????????';
                 }
                 
@@ -104,6 +105,7 @@ class type_Key extends type_Int
                 $value = $mvc->fetch($value)->{$field};
                     
                 if (!$value) {
+                    
                     return '??????????????';
                 }
                     
@@ -111,6 +113,7 @@ class type_Key extends type_Int
             } else {
                 if (isset($this->params['makeLink'])) {
                     if (method_exists($mvc, 'getHyperlink')) {
+                        
                         return $mvc->getHyperlink($value, true);
                     }
                 }
@@ -177,6 +180,7 @@ class type_Key extends type_Int
         
         if (!$rec) {
             if (($this->params['allowEmpty']) && ($oValue == ' ')) {
+                
                 return $value;
             }
                 
@@ -214,6 +218,7 @@ class type_Key extends type_Int
     protected function getSelectFld()
     {
         if (core_Lg::getCurrent() == 'bg' && $this->params['selectBg']) {
+            
             return $this->params['selectBg'];
         }
 
@@ -379,6 +384,7 @@ class type_Key extends type_Int
     protected function prepareSelectOpt(&$options)
     {
         if (!$this->prepareSelOpt) {
+            
             return ;
         }
         
@@ -386,6 +392,7 @@ class type_Key extends type_Int
         
         // Ако трябва да показваме combo-box
         if (count($options) <= $maxSuggestions) {
+            
             return ;
         }
         
@@ -498,6 +505,7 @@ class type_Key extends type_Int
         $pos = mb_strrpos($title, $nKey);
         
         if ($pos === false) {
+            
             return false;
         }
         
@@ -505,6 +513,7 @@ class type_Key extends type_Int
         $keyLen = mb_strlen($nKey);
         
         if (($pos + $keyLen) == $len) {
+            
             return true;
         }
     }
@@ -520,6 +529,7 @@ class type_Key extends type_Int
     protected static function getKeyFromTitle($title)
     {
         if (is_numeric($title) || !isset($title)) {
+            
             return $title;
         }
         
@@ -528,16 +538,19 @@ class type_Key extends type_Int
         $lastCloseBracketPos = mb_strrpos($title, ')');
         
         if (!$lastCloseBracketPos) {
+            
             return $title;
         }
         
         if ($len != ($lastCloseBracketPos + 1)) {
+            
             return $title;
         }
         
         $lastOpenBracketPos = mb_strrpos($title, ' (');
         
         if (!$lastOpenBracketPos) {
+            
             return $title;
         }
         
@@ -712,6 +725,7 @@ class type_Key extends type_Int
         $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
         
         if (!$hnd) {
+            
             return array(
                 'error' => 'Липсват допълнителни опции'
             );

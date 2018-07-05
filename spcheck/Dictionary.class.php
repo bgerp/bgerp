@@ -158,6 +158,7 @@ class spcheck_Dictionary extends core_Manager
         $key = $word . '|' . $lg;
         
         if (isset($wArr[$key])) {
+            
             return $wArr[$key];
         }
         

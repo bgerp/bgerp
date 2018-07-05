@@ -213,6 +213,7 @@ class bgerp_Bookmark extends core_Manager
         }
         
         if ($userId < 1) {
+            
             return ;
         }
         

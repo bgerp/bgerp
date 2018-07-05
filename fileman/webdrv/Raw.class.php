@@ -42,6 +42,7 @@ class fileman_webdrv_Raw extends fileman_webdrv_ImageT
     
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
+            
             return ;
         }
     

@@ -722,6 +722,7 @@ class fileman_Files2 extends core_Master
     {
         // Очакваме да е валиден път иначе се отказваме
         if (!static::isCorrectPath($path)) {
+            
             return false;
         }
         

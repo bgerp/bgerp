@@ -113,12 +113,14 @@ class cond_Parameters extends bgerp_ProtoParam
         // Връщаме стойността ако има директен запис за условието
         $value = cond_ConditionsToCustomers::fetchByCustomer($Class, $cId, $condId);
         if ($value) {
+            
             return $value;
         }
         
         // Търси се метод дефиниран за връщане на стойността на условието
         $method = "get{$conditionSysId}";
         if (method_exists($Class, $method)) {
+            
             return $Class::$method($cId);
         }
         
@@ -131,6 +133,7 @@ class cond_Parameters extends bgerp_ProtoParam
             if ($countryId) {
                 $value = cond_Countries::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value');
                 if (isset($value)) {
+                    
                     return $value;
                 }
             }
@@ -140,6 +143,7 @@ class cond_Parameters extends bgerp_ProtoParam
         $value = cond_Countries::fetchField("#country IS NULL AND #conditionId = {$condId}", 'value');
         
         if (isset($value)) {
+            
             return $value;
         }
     }
@@ -160,6 +164,7 @@ class cond_Parameters extends bgerp_ProtoParam
         // Ако има параметър с това систем ид,връща се
         $id = self::fetchIdBySysId($sysId);
         if (!empty($id)) {
+            
             return $id;
         }
             

@@ -67,6 +67,7 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
         );
         
         if ($amount == 0) {
+            
             return $result;
         }
         

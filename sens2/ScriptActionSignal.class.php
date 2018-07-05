@@ -118,9 +118,11 @@ class sens2_ScriptActionSignal
         if (trim($rec->cond)) {
             $cond = sens2_Scripts::calcExpr($rec->cond, $rec->scriptId);
             if ($cond === sens2_Scripts::CALC_ERROR) {
+                
                 return 'stopped';
             }
             if (!$cond) {
+                
                 return 'closed';
             }
         }
@@ -128,6 +130,7 @@ class sens2_ScriptActionSignal
         // Изчисляваме израза
         $value = sens2_Scripts::calcExpr($rec->expr, $rec->scriptId);
         if ($value === sens2_Scripts::CALC_ERROR) {
+            
             return 'stopped';
         }
 
@@ -135,6 +138,7 @@ class sens2_ScriptActionSignal
         $res = sens2_Controllers::setOutput($rec->output, $value);
         
         if (is_array($res)) {
+            
             return 'active';
         }
 

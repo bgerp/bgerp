@@ -434,6 +434,7 @@ class hr_Trips extends core_Master
         
         // Трябва да е в папка на лице или на проект
         if ($Cover->className != 'crm_Persons' && $Cover->className != 'doc_UnsortedFolders') {
+            
             return false;
         }
         
@@ -442,6 +443,7 @@ class hr_Trips extends core_Master
             $emplGroupId = crm_Groups::getIdFromSysId('employees');
             $personGroups = $Cover->fetchField('groupList');
             if (!keylist::isIn($emplGroupId, $personGroups)) {
+                
                 return false;
             }
         }
@@ -449,6 +451,7 @@ class hr_Trips extends core_Master
         if ($Cover->className == 'doc_UnsortedFolders') {
             $cu = core_Users::getCurrent();
             if (!haveRole('ceo,hrTrips', $cu)) {
+                
                 return false;
             }
         }

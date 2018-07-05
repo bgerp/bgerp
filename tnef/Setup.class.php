@@ -109,6 +109,7 @@ class tnef_Setup extends core_ProtoSetup
         }
         
         if ($haveError) {
+            
             return 'Програмата ' . type_Varchar::escape($conf->TNEF_PATH) . ' не е инсталирана.';
         }
     }

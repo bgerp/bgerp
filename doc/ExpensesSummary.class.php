@@ -337,6 +337,7 @@ class doc_ExpensesSummary extends core_Manager
             
             // Отделяне на тези записи, които съдържат текущия маркер
             $foundArr = array_filter($allocated, function ($e) use ($index) {
+                
                 return $e->index == $index;
             });
             

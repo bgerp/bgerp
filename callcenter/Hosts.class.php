@@ -115,14 +115,17 @@ class callcenter_Hosts extends core_Master
     public static function archiveTalk($id, $placeArr)
     {
         if (!$id) {
+            
             return false;
         }
         
         if (!($rec = self::fetch((int) $id))) {
+            
             return false;
         }
         
         if (!$rec->hostId) {
+            
             return false;
         }
         
@@ -157,6 +160,7 @@ class callcenter_Hosts extends core_Master
         $fileHnd = fileman::absorbStr($content, self::$bucket, $fName);
         
         if (!$fileHnd) {
+            
             return false;
         }
         

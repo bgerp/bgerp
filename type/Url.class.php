@@ -94,6 +94,7 @@ class type_Url extends type_Varchar
         $res = parent::isValid($value);
         
         if (count($res)) {
+            
             return $res;
         }
         

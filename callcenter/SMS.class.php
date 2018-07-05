@@ -145,6 +145,7 @@ class callcenter_SMS extends core_Master
             $mobileNum = drdata_PhoneType::getNumberStr($number, 0);
             $now = dt::verbal2mysql();
             if (self::fetch(array("#mobileNum = '[#1#]' AND #createdOn > DATE_SUB('{$now}', INTERVAL {$lp} SECOND)", $mobileNum))) {
+                
                 return false;
             }
         }
@@ -312,6 +313,7 @@ class callcenter_SMS extends core_Master
             
             // Ако не в 7 битов формат
             if (!i18n_Charset::is7Bit($message)) {
+                
                 return false;
             }
         }
@@ -324,6 +326,7 @@ class callcenter_SMS extends core_Master
             
             // Ако текста е над допустимите символа
             if ($params['maxStrLen'] < $textLen) {
+                
                 return false;
             }
         }
@@ -333,6 +336,7 @@ class callcenter_SMS extends core_Master
             
             // Ако не е в позволените
             if (!$params['allowedUserNames'][$sender]) {
+                
                 return false;
             }
         }
@@ -351,6 +355,7 @@ class callcenter_SMS extends core_Master
     public static function getServiceStatus($id)
     {
         if (!$id) {
+            
             return ;
         }
         
@@ -372,6 +377,7 @@ class callcenter_SMS extends core_Master
     public static function getUid($id)
     {
         if (!$id) {
+            
             return ;
         }
         
@@ -433,6 +439,7 @@ class callcenter_SMS extends core_Master
         
         // Ако няма такъв запис
         if (!$rec) {
+            
             return ;
         }
         

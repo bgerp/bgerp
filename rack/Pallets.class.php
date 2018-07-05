@@ -206,6 +206,7 @@ class rack_Pallets extends core_Manager
         // Ако намерим свободна резервирана позиция за този продукт - вземаме нея
         foreach ($reserved as $pos => $pId) {
             if (($pId == $productId) && !$used[$pos]) {
+                
                 return $pos;
             }
         }

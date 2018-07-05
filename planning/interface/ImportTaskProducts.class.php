@@ -151,6 +151,7 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
     {
         $recs = array();
         if (!is_array($rec->detailsDef)) {
+            
             return $recs;
         }
         foreach ($rec->detailsDef as $key => $dRec) {
@@ -227,6 +228,7 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
             $masterRec = $mvc->Master->fetchRec($masterId);
             $foundRecs = self::getProductsFromTasks($masterRec->threadId, $masterRec->storeId, $mvc->taskActionLoad, 1);
             if (!count($foundRecs)) {
+                
                 return false;
             }
         }

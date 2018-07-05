@@ -368,16 +368,19 @@ class support_Issues extends core_Master
     public static function prepareBodyAndSubject($rec)
     {
         if ($rec->id) {
+            
             return ;
         }
         
         if (!$rec->threadId) {
+            
             return ;
         }
         
         $clsId = core_Classes::getId(get_called_class());
         
         if (!$clsId) {
+            
             return ;
         }
         
@@ -419,6 +422,7 @@ class support_Issues extends core_Master
         
         while ($rec = $query->fetch()) {
             if (!$optionsArr || ($optionsArr && $optionsArr[$rec->typeId])) {
+                
                 return $rec->typeId;
             }
         }
@@ -454,6 +458,7 @@ class support_Issues extends core_Master
         
         // Ако не support_systems, не може да се добави
         if (strtolower($coverClassName) != 'support_systems') {
+            
             return false;
         }
         
@@ -889,6 +894,7 @@ class support_Issues extends core_Master
     {
         // Ако има споделени потребители връщамес
         if ($shared) {
+            
             return ;
         }
         
@@ -897,6 +903,7 @@ class support_Issues extends core_Master
         
         // Ако не е активен, връщаме
         if ($rec->state != 'active') {
+            
             return ;
         }
         
@@ -1011,6 +1018,7 @@ class support_Issues extends core_Master
     public static function getContragentData($id)
     {
         if (!$id) {
+            
             return ;
         }
         $rec = self::fetch($id);

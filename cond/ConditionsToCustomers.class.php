@@ -214,6 +214,7 @@ class cond_ConditionsToCustomers extends core_Manager
         usort($data->rows, function ($a, $b) {
             if ($a->group == $b->group) {
                 if ($a->order == $b->order) {
+                    
                     return ($a->id < $b->id) ? -1 : 1;
                 }
 

@@ -76,6 +76,7 @@ class unit_MinkInv extends core_Manager
         }
         if (strpos($browser->gettext(), '<FONT COLOR=RED>!!!red BUG !!!</FONT>;\'[#title#]]')) {
         } else {
+            
             return 'Грешно име';
         }
     }
@@ -113,6 +114,7 @@ class unit_MinkInv extends core_Manager
         }
         //if(strpos($browser->gettext(), '<FONT COLOR=RED>!!! red BUG !!!</FONT> " &lt; &#9829; \' [#title#]')) {
         if (strpos($browser->gettext(), '<FONT COLOR=RED>!!! red BUG !!!</FONT> " <&#9829; \' [#title#]')) {
+            
             return 'Име';
         }
 
@@ -150,6 +152,7 @@ class unit_MinkInv extends core_Manager
         }
         if (strpos($browser->gettext(), '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \'[#title#]')) {
         } else {
+            
             return 'Грешно име';
         }
 

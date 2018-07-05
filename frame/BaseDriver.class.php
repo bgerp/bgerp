@@ -70,6 +70,7 @@ abstract class frame_BaseDriver extends core_ProtoInner
     {
         // Ако има вътрешно състояние него връщаме
         if (!empty($this->innerState)) {
+            
             return $this->innerState;
         }
          
@@ -84,6 +85,7 @@ abstract class frame_BaseDriver extends core_ProtoInner
     {
         $titleArr = explode(' » ', $this->title);
         if (count($titleArr) == 2) {
+            
             return $titleArr[1];
         }
         

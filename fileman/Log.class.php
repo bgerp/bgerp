@@ -139,11 +139,13 @@ class fileman_Log extends core_Manager
 
         // Ако системния потребител, връщаме
         if ($userId < 1) {
+            
             return false;
         }
         
         // Ако няма манипулатор на файла
         if (!$fRec->fileHnd) {
+            
             return false;
         }
         

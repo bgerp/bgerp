@@ -348,6 +348,7 @@ class doc_Prototypes extends core_Manager
         $cond = array("#classId = '[#1#]' AND #docId = '[#2#]'", $Class->getClassId(), $docId);
         
         if (!empty($field)) {
+            
             return self::fetchField($cond, $field);
         }
         

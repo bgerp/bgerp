@@ -111,6 +111,7 @@ class thumb_M extends core_Mvc
         static $hashArr = array();
         $cmdHash = md5($cmd);
         if ($hashArr[$cmdHash]) {
+            
             return ;
         }
         $hashArr[$cmdHash] = $cmd;

@@ -180,6 +180,7 @@ class remote_Authorizations extends embed_Manager
         
         if ($userId != core_Users::getCurrent()) {
             if (!haveRole('admin, ceo')) {
+                
                 return ;
             }
         }
@@ -247,6 +248,7 @@ class remote_Authorizations extends embed_Manager
 
             while ($rec = $query->fetch(array("#url LIKE '%[#1#]%' AND #userId = {$userId}", $url))) {
                 if (is_object($rec->data) && $rec->data->lKeyCC) {
+                    
                     return $rec->id;
                 }
             }

@@ -719,6 +719,7 @@ class crm_Profiles extends core_Master
         $opt = core_Cache::get($type, $handler, $keepMinutes, $depends);
         
         if (isset($opt) && ($opt !== false)) {
+            
             return $opt;
         }
         
@@ -1392,14 +1393,17 @@ class crm_Profiles extends core_Master
         $currUserId = core_Users::getCurrent();
         
         if ($currUserId == $userOrRole) {
+            
             return true;
         }
 
         if (core_Users::fetch($userOrRole)->state == 'rejected') {
+            
             return false;
         }
         
         if (haveRole('admin, ceo', $currUserId)) {
+            
             return true;
         }
         

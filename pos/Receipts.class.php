@@ -248,6 +248,7 @@ class pos_Receipts extends core_Master
                 while ($rRec = $reportQuery->fetch()) {
                     $id = $rec->id;
                     $found = array_filter($rRec->details['receipts'], function ($e) use (&$id) {
+                        
                         return $e->id == $id;
                     });
                     
@@ -501,6 +502,7 @@ class pos_Receipts extends core_Master
         
         // Имаме ли достъп до терминала
         if (!$this->haveRightFor('terminal', $rec)) {
+            
             return new Redirect(array($this, 'new'));
         }
         
@@ -688,6 +690,7 @@ class pos_Receipts extends core_Master
     {
         $products = pos_Favourites::prepareProducts();
         if (!$products->arr) {
+            
             return false;
         }
         
@@ -997,9 +1000,11 @@ class pos_Receipts extends core_Master
         $this->requireRightFor('terminal');
         
         if (!$receiptId = Request::get('receiptId', 'int')) {
+            
             return array();
         }
         if (!$rec = $this->fetch($receiptId)) {
+            
             return array();
         }
         $searchString = Request::get('searchString');
@@ -1143,6 +1148,7 @@ class pos_Receipts extends core_Master
     public static function canActivate($rec)
     {
         if (empty($rec->id) && $rec->state != 'draft' && ($rec->total == 0 || $rec->paid < $rec->total)) {
+            
             return false;
         }
 
@@ -1160,6 +1166,7 @@ class pos_Receipts extends core_Master
         // Трябва да има такава бележка
         if (!$receiptId = Request::get('id', 'int')) {
             if (!$receiptId = Request::get('receiptId', 'int')) {
+                
                 return $this->pos_ReceiptDetails->returnError($receiptId);
             }
         }
@@ -1348,10 +1355,12 @@ class pos_Receipts extends core_Master
         
         if ($searchString = Request::get('searchString')) {
             if (!$id = Request::get('receiptId')) {
+                
                 return array();
             }
             
             if (!$rec = $this->fetch($id)) {
+                
                 return array();
             }
             

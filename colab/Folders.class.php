@@ -96,6 +96,7 @@ class colab_Folders extends core_Manager
     {
         if (core_Users::isPowerUser()) {
             if (doc_Folders::haveRightFor('list')) {
+                
                 return new Redirect(array('doc_Folders', 'list'));
             }
         }
@@ -204,6 +205,7 @@ class colab_Folders extends core_Manager
         $cu = isset($cu) ? $cu : core_Users::getCurrent();
         
         if (!$cu) {
+            
             return $sharedFolders;
         }
         

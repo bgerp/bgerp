@@ -134,6 +134,7 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
     {
         $recs = array();
         if (!is_array($rec->detailsDef)) {
+            
             return $recs;
         }
         foreach ($rec->detailsDef as $key => $dRec) {
@@ -201,11 +202,13 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
         if (isset($masterId)) {
             $masterRec = $mvc->Master->fetchRec($masterId, 'isReverse,threadId');
             if ($masterRec->isReverse != 'yes') {
+                
                 return false;
             }
             
             $docs = $this->getShippedDocuments($mvc, $masterRec, 1);
             if (!count($docs)) {
+                
                 return false;
             }
         }

@@ -125,6 +125,7 @@ class colab_Threads extends core_Manager
         
         if (core_Users::isPowerUser()) {
             if (doc_Threads::haveRightFor('single', $id)) {
+                
                 return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
             }
         }
@@ -231,6 +232,7 @@ class colab_Threads extends core_Manager
         
         if (core_Users::isPowerUser()) {
             if ($folderId && doc_Folders::haveRightFor('single', $folderId)) {
+                
                 return new Redirect(array('doc_Threads', 'list', 'folderId' => $folderId));
             }
         }

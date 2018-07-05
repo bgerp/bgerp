@@ -176,10 +176,12 @@ class callcenter_Setup extends core_ProtoSetup
         
         // Ако не е зададена услуга или изпращач
         if ((!$conf->CALLCENTER_SMS_SERVICE) || (!$conf->CALLCENTER_SMS_SENDER)) {
+            
             return ;
         }
         
         if (!cls::load($conf->CALLCENTER_SMS_SERVICE, true)) {
+            
             return ;
         }
         
@@ -191,6 +193,7 @@ class callcenter_Setup extends core_ProtoSetup
         
         // Ако не са зададени позволение имена за изпращач
         if (!$paramsArr['allowedUserNames']) {
+            
             return ;
         }
         
@@ -229,6 +232,7 @@ class callcenter_Setup extends core_ProtoSetup
         }
         
         if ($cnt) {
+            
             return "<li class='green'>Оправени записи за времена на разговорите на {$cnt} записа</li>";
         }
     }

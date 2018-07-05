@@ -224,6 +224,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     {
         // Ако има посочено име се посочва директно стойноста му
         if (isset($name)) {
+            
             return cat_products_Params::fetchParamValue($classId, $id, $name, $verbal);
         }
         

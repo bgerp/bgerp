@@ -41,6 +41,7 @@ class chosen_Plugin extends core_Plugin
         
         // Ако нямаме JS или има много малко предложения - не правим нищо
         if (Mode::is('javascript', 'no') || ((count($invoker->suggestions)) < $minItems)) {
+            
             return ;
         }
 
@@ -132,6 +133,7 @@ class chosen_Plugin extends core_Plugin
         }
         
         if ((count($value) == 1) && (isset($value['chosen']))) {
+            
             return false;
         }
     }

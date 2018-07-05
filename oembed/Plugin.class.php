@@ -145,6 +145,7 @@ class oembed_Plugin extends core_Plugin
     {
         // В режим X-HTML и PLAIN ресурсите зад линковете никога не се вграждат!
         if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain')) {
+            
             return false;
         }
         
@@ -159,6 +160,7 @@ class oembed_Plugin extends core_Plugin
         }
         
         if (!$api = static::getOembedServer($url)) {
+            
             return false;
         }
         
@@ -227,6 +229,7 @@ class oembed_Plugin extends core_Plugin
         foreach (static::$oembedMap as $key => $entry) {
             if ($services[$key]) {
                 if (preg_match($entry['regex'], $url)) {
+                    
                     return $entry;
                 }
             }

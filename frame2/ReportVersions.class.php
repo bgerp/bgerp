@@ -121,6 +121,7 @@ class frame2_ReportVersions extends core_Detail
             
             // Ако няма промяна на данните, не се записва нова версия
             if (serialize($obj1) == serialize($obj2)) {
+                
                 return false;
             }
             $logRec->versionBefore = $lastRec->id;
@@ -238,6 +239,7 @@ class frame2_ReportVersions extends core_Detail
     {
         // Не се рендира детайла, ако има само една версия или режима е само за показване
         if ($data->render === false || count($data->recs) == 1 || Mode::isReadOnly() || $data->masterData->rec->state == 'rejected') {
+            
             return new core_ET('');
         }
     

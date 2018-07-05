@@ -60,6 +60,7 @@ class vedicom_Weight extends core_Manager
         }
         // echo ($match . "<--->" . $precision);
         if ($result) {
+            
             return $match;
         }
 

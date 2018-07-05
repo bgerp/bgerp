@@ -359,6 +359,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     
             
             usort($data->recs, function ($a, $b) {
+                
                 return strcmp($a->date, $b->date);
             });
         }

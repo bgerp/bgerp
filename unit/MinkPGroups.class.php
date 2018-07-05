@@ -175,10 +175,12 @@ class unit_MinkPGroups extends core_Manager
         $browser->press('Филтрирай');
         if (strpos($browser->gettext(), 'Кашон 30x50x20')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Липсва артикул от първия запис на последното ниво', 'warning');
         }
         if (strpos($browser->gettext(), 'Кашон 20x30x16')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Липсва артикул от втория запис на последното ниво', 'warning');
         }
     }
@@ -294,10 +296,12 @@ class unit_MinkPGroups extends core_Manager
         $browser->press('Филтрирай');
         if (strpos($browser->gettext(), 'Фирма местна')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Липсва фирма от първия запис на последното ниво', 'warning');
         }
         if (strpos($browser->gettext(), 'Фирма чуждестранна')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Липсва фирма от втория запис на последното ниво', 'warning');
         }
     }

@@ -493,6 +493,7 @@ class cat_Categories extends core_Master
         $rec = $this->fetchRec($id);
         
         if ($rec->useAsProto == 'yes') {
+            
             return 'template';
         }
         

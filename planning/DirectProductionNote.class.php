@@ -536,6 +536,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         
         // Ако ням рецепта, не могат да се определят дефолт детайли за влагане
         if (!$bomId) {
+            
             return $details;
         }
         
@@ -663,12 +664,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         if ($Driver = cat_Products::getDriver($rec->productId)) {
             $price = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
             if (isset($price)) {
+                
                 return $price;
             }
         }
         
         $price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
         if (isset($price)) {
+            
             return $price;
         }
     }
@@ -797,6 +800,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'", 'id');
             $pop = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'pop'", 'id');
             if ($pop && !$input) {
+                
                 return false;
             }
         }

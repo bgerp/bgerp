@@ -30,6 +30,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
     protected function getNewerProductionDocumentHandle($rec)
     {
         if (isset($this->arr[$rec->id])) {
+            
             return $this->arr[$rec->id];
         }
         
@@ -91,6 +92,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
         
         // Ако има намерен документ
         if ($fRec = $dQuery->fetch()) {
+            
             return planning_DirectProductionNote::getHandle($fRec->id);
         }
         
@@ -112,6 +114,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
             while ($dRec = $dQuery->fetch()) {
                 $cCreatedOn = doc_Containers::fetchField($dRec->containerId, 'createdOn');
                 if ($cCreatedOn > $rec->createdOn) {
+                    
                     return planning_ProductionNotes::getHandle($dRec->noteId);
                 }
             }
@@ -187,6 +190,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
         // Може да добавяме или към нишка с начало задание
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         if ($firstDoc->isInstanceOf('planning_Jobs')) {
+            
             return true;
         }
          

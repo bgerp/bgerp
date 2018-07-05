@@ -197,6 +197,7 @@ class blast_Lists extends core_Master
         
         // Ако не е папка проект или контрагент, не може да се добави
         if (($coverClassName != 'doc_unsortedfolders')) {
+            
             return false;
         }
     }
@@ -517,6 +518,7 @@ class blast_Lists extends core_Master
         $rec = $this->fetch($id);
         
         if (!$rec) {
+            
             return $fieldsArr;
         }
         
@@ -601,6 +603,7 @@ class blast_Lists extends core_Master
     {
         // Всеки който има права до сингъла на записа, може да го използва
         if (($id > 0) && ($this->haveRightFor('single', $id, $userId))) {
+            
             return true;
         }
         

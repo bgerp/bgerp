@@ -405,6 +405,7 @@ class backup_Start extends core_Manager
     private static function lock()
     {
         if (self::isLocked()) {
+            
             return false;
         }
         

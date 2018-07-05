@@ -695,6 +695,7 @@ class sales_Quotations extends core_Master
         // Ако няма калкулатор в условието на доставка, не се изчислява нищо
         $TransportCalc = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
         if (!is_object($TransportCalc)) {
+            
             return $expectedTransport;
         }
     
@@ -1057,6 +1058,7 @@ class sales_Quotations extends core_Master
         if (!$force && !core_Users::isContractor()) {
             // Опитваме се да намерим съществуваща чернова продажба
             if (!Request::get('dealId', 'key(mvc=sales_Sales)') && !Request::get('stop')) {
+                
                 return new Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => true, 'quotationId' => $rec->id));
             }
         }
@@ -1648,11 +1650,13 @@ class sales_Quotations extends core_Master
         $res = '';
         
         if (!$id) {
+            
             return $res;
         }
         $rec = $this->fetch($id);
         
         if (!$rec) {
+            
             return $res;
         }
         

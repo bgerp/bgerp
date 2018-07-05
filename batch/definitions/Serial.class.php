@@ -76,6 +76,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
         
         // Ако артикула вече има партида за този артикул с тази стойност, се приема че е валидна
         if (batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))) {
+            
             return true;
         }
         

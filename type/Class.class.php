@@ -143,6 +143,7 @@ class type_Class extends type_Key
     public function fromVerbal($value)
     {
         if (!isset($value)) {
+            
             return $value;
         }
         

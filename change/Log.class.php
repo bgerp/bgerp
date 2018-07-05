@@ -377,6 +377,7 @@ class change_Log extends core_Manager
         
         // Ако няма запис връщаме FALSE
         if (!$recArr) {
+            
             return false;
         }
         
@@ -475,6 +476,7 @@ class change_Log extends core_Manager
     {
         // Ако няма клас или документ, връщаме
         if (!$rec->docClass && !$rec->docId) {
+            
             return ;
         }
         
@@ -819,6 +821,7 @@ class change_Log extends core_Manager
         
         // Ако е генериран преди
         if ($res) {
+            
             return $res;
         }
         
@@ -830,6 +833,7 @@ class change_Log extends core_Manager
         
         // Ако няма избрана версии, връщаме
         if (!$cntVers) {
+            
             return $res;
         }
         
@@ -966,6 +970,7 @@ class change_Log extends core_Manager
         
         // Ако е в избраните, връщаме TRUE
         if ($versionsBetweenArr[$versionId]) {
+            
             return true;
         }
     }
@@ -990,6 +995,7 @@ class change_Log extends core_Manager
         
         // Ако е генерирано преди, връщаме
         if ($arr) {
+            
             return $arr;
         }
         
@@ -1118,6 +1124,7 @@ class change_Log extends core_Manager
         }
         
         if ($allRecsArr[$str] === false) {
+            
             return false;
         }
         
@@ -1174,6 +1181,7 @@ class change_Log extends core_Manager
         
         // Ако няма, връщаме FALSE
         if (!$rec) {
+            
             return false;
         }
         

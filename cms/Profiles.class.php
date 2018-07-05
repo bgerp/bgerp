@@ -87,10 +87,12 @@ class cms_Profiles extends core_Master
             $id = Request::get('id', 'int');
             if ($id) {
                 if (crm_Profiles::haveRightFor('single', $id)) {
+                    
                     return new Redirect(array('crm_Profiles', 'single', $id));
                 }
             } else {
                 if (crm_Profiles::haveRightFor('list')) {
+                    
                     return new Redirect(array('crm_Profiles', 'list'));
                 }
             }

@@ -74,6 +74,7 @@ class distro_AbsorbDriver extends core_Mvc
             $fRec = distro_Files::fetch($fileId);
             
             if (isset($fRec->sourceFh)) {
+                
                 return true;
             }
             
@@ -97,6 +98,7 @@ class distro_AbsorbDriver extends core_Mvc
     {
         $fRec = distro_Files::fetch($rec->fileId);
         if (!$fRec->sourceFh) {
+            
             return '';
         }
         

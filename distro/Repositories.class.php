@@ -207,6 +207,7 @@ class distro_Repositories extends core_Master
         $sshObj = self::connectToRepo($rec);
         
         if ($sshObj === false) {
+            
             return false;
         }
         
@@ -254,6 +255,7 @@ class distro_Repositories extends core_Master
         $output = trim($output);
         
         if ($output && $output == 'exist') {
+            
             return true;
         }
         
@@ -298,6 +300,7 @@ class distro_Repositories extends core_Master
         $sshObj = self::connectToRepo($rec);
         
         if ($sshObj === false) {
+            
             return false;
         }
         
@@ -396,6 +399,7 @@ class distro_Repositories extends core_Master
         }
         
         if (!($url = trim($rec->url))) {
+            
             return $link;
         }
         
@@ -472,6 +476,7 @@ class distro_Repositories extends core_Master
         $line = trim($line, '"');
         
         if (!trim($line)) {
+            
             return array();
         }
         
@@ -520,6 +525,7 @@ class distro_Repositories extends core_Master
         $sshObj = self::connectToRepo($rec);
         
         if ($sshObj === false) {
+            
             return array();
         }
         
@@ -669,6 +675,7 @@ class distro_Repositories extends core_Master
         $sshObj = self::connectToRepo($rec);
         
         if ($sshObj === false) {
+            
             return false;
         }
         
@@ -752,12 +759,14 @@ class distro_Repositories extends core_Master
         $errDir = $mvc->createDir($rec->id, self::$systemPath . '/' . self::$errPath . '/');
         
         if ($sysDir === false) {
+            
             return ;
         }
         
         $sshObj = self::connectToRepo($rec);
         
         if ($sshObj === false) {
+            
             return ;
         }
         
@@ -858,6 +867,7 @@ class distro_Repositories extends core_Master
         $sshObj = self::connectToRepo($rec);
         
         if ($sshObj === false) {
+            
             return ;
         }
         

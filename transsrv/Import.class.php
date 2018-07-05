@@ -143,11 +143,13 @@ class transsrv_Import extends core_BaseClass
         
         // С приоритет е папката на фирма в група доставчици със същото име
         if ($companyRec = $query->fetch()) {
+            
             return crm_Companies::forceCoverAndFolder($companyRec->id);
         }
         
         // Ако няма фирма в група доставчици, гледа се във всички фирми тогава
         if ($companyRec = $cloneQuery->fetch()) {
+            
             return crm_Companies::forceCoverAndFolder($companyRec->id);
         }
     }

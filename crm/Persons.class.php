@@ -1256,6 +1256,7 @@ class crm_Persons extends core_Master
     public static function renderNamedays($data)
     {
         if (!count($data->rows)) {
+            
             return '';
         }
 
@@ -1375,6 +1376,7 @@ class crm_Persons extends core_Master
         $rec = static::fetch($id);
         
         if (!$rec->country) {
+            
             return true;
         }
         
@@ -2049,6 +2051,7 @@ class crm_Persons extends core_Master
         
         // Ако няма визитка
         if (!$currVcard) {
+            
             return static::renderWrapping($form->renderHtml());
         }
         
@@ -2491,6 +2494,7 @@ class crm_Persons extends core_Master
               
             // Проверяваме дали имаме права за папката
             if (doc_Folders::haveRightFor('single', $folderId)) {
+                
                 return $folderId;
             }
         }
@@ -2519,6 +2523,7 @@ class crm_Persons extends core_Master
             
             // Ако имаме права за нея
             if (doc_Folders::haveRightFor('single', $folderId)) {
+                
                 return $folderId;
             }
         }
@@ -2680,16 +2685,19 @@ class crm_Persons extends core_Master
 
         // Ако контрагента няма държава, то дефолт валутата е BGN
         if (empty($rec->country)) {
+            
             return 'BGN';
         }
         
         // Ако държавата му е България, дефолт валутата е 'BGN'
         if (drdata_Countries::fetchField($rec->country, 'letterCode2') == 'BG') {
+            
             return 'BGN';
         }
             
         // Ако не е 'България', но е в ЕС, дефолт валутата е 'EUR'
         if (drdata_Countries::isEu($rec->country)) {
+            
             return 'EUR';
         }
         
@@ -3010,6 +3018,7 @@ class crm_Persons extends core_Master
         
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
+                
                 return array();
             }
             
@@ -3089,6 +3098,7 @@ class crm_Persons extends core_Master
     {
         $employeeId = crm_Groups::getIdFromSysId($groupSysId);
         if (keylist::isIn($employeeId, crm_Persons::fetchField($id, 'groupList'))) {
+            
             return true;
         }
         

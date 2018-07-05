@@ -38,6 +38,7 @@ class prosms_Plugin extends core_Plugin
         
         // Ако константата за УРЛ-то не е зададена връщаме TRUE за да се пробва да бъде изпратен от друг плъгин
         if ($conf->PROSMS_URL == '') {
+            
             return true;
         }
         

@@ -428,6 +428,7 @@ class fileman_Get extends core_Manager
         
         // Ако дотук сме намерили име на файл - връщаме го
         if ($filename) {
+            
             return $filename;
         }
         
@@ -460,6 +461,7 @@ class fileman_Get extends core_Manager
         
         // Ако сме намерили име на файл от локацията
         if ($filename) {
+            
             return $filename;
         }
         

@@ -28,10 +28,12 @@ class fancybox_Fancybox extends core_Manager
     {
         // Ако е текстов режим, да не сработва
         if (Mode::is('text', 'plain')) {
+            
             return '';
         }
         
         if (!$fh) {
+            
             return ;
         }
         

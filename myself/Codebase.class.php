@@ -250,6 +250,7 @@ class myself_Codebase extends core_Manager
             }
             fclose($handle);
         } else {
+            
             return 'Error opening file';
         }
 

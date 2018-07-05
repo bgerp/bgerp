@@ -193,6 +193,7 @@ class cat_ProductTplCache extends core_Master
             krsort($res);
             foreach ($res as $cTime => $cache) {
                 if ($cTime <= $time) {
+                    
                     return $cache;
                 }
             }

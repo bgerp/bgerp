@@ -273,10 +273,12 @@ class type_UserOrRole extends type_User
     public static function getOptVal($userOrRole)
     {
         if (strpos($userOrRole, '_')) {
+            
             return $userOrRole;
         }
         
         if (!$userOrRole) {
+            
             return ;
         }
         
@@ -293,6 +295,7 @@ class type_UserOrRole extends type_User
                 $userGroupId = key($userTeamsArr);
                 
                 if ($userGroupId) {
+                    
                     return $userGroupId;
                 }
             }
@@ -304,6 +307,7 @@ class type_UserOrRole extends type_User
         
         foreach ((array) $inst->options as $optVal => $vals) {
             if ($vals->value == $userOrRole) {
+                
                 return $optVal;
             }
         }

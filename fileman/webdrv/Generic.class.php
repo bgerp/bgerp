@@ -100,10 +100,12 @@ class fileman_webdrv_Generic extends core_Manager
         $rArr = fileman_Indexes::getInfoContentByFh($fileHnd, $type);
         
         if ($checkExist === true && $rArr === false) {
+            
             return false;
         }
         
         if (is_array($rArr) && empty($rArr)) {
+            
             return false;
         }
         
@@ -111,6 +113,7 @@ class fileman_webdrv_Generic extends core_Manager
             $rArr = strip_tags($rArr);
             
             if (!trim($rArr)) {
+                
                 return false;
             }
         }
@@ -566,10 +569,12 @@ class fileman_webdrv_Generic extends core_Manager
     public static function prepareLockId($res)
     {
         if (is_object($res)) {
+            
             return $res->dataId;
         }
         
         if (is_file($res)) {
+            
             return md5_file($res);
         }
         
@@ -650,6 +655,7 @@ class fileman_webdrv_Generic extends core_Manager
     {
         // Проверяваме дали оригиналния файл е с допустимите размери и разширение за определяне на баркод
         if (!static::canReadBarcodes($dataId)) {
+            
             return ;
         }
         
@@ -705,6 +711,7 @@ class fileman_webdrv_Generic extends core_Manager
         // По малък или равен на 1mB
         // Проверяваме дали е в допустимите граници
         if (($fLen >= $conf->FILEINFO_MIN_FILE_LEN_BARCODE) && (($fLen <= $conf->FILEINFO_MAX_FILE_LEN_BARCODE))) {
+            
             return true;
         }
         
@@ -733,6 +740,7 @@ class fileman_webdrv_Generic extends core_Manager
 
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
+            
             return ;
         }
 
@@ -806,6 +814,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
+            
             return ;
         }
 
@@ -844,6 +853,7 @@ class fileman_webdrv_Generic extends core_Manager
     public static function afterGetBarcodes($script)
     {
         if (static::saveBarcodes($script, $script->fh)) {
+            
             return true;
         }
     }
@@ -966,6 +976,7 @@ class fileman_webdrv_Generic extends core_Manager
             // Опитваме се да вземем манипулатора на файла
             $fileHnd = static::uploadFileFromArchive($fRec, $index);
         } catch (fileman_Exception $e) {
+            
             return $e->getMessage();
         }
         
@@ -1346,6 +1357,7 @@ class fileman_webdrv_Generic extends core_Manager
     {
         // Ако няма URL, връщаме FALSE
         if (!$htmlUrl) {
+            
             return false;
         }
         

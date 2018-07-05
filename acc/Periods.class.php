@@ -250,15 +250,18 @@ class acc_Periods extends core_Manager
         
         $rec = self::forceActive();
         if ($rec->start > $dateToCheck) {
+            
             return "Датата е преди активния счетоводен период|* <b>{$rec->title}</b>";
         }
         
         $rec = self::fetchByDate($dateToCheck);
         if (!$rec) {
+            
             return 'Датата е в несъществуващ счетоводен период';
         }
         
         if ($dateToCheck > dt::getLastDayOfMonth()) {
+            
             return 'Датата е в бъдещ счетоводен период';
         }
         
@@ -276,6 +279,7 @@ class acc_Periods extends core_Manager
         $rec = self::fetch("#end = '{$end}'");
         
         if ($rec) {
+            
             return $rec;
         }
         
@@ -309,6 +313,7 @@ class acc_Periods extends core_Manager
         
         // Ако датата е преди началния период, връщаме началния
         if ($end < $firstRec->end) {
+            
             return self::forcePeriod($firstRec->end);
         }
         

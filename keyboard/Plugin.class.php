@@ -63,11 +63,13 @@ class keyboard_Plugin extends core_Plugin
     {
         //
         if (Mode::is('screenMode', 'narrow')) {
+            
             return true;
         }
         
         //      SELECT
         if (strtolower(get_class($invoker)) == 'type_enum') {
+            
             return true;
         }
     }

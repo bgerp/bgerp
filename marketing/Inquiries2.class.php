@@ -936,6 +936,7 @@ class marketing_Inquiries2 extends embed_Manager
                      
                     $singleUrl = self::getSingleUrlArray($id);
                     if (count($singleUrl)) {
+                        
                         return redirect($singleUrl, false, '|Благодарим Ви за запитването', 'success');
                     }
                      
@@ -1098,6 +1099,7 @@ class marketing_Inquiries2 extends embed_Manager
         if ($cu = core_Users::getCurrent('id', false)) {
             $profileRec = crm_Profiles::getProfile($cu);
             if (isset($profileRec->country)) {
+                
                 return $profileRec->country;
             }
         }
@@ -1176,6 +1178,7 @@ class marketing_Inquiries2 extends embed_Manager
     public static function getContragentData($id)
     {
         if (!$id) {
+            
             return ;
         }
         

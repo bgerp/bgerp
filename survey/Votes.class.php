@@ -122,6 +122,7 @@ class survey_Votes extends core_Manager
         $query->where(array('#alternativeId = [#1#]', $alternativeId));
         $query->where(array("#userUid = '[#1#]'", $userUid));
         if ($rec = $query->fetch()) {
+            
             return $rec;
         }
         

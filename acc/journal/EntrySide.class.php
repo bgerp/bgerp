@@ -163,10 +163,12 @@ class acc_journal_EntrySide
     public function __isset($name)
     {
         if (!property_exists($this, $name)) {
+            
             return false;
         }
         
         if ($name == 'price') {
+            
             return !is_null($this->getPrice());
         }
         
@@ -186,6 +188,7 @@ class acc_journal_EntrySide
         expect(property_exists($this, $name), $name);
         
         if ($name == 'price') {
+            
             return $this->getPrice();
         }
         
@@ -286,11 +289,13 @@ class acc_journal_EntrySide
     protected function getPrice()
     {
         if (isset($this->price)) {
+            
             return $this->price;
         }
         
         if (isset($this->amount, $this->quantity)) {
             if ($this->quantity) {
+                
                 return $this->amount / $this->quantity;
             }
                 

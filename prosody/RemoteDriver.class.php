@@ -195,6 +195,7 @@ class prosody_RemoteDriver extends core_Mvc
         $aQuery = remote_Authorizations::getFiltredQuery('prosody_RemoteDriver', $userId);
 
         if ($aQuery->fetch()) {
+            
             return haveRole('admin');
         }
 

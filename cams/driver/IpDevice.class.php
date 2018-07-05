@@ -124,6 +124,7 @@ class cams_driver_IpDevice extends core_BaseClass
         $resArr = @parse_ini_string($res);
         
         if (!$resArr) {
+            
             return $params;
         }
         

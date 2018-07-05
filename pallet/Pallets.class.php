@@ -709,6 +709,7 @@ class pallet_Pallets extends core_Manager
         
         // END Изчисляване на наличното непалетирано количество
         if ($quantityNotOnPallets < $quantityOnPalletsAdd) {
+            
             return false;
         }
 
@@ -816,6 +817,7 @@ class pallet_Pallets extends core_Manager
                                                              AND #storeId = {$selectedStoreId}");
         
         if ($palletPlaceCheckPallets || $palletPlaceCheckMovements) {
+            
             return false;
         }
 

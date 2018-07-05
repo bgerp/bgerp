@@ -208,6 +208,7 @@ class plg_RowTools2 extends core_Plugin
         unset($data->listFields['_rowTools']);
 
         if (!is_array($data->rows) || empty($data->rows)) {
+            
             return ;
         }
         

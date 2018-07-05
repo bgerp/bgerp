@@ -130,11 +130,13 @@ class unit_MinkPPurchases extends core_Manager
         
         if (strpos($browser->gettext(), 'Некоректна стойност на полето \'Количество\'!')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Не дава грешка при отрицателно количество', 'warning');
         }
         
         if (strpos($browser->gettext(), 'Не е над - \'0,0000\'')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Не дава грешка "Не е над - \'0,0000\'"', 'warning');
         }
     }
@@ -174,11 +176,13 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Запис');
         if (strpos($browser->gettext(), 'Некоректна стойност на полето \'Количество\'!')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Не дава грешка при нулево количество', 'warning');
         }
     
         if (strpos($browser->gettext(), 'Не е над - \'0,0000\'')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Не дава грешка "Не е над - \'0,0000\'"', 'warning');
         }
     }
@@ -219,11 +223,13 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Запис');
         if (strpos($browser->gettext(), 'Некоректна стойност на полето \'Цена\'!')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Не дава грешка при отрицателна цена', 'warning');
         }
     
         if (strpos($browser->gettext(), 'Не е над - \'0,0000\'')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Не дава грешка "Не е над - \'0,0000\'"', 'warning');
         }
     }
@@ -266,6 +272,7 @@ class unit_MinkPPurchases extends core_Manager
        
         if (strpos($browser->gettext(), 'Некоректна стойност на полето \'Отстъпка\'!')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Не дава грешка при отрицателна отстъпка', 'warning');
         }
          
@@ -313,6 +320,7 @@ class unit_MinkPPurchases extends core_Manager
          
         if (strpos($browser->gettext(), 'Некоректна стойност на полето \'Отстъпка\'!')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Не дава грешка при отстъпка над 100%', 'warning');
         }
         
@@ -374,10 +382,12 @@ class unit_MinkPPurchases extends core_Manager
          
         if (strpos($browser->gettext(), 'Отстъпка: BGN 3,69')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
         if (strpos($browser->gettext(), 'Тридесет и три BGN и 0,19')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
         
@@ -392,6 +402,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Данъчна основа: BGN 27,66')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
     }
@@ -447,10 +458,12 @@ class unit_MinkPPurchases extends core_Manager
          
         if (strpos($browser->gettext(), 'Discount: EUR 3,69')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
         if (strpos($browser->gettext(), 'Thirty-three EUR and 0,19')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
         
@@ -465,6 +478,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Данъчна основа: BGN 64,91')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
     }
@@ -512,10 +526,12 @@ class unit_MinkPPurchases extends core_Manager
          
         if (strpos($browser->gettext(), 'Discount: EUR 0,07')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
         if (strpos($browser->gettext(), 'Three EUR and 0,30')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
         // РБД
@@ -532,6 +548,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Словом: Три EUR и 0,30')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в складова разписка', 'warning');
         }
         
@@ -544,6 +561,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Данъчна основа: BGN 6,45')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
     
@@ -554,6 +572,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
         }
     }
@@ -604,10 +623,12 @@ class unit_MinkPPurchases extends core_Manager
          
         if (strpos($browser->gettext(), '10,40')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
         if (strpos($browser->gettext(), 'Деветдесет и три BGN и 0,60')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
@@ -630,6 +651,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Минус двадесет и шест BGN и 0,83')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в КИ - сума', 'warning');
         }
         
@@ -644,6 +666,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Минус четиридесет и шест BGN и 0,80 ')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в КИ - количество', 'warning');
         }
         
@@ -658,6 +681,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Минус двадесет и четири BGN и 0,26')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в КИ - цена', 'warning');
         }
         
@@ -669,6 +693,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Двадесет и шест BGN и 0,64 ')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - сума', 'warning');
         }
         // Дебитно известие - количество
@@ -682,6 +707,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), ' Двадесет и три BGN и 0,40 ')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - количество', 'warning');
         }
         // Дебитно известие - цена
@@ -695,6 +721,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Двадесет и девет BGN и 0,06')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - цена', 'warning');
         }
     }
@@ -746,10 +773,12 @@ class unit_MinkPPurchases extends core_Manager
          
         if (strpos($browser->gettext(), 'Discount: EUR 10,40')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
         if (strpos($browser->gettext(), 'Ninety-three EUR and 0,60')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
@@ -771,6 +800,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Минус двадесет и два EUR и 0,36')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в КИ - сума', 'warning');
         }
     
@@ -785,6 +815,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Минус четиридесет и шест EUR и 0,80')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в КИ - количество', 'warning');
         }
     
@@ -799,6 +830,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Минус тридесет и пет EUR и 0,82')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в КИ - цена', 'warning');
         }
     
@@ -810,6 +842,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Двадесет и два EUR и 0,20')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - сума', 'warning');
         }
         
@@ -824,6 +857,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Двадесет и три EUR и 0,40')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - количество', 'warning');
         }
         
@@ -838,6 +872,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Тринадесет EUR и 0,07')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - цена', 'warning');
         }
     }
@@ -888,10 +923,12 @@ class unit_MinkPPurchases extends core_Manager
          
         if (strpos($browser->gettext(), 'Discount: EUR 10,40')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
         if (strpos($browser->gettext(), 'Ninety-three EUR and 0,60')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
@@ -913,6 +950,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Минус двадесет и два EUR и 0,36')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в КИ - сума', 'warning');
         }
     
@@ -927,6 +965,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Минус четиридесет и шест EUR и 0,80')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в КИ - количество', 'warning');
         }
     
@@ -941,6 +980,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Минус тридесет и пет EUR и 0,82')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в КИ - цена', 'warning');
         }
     
@@ -952,6 +992,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Двадесет и два EUR и 0,20')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - сума', 'warning');
         }
     
@@ -966,6 +1007,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Двадесет и три EUR и 0,40')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - количество', 'warning');
         }
     
@@ -980,6 +1022,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Тринадесет EUR и 0,07')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в ДИ - цена', 'warning');
         }
     }
@@ -1045,11 +1088,13 @@ class unit_MinkPPurchases extends core_Manager
          
         if (strpos($browser->gettext(), 'Авансово: BGN 49,78')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешно авансово плащане', 'warning');
         }
     
         if (strpos($browser->gettext(), 'Двеста четиридесет и осем BGN и 0,91')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
          
@@ -1083,6 +1128,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Тридесет BGN и 0,89')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в складова разписка', 'warning');
         }
          
@@ -1093,6 +1139,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Двеста и осемнадесет BGN и 0,02')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума в протокол за услуги', 'warning');
         }
     
@@ -1103,6 +1150,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), '-41,48')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума за приспадане', 'warning');
         }
          
@@ -1114,6 +1162,7 @@ class unit_MinkPPurchases extends core_Manager
         //Проверка на статистиката
         if (strpos($browser->gettext(), '248,91 248,91 248,91 248,91')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
     }
@@ -1164,11 +1213,13 @@ class unit_MinkPPurchases extends core_Manager
          
         if (strpos($browser->gettext(), 'Авансово: BGN 240,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешно авансово плащане', 'warning');
         }
     
         if (strpos($browser->gettext(), 'Хиляда и двеста BGN')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
          
@@ -1189,6 +1240,7 @@ class unit_MinkPPurchases extends core_Manager
 
         if (strpos($browser->gettext(), 'Двеста и четиридесет BGN')) {
         } else {
+            
             return 'Грешна сума във фактурата за аванс';
         }
        
@@ -1213,6 +1265,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), '-200,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума за приспадане', 'warning');
         }
          
@@ -1223,6 +1276,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
         }
     }
@@ -1284,14 +1338,17 @@ class unit_MinkPPurchases extends core_Manager
                   
         if (strpos($browser->gettext(), 'ДДС 20%: BGN 80,00')) {
         } else {
+            
             return 'Грешно ДДС 20%';
         }
         if (strpos($browser->gettext(), 'ДДС 9%: BGN 7,29')) {
         } else {
+            
             return 'Грешно ДДС 9%';
         }
         if (strpos($browser->gettext(), 'Петстотин шестдесет и осем BGN и 0,29')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
         
@@ -1309,10 +1366,12 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Данъчна основа: BGN 400,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа 20%', 'warning');
         }
         if (strpos($browser->gettext(), 'Данъчна основа: BGN 81,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа 9%', 'warning');
         }
         // Кредитно известие - количество
@@ -1329,10 +1388,12 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Минус деветдесет и седем BGN и 0,05')) {
         } else {
+            
             return 'Грешна сума в КИ - количество';
         }
         if (strpos($browser->gettext(), 'ДДС 9% ДДС: BGN -4,05')) {
         } else {
+            
             return 'Грешно ДДС 9%';
         }
         
@@ -1348,6 +1409,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Минус сто и двадесет BGN')) {
         } else {
+            
             return 'Грешна сума в КИ - цена';
         }
         // Дебитно известие - количество
@@ -1362,6 +1424,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), ' Двадесет и четири BGN')) {
         } else {
+            
             return 'Грешна сума в ДИ - количество';
         }
         
@@ -1377,6 +1440,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Словом: Три BGN и 0,36 ')) {
         } else {
+            
             return 'Грешна сума в ДИ - цена';
         }
     }
@@ -1434,6 +1498,7 @@ class unit_MinkPPurchases extends core_Manager
          
         if (strpos($browser->gettext(), 'Четиридесет и четири BGN и 0,25')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
@@ -1504,6 +1569,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Данъчна основа: BGN 36,88')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
         
@@ -1517,10 +1583,12 @@ class unit_MinkPPurchases extends core_Manager
         //Проверка на статистиката
         if (strpos($browser->gettext(), '44,25 44,25 44,25 44,25')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
         if (strpos($browser->gettext(), '0,00 0,00 0,00 0,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
         //return $browser->getHtml();
@@ -1573,10 +1641,12 @@ class unit_MinkPPurchases extends core_Manager
          
         if (strpos($browser->gettext(), 'Отстъпка: BGN 3,94')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
         if (strpos($browser->gettext(), 'Тридесет и пет BGN и 0,42')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
@@ -1591,6 +1661,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Данъчна основа: BGN 29,52')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
         
@@ -1608,10 +1679,12 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), '35,42 35,42 49,78 35,42')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера');
         }
         if (strpos($browser->gettext(), 'BGN 0,00 BGN 14,36')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума - извънреден разход');
         }
     }
@@ -1663,10 +1736,12 @@ class unit_MinkPPurchases extends core_Manager
          
         if (strpos($browser->gettext(), 'Отстъпка: BGN 0,79')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
         if (strpos($browser->gettext(), 'Четиридесет и шест BGN и 0,57')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
@@ -1681,6 +1756,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Данъчна основа: BGN 38,81')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
     
@@ -1698,10 +1774,12 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), '46,57 46,57 46,50 46,57')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера');
         }
         if (strpos($browser->gettext(), 'BGN 0,07 BGN 0,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна сума - извънреден приход');
         }
     }
@@ -1753,10 +1831,12 @@ class unit_MinkPPurchases extends core_Manager
          
         if (strpos($browser->gettext(), 'Отстъпка: BGN 12,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
         if (strpos($browser->gettext(), 'Двеста седемдесет и три BGN и 0,60')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
@@ -1773,6 +1853,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Данъчна основа: BGN 228,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
     
@@ -1789,6 +1870,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), '273,60 273,60 273,60 273,60')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера');
         }
     }
@@ -1837,10 +1919,12 @@ class unit_MinkPPurchases extends core_Manager
          
         if (strpos($browser->gettext(), 'Отстъпка: BGN 1,20')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
         if (strpos($browser->gettext(), 'Тридесет и осем BGN и 0,80')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
         
@@ -1857,6 +1941,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Данъчна основа: BGN 32,33')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
         
@@ -1873,6 +1958,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), '38,80 38,80 38,80 38,80')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера');
         }
     }

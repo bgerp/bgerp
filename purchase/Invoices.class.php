@@ -436,6 +436,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         $rec = $this->fetchRec($rec);
         
         if (empty($rec->number)) {
+            
             return true;
         }
         
@@ -443,6 +444,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         foreach (array('contragentVatNo', 'uicNo') as $fld) {
             if (!empty($rec->{$fld})) {
                 if ($this->fetchField("#{$fld}='{$rec->{$fld}}' AND #number='{$rec->number}' AND #id != '{$rec->id}' AND #state != 'rejected'")) {
+                    
                     return false;
                 }
             }
@@ -649,6 +651,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         $ext = fileman_Files::getExt($fileName);
 
         if (($minLen = $typeToLen[$ext]) && ($minLen <= $fileLen)) {
+            
             return true;
         }
         
@@ -1054,6 +1057,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                 
                 // Редиктваме към фактурата, ако успешно е създаден документа
                 if ($invId) {
+                    
                     return new Redirect(purchase_Invoices::getSingleUrlArray($invId));
                 }
             }
@@ -1133,6 +1137,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         
         // Ако датата на фактурата (ДФ) е в текущия месец - СД = ДФ
         if ($day == $cLastDay) {
+            
             return $date;
         }
         $nDay = acc_Setup::get('DATE_FOR_INVOICE_DATE');

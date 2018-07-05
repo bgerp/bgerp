@@ -38,20 +38,24 @@ class tinymce_import_Html extends core_Mvc
     public function addActionBtn($form, $fileHnd)
     {
         if (!haveRole('user')) {
+            
             return ;
         }
         
         if (!$fileHnd) {
+            
             return ;
         }
         
         if (!is_string($fileHnd)) {
+            
             return ;
         }
         
         $fRec = fileman::fetchByFh($fileHnd);
         
         if (!$fRec) {
+            
             return ;
         }
         

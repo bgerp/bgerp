@@ -1422,6 +1422,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if ($rec->state != 'rejected') {
+            
             return false;
         }
         
@@ -1462,6 +1463,7 @@ class doc_DocumentPlg extends core_Plugin
     protected static function updateDocumentState($mvc, $rec)
     {
         if (!$mvc->save($rec, 'state, brState, containerId, modifiedOn, modifiedBy')) {
+            
             return false;
         }
         
@@ -3101,6 +3103,7 @@ class doc_DocumentPlg extends core_Plugin
         $res = (array) $res;
         
         if (strtolower($type) != 'pdf') {
+            
             return ;
         }
         
@@ -3394,6 +3397,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if (!$rt) {
+            
             return ;
         }
         
@@ -3794,6 +3798,7 @@ class doc_DocumentPlg extends core_Plugin
     public function on_BeforeGetTitleForId($mvc, &$res, $id, $escape = true)
     {
         if (!$id) {
+            
             return ;
         }
         
@@ -3804,6 +3809,7 @@ class doc_DocumentPlg extends core_Plugin
             
             return false;
         } catch (core_exception_Expect $e) {
+            
             return ;
         }
     }
@@ -3986,6 +3992,7 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterRemoveHideArrForLetterHead($mvc, &$res, $headerArr, $hideArr = array())
     {
         if (!$headerArr) {
+            
             return ;
         }
         
@@ -4023,6 +4030,7 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr)
     {
         if (!$headerArr) {
+            
             return ;
         }
         
@@ -4247,6 +4255,7 @@ class doc_DocumentPlg extends core_Plugin
         static $hashArr = array();
         
         if (!$id) {
+            
             return ;
         }
         

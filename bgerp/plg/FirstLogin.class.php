@@ -22,6 +22,7 @@ class bgerp_plg_FirstLogin extends core_Plugin
     {
         // Ако не се логва, а се рефрешва потребителя
         if ($refresh) {
+            
             return ;
         }
         
@@ -66,6 +67,7 @@ class bgerp_plg_FirstLogin extends core_Plugin
     {
         // Очакваме да е подаден валиден потребител
         if ($userId <= 0) {
+            
             return ;
         }
         

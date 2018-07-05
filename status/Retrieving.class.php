@@ -186,6 +186,7 @@ class status_Retrieving extends core_Manager
         
         // Ако има записи
         if ($query->count()) {
+            
             return true;
         }
     }

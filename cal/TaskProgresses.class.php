@@ -117,6 +117,7 @@ class cal_TaskProgresses extends core_Detail
         $Progresses = cls::get(get_called_class());
         
         if ($Progresses->db->tableExists($Progresses->dbTableName)) {
+            
             return true;
         }
         
@@ -542,6 +543,7 @@ class cal_TaskProgresses extends core_Detail
     protected static function updateTaskProgress($taskId, $state = null)
     {
         if (!$taskId) {
+            
             return ;
         }
         
@@ -586,6 +588,7 @@ class cal_TaskProgresses extends core_Detail
     protected static function getLastGoodProgress($taskId)
     {
         if (!$taskId) {
+            
             return ;
         }
         
@@ -599,6 +602,7 @@ class cal_TaskProgresses extends core_Detail
         $rec = $query->fetch();
         
         if (!$rec) {
+            
             return 0;
         }
         

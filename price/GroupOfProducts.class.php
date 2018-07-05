@@ -103,6 +103,7 @@ class price_GroupOfProducts extends core_Detail
         $query->show('groupId');
         
         if ($rec = $query->fetch()) {
+            
             return $rec->groupId;
         }
     }
@@ -281,14 +282,17 @@ class price_GroupOfProducts extends core_Detail
     public function getMasterMvc_($rec)
     {
         if ($rec->_masterMvc) {
+            
             return $rec->_masterMvc;
         }
 
         if ($rec->groupId && !$rec->productId) {
+            
             return cls::get('price_Groups');
         }
 
         if ($rec->productId) {
+            
             return cls::get('cat_Products');
         }
 
@@ -302,14 +306,17 @@ class price_GroupOfProducts extends core_Detail
     public function getMasterKey($rec)
     {
         if ($rec->_masterKey) {
+            
             return $rec->_masterKey;
         }
 
         if ($rec->groupId && !$rec->productId) {
+            
             return 'groupId';
         }
 
         if ($rec->productId) {
+            
             return 'productId';
         }
         

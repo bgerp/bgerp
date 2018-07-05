@@ -134,6 +134,7 @@ class cal_LinkedPostponed extends core_Mvc
     protected function prepareFormFor(&$form, $cId, $activity, $type = 'doc')
     {
         if ($activity != get_called_class()) {
+            
             return ;
         }
         
@@ -142,6 +143,7 @@ class cal_LinkedPostponed extends core_Mvc
         static $preparedArr = array();
         
         if ($preparedArr[$key]) {
+            
             return ;
         }
         
@@ -168,10 +170,12 @@ class cal_LinkedPostponed extends core_Mvc
     protected function doActivityFor(&$form, $cId, $activity, $type = 'doc')
     {
         if ($activity != get_called_class()) {
+            
             return ;
         }
         
         if (!$form->isSubmitted()) {
+            
             return ;
         }
         

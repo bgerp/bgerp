@@ -289,16 +289,19 @@ abstract class deals_ClosedDeals extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         
         if (!$firstDoc) {
+            
             return false;
         }
         
         // Може да се добавя само към ниша с първи документ имащ 'bgerp_DealAggregatorIntf'
         if (!$firstDoc->haveInterface('bgerp_DealAggregatorIntf')) {
+            
             return false;
         }
         
         // Може да се добавя само към активирани документи
         if ($firstDoc->fetchField('state') != 'active') {
+            
             return false;
         }
         
@@ -306,6 +309,7 @@ abstract class deals_ClosedDeals extends core_Master
         $closedDoc = static::fetch("#threadId = {$threadId} AND #state != 'rejected'");
         
         if ($closedDoc !== false) {
+            
             return false;
         }
         
@@ -548,6 +552,7 @@ abstract class deals_ClosedDeals extends core_Master
         // Ако приключващия документ, приключва към друга сделка, то позволяваме
         // да може да се контира дори ако има затворени пера
         if (!empty($rec->closeWith)) {
+            
             return array();
         }
        
@@ -650,6 +655,7 @@ abstract class deals_ClosedDeals extends core_Master
         
         // Сортираме вальорите по възходящ ред
         usort($dates, function ($a, $b) {
+            
             return ($a < $b) ? 1 : -1;
         });
         

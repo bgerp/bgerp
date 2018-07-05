@@ -232,11 +232,13 @@ abstract class cad2_Canvas extends core_BaseClass
     {
         // функцията не е детерминирана за вертикални отсечки
         if ($Ax == $Bx) {
+            
             return false;
         }
 
         // Условие за пресичане
         if (min($Ax, $Bx) > $x || $x > max($Ax, $Bx)) {
+            
             return false;
         }
         
@@ -466,12 +468,14 @@ abstract class cad2_Canvas extends core_BaseClass
     public function isInWindow($x, $y)
     {
         if (!$this->window) {
+            
             return true;
         }
         
         list($x1, $y1, $x2, $y2) = $this->window;
 
         if (min($x1, $x2) <= $x && max($x1, $x2) >= $x && min($y1, $y2) <= $y && max($y1, $y2) >= $y) {
+            
             return true;
         }
 
@@ -485,35 +489,42 @@ abstract class cad2_Canvas extends core_BaseClass
     public function getWindowIntersection($Ax, $Ay, $Bx, $By)
     {
         if (!$this->window) {
+            
             return true;
         }
         
         list($x1, $y1, $x2, $y2) = $this->window;
         $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x1, $y1, $x1, $y2);
         if ($p) {
+            
             return $p;
         }
 
         $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x2, $y1, $x2, $y2);
         if ($p) {
+            
             return $p;
         }
       
         $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x1, $y1, $x2, $y1);
         if ($p) {
+            
             return $p;
         }
 
         $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x1, $y2, $x2, $y2);
         if ($p) {
+            
             return $p;
         }
 
         if ($this->isInWindow($Ax, $Ay)) {
+            
             return self::d($Ax, $Ay);
         }
 
         if ($this->isInWindow($Bx, $By)) {
+            
             return self::d($Bx, $By);
         }
     }

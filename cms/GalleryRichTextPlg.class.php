@@ -110,6 +110,7 @@ class cms_GalleryRichTextPlg extends core_Plugin
         $imgRec = cms_GalleryImages::fetch(array("#title = '[#1#]'", $title));
         
         if (!$imgRec) {
+            
             return $match[0];
         }
 
@@ -215,6 +216,7 @@ class cms_GalleryRichTextPlg extends core_Plugin
             $callback = "function {$callbackName}(title) {
                 var ta = get$('{$id}');
                 rp(\"[img=#\" + title + \"]\", ta, 1);
+                
                 return true;
             }";
             

@@ -362,6 +362,7 @@ class fconv_Script
     public function lineSH($cmd)
     {
         if (stristr(PHP_OS, 'WIN')) {
+            
             return ;
         }
         
@@ -377,6 +378,7 @@ class fconv_Script
     public function lineVBS($cmd)
     {
         if (!stristr(PHP_OS, 'WIN')) {
+            
             return ;
         }
         
@@ -617,6 +619,7 @@ class fconv_Script
     public function addExtensionScript()
     {
         if (stristr(PHP_OS, 'WIN')) {
+            
             return '.bin';
         }
         
@@ -632,6 +635,7 @@ class fconv_Script
     public function addRunAsinchronLinux()
     {
         if (stristr(PHP_OS, 'WIN')) {
+            
             return '';
         }
         
@@ -647,6 +651,7 @@ class fconv_Script
     public function addRunAsinchronWin()
     {
         if (stristr(PHP_OS, 'WIN')) {
+            
             return 'start ';
         }
         

@@ -101,6 +101,7 @@ class log_Actions extends core_Manager
     public static function getActionCrc($action)
     {
         if (!$action) {
+            
             return ;
         }
         

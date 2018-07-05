@@ -273,6 +273,7 @@ class type_Users extends type_Keylist
                     if (strpos($key, '_')) {
                         list($gr, $usr) = explode('_', $key);
                         if ($usr == $value) {
+                            
                             return $opt->keylist;
                         }
                     }

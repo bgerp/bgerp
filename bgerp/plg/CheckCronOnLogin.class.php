@@ -22,6 +22,7 @@ class bgerp_plg_CheckCronOnLogin extends core_Plugin
     {
         // Ако не се логва, а се рефрешва потребителя
         if ($refresh) {
+            
             return ;
         }
         
@@ -34,6 +35,7 @@ class bgerp_plg_CheckCronOnLogin extends core_Plugin
         $lastStart = core_Cron::getLastStartTime();
         
         if (!$lastStart) {
+            
             return ;
         }
         

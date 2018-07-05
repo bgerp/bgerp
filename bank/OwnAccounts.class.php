@@ -339,6 +339,7 @@ class bank_OwnAccounts extends core_Master
         $ownAccountsNumber = $ownAccountsQuery->count();
         
         if ($ownAccountsNumber == $accountsNumber) {
+            
             return false;
         }
         
@@ -361,6 +362,7 @@ class bank_OwnAccounts extends core_Master
         expect($ownAcc);
         
         if (!$ownAcc) {
+            
             return false;
         }
 

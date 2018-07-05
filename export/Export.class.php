@@ -75,6 +75,7 @@ class export_Export extends core_Mvc
         $key = $clsId . '|' . $objId . '|' . core_Users::getCurrent();
         
         if (isset($resArr[$key])) {
+            
             return $resArr[$key];
         }
         
@@ -167,6 +168,7 @@ class export_Export extends core_Mvc
             $eRes = $intfCls->makeExport($form, $classId, $docId);
             
             if (is_object($eRes) && $eRes instanceof core_Redirect) {
+                
                 return $eRes;
             }
             

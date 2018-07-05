@@ -25,6 +25,7 @@ class store_type_PalletPlace extends type_Varchar
         $position = trim($position);
         
         if (empty($position)) {
+            
             return false;
         }
         
@@ -38,6 +39,7 @@ class store_type_PalletPlace extends type_Varchar
         }
         
         if (empty($letterPos)) {
+            
             return false;
         }
         

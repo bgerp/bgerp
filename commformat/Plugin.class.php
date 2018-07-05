@@ -120,6 +120,7 @@ class commformat_Plugin extends core_Plugin
         // ако не може да мачнем телефон, просто не правим
         // никакви обработки
         if (!trim($match[3])) {
+            
             return $match[0];
         }
 
@@ -132,6 +133,7 @@ class commformat_Plugin extends core_Plugin
         $parsTel = $PhonesVerbal->toArray($match[3]);
 
         if (!count($parsTel)) {
+            
             return  $match[0];
         }
     
@@ -160,6 +162,7 @@ class commformat_Plugin extends core_Plugin
         // ако не може да мачнем телефон, просто не правим
         // никакви обработки
         if (!trim($match[3])) {
+            
             return $match[0];
         }
          
@@ -172,6 +175,7 @@ class commformat_Plugin extends core_Plugin
         $parsTel = $PhonesVerbal->toArray($match[3]);
 
         if (!count($parsTel)) {
+            
             return  $match[0];
         }
 
@@ -201,6 +205,7 @@ class commformat_Plugin extends core_Plugin
         // ако не може да мачнем телефон, просто не правим
         // никакви обработки
         if (!trim($match[3])) {
+            
             return $match[0];
         }
         
@@ -213,6 +218,7 @@ class commformat_Plugin extends core_Plugin
         $parsTel = $PhonesVerbal->toArray($match[3]);
                 
         if (!count($parsTel)) {
+            
             return $match[0];
         }
 
@@ -238,6 +244,7 @@ class commformat_Plugin extends core_Plugin
     public function catchCommunicationFormat($match)
     {
         if (!trim($match[3])) {
+            
             return $match[0];
         }
 
@@ -317,6 +324,7 @@ class commformat_Plugin extends core_Plugin
     public function catchCommunicationICQFormat($match)
     {
         if (!trim($match[3])) {
+            
             return $match[0];
         }
 
@@ -354,6 +362,7 @@ class commformat_Plugin extends core_Plugin
     public function catchCommunicationEmailFormat($match)
     {
         if (!trim($match[2])) {
+            
             return  $match[0];
         }
        
@@ -375,6 +384,7 @@ class commformat_Plugin extends core_Plugin
             // добавяме иконата пред името на услугата
             $this->mvc->_htmlBoard[$place] = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $match[1]. ' ' . $email . '</span>';
         } else {
+            
             return $match[0];
         }
       

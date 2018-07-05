@@ -208,10 +208,12 @@ class type_Set extends core_Type
     public static function toArray($set)
     {
         if (is_array($set)) {
+            
             return $set;
         }
         
         if (!isset($set)) {
+            
             return array();
         }
         

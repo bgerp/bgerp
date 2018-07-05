@@ -23,6 +23,7 @@ class select2_Adapter
     public static function canUseSelect2()
     {
         if ((strtolower(log_Browsers::getUserAgentOsName()) == 'android') && (strtolower(log_Browsers::getUserAgentBrowserName()) == 'safari')) {
+            
             return false;
         }
         
@@ -42,6 +43,7 @@ class select2_Adapter
     public static function appendAndRun(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '')
     {
         if (!($tpl instanceof core_ET)) {
+            
             return ;
         }
         
@@ -63,6 +65,7 @@ class select2_Adapter
     public static function appendFiles(&$tpl, $lg = null)
     {
         if (!($tpl instanceof core_ET)) {
+            
             return ;
         }
         
@@ -101,6 +104,7 @@ class select2_Adapter
     public static function run(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '')
     {
         if (!($tpl instanceof core_ET)) {
+            
             return ;
         }
         

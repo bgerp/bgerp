@@ -250,6 +250,7 @@ class cms_Domains extends core_Embedder
         }
               
         if ($part) {
+            
             return $domainRec->{$part};
         }
 
@@ -314,6 +315,7 @@ class cms_Domains extends core_Embedder
     {
         // Ако имаме само един език - избираме него
         if (is_array($cmsLangs) && count($cmsLangs) == 1) {
+            
             return key($cmsLangs);
         }
         
@@ -370,6 +372,7 @@ class cms_Domains extends core_Embedder
         
         foreach ($langArr as $lg => $q) {
             if ($cmsLangs[$lg]) {
+                
                 return $lg;
             }
         }
@@ -590,6 +593,7 @@ class cms_Domains extends core_Embedder
     public static function getSettings($domainId = null, $date = null)
     {
         if (!core_Packs::isInstalled('eshop')) {
+            
             return array();
         }
         $domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;

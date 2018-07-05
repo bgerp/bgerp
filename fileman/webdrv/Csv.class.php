@@ -70,6 +70,7 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
         $res = csv_Lib::getCsvRowsFromFile($content);
         
         if ($res === false) {
+            
             return parent::getContent($fRec);
         }
         

@@ -106,6 +106,7 @@ class plg_RefreshRows extends core_Plugin
     {
         // Ако екшъна не е за обновяване на редовете, да не се изпълнява
         if ($action != 'ajaxrefreshrows') {
+            
             return ;
         }
         
@@ -115,6 +116,7 @@ class plg_RefreshRows extends core_Plugin
         
         // Ако заявката не е по ajax
         if (!$ajaxMode) {
+            
             return false;
         }
         
@@ -132,6 +134,7 @@ class plg_RefreshRows extends core_Plugin
         
         if ($refreshUrl['Ctr']) {
             if ($refreshUrl['Ctr']::checkTimeForRefresh($hitTime, $refreshUrl)) {
+                
                 return false;
             }
         }
@@ -142,6 +145,7 @@ class plg_RefreshRows extends core_Plugin
         $stopRefresh = $mvc->stopМanualRefresh($manualNameHash);
         
         if ($stopRefresh === true) {
+            
             return false;
         }
         
@@ -153,6 +157,7 @@ class plg_RefreshRows extends core_Plugin
         
         // Ако липсва шаблона, да не се изпълнява
         if (!$tpl) {
+            
             return false;
         }
         
@@ -258,6 +263,7 @@ class plg_RefreshRows extends core_Plugin
     {
         // Ако не е обект или няма съдържание
         if (!$tpl) {
+            
             return ;
         }
         
@@ -314,6 +320,7 @@ class plg_RefreshRows extends core_Plugin
     public static function on_AfterStopМanualRefresh($mvc, &$res, $nameHash)
     {
         if (!$mvc->manualRefreshCnt) {
+            
             return ;
         }
         
@@ -441,10 +448,12 @@ class plg_RefreshRows extends core_Plugin
     {
         // Ако е зададено поле
         if (!$mvc->refreshRowsCheckField) {
+            
             return ;
         }
         
         if ($res === true) {
+            
             return ;
         }
         

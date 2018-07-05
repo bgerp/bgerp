@@ -343,6 +343,7 @@ class sales_QuotationsDetails extends doc_Detail
     {
         $other = array_values(array_filter($recs, function ($val) use ($productId, $id, $isOptional) {
             if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id) {
+                
                 return $val;
             }
         }));
@@ -708,6 +709,7 @@ class sales_QuotationsDetails extends doc_Detail
             
             // Сортиране по к-во
             usort($group, function ($a, $b) {
+                
                 return (str_replace('&nbsp;', '', $a->quantity) > str_replace('&nbsp;', '', $b->quantity)) ? 1 : -1;
             });
             

@@ -149,6 +149,7 @@ class doc_ThreadUsers extends core_Manager
     public static function is($threadId, $userId, $relation)
     {
         if (static::fetch("#threadId = {$threadId} AND #userId = {$userId} AND #relation = {$relation}")) {
+            
             return true;
         }
 

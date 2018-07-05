@@ -38,6 +38,7 @@ class export_Csv extends core_Mvc
         $canUse = export_Export::canUseExport($clsId, $objId);
         
         if (!$canUse) {
+            
             return $canUse;
         }
         
@@ -48,24 +49,28 @@ class export_Csv extends core_Mvc
         $clsArr = core_Classes::getOptionsByInterface('export_DetailExportCsvIntf');
         
         if (empty($clsArr)) {
+            
             return false;
         }
         
         $clsInst = cls::get($clsId);
         
         if (!($clsInst instanceof core_Master)) {
+            
             return false;
         }
         
         $detArr = arr::make($clsInst->details);
         
         if (empty($detArr)) {
+            
             return false;
         }
         
         $rec = $clsInst->fetch($objId);
         
         if (!$rec) {
+            
             return false;
         }
         

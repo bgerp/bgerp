@@ -164,6 +164,7 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
         $entry = array();
         
         if (round($amount, 2) == 0) {
+            
             return $entry;
         }
         
@@ -231,6 +232,7 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
         $vatNotCharge += abs($blAmount);
         
         if ($blAmount == 0) {
+            
             return $entries;
         }
          

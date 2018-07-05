@@ -101,6 +101,7 @@ class label_Media extends core_Manager
         $rec = self::fetch($id);
         
         if ($rec->state == 'active') {
+            
             return ;
         }
         
@@ -199,6 +200,7 @@ class label_Media extends core_Manager
         
         // Ако някоя от необходимите стойности не е сетната
         if (!$rec->columnsCnt || !$rec->linesCnt || !$data->cnt) {
+            
             return false;
         }
         

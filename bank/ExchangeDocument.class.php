@@ -301,6 +301,7 @@ class bank_ExchangeDocument extends core_Master
             $Be = cls::get('bank_ExchangeDocument');
             
             if ($folderId == bank_ExchangeDocument::getDefaultFolder(null, false) || doc_Folders::fetchCoverClassName($folderId) == 'bank_OwnAccounts') {
+                
                 return true;
             }
 

@@ -109,6 +109,7 @@ class marketing_BulletinSubscribers extends core_Detail
     {
         // Проверява дали имейла е валиден, за да може да се запише
         if (!$email || !type_Email::isValidEmail($email)) {
+            
             return ;
         }
         

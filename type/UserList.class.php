@@ -68,6 +68,7 @@ class type_UserList extends type_Keylist
         $mvc->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this));
         
         if (isset($this->suggestions)) {
+            
             return $this->suggestions;
         }
 

@@ -96,6 +96,7 @@ class log_Classes extends core_Manager
     public static function getClassCrc($className, $autoSave = true)
     {
         if (!$className) {
+            
             return ;
         }
         

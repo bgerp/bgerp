@@ -209,6 +209,7 @@ class type_Int extends core_Type
     public static function isInt($val, $unsigned = false)
     {
         if (!isset($val)) {
+            
             return false;
         }
         
@@ -221,6 +222,7 @@ class type_Int extends core_Type
         }
         
         if (preg_match($pattern, $val)) {
+            
             return true;
         }
         
@@ -240,10 +242,12 @@ class type_Int extends core_Type
     protected function prepareVal($number, $allowOct = false, $allowHex = false)
     {
         if (!$number) {
+            
             return $number;
         }
         
         if ($allowOct && $allowHex) {
+            
             return $number;
         }
         

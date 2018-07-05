@@ -80,9 +80,11 @@ class flexpaper_Render
         $isSwf = exec("file --mime-type {$filePath}", $retValue, $isCorrect);
         
         if ($isCorrect) {
+            
             return 'Възникна грешка, моля опитайте пак.';
         }
         if (!stristr($isSwf, 'application/x-shockwave-flash')) {
+            
             return 'Файлът, който сте избрали не е флаш.';
         }
         

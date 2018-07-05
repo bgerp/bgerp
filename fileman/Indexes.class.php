@@ -144,6 +144,7 @@ class fileman_Indexes extends core_Manager
         $tabsArr = $data->tabs;
         
         if (! count($data->tabs)) {
+            
             return false;
         }
         
@@ -245,6 +246,7 @@ class fileman_Indexes extends core_Manager
                 $res = self::getDriver($nExt, $fArr['name'], $pathArr);
                 
                 if ($res[0] && ($res[0]->className != 'fileman_webdrv_Generic')) {
+                    
                     return $res;
                 }
             }
@@ -309,6 +311,7 @@ class fileman_Indexes extends core_Manager
                 
                 // Ако открием съдържание, връщаме него
                 if ($content !== false) {
+                    
                     return $content;
                 }
             }
@@ -319,6 +322,7 @@ class fileman_Indexes extends core_Manager
 
         // Ако няма такъв запис
         if (!$rec) {
+            
             return false;
         }
         
@@ -385,6 +389,7 @@ class fileman_Indexes extends core_Manager
 
         // Ако процеса е заключен
         if (core_Locks::isLocked($params['lockId'])) {
+            
             return true;
         }
         
@@ -417,6 +422,7 @@ class fileman_Indexes extends core_Manager
                 
             // Ако е задедено да се провери съдържанието
             if (($trim) && (!trim($content))) {
+                
                 return false;
             }
                 
@@ -468,6 +474,7 @@ class fileman_Indexes extends core_Manager
     public static function saveContent($params)
     {
         if (!$params['dataId'] && !is_numeric($params['dataId'])) {
+            
             return ;
         }
         
@@ -543,6 +550,7 @@ class fileman_Indexes extends core_Manager
         
         // Ако има файл
         if ($isValid) {
+            
             return false;
         }
         
@@ -593,6 +601,7 @@ class fileman_Indexes extends core_Manager
     public static function deleteIndexesForData($dataId)
     {
         if (!$dataId) {
+            
             return ;
         }
         
@@ -688,6 +697,7 @@ class fileman_Indexes extends core_Manager
     public function processFile($dRec, $endOn)
     {
         if (dt::now() >= $endOn) {
+            
             return false;
         }
         
@@ -838,6 +848,7 @@ class fileman_Indexes extends core_Manager
         }
         
         if ($break) {
+            
             return false;
         }
         
@@ -905,6 +916,7 @@ class fileman_Indexes extends core_Manager
         }
         
         if ($break) {
+            
             return false;
         }
         
@@ -929,6 +941,7 @@ class fileman_Indexes extends core_Manager
         $drvInst = false;
         
         if (empty($webdrvArr)) {
+            
             return $drvInst;
         }
         

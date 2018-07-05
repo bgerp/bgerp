@@ -97,6 +97,7 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
         
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
+            
             return ;
         }
         

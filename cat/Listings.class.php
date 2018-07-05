@@ -327,10 +327,12 @@ class cat_Listings extends core_Master
         $res = array_filter($all, function (&$e) use ($productId, $packagingId) {
             if (isset($packagingId)) {
                 if ($e->productId == $productId && $e->packagingId == $packagingId) {
+                    
                     return true;
                 }
             } else {
                 if ($e->productId == $productId) {
+                    
                     return true;
                 }
             }

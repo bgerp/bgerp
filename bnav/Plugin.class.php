@@ -49,6 +49,7 @@ class bnav_Plugin extends core_Plugin
     {
         // Прикачане е допустимо само към наследник на cat_Products ...
         if (!$mvc instanceof cat_Products) {
+            
             return false;
         }
         

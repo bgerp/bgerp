@@ -313,6 +313,7 @@ class colab_DocumentLog extends core_Manager
     protected static function haveAction($containerId, $action)
     {
         if (self::getActions($containerId, $action, 1)) {
+            
             return true;
         }
         
@@ -360,6 +361,7 @@ class colab_DocumentLog extends core_Manager
     protected static function on_Shutdown($mvc)
     {
         if (!self::$recForAdd) {
+            
             return ;
         }
         

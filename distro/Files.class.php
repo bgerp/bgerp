@@ -157,6 +157,7 @@ class distro_Files extends core_Detail
             
             // Ако има запис към мастера
             if (static::fetch(array("#{$masterKey} = '[#1#]'", $masterId))) {
+                
                 return true;
             }
         }
@@ -309,6 +310,7 @@ class distro_Files extends core_Detail
         $conn = distro_Repositories::connectToRepo($repoId);
         
         if (!$conn) {
+            
             return false;
         }
         
@@ -385,6 +387,7 @@ class distro_Files extends core_Detail
         $reposArr = distro_Repositories::getReposArr();
         
         if (empty($reposArr)) {
+            
             return $resArr;
         }
         

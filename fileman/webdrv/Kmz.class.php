@@ -148,6 +148,7 @@ class fileman_webdrv_Kmz extends fileman_webdrv_Kml
         $kmlRec = fileman::fetchByFh($kml);
         
         if ($kmlRec) {
+            
             return parent::renderView($kmlRec);
         }
             

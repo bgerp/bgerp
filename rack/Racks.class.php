@@ -142,6 +142,7 @@ class rack_Racks extends core_Master
         if ($n) {
             $rec = rack_Racks::fetch(array('#storeId = [#1#] AND #num = [#2#]', $storeId, $n));
             if ($rec) {
+                
                 return Request::forward(array('Act' => 'single', 'id' => $rec->id, 'pos' => "{$r}-{$c}"));
             }
         }

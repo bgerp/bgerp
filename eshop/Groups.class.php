@@ -308,6 +308,7 @@ class eshop_Groups extends core_Master
         $data->groupId = Request::get('id', 'int');
         
         if (!$data->groupId) {
+            
             return $this->act_ShowAll();
         }
         expect($groupRec = self::fetch($data->groupId));
@@ -743,6 +744,7 @@ class eshop_Groups extends core_Master
             $menuId = cms_Content::getDefaultMenuId('eshop_Groups');
         }
         if (!$menuId) {
+            
             return $res;
         }
         $query->where("#menuId = {$menuId}");
@@ -772,6 +774,7 @@ class eshop_Groups extends core_Master
         $contentQuery->where("#domainId = {$domainId}");
         $contents = arr::extractValuesFromArray($contentQuery->fetchAll(), 'id');
         if (!count($contents)) {
+            
             return $groups;
         }
         

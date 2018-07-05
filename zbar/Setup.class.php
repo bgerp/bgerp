@@ -60,6 +60,7 @@ class zbar_Setup extends core_ProtoSetup
         }
     
         if ($haveError) {
+            
             return "Програмата '{$program}' не е инсталирана.";
         }
     }

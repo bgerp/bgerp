@@ -104,6 +104,7 @@ class email_SpamRules extends core_Manager
     public static function getSpamScore($mime, $rec)
     {
         if (!$mime && !$rec) {
+            
             return ;
         }
         
@@ -119,6 +120,7 @@ class email_SpamRules extends core_Manager
         }
         
         if (empty($sDataArr)) {
+            
             return ;
         }
         
@@ -134,6 +136,7 @@ class email_SpamRules extends core_Manager
         }
         
         if (!$allFilters) {
+            
             return ;
         }
         
@@ -157,6 +160,7 @@ class email_SpamRules extends core_Manager
     public static function getSystemId($rec)
     {
         if ($rec->systemId) {
+            
             return $rec->systemId;
         }
         

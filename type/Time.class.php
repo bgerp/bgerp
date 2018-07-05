@@ -113,6 +113,7 @@ class type_Time extends type_Varchar
         // Проверка за стойности, означаващи 0, на момента, on time
         foreach ($this->zeroArr as $w) {
             if ($val == $w || $val == tr($w)) {
+                
                 return 0;
             }
         }
@@ -317,6 +318,7 @@ class type_Time extends type_Varchar
             $suggestions = explode('|', $this->params['suggestions']);
             foreach ($suggestions as $string) {
                 if (in_array(strtolower(str::utf2ascii($string)), $this->zeroArr)) {
+                    
                     return tr($string);
                 }
             }

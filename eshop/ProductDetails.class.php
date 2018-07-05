@@ -164,6 +164,7 @@ class eshop_ProductDetails extends core_Detail
         
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
+                
                 return array();
             }
             $ids = implode(',', $onlyIds);
@@ -310,6 +311,7 @@ class eshop_ProductDetails extends core_Detail
         if (count($data->rows)) {
             uasort($data->rows, function ($obj1, $obj2) {
                 if ($obj1->orderCode == $obj2->orderCode) {
+                    
                     return $obj1->orderPrice > $obj2->orderPrice;
                 }
                 

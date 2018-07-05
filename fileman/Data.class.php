@@ -100,10 +100,12 @@ class fileman_Data extends core_Manager
     public static function updateLastUse($id, $lastUse = null)
     {
         if (!$id) {
+            
             return false;
         }
         
         if (!($rec = self::fetch($id))) {
+            
             return false;
         }
         
@@ -415,6 +417,7 @@ class fileman_Data extends core_Manager
         $rec = self::fetchRec($rec);
         
         if (!$rec) {
+            
             return false;
         }
         

@@ -39,6 +39,7 @@ class export_Pdf extends core_Mvc
         if (!isset($canConvert)) {
             $canConvert = doc_PdfCreator::canConvert();
             if (!$canConvert) {
+                
                 return false;
             }
         }

@@ -1317,6 +1317,7 @@ class planning_Jobs extends core_Master
     public function getCloseBtnError($rec)
     {
         if (doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")) {
+            
             return 'Заданието не може да се приключи, защото има документи в състояние "Заявка"';
         }
     }

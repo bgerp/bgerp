@@ -192,12 +192,14 @@ class findeals_ClosedDeals extends deals_ClosedDeals
         $res = parent::canAddToThread($threadId);
         
         if (!$res) {
+            
             return false;
         }
     
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         
         if (!$firstDoc->isInstanceOf('findeals_Deals')) {
+            
             return false;
         }
         

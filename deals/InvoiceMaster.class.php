@@ -221,6 +221,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $rec->discountAmount = $this->_total->discount * $rate;
         
         if ($save === true) {
+            
             return $this->save($rec);
         }
     }
@@ -462,11 +463,13 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
         if ($rec->type == 'dc_note' && isset($rec->changeAmount)) {
+            
             return $res = true;
         }
         
         // Ако няма ид, не може да се активира документа
         if (empty($rec->id) && !isset($rec->dpAmount)) {
+            
             return $res = false;
         }
          
@@ -871,15 +874,19 @@ abstract class deals_InvoiceMaster extends core_Master
             $hasIntercept = array_key_exists('intercept', $payments);
             
             if ($hasCash === true && $hasBank === false && $hasIntercept === false) {
+                
                 return 'cash';
             }
             if ($hasBank === true && $hasCash === false && $hasIntercept === false) {
+                
                 return 'bank';
             }
             if ($hasIntercept === true && $hasCash === false && $hasBank === false) {
+                
                 return 'intercept';
             }
             if ($hasBank === true || $hasCash === true || $hasIntercept === true) {
+                
                 return 'mixed';
             }
         }
@@ -1039,6 +1046,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $row = new stdClass();
         $me = cls::get(get_called_class());
         if (!$me->getField('type', false)) {
+            
             return parent::getRecTitle($rec, $escaped);
         }
         
@@ -1278,9 +1286,11 @@ abstract class deals_InvoiceMaster extends core_Master
         $rec = static::fetchRec($rec);
     
         if ($rec->originId) {
+            
             return doc_Containers::getDocument($rec->originId);
         }
         if ($rec->threadId) {
+            
             return doc_Threads::getFirstDocument($rec->threadId);
         }
          
@@ -1295,6 +1305,7 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $rec = static::fetchRec($rec);
         if ($rec->sourceContainerId) {
+            
             return doc_Containers::getDocument($rec->sourceContainerId);
         }
         
@@ -1323,6 +1334,7 @@ abstract class deals_InvoiceMaster extends core_Master
         
         // Ако начисляваме аванс или има въведена нова стойност не се копират детайлите
         if ($rec->dpOperation == 'accrued') {
+            
             return $details;
         }
         

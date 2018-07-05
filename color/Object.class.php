@@ -93,9 +93,11 @@ class color_Object
                 $g = hexdec($hexColor{2} . $hexColor{3});
                 $b = hexdec($hexColor{4} . $hexColor{5});
             } else {
+                
                 return false;
             }
         } else {
+            
             return false;
         }
         

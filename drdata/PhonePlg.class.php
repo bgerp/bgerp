@@ -32,6 +32,7 @@ class drdata_PhonePlg extends core_Plugin
     {
         // Ако не е подадено име на поле
         if (!$field) {
+            
             return ;
         }
         
@@ -40,11 +41,13 @@ class drdata_PhonePlg extends core_Plugin
         
         // Ако не е подадена държавата
         if (!$rec->{$countryField}) {
+            
             return ;
         }
         
         // Ако полето е празно
         if (!$rec->{$field}) {
+            
             return ;
         }
         
@@ -88,6 +91,7 @@ class drdata_PhonePlg extends core_Plugin
         
         // Ако полета, за което се прави обработката не съществува в масива
         if (!$mvc->phoneFields[$field]) {
+            
             return ;
         }
         
@@ -96,6 +100,7 @@ class drdata_PhonePlg extends core_Plugin
         
         // Ако няма телефонен код или няма запис за държавата
         if (!$countryRec || !$countryRec->telCode) {
+            
             return ;
         }
 

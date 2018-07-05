@@ -414,6 +414,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         $dInfo = acc_Balances::getBlAmounts($jRecs, $accs, 'debit', $from);
         
         if (!count($dInfo->recs)) {
+            
             return $res;
         }
     

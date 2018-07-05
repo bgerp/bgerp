@@ -95,6 +95,7 @@ class doc_HiddenContainers extends core_Manager
         $cnt = count((array) $containerRecsArr);
         
         if (self::checkCntLimitForShow($cnt)) {
+            
             return ;
         }
         
@@ -110,6 +111,7 @@ class doc_HiddenContainers extends core_Manager
         $userId = core_Users::getCurrent();
         
         if (!$userId) {
+            
             return ;
         }
         
@@ -225,6 +227,7 @@ class doc_HiddenContainers extends core_Manager
     {
         $q = Request::get('Q');
         if (isset($q)) {
+            
             return false;
         }
         
@@ -242,14 +245,17 @@ class doc_HiddenContainers extends core_Manager
     public static function haveHiddenOrShowedDoc($type = null)
     {
         if (empty(self::$hiddenDocsArr)) {
+            
             return false;
         }
         
         if (!isset($type)) {
+            
             return true;
         }
         
         if (array_search($type, self::$hiddenDocsArr)) {
+            
             return true;
         }
         
@@ -307,6 +313,7 @@ class doc_HiddenContainers extends core_Manager
         }
         
         if ($state) {
+            
             return self::delete(array("#containerId = '[#1#]' AND #userId = '[#2#]' AND #state = '[#3#]'", $cId, $userId, $state));
         }
             
@@ -329,6 +336,7 @@ class doc_HiddenContainers extends core_Manager
         }
         
         if ($userId < 1) {
+            
             return ;
         }
         
@@ -405,6 +413,7 @@ class doc_HiddenContainers extends core_Manager
     protected static function checkCntLimitForShow($cnt)
     {
         if ($cnt > 1) {
+            
             return false;
         }
         

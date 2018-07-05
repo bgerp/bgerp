@@ -29,6 +29,7 @@ class google_plg_LgTranslate extends core_Plugin
     {
         // Ако текущия език е български, да не се показва
         if ($data->form->rec->lg == 'bg') {
+            
             return ;
         }
         

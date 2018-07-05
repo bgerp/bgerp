@@ -387,14 +387,17 @@ class core_Url
         $url = preg_replace('/^www\./', '', $url);
         
         if ($url == 'localhost') {
+            
             return true;
         }
         
         if (strpos($url, 'localhost:') === 0) {
+            
             return true;
         }
         
         if (strpos($url, 'localhost/') === 0) {
+            
             return true;
         }
             
@@ -411,6 +414,7 @@ class core_Url
         if (false !== ($dotPos = strrpos($tld, '.'))) {
             $tld = strtolower(substr($tld, $dotPos + 1));
             if (in_array($tld, self::$valideTld)) {
+                
                 return true;
             }
         }
@@ -567,6 +571,7 @@ class core_Url
                 $headers['cached'] = true;
                 
                 if (!$options['return_info']) {
+                    
                     return $body;
                 }
 
@@ -884,6 +889,7 @@ class core_Url
         }
         
         if ($options['return_info']) {
+            
             return array(
             'headers' => $headers,
             'body' => $body,
@@ -904,6 +910,7 @@ class core_Url
         $purl = parse_url($url);
         
         if (!$purl) {
+            
             return false;
         }
         

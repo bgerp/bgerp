@@ -78,6 +78,7 @@ class unit_MinkPPrices extends core_Manager
         $browser->press('Запис');
         if (strpos($browser->gettext(), '0,60 BGN с ДДС')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешно заредена цена', 'warning');
         }
         //Задаване на цена без ДДС на артикул от ДДС група 9%
@@ -97,6 +98,7 @@ class unit_MinkPPrices extends core_Manager
         $browser->press('Запис');
         if (strpos($browser->gettext(), '[Себестойност] + 44,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешно заредена цена по марж', 'warning');
         }
         //Задаване на групов марж
@@ -112,6 +114,7 @@ class unit_MinkPPrices extends core_Manager
         $browser->press('Запис');
         if (strpos($browser->gettext(), '[Себестойност] + 11,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешно зареден групов марж', 'warning');
         }
     }
@@ -143,6 +146,7 @@ class unit_MinkPPrices extends core_Manager
         
         if (strpos($browser->gettext(), 'Надценка по подразбиране 7,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна надценка', 'warning');
         }
     }
@@ -167,10 +171,12 @@ class unit_MinkPPrices extends core_Manager
         $browser->press('Активиране');
         if (strpos($browser->gettext(), 'work час 18,4896')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
         }
         if (strpos($browser->gettext(), 'dds9 бр. 11,663')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
         }
     }
@@ -236,11 +242,13 @@ class unit_MinkPPrices extends core_Manager
         
         if (strpos($browser->gettext(), 'plik7 бр. 0,66126')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
         }
         //Проверка за ДДС 9%
         if (strpos($browser->gettext(), 'dds9 бр. 12,01289')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
         }
     }

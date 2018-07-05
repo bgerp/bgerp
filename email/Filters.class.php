@@ -238,6 +238,7 @@ class email_Filters extends core_Manager
         
         foreach ($allFilters as $filterRec) {
             if (self::match($subjectData, $filterRec)) {
+                
                 return $filterRec;
             }
         }
@@ -266,6 +267,7 @@ class email_Filters extends core_Manager
             
             // Трябва всички зададени филтри да съвпадат - &
             if (!preg_match($pattern, $haystack)) {
+                
                 return false;
             }
         }
@@ -286,6 +288,7 @@ class email_Filters extends core_Manager
         static $filtersArr = array();
         
         if ($filtersArr[$str]) {
+            
             return $filtersArr[$str];
         }
         
@@ -328,6 +331,7 @@ class email_Filters extends core_Manager
         $self = get_called_class();
         
         return array_filter($emails, function ($email) use ($serviceRec, $self) {
+            
             return !$self::isServiceEmail($email, $serviceRec);
         });
     }
@@ -347,6 +351,7 @@ class email_Filters extends core_Manager
     public static function getSystemId($rec)
     {
         if ($rec->systemId) {
+            
             return $rec->systemId;
         }
         

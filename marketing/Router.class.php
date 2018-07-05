@@ -47,6 +47,7 @@ class marketing_Router
         
             // Ако има такава папка, взимаме и отговорника
             if ($inCharge) {
+                
                 return $inCharge;
             }
         }
@@ -60,6 +61,7 @@ class marketing_Router
             
             // Ако има, взимаме нейния отговорник
             if ($inCharge) {
+                
                 return $inCharge;
             }
         }
@@ -75,6 +77,7 @@ class marketing_Router
             
             // Ако има, взимаме нейния отговорник
             if ($inCharge) {
+                
                 return $inCharge;
             }
         }
@@ -290,6 +293,7 @@ class marketing_Router
         $normalizedName = self::normalizeCompanyName($name);
         
         if ($companyId = array_search($normalizedName, $companies)) {
+            
             return crm_Companies::forceCoverAndFolder((object) array('id' => $companyId, 'inCharge' => $inCharge));
         }
     }
@@ -339,6 +343,7 @@ class marketing_Router
             
             // Сортиране от дългите към късите символи
             usort(self::$companyTypes, function ($a, $b) {
+                
                 return strlen($a) < strlen($b);
             });
         }

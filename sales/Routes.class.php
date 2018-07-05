@@ -211,11 +211,13 @@ class sales_Routes extends core_Manager
         $query->where("#createdBy = {$currentUserId}");
         $lastRoute = $query->fetch();
         if ($lastRoute) {
+            
             return $lastRoute->salesmanId;
         }
         
         // Текущия потребител ако има права
         if (self::haveRightFor('add', null, $currentUserId)) {
+            
             return $currentUserId;
         }
         
@@ -326,6 +328,7 @@ class sales_Routes extends core_Manager
         $interval = 24 * 60 * 60 * 7;
         
         if (!$rec->dateFld) {
+            
             return false;
         }
 
@@ -336,6 +339,7 @@ class sales_Routes extends core_Manager
         } else {
             if (!$rec->repeat) {
                 if ($rec->dateFld == date('Y-m-d')) {
+                    
                     return $rec->dateFld;
                 }
 
@@ -467,6 +471,7 @@ class sales_Routes extends core_Manager
         
         // Ако няма маршрути, връщаме
         if (!count($arr)) {
+            
             return $salesmanId;
         }
         

@@ -657,14 +657,17 @@ class pallet_Racks extends core_Master
     public static function checkConstrColumns($c, $rackColumns, $constrColumnsStep)
     {
         if ($c == 1) {
+            
             return 'constrColumnLeft';
         }
         
         if ($c == $rackColumns) {
+            
             return 'constrColumnRight';
         }
         
         if ($c % $constrColumnsStep == 0) {
+            
             return 'constrColumnRight';
         }
 
@@ -689,6 +692,7 @@ class pallet_Racks extends core_Master
             $groupField = ($inst->groupField) ? $inst->groupField : 'groups';
             $productGroups = $inst->fetchField($pRec->productId, 'groups');
         } catch (core_exception_Expect $e) {
+            
             return false;
         }
         
@@ -710,6 +714,7 @@ class pallet_Racks extends core_Master
             }
             
             if ($groupsCheck === false) {
+                
                 return false;
             }
 
@@ -748,21 +753,25 @@ class pallet_Racks extends core_Master
         
         // Ако няма стелаж с това id
         if (!$recRacks = pallet_Racks::fetch(array("#id = '[#1#]' AND #storeId = '[#2#]'", $rackId, $selectedStoreId))) {
+            
             return false;
         }
         
         // Ако реда не е сред ключовете на масива $rackRowsArr
         if (!array_key_exists($rackRow, $rackRowsArr)) {
+            
             return false;
         }
         
         // Ако реда е по-голям от броя на редовете в стелажа
         if ($rackRowsArr[$rackRow] > $recRacks->rows) {
+            
             return false;
         }
         
         // Ако колоната е по-голяма от броя на колоните в стелажа
         if ($rackColumn > $recRacks->columns) {
+            
             return false;
         }
         
@@ -906,6 +915,7 @@ class pallet_Racks extends core_Master
         
         if (in_array($value, $rowStringArr)) {
             if ($value == 'ALL') {
+                
                 return 100;
             }
 
@@ -914,6 +924,7 @@ class pallet_Racks extends core_Master
         
         if (in_array($value, $rowIntArr)) {
             if ($value == 100) {
+                
                 return 'ALL';
             }
 

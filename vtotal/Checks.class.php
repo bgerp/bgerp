@@ -140,6 +140,7 @@ class vtotal_Checks extends core_Master
         $isInstalled = $inst->checkConfig();
         
         if (is_null($isInstalled)) {
+            
             return true;
         }
         
@@ -195,10 +196,12 @@ class vtotal_Checks extends core_Master
         curl_close($ch);
 
         if ($httpCode == '429') {
+            
             return (object) array(
                 'response_code' => -3
             );
         } elseif ($httpCode == '403') {
+            
             return (object) array(
                 'response_code' => -1
             );
@@ -564,6 +567,7 @@ class vtotal_Checks extends core_Master
         $rate = 0;
         
         if (!trim($rateStr)) {
+            
             return $rate;
         }
         
@@ -572,6 +576,7 @@ class vtotal_Checks extends core_Master
         list($obj->positives, $obj->total) = explode('|', $rateStr);
         
         if (!$obj->positives || !$obj->total) {
+            
             return $rate;
         }
         

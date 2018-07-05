@@ -800,6 +800,7 @@ class blast_ListDetails extends doc_Detail
         }
         
         if (count($rows) === 0) {
+            
             return array();
         }
         
@@ -809,6 +810,7 @@ class blast_ListDetails extends doc_Detail
             $rowArr1 = str_getcsv($rows[1], $delimiter, $enclosure);
             
             if (count($rowArr) != count($rowArr1)) {
+                
                 return array();
             }
         }
@@ -823,6 +825,7 @@ class blast_ListDetails extends doc_Detail
         }
         
         if (!count($rowArr)) {
+            
             return array();
         }
         
@@ -837,9 +840,11 @@ class blast_ListDetails extends doc_Detail
                 }
                 
                 if (strpos($captionC, $valC) !== false || strpos($valC, $captionC)) {
+                    
                     return $id + 1;
                 }
                 if (strpos($nameC, $valC) !== false || strpos($valC, $nameC)) {
+                    
                     return $id + 1;
                 }
             }

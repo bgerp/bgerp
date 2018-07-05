@@ -66,6 +66,7 @@ class forum_DefaultTheme extends core_Manager
     public function getSingleThemeLayout()
     {
         if (Mode::is('screenMode', 'narrow')) {
+            
             return getTplFromFile('forum/themes/default/SingleThemeNarrow.shtml');
         }
 
@@ -104,6 +105,7 @@ class forum_DefaultTheme extends core_Manager
     public function getCommentsLayout()
     {
         if (Mode::is('screenMode', 'narrow')) {
+            
             return getTplFromFile('forum/themes/default/CommentsNarrow.shtml');
         }
 

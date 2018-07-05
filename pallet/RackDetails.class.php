@@ -403,9 +403,11 @@ class pallet_RackDetails extends core_Detail
         $detailsForRackArr = pallet_RackDetails::getDetailsForRack($rackId);
         
         if (empty($detailsForRackArr)) {
+            
             return true;
         }
         if (isset($detailsForRackArr[$palletPlace]['outofuse'])) {
+            
             return false;
         }
 
@@ -424,9 +426,11 @@ class pallet_RackDetails extends core_Detail
         $detailsForRackArr = pallet_RackDetails::getDetailsForRack($rackId);
         
         if (empty($detailsForRackArr)) {
+            
             return true;
         }
         if (isset($detailsForRackArr[$palletPlace]['reserved'])) {
+            
             return false;
         }
 

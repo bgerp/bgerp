@@ -111,6 +111,7 @@ class colab_FolderToPartners extends core_Manager
     {
         $userId = isset($userId) ? $userId : core_Users::getCurrent('id', false);
         if (empty($userId) || !core_Users::isContractor($userId)) {
+            
             return false;
         }
         

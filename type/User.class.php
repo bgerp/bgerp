@@ -280,6 +280,7 @@ class type_User extends type_Key
                 
                 // Ако стойността е равна на търсената връщаме я
                 if ($val == $key) {
+                    
                     return $val;
                 }
                 

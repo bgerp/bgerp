@@ -276,6 +276,7 @@ class planning_AssetResourcesNorms extends core_Manager
         
         // Извличат се нормите от групата
         if (!$groupId = planning_AssetResources::getGroupId($assets)) {
+            
             return $options;
         }
         $groupAssets = self::fetchNormRec('planning_AssetGroups', $groupId, null, $notIn);

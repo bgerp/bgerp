@@ -162,6 +162,7 @@ class pos_Points extends core_Master
         $query = crm_Persons::getQuery();
         $query->where("#name LIKE '%POS:{$pos}%'");
         if ($rec = $query->fetch()) {
+            
             return $rec->id;
         }
         

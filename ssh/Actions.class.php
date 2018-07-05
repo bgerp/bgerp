@@ -50,6 +50,7 @@ class ssh_Actions
     private function connect()
     {
         if ($this->connection) {
+            
             return $this->connection;
         }
 

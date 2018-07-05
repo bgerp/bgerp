@@ -156,6 +156,7 @@ class smssync_SMS extends core_Manager
         
         // Ако ключа не е коректен или IP-то не е в допустимите, не може да извлича записте
         if (!self::isAuthorizied($secret)) {
+            
             return false;
         }
         
@@ -349,6 +350,7 @@ class smssync_SMS extends core_Manager
                 
                 // Ако се съдържа в нашия списък
                 if (stripos($realIpAdd, $allowedIp) === 0) {
+                    
                     return true;
                 }
             }

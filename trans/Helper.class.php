@@ -65,6 +65,7 @@ abstract class trans_Helper
     public static function convertTableToNormalArr($arr)
     {
         if (is_array($arr) && !array_key_exists('unitId', $arr)) {
+            
             return $arr;
         }
         $arr = is_array($arr) ? $arr : self::convertTableUnitToTableArr($arr);

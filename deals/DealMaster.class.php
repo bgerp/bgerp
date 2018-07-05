@@ -129,6 +129,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $difference = $balance - $valueToCompare;
             
             if ($balance > $valueToCompare && ($difference < -5 || $difference > 5)) {
+                
                 return 'overdue';
             }
         } else {
@@ -142,6 +143,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 
                 // Проверяваме дали сделката е просрочена по платежния си план
                 if (cond_PaymentMethods::isOverdue($plan, $diff)) {
+                    
                     return 'overdue';
                 }
             }
@@ -160,10 +162,12 @@ abstract class deals_DealMaster extends deals_DealBase
         // Правим проверка дали е платена сделката
         if ($this instanceof sales_Sales) {
             if ($amountBl <= 0) {
+                
                 return 'paid';
             }
         } elseif ($this instanceof purchase_Purchases) {
             if ($amountBl >= 0) {
+                
                 return 'paid';
             }
         }
@@ -745,12 +749,14 @@ abstract class deals_DealMaster extends deals_DealBase
                 
                 // Връща се TRUE ако има поне един складируем продукт
                 if (isset($info->meta['canStore'])) {
+                    
                     return true;
                 }
             } else {
                 
                 // Връща се TRUE ако има поне един НЕ складируем продукт
                 if (!isset($info->meta['canStore'])) {
+                    
                     return true;
                 }
             }
@@ -1306,6 +1312,7 @@ abstract class deals_DealMaster extends deals_DealBase
         expect($rec = $this->fetch($id));
         
         if ($rec->state != 'draft' && $rec->state != 'pending') {
+            
             return new Redirect(array($this, 'single', $id), '|Договорът вече е активиран');
         }
         
@@ -1909,6 +1916,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         if (!count($products)) {
+            
             return $details;
         }
         

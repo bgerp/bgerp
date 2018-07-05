@@ -106,6 +106,7 @@ class docoffice_Office
         $pid = static::getStartedOfficePid();
 
         if (!$pid) {
+            
             return ;
         }
         

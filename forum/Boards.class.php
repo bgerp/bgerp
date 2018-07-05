@@ -340,6 +340,7 @@ class forum_Boards extends core_Master
     public function renderSearchForm_(&$data)
     {
         if ($data->searchForm) {
+            
             return $data->searchForm->renderHtml();
         }
     }
@@ -551,16 +552,19 @@ class forum_Boards extends core_Master
         
         // 'forum' има достъп до всяка дъска
         if (haveRole('forum')) {
+            
             return true;
         }
         
         // Ако дъската е 'нормална' всички имат достъп до нея
         if ($rec->boardType == 'normal') {
+            
             return true;
         }
         
         // Ако дъската е споделена с текущия потребител, той има достъп
         if (strpos($rec->shared, '|' . $userId . '|') !== false) {
+            
             return true;
         }
         

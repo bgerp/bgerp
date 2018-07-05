@@ -189,10 +189,12 @@ class type_Double extends core_Type
     protected function prepareVal($double, $allowOct = false, $allowHex = false)
     {
         if (!$double) {
+            
             return $double;
         }
         
         if ($allowOct && $allowHex) {
+            
             return $double;
         }
         

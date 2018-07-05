@@ -34,10 +34,12 @@ class vtotal_Api extends core_Master
         curl_close($ch);
 
         if ($httpCode == '429') {
+            
             return array(
                 'response_code' => -3
             );
         } elseif ($httpCode == '403') {
+            
             return array(
                 'response_code' => -1
             );

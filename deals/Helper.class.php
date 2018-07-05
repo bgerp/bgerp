@@ -793,16 +793,19 @@ abstract class deals_Helper
             
             // Ако документа е чернова не проверяваме дали потребителя може да избере обекта
             if ($action == 'reject' && $rec->state == 'draft') {
+                
                 return true;
             }
             
             // Ако документа е бил чернова не проверяваме дали потребителя може да избере обекта
             if ($action == 'restore' && $rec->brState == 'draft') {
+                
                 return true;
             }
             
             // Ако има избран обект и потребителя не може да го избере връщаме FALSE
             if (isset($rec->{$objectIdField}) && !$ObjectManager::haveRightFor('select', $rec->{$objectIdField})) {
+                
                 return false;
             }
         }
@@ -925,9 +928,11 @@ abstract class deals_Helper
     public static function isPriceAllowed($price, $quantity, $autoPrice = false, &$msg = null)
     {
         if (!$price) {
+            
             return true;
         }
         if ($quantity == 0) {
+            
             return true;
         }
         
@@ -1289,6 +1294,7 @@ abstract class deals_Helper
         expect($threadId);
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         if (!$firstDoc->isInstanceOf('deals_DealBase')) {
+            
             return array();
         }
         
@@ -1319,6 +1325,7 @@ abstract class deals_Helper
         // Всички ф-ри в посочената нишка/нишки
         $invoicesArr = self::getInvoicesInThread($threads, $valior, true, true, true);
         if (!count($invoicesArr)) {
+            
             return array();
         }
         
@@ -1409,6 +1416,7 @@ abstract class deals_Helper
     {
         expect($firstDoc = doc_Threads::getFirstDocument($threadId));
         if (!$firstDoc->isInstanceOf('deals_DealMaster')) {
+            
             return false;
         }
         
@@ -1593,8 +1601,10 @@ abstract class deals_Helper
     public static function getVatWarning($defaultVat, $selectedVatType)
     {
         if ($defaultVat == 'yes' && in_array($selectedVatType, array('exempt', 'no'))) {
+            
             return 'Избран е режим за неначисляване на ДДС, при очакван с ДДС';
         } elseif ($defaultVat == 'no' && in_array($selectedVatType, array('yes', 'separate'))) {
+            
             return 'Избран е режим за начисляване на ДДС, при очакван без ДДС';
         }
     }

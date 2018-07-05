@@ -42,6 +42,7 @@ class tinymce_Plugin extends core_Plugin
         setIfNot($invoker->params['tinyEditor'], 'yes');
         
         if ($invoker->params['tinyEditor'] == 'no') {
+            
             return ;
         }
         

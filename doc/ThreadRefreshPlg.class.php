@@ -28,9 +28,11 @@ class doc_ThreadRefreshPlg extends core_Plugin
         // Ако не се листва, да не се изпълнява
         if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
             if ($data->action != 'single') {
+                
                 return ;
             }
         } elseif ($data->action != 'list') {
+            
             return ;
         }
         
@@ -109,6 +111,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $oldHash = Mode::get($hashName);
         
         if ($oldHash == $hash) {
+            
             return true;
         }
         
@@ -158,6 +161,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
     protected static function getDocumentStatesHash($recsArr)
     {
         if (empty($recsArr)) {
+            
             return ;
         }
         
@@ -208,6 +212,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
     {
         // Ако екшъна не е за обновяване на редовете, да не се изпълнява
         if ($action != 'ajaxthreadrefresh') {
+            
             return ;
         }
         
@@ -217,6 +222,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         // Ако заявката не е по ajax
         if (!$ajaxMode) {
+            
             return false;
         }
         
@@ -243,6 +249,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         }
         
         if (self::checkHash($threadId, $recsArr)) {
+            
             return false;
         }
         
@@ -259,6 +266,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         // Ако липсва шаблона, да не се изпълнява
         if (!$tpl) {
+            
             return false;
         }
         
@@ -376,6 +384,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
     {
         // Ако не е обект или няма съдържание
         if (!$tpl instanceof core_ET || !$tpl) {
+            
             return $tpl;
         }
         

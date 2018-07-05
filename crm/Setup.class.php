@@ -257,6 +257,7 @@ class crm_Setup extends core_ProtoSetup
             $coutryId = drdata_Countries::fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
             
             if (!$coutryId) {
+                
                 return ;
             }
             
@@ -270,6 +271,7 @@ class crm_Setup extends core_ProtoSetup
                 }
             }
         } catch (core_exception_Expect $e) {
+            
             return ;
         }
     }
@@ -306,16 +308,19 @@ class crm_Setup extends core_ProtoSetup
         try {
             $groupClassId = core_Classes::getId('crm_Groups');
         } catch (core_exception_Expect $e) {
+            
             return ;
         }
         
         if (!$groupClassId) {
+            
             return ;
         }
         
         try {
             $unsortedClassId = core_Classes::getId('doc_UnsortedFolders');
         } catch (core_exception_Expect $e) {
+            
             return ;
         }
         

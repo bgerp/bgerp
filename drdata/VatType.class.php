@@ -101,6 +101,7 @@ class drdata_VatType extends type_Varchar
         $value = parent::escape($value);
          
         if (Mode::is('text', 'plain')) {
+            
             return $value;
         }
 

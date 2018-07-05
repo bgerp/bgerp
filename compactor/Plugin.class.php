@@ -55,6 +55,7 @@ class compactor_Plugin extends core_Plugin
         
         // Не правим нищо, ако конфигурационните файлове и текущите нямат сечение
         if (!count(array_intersect_key($filesArr, $configFilesArr))) {
+            
             return $filesArr;
         }
         
@@ -171,6 +172,7 @@ class compactor_Plugin extends core_Plugin
     {
         // Ако не е задаен пътя до файла
         if (!($path = $this->filePath)) {
+            
             return $matches[0];
         }
 

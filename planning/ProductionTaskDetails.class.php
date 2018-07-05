@@ -455,6 +455,7 @@ class planning_ProductionTaskDetails extends core_Detail
     {
         $serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
         if (Mode::isReadOnly()) {
+            
             return $serialVerbal;
         }
     
@@ -734,6 +735,7 @@ class planning_ProductionTaskDetails extends core_Detail
     {
         $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
         if (empty($info->limit)) {
+            
             return true;
         }
         

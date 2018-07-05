@@ -142,6 +142,7 @@ class core_Settings extends core_Manager
         // Ако стойността е извличана преди, връщаме я
         $keyHash = md5($key . '|' . $userOrRole . '|' . $fetchForUser . '|' . $type);
         if (isset($allResArr[$keyHash])) {
+            
             return $allResArr[$keyHash];
         }
         
@@ -237,6 +238,7 @@ class core_Settings extends core_Manager
         $hashStr = md5($key . '|' . $property . '|' . $value);
         static $resArr = array();
         if (isset($resArr[$hashStr])) {
+            
             return $resArr[$hashStr];
         }
         
@@ -668,6 +670,7 @@ class core_Settings extends core_Manager
     public function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = null)
     {
         if (!$data->cClass) {
+            
             return ;
         }
        

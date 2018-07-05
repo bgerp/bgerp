@@ -124,6 +124,7 @@ class vtotal_Setup extends core_ProtoSetup
         }
         
         if (!exec("{$which} {$command}")) {
+            
             return 'Програмата Avast за Linux не е инсталирана. За да инсталирате, моля посетете https://www.avast.com/';
         }
     }

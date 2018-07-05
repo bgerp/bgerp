@@ -218,12 +218,14 @@ class unit_MinkPListProduct extends core_Manager
          
         if (strpos($browser->gettext(), 'Двадесет и седем BGN и 0,60')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
         //Проверка на статистиката
         if (strpos($browser->gettext(), '27,60 27,60 0,00 0,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
     }
@@ -273,6 +275,7 @@ class unit_MinkPListProduct extends core_Manager
         $browser->press('Активиране/Контиране');
         if (strpos($browser->gettext(), 'Четири хиляди шестстотин осемдесет и седем BGN и 0,04')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     }
@@ -365,12 +368,14 @@ class unit_MinkPListProduct extends core_Manager
          
         if (strpos($browser->gettext(), 'Two hundred and nine EUR and 0,63')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
         //Проверка на статистиката
         if (strpos($browser->gettext(), '209,63 209,63 0,00 0,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
     }

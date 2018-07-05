@@ -389,6 +389,7 @@ class i18n_Charset extends core_MVC
         if ($isHtml && self::is7bit($text)) {
             $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
             if (!self::is7bit($text)) {
+                
                 return 'HTML_ENTITIES';
             }
         }
@@ -526,6 +527,7 @@ class i18n_Charset extends core_MVC
     public static function getSampleText($text)
     {
         if (!($len = strlen($text))) {
+            
             return false;
         }
         
@@ -637,6 +639,7 @@ class i18n_Charset extends core_MVC
         $text = self::getSampleText($text);
         
         if ($text === false) {
+            
             return false;
         }
         
@@ -930,6 +933,7 @@ class i18n_Charset extends core_MVC
         // Определяме скрипта за писане, според рейнджа на който принадлежи
         foreach (self::$utf8ScriptRanges as $ranges) {
             if ($ranges[0] <= $o && $o <= $ranges[1]) {
+                
                 return $ranges[2];
             }
         }
@@ -948,12 +952,14 @@ class i18n_Charset extends core_MVC
         $charset = strtoupper(trim($charset));
         
         if (!$charset) {
+            
             return ;
         }
         
         static $charsetArr = array();
         
         if (isset($charsetArr[$charset])) {
+            
             return $charsetArr[$charset];
         }
         
@@ -1166,6 +1172,7 @@ class i18n_Charset extends core_MVC
         $len = strlen($ch);
       
         if ($len <= 0) {
+            
             return false;
         }
       

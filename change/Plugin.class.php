@@ -87,6 +87,7 @@ class change_Plugin extends core_Plugin
     {
         // Ако екшъна не е changefields, да не се изпълнява
         if (strtolower($action) != 'changefields') {
+            
             return ;
         }
         

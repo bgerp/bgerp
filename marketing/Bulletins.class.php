@@ -456,6 +456,7 @@ class marketing_Bulletins extends core_Master
         $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
         
         if (!$CssToInline) {
+            
             return $str;
         }
         
@@ -597,11 +598,13 @@ class marketing_Bulletins extends core_Master
     protected function on_CalcScriptTag($mvc, $rec)
     {
         if (!$rec->domain || !$rec->id) {
+            
             return ;
         }
         
         // За локалхост няма нужда да се показва
         if (strpos($rec->domain, 'localhost/') === 0) {
+            
             return ;
         }
         
@@ -1088,6 +1091,7 @@ class marketing_Bulletins extends core_Master
     {
         // Всеки който има права до листване на модела
         if ($this->haveRightFor('single', $id, $userId)) {
+            
             return true;
         }
         

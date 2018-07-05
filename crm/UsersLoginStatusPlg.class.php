@@ -28,6 +28,7 @@ class crm_UsersLoginStatusPlg extends core_Plugin
     {
         // Ако е определено, няма да се променя
         if ($resArr) {
+            
             return ;
         }
         

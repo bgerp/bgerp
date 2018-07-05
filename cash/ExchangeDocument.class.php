@@ -199,6 +199,7 @@ class cash_ExchangeDocument extends core_Master
         
         if ($folderId = Request::get('folderId', 'int')) {
             if ($folderId != cash_Cases::fetchField(cash_Cases::getCurrent(), 'folderId')) {
+                
                 return redirect(array('cash_Cases', 'list'), false, '|Документът не може да се създаде в папката на неактивна каса');
             }
         }
@@ -301,6 +302,7 @@ class cash_ExchangeDocument extends core_Master
         return core_Cache::getOrCalc('CashExchDocCanAddToFolder', $folderId, function ($folderId) {
             $Ce = cls::get('cash_ExchangeDocument');
             if ($folderId == cash_ExchangeDocument::getDefaultFolder(null, false) || doc_Folders::fetchCoverClassName($folderId) == 'cash_Cases') {
+                
                 return true;
             }
 

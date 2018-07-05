@@ -101,6 +101,7 @@ class minify_Js
     public function min()
     {
         if ($this->output !== '') { // min already run
+            
             return $this->output;
         }
 
@@ -294,6 +295,7 @@ class minify_Js
             }
             if (preg_match('~(^|[\\s\\S])' . substr($keyword, 0, -1) . '$~', $recentOutput, $m)) {
                 if ($m[1] === '' || !$this->isAlphaNum($m[1])) {
+                    
                     return true;
                 }
             }
@@ -303,6 +305,7 @@ class minify_Js
         if ($this->a === ' ' || $this->a === "\n") {
             if (preg_match('~(^|[\\s\\S])(?:case|else|in|return|typeof)$~', $recentOutput, $m)) {
                 if ($m[1] === '' || !$this->isAlphaNum($m[1])) {
+                    
                     return true;
                 }
             }
@@ -331,9 +334,11 @@ class minify_Js
             }
         }
         if (ord($c) >= self::ORD_SPACE || $c === "\n" || $c === null) {
+            
             return $c;
         }
         if ($c === "\r") {
+            
             return "\n";
         }
 

@@ -57,6 +57,7 @@ class type_Identifier extends type_Varchar
         
         //Ако има грешки връщаме резултатa
         if ($res['error']) {
+            
             return $res;
         }
         

@@ -267,6 +267,7 @@ class spas_Client
         list($headers, $message) = $this->read($socket);
 
         if (strpos($headers, 'PONG') === false) {
+            
             return false;
         }
 
@@ -360,6 +361,7 @@ class spas_Client
         $result = $this->exec('SYMBOLS', $message);
 
         if (empty($result->message)) {
+            
             return array();
         }
 
@@ -401,6 +403,7 @@ class spas_Client
         $result = $this->exec('TELL', $message, $additionalHeaders);
         
         if ($learnType == self::LEARN_SPAM || $learnType == self::LEARN_HAM) {
+            
             return $result->didSet;
         }
 

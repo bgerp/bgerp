@@ -462,6 +462,7 @@ class store_InventoryNoteSummary extends doc_Detail
     {
         // Ако има запис връщаме го
         if ($rec = store_InventoryNoteSummary::fetch("#noteId = {$noteId} AND #productId = {$productId}")) {
+            
             return $rec->id;
         }
         

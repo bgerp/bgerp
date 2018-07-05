@@ -887,6 +887,7 @@ class frame2_Reports extends embed_Manager
         foreach (range(0, 2) as $i) {
             $callOn = core_CallOnTime::getNextCallTime(get_called_class(), 'refreshOnTime', (object) array('id' => (string) $rec->id, 'index' => (string) $i));
             if (!empty($callOn)) {
+                
                 return $callOn;
             }
         }
@@ -903,6 +904,7 @@ class frame2_Reports extends embed_Manager
     {
         // Ако няма зададени времена, няма да има дати за обновяване
         if (empty($rec->updateDays) && empty($rec->updateTime)) {
+            
             return array();
         }
         

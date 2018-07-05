@@ -281,6 +281,7 @@ class email_Router extends core_Manager
         
         // Ако няма да се обновява записа и има такъв запис, не променяме стойността
         if (!$updateRec && $rec->id) {
+            
             return ;
         }
         
@@ -524,6 +525,7 @@ class email_Router extends core_Manager
         
         // Да не се определя повторно
         if ($hostNameArr[$boxFrom]) {
+            
             return $hostNameArr[$boxFrom];
         }
         
@@ -539,6 +541,7 @@ class email_Router extends core_Manager
             }
             
             if ($hostNameArr[$boxFrom]) {
+                
                 return $hostNameArr[$boxFrom];
             }
         }

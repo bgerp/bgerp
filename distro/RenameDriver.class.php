@@ -90,6 +90,7 @@ class distro_RenameDriver extends core_Mvc
     public function getActionStr($rec)
     {
         if (!$rec->RenameFile) {
+            
             return 'mv --help';
         }
         

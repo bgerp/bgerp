@@ -944,6 +944,7 @@ class fileman_Repositories extends core_Master
     {
         // Ако не е подадено името на файла
         if (!$fileName) {
+            
             return false;
         }
         
@@ -961,6 +962,7 @@ class fileman_Repositories extends core_Master
         
         // Ако файла съществува
         if (file_exists($filePath)) {
+            
             return true;
         }
         
@@ -980,6 +982,7 @@ class fileman_Repositories extends core_Master
     {
         // Ако няма подаден стринг за игнориране, да не се игнорира файла
         if (!$ignoreStr) {
+            
             return false;
         }
         
@@ -1316,6 +1319,7 @@ class fileman_Repositories extends core_Master
         
         // Ако няма, да нищо
         if (!$foldersArr) {
+            
             return ;
         }
         
@@ -1497,6 +1501,7 @@ class fileman_Repositories extends core_Master
         
         // Ако последната модификация е била преди разрешената от нас
         if ($lastModified < $modifiedToUseTime) {
+            
             return true;
         }
     }
@@ -1891,6 +1896,7 @@ class fileman_Repositories extends core_Master
     {
         // Ако няма масив с файлове, връщаме
         if (!$data->fileTreeArr) {
+            
             return ;
         }
         
@@ -1931,6 +1937,7 @@ class fileman_Repositories extends core_Master
     {
         // Ако няма папки
         if (!is_array($foldersArr)) {
+            
             return ;
         }
         
@@ -2008,14 +2015,17 @@ class fileman_Repositories extends core_Master
         $str2 = mb_strtolower($str2);
         
         if ($str1 > $str2) {
+            
             return -1;
         }
         
         if ($str1 == $str2) {
+            
             return 0;
         }
         
         if (!$str1 < $str2) {
+            
             return 1;
         }
     }
@@ -2037,14 +2047,17 @@ class fileman_Repositories extends core_Master
         $str2 = mb_strtolower($str2);
         
         if ($str1 > $str2) {
+            
             return 1;
         }
         
         if ($str1 == $str2) {
+            
             return 0;
         }
         
         if (!$str1 < $str2) {
+            
             return -1;
         }
     }

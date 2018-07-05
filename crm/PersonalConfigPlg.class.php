@@ -28,6 +28,7 @@ class crm_PersonalConfigPlg extends core_Plugin
         $currUserId = core_Users::getCurrent();
         
         if (!$currUserId || ($currUserId <= 0)) {
+            
             return ;
         }
         

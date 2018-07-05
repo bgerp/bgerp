@@ -113,10 +113,12 @@ class doc_UsedInDocs extends core_Manager
         $rec = self::fetch($where);
         
         if (!$rec) {
+            
             return ;
         }
         
         if (!$type) {
+            
             return $rec->data;
         }
 
@@ -131,6 +133,7 @@ class doc_UsedInDocs extends core_Manager
     {
         $me = cls::get(get_called_class());
         if (empty($me->objectArr)) {
+            
             return ;
         }
         

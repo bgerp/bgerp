@@ -606,9 +606,11 @@ class trans_LineDetails extends doc_Detail
         $documentLu = empty($documentLu) ? array() : $documentLu;
         $readyLu = empty($readyLu) ? array() : $readyLu;
         $documentLu = array_filter($documentLu, function (&$d1) {
+            
             return !empty($d1);
         });
         $readyLu = array_filter($readyLu, function (&$d2) {
+            
             return !empty($d2);
         });
         

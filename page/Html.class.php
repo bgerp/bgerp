@@ -221,6 +221,7 @@ class page_Html extends core_ET
     public static function getFileForAppend($filePath, $absolute = null)
     {
         if (preg_match('#^[^/]*//#', $filePath)) {
+            
             return $filePath;
         }
         

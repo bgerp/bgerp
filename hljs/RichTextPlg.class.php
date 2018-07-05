@@ -22,6 +22,7 @@ class hljs_RichTextPlg extends core_Plugin
     {
         // Ако има въведено, да не се въвежда
         if ($mvc->_htmlBoard['hljs']) {
+            
             return ;
         }
         

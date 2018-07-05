@@ -334,6 +334,7 @@ class doclog_Documents extends core_Manager
         // Ако сме в режим принтиране
         // Да не се изпълнява
         if (Request::get('Printing')) {
+            
             return ;
         }
         
@@ -342,6 +343,7 @@ class doclog_Documents extends core_Manager
         
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) {
+            
             return ;
         }
         
@@ -443,6 +445,7 @@ class doclog_Documents extends core_Manager
         $cnt = count($allDataAct);
         
         if (!$cnt) {
+            
             return $resArr;
         }
         
@@ -484,6 +487,7 @@ class doclog_Documents extends core_Manager
     {
         // Ако няма записи
         if (!$data->rows) {
+            
             return ;
         }
         
@@ -516,6 +520,7 @@ class doclog_Documents extends core_Manager
         // Ако сме в режим принтиране
         // Да не се изпълнява
         if (Request::get('Printing')) {
+            
             return ;
         }
         
@@ -524,6 +529,7 @@ class doclog_Documents extends core_Manager
         
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) {
+            
             return ;
         }
         
@@ -605,6 +611,7 @@ class doclog_Documents extends core_Manager
     {
         // Ако няма записи
         if (!$data->rows) {
+            
             return ;
         }
         
@@ -637,6 +644,7 @@ class doclog_Documents extends core_Manager
         // Ако сме в режим принтиране
         // Да не се изпълнява
         if (Request::get('Printing')) {
+            
             return ;
         }
         
@@ -645,6 +653,7 @@ class doclog_Documents extends core_Manager
         
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) {
+            
             return ;
         }
         
@@ -751,6 +760,7 @@ class doclog_Documents extends core_Manager
     {
         // Ако няма записи
         if (!$data->rows) {
+            
             return ;
         }
         
@@ -783,6 +793,7 @@ class doclog_Documents extends core_Manager
         // Ако сме в режим принтиране
         // Да не се изпълнява
         if (Request::get('Printing')) {
+            
             return ;
         }
         
@@ -791,6 +802,7 @@ class doclog_Documents extends core_Manager
         
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) {
+            
             return ;
         }
         
@@ -954,6 +966,7 @@ class doclog_Documents extends core_Manager
     {
         // Ако няма записи
         if (!$data->rows) {
+            
             return ;
         }
         
@@ -986,6 +999,7 @@ class doclog_Documents extends core_Manager
         // Ако сме в режим принтиране
         // Да не се изпълнява
         if (Request::get('Printing')) {
+            
             return ;
         }
         
@@ -994,6 +1008,7 @@ class doclog_Documents extends core_Manager
         
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) {
+            
             return ;
         }
         
@@ -1070,6 +1085,7 @@ class doclog_Documents extends core_Manager
     {
         // Ако няма записи
         if (!$data->rows) {
+            
             return ;
         }
         
@@ -1101,6 +1117,7 @@ class doclog_Documents extends core_Manager
         // Ако сме в режим принтиране
         // Да не се изпълнява
         if (Request::get('Printing')) {
+            
             return ;
         }
         
@@ -1109,6 +1126,7 @@ class doclog_Documents extends core_Manager
         
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) {
+            
             return ;
         }
         
@@ -1169,6 +1187,7 @@ class doclog_Documents extends core_Manager
     {
         // Ако няма записи
         if (!$data->rows) {
+            
             return ;
         }
         
@@ -1198,6 +1217,7 @@ class doclog_Documents extends core_Manager
         // Ако сме в режим принтиране
         // Да не се изпълнява
         if (Request::get('Printing')) {
+            
             return ;
         }
         
@@ -1206,6 +1226,7 @@ class doclog_Documents extends core_Manager
         
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) {
+            
             return ;
         }
         
@@ -1244,6 +1265,7 @@ class doclog_Documents extends core_Manager
     {
         // Ако няма записи
         if (!$data->rows) {
+            
             return ;
         }
         
@@ -1483,6 +1505,7 @@ class doclog_Documents extends core_Manager
         $resArr = array();
         
         if (!$cid) {
+            
             return $resArr;
         }
         
@@ -1517,6 +1540,7 @@ class doclog_Documents extends core_Manager
         $viewIpArr = array();
         
         if (!$cid) {
+            
             return $viewIpArr;
         }
         
@@ -1824,6 +1848,7 @@ class doclog_Documents extends core_Manager
         
         // Ако няма originId
         if (!$originId) {
+            
             return ;
         }
         
@@ -1965,6 +1990,7 @@ class doclog_Documents extends core_Manager
 
         // Ако съответния потребител е свалял файла
         if (!empty($rec->data->{$downloadAction}[$fh][$actionToken])) {
+            
             return true;
         }
         
@@ -2086,6 +2112,7 @@ class doclog_Documents extends core_Manager
     public static function removeHistoryFromCache($threadId)
     {
         if (!$threadId) {
+            
             return ;
         }
         
@@ -2244,6 +2271,7 @@ class doclog_Documents extends core_Manager
         static $actionToTab = null;
         
         if (empty($data->summary)) {
+            
             return '';
         }
         
@@ -2408,10 +2436,13 @@ class doclog_Documents extends core_Manager
 
                 return tr('Имейл до|* ') . $row->toEmail . ' / ' . static::getVerbal($rec, 'createdOn');
             case static::ACTION_PRINT:
+                
                 return tr('Отпечатване|* / ') . static::getVerbal($rec, 'createdOn');
             case static::ACTION_EXPORT:
+                
                 return tr('Експортиране|* / ') . static::getVerbal($rec, 'createdOn');
             case static::ACTION_LINK:
+                
                 return tr('Връзка|* / ') . static::getVerbal($rec, 'createdOn');
             case static::ACTION_OPEN:
                 if ($deep && !empty($rec->parentId)) {
@@ -2426,6 +2457,7 @@ class doclog_Documents extends core_Manager
 
                 return $res;
             default:
+                
                 return strtoupper($rec->action) . ' / ' . static::getVerbal($rec, 'createdOn');
         }
     }
@@ -2503,6 +2535,7 @@ class doclog_Documents extends core_Manager
     {
         // Проверяваме дали URL' то е от нашата система
         if (!core_Url::isLocal($url, $rest)) {
+            
             return ;
         }
         
@@ -2512,6 +2545,7 @@ class doclog_Documents extends core_Manager
         $mid = $urlArr['m'];
         
         if (!$cid || !$mid) {
+            
             return ;
         }
         
@@ -2520,6 +2554,7 @@ class doclog_Documents extends core_Manager
         
         // Ако няма запис - mid' а не е правилен
         if (!$rec) {
+            
             return ;
         }
         
@@ -2554,6 +2589,7 @@ class doclog_Documents extends core_Manager
             // Трябва да има един такъв екшън
             while ($rec = $query->fetch()) {
                 if (in_array($rec->action, array(self::ACTION_SEND, self::ACTION_OPEN, self::ACTION_PRINT, self::ACTION_FAX, self::ACTION_PDF, self::ACTION_EXPORT, self::ACTION_LINK, self::ACTION_USED))) {
+                    
                     return $rec;
                 }
             }
@@ -2618,6 +2654,7 @@ class doclog_Documents extends core_Manager
     {
         // Ако не е подадено $containerId
         if (!$containerId) {
+            
             return false;
         }
         
@@ -2650,12 +2687,14 @@ class doclog_Documents extends core_Manager
                     
                     // Проверяваме to и cc дали съвпадат
                     if (($rec->data->cc == $emailCc) && ($rec->data->to == $emailTo)) {
+                        
                         return true;
                     }
                 } else {
                     
                     // Ако няма CC, проверяваме само to
                     if ($rec->data->to == $emailTo) {
+                        
                         return true;
                     }
                 }
@@ -2678,6 +2717,7 @@ class doclog_Documents extends core_Manager
         // Ако сме в режим принтиране
         // Да не се изпълнява
         if (Request::get('Printing')) {
+            
             return ;
         }
         
@@ -2686,6 +2726,7 @@ class doclog_Documents extends core_Manager
         
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) {
+            
             return ;
         }
         
@@ -2715,6 +2756,7 @@ class doclog_Documents extends core_Manager
     {
         // Ако няма записи
         if (!$data->rows) {
+            
             return ;
         }
         

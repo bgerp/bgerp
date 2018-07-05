@@ -39,6 +39,7 @@ class type_Minutes extends type_Int
         }
         
         if (is_numeric($val)) {
+            
             return round($val);
         }
         
@@ -49,6 +50,7 @@ class type_Minutes extends type_Int
         
         foreach ($zeroArr as $w) {
             if ($val == $w || $val == tr($w)) {
+                
                 return 0;
             }
         }
@@ -148,6 +150,7 @@ class type_Minutes extends type_Int
         $v = abs($value);
         
         if ($v == 0) {
+            
             return '0 ' . tr('мин.');
         }
         

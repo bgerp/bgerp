@@ -162,6 +162,7 @@ class fileman_Files extends core_Master
         $rec = $Files->fetch(array("#fileHnd = '[#1#]'", $fh));
         
         if ($field === null) {
+            
             return $rec;
         }
         
@@ -801,6 +802,7 @@ class fileman_Files extends core_Master
     {
         // Очакваме да е валиден път иначе се отказваме
         if (!static::isCorrectPath($path)) {
+            
             return false;
         }
         
@@ -1211,6 +1213,7 @@ class fileman_Files extends core_Master
         
         // Ако имената съвпадат, няма какво да се променя
         if ($newFileName == $oldFileName) {
+            
             return ;
         }
         
@@ -1229,6 +1232,7 @@ class fileman_Files extends core_Master
         $saveId = static::save($nRec);
         
         if (!$saveId) {
+            
             return false;
         }
         
@@ -1551,6 +1555,7 @@ class fileman_Files extends core_Master
         expect(is_object($rec));
         
         if (isset($rec->dangerRate) && ($rec->dangerRate > $minDangerLevel)) {
+            
             return true;
         }
         
@@ -1643,10 +1648,12 @@ class fileman_Files extends core_Master
         $fRec = self::fetchByFh($fileHnd);
         
         if (!$fRec) {
+            
             return ;
         }
         
         if (!fileman_Buckets::canAddFileToBucket($fRec->bucketId, $userId)) {
+            
             return ;
         }
         
@@ -2526,6 +2533,7 @@ class fileman_Files extends core_Master
     {
         // Ако няма заявка, да не се изпълнява
         if (!$data->listSummary->query) {
+            
             return ;
         }
         
@@ -2577,6 +2585,7 @@ class fileman_Files extends core_Master
     {
         // Ако няма данни, няма да се показва нищо
         if (!$data->listSummary->statVerb) {
+            
             return ;
         }
         
@@ -2775,6 +2784,7 @@ class fileman_Files extends core_Master
         // Ако новите данни са същите, като старите
         // нямаме смяна
         if ($rec->dataId == $newDataId) {
+            
             return $rec->dataId;
         }
         
@@ -2825,6 +2835,7 @@ class fileman_Files extends core_Master
         $sRec = $this->fetch("#fileHnd = '{$sHnd}'");
         
         if ($sRec->state != 'active') {
+            
             return false;
         }
         
@@ -2861,6 +2872,7 @@ class fileman_Files extends core_Master
 
             // Ако имената са еднакви
             if ($rec->name == $inputFileName) {
+                
                 return $rec->fileHnd;
             }
             

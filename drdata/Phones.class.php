@@ -493,6 +493,7 @@ class drdata_Phones extends core_Manager
     public static function on_BeforeSave(&$invoker, &$id, &$rec)
     {
         if ($invoker->fetch("#countryCode = '{$rec->countryCode}' AND #areaCode = '{$rec->areaCode}'")) {
+            
             return false;
         }
         

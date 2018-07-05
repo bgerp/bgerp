@@ -61,6 +61,7 @@ class wund_Forecasts extends core_Manager
         }
         
         if (!$location) {
+            
             return false;
         }
 

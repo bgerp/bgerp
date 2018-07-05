@@ -211,6 +211,7 @@ class currency_Currencies extends core_Master
         $bgnRate = $mvc->fetchField(array("#code = '[#1#]'", $accConf->BASE_CURRENCY_CODE), 'lastRate');
         
         if (!$bgnRate) {
+            
             return ;
         }
         

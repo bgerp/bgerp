@@ -32,6 +32,7 @@ class i18n_Language
         $res = self::getLgRates($text);
 
         if (!count($res)) {
+            
             return ;
         }
         

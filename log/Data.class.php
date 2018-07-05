@@ -179,11 +179,13 @@ class log_Data extends core_Manager
         
         // Текущия потребител може да вижда лога за себе си
         if ($userId == $currUserId) {
+            
             return true;
         }
         
         // admin и ceo на всички
         if (haveRole('admin, ceo', $currUserId)) {
+            
             return true;
         }
         
@@ -192,6 +194,7 @@ class log_Data extends core_Manager
             if (!haveRole('ceo, manager', $userId)) {
                 $teamMatest = core_Users::getTeammates($currUserId);
                 if (type_Keylist::isIn($userId, $teamMatest)) {
+                    
                     return true;
                 }
             }
@@ -302,6 +305,7 @@ class log_Data extends core_Manager
         }
         
         if (!$className || !$objectId || !(is_numeric($objectId))) {
+            
             return ;
         }
         
@@ -343,6 +347,7 @@ class log_Data extends core_Manager
         }
         
         if (!$className || !$objectId || !(is_numeric($objectId))) {
+            
             return ;
         }
         
@@ -408,6 +413,7 @@ class log_Data extends core_Manager
     {
         // Ако няма данни за добавяне, няма нужда да се изпълнява
         if (empty(self::$toAdd)) {
+            
             return ;
         }
         

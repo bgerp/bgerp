@@ -372,6 +372,7 @@ class cms_Content extends core_Manager
    
         // За да не влезе в безкраен цикъл, да не вика себе си
         if (strtolower($cUrl['Ctr']) == 'cms_content') {
+            
             return $cUrl;
         }
         
@@ -485,6 +486,7 @@ class cms_Content extends core_Manager
         $query->orderBy('#order', 'ASC');
         $rec = $query->fetch("#source = {$classId} AND #domainId = {$domainId}");
         if ($rec) {
+            
             return $rec->id;
         }
     }
@@ -527,6 +529,7 @@ class cms_Content extends core_Manager
         Mode::set('cMenuId', $menuId);
         
         if ($rec && ($url = $this->getContentUrl($rec))) {
+            
             return Request::forward($url);
         }
             

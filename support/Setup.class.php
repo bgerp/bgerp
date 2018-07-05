@@ -114,11 +114,13 @@ class support_Setup extends core_ProtoSetup
     public static function markUsedComponents()
     {
         if (!cls::load('support_Components', true)) {
+            
             return ;
         }
         
         $Components = cls::get('support_Components');
         if (!$Components->db->tableExists($Components->dbTableName)) {
+            
             return ;
         }
         
@@ -137,11 +139,13 @@ class support_Setup extends core_ProtoSetup
     public static function componentsToResources()
     {
         if (!cls::load('support_Components', true)) {
+            
             return ;
         }
         
         $Components = cls::get('support_Components');
         if (!$Components->db->tableExists($Components->dbTableName)) {
+            
             return ;
         }
         

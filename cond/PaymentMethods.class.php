@@ -211,6 +211,7 @@ class cond_PaymentMethods extends core_Master
     {
         // Ако няма избран метод се приема, че е COD
         if (!$payment) {
+            
             return true;
         }
         
@@ -310,11 +311,13 @@ class cond_PaymentMethods extends core_Master
         
         // Ако остатъка за плащане е 0 или по-малко
         if ($restAmount <= 0) {
+            
             return false;
         }
         
         // Ако няма крайна дата на плащане, не е просрочена
         if (!$payment['deadlineForBalancePayment']) {
+            
             return false;
         }
         
@@ -332,6 +335,7 @@ class cond_PaymentMethods extends core_Master
     {
         // Ако няма избран метод се приема, че няма авансово плащане
         if (!$id) {
+            
             return false;
         }
         

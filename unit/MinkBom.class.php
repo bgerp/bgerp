@@ -575,11 +575,13 @@ class unit_MinkBom extends core_Manager
              
         if (strpos($browser->gettext(), '257,12')) {
         } else {
+            
             return 'Грешно ДДС';
         }
         
         if (strpos($browser->gettext(), 'Хиляда петстотин четиридесет и два BGN и 0,72')) {
         } else {
+            
             return 'Грешна обща сума';
         }
         
@@ -731,6 +733,7 @@ class unit_MinkBom extends core_Manager
         
         if (strpos($browser->gettext(), 'Себестойност: 0,62 BGN')) {
         } else {
+            
             return 'Грешна себестойност';
         }
         //return $browser->gethtml();

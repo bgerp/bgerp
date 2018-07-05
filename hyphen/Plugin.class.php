@@ -41,11 +41,13 @@ class hyphen_Plugin extends core_Plugin
     {
         // Ако сме в текстов режим, връщаме
         if (Mode::is('text', 'plain')) {
+            
             return ;
         }
         
         // Ако сме в широк режим и не сме в дебъг, връщаме
         if (!Mode::is('screenMode', 'narrow')) {
+            
             return ;
         }
         

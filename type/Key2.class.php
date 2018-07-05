@@ -95,6 +95,7 @@ class type_Key2 extends type_Int
         }
         
         if (count($resArr) == 1) {
+            
             return key($resArr);
         } elseif (count($resArr) > 1) {
             $this->error = 'Нееднозначно определяне';
@@ -152,16 +153,19 @@ class type_Key2 extends type_Int
         $lastCloseBracketPos = mb_strrpos($title, ')');
         
         if (!$lastCloseBracketPos) {
+            
             return $title;
         }
         
         if ($len != ($lastCloseBracketPos + 1)) {
+            
             return $title;
         }
         
         $lastOpenBracketPos = mb_strrpos($title, ' (');
         
         if (!$lastOpenBracketPos) {
+            
             return $title;
         }
         
@@ -355,6 +359,7 @@ class type_Key2 extends type_Int
         $rStr = core_Cache::get(key2, $key);
         
         if ($rStr) {
+            
             return $rStr;
         }
         

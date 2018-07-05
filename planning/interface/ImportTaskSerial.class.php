@@ -98,6 +98,7 @@ class planning_interface_ImportTaskSerial extends planning_interface_ImportDrive
     {
         $recs = array();
         if (!is_array($rec->serials)) {
+            
             return $recs;
         }
         $serials = arr::extractSubArray($rec->serials, 'productId,quantityInPack,packagingId,serial');

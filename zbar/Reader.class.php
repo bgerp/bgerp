@@ -37,6 +37,7 @@ class zbar_Reader
         $filePath = fileman::extract($fh);
         
         if (!$filePath) {
+            
             return $barcodesArr;
         }
         

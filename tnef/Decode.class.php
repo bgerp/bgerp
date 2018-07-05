@@ -99,6 +99,7 @@ class tnef_Decode extends core_Manager
         $fRec = fileman_Files::fetchByFh($fileHnd);
         
         if (!$fRec) {
+            
             return false;
         }
         
@@ -169,6 +170,7 @@ class tnef_Decode extends core_Manager
         $files = scandir($script->outputPath);
         
         if (!$files) {
+            
             return $fileHndArr;
         }
         

@@ -65,6 +65,7 @@ class email_Returned extends email_ServiceEmails
         // Правим проверка да не е обратна разписка за получено писмо
         // Някои сървъри отговарят на `Return-Path`
         if (email_Receipts::isForReceipts($mime)) {
+            
             return email_Receipts::process($mime, $accId, $uid, $mid);
         }
         

@@ -231,6 +231,7 @@ class tracking_Setup extends core_ProtoSetup
 
         // Взимаме PID-а от конфигурацията - ако няма стойност - процеса е спрян
         if (empty($pid)) {
+            
             return false;
         }
         
@@ -238,6 +239,7 @@ class tracking_Setup extends core_ProtoSetup
         @exec('ps -fp ' . $pid, $output);
         // Ако командата се съдържа в резултата от ps значи процеса е нашия
         if (strpos($output[1], $cmd) !== false) {
+            
             return (true);
         }
         // Процеса не е нашия и чистим връзката с него

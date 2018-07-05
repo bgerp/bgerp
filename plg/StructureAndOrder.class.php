@@ -419,13 +419,16 @@ class plg_StructureAndOrder extends core_Plugin
     {
         uasort($items, function ($a, $b) {
             if ($a->saoOrder == $b->saoOrder) {
+                
                 return 0;
             }
                             
             if (!$a->saoOrder || $a->saoOrder > $b->saoOrder) {
+                
                 return 1;
             }
             if (!$b->saoOrder || $a->saoOrder < $b->saoOrder) {
+                
                 return -1;
             }
         });

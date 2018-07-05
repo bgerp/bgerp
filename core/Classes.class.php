@@ -441,6 +441,7 @@ class core_Classes extends core_Manager
     {
         $verbalInterfaces = '';
         if (!cls::load($rec->name, true)) {
+            
             return "<span class='red'>Липсва кода на класа</span>";
         }
         

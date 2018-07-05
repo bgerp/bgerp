@@ -68,6 +68,7 @@ class setup_Controller
     public function form3(&$res)
     {
         if ($this->state['installationType'] != 'recovery') {
+            
             return false;
         }
 
@@ -83,6 +84,7 @@ class setup_Controller
     public function form4(&$res)
     {
         if ($this->state['installationType'] == 'recovery') {
+            
             return false;
         }
 
@@ -101,6 +103,7 @@ class setup_Controller
         // 1. Не сме отказали проверките за обновяване
         // 2. Не правим нова инсталация
         if ($this->state['checkForUpdates'] != 'yes' || $this->state['installationType'] == 'recovery') {
+            
             return false;
         }
         if (defined('EF_PRIVATE_PATH')) {
@@ -133,6 +136,7 @@ class setup_Controller
     public function form6(&$res)
     {
         if ($this->state['installationType'] != 'new') {
+            
             return false;
         }
 
@@ -157,6 +161,7 @@ class setup_Controller
     public function form7(&$res)
     {
         if ($this->state['installationType'] != 'new') {
+            
             return false;
         }
 
@@ -190,6 +195,7 @@ class setup_Controller
     public function form8(&$res)
     {
         if ($this->state['installationType'] != 'new' || !in_array('web', $this->state['bgerpAddmodules'])) {
+            
             return false;
         }
 
@@ -219,6 +225,7 @@ class setup_Controller
     public function form9(&$res)
     {
         if ($this->state['installationType'] != 'recovery') {
+            
             return false;
         }
     
@@ -231,6 +238,7 @@ class setup_Controller
     public function form10(&$res)
     {
         if ($this->state['installationType'] != 'recovery') {
+            
             return false;
         }
         
@@ -264,6 +272,7 @@ class setup_Controller
     public function form11(&$res)
     {
         if ($this->state['installationType'] != 'new') {
+            
             return false;
         }
 
@@ -284,6 +293,7 @@ class setup_Controller
     public function form12(&$res)
     {
         if ($this->state['installationType'] != 'new') {
+            
             return false;
         }
 

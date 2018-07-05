@@ -31,6 +31,7 @@ class fileman_FileType extends type_Varchar
     public function toVerbal($fh)
     {
         if (!$fh) {
+            
             return '';
         }
         

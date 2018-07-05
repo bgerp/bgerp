@@ -117,6 +117,7 @@ class editwatch_Plugin extends core_Plugin
         $res = array();
         
         if (!Request::get('ajax_mode')) {
+            
             return ;
         }
         

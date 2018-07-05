@@ -76,6 +76,7 @@ class email_Receipts extends email_ServiceEmails
             }
             
             if (!$mid) {
+                
                 return ;
             }
         } else {
@@ -149,6 +150,7 @@ class email_Receipts extends email_ServiceEmails
                     $dQuery->orderBy('createdOn', 'DESC');
                     $dRec = $dQuery->fetch();
                     if ($dRec && $dRec->mid) {
+                        
                         return $dRec->mid;
                     }
                 }
@@ -168,6 +170,7 @@ class email_Receipts extends email_ServiceEmails
         
         // Ако съдържа някои от позитивните или отрицателните думи
         if (!is_null($isGoodTextPart)) {
+            
             return $isGoodTextPart;
         }
         
@@ -192,6 +195,7 @@ class email_Receipts extends email_ServiceEmails
         // При наличие на някоя от негативните думи, прекратяваме
         foreach (self::$negativeWordsArr as $negativeWord) {
             if (stripos($text, $negativeWord) !== false) {
+                
                 return false;
             }
         }
@@ -199,6 +203,7 @@ class email_Receipts extends email_ServiceEmails
         // Ако открием съвпадение с някоя дума, от позитивните думи
         foreach (self::$positiveWordsArr as $positveWord) {
             if (stripos($text, $positveWord) !== false) {
+                
                 return true;
             }
         }
@@ -219,10 +224,12 @@ class email_Receipts extends email_ServiceEmails
         $autoSubmitted = trim($autoSubmitted);
         
         if (!$autoSubmitted) {
+            
             return false;
         }
         
         if (stripos($autoSubmitted, 'auto-replied') !== false) {
+            
             return true;
         }
         

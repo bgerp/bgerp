@@ -153,6 +153,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
+            
             return ;
         }
         
@@ -250,6 +251,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
+            
             return ;
         }
         
@@ -260,6 +262,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($paramsOut)) {
+            
             return ;
         }
         
@@ -310,6 +313,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Ако има грешка кода не се изпълнява
         if ($error) {
+            
             return false;
         }
         
@@ -323,6 +327,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
+            
             return ;
         }
         
@@ -495,6 +500,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Ако има грешка кода не се изпълнява
         if ($error) {
+            
             return false;
         }
         
@@ -528,6 +534,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
 
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
+            
             return ;
         }
 

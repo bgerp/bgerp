@@ -243,6 +243,7 @@ class expert_Expert extends core_FieldSet
     public function getRedirectMsgType()
     {
         if (!$this->midRes->RedirectMsgType) {
+            
             return 'notice';
         }
         
@@ -256,10 +257,12 @@ class expert_Expert extends core_FieldSet
     public function getTitle($kRec)
     {
         if ($kRec->title) {
+            
             return $kRec->title;
         }
         
         if ($this->titles[$kRec->element]) {
+            
             return $this->titles[$kRec->element];
         }
         
@@ -283,6 +286,7 @@ class expert_Expert extends core_FieldSet
     public function getLayout($type)
     {
         if ($this->layouts[$type]) {
+            
             return $this->layouts[$type];
         }
 
@@ -558,6 +562,7 @@ class expert_Expert extends core_FieldSet
         
         foreach ($names as $name) {
             if (!$this->isTrusty($name)) {
+                
                 return false;
             }
         }
@@ -639,6 +644,7 @@ class expert_Expert extends core_FieldSet
         $this->trimPrefix($name);
         
         if (!$this->vals[$name] && !$this->fromDialog[$name] && $this->vals[$name . '_ASSUME_']) {
+            
             return $this->vals[$name . '_ASSUME_'];
         }
         
@@ -785,6 +791,7 @@ class expert_Expert extends core_FieldSet
         }
         
         if ($this->midRes->RetUrl) {
+            
             return new Redirect($this->midRes->RetUrl, $this->midRes->alert, $this->getRedirectMsgType());
         }
         
@@ -989,11 +996,13 @@ class expert_Expert extends core_FieldSet
         // за да можем да запишем следващата порция на чисто
         
         if ($this->areTrusty($goal) && !$this->midRes) {
+            
             return 'SUCCESS';
         }
         
         // Ако целта е достигната или имаме междинен резултат, връщаме TRUE
         if ($this->midRes) {
+            
             return 'DIALOG';
         }
         
@@ -1599,6 +1608,7 @@ class expert_Expert extends core_FieldSet
         }
         
         if ($usedVars && !$this->areTrusty($usedVars)) {
+            
             return false;
         }
         

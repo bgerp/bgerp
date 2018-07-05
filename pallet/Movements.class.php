@@ -690,6 +690,7 @@ class pallet_Movements extends core_Manager
         $selectedStoreId = store_Stores::getCurrent();
         
         if ($recMovements = pallet_Movements::fetch("#positionNew = '{$palletPlace}' AND #storeId = {$selectedStoreId}")) {
+            
             return false;
         }
         

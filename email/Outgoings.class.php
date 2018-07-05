@@ -354,6 +354,7 @@ class email_Outgoings extends core_Master
     public static function send($rec, $options, $lg)
     {
         if (self::checkAndAddForLateSending($rec, $options, $lg)) {
+            
             return ;
         }
         
@@ -997,6 +998,7 @@ class email_Outgoings extends core_Master
         $rec = $query->fetch();
         
         if ($rec) {
+            
             return $rec->waiting;
         }
     }
@@ -1921,6 +1923,7 @@ class email_Outgoings extends core_Master
     protected static function setContragentDataToRec($contragentData, &$rec)
     {
         if (!$contragentData) {
+            
             return ;
         }
         
@@ -2039,6 +2042,7 @@ class email_Outgoings extends core_Master
         
         // Ако сме открили обръщение използваме него
         if ($salutation) {
+            
             return $salutation;
         }
         
@@ -2081,6 +2085,7 @@ class email_Outgoings extends core_Master
     public function getBody($originId, $forward = false)
     {
         if (!$originId) {
+            
             return ;
         }
         
@@ -2648,6 +2653,7 @@ class email_Outgoings extends core_Master
         }
         
         if ($userId <= 0) {
+            
             return ;
         }
         
@@ -2737,6 +2743,7 @@ class email_Outgoings extends core_Master
     {
         $sendedTo = '';
         if (!$containerId && !$threadId) {
+            
             return $sendedTo;
         }
         $lRecsArr = doclog_Documents::getRecs($containerId, doclog_Documents::ACTION_SEND, $threadId);
@@ -3208,6 +3215,7 @@ class email_Outgoings extends core_Master
         
         // Ако има папка връщаме
         if ($folderId) {
+            
             return $folderId;
         }
         
@@ -3216,6 +3224,7 @@ class email_Outgoings extends core_Master
         
         // Ако има папка връщаме
         if ($folderId) {
+            
             return $folderId;
         }
         
@@ -3224,6 +3233,7 @@ class email_Outgoings extends core_Master
         
         // Ако има папка връщаме
         if ($folderId) {
+            
             return $folderId;
         }
         
@@ -3238,6 +3248,7 @@ class email_Outgoings extends core_Master
             
             // Ако корицата е на контрагент
             if (($coverClassName == 'crm_persons') || ($coverClassName == 'crm_companies')) {
+                
                 return $folderId;
             }
         }
@@ -3258,6 +3269,7 @@ class email_Outgoings extends core_Master
             
             // Ако има папка и имаме права в нея
             if ($folderId && email_Inboxes::haveRightFor('single', $folderId)) {
+                
                 return $folderId;
             }
             
@@ -3272,6 +3284,7 @@ class email_Outgoings extends core_Master
             
             // Ако има папка и имаме права
             if ($folderId && email_Inboxes::haveRightFor('single', $folderId)) {
+                
                 return $folderId;
             }
         }
@@ -3287,6 +3300,7 @@ class email_Outgoings extends core_Master
         
         // Ако има папка и имаме права
         if ($folderId && email_Inboxes::haveRightFor('single', $folderId)) {
+            
             return $folderId;
         }
         
@@ -3317,6 +3331,7 @@ class email_Outgoings extends core_Master
         
         // Ако има папка връщаме
         if ($folderId) {
+            
             return $folderId;
         }
         
@@ -3325,6 +3340,7 @@ class email_Outgoings extends core_Master
         
         // Ако има папка връщаме
         if ($folderId) {
+            
             return $folderId;
         }
         
@@ -3333,6 +3349,7 @@ class email_Outgoings extends core_Master
         
         // Ако има папка връщаме
         if ($folderId) {
+            
             return $folderId;
         }
         

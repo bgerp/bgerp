@@ -434,6 +434,7 @@ class fconv_Remote extends core_Manager
         $dirName = self::getRemoteDownloadedPath();
         
         if (!is_dir($dirName) || !is_readable($dirName)) {
+            
             return ;
         }
         

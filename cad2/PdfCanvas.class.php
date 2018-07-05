@@ -672,12 +672,14 @@ class cad2_PdfCanvas extends cad2_Canvas
     public function hexToCmyk($hexColor, $default = array(0, 0, 0, 0))
     {
         if ($hexColor == 'transparent' || $hexColor == 'none' || $hexColor === null || $hexColor === '') {
+            
             return $default;
         }
  
         $rgb = color_Object::hexToRgbArr($hexColor);
 
         if (!is_array($rgb)) {
+            
             return false;
         }
 

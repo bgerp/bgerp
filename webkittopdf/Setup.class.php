@@ -190,8 +190,10 @@ class webkittopdf_Setup extends core_ProtoSetup
         $res = @exec($wkhtmltopdf . ' --help', $output, $code);
         
         if ($code === 0) {
+            
             return true;
         } elseif ($code === 127) {
+            
             return false;
         }
     }
@@ -222,6 +224,7 @@ class webkittopdf_Setup extends core_ProtoSetup
         }
         
         if (!$trimRes) {
+            
             return $versionArr;
         }
         
@@ -233,6 +236,7 @@ class webkittopdf_Setup extends core_ProtoSetup
         
         // Ако не може да се открие версията/подверсията
         if (!isset($version) || !isset($subVersion)) {
+            
             return $versionArr;
         }
         

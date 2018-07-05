@@ -83,6 +83,7 @@ class distro_Setup extends core_ProtoSetup
         $cls->db->connect();
         $reposField = str::phpToMysqlName('repos');
         if (!$cls->db->isFieldExists($cls->dbTableName, $reposField)) {
+            
             return ;
         }
 

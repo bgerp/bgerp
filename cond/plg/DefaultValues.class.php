@@ -57,6 +57,7 @@ class cond_plg_DefaultValues extends core_Plugin
     {
         // Прикачане е допустимо само към наследник на core_Manager ...
         if (!$mvc instanceof core_Manager) {
+            
             return false;
         }
         
@@ -64,6 +65,7 @@ class cond_plg_DefaultValues extends core_Plugin
         $plugins = arr::make($mvc->loadList);
 
         if (isset($plugins['doc_DocumentPlg'])) {
+            
             return false;
         }
         
@@ -237,6 +239,7 @@ class cond_plg_DefaultValues extends core_Plugin
         $name = "getDefault{$name}";
 
         if (cls::existsMethod($mvc, $name)) {
+            
             return $mvc->$name($rec);
         }
     }
@@ -255,6 +258,7 @@ class cond_plg_DefaultValues extends core_Plugin
 
             // Ако е контрагент само
             if (!cls::haveInterface('doc_ContragentDataIntf', $Class)) {
+                
                 return false;
             }
             
@@ -298,6 +302,7 @@ class cond_plg_DefaultValues extends core_Plugin
         }
         
         if (isset($mvc->_cachedContragentData->{$name})) {
+            
             return $mvc->_cachedContragentData->{$name};
         }
     }
@@ -328,6 +333,7 @@ class cond_plg_DefaultValues extends core_Plugin
         $Class = cls::get(doc_Folders::fetchCoverClassId($folderId));
         
         if (cls::existsMethod($Class, $name)) {
+            
             return $Class::$name($cId);
         }
     }

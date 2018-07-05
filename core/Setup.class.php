@@ -517,12 +517,14 @@ class core_Setup extends core_ProtoSetup
     public static function settigsDataFromCustomToCore()
     {
         if (!cls::load('custom_Settings', true)) {
+            
             return ;
         }
         
         $inst = cls::get('custom_Settings');
         
         if (!$inst->db->tableExists($inst->dbTableName)) {
+            
             return ;
         }
         
@@ -575,6 +577,7 @@ class core_Setup extends core_ProtoSetup
         
         // Ако в модела в MySQL липсва колоната, няма нужда от миграция
         if (!$userInst->db->isFieldExists($userInst->dbTableName, $confData)) {
+            
             return ;
         }
         
@@ -725,19 +728,23 @@ class core_Setup extends core_ProtoSetup
         $emptyDest = false;
         if (!file_exists($dest)) {
             if (file_put_contents($dest, '') === false) {
+                
                 return "<li class=\"debug-error\">Не може да бъде създаден файла: <b>{$dest}</b></li>";
             }
             $emptyDest = true;
         }
         if (!is_writable($dest)) {
+            
             return "<li class=\"debug-error\">Не може да се записва във файла: <b>{$dest}</b></li>";
         }
 
         if (!is_readable($src)) {
+            
             return "<li class=\"debug-error\">Не може да бъде прочетен файла: <b>{$src}</b></li>";
         }
         
         if (!is_readable($dest)) {
+            
             return "<li class=\"debug-error\">Не може да бъде прочетен файла: <b>{$dest}</b></li>";
         }
      

@@ -53,6 +53,7 @@ abstract class sens2_ioport_Abstract extends core_BaseClass
             $slotTypesArr = arr::make(static::SLOT_TYPES, true);
             foreach ($slotTypesArr as $sl) {
                 if ($slotsCnt[$sl] > 0) {
+                    
                     return true;
                 }
             }

@@ -54,6 +54,7 @@ class select2_PluginEnum extends core_Plugin
     public function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
         if ($invoker->params['isReadOnly']) {
+            
             return ;
         }
         
@@ -78,6 +79,7 @@ class select2_PluginEnum extends core_Plugin
         
         // Ако ще са радиобутони
         if ($invoker->params['maxRadio'] && ($invoker->params['maxRadio'] >= $optionsCnt)) {
+            
             return ;
         }
         

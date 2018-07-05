@@ -34,6 +34,7 @@ class type_Enum extends core_Type
         }
         
         if (!isset($this->options[$value])) {
+            
             return "{$value}?";
         }
         

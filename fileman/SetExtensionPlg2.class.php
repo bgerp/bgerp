@@ -22,6 +22,7 @@ class fileman_SetExtensionPlg2 extends core_Plugin
     {
         // Ако няма подадено име или id за данни на файла
         if (!$dataId || !$inputFileName) {
+            
             return ;
         }
         
@@ -30,6 +31,7 @@ class fileman_SetExtensionPlg2 extends core_Plugin
         
         // Очакваме да е валиден път иначе се отказваме
         if (!fileman::isCorrectPath($dataRec->path)) {
+            
             return false;
         }
 

@@ -115,6 +115,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         }
         
         usort($recs, function ($a, $b) {
+            
             return ($a->changeQuantity > $b->changeQuantity) ? 1 : -1;
         });
 

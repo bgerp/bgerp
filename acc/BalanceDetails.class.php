@@ -257,6 +257,7 @@ class acc_BalanceDetails extends core_Detail
     private static function sortRecs($a, $b)
     {
         if ($a->sortField == $b->sortField) {
+            
             return 0;
         }
          
@@ -353,6 +354,7 @@ class acc_BalanceDetails extends core_Detail
                 $AccRegMan = cls::get($itemRec->classId);
                 
                 if ($AccRegMan->haveRightFor('single', $itemRec->objectId)) {
+                    
                     return true;
                 }
             }
@@ -711,6 +713,7 @@ class acc_BalanceDetails extends core_Detail
         static $form;
         
         if (isset($form)) {
+            
             return $form;
         }
         

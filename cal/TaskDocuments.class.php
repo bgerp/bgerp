@@ -119,6 +119,7 @@ class cal_TaskDocuments extends core_Detail
     public static function add($taskId, $cId)
     {
         if (!$taskId || !$cId) {
+            
             return ;
         }
         
@@ -153,6 +154,7 @@ class cal_TaskDocuments extends core_Detail
         $rec = $query->fetch();
         
         if (!$rec) {
+            
             return false;
         }
         
@@ -207,6 +209,7 @@ class cal_TaskDocuments extends core_Detail
     public function logInAct($msg, $rec = null, $type = 'write')
     {
         if ($msg == 'Създаване') {
+            
             return ;
         }
         
@@ -382,6 +385,7 @@ class cal_TaskDocuments extends core_Detail
     public static function checkDocExist($id, $cid)
     {
         if (self::fetch(array("#id = '[#1#]' AND #containerId = '[#2#]' AND #state != 'rejected'", $id, $cid))) {
+            
             return true;
         }
         
@@ -432,6 +436,7 @@ class cal_TaskDocuments extends core_Detail
     public function renderDetail_($data)
     {
         if ($data->disabled) {
+            
             return ;
         }
         

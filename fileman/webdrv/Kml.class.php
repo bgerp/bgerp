@@ -96,6 +96,7 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
         $xml = @simplexml_load_string($str);
         
         if (!$xml) {
+            
             return $valArr;
         }
         

@@ -190,6 +190,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         
         // Ако липсва HTML част
         if (!$htmlFile) {
+            
             return ;
         }
         
@@ -295,6 +296,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     {
         // Ако няма линк кода не се изплълнява
         if (!$link) {
+            
             return ;
         }
         
@@ -306,6 +308,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         
         // След тримване, ако има съдъжание връщаме TRUE
         if (trim($content)) {
+            
             return true;
         }
     }
@@ -321,6 +324,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     public static function checkTextPart($mime)
     {
         if (trim($mime->getJustTextPart())) {
+            
             return true;
         }
     }
@@ -351,6 +355,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
+            
             return ;
         }
         

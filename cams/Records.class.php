@@ -344,6 +344,7 @@ class cams_Records extends core_Master
         // Ако файлa е заключен за транскодиране => има процес
         $mp4File = basename($mp4File);
         if (core_Locks::isLocked($mp4File)) {
+            
             return true;
         }
         
@@ -763,6 +764,7 @@ class cams_Records extends core_Master
         $prevTime = dt::timestamp2mysql($prevStamp);
         
         if ($prevRec = $this->fetch("#startTime = '{$prevTime}' AND #cameraId = {$rec->cameraId}")) {
+            
             return $prevRec->id;
         }
     }
@@ -781,6 +783,7 @@ class cams_Records extends core_Master
         $nextTime = dt::timestamp2mysql($nextStamp);
         
         if ($nextRec = $this->fetch("#startTime = '{$nextTime}' AND #cameraId = {$rec->cameraId}")) {
+            
             return $nextRec->id;
         }
     }

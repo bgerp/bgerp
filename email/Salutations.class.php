@@ -95,6 +95,7 @@ class email_Salutations extends core_Manager
     {
         // Ако липсва
         if (!$eRec->threadId || !$eRec->folderId || !$eRec->containerId) {
+            
             return ;
         }
         
@@ -106,6 +107,7 @@ class email_Salutations extends core_Manager
         
         // Ако няма обръщение да не се записва празен запис
         if (!trim($salutation)) {
+            
             return ;
         }
         
@@ -137,12 +139,14 @@ class email_Salutations extends core_Manager
     public static function getUserId($cId)
     {
         if (!$cId) {
+            
             return false;
         }
         
         $rec = self::fetch(array("#containerId = '[#1#]'", $cId));
         
         if (!$rec) {
+            
             return false;
         }
         
@@ -164,6 +168,7 @@ class email_Salutations extends core_Manager
     {
         // Ако не трябва да извлечем запис
         if (!self::isGoodRec($folderId, $threadId, $email)) {
+            
             return ;
         }
         
@@ -192,6 +197,7 @@ class email_Salutations extends core_Manager
             $salutation = self::getSalutationFromQuery($thClone, $email);
             
             if ($salutation) {
+                
                 return $salutation;
             }
         }
@@ -200,6 +206,7 @@ class email_Salutations extends core_Manager
         if ($threadId) {
             // Проверяваме дали може да се използва записа за папката
             if (!self::isGoodRec($folderId, null, $email)) {
+                
                 return ;
             }
         }
@@ -222,6 +229,7 @@ class email_Salutations extends core_Manager
     protected static function getSalutationFromQuery($query, $email = null)
     {
         if (!$query) {
+            
             return false;
         }
         
@@ -266,6 +274,7 @@ class email_Salutations extends core_Manager
     {
         // Ако няма папка и нишка
         if (!$folderId && !$threadId) {
+            
             return false;
         }
         
@@ -278,6 +287,7 @@ class email_Salutations extends core_Manager
 
         // Ако не може да се намери папката
         if (!$folderId) {
+            
             return false;
         }
         
@@ -302,6 +312,7 @@ class email_Salutations extends core_Manager
                     $now = dt::now();
                     $secsDiff = dt::secsBetween($now, $rec->createdOn);
                     if ($conf->EMAIL_SALUTATION_EMAIL_TIME_LIMIT > $secsDiff) {
+                        
                         return true;
                     }
                 }
@@ -312,6 +323,7 @@ class email_Salutations extends core_Manager
             
             // Ако корицата не е контрагент, връщаме
             if (($coverClass != 'crm_persons') && ($coverClass != 'crm_companies')) {
+                
                 return false;
             }
             
@@ -323,6 +335,7 @@ class email_Salutations extends core_Manager
                 
                 // Ако има потребителски профил
                 if (crm_Profiles::fetch("#personId = '{$coverId}'")) {
+                    
                     return false;
                 }
             }

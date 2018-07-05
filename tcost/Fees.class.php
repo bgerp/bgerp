@@ -185,6 +185,7 @@ class tcost_Fees extends core_Detail
 
         // Ако не се намери зона се връща 0
         if (is_null($zone)) {
+            
             return cond_TransportCalc::ZONE_FIND_ERROR;
         }
 

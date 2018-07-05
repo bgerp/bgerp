@@ -218,6 +218,7 @@ class type_Richtext extends type_Blob
         Debug::startTimer('RichtextToHtml');
         
         if (!strlen($html)) {
+            
             return '';
         }
         
@@ -438,6 +439,7 @@ class type_Richtext extends type_Blob
     {
         // Ако сме в текстов режим, да не се променя
         if (Mode::is('text', 'plain')) {
+            
             return $text;
         }
         
@@ -583,6 +585,7 @@ class type_Richtext extends type_Blob
         $hash = md5($line);
         
         if (isset($matchedLinesArr[$hash])) {
+            
             return $matchedLinesArr[$hash];
         }
         
@@ -790,6 +793,7 @@ class type_Richtext extends type_Blob
         }
 
         if (!trim($code)) {
+            
             return '';
         }
 
@@ -841,6 +845,7 @@ class type_Richtext extends type_Blob
         
         // Ако няма цитата, връщаме
         if (!strlen($quote)) {
+            
             return '';
         }
         
@@ -915,6 +920,7 @@ class type_Richtext extends type_Blob
         
         // Ако е празен стринг
         if (!strlen($code)) {
+            
             return $match[0];
         }
         
@@ -1082,6 +1088,7 @@ class type_Richtext extends type_Blob
         $title = $match[2];
 
         if (Mode::is('text', 'plain')) {
+            
             return "\n{$title}\n{$text}";
         }
 
@@ -1195,6 +1202,7 @@ class type_Richtext extends type_Blob
         }
         
         if (!stripos($url, '://')) {
+            
             return $url;
         }
         
@@ -1285,6 +1293,7 @@ class type_Richtext extends type_Blob
     public function replaceTables($html)
     {
         if (Mode::is('text', 'plain')) {
+            
             return $html;
         }
         
@@ -1569,6 +1578,7 @@ class type_Richtext extends type_Blob
         
         // Ако екшъна е SBF
         if (strtolower($params['Ctr']) == 'sbf') {
+            
             return false;
         }
         
@@ -1672,6 +1682,7 @@ class type_Richtext extends type_Blob
         $this->suggestions = arr::make($this->suggestions);
         
         if ($this->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this)) === false) {
+            
             return ;
         }
         

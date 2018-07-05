@@ -50,6 +50,7 @@ class git_Lib
 
         // Първият ред съдържа резултата
         if (self::cmdExec($command, $res, $repoPath)) {
+            
             return trim($res[0]);
         }
 
@@ -74,6 +75,7 @@ class git_Lib
 
         // Първият ред съдържа резултата
         if (self::cmdExec($command, $res, $repoPath)) {
+            
             return $res;
         }
 
@@ -97,6 +99,7 @@ class git_Lib
 
         // Първият ред съдържа резултата
         if (self::cmdExec($command, $res, $repoPath)) {
+            
             return trim($res[0]);
         }
 
@@ -155,6 +158,7 @@ class git_Lib
         $currentBranch = self::currentBranch($repoPath, $log);
 
         if ($currentBranch == $branch) {
+            
             return true;
         }
         
@@ -240,15 +244,19 @@ class git_Lib
     public static function mergeBeSuccess($repoPath, &$log, $branch1, $branch2)
     {
         if (!self::checkout($repoPath, $log, $branch1)) {
+            
             return false;
         }
         if (!self::pull($repoPath, $log)) {
+            
             return false;
         }
         if (!self::checkout($repoPath, $log, $branch2)) {
+            
             return false;
         }
         if (!self::pull($repoPath, $log)) {
+            
             return false;
         }
         
@@ -281,21 +289,26 @@ class git_Lib
     public static function merge($repoPath, &$log, $branch1, $branch2)
     {
         if (!self::checkout($repoPath, $log, $branch1)) {
+            
             return false;
         }
         if (!self::pull($repoPath, $log)) {
+            
             return false;
         }
         if (!self::checkout($repoPath, $log, $branch2)) {
+            
             return false;
         }
         if (!self::pull($repoPath, $log)) {
+            
             return false;
         }
 
         $commandMerge = " --work-tree=\"{$repoPath}\" merge {$branch1}";
 
         if (!self::cmdExec($commandMerge, $lines, $repoPath)) {
+            
             return false;
         }
 
@@ -321,6 +334,7 @@ class git_Lib
         $commandPush = " push origin {$currBranch}";
 
         if (!self::cmdExec($commandPush, $lines, $repoPath)) {
+            
             return false;
         }
 

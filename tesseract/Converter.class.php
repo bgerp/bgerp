@@ -249,6 +249,7 @@ class tesseract_Converter extends core_Manager
                 // Защита от пускане на много голям PDF файл, който да срине системата
                 if ($pdfPageCnt && is_numeric($pdfPageCnt)) {
                     if ($pdfPageCnt > 200) {
+                        
                         return '';
                     } elseif ($pdfPageCnt > 100) {
                         $density = 50;

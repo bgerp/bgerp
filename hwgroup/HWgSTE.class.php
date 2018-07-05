@@ -71,6 +71,7 @@ class hwgroup_HWgSTE extends sens2_ProtoDriver
         $xml = @file_get_contents($url, false, $context);
         
         if (empty($xml) || !$xml) {
+            
             return "Грешка при четене от {$config->ip}:{$config->port}";
         }
         

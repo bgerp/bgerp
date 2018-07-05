@@ -81,6 +81,7 @@ class type_Date extends core_Type
         $value = dt::verbal2mysql($value, !empty($this->timePart));
         
         if ($value) {
+            
             return $value;
         }
         $this->error = "Не е в допустимите формати, като например|*: '<B>" . dt::mysql2verbal(null, 'd-m-Y', null, false) . "</B>'";

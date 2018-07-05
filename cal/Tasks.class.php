@@ -899,6 +899,7 @@ class cal_Tasks extends embed_Manager
     public static function canAddProgress($rec)
     {
         if ($rec->state != 'rejected' && $rec->state != 'draft' && $rec->state != 'template') {
+            
             return true;
         }
         
@@ -2511,6 +2512,7 @@ class cal_Tasks extends embed_Manager
         }
         
         if (empty($sharedUsersArr)) {
+            
             return ;
         }
         
@@ -2644,10 +2646,12 @@ class cal_Tasks extends embed_Manager
         $rec = self::fetchRec($rec);
         
         if (!$rec) {
+            
             return ;
         }
         
         if (isset($notifyUsersArr) && empty($notifyUsersArr)) {
+            
             return ;
         }
         
@@ -3068,6 +3072,7 @@ class cal_Tasks extends embed_Manager
             $folderId = support_Systems::forceCoverAndFolder($systemId);
             
             if (doc_Folders::haveRightFor('single', $folderId)) {
+                
                 return new Redirect(array($this, 'add', 'folderId' => $folderId));
             }
         }
@@ -3208,6 +3213,7 @@ class cal_Tasks extends embed_Manager
     public static function getContragentData($id)
     {
         if (!$id) {
+            
             return ;
         }
         $rec = self::fetch($id);

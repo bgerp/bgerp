@@ -599,6 +599,7 @@ class email_Setup extends core_ProtoSetup
     public function checkConfig()
     {
         if (!function_exists('imap_open')) {
+            
             return 'Не е инсталиран IMAP модула на PHP';
         }
     }
@@ -631,6 +632,7 @@ class email_Setup extends core_ProtoSetup
         $cls->db->connect();
         $delayField = str::phpToMysqlName('delay');
         if (!$cls->db->isFieldExists($cls->dbTableName, $delayField)) {
+            
             return ;
         }
         
@@ -769,6 +771,7 @@ class email_Setup extends core_ProtoSetup
         list($accId, $begin, $end) = explode('|', $emlStatus);
         
         if (!$accId) {
+            
             return ;
         }
         
@@ -789,6 +792,7 @@ class email_Setup extends core_ProtoSetup
         $accRec = email_Accounts::fetch($accId);
         
         if ($accRec->state != 'active') {
+            
             return ;
         }
         

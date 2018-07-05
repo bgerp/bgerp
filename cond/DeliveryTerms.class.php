@@ -177,6 +177,7 @@ class cond_DeliveryTerms extends core_Master
         if (!empty($id)) {
             $rec = self::fetchRec($id);
             if (cls::load($rec->costCalc, true)) {
+                
                 return cls::getInterface('cond_TransportCalc', $rec->costCalc);
             }
         }
@@ -193,6 +194,7 @@ class cond_DeliveryTerms extends core_Master
     public static function canCalcHiddenCost($id, $productId)
     {
         if (!$id) {
+            
             return false;
         }
         
@@ -201,10 +203,12 @@ class cond_DeliveryTerms extends core_Master
             
             // Може да се начислява скрит транспорт само за складируем артикул, ако в условието на доставка е разрешено
             if (empty($productId)) {
+                
                 return false;
             }
             
             if (cat_Products::fetchField($productId, 'canStore') == 'yes') {
+                
                 return true;
             }
         }
@@ -255,6 +259,7 @@ class cond_DeliveryTerms extends core_Master
         
         // Ако е намерено нещо връщаме го
         if (isset($rec)) {
+            
             return $rec->id;
         }
         

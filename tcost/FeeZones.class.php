@@ -183,6 +183,7 @@ class tcost_FeeZones extends core_Master
         
         // Ако няма, цената няма да може да се изчисли
         if (empty($singleWeight)) {
+            
             return array('fee' => cond_TransportCalc::EMPTY_WEIGHT_ERROR);
         }
         $totalWeight = $this->getVolumicWeight($totalWeight, $totalVolume);

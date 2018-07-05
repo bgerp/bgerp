@@ -80,6 +80,7 @@ class fileman_FileSize extends type_Bigint
         }
         
         if ($value === 0) {
+            
             return 0;
         }
         

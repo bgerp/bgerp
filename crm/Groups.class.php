@@ -609,12 +609,14 @@ class crm_Groups extends core_Master
         $resArr = array();
         
         if (!isset($id) || ($id <= 0)) {
+            
             return $resArr;
         }
         
         $rec = $this->fetch($id);
         
         if (!$rec) {
+            
             return $resArr;
         }
         
@@ -765,6 +767,7 @@ class crm_Groups extends core_Master
         if (isset($id)) {
             list($id) = explode('_', $id);
             if ($this->haveRightFor('single', $id, $userId)) {
+                
                 return true;
             }
         }

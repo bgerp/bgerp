@@ -451,12 +451,14 @@ class core_Debug
         $code = '';
         
         if (!$file) {
+            
             return $code;
         }
         
         $source = @file_get_contents($file);
                 
         if (!$source) {
+            
             return $code;
         }
         
@@ -1023,6 +1025,7 @@ class core_Debug
  
         // Връщаме кеширания резултат ако има такъв
         if (is_bool(self::$isDebug)) {
+            
             return self::$isDebug;
         }
         

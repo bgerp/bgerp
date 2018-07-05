@@ -91,6 +91,7 @@ class eastron_SDM120 extends sens2_ioport_Abstract
         $res['ExportReactiveEnergy'] = $sdm120->getExportReactiveEnergy();
         
         if (empty($addresses)) {
+            
             return "Грешка при четене от {$config->ip}";
         }
                 

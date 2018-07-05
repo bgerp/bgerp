@@ -193,6 +193,7 @@ class type_Text extends core_Type
         $this->suggestions = arr::make($this->suggestions);
         
         if ($this->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this)) === false) {
+            
             return ;
         }
         

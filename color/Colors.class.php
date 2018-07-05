@@ -555,12 +555,15 @@ class color_Colors
             --$vH;
         }
         if ((6 * $vH) < 1) {
+            
             return ($v1 + ($v2 - $v1) * 6 * $vH);
         }
         if ((2 * $vH) < 1) {
+            
             return ($v2);
         }
         if ((3 * $vH) < 2) {
+            
             return ($v1 + ($v2 - $v1) * ((2 / 3) - $vH) * 6);
         }
 
@@ -724,10 +727,13 @@ class color_Colors
         $colorDivider = sqrt(($r1 * $r1 + $g1 * $g1 + $b1 * $b1) / ($r2 * $r2 + $g2 * $g2 + $b2 * $b2));
 
         if ($colorDivider > 1) {
+            
             return 1;
         } elseif ($colorDivider < 1) {
+            
             return -1;
         } else {
+            
             return 0;
         }
     }

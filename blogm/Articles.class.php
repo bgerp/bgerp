@@ -309,6 +309,7 @@ class blogm_Articles extends core_Master
         }
         
         if (!$id) {
+            
             return $this->act_Browse();
         }
 
@@ -321,6 +322,7 @@ class blogm_Articles extends core_Master
         $data->rec = $this->fetch($id);
 
         if (!$data->rec) {
+            
             return $this->act_Browse();
         }
 

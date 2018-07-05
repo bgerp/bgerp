@@ -283,6 +283,7 @@ class planning_Hr extends core_Master
         $Cover = doc_Folders::getCover($folderId);
         $resourceTypes = $Cover->getResourceTypeArray();
         if (!isset($resourceTypes['hr'])) {
+            
             return $options;
         }
         
@@ -373,6 +374,7 @@ class planning_Hr extends core_Master
         $res = array();
         $arr = (keylist::isKeylist($arr)) ? keylist::toArray($arr) : arr::make($arr, true);
         if (empty($arr)) {
+            
             return $res;
         }
         

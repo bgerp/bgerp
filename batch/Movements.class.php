@@ -389,6 +389,7 @@ class batch_Movements extends core_Detail
         // Партидите стават линкове
         $batch = batch_Defs::getBatchArray($productId, $batch);
         if (!is_array($batch)) {
+            
             return $batch;
         }
         

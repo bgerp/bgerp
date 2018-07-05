@@ -621,6 +621,7 @@ class bglocal_Address extends core_MVC
     public function calcMax($arr)
     {
         if (!count($arr)) {
+            
             return 0;
         }
         

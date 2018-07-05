@@ -132,6 +132,7 @@ class fileman_Mimes extends core_Mvc
         $exts = self::$mime2ext[$mime];
 
         if (!$exts) {
+            
             return array();
         }
 
@@ -147,6 +148,7 @@ class fileman_Mimes extends core_Mvc
         expect($fileName);
 
         if (!$mime) {
+            
             return $fileName;
         }
 
@@ -215,6 +217,7 @@ class fileman_Mimes extends core_Mvc
     {
         // Ако един от параметрите липсва
         if (!trim($mimeType) || !trim($ext)) {
+            
             return ;
         }
         
@@ -227,6 +230,7 @@ class fileman_Mimes extends core_Mvc
         
         // Ако е в масива с позволени разширения
         if (in_array($ext, $extArr)) {
+            
             return true;
         }
         

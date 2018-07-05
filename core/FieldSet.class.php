@@ -515,6 +515,7 @@ class core_FieldSet extends core_BaseClass
         }
         
         if ($this->fields[$name]) {
+            
             return $this->fields[$name];
         }
         if ($strict) {

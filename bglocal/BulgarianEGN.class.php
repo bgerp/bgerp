@@ -222,6 +222,7 @@ class bglocal_BulgarianEGN
         
         foreach (self::$regions as $region => $boundary) {
             if ($num <= $boundary) {
+                
                 return $region;
             }
         }

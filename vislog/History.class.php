@@ -113,6 +113,7 @@ class vislog_History extends core_Manager
                 return $historyQuery->count();
             }
         } else {
+            
             return $rec->id;
         }
     }
@@ -184,6 +185,7 @@ class vislog_History extends core_Manager
         $last5 = dt::addSecs(0 - $conf->VISLOG_ALLOW_SAME_IP);
         
         if ($mvc->fetch("#ip = '{$rec->ip}' AND #HistoryResourceId = {$rec->HistoryResourceId} AND #createdOn > '{$last5}'")) {
+            
             return false;
         }
         

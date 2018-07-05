@@ -90,6 +90,7 @@ class select2_PluginSelect extends core_Plugin
     public static function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
         if ($invoker->params['isReadOnly']) {
+            
             return ;
         }
         
@@ -146,10 +147,12 @@ class select2_PluginSelect extends core_Plugin
     public function on_BeforeAction($invoker, &$res, $action)
     {
         if ($action != 'getoptions') {
+            
             return ;
         }
         
         if (!Request::get('ajax_mode')) {
+            
             return ;
         }
         $hnd = Request::get('hnd');

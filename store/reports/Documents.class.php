@@ -117,6 +117,7 @@ class store_reports_Documents extends frame2_driver_TableData
         $recs = array();
         $storeIds = isset($rec->storeId) ? array($rec->storeId => $rec->storeId) : array_keys(self::getContableStores($rec));
         if (!count($storeIds)) {
+            
             return $recs;
         }
         $documentFld = ($rec->documentType) ? 'documentType' : 'document';
@@ -196,14 +197,17 @@ class store_reports_Documents extends frame2_driver_TableData
         
         if (count($recs)) {
             $dueDateArr = array_filter($recs, function ($a) {
+                
                 return !empty($a->dueDate);
             });
             $noDueDateArr = array_filter($recs, function ($a) {
+                
                 return empty($a->dueDate);
             });
             
             uasort($dueDateArr, function ($a, $b) {
                 if ($a->dueDate === $b->dueDate) {
+                    
                     return ($a->modifiedOn < $b->modifiedOn) ? -1 : 1;
                 }
             
@@ -471,6 +475,7 @@ class store_reports_Documents extends frame2_driver_TableData
         
         // Ако няма предпоследна, бие се нотификация
         if (!count($all)) {
+            
             return true;
         }
         $oldRec = $all[key($all)]->oldRec;
@@ -478,6 +483,7 @@ class store_reports_Documents extends frame2_driver_TableData
         $dataRecsOld = $oldRec->data->recs;
         
         if (!is_array($dataRecsOld)) {
+            
             return true;
         }
         
@@ -487,11 +493,13 @@ class store_reports_Documents extends frame2_driver_TableData
                     
                 // Ако има нов документ - известяване
                 if (!array_key_exists($index, $dataRecsOld)) {
+                    
                     return true;
                 }
                     
                 // Ако има промяна в крайния срок - известяване
                 if ($new->dueDate != $old->dueDate) {
+                    
                     return true;
                 }
             }

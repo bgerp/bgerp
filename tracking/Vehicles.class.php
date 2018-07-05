@@ -85,6 +85,7 @@ class tracking_Vehicles extends core_Manager
         $query->limit(1);
         $rec = $query->fetch();
         if (!$rec) {
+            
             return false;
         }
         

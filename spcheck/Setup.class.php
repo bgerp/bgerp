@@ -61,6 +61,7 @@ class spcheck_Setup extends core_ProtoSetup
         $activePhpModules = get_loaded_extensions();
         
         if (!in_array($modulName, $activePhpModules)) {
+            
             return "Не е инсталиран PHP модулът '{$modulName}'";
         }
     }

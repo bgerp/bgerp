@@ -112,6 +112,7 @@ class fileman_Download extends core_Manager
         
         // Ако е подаден празен стринг
         if (!trim($src)) {
+            
             return false;
         }
 
@@ -128,6 +129,7 @@ class fileman_Download extends core_Manager
             
             // Ако няма запис връщаме
             if (!$fRec) {
+                
                 return false;
             }
             
@@ -155,6 +157,7 @@ class fileman_Download extends core_Manager
             
             // Ако не е файл
             if (!is_file($originalPath)) {
+                
                 return false;
             }
             

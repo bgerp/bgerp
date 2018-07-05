@@ -118,6 +118,7 @@ class cat_products_Packagings extends core_Detail
         $begin = cat_Setup::get('PACKAGING_AUTO_BARCODE_BEGIN');
         $end = cat_Setup::get('PACKAGING_AUTO_BARCODE_END');
         if (empty($begin) || empty($end)) {
+            
             return array();
         }
         
@@ -196,23 +197,28 @@ class cat_products_Packagings extends core_Detail
     {
         $measureId = cat_Products::fetchField($productId, 'measureId');
         if (cat_UoM::isWeightMeasure($measureId)) {
+            
             return true;
         }
         
         $count = self::countSameTypePackagings($productId, 'kg');
         if ($count != 1) {
+            
             return true;
         }
         if (empty($id) && $count == 1) {
+            
             return true;
         }
         
         $weightGr = cat_Products::getParams($productId, 'weight');
         if (!empty($weightGr)) {
+            
             return true;
         }
         $weightKg = cat_Products::getParams($productId, 'weightKg');
         if (!empty($weightKg)) {
+            
             return true;
         }
         
@@ -239,6 +245,7 @@ class cat_products_Packagings extends core_Detail
             $mWeight = cat_UoM::convertValue(1, $packagingId, 'kg');
             $diff = $mWeight / $quantity;
             if (round($diff, 4) != round($kgWeight, 4)) {
+                
                 return 'Има разминаване спрямо очакваната стойност';
             }
         }
@@ -540,6 +547,7 @@ class cat_products_Packagings extends core_Detail
         if ($uomRec) {
             $packRec = self::getPack($productId, $uomRec->id);
             if ($packRec) {
+                
                 return $packRec->quantity;
             }
         }

@@ -273,6 +273,7 @@ class frame2_AllReports extends core_Master
         $newOptions = array();
         
         if (!$options) {
+            
             return $newOptions;
         }
         

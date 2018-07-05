@@ -44,6 +44,7 @@ class jquery_Jquery
         
         // Ако не е шаблон
         if (!($tpl instanceof core_ET)) {
+            
             return false;
         }
         

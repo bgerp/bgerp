@@ -220,12 +220,14 @@ class escpos_Convert extends core_Manager
     public static function hyphenText($text, $nl, $lineMaxLen)
     {
         if (!trim($text)) {
+            
             return $text;
         }
         
         $textLen = mb_strlen($text);
         
         if ($textLen <= $lineMaxLen) {
+            
             return $text;
         }
         

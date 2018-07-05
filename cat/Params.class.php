@@ -149,6 +149,7 @@ class cat_Params extends bgerp_ProtoParam
         $default = self::fetchField($paramId, 'default');
         
         if (!empty($default)) {
+            
             return $default;
         }
         
@@ -253,6 +254,7 @@ class cat_Params extends bgerp_ProtoParam
         // Ако има параметър с това систем ид,връща се
         $id = self::fetchIdBySysId($sysId);
         if (!empty($id)) {
+            
             return $id;
         }
         

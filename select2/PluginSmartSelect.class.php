@@ -58,6 +58,7 @@ class select2_PluginSmartSelect extends core_Plugin
     public function on_AfterCreateSmartSelect($invoker, $input, $type, $options, $name, $value, &$attr)
     {
         if ($invoker->params['isReadOnly']) {
+            
             return ;
         }
         
@@ -82,6 +83,7 @@ class select2_PluginSmartSelect extends core_Plugin
         
         // Ако ще са радиобутони
         if ($type->params['maxRadio'] && ($type->params['maxRadio'] >= $optionsCnt)) {
+            
             return ;
         }
         

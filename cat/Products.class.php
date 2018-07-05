@@ -383,6 +383,7 @@ class cat_Products extends embed_Manager
                 if (!empty($lastDriver)) {
                     if (cls::load($lastDriver, true)) {
                         if (cls::get($lastDriver)->canSelectDriver()) {
+                            
                             return redirect(array($mvc, 'add', 'folderId' => $folderId, 'innerClass' => $lastDriver));
                         }
                     }
@@ -1084,6 +1085,7 @@ class cat_Products extends embed_Manager
     public static function getProductInfo($productId)
     {
         if (isset(self::$productInfos[$productId])) {
+            
             return self::$productInfos[$productId];
         }
         
@@ -1161,6 +1163,7 @@ class cat_Products extends embed_Manager
                 $res->productId = $rec->id;
                 $res->packagingId = null;
             } else {
+                
                 return false;
             }
         }
@@ -1187,6 +1190,7 @@ class cat_Products extends embed_Manager
         }
         
         if ($groupRec = cat_products_VatGroups::getCurrentGroup($productId, $date)) {
+            
             return $groupRec->vat;
         }
         
@@ -1453,6 +1457,7 @@ class cat_Products extends embed_Manager
         $options = array();
         $pInfo = static::getProductInfo($productId);
         if (!$pInfo) {
+            
             return $options;
         }
         
@@ -1496,6 +1501,7 @@ class cat_Products extends embed_Manager
     {
         // Ако има драйвър, питаме него за стойността
         if ($Driver = static::getDriver($id)) {
+            
             return $Driver->getParams(cat_Products::getClassId(), $id, $name, $verbal);
         }
          
@@ -1544,6 +1550,7 @@ class cat_Products extends embed_Manager
             $rec = self::fetchRec($productId);
             $weight = $Driver->getTransportWeight($rec, $quantity);
             if (!empty($weight)) {
+                
                 return $weight;
             }
         }
@@ -1583,6 +1590,7 @@ class cat_Products extends embed_Manager
         
         // Ако има намерена поне една тара, транспортното тегло се връща
         if ($foundTare === true) {
+            
             return round($weight, 2);
         }
     }
@@ -1607,6 +1615,7 @@ class cat_Products extends embed_Manager
             $rec = self::fetchRec($productId);
             $volume = $Driver->getTransportVolume($rec, $quantity);
             if (!empty($volume)) {
+                
                 return $volume;
             }
         }
@@ -1925,6 +1934,7 @@ class cat_Products extends embed_Manager
         
         // Ако артикула не е производим не търсим рецепта
         if ($rec->canManifacture == 'no') {
+            
             return false;
         }
         
@@ -2116,6 +2126,7 @@ class cat_Products extends embed_Manager
     public function getIcon($id)
     {
         if ($Driver = $this->getDriver($id)) {
+            
             return $Driver->getIcon();
         }
 
@@ -2355,6 +2366,7 @@ class cat_Products extends embed_Manager
         $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, null, $maxTry);
         
         if (isset($amount)) {
+            
             return round($amount, 4);
         }
         
@@ -2587,6 +2599,7 @@ class cat_Products extends embed_Manager
     public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $componentQuantity, $typeBom = null)
     {
         if (empty($componentQuantity)) {
+            
             return $res;
         }
         $typeBom = (!empty($typeBom)) ? $typeBom : 'sales';
@@ -2608,6 +2621,7 @@ class cat_Products extends embed_Manager
         
         $checkMvc = ($documentType == 'job') ? 'planning_Jobs' : 'cat_Products';
         if (!$rec || cat_Boms::showIn($rec, $checkMvc) === false) {
+            
             return $res;
         }
         
@@ -2744,6 +2758,7 @@ class cat_Products extends embed_Manager
         expect($rec = self::fetch($id));
         
         if ($rec->canManifacture != 'yes') {
+            
             return $defaultTasks;
         }
         
@@ -2948,6 +2963,7 @@ class cat_Products extends embed_Manager
         // Мениджърската му себестойност, ако има
         $primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
         if (!empty($primeCost)) {
+            
             return $primeCost;
         }
         
@@ -2984,6 +3000,7 @@ class cat_Products extends embed_Manager
                 if (!empty($topKey)) {
                     $primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $topKey);
                     if (!empty($primeCost)) {
+                        
                         return $primeCost;
                     }
                 }
@@ -2996,6 +3013,7 @@ class cat_Products extends embed_Manager
             if (!empty($bomId)) {
                 $primeCost = cat_Boms::getBomPrice($bomId, 1, 0, 0, null, price_ListRules::PRICE_LIST_COST);
                 if (!empty($primeCost)) {
+                    
                     return $primeCost;
                 }
             }
@@ -3005,6 +3023,7 @@ class cat_Products extends embed_Manager
         if ($pRec->canStore == 'yes') {
             $primeCost = cat_Products::getWacAmountInStore(1, $productId, null);
             if (!empty($primeCost)) {
+                
                 return $primeCost;
             }
         }
@@ -3380,6 +3399,7 @@ class cat_Products extends embed_Manager
             $dQuery->limit(1);
             
             if ($dQuery->fetch()) {
+                
                 return true;
             }
         }
@@ -3389,6 +3409,7 @@ class cat_Products extends embed_Manager
         $jQuery->show('id');
         $jQuery->limit(1);
         if ($jQuery->fetch()) {
+            
             return true;
         }
         
@@ -3442,6 +3463,7 @@ class cat_Products extends embed_Manager
         
         // Ако основната мярка е подадената, то стойноста е 1
         if ($toUomId == $measureId) {
+            
             return 1;
         }
         
@@ -3483,6 +3505,7 @@ class cat_Products extends embed_Manager
 
                 return $res;
             } elseif ($paramValue = self::getParams($productId, 'weightKg')) {
+                
                 return $paramValue;
             }
         }

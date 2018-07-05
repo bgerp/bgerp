@@ -26,6 +26,7 @@ class bgerp_Index extends core_Manager
             requireRole('user');
             
             if (haveRole('powerUser')) {
+                
                 return new Redirect(array('bgerp_Portal', 'Show'));
             }
                 

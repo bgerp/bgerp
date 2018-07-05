@@ -82,6 +82,7 @@ class distro_CopyDriver extends core_Mvc
         // Ако същия файл липсва в другото хранилище, тогава ще има възможност за копиране
         
         if (!distro_Group::canAddDetail($groupId, $userId)) {
+            
             return false;
         }
         
@@ -90,6 +91,7 @@ class distro_CopyDriver extends core_Mvc
         $reposArr = distro_Group::getReposArr($groupId);
         
         if (count($dFileArr) >= count($reposArr)) {
+            
             return false;
         }
         

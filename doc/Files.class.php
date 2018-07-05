@@ -138,6 +138,7 @@ class doc_Files extends core_Manager
         }
         
         if (!empty($resArr)) {
+            
             return $resArr;
         }
         
@@ -171,6 +172,7 @@ class doc_Files extends core_Manager
     public static function recalcFiles($cId)
     {
         if (!$cId) {
+            
             return ;
         }
         
@@ -265,6 +267,7 @@ class doc_Files extends core_Manager
     public static function deleteFilesForContainer($cId)
     {
         if (!$cId) {
+            
             return ;
         }
         
@@ -596,6 +599,7 @@ class doc_Files extends core_Manager
         
         // Ако все още няма папка, връщаме 0
         if (!$folderId) {
+            
             return 0;
         }
         
@@ -670,6 +674,7 @@ class doc_Files extends core_Manager
     {
         // Ако няма containerId не се прави нищо
         if (!$cRec->containerId) {
+            
             return ;
         }
 

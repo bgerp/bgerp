@@ -140,6 +140,7 @@ abstract class cat_ProductDriver extends core_BaseClass
     public function getDefaultMetas($metas = null)
     {
         if (isset($metas)) {
+            
             return arr::make($metas, true);
         }
         
@@ -166,6 +167,7 @@ abstract class cat_ProductDriver extends core_BaseClass
     public function getParams($classId, $id, $name = null, $verbal = false)
     {
         if ($name) {
+            
             return false;
         }
 
@@ -666,6 +668,7 @@ abstract class cat_ProductDriver extends core_BaseClass
                 $Source = cls::get($sRec->sourceClassId);
                 if ($Source->getField('productId', false)) {
                     if ($productId = $Source->fetchField($sRec->sourceObjectId, 'productId')) {
+                        
                         return cat_Products::fetch($productId);
                     }
                 }

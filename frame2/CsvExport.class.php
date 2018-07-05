@@ -40,6 +40,7 @@ class frame2_CsvExport extends core_Mvc
     {
         $canUse = export_Export::canUseExport($clsId, $objId);
         if (!$canUse) {
+            
             return $canUse;
         }
         

@@ -211,6 +211,7 @@ class blast_Letters extends core_Master
         
         // Ако не е папка проект или контрагент, не може да се добави
         if (($coverClassName != 'doc_unsortedfolders') && ($coverClassName != 'crm_groups')) {
+            
             return false;
         }
     }
@@ -1340,6 +1341,7 @@ class blast_Letters extends core_Master
         $toListId = $data->toListId;
         
         if (!$toListId) {
+            
             return ;
         }
         

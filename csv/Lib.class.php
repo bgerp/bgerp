@@ -474,6 +474,7 @@ class csv_Lib
         $rowsArr = self::getCsvRowsFromFile($csvData, array('delimiter' => $delimiter, 'enclosure' => $enclosure, 'firstRow' => 'columnNames'));
         
         if ($checkErr && $rowsArr['error']) {
+            
             return array();
         }
 

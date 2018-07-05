@@ -460,6 +460,7 @@ class eshop_Products extends core_Master
         if (!$data->productId) {
             $opt = cms_Content::getMenuOpt('eshop_Groups');
             if (count($opt)) {
+                
                 return new Redirect(array('cms_Content', 'Show', key($opt)));
             }
 
@@ -604,6 +605,7 @@ class eshop_Products extends core_Master
         $rec = self::fetchRec($rec);
         $gRec = eshop_Groups::fetch($rec->groupId);
         if (empty($gRec->menuId)) {
+            
             return array();
         }
         
@@ -790,6 +792,7 @@ class eshop_Products extends core_Master
             $groupId = $rec->groupId;
         }
         if (!$groupId) {
+            
             return $res;
         }
 
@@ -848,6 +851,7 @@ class eshop_Products extends core_Master
             
             if (empty($formRec->eshopProductId)) {
                 if (eshop_Products::haveRightFor('add', (object) array('productId' => $productId))) {
+                    
                     return redirect(array($this, 'add', 'productId' => $productId, 'packagings' => keylist::toArray($formRec->packagings)));
                 }
 
@@ -963,6 +967,7 @@ class eshop_Products extends core_Master
         $domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
         $groups = eshop_Groups::getByDomain($domainId);
         if (!count($groups)) {
+            
             return $products;
         }
         $groups = array_keys($groups);

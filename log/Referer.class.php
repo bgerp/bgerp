@@ -103,10 +103,12 @@ class log_Referer extends core_Master
         $referer = $_SERVER['HTTP_REFERER'];
         
         if (!$referer) {
+            
             return ;
         }
         
         if (core_Url::isLocal($referer)) {
+            
             return ;
         }
         
@@ -163,6 +165,7 @@ class log_Referer extends core_Master
     {
         if ($check) {
             if (log_Data::fetch(array("#ipId = '[#1#]' AND #brId = '[#2#]' AND #time = '[#3#]'", $ipId, $bridId, $time))) {
+                
                 return 0;
             }
         }

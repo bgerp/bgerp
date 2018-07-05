@@ -420,6 +420,7 @@ class cash_InternalMoneyTransfer extends core_Master
     {
         // Може да създаваме документ-а само в дефолт папката му
         if ($folderId == static::getDefaultFolder(null, false) || doc_Folders::fetchCoverClassName($folderId) == 'cash_Cases') {
+            
             return true;
         }
             

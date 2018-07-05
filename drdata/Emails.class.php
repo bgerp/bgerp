@@ -32,6 +32,7 @@ class drdata_Emails extends core_BaseClass
         $regExp = '/^[_A-z0-9-]+((\.|\+|\/)[_A-z0-9-]+)*@[A-z0-9-]+(\.[A-z0-9-]+)*(\.[A-z]{2,4})$/';
         
         if (!preg_match($regExp, $email)) {
+            
             return 'Невалиден имейл';
         }
     }
@@ -98,6 +99,7 @@ class drdata_Emails extends core_BaseClass
         $hosts = @dns_get_record($domain, DNS_A + DNS_MX, $audthns, $addtl);
   
         if (!$hosts) {
+            
             return false;
         }
         
@@ -112,6 +114,7 @@ class drdata_Emails extends core_BaseClass
     {
         if (getmxrr($domain, $mxhosts, $mx_weight)) {
             if ($mxhosts === array(0 => '')) {
+                
                 return false;
             }
             
@@ -129,11 +132,13 @@ class drdata_Emails extends core_BaseClass
     {
         if ($cmd) {
             if (@fwrite($sock, $cmd . "\r\n") === false) {
+                
                 return false;
             }
         }
         
         if (($resp = @fgets($sock)) === false) {
+            
             return false;
         }
         
@@ -147,6 +152,7 @@ class drdata_Emails extends core_BaseClass
     public static function stmpResultCode($sock, $cmd)
     {
         if (($r = self::smtpSend($sock, $cmd)) === false) {
+            
             return false;
         }
         
@@ -375,6 +381,7 @@ class drdata_Emails extends core_BaseClass
         );
         
         if (in_array($domain, $domainsOK)) {
+            
             return true;
         }
     }
@@ -419,6 +426,7 @@ class drdata_Emails extends core_BaseClass
         );
         
         if (in_array($domain, $domainsNeverLogged)) {
+            
             return true;
         }
         

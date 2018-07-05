@@ -413,6 +413,7 @@ class blast_Emails extends core_Master
         }
         
         if ($deadLine > time()) {
+            
             return true;
         }
         
@@ -2232,6 +2233,7 @@ class blast_Emails extends core_Master
         $detId = $data->detId;
         
         if (!$detId) {
+            
             return ;
         }
         
@@ -2245,6 +2247,7 @@ class blast_Emails extends core_Master
         }
         
         if ($mvc->fields['body']->type->params['hndToLink'] == 'no') {
+            
             return ;
         }
         
@@ -2291,6 +2294,7 @@ class blast_Emails extends core_Master
         
         // Може да се добавя само в проекти и в групи
         if (($coverClassName != 'doc_unsortedfolders') && ($coverClassName != 'crm_groups')) {
+            
             return false;
         }
         

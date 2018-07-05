@@ -360,10 +360,12 @@ class doc_SharablePlg extends core_Plugin
         $res = arr::make($res);
         
         if (!core_Users::isPowerUser()) {
+            
             return ;
         }
         
         if (!$mvc->autoShareOriginShared && !$mvc->autoShareOriginCreator) {
+            
             return ;
         }
         

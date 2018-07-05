@@ -43,6 +43,7 @@ class cal_TaskType extends core_Mvc
             $userId = core_Users::getCurrent();
         }
         if ($userId > 0) {
+            
             return true;
         }
         

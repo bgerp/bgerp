@@ -192,6 +192,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         foreach ($recs as $i => $r) {
             $newRecs[$i] = $r;
             $subArr = array_filter($recs, function ($a) use ($r, $groupField) {
+                
                 return ($a->{$groupField} == $r->{$groupField});
             });
             if (count($subArr)) {
@@ -384,10 +385,12 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
         // Ако няма предпоследна, бие се нотификация
         if (!count($all)) {
+            
             return true;
         }
         
         if (empty($this->newFieldToCheck)) {
+            
             return false;
         }
         

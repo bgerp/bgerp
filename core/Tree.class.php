@@ -79,6 +79,7 @@ class core_Tree extends core_BaseClass
     {
         // Ако нямаме дърво - връщаме съдържанието без промяна
         if (!count($this->nodes)) {
+            
             return $body;
         }
         

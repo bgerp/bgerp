@@ -184,6 +184,7 @@ class cms_Objects extends core_Master
         $rec = self::fetch(array("#tag = '[#1#]'", $tag));
         
         if (!$rec || $used[$tag]) {
+            
             return "[obj={$tag}]";
         }
 

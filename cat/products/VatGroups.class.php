@@ -271,6 +271,7 @@ class cat_products_VatGroups extends core_Detail
         $gQuery->where(array("#vat = '[#1#]'", $percent));
         $groups = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
         if (!count($groups)) {
+            
             return $products;
         }
         
@@ -287,6 +288,7 @@ class cat_products_VatGroups extends core_Detail
         
         $products = array_filter($products, function ($obj) use ($groups) {
             if (in_array($obj->vatGroup, $groups)) {
+                
                 return true;
             }
         });

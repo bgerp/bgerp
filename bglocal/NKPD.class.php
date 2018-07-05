@@ -89,6 +89,7 @@ class bglocal_NKPD extends core_Master
         $query->orderBy('key', 'ASC');
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
+                
                 return array();
             }
         

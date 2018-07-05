@@ -414,6 +414,7 @@ class incoming_Documents extends core_Master
         $ext = fileman_Files::getExt($fileName);
 
         if (($minLen = $typeToLen[$ext]) && ($minLen <= $fileLen)) {
+            
             return true;
         }
     }
@@ -465,12 +466,14 @@ class incoming_Documents extends core_Master
         $rec = $this->fetchRec($rec);
         
         if (!$rec || !$rec->fileHnd) {
+            
             return $res;
         }
         
         $fRec = fileman_Files::fetchByFh($rec->fileHnd);
         
         if (!$fRec) {
+            
             return $res;
         }
         

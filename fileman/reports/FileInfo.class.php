@@ -165,10 +165,12 @@ class fileman_reports_FileInfo extends frame_BaseDriver
                     case 'cnt':
                         if ($direction == 'a') {
                             usort($data->files, function ($a, $b) {
+                                
                                 return ($a['cnt'] > $b['cnt']) ? 1 : -1;
                             });
                         } else {
                             usort($data->files, function ($a, $b) {
+                                
                                 return ($a['cnt'] > $b['cnt']) ? -1 : 1;
                             });
                         }
@@ -177,10 +179,12 @@ class fileman_reports_FileInfo extends frame_BaseDriver
                         case 'len':
                         if ($direction == 'a') {
                             usort($data->files, function ($a, $b) {
+                                
                                 return ($a['len'] > $b['len']) ? 1 : -1;
                             });
                         } else {
                             usort($data->files, function ($a, $b) {
+                                
                                 return ($a['len'] > $b['len']) ? -1 : 1;
                             });
                         }
@@ -222,6 +226,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         
             if (strpos($data->fRec->sorting, 'group') !== false) {
                 usort($data->rows, function ($a, $b) {
+                    
                     return strcasecmp(mb_strtolower($a->groupId, 'UTF-8'), mb_strtolower($b->groupId, 'UTF-8'));
                 });
                 

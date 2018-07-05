@@ -252,18 +252,22 @@ class trans_Setup extends core_ProtoSetup
                 $from = trim($from);
                 $to = trim($to);
                 if (!ctype_digit($from) || !ctype_digit($to) || !($from < $to)) {
+                    
                     return 'Непарсируем диапазон на колети|* "'. $item . '"';
                 }
                 for ($i = (int) $from; $i <= $to; $i++) {
                     if (isset($res[$i])) {
+                        
                         return 'Повторение на колет|* №'. $i;
                     }
                     $res[$i] = $i;
                 }
             } elseif (!ctype_digit($item)) {
+                
                 return 'Непарсируем номер на колет|* "'. $item . '"';
             } else {
                 if (isset($res[$item])) {
+                    
                     return 'Повторение на колет|* №'. $item;
                 }
                 $item = (int) $item;
@@ -272,6 +276,7 @@ class trans_Setup extends core_ProtoSetup
         }
     
         if (trim($infoLU) && !count($res)) {
+            
             return 'Грешка при парсиране на номерата на колетите';
         }
     

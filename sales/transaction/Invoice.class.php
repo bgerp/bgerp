@@ -91,6 +91,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             
             $type = ($rec->dealValue > 0) ? 'Дебитно известие' : 'Кредитно известие';
             if (!$origin) {
+                
                 return $result;
             }
             $result->reason = "{$type} към фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
@@ -108,6 +109,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
     
         // Ако фактурата е от пос продажба не се контира ддс
         if ($cloneRec->type == 'invoice' && isset($cloneRec->docType, $cloneRec->docId)) {
+            
             return $result;
         }
          

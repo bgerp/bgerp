@@ -160,6 +160,7 @@ class email_SendOnTime extends core_Manager
         $res = array();
         
         if ($rec->state != 'waiting') {
+            
             return $res;
         }
         

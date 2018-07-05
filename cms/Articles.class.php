@@ -224,6 +224,7 @@ class cms_Articles extends core_Master
                 $menuId = Request::get('menuId', 'int');
             }
             if (!$menuId) {
+                
                 return new Redirect(array('Index'));
             }
         } else {
@@ -553,6 +554,7 @@ class cms_Articles extends core_Master
         $rec = $query->fetch("#menuId = {$menuId} AND #body != '' AND #state = 'active'");
 
         if ($rec) {
+            
             return self::getUrl($rec);
         }
     }
@@ -894,6 +896,7 @@ class cms_Articles extends core_Master
         }
         
         if (!count($links)) {
+            
             return new core_ET('');
         }
         

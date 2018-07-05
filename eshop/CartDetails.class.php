@@ -450,6 +450,7 @@ class eshop_CartDetails extends core_Detail
 
         // Ако заявката е по ajax
         if (Request::get('ajax_mode')) {
+            
             return self::getUpdateCartResponse($cartId);
         }
         
@@ -512,6 +513,7 @@ class eshop_CartDetails extends core_Detail
         
         // Ако заявката е по ajax
         if (Request::get('ajax_mode')) {
+            
             return self::getUpdateCartResponse($cartId);
         }
         

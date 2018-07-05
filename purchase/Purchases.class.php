@@ -271,6 +271,7 @@ class purchase_Purchases extends deals_DealMaster
     public static function getTitleWithAmount($id, $showAmount = true)
     {
         if (!$id) {
+            
             return '';
         }
         $rec = self::fetch($id);

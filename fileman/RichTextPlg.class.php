@@ -36,6 +36,7 @@ class fileman_RichTextPlg extends core_Plugin
             $callback = "function {$callbackName}(fh, fName) { 
                 var ta = get$('{$id}');
                 rp('[file=' + fh + ']' + fName + '[/file]', ta, 1);
+                
                 return true;
             }";
             

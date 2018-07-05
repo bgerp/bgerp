@@ -217,6 +217,7 @@ class label_Counters extends core_Master
     {
         // Ако в текста някъде се намира плейсхолдер за брояча
         if (strpos($str, self::$counterPlace) !== false) {
+            
             return true;
         }
         
@@ -324,6 +325,7 @@ class label_Counters extends core_Master
     {
         // Ако няма
         if (!$id) {
+            
             return ;
         }
         

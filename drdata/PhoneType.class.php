@@ -37,6 +37,7 @@ class drdata_PhoneType extends type_Varchar
         
         // Ако не е валиден номер
         if (!$numArr || !count($numArr)) {
+            
             return $number;
         }
         
@@ -114,6 +115,7 @@ class drdata_PhoneType extends type_Varchar
     {
         // Ако не е обект, връщаме
         if (!is_object($numObj)) {
+            
             return $numObj;
         }
         
@@ -136,6 +138,7 @@ class drdata_PhoneType extends type_Varchar
         }
         
         if (Mode::is('text', 'plain') || Mode::is('text', 'pdf') || Mode::is('text', 'xhtml')) {
+            
             return $telNumber;
         }
         
@@ -145,10 +148,12 @@ class drdata_PhoneType extends type_Varchar
         $mobile = $conf->TEL_LINK_NARROW;
         
         if ($desktop == 'none' && Mode::is('screenMode', 'wide')) {
+            
             return $telNumber;
         }
         
         if ($mobile == 'none' && Mode::is('screenMode', 'narrow')) {
+            
             return $telNumber;
         }
         
@@ -157,6 +162,7 @@ class drdata_PhoneType extends type_Varchar
         $telNumber = parent::toVerbal_($telNumber);
 
         if ($parsedTel == false) {
+            
             return "<span class='red' title='" . tr('Неразпознаваем телефонен номер||Unrecognizable phone number') . "'>{$telNumber}</span>";
         }
         $res = new ET();
@@ -223,10 +229,12 @@ class drdata_PhoneType extends type_Varchar
         $mobile = $conf->TEL_LINK_NARROW;
         
         if ($desktop == 'none' && Mode::is('screenMode', 'wide')) {
+            
             return $str;
         }
         
         if ($mobile == 'none' && Mode::is('screenMode', 'narrow')) {
+            
             return $str;
         }
 

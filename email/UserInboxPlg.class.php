@@ -234,6 +234,7 @@ class email_UserInboxPlg extends core_Plugin
         $userId = core_Users::fetchField("#nick = '{$nick}'", 'id');
 
         if (!$userId) {
+            
             return false;
         }
         

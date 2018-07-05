@@ -311,6 +311,7 @@ class cat_Boms extends core_Master
     {
         $rec = $this->fetchRec($id);
         if ($rec->state != 'closed' && $rec->state != 'rejected') {
+            
             return false;
         }
         
@@ -926,6 +927,7 @@ class cat_Boms extends core_Master
         }
         
         if (count($res)) {
+            
             return array($productId => $res);
         }
         
@@ -1062,9 +1064,11 @@ class cat_Boms extends core_Master
         
         // Ако няма цена връщаме FALSE
         if (!isset($price)) {
+            
             return false;
         }
         if (!$quantity) {
+            
             return false;
         }
         
@@ -1515,6 +1519,7 @@ class cat_Boms extends core_Master
         $res = array();
         $bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now());
         if (!count($bomInfo['resources'])) {
+            
             return $res;
         }
         

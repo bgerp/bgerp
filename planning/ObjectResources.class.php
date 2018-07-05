@@ -428,18 +428,21 @@ class planning_ObjectResources extends core_Manager
         // Проверяваме за тази група артикули, имали кеширана средна цена
         $cachePrice = static::$cache[current(preg_grep("|{$productId}|", array_keys(static::$cache)))];
         if ($cachePrice) {
+            
             return $cachePrice;
         }
         
         // Ако артикула не е вложим, не търсим средна цена
         $isConvertable = cat_Products::fetchField($productId, 'canConvert');
         if ($isConvertable != 'yes') {
+            
             return $avgPrice;
         }
         
         // Ако няма заместващи артикули, не търсим средна цена
         $equivalentProducts = static::getEquivalentProducts($productId);
         if (!count($equivalentProducts)) {
+            
             return $avgPrice;
         }
         

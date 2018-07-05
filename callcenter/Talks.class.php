@@ -396,6 +396,7 @@ class callcenter_Talks extends core_Master
         $recArr = (array) $rec;
         
         if (empty($recArr)) {
+            
             return $recArr;
         }
         
@@ -499,6 +500,7 @@ class callcenter_Talks extends core_Master
         
         // Проверяваме дали има права за добавяне на запис
         if (!static::isAuthorized($protectKey)) {
+            
             return false;
         }
         
@@ -691,6 +693,7 @@ class callcenter_Talks extends core_Master
         
         // Проверяваме дали има права за добавяне на запис
         if (!static::isAuthorized($protectKey)) {
+            
             return false;
         }
         
@@ -919,6 +922,7 @@ class callcenter_Talks extends core_Master
     protected static function isRedirected($rec)
     {
         if (strpos($rec->uniqId, self::$callUniqIdDelimiter)) {
+            
             return true;
         }
         
@@ -958,6 +962,7 @@ class callcenter_Talks extends core_Master
     protected static function getLastTalksRec($uniqId)
     {
         if (!$uniqId) {
+            
             return false;
         }
         
@@ -983,12 +988,14 @@ class callcenter_Talks extends core_Master
     protected static function getRedirectedFromNum($rec)
     {
         if (!self::isRedirected($rec)) {
+            
             return ;
         }
         
         $parentRec = self::getParentRecForUniqId($rec->uniqId);
         
         if (!$parentRec) {
+            
             return ;
         }
         
@@ -1006,6 +1013,7 @@ class callcenter_Talks extends core_Master
     protected static function getParentRecForUniqId($uniqId)
     {
         if (!strpos($uniqId, self::$callUniqIdDelimiter)) {
+            
             return false;
         }
         
@@ -1043,6 +1051,7 @@ class callcenter_Talks extends core_Master
         $parentRec = self::getChildRecForUniqId($rec->uniqId);
         
         if (!$parentRec) {
+            
             return ;
         }
         
@@ -1638,6 +1647,7 @@ class callcenter_Talks extends core_Master
     {
         // Ако няма заявка, да не се изпълнява
         if (!$data->listSummary->query) {
+            
             return ;
         }
         
@@ -1699,6 +1709,7 @@ class callcenter_Talks extends core_Master
     {
         // Ако няма данни, няма да се показва нищо
         if (!$data->listSummary->statVerb) {
+            
             return ;
         }
         
@@ -1815,6 +1826,7 @@ class callcenter_Talks extends core_Master
     {
         // Ако няма id връщаме
         if (!$id) {
+            
             return ;
         }
         
@@ -1900,6 +1912,7 @@ class callcenter_Talks extends core_Master
             
             // Ако няма роля admin, да не се показва шаблона за нов
             if (!haveRole('admin')) {
+                
                 return ;
             }
             
@@ -2314,12 +2327,14 @@ class callcenter_Talks extends core_Master
     public function getDefaultIssueRec($id)
     {
         if (!$id) {
+            
             return ;
         }
         
         $rec = $this->fetch($id);
         
         if (!$rec) {
+            
             return ;
         }
         

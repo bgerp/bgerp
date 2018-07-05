@@ -617,6 +617,7 @@ class acc_Accounts extends core_Manager
         }
         
         if (!isset(self::$idToNumMap[$id])) {
+            
             return false;
         }
         
@@ -637,6 +638,7 @@ class acc_Accounts extends core_Manager
         }
         
         if (!isset(self::$numToIdMap[$num])) {
+            
             return false;
         }
         

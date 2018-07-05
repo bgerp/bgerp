@@ -320,6 +320,7 @@ class cal_Progresses extends core_Mvc
     protected static function getLastGoodProgress($originId)
     {
         if (!$originId) {
+            
             return ;
         }
         
@@ -334,6 +335,7 @@ class cal_Progresses extends core_Mvc
         $rec = $query->fetch();
         
         if (!$rec) {
+            
             return 0;
         }
         

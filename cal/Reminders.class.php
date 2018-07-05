@@ -942,6 +942,7 @@ class cal_Reminders extends core_Master
         }
         
         if ($rec2->timeStart > dt::now()) {
+            
             return $rec2->timeStart;
         }
 

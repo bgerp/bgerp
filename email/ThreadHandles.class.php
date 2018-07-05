@@ -168,6 +168,7 @@ class email_ThreadHandles extends core_Manager
                     // Проверяваме хендлърите последователно
                     foreach ($handles as $handle) {
                         if ($threadId = self::getThreadIdByHandle($handle)) {
+                            
                             return $threadId;
                         }
                     }

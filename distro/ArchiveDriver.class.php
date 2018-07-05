@@ -74,6 +74,7 @@ class distro_ArchiveDriver extends core_Mvc
             $fRec = distro_Files::fetch($fileId);
             
             if (isset($fRec->sourceFh)) {
+                
                 return false;
             }
         }
@@ -95,6 +96,7 @@ class distro_ArchiveDriver extends core_Mvc
     {
         $fRec = distro_Files::fetch($rec->fileId);
         if ($fRec->sourceFh) {
+            
             return '';
         }
         
@@ -177,12 +179,14 @@ class distro_ArchiveDriver extends core_Mvc
         expect($fRec);
         
         if ($fRec->sourceFh) {
+            
             return false;
         }
         
         $conn = distro_Repositories::connectToRepo($repoId);
         
         if (!$conn) {
+            
             return false;
         }
         

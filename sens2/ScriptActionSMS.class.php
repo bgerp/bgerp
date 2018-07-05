@@ -85,9 +85,11 @@ class sens2_ScriptActionSMS
         if (trim($rec->cond)) {
             $cond = sens2_Scripts::calcExpr($rec->cond, $rec->scriptId);
             if ($cond === sens2_Scripts::CALC_ERROR) {
+                
                 return 'stopped';
             }
             if (!$cond) {
+                
                 return 'closed';
             }
         }
@@ -105,6 +107,7 @@ class sens2_ScriptActionSMS
         }
         
         if ($res !== false) {
+            
             return 'active';
         }
 

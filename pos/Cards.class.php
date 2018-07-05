@@ -188,6 +188,7 @@ class pos_Cards extends core_Manager
         }
         
         if ($rec = $query->fetch()) {
+            
             return new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
         }
         

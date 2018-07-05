@@ -74,6 +74,7 @@ class minify_Css
     public function make($css = '', $linebreak_pos = false)
     {
         if (empty($css)) {
+            
             return '';
         }
 
@@ -704,12 +705,15 @@ class minify_Css
     {
         $vh = $vh < 0 ? $vh + 1 : ($vh > 1 ? $vh - 1 : $vh);
         if ($vh * 6 < 1) {
+            
             return $v1 + ($v2 - $v1) * 6 * $vh;
         }
         if ($vh * 2 < 1) {
+            
             return $v2;
         }
         if ($vh * 3 < 2) {
+            
             return $v1 + ($v2 - $v1) * ((2 / 3) - $vh) * 6;
         }
 
@@ -759,17 +763,20 @@ class minify_Css
 
             if ($start < 0) {
                 if (($start = $max + $start) < 0) {
+                    
                     return '';
                 }
             }
 
             if ($end < 0) {
                 if (($end = $max + $end) < 0) {
+                    
                     return '';
                 }
             }
 
             if ($end <= $start) {
+                
                 return '';
             }
         }

@@ -202,10 +202,12 @@ class transsrv_ProductDrv extends cat_ProductDriver
         }
             
         if ($nameId && isset($params[$nameId])) {
+            
             return $params[$nameId];
         }
         
         if ($name && isset($rec->_params[$name])) {
+            
             return $rec->_params[$name];
         }
         
@@ -228,6 +230,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
     public function getConditions($rec, $docType, $lg = null)
     {
         if ($condition = transsrv_Setup::get('SALE_DEFAULT_CONDITION')) {
+            
             return array($condition);
         }
         

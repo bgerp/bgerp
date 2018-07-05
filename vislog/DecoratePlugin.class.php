@@ -22,10 +22,12 @@ class vislog_DecoratePlugin extends core_Plugin
     {
         // Ако показваме чист текст или подготвяме HTML за навън - лишаваме се от декорациите
         if (Mode::is('text', 'plain') || Mode::is('text', 'xhtml')) {
+            
             return $ip;
         }
         
         if (!strtolower(trim($ip))) {
+            
             return $ip;
         }
         

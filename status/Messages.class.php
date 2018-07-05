@@ -287,6 +287,7 @@ class status_Messages extends core_Manager
             
             // Ако се принтира
             if (Request::get('Printing')) {
+                
                 return array();
             }
             
@@ -303,6 +304,7 @@ class status_Messages extends core_Manager
             
             // Ако няма нищо за показване
             if (!$statusesArr) {
+                
                 return array();
             }
             

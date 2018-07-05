@@ -204,6 +204,7 @@ class blast_Setup extends core_ProtoSetup
         $listId = str::phpToMysqlName('listId');
        
         if (!$blsInst->db->isFieldExists($blsInst->dbTableName, $listId)) {
+            
             return ;
         }
         
@@ -300,6 +301,7 @@ class blast_Setup extends core_ProtoSetup
         $startOnField = str::phpToMysqlName('startOn');
         
         if (!$cls->db->isFieldExists($cls->dbTableName, $startOnField)) {
+            
             return ;
         }
         

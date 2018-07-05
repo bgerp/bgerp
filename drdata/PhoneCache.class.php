@@ -81,6 +81,7 @@ class drdata_PhoneCache extends core_Manager
         $query = self::getQuery();
         $query->show('res');
         if ($rec = $query->fetch(array("#tel = '[#1#]' AND #dCC = '[#2#]' AND #dAC = '[#3#]'", $tel, $dCC, $dAC))) {
+            
             return $rec->res;
         }
     }

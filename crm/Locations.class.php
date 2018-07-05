@@ -193,6 +193,7 @@ class crm_Locations extends core_Master
             }
             
             if ($skip === true) {
+                
                 return $exLocationRec->id;
             }
         }
@@ -451,6 +452,7 @@ class crm_Locations extends core_Master
         // Форсираме папката на контрагента
         $folderId = cls::get($rec->contragentCls)->forceCoverAndFolder($rec->contragentId);
         if (sales_Sales::haveRightFor('add', (object) array('folderId' => $folderId))) {
+            
             return new Redirect(array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $id));
         }
         
@@ -669,16 +671,19 @@ class crm_Locations extends core_Master
     protected static function updateRoutingRules($rec)
     {
         if (!$rec || !$rec->email) {
+            
             return ;
         }
         
         if (!$rec->contragentCls || !$rec->contragentId) {
+            
             return ;
         }
         
         $contragentCls = cls::get($rec->contragentCls);
         
         if (!($contragentCls instanceof crm_Persons) && !($contragentCls instanceof crm_Companies)) {
+            
             return ;
         }
         
@@ -694,16 +699,19 @@ class crm_Locations extends core_Master
     protected static function updateNumbers($rec)
     {
         if (!$rec || !$rec->tel) {
+            
             return ;
         }
         
         if (!$rec->contragentCls || !$rec->contragentId) {
+            
             return ;
         }
         
         $contragentCls = cls::get($rec->contragentCls);
         
         if (!($contragentCls instanceof crm_Persons) && !($contragentCls instanceof crm_Companies)) {
+            
             return ;
         }
         

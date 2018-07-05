@@ -76,6 +76,7 @@ class fileman_type_Files extends type_Keylist
             $res .= fileman_Files::getLink($fh);
         }
         if (!$res) {
+            
             return '';
         }
         

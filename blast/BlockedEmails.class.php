@@ -103,6 +103,7 @@ class blast_BlockedEmails extends core_Manager
     public function on_BeforeImportRec($mvc, &$rec)
     {
         if (!trim($rec->email)) {
+            
             return false;
         }
         
@@ -127,6 +128,7 @@ class blast_BlockedEmails extends core_Manager
         }
         
         if (!$rec->state) {
+            
             return false;
         }
     }
@@ -142,6 +144,7 @@ class blast_BlockedEmails extends core_Manager
     public static function isBlocked($email)
     {
         if (self::fetch(array("#email = '[#1#]' AND (#state = 'blocked' OR (#state = 'error' AND #checkPoint = 0))", $email))) {
+            
             return true;
         }
         
@@ -207,6 +210,7 @@ class blast_BlockedEmails extends core_Manager
         $rec = self::fetch(array("#email = '[#1#]'", $email));
         
         if (!$update && $rec) {
+            
             return ;
         }
         
@@ -247,6 +251,7 @@ class blast_BlockedEmails extends core_Manager
         $fromEml = $mime->getFromEmail();
         
         if (!$mid || (!$text && !$fromEml)) {
+            
             return ;
         }
         
@@ -319,16 +324,19 @@ class blast_BlockedEmails extends core_Manager
         static $validatedDomainsArr = array();
         
         if (!trim($email)) {
+            
             return ;
         }
         
         if (!type_Email::isValidEmail($email)) {
+            
             return ;
         }
         
         list(, $domain) = explode('@', $email);
         
         if (!trim($domain)) {
+            
             return ;
         }
         
@@ -341,10 +349,12 @@ class blast_BlockedEmails extends core_Manager
         }
         
         if ($validatedDomainsArr[$domain] === false) {
+            
             return false;
         }
         
         if (!$validatedDomainsArr[$domain]) {
+            
             return ;
         }
         

@@ -530,6 +530,7 @@ class sens2_Controllers extends core_Master
         $cnt = $query->count();
         
         if (!$cnt) {
+            
             return ;
         }
         

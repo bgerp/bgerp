@@ -90,6 +90,7 @@ class cams_driver_Edimax extends cams_driver_IpDevice
         $f = fopen($url, 'r');
         
         if (!$f) {
+            
             return false;
         }
         
@@ -98,6 +99,7 @@ class cams_driver_Edimax extends cams_driver_IpDevice
         }
         
         if (!$r || (strlen($r) >= 200000)) {
+            
             return false;
         }
         
@@ -107,12 +109,14 @@ class cams_driver_Edimax extends cams_driver_IpDevice
         $soi = strpos($r, $soi);
         
         if (!$soi) {
+            
             return false;
         }
         
         $end = strpos($r, $boundary, $soi) ;
         
         if (!$end) {
+            
             return false;
         }
         
@@ -122,6 +126,7 @@ class cams_driver_Edimax extends cams_driver_IpDevice
         $eoi = strrpos($frame, $eoi);
         
         if (!$eoi) {
+            
             return false;
         }
         

@@ -22,12 +22,14 @@ class marketing_BulletinPlg extends core_Plugin
     {
         // Ако няма да се показва
         if (Mode::get('showBulletin') === false) {
+            
             return ;
         }
         
         $currDomain = cms_Domains::getPublicDomain();
         
         if (!$currDomain) {
+            
             return ;
         }
         
@@ -36,6 +38,7 @@ class marketing_BulletinPlg extends core_Plugin
         $bRec = marketing_Bulletins::getRecForDomain($domain);
         
         if (!$bRec) {
+            
             return ;
         }
         

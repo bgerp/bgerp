@@ -125,6 +125,7 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
      
         // Ако не сме получили xml - връщаме грешка
         if (empty($xml) || !$xml) {
+            
             return "Грешка при четене от {$config->ip}:{$config->port}";
         }
    
@@ -138,6 +139,7 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
 
         // Ако реазултата не е коректен
         if (!count($result)) {
+            
             return "Грешка при парсиране на XML от {$config->ip}:{$config->port}";
         }
 

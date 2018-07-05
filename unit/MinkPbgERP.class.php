@@ -471,6 +471,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->click('Настройки');
         if (strpos($browser->getText(), 'Стандартна публична страница')) {
         } else {
+            
             return $this->reportErr('Липсва избор за Класове', 'warning');
         }
     }
@@ -554,6 +555,7 @@ class unit_MinkPbgERP extends core_Manager
         }
         if (strpos($browser->getText(), 'Състояние » Външен вид')) {
         } else {
+            
             return $this->reportErr('Неуспешно добавяне на параметър', 'info');
         }
     }
@@ -935,6 +937,7 @@ class unit_MinkPbgERP extends core_Manager
             $browser->setValue('address', 'ул.Родопи, №52');
             $browser->press('Запис');
         } else {
+            
             return $this->reportErr('Няма такава фирма', 'info');
         }
     }
@@ -1173,14 +1176,17 @@ class unit_MinkPbgERP extends core_Manager
         $browser->press('Активиране/Контиране');
         if (strpos($browser->gettext(), 'Търговец: User1')) {
         } else {
+            
             return $this->reportErr('Грешен закупчик');
         }
         if (strpos($browser->gettext(), 'ДДС 20%: BGN 5,92')) {
         } else {
+            
             return $this->reportErr('Грешно ДДС', 'warning');
         }
         if (strpos($browser->gettext(), 'Тридесет и пет BGN и 0,52')) {
         } else {
+            
             return $this->reportErr('Грешна обща сума', 'warning');
         }
         //if(strpos($browser->gettext(), 'Доставка: EXW: 4000 Пловдив, ул.Родопи, №52')) {
@@ -1216,6 +1222,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Данъчна основа: BGN 29,60')) {
         } else {
+            
             return $this->reportErr('Грешна данъчна основа', 'warning');
         }
     
@@ -1240,6 +1247,7 @@ class unit_MinkPbgERP extends core_Manager
         //Проверка на статистиката
         if (strpos($browser->gettext(), '35,52 35,52 35,52 35,52')) {
         } else {
+            
             return $this->reportErr('Грешни суми в мастера', 'warning');
         }
     }
@@ -1306,10 +1314,12 @@ class unit_MinkPbgERP extends core_Manager
         $browser->press('Активиране/Контиране');
         if (strpos($browser->gettext(), 'Discount: EUR 1,30')) {
         } else {
+            
             return $this->reportErr('Грешна отстъпка', 'warning');
         }
         if (strpos($browser->gettext(), 'Twenty-nine EUR and 0,60')) {
         } else {
+            
             return $this->reportErr('Грешна обща сума', 'warning');
         }
     
@@ -1344,6 +1354,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Данъчна основа: BGN 57,89')) {
         } else {
+            
             return $this->reportErr('Грешна данъчна основа', 'warning');
         }
         
@@ -1368,6 +1379,7 @@ class unit_MinkPbgERP extends core_Manager
         //Проверка на статистиката
         if (strpos($browser->gettext(), '29,60 29,60 29,60 29,60')) {
         } else {
+            
             return $this->reportErr('Грешни суми в мастера', 'warning');
         }
         //return $browser->getHtml();
@@ -1442,10 +1454,12 @@ class unit_MinkPbgERP extends core_Manager
          
         if (strpos($browser->gettext(), 'ДДС 20%: BGN 7,20')) {
         } else {
+            
             return $this->reportErr('Грешно ДДС', 'warning');
         }
         if (strpos($browser->gettext(), 'Четиридесет и три BGN и 0,20')) {
         } else {
+            
             return $this->reportErr('Грешна обща сума', 'warning');
         }
         //if(strpos($browser->gettext(), 'Доставка: DDP: 4000 Пловдив, ул.Родопи, №52')) {
@@ -1479,6 +1493,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'ДДС 20% ДДС: BGN 7,20')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна ставка ДДС', 'warning');
         }
         
@@ -1504,6 +1519,7 @@ class unit_MinkPbgERP extends core_Manager
         //Проверка на статистиката
         if (strpos($browser->gettext(), '43,20 43,20 43,20 43,20')) {
         } else {
+            
             return $this->reportErr('Грешни суми в мастера', 'warning');
         }
     }
@@ -1577,10 +1593,12 @@ class unit_MinkPbgERP extends core_Manager
          
         if (strpos($browser->gettext(), 'Discount: EUR 1,68')) {
         } else {
+            
             return $this->reportErr('Грешна отстъпка', 'warning');
         }
         if (strpos($browser->gettext(), 'Sixty-one EUR and 0,16')) {
         } else {
+            
             return $this->reportErr('Грешна обща сума', 'warning');
         }
     
@@ -1606,6 +1624,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'VAT 0% VAT: BGN 0,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна ставка ДДС', 'warning');
         }
     
@@ -1631,6 +1650,7 @@ class unit_MinkPbgERP extends core_Manager
         //Проверка на статистиката
         if (strpos($browser->gettext(), '61,16 61,16 61,16 61,16')) {
         } else {
+            
             return $this->reportErr('Грешни суми в мастера', 'warning');
         }
         //return $browser->getHtml();
@@ -1812,6 +1832,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->press('Запис');
         if (strpos($browser->getText(), 'До 1 месец след фактуриране')) {
         } else {
+            
             return $this->reportErr('Грешка при създаване на търговско условие', 'warning');
         }
         //return $browser->getHtml();

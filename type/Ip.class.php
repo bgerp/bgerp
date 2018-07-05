@@ -102,6 +102,7 @@ class type_IP extends type_Varchar
             $ip = $matches[0][$ipCount];
             
             if (type_Ip::isPublic($ip)) {
+                
                 return $ip;
             }
         }
@@ -118,23 +119,28 @@ class type_IP extends type_Varchar
     public static function isPrivate($ip)
     {
         if (strpos($ip, '10.') === 0) {
+            
             return true;
         }
         
         if (strpos($ip, '127.0.0.') === 0) {
+            
             return true;
         }
  
         if ($ip == '::1') {
+            
             return true;
         }
 
         if (strpos($ip, '192.168.') === 0) {
+            
             return true;
         }
         
         for ($i = 16; $i < 32; $i++) {
             if (strpos($ip, "172.{$i}.") === 0) {
+                
                 return true;
             }
         }
@@ -164,10 +170,12 @@ class type_IP extends type_Varchar
         
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE)) {
             expect(!type_Ip::isPrivate($ip), $ip);     // @todo: да се махне
+            
             return true;
         }
             
         expect(type_Ip::isPrivate($ip));     // @todo: да се махне
+        
         return false;
     }
 }

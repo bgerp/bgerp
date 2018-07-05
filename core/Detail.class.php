@@ -339,6 +339,7 @@ class core_Detail extends core_Manager
             }
             
             if ($masterRec) {
+                
                 return $this->Master->getRequiredRoles('edit', $masterRec, $userId);
             }
         }
@@ -353,6 +354,7 @@ class core_Detail extends core_Manager
     public function save_(&$rec, $fieldsList = null, $mode = null)
     {
         if (!$id = parent::save_($rec, $fieldsList, $mode)) {
+            
             return false;
         }
 

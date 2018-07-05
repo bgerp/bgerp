@@ -51,6 +51,7 @@ class bgerp_Print extends core_Manager
         $res = $mvc->getTpl();
         
         if (!$action) {
+            
             return ;
         }
         

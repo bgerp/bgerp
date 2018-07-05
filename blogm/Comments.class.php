@@ -325,6 +325,7 @@ class blogm_Comments extends core_Detail
  
         foreach ($words as $w) {
             if (stripos($str, $w) !== false) {
+                
                 return true;
             }
         }

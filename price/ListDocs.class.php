@@ -344,6 +344,7 @@ class price_ListDocs extends core_Master
     private function sortResults($a, $b)
     {
         if ($a->code == $b->code) {
+            
             return strcmp($b->priceM, $a->priceM);
         }
              

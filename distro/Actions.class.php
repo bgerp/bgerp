@@ -129,6 +129,7 @@ class distro_Actions extends embed_Manager
             $rec->repoId = $fRec->repoId;
             
             if (!self::haveRightFor('add', $rec)) {
+                
                 return ;
             }
             
@@ -170,6 +171,7 @@ class distro_Actions extends embed_Manager
         $driverInst = cls::getInterface('distro_ActionsDriverIntf', $driverName);
         
         if (!$driverInst || !$driverInst->canMakeAction($fRec->groupId, $fRec->repoId, $fRec->id, $fRec->name, $fRec->md5)) {
+            
             return ;
         }
         
@@ -311,10 +313,12 @@ class distro_Actions extends embed_Manager
         $rec = $this->fetch($id);
         
         if ($rec->state == 'rejected') {
+            
             return ;
         }
         
         if ($rec->state == 'closed') {
+            
             return ;
         }
         
@@ -358,6 +362,7 @@ class distro_Actions extends embed_Manager
         $rec = $this->fetch($id);
         
         if ($rec->state == 'rejected') {
+            
             return ;
         }
         
@@ -380,6 +385,7 @@ class distro_Actions extends embed_Manager
             $content = @$ssh->getContents($errFile);
             $ssh->exec('rm ' . escapeshellarg($errFile));
         } catch (core_exception_Expect $e) {
+            
             return ;
         }
         

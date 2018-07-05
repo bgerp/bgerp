@@ -40,6 +40,7 @@ class i18n_Encoding
         $pos = stripos($text, 'BinHex 4');
         
         if (0 < $pos && $pos < 40) {
+            
             return array('BINHEX');
         }
         
@@ -52,6 +53,7 @@ class i18n_Encoding
             foreach ($encodings as $name => $allowedChars) {
                 if ($name == '7BIT') {
                     if ($cOrd > 127) {
+                        
                         return '8BIT';
                     }
                 } elseif ($name == 'QUOTED-PRINTABLE') {

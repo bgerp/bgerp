@@ -35,6 +35,7 @@ class rtac_Plugin extends core_Plugin
         $nickArr = array();
         
         if (!$matches['nick']) {
+            
             return $nickArr;
         }
         

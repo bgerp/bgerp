@@ -345,11 +345,13 @@ class sales_Proformas extends deals_InvoiceMaster
     {
         $firstDocument = doc_Threads::getFirstDocument($threadId);
         if (!$firstDocument) {
+            
             return false;
         }
         
         // Може да се добавя само към активна продажба
         if ($firstDocument->isInstanceOf('sales_Sales') && $firstDocument->fetchField('state') == 'active') {
+            
             return true;
         }
         
@@ -450,11 +452,13 @@ class sales_Proformas extends deals_InvoiceMaster
             
             // Ако има приходен касов ордер с вальор по-голям не намираме очакван аванс
             if (cash_Pko::fetchField("#threadId = {$saleRec->threadId} AND #state = 'active' AND #valior > '{$profRec->date}'")) {
+                
                 return $expectedDownpayment;
             }
             
             // Ако има приходен банков ордер с вальор по-голям не намираме очакван аванс
             if (bank_IncomeDocuments::fetchField("#threadId = {$saleRec->threadId} AND #state = 'active' AND #valior > '{$profRec->date}'")) {
+                
                 return $expectedDownpayment;
             }
             

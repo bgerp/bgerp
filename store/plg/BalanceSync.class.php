@@ -49,6 +49,7 @@ class store_plg_BalanceSync extends core_Plugin
          
         // Ако няма баланс няма какво да подготвяме
         if (empty($balanceRec)) {
+            
             return $all;
         }
         

@@ -467,6 +467,7 @@ class deals_plg_DpInvoice extends core_Plugin
         }
         
         if ($data->dpInfo->dpOperation == 'accrued') {
+            
             return tr("по {$caption}|* ") . implode(', ', $deals);
         }
             

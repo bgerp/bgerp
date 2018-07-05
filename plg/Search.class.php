@@ -307,6 +307,7 @@ class plg_Search extends core_Plugin
         }
         
         if (strlen($word) < $minLenFTS) {
+            
             return true;
         }
         
@@ -325,6 +326,7 @@ class plg_Search extends core_Plugin
         }
         
         if (isset($stopWordsArr[$word])) {
+            
             return true;
         }
         
@@ -341,6 +343,7 @@ class plg_Search extends core_Plugin
             }
             
             if ($allIsStopWords) {
+                
                 return true;
             }
         }
@@ -360,6 +363,7 @@ class plg_Search extends core_Plugin
             }
             
             if (preg_grep($pattern, $stopWordsArr)) {
+                
                 return true;
             }
         }
@@ -424,6 +428,7 @@ class plg_Search extends core_Plugin
         $str = trim($str);
         
         if (!$str) {
+            
             return false;
         }
         
@@ -624,6 +629,7 @@ class plg_Search extends core_Plugin
         static $minLenFTS;
         
         if (isset($minLenFTS)) {
+            
             return $minLenFTS;
         }
         

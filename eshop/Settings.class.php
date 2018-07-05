@@ -270,6 +270,7 @@ class eshop_Settings extends core_Manager
         $cacheKey = "{$classId}|{$objectId}";
         
         if (isset($date)) {
+            
             return self::get($classId, $objectId, $date);
         }
         

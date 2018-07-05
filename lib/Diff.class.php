@@ -49,6 +49,7 @@ class lib_Diff
         
         // Ако няма промени, няма смисъл от обработка
         if ($old == $new) {
+            
             return (string) $new;
         }
         
@@ -183,10 +184,13 @@ class lib_Diff
         $c = mb_substr($c, 0, 1);
 
         if (preg_match("/[\s]+/", $c)) {
+            
             return 'ws';
         } elseif (preg_match('/[' . self::PUNCTUATION . ']+/', $c)) {
+            
             return 'dev';
         } elseif ($c == '<') {
+            
             return 'tag';
         }
 
@@ -269,6 +273,7 @@ class lib_Diff
             
             // Ако броя на разликите е над допустимото, връщаме FALSE
             if (count($stack) > EF_LIB_DIFF_MAX_STACK_COUNT) {
+                
                 return false;
             }
         }

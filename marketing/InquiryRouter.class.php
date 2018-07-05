@@ -28,6 +28,7 @@ class marketing_InquiryRouter extends core_Manager
         // Ако е от колаборатор към първата споделена папка на колаборатор
         if (core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)) {
             if ($companyFolderId = core_Mode::get('lastActiveContragentFolder')) {
+                
                 return $companyFolderId;
             }
         }
@@ -79,30 +80,35 @@ class marketing_InquiryRouter extends core_Manager
         // Ако има папка на фирма с този имейл
         $folderId = marketing_Router::routeByCompanyEmail($email, $inCharge);
         if ($folderId) {
+            
             return $folderId;
         }
         
         // Ако има папка на лице с този имейл
         $folderId = marketing_Router::routeByPersonEmail($email, $inCharge);
         if ($folderId) {
+            
             return $folderId;
         }
         
         // Ако има папка на контрагент с този имейл
         $folderId = marketing_Router::routeByEmail($email, 'contragent');
         if ($folderId) {
+            
             return $folderId;
         }
         
         // Ако има лице във визитника от същата държава
         $folderId = marketing_Router::routeByPerson($personNames, $countryId, $inCharge);
         if ($folderId) {
+            
             return $folderId;
         }
         
         // Опит за рутиране по БРИД
         $folderId = marketing_Router::routeByBrid($brid);
         if ($folderId) {
+            
             return $folderId;
         }
         
@@ -141,24 +147,28 @@ class marketing_InquiryRouter extends core_Manager
         // Намираме папка на компания с този имейл
         $folderId = marketing_Router::routeByCompanyEmail($email, $inCharge);
         if ($folderId) {
+            
             return $folderId;
         }
         
         // Рутиране според имейла, взимаме папката ако корицата и е фирма
         $folderId = marketing_Router::routeByEmail($email, 'company');
         if ($folderId) {
+            
             return $folderId;
         }
         
         // Рутираме в папка на фирма със същото име от същата държава
         $folderId = marketing_Router::routeByCompanyName($company, $countryId, $inCharge);
         if ($folderId) {
+            
             return $folderId;
         }
         
         // Опит за рутиране по БРИД
         $folderId = marketing_Router::routeByBrid($brid);
         if ($folderId) {
+            
             return $folderId;
         }
         

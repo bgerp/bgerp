@@ -122,6 +122,7 @@ class type_Keylist extends core_Type
     public function getVerbal($k)
     {
         if (! round($k) > 0) {
+            
             return '';
         }
         
@@ -130,6 +131,7 @@ class type_Keylist extends core_Type
             
             if (($part = $this->params['select']) && $part != '*') {
                 if (!$rec = $mvc->fetch($k)) {
+                    
                     return '???';
                 }
                 
@@ -626,10 +628,12 @@ class type_Keylist extends core_Type
     public static function toArray($klist)
     {
         if (is_array($klist)) {
+            
             return $klist;
         }
         
         if (empty($klist)) {
+            
             return array();
         }
         
@@ -657,10 +661,12 @@ class type_Keylist extends core_Type
         if (is_array($key)) {
             foreach ($key as $k) {
                 if (self::isIn($k, $list)) {
+                    
                     return true;
                 }
             }
         } else {
+            
             return strpos($list, '|' . $key . '|') !== false;
         }
 
@@ -785,6 +791,7 @@ class type_Keylist extends core_Type
         
         // Ако е празен
         if (!$klist) {
+            
             return true;
         }
         

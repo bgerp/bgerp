@@ -77,6 +77,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
     protected static function convertTo($file, $to = 'pdf', $type = 'auto', $name = '', $cmyk = false, $otherParam = array())
     {
         if (!$file) {
+            
             return ;
         }
         
@@ -235,6 +236,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
 
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
+            
             return ;
         }
         
@@ -369,6 +371,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
     public static function getInfoContentByFh($fileHnd, $type)
     {
         if ($type != 'jpg') {
+            
             return false;
         }
         

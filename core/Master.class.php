@@ -121,6 +121,7 @@ class core_Master extends core_Manager
         
         // Ако модето е че се иска пхп дата тя се връща
         if (Mode::is('dataType', 'php')) {
+            
             return $data;
         }
         
@@ -568,6 +569,7 @@ class core_Master extends core_Manager
     public function renderSingleToolbar_($data)
     {
         if (cls::isSubclass($data->toolbar, 'core_Toolbar')) {
+            
             return $data->toolbar->renderHtml();
         }
     }
@@ -683,10 +685,12 @@ class core_Master extends core_Manager
     {
         if (isset($detailAlias)) {
             if (!isset($this->details[$detailAlias])) {
+                
                 return false;
             }
             
             if (isset($detailName)) {
+                
                 return $detailName == $this->details[$detailAlias];
             }
             
@@ -694,6 +698,7 @@ class core_Master extends core_Manager
         } elseif (isset($detailName)) {
             foreach ($this->details as $alias => $name) {
                 if ($name == $detailName) {
+                    
                     return true;
                 }
             }
@@ -769,6 +774,7 @@ class core_Master extends core_Manager
         }
         
         if (!$id) {
+            
             return "<span style='color:red;'>&nbsp;- - -</span>";
         }
     

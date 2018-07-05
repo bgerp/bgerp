@@ -349,6 +349,7 @@ class currency_CurrencyRates extends core_Detail
         }
         
         if (!is_null($rate = static::getDirectRate($date, $fromId, $toId))) {
+            
             return round($rate, 5);
         }
         
@@ -356,6 +357,7 @@ class currency_CurrencyRates extends core_Detail
 
         if ($crossCurrencyId != $fromId && $crossCurrencyId != $toId) {
             if (!is_null($rate = static::getCrossRate($date, $fromId, $toId, $crossCurrencyId))) {
+                
                 return round($rate, 5);
             }
         }
@@ -370,6 +372,7 @@ class currency_CurrencyRates extends core_Detail
     public static function checkRateAndRedirect($rate)
     {
         if (!is_null($rate)) {
+            
             return ;
         }
         
@@ -452,6 +455,7 @@ class currency_CurrencyRates extends core_Detail
     
         // Ако имаме кеширан курс връщаме го
         if (isset(static::$cache[$date][$fromId][$toId])) {
+            
             return static::$cache[$date][$fromId][$toId];
         }
     }
@@ -514,6 +518,7 @@ class currency_CurrencyRates extends core_Detail
         $delimeter = min($givenRate, $knownRate) * 100;
         $difference = (!empty($delimeter)) ? round(abs($givenRate - $knownRate) / $delimeter) : 0;
         if ($difference > $percent) {
+            
             return "Въведения курс е много различен от очаквания '{$knownRate}'";
         }
          
@@ -552,6 +557,7 @@ class currency_CurrencyRates extends core_Detail
         }
         
         if ($difference > $percent) {
+            
             return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс";
         }
         

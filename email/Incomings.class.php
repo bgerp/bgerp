@@ -458,6 +458,7 @@ class email_Incomings extends core_Master
             $headers = $imapConn->getHeaders($msgNo);
             
             if (email_Fingerprints::fetchByHeaders($headers)) {
+                
                 return 'duplicated';
             }
             
@@ -648,6 +649,7 @@ class email_Incomings extends core_Master
                 // Ако и двете не са свалени; Изпълнява се няколко пъти последователно в началото
                 if (!$isDownB && !$isDownT) {
                     if ($t == $b) {
+                        
                         return $t;
                     }
                     $t = $b;
@@ -657,6 +659,7 @@ class email_Incomings extends core_Master
                 } elseif ($isDownB && !$isDownT) {
                     // Условие, при което $t е първото не-свалено писмо
                     if ($t - $b == 1) {
+                        
                         return $t;
                     }
                     $m = round(($t + $b) / 2);
@@ -1066,6 +1069,7 @@ class email_Incomings extends core_Master
     protected static function checkNamesInEmails($emailsArr)
     {
         if (!$emailsArr) {
+            
             return true;
         }
         
@@ -1079,6 +1083,7 @@ class email_Incomings extends core_Master
             }
             
             if (!self::checkEmailIsExist($emailArr['address'], $pEmailsFromName)) {
+                
                 return false;
             }
         }
@@ -1195,6 +1200,7 @@ class email_Incomings extends core_Master
     {
         if (!$emailsArr) {
             if ($mandatory) {
+                
                 return false;
             }
                 
@@ -1216,6 +1222,7 @@ class email_Incomings extends core_Master
                 $emailCheck = strtolower($emailCheck);
                 $emailCheck = type_Email::removeBadPart($emailCheck);
                 if ($emailCheck == $email) {
+                    
                     return true;
                 }
             } else {
@@ -1232,6 +1239,7 @@ class email_Incomings extends core_Master
                 }
                 
                 if ($domain == $cDomain) {
+                    
                     return true;
                 }
             }
@@ -1300,6 +1308,7 @@ class email_Incomings extends core_Master
     public static function calcAllToAndCc($rec, $saveIfNotExist = true)
     {
         if (isset($rec->AllTo) || isset($rec->AllCc)) {
+            
             return ;
         }
         
@@ -1421,6 +1430,7 @@ class email_Incomings extends core_Master
     {
         // Ако пакета не е истанлиран
         if (!core_Packs::isInstalled('spas')) {
+            
             return ;
         }
         
@@ -1725,6 +1735,7 @@ class email_Incomings extends core_Master
             }
             
             if ($rec->routeBy && $rec->threadId) {
+                
                 return ;
             }
         }
@@ -1841,6 +1852,7 @@ class email_Incomings extends core_Master
     protected static function checkSpamLevelAndReject($rec)
     {
         if ($rec->state == 'rejected') {
+            
             return ;
         }
         
@@ -1991,6 +2003,7 @@ class email_Incomings extends core_Master
                 }
                 
                 if (!empty($ratingsArr) && $rec->folderId) {
+                    
                     return $rec->folderId;
                 }
             } catch (ErrorException $e) {
@@ -2011,12 +2024,14 @@ class email_Incomings extends core_Master
     protected static function getDocRating($cId)
     {
         if (!$cId) {
+            
             return ;
         }
         
         $cRec = doc_Containers::fetchRec($cId);
         
         if (!$cRec) {
+            
             return ;
         }
         
@@ -2114,6 +2129,7 @@ class email_Incomings extends core_Master
     public function updateUserInboxes($rec, $forceSave = true)
     {
         if (!$rec) {
+            
             return ;
         }
         
@@ -2141,6 +2157,7 @@ class email_Incomings extends core_Master
         }
         
         if ($rec->id && $forceSave) {
+            
             return $this->save_($rec, 'userInboxes');
         }
     }
@@ -2663,6 +2680,7 @@ class email_Incomings extends core_Master
         $emlFile = $rec->emlFile;
         
         if (!$emlFile) {
+            
             return ;
         }
         
@@ -2670,6 +2688,7 @@ class email_Incomings extends core_Master
         $fRec = fileman_Files::fetch($emlFile);
         
         if (!$fRec || !$fRec->dataId) {
+            
             return ;
         }
         
@@ -2815,6 +2834,7 @@ class email_Incomings extends core_Master
         }
  
         if (count($files)) {
+            
             return 'img/16/email-attach.png';
         }
     }
@@ -2852,6 +2872,7 @@ class email_Incomings extends core_Master
     public function getLangFromRec($id)
     {
         if (!$id) {
+            
             return ;
         }
         

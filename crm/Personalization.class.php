@@ -202,6 +202,7 @@ class crm_Personalization extends core_Detail
         
         // Ако няма запис, връщаме
         if (!$rec) {
+            
             return ;
         }
         
@@ -229,6 +230,7 @@ class crm_Personalization extends core_Detail
         
         // Ако няма запис, връщаме
         if (!$rec) {
+            
             return ;
         }
         
@@ -249,6 +251,7 @@ class crm_Personalization extends core_Detail
         
         // Ако няма запис, връщаме
         if (!$rec) {
+            
             return ;
         }
         
@@ -271,6 +274,7 @@ class crm_Personalization extends core_Detail
         
         // Ако няма запис, връщаме
         if (!$rec) {
+            
             return ;
         }
         
@@ -294,6 +298,7 @@ class crm_Personalization extends core_Detail
             
             // Ако няма текущ потребител
             if (!$userId) {
+                
                 return false;
             }
         }
@@ -303,6 +308,7 @@ class crm_Personalization extends core_Detail
 
         // Ако няма потребител
         if (!$profileId) {
+            
             return ;
         }
         

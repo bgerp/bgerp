@@ -109,6 +109,7 @@ class cms_Helper extends core_BaseClass
         
         // Ако има потребител с този имейл той трябва да е логнат
         if (core_Users::getUserByEmail($email)) {
+            
             return 'Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се логнете|*.';
         }
     }

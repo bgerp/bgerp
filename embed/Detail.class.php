@@ -397,6 +397,7 @@ class embed_Detail extends core_Detail
         
         // Ако има драйвер и той може да се зареди, инстанцираме го
         if (isset($rec->{$self->driverClassField}) && cls::load($rec->{$self->driverClassField}, true)) {
+            
             return cls::get($rec->{$self->driverClassField}, array('driverRec' => $rec));
         }
         

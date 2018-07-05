@@ -173,6 +173,7 @@ class sales_PrimeCostByDocument extends core_Manager
             try {
                 $Document = doc_Containers::getDocument($containerId);
             } catch (core_exception_Expect $e) {
+                
                 return array();
             }
             
@@ -286,6 +287,7 @@ class sales_PrimeCostByDocument extends core_Manager
     {
         $result = $personIds = array();
         if (!count($indicatorRecs)) {
+            
             return $result;
         }
         
@@ -387,6 +389,7 @@ class sales_PrimeCostByDocument extends core_Manager
         // Ако не е намерен променен документ, връща се празен масив
         $wh = $iQuery->getWhereAndHaving();
         if (empty($wh->w)) {
+            
             return array();
         }
         
@@ -439,11 +442,13 @@ class sales_PrimeCostByDocument extends core_Manager
     {
         $result = array();
         if (!count($indicatorRecs)) {
+            
             return $result;
         }
         
         $selectedGroups = self::cacheGroupNames();
         if (!count($selectedGroups)) {
+            
             return $result;
         }
         
@@ -577,6 +582,7 @@ class sales_PrimeCostByDocument extends core_Manager
     {
         $groups = array();
         if (!count($indicatorRecs)) {
+            
             return $groups;
         }
         
@@ -615,6 +621,7 @@ class sales_PrimeCostByDocument extends core_Manager
                     if ($document->isInstanceOf('sales_Sales')) {
                         $descendants = $document->getDescendants();
                         $descendantArr = array_values(array_map(function ($obj) {
+                            
                             return $obj->fetchField('containerId');
                         }, $descendants));
                         $in = array_merge($in, $descendantArr);
@@ -742,10 +749,12 @@ class sales_PrimeCostByDocument extends core_Manager
         
         // Сумата на себестойноста е среднопритеглената себестойност
         if ($totalQ) {
+            
             return $sum / $totalQ;
         }
         
         if (isset($listId)) {
+            
             return self::getPrimeCostInSale($productId, $packagingId, $quantity, $firstDoc->fetch(), $listId);
         }
     }

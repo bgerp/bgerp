@@ -235,6 +235,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
         // Може ли да се добави към нишката
         $res = parent::canAddToThread($threadId);
         if (!$res) {
+            
             return false;
         }
         
@@ -242,6 +243,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
         
         // Може само към нишка, породена от продажба
         if (!$firstDoc->isInstanceOf('sales_Sales')) {
+            
             return false;
         }
         

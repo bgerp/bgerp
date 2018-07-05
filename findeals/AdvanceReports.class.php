@@ -292,6 +292,7 @@ class findeals_AdvanceReports extends core_Master
     
         if (($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')) {
             if ($firstDoc->className != 'findeals_AdvanceDeals') {
+                
                 return false;
             }
             

@@ -199,6 +199,7 @@ class trans_Lines extends core_Master
         $start = str_replace(' 00:00', '', $start);
         
         if (count($titleArr) == 2) {
+            
             return "{$start}/{$titleArr[1]} ({$rec->countReady}/{$rec->countTotal})";
         }
 
@@ -506,6 +507,7 @@ class trans_Lines extends core_Master
     {
         $res = array();
         if (empty($detId)) {
+            
             return $res;
         }
         

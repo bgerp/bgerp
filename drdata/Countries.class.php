@@ -155,6 +155,7 @@ class drdata_Countries extends core_Manager
         
         foreach ($langArr as $lg => $name) {
             if (strpos($rec->languages, $lg) !== false) {
+                
                 return $lg;
             }
         }
@@ -249,6 +250,7 @@ class drdata_Countries extends core_Manager
         static $commonNamesArr, $namesArr;
         
         if (is_numeric($country) && self::fetch($country)) {
+            
             return $country;
         }
 
@@ -440,15 +442,18 @@ class drdata_Countries extends core_Manager
         $country = trim(preg_replace('/[^a-zA-Z\'\d\p{L}]/u', ' ', $country));
         
         if (!$country) {
+            
             return false;
         }
         
 
         if ($id = $namesArr[$country]) {
+            
             return $id;
         }
         
         if ($id = $commonNamesArr[$country]) {
+            
             return $id;
         }
 
@@ -459,6 +464,7 @@ class drdata_Countries extends core_Manager
         foreach ($commonNamesArr as $c => $id) {
             if (strpos($country, " {$c} ") !== false) {
                 if (strlen($c) > 3) {
+                    
                     return $id;
                 }
             }
@@ -474,6 +480,7 @@ class drdata_Countries extends core_Manager
     public static function addCountryInBothLg($countryId, $text)
     {
         if (!$countryId) {
+            
             return $text;
         }
         
@@ -536,6 +543,7 @@ class drdata_Countries extends core_Manager
     public static function on_AfterSaveArray($mvc, &$res, $recs, $fields = null)
     {
         if (empty($recs)) {
+            
             return ;
         }
         

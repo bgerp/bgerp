@@ -386,6 +386,7 @@ class log_System extends core_Manager
         $errLogPath = get_cfg_var('error_log');
         
         if (!$errLogPath) {
+            
             return "Не е дефиниран 'error_log'";
         }
         
@@ -394,6 +395,7 @@ class log_System extends core_Manager
         $linesArr = core_Os::getLastLinesFromFile($errLogPath, self::$phpErrMaxLinesLimit, true, $resStr);
         
         if (empty($linesArr)) {
+            
             return $resStr;
         }
         
@@ -479,6 +481,7 @@ class log_System extends core_Manager
         }
         
         if ($cnt > 0) {
+            
             return 'Записани грешки - ' . $cnt;
         }
         
@@ -544,6 +547,7 @@ class log_System extends core_Manager
     public function orderReportArr($a, $b)
     {
         if ($a->Cnt == $b->Cnt) {
+            
             return 0;
         }
         

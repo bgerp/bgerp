@@ -369,6 +369,7 @@ class cat_UoM extends core_Manager
         ($toRec->baseUnitId) ? $baseToId = $toRec->baseUnitId : $baseToId = $toRec->id;
         
         if ($baseFromId != $baseToId) {
+            
             return false;
         }
         
@@ -392,6 +393,7 @@ class cat_UoM extends core_Manager
         static $uoms;
         
         if (!$id) {
+            
             return '???';
         }
         

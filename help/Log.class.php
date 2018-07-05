@@ -90,6 +90,7 @@ class help_Log extends core_Master
         }
 
         if (!$userId) {
+            
             return 'none';
         }
 
@@ -118,6 +119,7 @@ class help_Log extends core_Master
         // то връщаме режима за показване 'open'
         $untilOpenDate = dt::timestamp2mysql(dt::mysql2timestamp($rec->seeOn) + $conf->HELP_MAX_OPEN_DISPLAY_TIME);
         if (($untilOpenDate > $nowDate || $rec->seeCnt < $conf->HELP_MAX_OPEN_DISPLAY_CNT) && !$rec->closedOn) {
+            
             return 'open';
         }
         
@@ -128,6 +130,7 @@ class help_Log extends core_Master
         $untilCloseDate = dt::timestamp2mysql(dt::mysql2timestamp($rec->seeOn) + $conf->HELP_MAX_CLOSE_DISPLAY_TIME);
         if ($untilCloseDate > $nowDate || $rec->seeCnt < $conf->HELP_MAX_CLOSE_DISPLAY_CNT) {
             if (BGERP_DEMO_MODE === true) {
+                
                 return 'open';
             }
                 
@@ -136,6 +139,7 @@ class help_Log extends core_Master
         
         // Ако сме решили, че искаме винаги да се показва, дори и ако е затворено ръчно
         if (BGERP_DEMO_MODE === true) {
+            
             return 'open';
         }
         // Ако не трябва да показваме информацията нито в отворено, нито в затворено състояние
@@ -170,6 +174,7 @@ class help_Log extends core_Master
         }
         
         if (Request::get('ajax_mode')) {
+            
             return array();
         }
         shutdown();
@@ -196,6 +201,7 @@ class help_Log extends core_Master
         }
         
         if (Request::get('ajax_mode')) {
+            
             return array();
         }
         shutdown();

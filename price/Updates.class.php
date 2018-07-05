@@ -415,6 +415,7 @@ class price_Updates extends core_Manager
                 $price = price_ProductCosts::getPrice($productId, $source);
                 
                 if (isset($price)) {
+                    
                     return $price;
                 }
             }

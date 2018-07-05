@@ -210,6 +210,7 @@ class cad2_SvgCanvas extends cad2_Canvas
         $path = $this->content[count($this->content) - 1];
 
         if ($path->name == 'path') {
+            
             return $path;
         }
     }
@@ -787,6 +788,7 @@ class cad2_SvgCanvas extends cad2_Canvas
         $rgb = color_Object::hexToRgbArr($hexColor);
 
         if (!is_array($rgb)) {
+            
             return false;
         }
 

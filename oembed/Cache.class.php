@@ -100,6 +100,7 @@ class oembed_Cache extends core_Manager
         }
         
         if (!empty($rec->html)) {
+            
             return $rec->html;
         }
         

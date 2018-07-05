@@ -389,6 +389,7 @@ class core_Type extends core_BaseClass
     public static function getByName($name)
     {
         if (is_object($name) && cls::isSubclass($name, 'core_Type')) {
+            
             return $name;
         }
         
@@ -449,10 +450,12 @@ class core_Type extends core_BaseClass
         }
         
         if ($typeName == 'type_Enum') {
+            
             return cls::get($typeName, array(
                     'options' => $p
                 ));
         } elseif ($typeName == 'type_Set') {
+            
             return cls::get($typeName, array(
                     'suggestions' => $p
                 ));

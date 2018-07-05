@@ -180,6 +180,7 @@ class cat_PackParams extends core_Manager
         }
         
         uasort($array, function ($a, $b) {
+            
             return strcmp($a, $b);
         });
         

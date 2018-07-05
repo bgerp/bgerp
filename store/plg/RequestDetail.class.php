@@ -125,19 +125,23 @@ class store_plg_RequestDetail extends core_Plugin
     
         // Създателя на документа и ceo-то са 'Заявители'
         if (haveRole('ceo', $userId)) {
+            
             return true;
         }
         if ($masterRec->createdBy == $userId) {
+            
             return true;
         }
     
         // Ако потребителя може да контира в склада той НЕ е 'заявител'
         if (bgerp_plg_FLB::canUse('store_Stores', $masterRec->{$masterMvc->storeFieldName}, $userId)) {
+            
             return false;
         }
         
         // Ако не може да контира в склада, но може да избира е 'заявител'
         if (bgerp_plg_FLB::canUse('store_Stores', $masterRec->{$masterMvc->storeFieldName}, $userId, 'select')) {
+            
             return true;
         }
     
@@ -207,6 +211,7 @@ class store_plg_RequestDetail extends core_Plugin
     public static function on_AfterGetUndeliveredDetails($mvc, &$res, $masterId)
     {
         if (isset($res)) {
+            
             return $res;
         }
         $res = array();

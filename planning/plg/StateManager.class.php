@@ -340,6 +340,7 @@ class planning_plg_StateManager extends core_Plugin
             }
             
             if (empty($notifyArr)) {
+                
                 return ;
             }
             

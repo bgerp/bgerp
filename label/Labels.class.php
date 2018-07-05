@@ -404,6 +404,7 @@ class label_Labels extends core_Master
         if (!empty($labelDataArr)) {
             $templates = label_Templates::getTemplatesByDocument($classId, $objId);
             if (!count($templates)) {
+                
                 return new Redirect($retUrl, '|Няма шаблон, който да се използва');
             }
             
@@ -441,6 +442,7 @@ class label_Labels extends core_Master
            
             // Сортиране по цвят
             uasort($optArr, function ($a, $b) {
+                
                 return strcmp($a->attr['data-color'], $b->attr['data-color']);
             });
             $form->setOptions('selectTemplateId', array('' => '') + $optArr);

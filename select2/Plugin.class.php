@@ -139,6 +139,7 @@ class select2_Plugin extends core_Plugin
     public function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
         if ($invoker->params['isReadOnly']) {
+            
             return ;
         }
         
@@ -158,6 +159,7 @@ class select2_Plugin extends core_Plugin
         
         // Ако нямаме JS или има много малко предложения - не правим нищо
         if (Mode::is('javascript', 'no') || (($cnt) <= $minItems)) {
+            
             return ;
         }
         
@@ -264,6 +266,7 @@ class select2_Plugin extends core_Plugin
     protected static function setHandler(&$invoker, $val)
     {
         if (isset($invoker->handler)) {
+            
             return ;
         }
         
@@ -305,6 +308,7 @@ class select2_Plugin extends core_Plugin
     public function on_BeforeFromVerbal($type, &$res, $value)
     {
         if (!is_array($value)) {
+            
             return ;
         }
         
@@ -328,6 +332,7 @@ class select2_Plugin extends core_Plugin
         }
         
         if (($valCnt == 1) && (isset($value[self::$hiddenName]))) {
+            
             return false;
         }
     }
@@ -355,10 +360,12 @@ class select2_Plugin extends core_Plugin
     public function on_BeforeAction($invoker, &$res, $action)
     {
         if ($action != 'getoptions') {
+            
             return ;
         }
         
         if (!Request::get('ajax_mode')) {
+            
             return ;
         }
         $hnd = Request::get('hnd');

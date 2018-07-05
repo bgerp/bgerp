@@ -297,6 +297,7 @@ class cat_ListingDetails extends doc_Detail
         // Оставят се само тези записи, в които се среща кода
         $res = array_filter($all, function (&$e) use ($reff) {
             if ($e->reff == $reff) {
+                
                 return true;
             }
 

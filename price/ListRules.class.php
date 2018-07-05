@@ -214,6 +214,7 @@ class price_ListRules extends core_Detail
         
         if ($type == 'discount') {
             if (!isset($discount)) {
+                
                 return false;
             }
 
@@ -227,6 +228,7 @@ class price_ListRules extends core_Detail
         
         if ($type == 'groupDiscount') {
             if (!isset($discount)) {
+                
                 return false;
             }
             expect($gRec = cat_Groups::fetch(cat_Groups::forceGroup($groupName)));
@@ -948,6 +950,7 @@ class price_ListRules extends core_Detail
         
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
+                
                 return array();
             }
         

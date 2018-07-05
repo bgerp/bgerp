@@ -38,6 +38,7 @@ class callcenter_LinkPlg extends core_Plugin
             
             // Ако има права залистовия изглед на факсовете
             if (!callcenter_Fax::haveRightFor('list')) {
+                
                 return ;
             }
             
@@ -46,6 +47,7 @@ class callcenter_LinkPlg extends core_Plugin
         } else {
             // Ако има права залистовия изглед на централата
             if (!callcenter_Talks::haveRightFor('list')) {
+                
                 return ;
             }
             

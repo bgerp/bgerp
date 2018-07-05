@@ -147,10 +147,12 @@ class acc_plg_DocumentSummary extends core_Plugin
     {
         // Прикачане е допустимо само към наследник на core_Manager ...
         if (!$mvc instanceof core_Manager) {
+            
             return false;
         }
         
         if (!$mvc->getInterface('acc_TransactionSourceIntf')) {
+            
             return false;
         }
         
@@ -331,11 +333,13 @@ class acc_plg_DocumentSummary extends core_Plugin
     {
         // Ако няма заявка, да не се изпълнява
         if (!$data->listSummary->query) {
+            
             return ;
         }
         
         // Да не се показва при принтиране
         if (Mode::is('printing')) {
+            
             return ;
         }
         

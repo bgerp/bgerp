@@ -156,6 +156,7 @@ class unit_MinkPProducts extends core_Manager
             $browser->setValue('likeProductId', 'Други продукти (products)');
             $browser->press('Запис');
         } else {
+            
             return unit_MinkPbgERP::reportErr('Няма такъв артикул', 'info');
         }
         //return $browser->getHtml();
@@ -314,6 +315,7 @@ class unit_MinkPProducts extends core_Manager
             $browser->press('Контиране');
             $browser->press('Приключване');
         } else {
+            
             return unit_MinkPbgERP::reportErr('Няма такъв артикул', 'info');
         }
     }
@@ -340,10 +342,12 @@ class unit_MinkPProducts extends core_Manager
         $browser->press('Запис');
         if (strpos($browser->gettext(), 'Чувал голям 40 L')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Неуспешно клониране', 'warning');
         }
         //Проверка - EAN кода не трябва да се е клонирал
         if (strpos($browser->gettext(), '1234567893341')) {
+            
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
         //return $browser->getHtml();
@@ -432,6 +436,7 @@ class unit_MinkPProducts extends core_Manager
          
         if (strpos($browser->gettext(), 'Шест BGN')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
        
@@ -442,6 +447,7 @@ class unit_MinkPProducts extends core_Manager
     
         if (strpos($browser->gettext(), '6,00 6,00 0,00 6,00')) {
         } else {
+            
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
     }

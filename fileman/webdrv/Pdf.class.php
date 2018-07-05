@@ -29,6 +29,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         cls::load('fileman_Files');
         
         if (!$file) {
+            
             return ;
         }
         
@@ -172,6 +173,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
+            
             return ;
         }
         
@@ -227,6 +229,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
 
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
+            
             return ;
         }
         

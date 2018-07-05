@@ -145,6 +145,7 @@ class plg_TreeObject extends core_Plugin
         // Сортираме опциите
         uasort($options, function ($a, $b) {
             if ($a == $b) {
+                
                 return 0;
             }
             
@@ -421,6 +422,7 @@ class plg_TreeObject extends core_Plugin
             $features = array();
             
             if (!count($ids)) {
+                
                 return $features;
             }
             
@@ -494,6 +496,7 @@ class plg_TreeObject extends core_Plugin
         if ($part == $mvc->nameField) {
             $id = (is_object($rec)) ? $rec->id : $rec;
             if (!$id) {
+                
                 return ;
             }
             

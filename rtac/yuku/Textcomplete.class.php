@@ -59,6 +59,7 @@ class rtac_yuku_Textcomplete extends core_Manager
                         callback(rtacObj.sharedUsers.{$rtId});
                     },
                     replace: function (userObj) {
+                        
                         return '@' + userObj.nick + ' ';
                     },
                     maxCount: {$maxCount},
@@ -105,6 +106,7 @@ class rtac_yuku_Textcomplete extends core_Manager
                     	}));
                     },
                     replace: function (textComplete) {
+                        
                         return textComplete + rtacObj.textCompleteStrEnd.{$textId};
                     },
                     maxCount: {$maxCount},

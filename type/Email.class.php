@@ -106,6 +106,7 @@ class type_Email extends type_Varchar
         }
         
         if (preg_match('/[\\000-\\037]/', $email)) {
+            
             return false;
         }
         
@@ -113,10 +114,12 @@ class type_Email extends type_Varchar
         "[-a-z0-9.]+(?<![-.])\.[a-z]{2,}|\d{1,3}(?:\.\d{1,3}){3})(?::\d++)?$/iD";
         
         if (!preg_match($pattern, $email)) {
+            
             return false;
         }
         
         if ((mb_stripos($email, '@fax.man') === false) && (!core_Url::isValidTld($email))) {
+            
             return false;
         }
         
@@ -164,12 +167,14 @@ class type_Email extends type_Varchar
     public static function removeBadPart($email, $removeArr = array('+', '='))
     {
         if (!$email) {
+            
             return $email;
         }
         
         static $emailsArr = array();
         
         if (isset($emailsArr[$email])) {
+            
             return $emailsArr[$email];
         }
         

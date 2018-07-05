@@ -321,6 +321,7 @@ class drdata_Vats extends core_Manager
         $vatPrefixes = arr::make('BE,BG,CY,CZ,DK,EE,EL,DE,PT,FR,FI,HR,HU,LU,MT,SI,IE,IT,LV,LT,NL,PL,SK,RO,SE,ES,GB,AT', true);
         
         if ($vatPrefixes[substr(strtoupper(trim($value)), 0, 2)]) {
+            
             return true;
         }
             
@@ -406,6 +407,7 @@ class drdata_Vats extends core_Manager
                 $regex = '/^GB([1-9][0-9]{2}[\ ]{0,1}[0-9]{4}[\ ]{0,1}[0-9]{2})|([1-9][0-9]{2}[\ ]{0,1}[0-9]{4}[\ ]{0,1}[0-9]{2}[\ ]{0,1}[0-9]{3})|((GD|HA)[0-9]{3})$/i';
                 break;
             default:
+                
                 return false;
         }
 

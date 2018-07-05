@@ -208,6 +208,7 @@ class label_Templates extends core_Master
         
         // Ако преди е бил извлечен
         if ($tplArr[$id]) {
+            
             return $tplArr[$id];
         }
         
@@ -262,6 +263,7 @@ class label_Templates extends core_Master
         
         // Ако преди е бил извлечен
         if ($templateArrCss[$hash]) {
+            
             return $templateArrCss[$hash];
         }
         
@@ -303,6 +305,7 @@ class label_Templates extends core_Master
         
         // Ако плейсхолдера се съдържа в шаблона
         if ($placesArr[$id][$placeHolder]) {
+            
             return true;
         }
     }
@@ -411,6 +414,7 @@ class label_Templates extends core_Master
     public static function activateTemplate($id)
     {
         if (!$id) {
+            
             return ;
         }
         
@@ -418,6 +422,7 @@ class label_Templates extends core_Master
         $rec = static::fetch($id);
         
         if (!$rec) {
+            
             return ;
         }
         
@@ -467,6 +472,7 @@ class label_Templates extends core_Master
     public static function placeArray($string, $placeArr)
     {
         if (!$string || !$placeArr) {
+            
             return $string;
         }
         
@@ -586,6 +592,7 @@ class label_Templates extends core_Master
         
         // Ако подадените параметри са същите като съществуващите, не се обновява/създава нищо
         if ($isContentTheSame && $exRec->title == $title && $exRec->title == $title && $exRec->sizes == $sizes && $exRec->lang == $lang && $exRec->classId == $classId) {
+            
             return false;
         }
         

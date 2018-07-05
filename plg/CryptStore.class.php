@@ -79,6 +79,7 @@ class plg_CryptStore extends core_Plugin
     public static function decrypt($str)
     {
         if (substr($str, 0, 2) != 'p|') {
+            
             return false;
         }
 
@@ -89,6 +90,7 @@ class plg_CryptStore extends core_Plugin
         $len = strlen($str);
         
         if ($len == 0) {
+            
             return false;
         }
 

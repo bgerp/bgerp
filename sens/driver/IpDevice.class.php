@@ -148,6 +148,7 @@ class sens_driver_IpDevice extends core_BaseClass
     public function setSettings($data)
     {
         if (!$data) {
+            
             return false;
         }
         $this->settings = $data;

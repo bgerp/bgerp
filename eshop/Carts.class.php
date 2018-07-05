@@ -371,6 +371,7 @@ class eshop_Carts extends core_Master
         
         $settings = cms_Domains::getSettings();
         if (empty($settings)) {
+            
             return new core_ET(' ');
         }
         
@@ -380,6 +381,7 @@ class eshop_Carts extends core_Master
         if (isset($cartId)) {
             $cartRec = self::fetch($cartId);
             if ($settings->enableCart == 'no' && !$cartRec->productCount) {
+                
                 return new core_ET(' ');
             }
             $amount = core_Type::getByName('double(decimals=2)')->toVerbal($cartRec->total);
@@ -394,6 +396,7 @@ class eshop_Carts extends core_Master
             }
         } else {
             if ($settings->enableCart == 'no') {
+                
                 return new core_ET(' ');
             }
         }
@@ -555,6 +558,7 @@ class eshop_Carts extends core_Master
         doc_Threads::updateThread($threadRec->id);
         
         if (is_array($colabUrl) && count($colabUrl)) {
+            
             return new Redirect($colabUrl, 'Успешно създадена заявка за продажба|*!');
         }
         

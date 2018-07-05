@@ -36,6 +36,7 @@ class plg_Clone extends core_Plugin
     {
         // Ако ще клонираме полетата
         if ($action != 'clonefields') {
+            
             return ;
         }
         
@@ -246,6 +247,7 @@ class plg_Clone extends core_Plugin
     {
         // Ако е наследник на master, да не се показва бутона за клониране в листовия изглед, а само в сингъла
         if ($mvc instanceof core_Master) {
+            
             return ;
         }
         
@@ -261,6 +263,7 @@ class plg_Clone extends core_Plugin
         
         // Ако нямаме права за клониране, да не се показва линка
         if (!$mvc->haveRightFor('clonerec', $rec)) {
+            
             return ;
         }
         

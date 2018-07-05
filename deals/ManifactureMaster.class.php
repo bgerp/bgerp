@@ -201,6 +201,7 @@ abstract class deals_ManifactureMaster extends core_Master
     {
         // Може да добавяме или към нишка в която има задание
         if (planning_Jobs::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
+            
             return true;
         }
         

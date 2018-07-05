@@ -1085,10 +1085,12 @@ class PHPMailer
             $patternselect = self::$validator;
         }
         if (is_callable($patternselect)) {
+            
             return call_user_func($patternselect, $address);
         }
         //Reject line breaks in addresses; it's valid RFC5322, but not RFC5321
         if (strpos($address, "\n") !== false or strpos($address, "\r") !== false) {
+            
             return false;
         }
         if (!$patternselect or $patternselect == 'auto') {
@@ -1121,6 +1123,7 @@ class PHPMailer
                  * @copyright 2009-2010 Michael Rushton
                  * Feel free to use and redistribute this code. But please keep this copyright notice.
                  */
+                
                 return (boolean) preg_match(
                     '/^(?!(?>(?1)"?(?>\\\[ -~]|[^"])"?(?1)){255,})(?!(?>(?1)"?(?>\\\[ -~]|[^"])"?(?1)){65,}@)' .
                     '((?>(?>(?>((?>(?>(?>\x0D\x0A)?[\t ])+|(?>[\t ]*\x0D\x0A)?[\t ]+)?)(\((?>(?2)' .
@@ -1153,6 +1156,7 @@ class PHPMailer
                  * This is the pattern used in the HTML5 spec for validation of 'email' type form input elements.
                  * @link http://www.whatwg.org/specs/web-apps/current-work/#e-mail-state-(type=email)
                  */
+                
                 return (boolean) preg_match(
                     '/^[a-zA-Z0-9.!#$%&\'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}' .
                     '[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/sD',
@@ -1166,6 +1170,7 @@ class PHPMailer
                     and strpos($address, '@') != strlen($address) - 1);
             case 'php':
             default:
+                
                 return (boolean) filter_var($address, FILTER_VALIDATE_EMAIL);
         }
     }
@@ -1205,6 +1210,7 @@ class PHPMailer
                 if (($punycode = defined('INTL_IDNA_VARIANT_UTS46') ?
                     idn_to_ascii($domain, 0, INTL_IDNA_VARIANT_UTS46) :
                     idn_to_ascii($domain)) !== false) {
+                    
                     return substr($address, 0, $pos) . $punycode;
                 }
             }
@@ -1223,6 +1229,7 @@ class PHPMailer
     {
         try {
             if (!$this->preSend()) {
+                
                 return false;
             }
 
@@ -1351,14 +1358,18 @@ class PHPMailer
             switch ($this->Mailer) {
                 case 'sendmail':
                 case 'qmail':
+                    
                     return $this->sendmailSend($this->MIMEHeader, $this->MIMEBody);
                 case 'smtp':
+                    
                     return $this->smtpSend($this->MIMEHeader, $this->MIMEBody);
                 case 'mail':
+                    
                     return $this->mailSend($this->MIMEHeader, $this->MIMEBody);
                 default:
                     $sendMethod = $this->Mailer.'Send';
                     if (method_exists($this, $sendMethod)) {
+                        
                         return $this->$sendMethod($this->MIMEHeader, $this->MIMEBody);
                     }
 
@@ -1465,6 +1476,7 @@ class PHPMailer
         if (escapeshellcmd($string) !== $string
             or !in_array(escapeshellarg($string), array("'${string}'", "\"${string}\""))
         ) {
+            
             return false;
         }
 
@@ -1477,6 +1489,7 @@ class PHPMailer
             // Full stop (.) has a special meaning in cmd.exe, but its impact should be negligible here.
             // Note that this does permit non-Latin alphanumeric characters based on the current locale.
             if (!ctype_alnum($c) && strpos('@_-.', $c) === false) {
+                
                 return false;
             }
         }
@@ -1636,6 +1649,7 @@ class PHPMailer
 
         // Already connected?
         if ($this->smtp->connected()) {
+            
             return true;
         }
 
@@ -1863,6 +1877,7 @@ class PHPMailer
     public function addrFormat($addr)
     {
         if (empty($addr[1])) { // No name provided
+            
             return $this->secureHeader($addr[0]);
         }
 
@@ -2690,12 +2705,14 @@ class PHPMailer
                 if ($bString) {
                     $mime[] = $this->encodeString($string, $encoding);
                     if ($this->isError()) {
+                        
                         return '';
                     }
                     $mime[] = $this->LE . $this->LE;
                 } else {
                     $mime[] = $this->encodeFile($path, $encoding);
                     if ($this->isError()) {
+                        
                         return '';
                     }
                     $mime[] = $this->LE . $this->LE;
@@ -2806,6 +2823,7 @@ class PHPMailer
                     // Can't use addslashes as we don't know the value of magic_quotes_sybase
                     $encoded = addcslashes($str, "\0..\37\177\\\"");
                     if (($str == $encoded) && !preg_match('/[^A-Za-z0-9!#$%&\'*+\/=?^_`{|}~ -]/', $str)) {
+                        
                         return ($encoded);
                     }
 
@@ -2826,6 +2844,7 @@ class PHPMailer
 
         //There are no chars that need encoding
         if ($matchcount == 0) {
+            
             return ($str);
         }
 
@@ -2865,8 +2884,10 @@ class PHPMailer
     public function hasMultiBytes($str)
     {
         if (function_exists('mb_strlen')) {
+            
             return (strlen($str) > mb_strlen($str, $this->CharSet));
         }   // Assume no multibytes (we can't handle without mbstring functions anyway)
+        
         return false;
     }
 
@@ -2937,6 +2958,7 @@ class PHPMailer
     {
         // Use native function if it's available (>= PHP5.3)
         if (function_exists('quoted_printable_encode')) {
+            
             return quoted_printable_encode($string);
         }
         // Fall back to a pure PHP implementation
@@ -2964,6 +2986,7 @@ class PHPMailer
         $line_max = 76,
 /** @noinspection PhpUnusedParameterInspection */ $space_conv = false
     ) {
+        
         return $this->encodeQP($string, $line_max);
     }
 
@@ -3152,6 +3175,7 @@ class PHPMailer
     {
         foreach ($this->attachment as $attachment) {
             if ($attachment[6] == 'inline') {
+                
                 return true;
             }
         }
@@ -3167,6 +3191,7 @@ class PHPMailer
     {
         foreach ($this->attachment as $attachment) {
             if ($attachment[6] == 'attachment') {
+                
                 return true;
             }
         }
@@ -3540,6 +3565,7 @@ class PHPMailer
     public function html2text($html, $advanced = false)
     {
         if (is_callable($advanced)) {
+            
             return call_user_func($advanced, $html);
         }
 
@@ -3660,6 +3686,7 @@ class PHPMailer
             'movie' => 'video/x-sgi-movie'
         );
         if (array_key_exists(strtolower($ext), $mimes)) {
+            
             return $mimes[strtolower($ext)];
         }
 
@@ -3717,17 +3744,22 @@ class PHPMailer
         switch ($options) {
             case PATHINFO_DIRNAME:
             case 'dirname':
+                
                 return $ret['dirname'];
             case PATHINFO_BASENAME:
             case 'basename':
+                
                 return $ret['basename'];
             case PATHINFO_EXTENSION:
             case 'extension':
+                
                 return $ret['extension'];
             case PATHINFO_FILENAME:
             case 'filename':
+                
                 return $ret['filename'];
             default:
+                
                 return $ret;
         }
     }
@@ -3902,6 +3934,7 @@ class PHPMailer
     public function DKIM_BodyC($body)
     {
         if ($body == '') {
+            
             return "\r\n";
         }
         // stabilize line endings

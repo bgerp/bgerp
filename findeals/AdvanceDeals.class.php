@@ -80,6 +80,7 @@ class findeals_AdvanceDeals extends findeals_Deals
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
         
         if (cls::haveInterface('crm_PersonAccRegIntf', $coverClass)) {
+            
             return true;
         }
         

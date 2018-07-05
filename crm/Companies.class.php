@@ -1202,6 +1202,7 @@ class crm_Companies extends core_Master
            
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
+                
                 return array();
             }
 
@@ -1526,11 +1527,13 @@ class crm_Companies extends core_Master
        
         // Ако не е посочена държава, вингаи начисляваме ДДС
         if (!$rec->country) {
+            
             return true;
         }
         
         // Ако не е в Еропейския съюз, не начисляваме ДДС
         if (!drdata_Countries::isEu($rec->country)) {
+            
             return false;
         }
  
@@ -1538,6 +1541,7 @@ class crm_Companies extends core_Master
         
         // Ако няма VAT номер или има валиден ват и не е от държавата на myCompany не начисляваме
         if ((empty($rec->vatId) || drdata_Vats::isHaveVatPrefix($rec->vatId)) && ($ownCompany->country != $rec->country)) {
+            
             return false;
         }
         
@@ -1559,16 +1563,19 @@ class crm_Companies extends core_Master
 
         // Ако контрагента няма държава, то дефолт валутата е BGN
         if (empty($rec->country)) {
+            
             return 'BGN';
         }
         
         // Ако държавата му е България, дефолт валутата е 'BGN'
         if (drdata_Countries::fetchField($rec->country, 'letterCode2') == 'BG') {
+            
             return 'BGN';
         }
             
         // Ако не е 'България', но е в ЕС, дефолт валутата е 'EUR'
         if (drdata_Countries::isEur($rec->country)) {
+            
             return 'EUR';
         }
         
@@ -1867,6 +1874,7 @@ class crm_Companies extends core_Master
             
             // Проверяваме дали имаме права за папката
             if (doc_Folders::haveRightFor('single', $folderId)) {
+                
                 return $folderId;
             }
         }
@@ -2381,6 +2389,7 @@ class crm_Companies extends core_Master
         
         // Ако няма държава или държавате е България, провряваме дали е валиден ЕИК номер
         if (empty($countryId) || $countryId == $bgId) {
+            
             return drdata_Vats::isBulstat($uicNo);
         }
         
@@ -2421,6 +2430,7 @@ class crm_Companies extends core_Master
     public static function on_AfterGetSingleIcon($mvc, &$res, $id)
     {
         if (core_Users::isContractor() || !haveRole('user')) {
+            
             return ;
         }
         

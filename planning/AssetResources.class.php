@@ -245,6 +245,7 @@ class planning_AssetResources extends core_Master
         // Ако папката не поддържа ресурси оборудване да не се връща нищо
         if (isset($folderId)) {
             if (!self::canFolderHaveAsset($folderId)) {
+                
                 return $options;
             }
         }
@@ -329,12 +330,14 @@ class planning_AssetResources extends core_Master
     public static function getNormRec($id, $productId)
     {
         if (empty($id)) {
+            
             return false;
         }
         
         // Имали конкретна норма за артикула
         $aNorm = planning_AssetResourcesNorms::fetchNormRec('planning_AssetResources', $id, $productId);
         if (array_key_exists($productId, $aNorm)) {
+            
             return $aNorm[$productId];
         }
         
@@ -342,6 +345,7 @@ class planning_AssetResources extends core_Master
         $groupId = self::fetchField($id, 'groupId');
         $gNorm = planning_AssetResourcesNorms::fetchNormRec('planning_AssetGroups', $groupId, $productId);
         if (array_key_exists($productId, $gNorm)) {
+            
             return $gNorm[$productId];
         }
         
@@ -359,6 +363,7 @@ class planning_AssetResources extends core_Master
     {
         $assets = is_array($assets) ? $assets : keylist::toArray($assets);
         if (!planning_AssetGroups::haveSameGroup($assets)) {
+            
             return false;
         }
         $groupId = planning_AssetResources::fetchField(key($assets), 'groupId');

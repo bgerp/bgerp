@@ -88,6 +88,7 @@ class tsm_TSM extends sens2_ProtoDriver
         $output = ($c1[400446] + $c2[400468] + $c3[400490] + $c4[400512] + $c5[400534] + $c6[400556]) / 100;
         
         if (!$output) {
+            
             return "Грешка при четене от {$config->ip}";
         }
 

@@ -218,6 +218,7 @@ class email_Fingerprints extends core_Manager
         $rec = new stdClass();
         $rec->hash = self::getHeaderPartHash($headers);
         if (self::fetchField("#hash = '{$rec->hash}'", 'id')) {
+            
             return false;
         }
 

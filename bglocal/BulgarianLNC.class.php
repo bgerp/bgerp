@@ -29,10 +29,12 @@ class bglocal_BulgarianLNC
     public function isLnc($value)
     {
         if (!isset($value)) {
+            
             return false;
         }
         
         if (!preg_match('/^[0-9]{10}$/', $value)) {
+            
             return false;
         }
         
@@ -46,6 +48,7 @@ class bglocal_BulgarianLNC
         $rest = $sum % 10;
         
         if ($rest == $valArr[9]) {
+            
             return true;
         }
         

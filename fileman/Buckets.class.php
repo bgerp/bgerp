@@ -93,10 +93,12 @@ class fileman_Buckets extends core_Manager
         expect($bRec);
         
         if (!$bRec->rolesForAdding) {
+            
             return true;
         }
         
         if (haveRole($bRec->rolesForAdding, $userId)) {
+            
             return true;
         }
         
@@ -114,6 +116,7 @@ class fileman_Buckets extends core_Manager
         $rec = static::fetch(array("LOWER(#name) = '[#1#]'", $bucketName));
 
         if ($part == '*') {
+            
             return $rec;
         }
 
@@ -235,6 +238,7 @@ class fileman_Buckets extends core_Manager
         }
 
         if (!$err) {
+            
             return true;
         }
     }
@@ -330,6 +334,7 @@ class fileman_Buckets extends core_Manager
         
         // Ако няма текст, връщаме празен масив
         if (!trim($extensions)) {
+            
             return $resArr;
         }
         

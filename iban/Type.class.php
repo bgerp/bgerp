@@ -173,6 +173,7 @@ class iban_Type extends type_Varchar
         self::loadCode();
 
         if ($iban{0} == '#') {
+            
             return trim(str_replace(array(' ', '-'), array('', ''), $iban));
         }
 

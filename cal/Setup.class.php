@@ -224,6 +224,7 @@ class cal_Setup extends core_ProtoSetup
         $resArr = core_Cache::get($type, $handler, $keepMinutes, $depends);
         
         if ($resArr) {
+            
             return $resArr;
         }
         
@@ -354,6 +355,7 @@ class cal_Setup extends core_ProtoSetup
     public function updateTaskProgresses()
     {
         if (!cls::load('cal_TaskProgresses', true)) {
+            
             return ;
         }
         
@@ -361,6 +363,7 @@ class cal_Setup extends core_ProtoSetup
         
         // Ако таблицата не е създадена
         if (!$Progresses->db->tableExists($Progresses->dbTableName)) {
+            
             return ;
         }
         

@@ -210,6 +210,7 @@ class hr_Indicators extends core_Manager
         
         // Ако нямаме източници - нищо не правим
         if (!is_array($docArr) || !count($docArr)) {
+            
             return $periods;
         }
         
@@ -546,6 +547,7 @@ class hr_Indicators extends core_Manager
     public function renderPersonIndicators($data)
     {
         if ($data->IData->render === false) {
+            
             return new core_ET('');
         }
         $listTableMvc = clone $this;

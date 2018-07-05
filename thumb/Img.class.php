@@ -717,6 +717,7 @@ class thumb_Img
     public static function scaleSize($width, $height, $boxWidth, $boxHeight, $mode = 'small-no-change', $allowRotate = false)
     {
         if ($width == 0 || $height == 0) {
+            
             return array($boxWidth, $boxHeight, 1);
         }
 
@@ -840,6 +841,7 @@ class thumb_Img
         
         // Ако е в масива
         if ($imgArr[$ext]) {
+            
             return true;
         }
     }

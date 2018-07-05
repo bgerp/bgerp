@@ -214,6 +214,7 @@ class email_FaxSent extends core_Manager
     public static function send($rec, $options, $lg)
     {
         if (email_Outgoings::checkAndAddForLateSending($rec, $options, $lg)) {
+            
             return ;
         }
         

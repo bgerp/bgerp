@@ -85,6 +85,7 @@ class type_Order extends type_Varchar
         }
         
         if ($len != 9) {
+            
             return $value;
         }
 

@@ -791,6 +791,7 @@ class store_InventoryNotes extends core_Master
         }
         
         if ($directRedirect === true) {
+            
             return new Redirect($url);
         }
         

@@ -108,6 +108,7 @@ class doclog_Used extends core_Manager
     public static function remove($cid, $usedCid)
     {
         if (!$cid || !$usedCid) {
+            
             return ;
         }
         
@@ -185,6 +186,7 @@ class doclog_Used extends core_Manager
         $resArr = array();
         
         if (empty($cArr)) {
+            
             return $resArr;
         }
         

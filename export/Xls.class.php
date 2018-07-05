@@ -38,6 +38,7 @@ class export_Xls extends core_Mvc
         $csvClsArr = $this->getCsvExportIntf();
         
         if (empty($csvClsArr)) {
+            
             return false;
         }
         
@@ -89,6 +90,7 @@ class export_Xls extends core_Mvc
         $csvClsArr = $this->getCsvExportIntf();
         
         if (empty($csvClsArr)) {
+            
             return false;
         }
         

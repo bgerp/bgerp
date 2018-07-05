@@ -150,6 +150,7 @@ class price_History extends core_Manager
         
         // Ако тази стойност вече е извлечена, директно я връщаме
         if (self::$cache[$datetime]) {
+            
             return self::$cache[$datetime];
         }
 

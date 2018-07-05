@@ -27,11 +27,13 @@ class callcenter_ListOperationsPlg extends core_Plugin
         
         // Ако не се търси по това поле
         if (!($number = $data->listFilter->rec->{$numberField})) {
+            
             return ;
         }
         
         // Ако е коректен номер, според нашите очаквания
         if (!($numberArr = drdata_PhoneType::toArray($number))) {
+            
             return ;
         }
         

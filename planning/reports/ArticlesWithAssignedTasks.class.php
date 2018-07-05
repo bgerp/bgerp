@@ -512,6 +512,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         
         // Ако няма предпоследна, бие се нотификация
         if (! count($all)) {
+            
             return true;
         }
         $oldRec = $all[key($all)]->oldRec;
@@ -519,6 +520,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         $dataRecsOld = $oldRec->data->recs;
         
         if (! is_array($dataRecsOld)) {
+            
             return true;
         }
         
@@ -528,11 +530,13 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 
                 // Ако има нов документ - известяване
                 if (! array_key_exists($index, $dataRecsOld)) {
+                    
                     return true;
                 }
                     
                 // Ако има промяна в крайния срок - известяване
                 if ($new->dueDate != $old->dueDate) {
+                    
                     return true;
                 }
             }

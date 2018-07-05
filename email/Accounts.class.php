@@ -253,6 +253,7 @@ class email_Accounts extends core_Master
         $hash = md5(implode('|', $filterArr));
         
         if (isset($resArr[$hash])) {
+            
             return $resArr[$hash];
         }
         

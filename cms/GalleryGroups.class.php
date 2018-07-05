@@ -154,6 +154,7 @@ class cms_GalleryGroups extends core_Manager
     {
         // Ако не са подадени роли
         if (!$rec->roles) {
+            
             return ;
         }
         
@@ -332,6 +333,7 @@ class cms_GalleryGroups extends core_Manager
     {
         // Ако име роля ceo да може да вижда всички
         if (haveRole('ceo')) {
+            
             return ;
         }
         
@@ -341,6 +343,7 @@ class cms_GalleryGroups extends core_Manager
         }
         
         if ($userId <= 0) {
+            
             return ;
         }
         
@@ -369,6 +372,7 @@ class cms_GalleryGroups extends core_Manager
     {
         // Ако име роля ceo да може да вижда всички
         if (haveRole('ceo')) {
+            
             return ;
         }
         
@@ -378,6 +382,7 @@ class cms_GalleryGroups extends core_Manager
         }
         
         if ($userId <= 0) {
+            
             return ;
         }
         
@@ -405,6 +410,7 @@ class cms_GalleryGroups extends core_Manager
     {
         // Ако име роля ceo да може да вижда всички
         if (haveRole('ceo')) {
+            
             return ;
         }
         
@@ -414,6 +420,7 @@ class cms_GalleryGroups extends core_Manager
         }
         
         if ($userId <= 0) {
+            
             return ;
         }
         

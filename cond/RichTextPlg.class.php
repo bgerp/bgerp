@@ -63,6 +63,7 @@ class cond_RichTextPlg extends core_Plugin
             $callback = "function {$callbackName}(passage) {
                 var ta = get$('{$id}');
                 rp(passage, ta, 1);
+                
                 return false;
             }";
 

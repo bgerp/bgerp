@@ -173,6 +173,7 @@ class distro_Group extends core_Master
                 $subDirName = self::getSubDirName($dRec);
                 
                 if ($subDirName == $path) {
+                    
                     return $handleArr['id'];
                 }
             }
@@ -185,6 +186,7 @@ class distro_Group extends core_Master
             $subDirName = self::getSubDirName($dRec);
             
             if ($subDirName == $path) {
+                
                 return $dRec->id;
             }
         }
@@ -414,6 +416,7 @@ class distro_Group extends core_Master
     {
         // Ако няма id
         if (!$id) {
+            
             return false;
         }
             
@@ -422,11 +425,13 @@ class distro_Group extends core_Master
         
         // Ако състоянието не е актвино
         if ($rec->state != 'active') {
+            
             return false;
         }
         
         // Ако имаме достъп до сингъла на документа
         if (static::haveRightFor('single', $rec, $userId)) {
+            
             return true;
         }
         
@@ -510,6 +515,7 @@ class distro_Group extends core_Master
         $resArr = array();
         
         if (!$rec->id) {
+            
             return $resArr;
         }
         

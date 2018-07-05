@@ -392,6 +392,7 @@ class email_Inboxes extends core_Master
 
         // Ако сметката е частна, то $toBox е нейния имейл
         if ($accRec->type == 'single') {
+            
             return $accRec->email;
         }
         
@@ -405,6 +406,7 @@ class email_Inboxes extends core_Master
  
         // Ако няма никакви имейли, към които е изпратено писмото, $toBox е имейла на сметката
         if (!is_array($emailsArr) || !count($emailsArr)) {
+            
             return $accRec->email;
         }
 
@@ -417,6 +419,7 @@ class email_Inboxes extends core_Master
 
             // Първия имейл, който отговаря на кутия е $toBox
             if ($allBoxes[$eml]) {
+                
                 return $eml;
             }
         }
@@ -466,6 +469,7 @@ class email_Inboxes extends core_Master
         }
         
         if ($bestEmail = self::getClosest($emailsArr)) {
+            
             return $bestEmail;
         }
         
@@ -560,6 +564,7 @@ class email_Inboxes extends core_Master
         }
         
         if ($bestEmailArr[$md] && $bestPercentArr[$md]) {
+            
             return $bestEmailArr[$md];
         }
     }
@@ -626,6 +631,7 @@ class email_Inboxes extends core_Master
         
             // Ако няма корпоративна сметка - връщаме FALSE
             if (!$corpAccRec) {
+                
                 return false;
             }
             
@@ -667,6 +673,7 @@ class email_Inboxes extends core_Master
         
         // Ако потребителя няма корпоративен емейл, връшаме FALSE
         if (!$email) {
+            
             return false;
         }
 
@@ -685,6 +692,7 @@ class email_Inboxes extends core_Master
         // Ако потребителите се регистрират с никове == имейлите им,
         // то не можем да генерираме корпоративен имейл адрес
         if (defined('EF_USSERS_EMAIL_AS_NICK') && EF_USSERS_EMAIL_AS_NICK) {
+            
             return false;
         }
 
@@ -694,6 +702,7 @@ class email_Inboxes extends core_Master
         }
         
         if (!$userId || ($userId <= 0)) {
+            
             return false;
         }
         
@@ -705,6 +714,7 @@ class email_Inboxes extends core_Master
         
         // Ако няма корпоративна сметка - връщаме FALSE
         if (!$corpAccRec) {
+            
             return false;
         }
         
@@ -760,6 +770,7 @@ class email_Inboxes extends core_Master
         $hash = md5(implode('|', $emailsArr) . '||' . $field . '||' . implode('|', $removeAccType));
         
         if (isset($resArr[$hash])) {
+            
             return $resArr[$hash];
         }
         
@@ -775,6 +786,7 @@ class email_Inboxes extends core_Master
         }
         
         if (!$emailsArr) {
+            
             return $resArr[$hash];
         }
         
@@ -836,12 +848,14 @@ class email_Inboxes extends core_Master
         $hash = md5(implode('|', $idsArr) . '||' . $addShared . '||' . $onlyWithNotify);
         
         if (isset($resArr[$hash])) {
+            
             return $resArr[$hash];
         }
         
         $resArr[$hash] = array();
         
         if (!$idsArr || empty($idsArr)) {
+            
             return $resArr[$hash];
         }
         
@@ -880,12 +894,14 @@ class email_Inboxes extends core_Master
         $removeAccType = arr::make($removeAccType);
         
         if (!is_array($emailsArr) || !count($emailsArr)) {
+            
             return array();
         }
 
         $hash = md5(implode('|', $emailsArr) . '||' . implode('|', $removeAccType));
         
         if (isset($usersArr[$hash])) {
+            
             return $usersArr[$hash];
         }
         
@@ -901,6 +917,7 @@ class email_Inboxes extends core_Master
         }
         
         if (!$emailsArr) {
+            
             return $usersArr[$hash];
         }
         
@@ -1163,6 +1180,7 @@ class email_Inboxes extends core_Master
         $allEmailsArr = array_diff($emailsArr, $emailForRemove);
         
         if (!$allEmailsArr) {
+            
             return $allEmailsArr;
         }
         

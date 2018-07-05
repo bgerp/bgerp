@@ -244,6 +244,7 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
         $total += abs($blAmount);
          
         if ($blAmount == 0) {
+            
             return $entries;
         }
          
@@ -309,6 +310,7 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
         $entry = array();
         
         if (round($amount, 2) == 0) {
+            
             return $entry;
         }
         $quantity = round($quantity, 9);

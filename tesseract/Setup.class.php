@@ -120,6 +120,7 @@ class tesseract_Setup extends core_ProtoSetup
     public function checkConfig()
     {
         if (fconv_Remote::canRunRemote('tesseract')) {
+            
             return ;
         }
         
@@ -138,6 +139,7 @@ class tesseract_Setup extends core_ProtoSetup
         }
         
         if ($haveError) {
+            
             return 'Програмата ' . type_Varchar::escape(self::get('PATH')) . ' не е инсталирана.';
         }
         
@@ -169,6 +171,7 @@ class tesseract_Setup extends core_ProtoSetup
                 list($v, $sv) = explode('.', $lVersion);
                     
                 if (($v <= 1) && ($sv < 74)) {
+                    
                     return "Версията на 'leptonica' e {$lVersion}. С тази версия има проблем.";
                 }
             }
@@ -192,6 +195,7 @@ class tesseract_Setup extends core_ProtoSetup
         $tVerStr = $resArr[0];
         
         if (!$tVerStr) {
+            
             return $versionArr;
         }
         

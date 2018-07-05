@@ -161,6 +161,7 @@ class cat_products_Params extends doc_Detail
             $options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id);
             
             if (!count($options)) {
+                
                 return followRetUrl(null, 'Няма параметри за добавяне', 'warning');
             }
             

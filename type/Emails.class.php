@@ -147,6 +147,7 @@ class type_Emails extends type_Varchar
         
         //Ако има грешки връщаме резултатa
         if (count($res)) {
+            
             return $res;
         }
 

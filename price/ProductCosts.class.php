@@ -141,6 +141,7 @@ class price_ProductCosts extends core_Manager
             
         // Ако няма баланс няма какво да подготвяме
         if (empty($balanceRec)) {
+            
             return false;
         }
         

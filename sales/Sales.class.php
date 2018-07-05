@@ -326,16 +326,19 @@ class sales_Sales extends deals_DealMaster
     {
         $dealerId = sales_Routes::getSalesmanId($locationId);
         if (isset($dealerId)) {
+            
             return $dealerId;
         }
         
         $dealerId = doc_Folders::fetchField($folderId, 'inCharge');
         if (core_Users::haveRole('sales', $dealerId)) {
+            
             return $dealerId;
         }
         
         $dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $folderId, 'dealerId', true);
         if (core_Users::haveRole('sales', $dealerId)) {
+            
             return $dealerId;
         }
     }
@@ -938,6 +941,7 @@ class sales_Sales extends deals_DealMaster
         }
         
         if (!count($ids)) {
+            
             return array();
         }
         
@@ -1205,6 +1209,7 @@ class sales_Sales extends deals_DealMaster
         // Ако няма калкулатор в условието на доставка, не се изчислява нищо
         $TransportCalc = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
         if (!is_object($TransportCalc)) {
+            
             return $expectedTransport;
         }
         
@@ -1447,9 +1452,11 @@ class sales_Sales extends deals_DealMaster
         $res = array();
         $Doc = doc_Threads::getFirstDocument($threadId);
         if (empty($Doc)) {
+            
             return $res;
         }
         if (!$Doc->isInstanceOf('sales_Sales')) {
+            
             return $res;
         }
         

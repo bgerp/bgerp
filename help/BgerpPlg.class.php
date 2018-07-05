@@ -25,16 +25,19 @@ class help_BgerpPlg extends core_Plugin
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         if (Request::get('ajax_mode')) {
+            
             return ;
         }
         
         $currUserId = core_Users::getCurrent();
         
         if ($currUserId <= 0) {
+            
             return ;
         }
         
         if (help_Log::getDisplayMode('-1', $currUserId, false) != 'open') {
+            
             return ;
         }
         
@@ -54,6 +57,7 @@ class help_BgerpPlg extends core_Plugin
     {
         // Ако е зададено да не се показва
         if (!$data || !$data->__needHelp) {
+            
             return ;
         }
         

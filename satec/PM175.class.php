@@ -114,6 +114,7 @@ class satec_PM175 extends sens2_ProtoDriver
         $res['PFTotal'] = round(($addresses['414343'] - $addresses['414344']) / 1000, 4);
         
         if (empty($addresses)) {
+            
             return "Грешка при четене от {$config->ip}";
         }
                 

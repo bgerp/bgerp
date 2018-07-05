@@ -230,6 +230,7 @@ class batch_BatchesInDocuments extends core_Manager
         $Class = cls::get($detailClassId);
         $rInfo = $Class->getRowInfo($detailRecId);
         if (empty($rInfo->operation[key($rInfo->operation)])) {
+            
             return false;
         }
         
@@ -237,6 +238,7 @@ class batch_BatchesInDocuments extends core_Manager
         if ($rInfo->operation == 'out' && $rInfo->state == 'draft') {
             $storeQuantity = batch_Items::getQuantity($rInfo->productId, $batch, $rInfo->operation['out']);
             if ($quantity > $storeQuantity) {
+                
                 return 'Недостатъчно количество в склада';
             }
         }
@@ -280,6 +282,7 @@ class batch_BatchesInDocuments extends core_Manager
                 if ($intersect) {
                     $imploded = implode(',', $intersectArr);
                     if ($intersect == 1) {
+                        
                         return "|Серийният номер|*: {$imploded}| се повтаря в документа|*";
                     }
 

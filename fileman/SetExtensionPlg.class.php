@@ -26,6 +26,7 @@ class fileman_SetExtensionPlg extends core_Plugin
         $bucket = $rec->bucketId;
         
         if (!isset($fileHnd)) {
+            
             return ;
         }
  

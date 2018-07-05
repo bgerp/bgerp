@@ -145,6 +145,7 @@ class doc_Containers extends core_Manager
     public static function logRead($action, $objectId = null, $lifeDays = 180)
     {
         if (self::logToDocument('read', $action, $objectId, $lifeDays)) {
+            
             return ;
         }
         
@@ -164,6 +165,7 @@ class doc_Containers extends core_Manager
     public static function logWrite($action, $objectId = null, $lifeDays = 360)
     {
         if (self::logToDocument('write', $action, $objectId, $lifeDays)) {
+            
             return ;
         }
         
@@ -182,12 +184,14 @@ class doc_Containers extends core_Manager
     protected static function logToDocument($type, $action, $objectId, $lifeDays)
     {
         if (!$objectId) {
+            
             return ;
         }
         
         $allowedType = array('read', 'write');
         
         if (!in_array($type, $allowedType)) {
+            
             return ;
         }
         
@@ -218,6 +222,7 @@ class doc_Containers extends core_Manager
     public static function getLinkForObject($objId)
     {
         if (!$objId) {
+            
             return ht::createLink(get_called_class(), array());
         }
         
@@ -226,6 +231,7 @@ class doc_Containers extends core_Manager
             
             return $doc->getLinkForObject();
         } catch (core_exception_Expect $e) {
+            
             return parent::getLinkForObject($objId);
         }
     }
@@ -244,6 +250,7 @@ class doc_Containers extends core_Manager
             
             return $doc->getTitleForId($escaped);
         } catch (core_exception_Expect $e) {
+            
             return parent::getTitleForId_($id, $escaped);
         }
     }
@@ -937,6 +944,7 @@ class doc_Containers extends core_Manager
     public static function changeNotifications($dRec, $oldSharedUsers, $newSharedUsers)
     {
         if (($oldSharedUsers == $newSharedUsers)) {
+            
             return ;
         }
         
@@ -1106,6 +1114,7 @@ class doc_Containers extends core_Manager
         
         // Ако няма потребители за нотифирциране
         if (!$usersArr) {
+            
             return ;
         }
         
@@ -1450,11 +1459,13 @@ class doc_Containers extends core_Manager
         
         //Проверяваме дали сме открили клас. Ако не - връщаме FALSE
         if (!$mvc = self::getClassByAbbr($handle['abbr'])) {
+            
             return false;
         }
         
         //Ако нямаме запис за съответното $id връщаме FALSE
         if (!$docRec = $mvc::fetchByHandle($handle)) {
+            
             return false;
         }
         
@@ -1474,6 +1485,7 @@ class doc_Containers extends core_Manager
         $handle = trim($handle);
         
         if (!preg_match(doc_RichTextPlg::$identPattern, $handle, $matches)) {
+            
             return false;
         }
         
@@ -1782,6 +1794,7 @@ class doc_Containers extends core_Manager
     {
         // Ако няма стойност, връщаме
         if (!$id) {
+            
             return ;
         }
         
@@ -2641,6 +2654,7 @@ class doc_Containers extends core_Manager
     {
         // Ако не е чило, връщаме
         if (!is_numeric($id)) {
+            
             return ;
         }
 
@@ -2692,6 +2706,7 @@ class doc_Containers extends core_Manager
         // Ако е подаден масив
         if (is_array($thread)) {
             if (empty($thread)) {
+                
                 return $arr;
             }
             
@@ -2699,6 +2714,7 @@ class doc_Containers extends core_Manager
             $query->orWhereArr('threadId', $thread);
         } else {
             if (!$thread) {
+                
                 return $arr;
             }
             

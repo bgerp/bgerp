@@ -122,6 +122,7 @@ class type_ComplexType extends type_Varchar
             
             // Ако има грешка, се излиза от ф-ята
             if ($this->error) {
+                
                 return false;
             }
             

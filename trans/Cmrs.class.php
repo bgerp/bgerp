@@ -491,6 +491,7 @@ class trans_Cmrs extends core_Master
         if ($firstDoc && $firstDoc->isInstanceOf('deals_DealMaster')) {
             $state = $firstDoc->fetchField('state');
             if (in_array($state, array('active', 'closed', 'pending'))) {
+                
                 return true;
             }
         }
@@ -586,6 +587,7 @@ class trans_Cmrs extends core_Master
     {
         $cid = $this->fetchField($id, 'containerId');
         if (doclog_Documents::fetchByCid($cid, doclog_Documents::ACTION_PRINT)) {
+            
             return true;
         }
     }

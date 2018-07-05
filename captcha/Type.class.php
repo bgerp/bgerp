@@ -103,6 +103,7 @@ class captcha_Type extends core_Type
         $value = trim($value['value']);
         
         if ($code == $value) {
+            
             return $value;
         }
         $this->error = 'Некоректно разпознаване на кода';
@@ -179,6 +180,7 @@ class captcha_Type extends core_Type
         $idProt = $this->protectId($idStrip);
 
         if ($id == $idProt) {
+            
             return $idStrip;
         }
         sleep(2);

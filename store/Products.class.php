@@ -601,9 +601,11 @@ class store_Products extends core_Detail
         // Намиране на тези записи, от старите които са имали резервирано к-во, но вече нямат
         $unsetArr = array_filter($old, function (&$r) use ($result) {
             if (!isset($r->reservedQuantity)) {
+                
                 return false;
             }
             if (array_key_exists("{$r->storeId}|{$r->productId}", $result)) {
+                
                 return false;
             }
 

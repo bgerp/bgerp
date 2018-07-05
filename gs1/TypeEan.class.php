@@ -196,6 +196,7 @@ class gs1_TypeEan extends type_Varchar
     {
         $digits13 = substr($value, 0, 13);
         if ($this->isValidEan($digits13)) {
+            
             return true;
         }
 
@@ -210,10 +211,12 @@ class gs1_TypeEan extends type_Varchar
     public function isValid($value)
     {
         if (!trim($value)) {
+            
             return array('value' => '');
         }
         if (count($this->autoRange)) {
             if ($value == self::AUTO_GENERETE_STRING) {
+                
                 return array('value' => $value);
             }
         }

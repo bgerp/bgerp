@@ -180,6 +180,7 @@ class core_Cron extends core_Manager
         $rec = $query->fetch();
         
         if ($rec) {
+            
             return $rec->lastStart;
         }
     }
@@ -197,6 +198,7 @@ class core_Cron extends core_Manager
         $rec = self::getRecForSystemId($systemId);
         
         if ($rec === false) {
+            
             return ;
         }
         
@@ -506,6 +508,7 @@ class core_Cron extends core_Manager
     public function unlockProcess($rec)
     {
         if (!$rec || !$rec->id) {
+            
             return ;
         }
         $rec = $this->fetch($rec->id);
@@ -774,6 +777,7 @@ class core_Cron extends core_Manager
         }
 
         if ($res) {
+            
             return "<li style='color:green;'>Премахнати бяха липсващите входни точки за Cron: {$res}</li>";
         }
     }
@@ -829,6 +833,7 @@ class core_Cron extends core_Manager
     public static function getTitleForId_($id, $escaped = true)
     {
         if (!$id) {
+            
             return parent::getTitleById($id, $escaped);
         }
         

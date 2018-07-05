@@ -100,6 +100,7 @@ class remote_Tokens extends core_Master
     public static function storeToken($authId, $token, $expiredOn)
     {
         if (self::fetch(array("#authId = [#1#] AND #token = '[#2#]'", $authId, $token))) {
+            
             return false;
         }
 

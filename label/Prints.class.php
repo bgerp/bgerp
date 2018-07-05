@@ -235,6 +235,7 @@ class label_Prints extends core_Master
         if (!empty($labelDataArr)) {
             $templatesArr = label_Templates::getTemplatesByDocument($classId, $objId);
             if (!count($templatesArr)) {
+                
                 return followRetUrl(null, '|Няма шаблон, който да се използва', 'error');
             }
             
@@ -287,6 +288,7 @@ class label_Prints extends core_Master
             
             // Сортиране по цвят
             uasort($optArr, function ($a, $b) {
+                
                 return strcmp($a->attr['data-color'], $b->attr['data-color']);
             });
             

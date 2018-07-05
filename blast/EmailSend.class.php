@@ -332,6 +332,7 @@ class blast_EmailSend extends core_Detail
         $allCnt = $query->count();
         
         if (!$allCnt) {
+            
             return 0;
         }
         

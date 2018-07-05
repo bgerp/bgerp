@@ -498,6 +498,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             usort($recs, function ($a, $b) {
                 if ($a->contragentName == $b->contragentName) {
                     if ($a->readiness == $b->readiness) {
+                        
                         return ($a->deliveryTime < $b->deliveryTime) ? -1 : 1;
                     }
                         
@@ -518,6 +519,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             usort($recs, function ($a, $b) {
                 if ($a->readiness === $b->readiness) {
                     if ($a->contragentName == $b->contragentName) {
+                        
                         return ($a->deliveryTime < $b->deliveryTime) ? -1 : 1;
                     }
 

@@ -306,6 +306,7 @@ class fileman_Setup extends core_ProtoSetup
             
             if (isset($freeUploadSpace)) {
                 if ($freeUploadSpace < 100000) {
+                    
                     return 'Много малко свободно място за качване на файлове в ' . FILEMAN_UPLOADS_PATH;
                 }
             }
@@ -315,6 +316,7 @@ class fileman_Setup extends core_ProtoSetup
             $freeUploadSpacePercent = rtrim($freeUploadSpacePercent, '%');
             if ($freeUploadSpacePercent <= 100) {
                 if ($freeUploadSpacePercent >= 95) {
+                    
                     return 'Почти е запълнено мястото за качване на файлове в ' . FILEMAN_UPLOADS_PATH . " - {$freeUploadSpacePercent}%";
                 }
             }
@@ -322,6 +324,7 @@ class fileman_Setup extends core_ProtoSetup
         
         // Ако не е инсталиране
         if (!static::isEnabled()) {
+            
             return 'GhostScript не се стартира с "' . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . '"';
         }
         
@@ -355,8 +358,10 @@ class fileman_Setup extends core_ProtoSetup
         $res = @exec($gs . ' --help', $output, $code);
         
         if ($code === 0) {
+            
             return true;
         } elseif ($code === 127) {
+            
             return false;
         }
     }
@@ -380,6 +385,7 @@ class fileman_Setup extends core_ProtoSetup
         $trimRes = trim($resArr[0]);
         
         if (!$trimRes) {
+            
             return ;
         }
         
@@ -388,6 +394,7 @@ class fileman_Setup extends core_ProtoSetup
         
         // Ако не може да се открие версията/подверсията
         if (!isset($version) || !isset($subVersion)) {
+            
             return ;
         }
         

@@ -66,6 +66,7 @@ class email_Spam extends email_ServiceEmails
         // Ако е отговор на наш имейл да не се приема като спам
         $subject = $mime->getHeader('subject');
         if ($subject && email_ThreadHandles::extractThreadFromSubject($subject)) {
+            
             return $isSpam;
         }
         
@@ -73,6 +74,7 @@ class email_Spam extends email_ServiceEmails
         if ($inReplyTo) {
             if ($mid = email_Router::extractMidFromMessageId($inReplyTo)) {
                 if (doclog_Documents::fetchByMid($mid)) {
+                    
                     return $isSpam;
                 }
             }

@@ -107,6 +107,7 @@ class bglocal_Banks extends core_Manager
         $parts = iban_Type::getParts($iban);
         
         if ($parts['bank'] && $rec = static::fetch(array("#bic LIKE '%[#1#]%'", $parts['bank']))) {
+            
             return $rec->name;
         }
     }
@@ -125,6 +126,7 @@ class bglocal_Banks extends core_Manager
         $parts = iban_Type::getParts($iban);
         
         if ($parts['bank'] && $rec = static::fetch(array("#bic LIKE '%[#1#]%'", $parts['bank']))) {
+            
             return $rec->bic;
         }
     }

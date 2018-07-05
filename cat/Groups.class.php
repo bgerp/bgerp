@@ -237,6 +237,7 @@ class cat_Groups extends core_Manager
         $sysIds = arr::make($sysIds);
         
         if (!count($sysIds)) {
+            
             return $kList;
         }
         
@@ -317,6 +318,7 @@ class cat_Groups extends core_Manager
         $res = array();
         $groups = (is_array($keylist)) ? $keylist : keylist::toArray($keylist);
         if (!count($groups)) {
+            
             return $res;
         }
         
@@ -346,12 +348,14 @@ class cat_Groups extends core_Manager
     {
         $groups = (is_array($groupList)) ? $groupList : keylist::toArray($groupList);
         if (!count($groups)) {
+            
             return false;
         }
         
         $notAllowed = array();
         foreach ($groups as $grId) {
             if (array_key_exists($grId, $notAllowed)) {
+                
                 return true;
             }
              

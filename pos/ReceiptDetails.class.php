@@ -148,6 +148,7 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         if (!$rec = $this->fetch($recId)) {
+            
             return $this->returnError($recId);
         }
         
@@ -267,6 +268,7 @@ class pos_ReceiptDetails extends core_Detail
         
         // Трябва да има такъв запис
         if (!$rec = $this->fetch($recId)) {
+            
             return $this->returnError($rec->receiptId);
         }
         
@@ -318,6 +320,7 @@ class pos_ReceiptDetails extends core_Detail
         
         // Трябва да е избрана бележка
         if (!$recId = Request::get('receiptId', 'int')) {
+            
             return $this->returnError($recId);
         }
         
@@ -326,6 +329,7 @@ class pos_ReceiptDetails extends core_Detail
         
         // Трябва да има избран запис на бележка
         if (!$receipt = $this->Master->fetch($recId)) {
+            
             return $this->returnError($recId);
         }
         
@@ -333,6 +337,7 @@ class pos_ReceiptDetails extends core_Detail
         $type = Request::get('type', 'int');
         
         if (!cond_Payments::fetch($type) && $type != -1) {
+            
             return $this->returnError($recId);
         }
         
@@ -390,11 +395,13 @@ class pos_ReceiptDetails extends core_Detail
         
         // Трябва да има ид на ред за изтриване
         if (!$id = Request::get('recId', 'int')) {
+            
             return $this->returnError($receiptId);
         }
         
         // Трябва да има такъв запис
         if (!$rec = $this->fetch($id)) {
+            
             return $this->returnError($receiptId);
         }
         
@@ -566,11 +573,13 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         if (!$product) {
+            
             return $rec->productid = null;
         }
         
         $info = cat_Products::getProductInfo($product->productId);
         if (empty($info->meta['canSell'])) {
+            
             return $rec->productid = null;
         }
         
@@ -621,6 +630,7 @@ class pos_ReceiptDetails extends core_Detail
         $query->orderBy('#id', 'DESC');
         $query->limit(1);
         if ($rec = $query->fetch()) {
+            
             return $rec;
         }
         

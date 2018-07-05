@@ -46,6 +46,7 @@ class doc_plg_HidePrices extends core_Plugin
     {
         // Прикачане е допустимо само към наследник на core_Manager ...
         if (!$mvc instanceof core_Manager) {
+            
             return false;
         }
         
@@ -53,6 +54,7 @@ class doc_plg_HidePrices extends core_Plugin
         $plugins = arr::make($mvc->loadList);
 
         if (isset($plugins['doc_DocumentPlg'])) {
+            
             return false;
         }
         
@@ -67,6 +69,7 @@ class doc_plg_HidePrices extends core_Plugin
     {
         // Ако има изброените роли, може да вижда цените
         if (haveRole('ceo,seePrice')) {
+            
             return true;
         }
         
@@ -76,6 +79,7 @@ class doc_plg_HidePrices extends core_Plugin
             // Ако контрактора може да види треда от външната част, то може и да види цялата ценова информация
             $threadRec = doc_Threads::fetch($rec->threadId);
             if (colab_Threads::haveRightFor('single', $threadRec)) {
+                
                 return true;
             }
         }

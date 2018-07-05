@@ -65,6 +65,7 @@ class rack_PositionType extends type_Varchar
     public function toVerbal($value)
     {
         if (!strpos($value, '-') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('text', 'printing')) {
+            
             return $value;
         }
         

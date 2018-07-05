@@ -54,6 +54,7 @@ class thumb_FastImageSize
             $pSize = $this->parseSize();
             
             if (!$pSize || !is_array($pSize)) {
+                
                 return false;
             }
             
@@ -71,14 +72,19 @@ class thumb_FastImageSize
         if (!$this->type) {
             switch ($this->getChars(2)) {
                 case 'BM':
+                    
                     return $this->type = 'bmp';
                 case 'GI':
+                    
                     return $this->type = 'gif';
                 case chr(0xFF).chr(0xd8):
+                    
                     return $this->type = 'jpeg';
                 case chr(0x89).'P':
+                    
                     return $this->type = 'png';
                 default:
+                    
                     return false;
             }
         }
@@ -93,12 +99,16 @@ class thumb_FastImageSize
         
         switch ($this->type) {
             case 'png':
+                
                 return $this->parseSizeForPNG();
             case 'gif':
+                
                 return $this->parseSizeForGIF();
             case 'bmp':
+                
                 return $this->parseSizeForBMP();
             case 'jpeg':
+                
                 return $this->parseSizeForJPEG();
         }
     }
@@ -144,6 +154,7 @@ class thumb_FastImageSize
                 case 'started':
                     $b = $this->getByte();
                     if ($b === false) {
+                        
                         return false;
                     }
                     
@@ -195,6 +206,7 @@ class thumb_FastImageSize
                 if ($response = fread($this->handle, $need)) {
                     $this->str .= $response;
                 } else {
+                    
                     return false;
                 }
             }
@@ -213,6 +225,7 @@ class thumb_FastImageSize
         $b = @unpack('C', $c);
         
         if (!$b || !is_array($b)) {
+            
             return false;
         }
         

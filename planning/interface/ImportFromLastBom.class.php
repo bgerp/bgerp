@@ -73,6 +73,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
     {
         $recs = array();
         if (!is_array($rec->detailsDef)) {
+            
             return $recs;
         }
         foreach ($rec->detailsDef as $key => $dRec) {
@@ -117,6 +118,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
         // Опит за намиране на първата работна рецепта
         $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
         if (!$firstDoc->isInstanceOf('planning_Jobs')) {
+            
             return false;
         }
         $productId = $firstDoc->fetchField('productId');
@@ -131,6 +133,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
         if (!empty($bomId)) {
             $details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $masterRec->storeId);
             if (count($details)) {
+                
                 return $bomId;
             }
         }
@@ -151,6 +154,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
     public function canSelectDriver(core_Manager $mvc, $masterId = null, $userId = null)
     {
         if (!($mvc instanceof planning_ConsumptionNoteDetails)) {
+            
             return false;
         }
          
@@ -158,6 +162,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             $masterRec = $mvc->Master->fetchRec($masterId);
             $bomId = self::getLastActiveBom($masterRec);
             if (empty($bomId)) {
+                
                 return false;
             }
         }

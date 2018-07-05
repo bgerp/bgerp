@@ -80,6 +80,7 @@ class type_Nick extends type_Varchar
     public function isValidNick($value, $allowEmail = false)
     {
         if ($allowEmail && type_Email::isValidEmail($value)) {
+            
             return true;
         }
 
@@ -91,6 +92,7 @@ class type_Nick extends type_Varchar
         $pattern = "/^[a-z]{1}([a-z0-9\._]*)[a-z0-9]+$/i";
 
         if (!preg_match($pattern, $value)) {
+            
             return false;
         }
         
@@ -126,6 +128,7 @@ class type_Nick extends type_Varchar
         
         //Ако дължината е 0 връщаме
         if (!$len) {
+            
             return ;
         }
         
@@ -161,6 +164,7 @@ class type_Nick extends type_Varchar
     {
         //Ако не е валиден имейл връща FALSE
         if (!type_Email::isValidEmail($value)) {
+            
             return false;
         }
 

@@ -790,6 +790,7 @@ class cat_BomDetails extends doc_Detail
         // Имали последна активна търговска рецепта за артикула?
         $rec = cat_Products::getLastActiveBom($productId, 'sales');
         if (!$rec) {
+            
             return $res;
         }
     
@@ -1051,6 +1052,7 @@ class cat_BomDetails extends doc_Detail
         // Сортираме ги по позицията им, ако е еднаква, сортираме по датата на последната модификация
         usort($tmpArr, function ($a, $b) {
             if ($a->position == $b->position) {
+                
                 return ($a->modifiedOn > $b->modifiedOn) ? -1 : 1;
             }
 

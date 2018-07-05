@@ -659,6 +659,7 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_BeforeExportCsv($mvc, &$recs)
     {
         if (!$recs) {
+            
             return ;
         }
         

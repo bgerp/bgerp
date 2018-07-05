@@ -344,6 +344,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         $dInfo = acc_Balances::getBlAmounts($jRecs, $accs, 'credit');
         
         if (!count($dInfo->recs)) {
+            
             return $res;
         }
         

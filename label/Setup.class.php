@@ -119,6 +119,7 @@ class label_Setup extends core_ProtoSetup
         }
         
         if (!$sizes) {
+            
             return ;
         }
         
@@ -321,6 +322,7 @@ class label_Setup extends core_ProtoSetup
         }
         
         if (empty($oldClsArr)) {
+            
             return ;
         }
         
@@ -331,6 +333,7 @@ class label_Setup extends core_ProtoSetup
         }
         
         if (!$pId) {
+            
             return ;
         }
         

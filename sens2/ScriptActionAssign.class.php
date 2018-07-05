@@ -98,9 +98,11 @@ class sens2_ScriptActionAssign
         if (trim($rec->cond)) {
             $cond = sens2_Scripts::calcExpr($rec->cond, $rec->scriptId);
             if ($cond === sens2_Scripts::CALC_ERROR) {
+                
                 return 'stopped';
             }
             if (!$cond) {
+                
                 return 'closed';
             }
         }
@@ -108,6 +110,7 @@ class sens2_ScriptActionAssign
         // Изчисляваме израза
         $value = sens2_Scripts::calcExpr($rec->expr, $rec->scriptId);
         if ($value === sens2_Scripts::CALC_ERROR) {
+            
             return 'stopped';
         }
 
@@ -115,6 +118,7 @@ class sens2_ScriptActionAssign
         $res = sens2_ScriptDefinedVars::setValue($rec->scriptId, $rec->varId, $value);
         
         if ($res !== false) {
+            
             return 'active';
         }
 

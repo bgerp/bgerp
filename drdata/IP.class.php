@@ -43,6 +43,7 @@ class drdata_IP
         }
         
         if ($findIp) {
+            
             return $ip;
         }
     }
@@ -68,6 +69,7 @@ class drdata_IP
             $country = $this->countries[$c];
             
             if ($country[0] != 'Proxy Server') {
+                
                 return $country;
             }
         }

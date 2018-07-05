@@ -162,6 +162,7 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
                 }
                 
                 if ($return) {
+                    
                     return parent::act_Preview();
                 }
                 

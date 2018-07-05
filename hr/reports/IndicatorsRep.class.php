@@ -161,6 +161,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         // Ако има такива сортираме ги по име
         uasort($recs, function ($a, $b) {
             if ($a->personName == $b->personName) {
+                
                 return $a->indicatorId < $b->indicatorId ? -1 : 1;
             }
             
@@ -358,6 +359,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         $arr = array();
         $formulaIndicators = hr_Indicators::getIndicatorsInFormula($formula);
         if (!count($formulaIndicators)) {
+            
             return $arr;
         }
         

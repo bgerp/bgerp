@@ -32,6 +32,7 @@ class spcheck_Plugin extends core_Plugin
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         if (Mode::isReadOnly() || Mode::is('text', 'plain')) {
+            
             return ;
         }
         
@@ -39,20 +40,24 @@ class spcheck_Plugin extends core_Plugin
         $date = ($data->rec->modifiedOn) ? $data->rec->modifiedOn : $data->rec->createdOn;
         $spcheckInterval = ($mvc->spcheckInterval) ? $mvc->spcheckInterval : 600; // 10 мин
         if ($data->rec && (($data->rec->state != 'draft') && (dt::secsBetween(dt::now(), $date) >= $spcheckInterval))) {
+            
             return ;
         }
         
         // Документите създадени/редактирани от текущия потребител мога да се проверяват
         $cu = core_Users::getCurrent();
         if ($data->rec && ($data->rec->createdBy != $cu && ($data->rec->modifiedBy != $cu))) {
+            
             return ;
         }
 
         if (!core_Users::isPowerUser($cu)) {
+            
             return ;
         }
         
         if (!cls::haveInterface('doc_DocumentIntf', $mvc)) {
+            
             return ;
         }
         

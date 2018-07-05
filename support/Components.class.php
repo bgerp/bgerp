@@ -186,12 +186,14 @@ class support_Components extends core_Detail
     public static function markAsUsed($id)
     {
         if (!$id) {
+            
             return ;
         }
         
         $rec = self::fetch($id);
         
         if ($rec->state == 'active') {
+            
             return ;
         }
         

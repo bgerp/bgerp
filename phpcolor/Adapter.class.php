@@ -50,9 +50,11 @@ class phpcolor_Adapter extends core_Mvc
         
         switch ($type) {
             case 'lighten':
+                
                 return $myColor->lighten($ammount);
                 
             case 'darken':
+                
                 return $myColor->darken($ammount);
                 
             case 'gradient':
@@ -61,9 +63,11 @@ class phpcolor_Adapter extends core_Mvc
                 return $myColor->getCssGradient($myColor);
                 
             case 'mix':
+                
                 return  $myColor->mix($mix, $ammount);
             
             default:
+                
                 return $myColor;
         }
     }
@@ -90,12 +94,15 @@ class phpcolor_Adapter extends core_Mvc
         
         switch ($type) {
             case 'light':
+                
                 return $myColor->isLight();
                  
             case 'dark':
+                
                 return $myColor->isDark();
                 
             default:
+                
                 return false;
         }
     }

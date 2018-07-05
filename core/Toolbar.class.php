@@ -225,6 +225,7 @@ class core_Toolbar extends core_BaseClass
     public static function cmp($a, $b)
     {
         if ($a->order == $b->order) {
+            
             return 0;
         }
         
@@ -249,10 +250,12 @@ class core_Toolbar extends core_BaseClass
         $layout = new ET();
         
         if (!count($this->buttons) > 0) {
+            
             return $layout;
         }
         
         if (Mode::isReadOnly() || Mode::is('text', 'plain')) {
+            
             return $layout;
         }
         

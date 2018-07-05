@@ -133,11 +133,13 @@ class exif_Reader
         
         // Ако няма части
         if (!$counts) {
+            
             return 0;
         }
     
         // Ако имаме само една част, връщаме нея
         if (count($parts) == 1) {
+            
             return $parts[0];
         }
         

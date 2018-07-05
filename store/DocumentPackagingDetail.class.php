@@ -162,6 +162,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     public function renderDetail_($data)
     {
         if (!count($data->recs)) {
+            
             return new core_ET('');
         }
         
@@ -193,6 +194,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
         $pQuery->show('id,name,isPublic,code');
         
         if ($onlyCount === true) {
+            
             return $pQuery->count();
         }
         
