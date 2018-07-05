@@ -1027,12 +1027,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     	$productsWithNegativeQuantity = array();
     	while ($dRec = $dQuery->fetch()){
     		$available = deals_Helper::getAvailableQuantityAfter($dRec->productId, $dRec->storeId, $dRec->quantity);
-    		if($available < 0){
+    		if ($available < 0){
     			$productsWithNegativeQuantity[$dRec->storeId][] = cat_Products::getTitleById($dRec->productId, FALSE);
     		}
     	}
     
-    	if(count($productsWithNegativeQuantity)){
+    	if (count($productsWithNegativeQuantity)){
     		$warning = 'Контирането на документа ще доведе до отрицателни количества по|*: ';
     		foreach ($productsWithNegativeQuantity as $storeId => $products){
     			$warning .= implode(', ', $products) . ", |в склад|* " . store_Stores::getTitleById($storeId) . " |и|* ";

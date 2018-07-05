@@ -1623,16 +1623,16 @@ abstract class deals_Helper
     {
     	$warning = NULL;
     	$productsWithNegativeQuantity = array();
-    	if(!is_array($arr) || !count($arr)) return;
+    	if (!is_array($arr) || !count($arr)) return;
     
     	foreach ($arr as $obj){
     		$available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, $obj->{$quantityFld});
-    		if($available < 0){
+    		if ($available < 0){
     			$productsWithNegativeQuantity[] = cat_Products::getTitleById($obj->{$productFld}, FALSE);
     		}
     	}
     
-    	if(count($productsWithNegativeQuantity)){
+    	if (count($productsWithNegativeQuantity)){
     		$warning = 'Контирането на документа ще доведе до отрицателни количества по|*: ' . implode(', ', $productsWithNegativeQuantity) . ", |в склад|* " . store_Stores::getTitleById($storeId);
     	}
     
