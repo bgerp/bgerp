@@ -2752,16 +2752,23 @@ span.sharing-history-title {
 
 .cart-view-buttons-left {
   float: left;
+  margin-top: 8px; }
+
+.narrow .cart-view-buttons-left {
+  float: none;
   clear: both; }
-  .cart-view-buttons-left span {
+
+.cart-view-buttons-top {
+  margin: 10px 0; }
+  .cart-view-buttons-top span {
     display: inline-block;
     margin: 0 10px;
     color: #666666; }
-  .cart-view-buttons-left a {
+  .cart-view-buttons-top a {
     display: inline-block;
     margin-bottom: 10px; }
 
-.narrow .cart-view-buttons-left a {
+.narrow .cart-view-buttons-top a {
   display: block; }
 
 .eshop-link {
@@ -2773,7 +2780,7 @@ span.sharing-history-title {
   background-color: #f1f1f1;
   padding: 10px;
   font-size: 0.9em;
-  margin-bottom: 10px; }
+  margin-bottom: 20px; }
 
 .toolbar .eshop-link {
   margin-top: 15px;
@@ -2893,7 +2900,8 @@ span.sharing-history-title {
   .richtext-holder .richtext {
     display: inline-block;
     color: black;
-    line-height: 1em; }
+    line-height: 1em;
+    font-family: Verdana, Arial, Helvetica, sans-serif; }
 
 .remove-from-cart:hover {
   cursor: pointer; }

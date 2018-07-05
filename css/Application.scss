@@ -3186,10 +3186,16 @@ fieldset.sharing-history {
 #cart-view-total {
 	margin-bottom: 10px;
 }
-
 .cart-view-buttons-left {
 	float: left;
+	margin-top: 8px;
+}
+.narrow .cart-view-buttons-left {
+	float: none;
 	clear: both;
+}
+.cart-view-buttons-top {
+	margin: 10px 0;
 	span {
 		display: inline-block;
 		margin: 0 10px;
@@ -3200,19 +3206,21 @@ fieldset.sharing-history {
 		margin-bottom: 10px;
 	}
 }
-.narrow .cart-view-buttons-left a{
+.narrow .cart-view-buttons-top a{
 	display: block;
 }
+
 .eshop-link {
 	font-size: 16px;
 	font-weight: normal;
 	display: inline-block;
 }
+
 .order-info {
 	background-color: #f1f1f1;
 	padding: 10px;
 	font-size: 0.9em;
-	margin-bottom: 10px;
+	margin-bottom: 20px;
 }
 
 .toolbar .eshop-link {
@@ -3355,8 +3363,9 @@ fieldset.sharing-history {
 .richtext-holder {
 	.richtext {
 		display: inline-block;
-		 color: #000;
+		color: #000;
 		line-height: 1em;
+		font-family: Verdana, Arial, Helvetica, sans-serif;
 	}
 }
 
