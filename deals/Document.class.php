@@ -69,6 +69,7 @@ abstract class deals_Document extends deals_PaymentDocument
     	$mvc->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
     	$mvc->FLD('dealId', 'key(mvc=findeals_Deals,select=dealName,allowEmpty)', 'caption=Сделка,input=none');
     	$mvc->FLD('amount', 'double(decimals=2)', 'caption=Платени,mandatory,summary=amount');
+    	$mvc->FNC('dealFolderId', 'key2(mvc=doc_Folders, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf,allowEmpty)', 'caption=Насрещна сделка->Папка,mandatory,input,silent,removeAndRefreshForm=dealHandler|currencyId|rate|amountDeal');
     	$mvc->FNC('dealHandler', 'varchar', 'caption=Насрещна сделка->Сделка,mandatory,input,silent,removeAndRefreshForm=currencyId|rate|amountDeal');
     	$mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Насрещна сделка->Заверени,mandatory,input=none');
     	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,input=none');
@@ -109,56 +110,83 @@ abstract class deals_Document extends deals_PaymentDocument
 		$dealInfo = $origin->getAggregateDealInfo();
 		expect(count($dealInfo->get('allowedPaymentOperations')));
 		 
-		// Показваме само тези финансови операции в които е засегнат контрагента
-		$suggestions = findeals_Deals::fetchDealOptions($dealInfo->get('involvedContragents'));
+		// Използваме помощната функция за намиране името на контрагента
+		if (empty($form->rec->id)) {
+			$form->setDefault('description', "Към документ #{$origin->getHandle()}");
+			$form->setDefault('dealFolderId', $origin->fetchField('folderId'));
+		} elseif (isset($rec->dealId)) {
+			$form->rec->dealHandler = $rec->dealId;
+			$form->setDefault('dealFolderId', findeals_Deals::fetchField($rec->dealId, 'folderId'));
+		}
 		
-		if(count($suggestions)){
-			$form->setSuggestions('dealHandler', array('' => '') + $suggestions);
+		if (isset($rec->dealFolderId)){
+			$form->setOptions('dealHandler', $mvc->getDealOptions($rec->dealFolderId));
 		}
 		 
 		$form->dealInfo = $dealInfo;
 		$form->setDefault('operationSysId', $mvc::$operationSysId);
 		$form->setField('amount', "unit=|*{$dealInfo->get('currency')} |по сделката");
 		
-		// Използваме помощната функция за намиране името на контрагента
-		if(empty($form->rec->id)) {
-			$form->setDefault('description', "Към документ #{$origin->getHandle()}");
-		} else {
-			$form->rec->dealHandler = findeals_Deals::getHandle($form->rec->dealId);
-		}
-		 
-		if(isset($form->rec->dealHandler)){
-			$errorMsg = '';
-			$doc = doc_Containers::getDocumentByHandle($form->rec->dealHandler);
-			
-			if(!$doc){
-				$errorMsg = 'Няма документ с такъв хендлър';
-			} elseif(!$doc->isInstanceOf('findeals_Deals')){
-				$errorMsg = 'Документа трябва да е финансова сделка';
-			} elseif(!$doc->haveRightFor('single')){
-				$errorMsg = 'Нямате достъп до документа';
-			}
-			
-			if($errorMsg !== ''){
-				$form->setError('dealHandler', $errorMsg);
-			} else {
+		if (isset($rec->dealHandler)){
+			if (strpos($rec->dealHandler, 'new|') === FALSE){
+				$doc = new core_ObjectReference('findeals_Deals', $rec->dealHandler);
+					
 				$form->rec->currencyId = currency_Currencies::getIdByCode($doc->fetchField('currencyId'));
 				$form->setField('amountDeal', "unit=|*{$doc->fetchField('currencyId')}");
-				
-				if($form->rec->currencyId != currency_Currencies::getIdByCode($origin->fetchField('currencyId'))){
+				if ($form->rec->currencyId != currency_Currencies::getIdByCode($origin->fetchField('currencyId'))){
 					$form->setField('amountDeal', 'input');
 				}
 				
-				// Трябва намерената сделка да е активна
-				if($doc->fetchField('state') != 'active'){
-					$form->setError('dealHandler', 'Сделката трябва да е активна');
-				} else {
-					$rec->dealId = findeals_Deals::fetchField($doc->that, 'id');
-				}
+				$rec->dealId = findeals_Deals::fetchField($doc->that, 'id');
+			} else {
+				$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
 			}
 		}
 	}
 	
+	
+	/**
+	 * Кои са наличните опции за сделки
+	 * 
+	 * @param int $folderId
+	 * @return array $options
+	 */
+	protected function getDealOptions($folderId)
+	{
+		$options = $dealOptions = $accOptionsFiltered = array();
+		
+		// Има ли активни ф. сделки в избраната папка
+		$fQuery = findeals_Deals::getQuery();
+		$fQuery->where("#folderId = {$folderId} AND #state = 'active'");
+		while ($fRec = $fQuery->fetch()){
+			$dealOptions[$fRec->id] = findeals_Deals::getTitleById($fRec, FALSE);
+		}
+		
+		// Ако има се добавят в техен раздел
+		if(count($dealOptions)){
+			$options["deals"] = (object) array('title' => tr('Активни фин. сделки в папката'), 'group' => true);
+			$options += $dealOptions;
+		}
+		
+		// Кои са дефолтните сметки по които може да се създават ф. сделки
+		$accOptions = findeals_Deals::getDefaultAccountOptions();
+		foreach ($accOptions as $k => $v){
+			if (is_object($v)) continue;
+			$accOptionsFiltered["new|{$k}"] = $v;
+		}
+		
+		// Ако има такива, те се добавят като отделна група
+		if(count($accOptionsFiltered)){
+			$options["accs"] = (object) array('title' => tr('Нова фин. сделка по сметка'), 'group' => true);
+			$options += $accOptionsFiltered;
+		}
+		
+		if(count($options)){
+			$options = array('' => '') + $options;
+		}
+		
+		return $options;
+	}
 	
 	/**
 	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
@@ -168,26 +196,38 @@ abstract class deals_Document extends deals_PaymentDocument
 	 */
 	public static function on_AfterInputEditForm($mvc, &$form)
 	{
-		if($form->isSubmitted()){
+		if ($form->isSubmitted()){
 			$rec = &$form->rec;
 			
 			$origin = $mvc->getOrigin($form->rec);
 			$currencyId = $origin->fetchField('currencyId');
 			$code = currency_Currencies::getCodeById($rec->currencyId);
 			
-			if($code == $currencyId){
+			if ($code == $currencyId){
 				$rec->amountDeal = $rec->amount;
 			}
 			
 			if($msg = currency_CurrencyRates::checkAmounts($rec->amount, $rec->amountDeal, $rec->valior, $currencyId, $code)){
 				$form->setError('amount', $msg);
 			}
+			
+			if (strpos($rec->dealHandler, 'new|') !== FALSE){
+				list(,$accountId) = explode('|', $rec->dealHandler);
+				$accountSysId = acc_Accounts::fetchField($accountId, 'systemId');
+				$Cover = doc_Folders::getCover($rec->dealFolderId);
+				
+				$origin = $mvc->getOrigin($rec);
+				$dealInfo = $origin->getAggregateDealInfo();
+				$params = array('valior' => $rec->valior, 'currencyCode' => $dealInfo->get('currency'));
+				$rec->dealId = findeals_Deals::createDraft($Cover->getClassId(), $Cover->that, $accountSysId, $params);
+				findeals_Deals::conto($rec->dealId);
+			}
 		}
 
 		$mvc->invoke('AfterInputDocumentEditForm', array($form));
 	}
-    
-    
+	
+	
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
@@ -229,7 +269,7 @@ abstract class deals_Document extends deals_PaymentDocument
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     	 
-    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
+    	if (($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
     		// Ако няма позволени операции за документа не може да се създава
     		$dealInfo = $firstDoc->getAggregateDealInfo();
     		
@@ -250,7 +290,7 @@ abstract class deals_Document extends deals_PaymentDocument
 	{
 		$row->title = $mvc->getHyperlink($rec->id, TRUE);
 		 
-		if($fields['-single']){
+		if ($fields['-single']){
 			$row->nextHandle= findeals_Deals::getHyperlink($rec->dealId);
 			$origin = $mvc->getOrigin($rec->id);
 			$row->dealHandle = $origin->getHyperlink();
