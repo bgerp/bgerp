@@ -219,8 +219,9 @@ abstract class deals_Document extends deals_PaymentDocument
 				$origin = $mvc->getOrigin($rec);
 				$dealInfo = $origin->getAggregateDealInfo();
 				$params = array('valior' => $rec->valior, 'currencyCode' => $dealInfo->get('currency'));
-				$rec->dealId = findeals_Deals::createDraft($Cover->getClassId(), $Cover->that, $accountSysId, $params);
-				findeals_Deals::conto($rec->dealId);
+				if ($rec->dealId = findeals_Deals::createDraft($Cover->getClassId(), $Cover->that, $accountSysId, $params)){
+					findeals_Deals::conto($rec->dealId);
+				}
 			}
 		}
 
