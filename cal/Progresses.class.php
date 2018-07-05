@@ -286,9 +286,11 @@ class cal_Progresses extends core_Mvc
                         
                         // Ако прогреса е 100%, тогава затваряме задачата
                         if ($tRec->progress == 1) {
+                            $tRec->brState = $tRec->state;
                             $tRec->state = 'closed';
                             
                             $saveArr['state'] = 'state';
+                            $saveArr['brState'] = 'state';
                             
                             $tRec->timeClosed = dt::now();
                             $saveArr['timeClosed'] = 'timeClosed';
@@ -296,8 +298,10 @@ class cal_Progresses extends core_Mvc
                         
                         // Ако връщаме прогреса - връщаме и предишното състояние
                         if ($oldProgress == 1) {
+                            $tRec->brState = $tRec->state;
                             $tRec->state = 'wakeup';
                             $saveArr['state'] = 'state';
+                            $saveArr['brState'] = 'state';
                         }
                     }
                     
