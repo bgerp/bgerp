@@ -34,7 +34,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields;
+    protected $changeableFields = 'from,to,employee';
 
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -45,9 +45,8 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     {
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
-        // $fieldset->FLD ( 'employee', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal,allowEmpty)', 'caption=Служител,after=to,single=none');
-        // $fieldset->FLD('employee', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,placeholder=Всички,after=to,');
-        $fieldset->FLD('employee', 'userList(roles=powerUser)', 'caption=Избери екип или служител,single=none,after=to,autohide');
+        $fieldset->FLD('employee', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal,allowEmpty)', 'caption=Служител,after=to,single=none');
+        // $fieldset->FLD('employee', 'userList(roles=powerUser)', 'caption=Избери екип или служител,single=none,after=to,autohide');
     }
 
     /**
@@ -90,7 +89,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         
         $leavesQuery->where("(#leaveFrom >= '{$rec->from}' AND #leaveFrom <= '{$rec->to}') OR (#leaveTo <= '{$rec->to}' AND #leaveTo >= '{$rec->from}')");
         
-        $leavesQuery->where("#state != 'rejected'");
+        $leavesQuery->where("#state = 'active'");
         
         $tripsQuery->where("(#startDate >= '{$rec->from}' AND #startDate <= '{$rec->to}') OR (#toDate >= '{$rec->from}' AND #toDate <= '{$rec->to}')");
         
@@ -179,7 +178,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             
             $docPeriod = self::getPeriod($rec, $doc);
             
-            $numberOfTripsesDays = $docPeriod['numberOfDays'];
+            $numberOfTripsesDays = $docPeriod['numberOfDays'] - 1;
             
             $tripsesArr[$trips->personId] += $numberOfTripsesDays;
             

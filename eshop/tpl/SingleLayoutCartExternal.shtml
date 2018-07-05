@@ -1,5 +1,5 @@
 <div class='cart-holder-external'>
-   <h3 style="margin: 0 0 20px">[#CART_NAME#] <span id = 'cart-view-count'>|с|* [#productCount#]</span> [#EMPTY_CART#]</h3>
+   <h3 style="margin: 0 0 20px">[#CART_NAME#] <span id = 'cart-view-count'>|с|* [#productCount#]</span></h3>
    <!--ET_BEGIN CART_TOOLBAR_LEFT-->
    <div class = 'cart-view-buttons-left' style="margin-bottom: 10px;">[#CART_TOOLBAR_TOP#]</div>
    <div class="clearfix21"></div>
@@ -47,7 +47,7 @@
                
                <!--ET_BEGIN deliveryCountry-->
                <tr>
-                  <td>|Доставка|*: [#deliveryCountry#], [#deliveryPCode#] [#deliveryPlace#], [#deliveryAddress#]</td>
+                  <td>|Доставка|*: <!--ET_BEGIN deliveryCountry-->[#deliveryCountry#]<!--ET_END deliveryCountry--><!--ET_BEGIN deliveryPlace-->, [#deliveryPCode#] [#deliveryPlace#]<!--ET_END deliveryPlace--><!--ET_BEGIN deliveryAddress-->, [#deliveryAddress#]<!--ET_END deliveryAddress--></td>
                </tr>
                <!--ET_END deliveryCountry-->
                
@@ -69,11 +69,7 @@
                <!--ET_END DELIVERY_BLOCK-->
 
             </table>
-            <!--ET_BEGIN VAT_STATUS-->
 
-            <div style="padding-top:10px;">[#VAT_STATUS#]</div>
-
-               <!--ET_END VAT_STATUS-->
          </div>
          
          <div class="half-width fright">
@@ -150,6 +146,11 @@
                <td class="aright"><span class='cCode' style='font-weight:normal'>[#currencyId#]</span></td>
                <td class="aright"><b>[#total#]</b></td>
             </tr>
+            <!--ET_BEGIN VAT_STATUS-->
+            <tr>
+               <td colspan="3">[#VAT_STATUS#]</td>
+            </tr>
+            <!--ET_END VAT_STATUS-->
          </table>
       </div>
       <div class="clearfix21"></div>
