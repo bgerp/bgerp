@@ -1020,46 +1020,51 @@ class core_Html
 
     
     /**
-     * Създава лейаут, по зададени блокове, като плейсхолдери
+     * Създава хинт с иконка към елемент
      *
      * @param  mixed                       $body        - тяло
      * @param  title                       $hint        - текст на хинта
      * @param  notice|warning|error|string $icon        - име на иконката
      * @param  boolean                     $appendToEnd - дали хинта да се добави в края на стринга
-     * @param  array                       $attr        - атрибути на елемента
-     * @return core_ET                     $element                 - шаблон с хинта
+     * @param  array                       $iconAttr    - атрибути на иконката
+     * @param  array                       $elementArr  - атрибути на елемента
+     * @return core_ET                     $elementTpl  - шаблон с хинта
      */
-    public static function createHint($body, $hint, $icon = 'notice', $appendToEnd = true, $attr = array())
+    public static function createHint($body, $hint, $icon = 'notice', $appendToEnd = true, $iconAttr = array(), $elementArr = array())
     {
-        if (empty($hint)) {
-            return $body;
-        }
-        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
-            return $body;
-        }
+        if (empty($hint)) return $body;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return $body;
         
         $hint = strip_tags(tr($hint));
  
         $iconPath = ($icon == 'notice') ? 'img/16/info-gray.png' : (($icon == 'warning') ? 'img/16/dialog_warning.png' : (($icon == 'error') ? 'img/16/dialog_error.png' : $icon));
         expect(is_string($iconPath), $iconPath);
         
-        $attr = arr::make($attr, true) + array('src' => sbf($iconPath, ''));
-        $iconHtml = ht::createElement('img', $attr);
+        $iconAttr = arr::make($iconAttr, true) + array('src' => sbf($iconPath, ''));
+        $iconHtml = ht::createElement('img', $iconAttr);
         
         if ($appendToEnd === true) {
-            $elementTpl = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+            $element = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
         } else {
-            $elementTpl = "<span class='frontToolip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+            $element = "<span class='frontToolip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+        }
+        
+        $elementTpl = new core_ET($element);
+        
+        // Ако има атрибути за целия елемент, задават се в span
+        $elementArr = arr::make($elementArr, TRUE);
+		if (count($elementArr)){
+        	$span = ht::createElement("span", $elementArr);
+        	$elementTpl->prepend($span);
+        	$elementTpl->append("</span>");
         }
         
         $hint = str_replace("'", '"', $hint);
+        $elementTpl->append($body, 'body');
+        $elementTpl->append($hint, 'hint');
+        $elementTpl->append($iconHtml, 'icon');
         
-        $element = new core_ET($elementTpl);
-        $element->append($body, 'body');
-        $element->append($hint, 'hint');
-        $element->append($iconHtml, 'icon');
-        
-        return $element;
+        return $elementTpl;
     }
     
     
