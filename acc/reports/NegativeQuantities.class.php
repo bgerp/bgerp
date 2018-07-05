@@ -199,12 +199,15 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
         		                <fieldset class='detail-info'><legend class=red><small><b>|СПРАВКАТА Е В ПРОЦЕС НА РАЗРАБОТКА.ВЪЗМОЖНО Е ДА ИМА НЕТОЧНИ РЕЗУЛТАТИ|*</b></small></legend>
                                 <small><div><!--ET_BEGIN period-->|Период|*: [#period#]<!--ET_END period--></div></small>
-                                <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN employee-->|Служители|*: [#employee#]<!--ET_END employee--></div></small>
+                                <small><div><!--ET_BEGIN minval-->|Минимален праг за отчитане|*: [#minval#]<!--ET_END minval--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
 
         if (isset($data->rec->period)) {
             $fieldTpl->append("<b>" . acc_Periods::getTitleById($data->rec->period) . "</b>", 'period');
+        }
+        
+        if (isset($data->rec->minval)) {
+            $fieldTpl->append("<b>" .($data->rec->minval) . "</b>", 'minval');
         }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
