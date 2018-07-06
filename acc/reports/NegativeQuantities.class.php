@@ -167,7 +167,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $row->articul = "<b>" . cat_Products::getShortHyperlink($dRec->articulId) . "</b>";
+        $row->articul = "<b>" . acc_Items::fetch($dRec->articulId)->title . "</b>";
 
         $stores = explode(',', $dRec->storeId);
         $quantities = explode(',', $dRec->quantity);
