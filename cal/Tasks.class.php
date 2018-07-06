@@ -990,7 +990,9 @@ class cal_Tasks extends embed_Manager
             if ($rec->state == 'closed' || $rec->state == 'stopped') {
                 if (($rec->brState != 'draft') && ($rec->brState != 'rejected')) {
                     $rec->state = $rec->brState;
-                } else {
+                }
+                
+                if ($rec->state == 'closed' || $rec->state == 'stopped') {
                     $rec->state = 'wakeup';
                 }
             }
