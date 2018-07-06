@@ -136,7 +136,8 @@ class eshop_Products extends core_Master
 
         $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
-
+        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри');
+       
         // Запитване за нестандартен продукт
         $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId,silent');
         $this->FLD('proto', 'keylist(mvc=cat_Products,allowEmpty,select=name,select2MinItems=100)', 'caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти');
@@ -259,10 +260,13 @@ class eshop_Products extends core_Master
             }
         }
         
-        
-        
         if (isset($rec->coDriver) && !cls::load($rec->coDriver, true)) {
             $row->coDriver = "<span class='red'>" . tr('Несъществуващ клас') . '</span>';
+        }
+        
+        if(isset($fields['-single'])){
+        	$params = self::getParamsToDisplay($rec);
+        	$row->showParams = $mvc->getFieldType('showParams')->toVerbal(keylist::fromArray($params));
         }
     }
     
@@ -988,5 +992,23 @@ class eshop_Products extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         return tr($rec->name);
+    }
+    
+    
+    /**
+     * Връща параметрите за показване
+     * 
+     * @param int $id
+     * @return array 
+     */
+    public static function getParamsToDisplay($id)
+    {
+    	$rec = self::fetchRec($id);
+    	
+    	if (!empty($rec->showParams)) return keylist::toArray($rec->showParams);
+    	
+    	$groupParams = eshop_Groups::fetchField($rec->groupId, 'showParams');
+    	
+    	return keylist::toArray($groupParams);
     }
 }
