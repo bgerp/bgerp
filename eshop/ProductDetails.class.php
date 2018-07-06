@@ -277,6 +277,7 @@ class eshop_ProductDetails extends core_Detail
     public static function prepareExternal(&$data)
     {
         $data->rows = $data->recs = array();
+        $data->listFields = arr::make('code=Код,productId=Опция,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;');
         $fields = cls::get(get_called_class())->selectFields();
         $fields['-external'] = $fields;
         
@@ -293,6 +294,7 @@ class eshop_ProductDetails extends core_Detail
             }
             $packagins = keylist::toArray($rec->packagings);
             
+           
             // Всяка от посочените опаковки се разбива във отделни редове
             $i = 1;
             foreach ($packagins as $packagingId) {
@@ -410,18 +412,18 @@ class eshop_ProductDetails extends core_Detail
         $fieldset->setField('quantity', 'tdClass=quantity-input-column');
         
         $table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
-        $listFields = arr::make('code=Код,productId=Опция,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;');
+        
         if ($data->optionsProductsCount == 1) {
-            unset($listFields['code']);
-            unset($listFields['productId']);
+            unset($data->listFields['code']);
+            unset($data->listFields['productId']);
         }
         
         $settings = cms_Domains::getSettings();
         if (empty($settings)) {
-            unset($listFields['btn']);
+            unset($data->listFields['btn']);
         }
         
-        $tpl->append($table->get($data->rows, $listFields));
+        $tpl->append($table->get($data->rows, $data->listFields));
         
         $cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
         $cartInfo = "<tr><td colspan='6' class='option-table-info'>{$cartInfo}</td></tr>";
