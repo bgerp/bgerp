@@ -93,7 +93,6 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         $query->where("#ent1Id IS NOT NULL AND #ent2Id IS NOT NULL");
 
         while ($detail = $query->fetch()) {
-
             $storesArr[$detail->ent1Id] = $detail->ent1Id;
 
             if (($detail->blQuantity < 0) && (abs($detail->blQuantity) > $rec->minval)) {
@@ -166,17 +165,21 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         $resArr = array();
 
         $row = new stdClass();
-
-        $row->articul = "<b>" . acc_Items::fetch($dRec->articulId)->title . "</b>";
-
+        
+        $productId = acc_Items::fetch($dRec->articulId)->objectId;
+        
+        $row->articul = cat_Products::getLinkToSingle_($productId, 'name');
+        
         $stores = explode(',', $dRec->storeId);
         $quantities = explode(',', $dRec->quantity);
 
         $resArr = array_combine($stores, $quantities);
         asort($resArr);
         foreach ($resArr as $key => $val) {
+            
+            $storeId = acc_Items::fetch($key)->objectId;
 
-            $row->store .= acc_Items::fetch($key)->title . "</br>";
+            $row->store .= store_Stores::getHyperlink($storeId) . "</br>";
 
             $row->quantity .= core_Type::getByName('double(decimals=2)')->toVerbal($val) . "</br>";
         }
@@ -207,7 +210,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         }
         
         if (isset($data->rec->minval)) {
-            $fieldTpl->append("<b>" .($data->rec->minval) . "</b>", 'minval');
+            $fieldTpl->append("<b>" .($data->rec->minval).' единици' . "</b>", 'minval');
         }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
