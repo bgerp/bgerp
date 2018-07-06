@@ -358,18 +358,34 @@ class eshop_Products extends core_Master
             if ($dQuery->count() == 1) {
                 $dRec = $dQuery->fetch();
                 $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
-                $pcsId = cat_UoM::fetchBySinonim('pcs')->id;
+                $packagings = cat_Products::getProductInfo($dRec->productId)->packagings;
                 
+                // Какви са к-та в опаковките
+                $selectedPackagings = keylist::toArray($dRec->packagings);
+                $packs = array($measureId => 1);
+                foreach ($packagings as $packRec){
+                	$packs[$packRec->packagingId] = $packRec->quantity;
+                }
+                
+                // Коя е най-малката опаковка от избраните
+                $minPackagingId = $minQuantityInPack = NULL;
+                foreach ($selectedPackagings as $selPackId){
+                	$q = $packs[$selPackId];
+                	if (!$q) continue;
+                	if (is_null($minPackagingId) || (isset($minPackagingId) && $q->quantity < $minQuantityInPack)){
+                		$minPackagingId = $selPackId;
+                		$minQuantityInPack = $q->quantity;
+                	}
+                }
+               
                 // Ако мярката е брой и е показано да се показва
-                if ($measureId == $pcsId && keylist::isIn($measureId, $dRec->packagings)) {
-                    
-                    // Ако има цена показва се в реда
-                    if ($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $measureId, 1)) {
+                if (isset($minPackagingId)) {
+                    if ($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $minPackagingId, 1)) {
                         $singlePrice = core_Type::getByName('double(decimals=2)')->toVerbal($singlePrice->price);
                         $settings = cms_Domains::getSettings();
                         $pRow->singlePrice = $singlePrice;
                         $pRow->singleCurrencyId = $settings->currencyId;
-                        $pRow->measureId = cat_UoM::getShortName($measureId);
+                        $pRow->measureId = cat_UoM::getShortName($minPackagingId);
                         $pRow->singleCurrencyId = $settings->currencyId;
                         $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
                         
