@@ -64,7 +64,9 @@ class backup_Local extends core_BaseClass
         $conf = core_Packs::getConfig('backup');
         if ($subDir) {
             if (!is_dir($conf->BACKUP_LOCAL_PATH . '/' . $subDir)) {
-                mkdir($conf->BACKUP_LOCAL_PATH . '/' . $subDir);
+                if (!@mkdir($conf->BACKUP_LOCAL_PATH . '/' . $subDir)) {
+                    self::logWarning('Не може да се създаде път за backup-a');
+                }
             }
             $destFileName = ($conf->BACKUP_LOCAL_PATH . '/' . $subDir . '/' . basename($fileName));
         } else {
