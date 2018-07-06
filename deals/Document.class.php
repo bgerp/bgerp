@@ -70,7 +70,7 @@ abstract class deals_Document extends deals_PaymentDocument
     	$mvc->FLD('dealId', 'key(mvc=findeals_Deals,select=dealName,allowEmpty)', 'caption=Сделка,input=none');
     	$mvc->FLD('amount', 'double(decimals=2)', 'caption=Платени,mandatory,summary=amount');
     	$mvc->FNC('dealFolderId', 'key2(mvc=doc_Folders, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf,allowEmpty)', 'caption=Насрещна сделка->Папка,mandatory,input,silent,removeAndRefreshForm=dealHandler|currencyId|rate|amountDeal|dealId');
-    	$mvc->FNC('dealHandler', 'varchar', 'caption=Насрещна сделка->Сделка,mandatory,input,silent,removeAndRefreshForm=dealId|currencyId|rate|amountDeal');
+    	$mvc->FNC('dealHandler', 'varchar', 'caption=Насрещна сделка->Сделка,mandatory,input,silent,removeAndRefreshForm=currencyId|rate|amountDeal|dealId');
     	$mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Насрещна сделка->Заверени,mandatory,input=none');
     	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,input=none');
     	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
@@ -115,7 +115,7 @@ abstract class deals_Document extends deals_PaymentDocument
 			$form->setDefault('description', "Към документ #{$origin->getHandle()}");
 			$form->setDefault('dealFolderId', $origin->fetchField('folderId'));
 		} elseif (isset($rec->dealId)) {
-			$form->rec->dealHandler = $rec->dealId;
+			$form->setDefault('dealHandler', $rec->dealId);
 			$form->setDefault('dealFolderId', findeals_Deals::fetchField($rec->dealId, 'folderId'));
 		}
 		
@@ -139,8 +139,11 @@ abstract class deals_Document extends deals_PaymentDocument
 				
 				$rec->dealId = findeals_Deals::fetchField($doc->that, 'id');
 			} else {
-				$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
+				$rec->currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
+				unset($rec->amountDeal, $rec->dealId);
 			}
+		} else {
+			unset($rec->amountDeal, $rec->dealId);
 		}
 	}
 	
