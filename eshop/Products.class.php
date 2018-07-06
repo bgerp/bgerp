@@ -1011,4 +1011,62 @@ class eshop_Products extends core_Master
     	
     	return keylist::toArray($groupParams);
     }
+    
+    
+    /**
+     * Връща общите параметри за артикулите, тези които са с еднакви стойности за
+     * всички артикули от опциите
+     * 
+     * @param int $id
+     * @return array $res
+     */
+    public static function getCommonParams($id)
+    {
+    	$res = $rowParams = $totalParams = array();
+    	$rec = self::fetchRec($id);
+    	
+    	// Има ли параметри за показване
+    	$displayParams = self::getParamsToDisplay($rec);
+    	if (!count($displayParams)) return $res;
+    	
+    	// Опциите към артикула
+    	$dQuery = eshop_ProductDetails::getQuery();
+    	$dQuery->where("#eshopProductId = {$rec->id}");
+    	$dQuery->show('productId');
+    	
+    	while($dRec = $dQuery->fetch()){
+    		
+    		// Какви стойности имат избраните параметри
+    		$intersect = array();
+    		$productParams = cat_Products::getParams($dRec->productId, NULL, TRUE);
+    		foreach ($displayParams as $displayParamId){
+    			$intersect[$displayParamId] = $productParams[$displayParamId];
+    		}
+    		
+    		$totalParams = $totalParams + array_combine(array_keys($intersect), array_keys($intersect));
+    		$rowParams[$dRec->productId] = $intersect;
+    	}
+    	
+    	// За всеки от избраните параметри
+    	foreach ($totalParams as $paramId){
+    		$isCommon = true;
+    		$value = false;
+    		
+    		foreach ($rowParams as $params){
+    			if($value === false){
+    				$value = $params[$paramId];
+    			} elseif(trim($value) != trim($params[$paramId])) {
+    				$value = false;
+    				$isCommon = false;
+    			}
+    		}
+    		
+    		// Ако всичките записи имат еднаква стойност, значи параметъра е общ
+    		if($isCommon === true && isset($value)){
+    			$res[$paramId] = $value;
+    		}
+    	}
+    	
+    	return $res;
+    }
 }

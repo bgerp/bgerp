@@ -276,8 +276,15 @@ class eshop_ProductDetails extends core_Detail
      */
     public static function prepareExternal(&$data)
     {
-        $data->rows = $data->recs = array();
-        $data->listFields = arr::make('code=Код,productId=Опция,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;');
+        $data->rows = $data->recs = $data->paramListFields = array();
+
+        // Добавяне към колонките по една за всеки параметър
+        $displayParams = eshop_Products::getParamsToDisplay($data->rec->id);
+        foreach ($displayParams as $paramId){
+        	$data->paramListFields["param{$paramId}"] = cat_Params::getVerbal($paramId, 'typeExt');
+        }
+        
+        $data->listFields = $data->paramListFields + arr::make('code=Код,productId=Опция,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;');
         $fields = cls::get(get_called_class())->selectFields();
         $fields['-external'] = $fields;
         
@@ -286,6 +293,7 @@ class eshop_ProductDetails extends core_Detail
         $query->where("#eshopProductId = {$data->rec->id}");
         $query->orderBy('productId');
         $data->optionsProductsCount = $query->count();
+        $data->commonParams = eshop_Products::getCommonParams($data->rec->id);
         
         while ($rec = $query->fetch()) {
             $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title);
@@ -294,7 +302,10 @@ class eshop_ProductDetails extends core_Detail
             }
             $packagins = keylist::toArray($rec->packagings);
             
-           
+            // Кои параметри ще се показват
+            $params = cat_Products::getParams($rec->productId, NULL, TRUE);
+            $intersect = array_intersect_key($params, $displayParams);
+            
             // Всяка от посочените опаковки се разбива във отделни редове
             $i = 1;
             foreach ($packagins as $packagingId) {
@@ -304,8 +315,14 @@ class eshop_ProductDetails extends core_Detail
                 $packRec = cat_products_Packagings::getPack($rec->productId, $packagingId);
                 $clone->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
                 
+                $row = self::getExternalRow($clone);
+                foreach ($intersect as $pId => $pVal){
+                	$clone->{"param{$pId}"} = $pVal;
+                	$row->{"param{$pId}"} = $pVal;
+                }
+                
                 $data->recs[] = $clone;
-                $data->rows[] = self::getExternalRow($clone);
+                $data->rows[] = $row;
                 $i++;
             }
         }
@@ -418,6 +435,20 @@ class eshop_ProductDetails extends core_Detail
             unset($data->listFields['productId']);
         }
         
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $data->paramListFields);
+        
+        // Подготовка на общите параметри
+        $commonParamRows = array();
+        foreach ($data->commonParams as $paramId => $val){
+        	unset($data->listFields["param{$paramId}"]);
+        	$paramRow = cat_Params::recToVerbal($paramId);
+        	if(!empty($paramRow->suffix)){
+        		$val .= " {$paramRow->suffix}";
+        	}
+        	
+        	$commonParamRows[] = (object)array('caption' => $paramRow->name, 'value' => $val);
+        }
+        
         $settings = cms_Domains::getSettings();
         if (empty($settings)) {
             unset($data->listFields['btn']);
@@ -425,9 +456,18 @@ class eshop_ProductDetails extends core_Detail
         
         $tpl->append($table->get($data->rows, $data->listFields));
         
+        $colspan = count($data->listFields);
         $cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
-        $cartInfo = "<tr><td colspan='6' class='option-table-info'>{$cartInfo}</td></tr>";
-        $tpl->replace($cartInfo, 'ROW_AFTER');
+        $cartInfo = "<tr><td colspan='{$colspan}' class='option-table-info'>{$cartInfo}</td></tr>";
+        $tpl->append($cartInfo, 'ROW_AFTER');
+        
+        if(count($commonParamRows)){
+        	$table2 = cls::get('core_TableView');
+        	$commonParamsTpl = $table->get($commonParamRows, 'caption=Общи параметри,value=|*&nbsp;');
+        	$commonParamsTpl->removePlaces();
+        	$commonParamsTpl->removeBlocks();
+        	$tpl->append($commonParamsTpl, 'ROW_AFTER');
+        }
         
         return $tpl;
     }
