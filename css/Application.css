@@ -2898,7 +2898,7 @@ span.sharing-history-title {
       padding: 5px 10px; }
 
   .richtext-holder .richtext {
-    display: inline-block;
+    display: inline;
     color: black;
     line-height: 1em;
     font-family: Verdana, Arial, Helvetica, sans-serif; }
