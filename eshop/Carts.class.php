@@ -606,12 +606,9 @@ class eshop_Carts extends core_Master
     	$body = new core_ET($body);
     	$body->replace($rec->personNames, "NAME");
     	
-    	$actionData = array('action' => doclog_Documents::ACTION_SEND, 'containerId' => $saleRec->containerId, 'threadId' => $saleRec->threadId);
-    	$mid = doclog_Documents::saveAction($actionData);
-    	doclog_Documents::flushActions();
-    	$link = bgerp_plg_Blank::getUrlForShow($saleRec->containerId, $mid);
-    	
-    	$body->replace("[link={$link}]" . "#Sal{$saleRec->id}" . "[/link]", "SALE_HANDLER");
+    	if ($hnd = sales_Sales::getHandle($saleRec->id)) {
+    	    $body->replace("#{$hnd}", "SALE_HANDLER");
+    	}
     	
     	// Линка за регистрация
     	$Cover = doc_Folders::getCover($saleRec->folderId);
@@ -619,6 +616,7 @@ class eshop_Carts extends core_Master
 
     	$url = "[link={$url}]" . tr('връзка||link') . "[/link]";
     	$body->replace($url, "link");
+    	
     	$body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
     	
     	// Подготовка на имейла
@@ -632,13 +630,17 @@ class eshop_Carts extends core_Master
     	
     	// Активиране на изходящия имейл
     	core_Users::forceSystemUser();
+	    Mode::set('isSystemCanSingle', TRUE);
+    	
     	email_Outgoings::save($emailRec);
+    	
     	email_Outgoings::logWrite('Създаване от онлайн поръчка', $emailRec->id);
     	cls::get('email_Outgoings')->invoke('AfterActivation', array(&$emailRec));
     	
     	// Изпращане на имейла
     	$options = (object)array('encoding' => 'utf-8', 'boxFrom' => $settings->inboxId, 'emailsTo' => $emailRec->email);
     	email_Outgoings::send($emailRec, $options, $lang);
+    	Mode::set('isSystemCanSingle', FALSE);
     	core_Users::cancelSystemUser();
     	
     	core_Lg::pop($lang);

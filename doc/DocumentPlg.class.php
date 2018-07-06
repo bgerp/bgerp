@@ -2338,6 +2338,11 @@ class doc_DocumentPlg extends core_Plugin
                         $requiredRoles = 'powerUser';
                     }
                 }
+                
+                // Даваме права на системния потребител, ако е сетнат съответния мод
+                if ($userId == -1 && Mode::is('isSystemCanSingle')) {
+                    $requiredRoles = 'every_one';
+                }
             } elseif ($action == 'clone') {
                 
                 // Ако клонираме
