@@ -108,6 +108,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
 
                         'articulId' => $detail->ent2Id,
                         'articulName' => cat_Products::getTitleById($detail->ent2Id),
+                        'uomId' => acc_Items::fetch($detail->ent2Id)->uomId,
                         'storeId' => $detail->ent1Id,
                         'quantity' => $detail->blQuantity
                     );
@@ -141,8 +142,9 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         if ($export === FALSE) {
 
             $fld->FLD('articul', 'varchar', 'caption=Артикул');
+            $fld->FLD('uomId', 'varchar', 'caption=Мярка');
             $fld->FLD('store', 'varchar', 'caption=Склад');
-            $fld->FLD('quantity', 'varchar', 'caption=Количество');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
         } else {}
         return $fld;
     }
@@ -170,6 +172,8 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $row->articul = cat_Products::getLinkToSingle_($productId, 'name');
         
+        $row->uomId = cat_UoM::getTitleById($dRec->uomId);
+        
         $stores = explode(',', $dRec->storeId);
         $quantities = explode(',', $dRec->quantity);
 
@@ -180,8 +184,13 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
             $storeId = acc_Items::fetch($key)->objectId;
 
             $row->store .= store_Stores::getHyperlink($storeId) . "</br>";
+            $color = 'green';
+            if ($val < 0){
+                
+                $color = 'red';
+            }
 
-            $row->quantity .= core_Type::getByName('double(decimals=2)')->toVerbal($val) . "</br>";
+            $row->quantity .= "<span class= '{$color}'>" .core_Type::getByName('double(decimals=2)')->toVerbal($val)."</span>" . "</br>";
         }
         return $row;
     }
