@@ -1763,7 +1763,23 @@ class doclog_Documents extends core_Manager
                 }
             }
             
+            $isSystemCanSingle = FALSE;
+            
+            if ((!$sendedBy || $sendedBy == -1) && $fParent->data->sendedBy == -1) {
+                if ($fParent->data->isSystemCanSingle) {
+                    $sendedBy = -1;
+                    
+                    $isSystemCanSingle = TRUE;
+                    Mode::set('isSystemCanSingle', TRUE);
+                }
+            }
+            
             $linkedDocs = $midDoc->getLinkedDocuments($sendedBy, $fParent->data);
+            
+            if ($isSystemCanSingle) {
+                Mode::set('isSystemCanSingle', FALSE);
+                $isSystemCanSingle = FALSE;
+            }
             
             // свързан ли е?
             expect(isset($linkedDocs[$requestedDoc->getHandle()]));

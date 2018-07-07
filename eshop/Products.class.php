@@ -136,7 +136,8 @@ class eshop_Products extends core_Master
 
         $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
-
+        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри');
+       
         // Запитване за нестандартен продукт
         $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId,silent');
         $this->FLD('proto', 'keylist(mvc=cat_Products,allowEmpty,select=name,select2MinItems=100)', 'caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти');
@@ -259,10 +260,13 @@ class eshop_Products extends core_Master
             }
         }
         
-        
-        
         if (isset($rec->coDriver) && !cls::load($rec->coDriver, true)) {
             $row->coDriver = "<span class='red'>" . tr('Несъществуващ клас') . '</span>';
+        }
+        
+        if(isset($fields['-single'])){
+        	$params = self::getParamsToDisplay($rec);
+        	$row->showParams = $mvc->getFieldType('showParams')->toVerbal(keylist::fromArray($params));
         }
     }
     
@@ -354,18 +358,34 @@ class eshop_Products extends core_Master
             if ($dQuery->count() == 1) {
                 $dRec = $dQuery->fetch();
                 $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
-                $pcsId = cat_UoM::fetchBySinonim('pcs')->id;
+                $packagings = cat_Products::getProductInfo($dRec->productId)->packagings;
                 
+                // Какви са к-та в опаковките
+                $selectedPackagings = keylist::toArray($dRec->packagings);
+                $packs = array($measureId => 1);
+                foreach ($packagings as $packRec){
+                	$packs[$packRec->packagingId] = $packRec->quantity;
+                }
+                
+                // Коя е най-малката опаковка от избраните
+                $minPackagingId = $minQuantityInPack = NULL;
+                foreach ($selectedPackagings as $selPackId){
+                	$q = $packs[$selPackId];
+                	if (!$q) continue;
+                	if (is_null($minPackagingId) || (isset($minPackagingId) && $q->quantity < $minQuantityInPack)){
+                		$minPackagingId = $selPackId;
+                		$minQuantityInPack = $q->quantity;
+                	}
+                }
+               
                 // Ако мярката е брой и е показано да се показва
-                if ($measureId == $pcsId && keylist::isIn($measureId, $dRec->packagings)) {
-                    
-                    // Ако има цена показва се в реда
-                    if ($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $measureId, 1)) {
+                if (isset($minPackagingId)) {
+                    if ($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $minPackagingId, 1)) {
                         $singlePrice = core_Type::getByName('double(decimals=2)')->toVerbal($singlePrice->price);
                         $settings = cms_Domains::getSettings();
                         $pRow->singlePrice = $singlePrice;
                         $pRow->singleCurrencyId = $settings->currencyId;
-                        $pRow->measureId = cat_UoM::getShortName($measureId);
+                        $pRow->measureId = cat_UoM::getShortName($minPackagingId);
                         $pRow->singleCurrencyId = $settings->currencyId;
                         $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
                         
@@ -988,5 +1008,81 @@ class eshop_Products extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         return tr($rec->name);
+    }
+    
+    
+    /**
+     * Връща параметрите за показване
+     * 
+     * @param int $id
+     * @return array 
+     */
+    public static function getParamsToDisplay($id)
+    {
+    	$rec = self::fetchRec($id);
+    	
+    	if (!empty($rec->showParams)) return keylist::toArray($rec->showParams);
+    	
+    	$groupParams = eshop_Groups::fetchField($rec->groupId, 'showParams');
+    	
+    	return keylist::toArray($groupParams);
+    }
+    
+    
+    /**
+     * Връща общите параметри за артикулите, тези които са с еднакви стойности за
+     * всички артикули от опциите
+     * 
+     * @param int $id
+     * @return array $res
+     */
+    public static function getCommonParams($id)
+    {
+    	$res = $rowParams = $totalParams = array();
+    	$rec = self::fetchRec($id);
+    	
+    	// Има ли параметри за показване
+    	$displayParams = self::getParamsToDisplay($rec);
+    	if (!count($displayParams)) return $res;
+    	
+    	// Опциите към артикула
+    	$dQuery = eshop_ProductDetails::getQuery();
+    	$dQuery->where("#eshopProductId = {$rec->id}");
+    	$dQuery->show('productId');
+    	
+    	while($dRec = $dQuery->fetch()){
+    		
+    		// Какви стойности имат избраните параметри
+    		$intersect = array();
+    		$productParams = cat_Products::getParams($dRec->productId, NULL, TRUE);
+    		foreach ($displayParams as $displayParamId){
+    			$intersect[$displayParamId] = $productParams[$displayParamId];
+    		}
+    		
+    		$totalParams = $totalParams + array_combine(array_keys($intersect), array_keys($intersect));
+    		$rowParams[$dRec->productId] = $intersect;
+    	}
+    	
+    	// За всеки от избраните параметри
+    	foreach ($totalParams as $paramId){
+    		$isCommon = true;
+    		$value = false;
+    		
+    		foreach ($rowParams as $params){
+    			if($value === false){
+    				$value = $params[$paramId];
+    			} elseif(trim($value) != trim($params[$paramId])) {
+    				$value = false;
+    				$isCommon = false;
+    			}
+    		}
+    		
+    		// Ако всичките записи имат еднаква стойност, значи параметъра е общ
+    		if($isCommon === true && isset($value)){
+    			$res[$paramId] = $value;
+    		}
+    	}
+    	
+    	return $res;
     }
 }

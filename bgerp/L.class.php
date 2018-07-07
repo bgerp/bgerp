@@ -200,9 +200,23 @@ class bgerp_L extends core_Manager
             }
             
             Mode::push('saveObjectsToCid', $cid);
+            
+            $isSystemCanSingle = FALSE;
+            
+            if (($options['sendedBy'] == -1) && $options['isSystemCanSingle']) {
+                $isSystemCanSingle = TRUE;
+                Mode::set('isSystemCanSingle', TRUE);
+            }
+            
             // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на
             // документа за показване
             $html = $doc->getDocumentBody('xhtml', (object) $options);
+            
+            if ($isSystemCanSingle) {
+                Mode::set('isSystemCanSingle', FALSE);
+                $isSystemCanSingle = FALSE;
+            }
+            
             Mode::pop('saveObjectsToCid');
             
             Mode::set('wrapper', 'page_External');

@@ -477,6 +477,12 @@ class email_Outgoings extends core_Master
             
             // Добавяме изпращача
             $action['data']->sendedBy = core_Users::getCurrent();
+
+            if ($action['data']->sendedBy == -1) {
+                if (Mode::is('isSystemCanSingle')) {
+                    $action['data']->isSystemCanSingle = TRUE;
+                }
+            }
             
             // Генериране на прикачените документи
             $rec->documentsFh = array();
