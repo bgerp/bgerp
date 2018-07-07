@@ -2092,7 +2092,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $all = $query->fetchAll();
         
         $arr = deals_Helper::normalizeProducts(array($all));
-        arr::order($arr, 'sumAmounts', 'DESC');
+        arr::sortObjects($arr, 'sumAmounts', 'DESC');
         $arr = array_values($arr);
         
         if ($productId = $arr[0]->productId) {

@@ -292,8 +292,8 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
             }
         }
 
-        arr::order($data->recs, 'date');
-        arr::order($data->recs, 'dateSale');
+        arr::sortObjects($data->recs, 'date');
+        arr::sortObjects($data->recs, 'dateSale');
         
         foreach ($data->recs as $id => $recs) {
             if ($recs->date) {

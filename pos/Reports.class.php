@@ -286,7 +286,7 @@ class pos_Reports extends core_Master
     protected static function on_AfterPrepareSingle($mvc, &$data)
     {
         $detail = (object) $data->rec->details;
-        arr::orderA($detail->receiptDetails, 'action');
+        arr::sortObjects($detail->receiptDetails, 'action');
         
         // Табличната информация и пейджъра на плащанията
         $detail->listFields = "value=Действие,pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency})";

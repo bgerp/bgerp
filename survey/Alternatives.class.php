@@ -269,7 +269,7 @@ class survey_Alternatives extends core_Detail
         $res->points = $this->options->countPoints($rec->id);
         $res->points = $double->toVerbal($res->points);
         
-        arr::order($answers, 'votes');
+        arr::sortObjects($answers, 'votes');
         $answers = array_reverse($answers, true);
         $res->answers = $answers;
         

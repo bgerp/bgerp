@@ -171,7 +171,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         }
         
         if (count($recs)) {
-            arr::natOrder($recs, 'documentType');
+            arr::sortObjects($recs, 'documentType', 'asc', 'stri');
         }
         
         foreach ($recs as $v) {

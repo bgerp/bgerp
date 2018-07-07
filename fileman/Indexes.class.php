@@ -364,7 +364,7 @@ class fileman_Indexes extends core_Manager
     public static function orderTabs($tabsArr)
     {
         // Подреждаме масива
-        core_Array::orderA($tabsArr);
+        core_Array::sortObjects($tabsArr);
 
         return $tabsArr;
     }

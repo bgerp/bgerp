@@ -523,7 +523,7 @@ abstract class deals_DealDetail extends doc_Detail
             $list->code = cat_Products::getVerbal($list->productId, 'code');
         }
         
-        arr::natOrder($listed, 'code');
+        arr::sortObjects($listed, 'code', 'asc', 'stri');
         
         // Подготовка на полетата на формата
         $this->prepareImportListForm($form, $listed, $recs, $saleRec);

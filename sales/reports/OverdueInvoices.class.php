@@ -215,7 +215,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $rec->salesTotalOverDue = $salesTotalOverDue;
         
         if (count($sRecs)) {
-            arr::natOrder($sRecs, 'invoiceDate');
+            arr::sortObjects($sRecs, 'invoiceDate', 'asc', 'stri');
         }
         
         arsort($invoiceCurrentSummArr);

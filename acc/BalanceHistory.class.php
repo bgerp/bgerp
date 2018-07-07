@@ -439,7 +439,7 @@ class acc_BalanceHistory extends core_Manager
         $data->allRecs = $data->recs;
         
         if ($data->orderField) {
-            arr::order($data->recs, $data->orderField, strtoupper($data->orderBy));
+            arr::sortObjects($data->recs, $data->orderField, $data->orderBy);
         }
         
         // Крайното салдо е изчисленото крайно салдо на сметката

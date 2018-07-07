@@ -220,7 +220,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
             }
         }
 
-        arr::order($data->recs, 'dateSale');
+        arr::sortObjects($data->recs, 'dateSale');
 
         for ($dt = 0; $dt <= count($data->recs); $dt++) {
             if ($data->recs[$dt]->dateSale) {

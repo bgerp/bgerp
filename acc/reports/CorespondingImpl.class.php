@@ -441,10 +441,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         if (count($data->recs)) {
 
             // Ако има избрано поле за сортиране, сортираме по него
-            arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
+            arr::sortObjects($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
             
             if (is_array($data->recsAll)) {
-                arr::order($data->recsAll, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
+                arr::sortObjects($data->recsAll, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
             }
 
             if ($mvc->innerForm->compare != 'no') {
@@ -917,7 +917,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         
         $fields = $this->getFields();
         
-        arr::order($this->innerState->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
+        arr::sortObjects($this->innerState->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
         
         $rows = $this->prepareEmbeddedData()->rows;
 
@@ -1118,8 +1118,6 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      */
     protected function generateChartData($data)
     {
-        //arr::order($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
-    
         $arr = array();
         $dArr = array();
         $value1 = array();

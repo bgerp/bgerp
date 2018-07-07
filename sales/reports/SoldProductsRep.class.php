@@ -321,7 +321,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $recs = $tempArr;
         
         if (! is_null($recs)) {
-            arr::natOrder($recs, 'code');
+            arr::sortObjects($recs, 'code', 'asc', 'stri');
         }
 
         return $recs;
@@ -487,6 +487,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $row->compare = $arrCompare[$rec->compare];
     }
     
+
     /**
      * След рендиране на единичния изглед
      *

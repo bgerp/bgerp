@@ -186,7 +186,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     }
                 }
 
-                arr::orderA($dRecs, 'type');
+                arr::sortObjects($dRecs, 'type');
                 
                 $costAmount = $index = 0;
                 foreach ($dRecs as $dRec1) {

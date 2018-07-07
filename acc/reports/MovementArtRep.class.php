@@ -278,7 +278,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             });
             
             if (count($res)) {
-                arr::natOrder($res, 'code');
+                arr::sortObjects($res, 'code', 'asc', 'stri');
                 $ordered += $res;
             }
         }

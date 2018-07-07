@@ -675,7 +675,7 @@ class store_InventoryNoteSummary extends doc_Detail
                 $field = ($orderProductBy === 'code') ? 'orderCode' : 'orderName';
                 
                 // Сортираме артикулите в маркера
-                arr::natOrder($res, $field);
+                arr::sortObjects($res, $field, 'asc', 'stri');
                 
                 // Добавяме артикулите към подредените
                 $ordered += $res;
@@ -692,7 +692,7 @@ class store_InventoryNoteSummary extends doc_Detail
             }
             
             // Подреждаме ги по име
-            arr::orderA($rest, 'orderCode');
+            arr::sortObjects($rest, 'orderCode');
         
             // Добавяме ги най-накрая
             $ordered += $rest;

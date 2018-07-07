@@ -141,7 +141,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
     
         if (count($data->recs)) {
             if ($this->innerForm->orderField) {
-                arr::order($data->recs, $this->innerForm->orderField, strtoupper($this->innerForm->orderBy));
+                arr::sortObjects($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
             }
             
             foreach ($data->recs as $id => $rec) {

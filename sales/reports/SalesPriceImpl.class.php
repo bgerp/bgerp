@@ -292,7 +292,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
         
         // Сортираме масива по делтата, като
         // искаме най-отгоре да е най-голямата загуба
-        arr::order($data->recs, 'delta', $data->rec->orderBy);
+        arr::sortObjects($data->recs, 'delta', $data->rec->orderBy);
 
         return $data;
     }

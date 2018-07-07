@@ -432,7 +432,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
          
         // Ако е посочено поле за сортиране, сортираме по него
         if ($this->innerForm->orderField) {
-            arr::order($data->recs, $this->innerForm->orderField, strtoupper($this->innerForm->orderBy));
+            arr::sortObjects($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
         } else {
             acc_BalanceDetails::sortRecsByNum($data->recs, $data->listFields);
         }

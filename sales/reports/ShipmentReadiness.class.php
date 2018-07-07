@@ -508,10 +508,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                 return (strnatcasecmp($a->contragentName, $b->contragentName) < 0) ? -1 : 1;
             });
         } elseif ($rec->orderBy == 'execDate') {
-            arr::order($recs, 'execDate', 'ASC');
+            arr::sortObjects($recs, 'execDate', 'ASC');
             $data->groupByField = 'contragentName';
         } elseif ($rec->orderBy == 'dueDate') {
-            arr::order($recs, 'dueDateMin', 'ASC');
+            arr::sortObjects($recs, 'dueDateMin', 'ASC');
             $data->groupByField = 'contragentName';
         } else {
                 

@@ -454,7 +454,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         }
         
         if ($form->order) {
-            arr::order($all, 'amount', $form->order);
+            arr::sortObjects($all, 'amount', $form->order);
         }
 
         $p = array();
@@ -494,7 +494,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             $data->Pager->itemsCount = count($data->recs);
             
             // Ако има избрано поле за сортиране, сортираме по него
-            arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
+            arr::sortObjects($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
         
             // За всеки запис
             foreach ($data->recs as &$rec) {
@@ -964,7 +964,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         
         $fields = $this->getFields();
         
-        arr::order($this->innerState->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
+        arr::sortObjects($this->innerState->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
         
         $rows = $this->prepareEmbeddedData()->rows;
         
@@ -1132,8 +1132,6 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
      */
     protected function generateChartData($data)
     {
-        //arr::order($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
-    
         $arr = array();
         $dArr = array();
 
