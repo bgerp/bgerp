@@ -118,6 +118,6 @@ class core_ObjectCollection implements Iterator
      */
     public function order($field = 'order')
     {
-        arr::order($this->container, $field);
+        arr::sortObjects($this->container, $field);
     }
 }

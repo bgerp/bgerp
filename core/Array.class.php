@@ -17,7 +17,7 @@
 class core_Array
 {
     public static $rand;
-
+    
     /**
      * Конкатенира към стойностите от първия масив, стойностите от втория със
      * същите ключове
@@ -27,26 +27,26 @@ class core_Array
         foreach ($a2 as $key => $value) {
             $a1[$key] .= $value;
         }
-
+        
         return $a1;
     }
-
-
+    
+    
     /**
-     * @todo Чака за документация...
+     * Събира няколко масива или списъка, като запазва ключовете им
      */
     public static function combine()
     {
         $res = array();
-
+        
         $args = func_get_args();
-
+        
         if (count($args)) {
             foreach ($args as $a) {
                 if (!is_array($a)) {
                     $a = arr::make($a, true);
                 }
-
+                
                 foreach ($a as $key => $value) {
                     if (!isset($res[$key])) {
                         $res[$key] = $value;
@@ -56,11 +56,11 @@ class core_Array
                 }
             }
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Конвертира стрингов списък или обект, към масив
      * Може да не слага целочислени индекси, като наместо тях
@@ -72,7 +72,6 @@ class core_Array
     public static function make($mixed, $noIntKeys = false, $sep = null)
     {
         if (!$mixed) {
-            
             return array();
         } elseif (is_array($mixed)) {
             $p = $mixed;
@@ -87,7 +86,7 @@ class core_Array
                     $sep = ',';
                 }
             }
-
+            
             /**
              * Ескейпваме двойния сепаратор
              * @todo: Необходимо ли е?
@@ -96,14 +95,14 @@ class core_Array
                 static::$rand = '[' . rand(-2000000000, 2000000000) . rand(-2000000000, 2000000000) . ']';
             }
             $mixed = str_replace($sep . $sep, static::$rand, $mixed);
-
+            
             $mixed = explode($sep, $mixed);
             $p = array();
-
+            
             if (count($mixed) > 0) {
                 foreach ($mixed as $index => $value) {
                     $value = str_replace(static::$rand, $sep, $value);
-
+                    
                     if (strpos($value, '=') > 0) {
                         list($key, $val) = explode('=', $value);
                         $p[trim($key)] = trim($val);
@@ -113,7 +112,7 @@ class core_Array
                 }
             }
         }
-
+        
         // Ако е необходимо, махаме числовите индекси
         if ($noIntKeys && count($p) > 0) {
             foreach ($p as $k => $v) {
@@ -125,11 +124,11 @@ class core_Array
             }
             $p = $p1;
         }
-
+        
         return $p;
     }
-
-
+    
+    
     /**
      * Дали ключовете на двата масива имат сечение
      * Ако един от двата масива е празен, то резултата е истина
@@ -139,126 +138,76 @@ class core_Array
     {
         $arr1 = arr::make($arr1, true);
         $arr2 = arr::make($arr2, true);
-
+        
         if ((count($arr1) == 0) || (count($arr2) == 0)) {
-            
             return true;
         }
-
+        
         foreach ($arr1 as $key => $value) {
             if (isset($arr2[$key])) {
-                
                 return true;
             }
         }
-
+        
         foreach ($arr2 as $key => $value) {
             if (isset($arr1[$key])) {
-                
                 return true;
             }
         }
-
+        
         return false;
     }
-
-
+    
+    
     /**
      * Връща ключа на елемента с най-голяма стойност
      */
     public static function getMaxValueKey($arr)
     {
         if (count($arr)) {
-            
             return array_search(max($arr), $arr);
         }
     }
-
-
+    
+    
     /**
      * Сортира масив от обекти или от масиви по тяхното поле 'order'
+     *
+     * @param $array array   Масива, който ще се подрежда
+     * @param $field string  Име на полето по което се подрежда
+     * @param $dir   string  Посока на подредбата ('asc' или 'desc')
+     * @param $mode  string  Типа на сравнението
+     *                о   'native' - така, както се прави стравнение в PHP с <, >, и ==
+     *                o   'str'    - стрингово сравнение
+     *                о   'stri'   - стрингово сравнение без отчитане на кейса
      */
-    public static function order(&$array, $field = 'order', $mode = 'ASC')
+    public static function sortObjects(&$array, $field = 'order', $dir = 'asc', $mode = 'native')
     {
-        if ($mode == 'ASC') {
-            uasort($array, function ($a, $b) use ($field) {
-                $a = (object) $a;
-                $b = (object) $b;
-                    
-                if ($a->{$field} == $b->{$field}) {
-                    
-                    return 0;
-                }
-
-                return $a->{$field} > $b->{$field} ? 1 : -1;
-            });
-        } else {
-            uasort($array, function ($a, $b) use ($field) {
-                $a = (object) $a;
-                $b = (object) $b;
-                
-                if ($a->{$field} == $b->{$field}) {
-                    
-                    return 0;
-                }
-
-                return $a->{$field} > $b->{$field} ? -1 : 1;
-            });
-        }
-    }
-    
-    
-    /**
-     * Сортира масив от обекти по тяхното поле 'order' и запазва ключа
-     */
-    public static function orderA(&$array, $field = 'order')
-    {
-        uasort($array, function ($a, $b) use ($field) {
+        $mode = strtolower($mode);
+        expect($dir == 'desc' || $dir == 'asc', $dir);
+        
+        uasort($array, function ($a, $b) use ($field, $dir, $mode) {
+            $a = (object) $a;
+            expect(property_exists($a, $field), $a);
             
-            // Ако липсва да се подредят най накрая
-            // Ако има 2 елемента с еднакви стойности, първия срещнат да си остане първи
-            if ($a->{$field} == $b->{$field}) {
-                
-                return 1;
+            $b = (object) $b;
+            expect(property_exists($b, $field), $b);
+            
+            if ($mode == 'native') {
+                if ($a->{$field} == $b->{$field}) {
+                    $res = 0;
+                } else {
+                    $res = ($dir == 'asc' ? 1 : -1) * ($a->{$field} > $b->{$field} ? 1 : -1);
+                }
+            } elseif ($mode == 'str') {
+                $res = ($dir == 'asc' ? 1 : -1) * strcmp($a->{$field}, $b->{$field});
+            } elseif ($mode == 'stri') {
+                $res = ($dir == 'asc' ? 1 : -1) * strcasecmp($a->{$field}, $b->{$field});
+            } else {
+                expect(in_array($mode, array('native', 'str', 'stri')), $mode);
             }
-
-            return $a->{$field} > $b->{$field} ? 1 : -1;
-        });
-    }
-
-
-    /**
-     * Сортиране на масив от обекти, по дадено поле използвайки 'natural order' алгоритъма
-     * подреждащ стринговете по начин по който човек би ги подредил, запазвайки ключовете
-     *
-     * Пример:
-     * Стандартно сортиране
-     *
-     * [3] => img1.png
-     * [1] => img10.png
-     * [0] => img12.png
-     * [2] => img2.png
-     *
-     * Natural order sorting
-     * [3] => img1.png
-     * [2] => img2.png
-     * [1] => img10.png
-     * [0] => img12.png
-     *
-     * @param  array  $array - масив за сортиране
-     * @param  string $field - поле по което ще се сортира
-     * @return void
-     */
-    public static function natOrder(&$array, $field)
-    {
-        // Ако има такива сортираме ги по име
-        uasort($array, function ($a, $b) use ($field) {
-            if ($a->{$field} == $b->{$field}) {
-                
-                return 0;
-            }
-
-            return (strnatcasecmp($a->{$field}, $b->{$field}) < 0) ? -1 : 1;
+            
+            return $res;
         });
     }
     
@@ -266,19 +215,20 @@ class core_Array
     /**
      * Групира масив от записи (масиви или обекти) по зададено поле-признак
      *
-     * @param  array  $data  масив от асоциативни масиви и/или обекти
-     * @param  string $field
+     * @param array  $data  масив от асоциативни масиви и/или обекти
+     * @param string $field
+     *
      * @return array
      */
     public static function group($data, $field)
     {
         $result = array();
-
+        
         foreach ($data as $i => $r) {
             $key = is_object($r) ? $r->{$field} : $r[$field];
             $result[$key][$i] = $r;
         }
-
+        
         return $result;
     }
     
@@ -379,8 +329,8 @@ class core_Array
         
         return $resStr;
     }
-
-
+    
+    
     /**
      * Копиране на свойства от един обект/масив на друг
      *
@@ -402,7 +352,7 @@ class core_Array
         } else {
             $fields = arr::make($fields);
         }
-
+        
         foreach ($fields as $fld) {
             if (is_object($arr1)) {
                 $arr1->{$fld} = $vars[$fld];
@@ -413,7 +363,7 @@ class core_Array
                 error('Некоректен параметър', $arr1);
             }
         }
-
+        
         return $arr1;
     }
     
@@ -436,23 +386,23 @@ class core_Array
                 $newFields = array();
                 
                 $isSet = false;
-                 
+                
                 foreach ($array as $exName => $exFld) {
                     if ((string) $before == (string) $exName) {
                         $isSet = true;
                         $newFields[$key] = $value;
                     }
-                
+                    
                     if (!$isSet || ($exName != $key)) {
                         $newFields[$exName] = &$array[$exName];
                     }
-                
+                    
                     if ((string) $after == (string) $exName) {
                         $newFields[$key] = $value;
                         $isSet = true;
                     }
                 }
-                 
+                
                 $array = $newFields;
             }
         } else {
@@ -484,7 +434,7 @@ class core_Array
             foreach ($old as $oRec) {
                 $oKey = self::makeUniqueIndex($oRec, $keyFields);
                 $vKey = self::makeUniqueIndex($oRec, $vFields);
-            
+                
                 // Преобразуваме го в масив в индекси уникалните полета и информация за данните му
                 if (!array_key_exists($oKey, $modOld)) {
                     $modOld[$oKey] = array($vKey, $oRec->id);
@@ -501,7 +451,7 @@ class core_Array
                 $nValKey = self::makeUniqueIndex($nRec, $vFields);
                 
                 $uRec = clone $nRec;
-            
+                
                 // Ако записа се среща с този индекс и с тази стойност на зададените полета в $modOld
                 // то отбелязваме записа, че е за обновяване
                 if (array_key_exists($nKey, $modOld)) {
@@ -549,8 +499,8 @@ class core_Array
         
         return $nKey;
     }
-
-
+    
+    
     /**
      * Връща броя на елементите в масива
      * Ако аргумента не е масив - предполага, че се каства към FALSE
@@ -558,7 +508,6 @@ class core_Array
     public static function count($arr)
     {
         if (is_array($arr)) {
-            
             return count($arr);
         }
         // Очаква се или масив или == FALSE
@@ -602,7 +551,6 @@ class core_Array
     {
         expect(is_array($arr));
         $result = array_values(array_map(function ($obj) use ($field) {
-            
             return (is_object($obj)) ? $obj->{$field} : $obj[$field];
         }, $arr));
         $result = array_values($result);
@@ -630,7 +578,7 @@ class core_Array
             foreach ($fields as $fld) {
                 $res->{$fld} = is_object($obj) ? $obj->{$fld} : $obj[$fld];
             }
-
+            
             return $res;
         }, $arr));
         
@@ -655,8 +603,8 @@ class core_Array
         
         return $res;
     }
-
-
+    
+    
     /**
      * Вмъкване на подмасив в масив
      * @param array      $array    Оригинален масив

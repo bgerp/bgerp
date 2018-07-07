@@ -167,7 +167,7 @@ class core_Toolbar extends core_BaseClass
                 $cnt++;
             }
         }
-
+        
         return $cnt;
     }
     
@@ -225,14 +225,13 @@ class core_Toolbar extends core_BaseClass
     public static function cmp($a, $b)
     {
         if ($a->order == $b->order) {
-            
             return 0;
         }
         
         return ($a->order < $b->order) ? -1 : 1;
     }
-
-
+    
+    
     /**
      * Връща броя на бутоните на тулбара
      */
@@ -250,12 +249,10 @@ class core_Toolbar extends core_BaseClass
         $layout = new ET();
         
         if (!count($this->buttons) > 0) {
-            
             return $layout;
         }
         
         if (Mode::isReadOnly() || Mode::is('text', 'plain')) {
-            
             return $layout;
         }
         
@@ -263,7 +260,7 @@ class core_Toolbar extends core_BaseClass
         //  if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 5) || count($this->buttons) <= 10) {
         // Показваме бутони
         $btnCnt = 0;
-            
+        
         foreach ($this->buttons as $k => $b) {
             if (Mode::is('screenMode', 'narrow')) {
                 if ($b->order > 100) {
@@ -271,19 +268,19 @@ class core_Toolbar extends core_BaseClass
                 }
             }
         }
-            
+        
         // Сортираме бутоните
-        arr::order($this->buttons);
- 
+        arr::sortObjects($this->buttons);
+        
         $attr = array('id' => $this->id);
-            
+        
         ht::setUniqId($attr);
-
+        
         $rowId = $attr['id'];
-
+        
         $onRow2 = 0;
         $hiddenBtns = 0;
-
+        
         $layout = $this->getToolbarLayout($rowId);
         foreach ($this->buttons as $id => $btn) {
             if ($btn->attr['row'] == 2) {
@@ -293,10 +290,10 @@ class core_Toolbar extends core_BaseClass
                 $hiddenBtns++;
             }
         }
-
+        
         foreach ($this->buttons as $id => $btn) {
             $place = ($btn->attr['row'] == 2 && $onRow2 != 1) ? 'ROW2' : (($hiddenBtns > 1 && $btn->attr['row'] == 3) ? 'HIDDEN' : 'ROW1') ;
-
+            
             if ($place == 'ROW2') {
                 $flagRow2 = true;
             }
@@ -313,14 +310,14 @@ class core_Toolbar extends core_BaseClass
             } else {
                 $layout->append(ht::createBtn($btn->title, $btn->url, $btn->warning, $btn->newWindow, $attr), $place);
             }
-                
+            
             $btnCnt++;
         }
-           
+        
         if ($flagRow2) {
             $this->appendSecondRow($layout, $rowId);
         }
-            
+        
         $layout->prepend(ht::createHidden($this->hidden));
         
         return $layout;
@@ -343,7 +340,7 @@ class core_Toolbar extends core_BaseClass
     {
         if (count($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') || count($this->buttons) > 3 && Mode::is('screenMode', 'narrow')) {
             $layout = new ET("\n<div class='toolbar'><div class='toolbar-first clearfix21'>[#ROW0#][#ROW1#]</div>" .
-
+                              
                               "<!--ET_BEGIN ROW2--><div style='display:none' class='toolbarHide clearfix21' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div>");
         } else {
             $layout = new ET("\n<div class='toolbar'><div class='clearfix21'>[#ROW1#][#ROW2#]</div></div>");

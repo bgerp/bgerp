@@ -40,7 +40,7 @@ class core_RowToolbar extends core_BaseClass
         $this->add($btn, $params, $moreParams);
     }
     
-     
+    
     /**
      * Добавя бутон, който задейства js функция
      */
@@ -122,7 +122,7 @@ class core_RowToolbar extends core_BaseClass
                 $cnt++;
             }
         }
-
+        
         return $cnt;
     }
     
@@ -164,7 +164,7 @@ class core_RowToolbar extends core_BaseClass
         }
     }
     
-
+    
     /**
      * Връща броя на бутоните на тулбара
      */
@@ -204,9 +204,9 @@ class core_RowToolbar extends core_BaseClass
             $layout = new ET("\n" .
                             "<!--ET_BEGIN ROW_LINKS--><div class='modal-toolbar rowtoolsGroup'>[#ROW_LINKS#]</div>" .
                             "<img class='more-btn toolbar-btn button' src='{$dropDownIcon}' alt=''><!--ET_END ROW_LINKS-->[#ALWAYS_SHOW#]");
-
+            
             // Сортираме бутоните
-            arr::order($this->links);
+            arr::sortObjects($this->links);
             
             foreach ($this->links as $id => $linkObj) {
                 $attr = $linkObj->attr;
@@ -225,10 +225,10 @@ class core_RowToolbar extends core_BaseClass
                 $link = ht::createLink($btnTitle, $linkObj->url, $linkObj->error ? $linkObj->error : $linkObj->warning, $attr);
                 $layout->append($link, $placeholder);
             }
-
+            
             $layout->push('context/'. context_Setup::get('VERSION') . '/contextMenu.css', 'CSS');
             $layout->push('context/'. context_Setup::get('VERSION') . '/contextMenu.js', 'JS');
-
+            
             jquery_Jquery::run($layout, 'prepareContextMenu();', true);
             jquery_Jquery::runAfterAjax($layout, 'prepareContextMenu');
         }
