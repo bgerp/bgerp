@@ -102,7 +102,7 @@ class apachetika_Detect
         }
         
         $Script->setCheckProgramsArr('java');
-        // Стартираме скрипта Aсинхронно
+        // Стартираме скрипта асинхронно
         if ($Script->run($params['asynch']) === false) {
             if (strtolower($params['type']) == 'metadata') {
                 $params['content'] = '';

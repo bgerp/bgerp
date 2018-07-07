@@ -1167,7 +1167,7 @@ class core_App
      *
      * @param  int     $time    - времето за увеличение в секунди
      * @param  boolean $force   - форсиране или не
-     * @param  int     $minTime - минимално време, iзползва се ако $time е по-малко от него
+     * @param  int     $minTime - минимално време, използва се, ако $time е по-малко от него
      * @return void
      */
     public static function setTimeLimit($time, $force = false, $minTime = 20)

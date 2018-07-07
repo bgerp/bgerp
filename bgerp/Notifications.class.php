@@ -205,7 +205,7 @@ class bgerp_Notifications extends core_Manager
         }
         
         // Ако само се запознава със съдържанието - не се изчиства
-        if (Request::get('ОnlyMeet')) {
+        if (Request::get('OnlyMeet')) {
             
             return ;
         }
@@ -474,7 +474,7 @@ class bgerp_Notifications extends core_Manager
         if ($rec->state == 'active') {
             // Запознаване със съдържанието, но без отмаркиране
             $meetUrl = $url;
-            $meetUrl['ОnlyMeet'] = true;
+            $meetUrl['OnlyMeet'] = true;
             $introBtn = ht::createLink(tr('Запознаване'), $meetUrl, null, array('ef_icon' => 'img/16/see.png', 'title' => 'Запознаване със съдържанието без отмаркиране', 'class' => 'button'));
             $tpl->append($introBtn);
         }

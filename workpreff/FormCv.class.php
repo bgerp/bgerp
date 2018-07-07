@@ -157,7 +157,7 @@ class workpreff_FormCv extends core_Master
             $months .= $m.'|';
         }
          
-        $this->FLD('workExperience', "table(columns=orgName|position|beginM|beginY|endM|endY,beginM_opt=${months},beginY_opt=${period},endM_opt=${months},endY_opt=${period},captions=Фирмa/Организация|Длъжност|ОТ мес|год|ДО мес|год,widths=20em|15em|4em|4em|4em|4em)", 'caption=Трудов стаж||Extras->Месторабота||Additional,autohide,advanced,export=Csv');
+        $this->FLD('workExperience', "table(columns=orgName|position|beginM|beginY|endM|endY,beginM_opt=${months},beginY_opt=${period},endM_opt=${months},endY_opt=${period},captions=Фирма/Организация|Длъжност|ОТ мес|год|ДО мес|год,widths=20em|15em|4em|4em|4em|4em)", 'caption=Трудов стаж||Extras->Месторабота||Additional,autohide,advanced,export=Csv');
          
         $this->FLD('education', 'table(columns=school|specility|begin|end,captions=Учебно заведение|Степен/Квалификация|Начало|Край,widths=20em|15em|5em|5em)', 'caption=Образование||Extras->Обучение||Additional,autohide,advanced,export=Csv');
         
@@ -201,7 +201,7 @@ class workpreff_FormCv extends core_Master
         
         $form->title = 'Изпращане на CV';
         $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/disk.png,title=Изпращане на CV');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png,title=Oтказ');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ');
         $tpl = $form->renderHtml();
         
         // Поставяме шаблона за външен изглед

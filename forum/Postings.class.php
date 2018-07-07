@@ -736,7 +736,7 @@ class forum_Postings extends core_Detail
         expect($rec = $this->fetch($id));
         $this->requireRightFor('write', $rec);
         
-        // променяме статуса на темата на заключенa/отключенa
+        // променяме статуса на темата на заключена/отключена
         if ($rec->status == 'unlocked') {
             $rec->status = 'locked';
             $msg = tr('Темата беше успешно заключена');

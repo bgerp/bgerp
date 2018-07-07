@@ -19,7 +19,7 @@ class sens_driver_IpDevice extends core_BaseClass
     
     
     /**
-     * Интерфeйси, поддържани от всички наследници
+     * Интерфейси, поддържани от всички наследници
      */
     public $interfaces = 'sens_DriverIntf, permanent_SettingsIntf';
     

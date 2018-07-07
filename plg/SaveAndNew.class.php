@@ -89,7 +89,7 @@ class plg_SaveAndNew extends core_Plugin
              
                 if ($info) {
                     $info = '<div style="padding:5px; background-color:#ffffcc; border:solid 1px #cc9;">' .
-                    tr('Последно добавенo') . ": <ul style='margin:5px;padding-left:10px;'>{$info}</ul></div>";
+                    tr('Последно добавено') . ": <ul style='margin:5px;padding-left:10px;'>{$info}</ul></div>";
                     
                     $data->form->info .= $info;
                 }

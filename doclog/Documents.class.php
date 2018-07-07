@@ -893,7 +893,7 @@ class doclog_Documents extends core_Manager
             if ($row->cc) {
                 
                 // Добавяме към имейлите
-                $row->emails .= '<br />' . tr('Kп') . ": {$row->cc}";
+                $row->emails .= '<br />' . tr('Кп') . ": {$row->cc}";
             }
             
             // Добавяме имейла от който е изпратен

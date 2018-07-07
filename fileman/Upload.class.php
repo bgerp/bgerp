@@ -128,7 +128,7 @@ class fileman_Upload extends core_Manager
                     
                     // Ако има грешки, показваме ги в прозореца за качване
                     if (!empty($err)) {
-                        $error = new ET("<div class='upload-еrror'><ul>{$_FILES[$inputName]['name'][$id]}[#ERR#]</ul></div>");
+                        $error = new ET("<div class='upload-error'><ul>{$_FILES[$inputName]['name'][$id]}[#ERR#]</ul></div>");
                         
                         foreach ($err as $e) {
                             $error->append('<li>' . tr($e) . '</li>', 'ERR');

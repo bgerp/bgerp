@@ -214,7 +214,7 @@ class email_Incomings extends core_Master
         $this->FLD('spam', 'int', 'caption=Спам');
         $this->FLD('lg', 'varchar', 'caption=Език');
         $this->FLD('date', 'datetime(format=smartTime)', 'caption=Дата');
-        $this->FLD('hash', 'varchar(32)', 'caption=Keш');
+        $this->FLD('hash', 'varchar(32)', 'caption=Кеш');
         $this->FLD('country', 'key(mvc=drdata_countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Държава, autoFilter');
         $this->FLD('fromIp', 'ip', 'caption=IP');
         $this->FLD('files', 'keylist(mvc=fileman_Files)', 'caption=Файлове, input=none');
@@ -471,7 +471,7 @@ class email_Incomings extends core_Master
             // Извличаме цялото писмо
             $rawEmail = $imapConn->getEml($msgNo);
 
-            // Създава MIMЕ обект
+            // Създава MIME обект
             $mime = cls::get('email_Mime');
             
             try {
@@ -1781,7 +1781,7 @@ class email_Incomings extends core_Master
                     }
                 }
                 
-                // Рутиране по домейn
+                // Рутиране по домейн
                 if (email_Router::doRuleDomain($rec)) {
                     
                     // Добавяме начина на рутиране

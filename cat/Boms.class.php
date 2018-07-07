@@ -172,7 +172,7 @@ class cat_Boms extends core_Master
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
         $this->FLD('type', 'enum(sales=Търговска,production=Работна)', 'caption=Вид,input=none');
         $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Забележки');
-        $this->FLD('expenses', 'percent(Мin=0)', 'caption=Общи режийни');
+        $this->FLD('expenses', 'percent(Min=0)', 'caption=Общи режийни');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
         $this->FLD('showInProduct', 'enum(,auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)', 'caption=Показване в артикула,changeable');
@@ -856,7 +856,7 @@ class cat_Boms extends core_Master
             $tpl->append($addBtn, 'title');
         }
          
-        $data->listFields = arr::make('title=Рецепта,type=Вид,quantity=Количество,createdBy=Oт||By,createdOn=На');
+        $data->listFields = arr::make('title=Рецепта,type=Вид,quantity=Количество,createdBy=От||By,createdOn=На');
         $table = cls::get('core_TableView', array('mvc' => $this));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $details = $table->get($data->rows, $data->listFields);

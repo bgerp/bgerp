@@ -717,7 +717,7 @@ class cal_Tasks extends embed_Manager
                     // правим заявка към базата
                     $query = self::getQuery();
 
-                    // Tърсим всички задачи, които са шернати на споделените и възложените потребители или на текущия потребител
+                    // Търсим всички задачи, които са шернати на споделените и възложените потребители или на текущия потребител
                     // и имат някаква стойност за начало и край
                     // или за начало и продължителност
                     
@@ -774,7 +774,7 @@ class cal_Tasks extends embed_Manager
                         }
                         
                         if ($cnt > $limit) {
-                            $link .= '<br>' . ' +' . tr('oще') . ': ' . ($cnt - $limit);
+                            $link .= '<br>' . ' +' . tr('още') . ': ' . ($cnt - $limit);
                         }
                         
                         $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: {$link}");
@@ -3148,7 +3148,7 @@ class cal_Tasks extends embed_Manager
         
         $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
         if (count(getRetUrl())) {
-            $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png,title=Oтказ');
+            $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ');
         }
         $tpl = $form->renderHtml();
         

@@ -157,7 +157,7 @@ class email_Imap extends core_BaseClass
     
     
     /**
-     * Еръща $msgNoна съобщението със зададения UID
+     * Връща $msgNo на съобщението със зададения UID
      * Не работи с POP3 сървери
      */
     public function getMsgNo($uid)

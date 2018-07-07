@@ -34,7 +34,7 @@ class pos_DefaultTheme extends core_Manager
     
     
     /**
-     *Pодготвя стиловете за пос-a
+     * Подготвя стиловете за пос-a
      */
     public function getStyleFile()
     {

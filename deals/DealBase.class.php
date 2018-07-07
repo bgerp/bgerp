@@ -542,7 +542,7 @@ abstract class deals_DealBase extends core_Master
             
             // Ако е зареден флаг в урл-то за експорт експортираме
             if (Request::get('export', 'int') && $data->selectedTab == 'DealReport' && $mvc->haveRightFor('export', $data->rec)) {
-                $mvc->еxportReport($data);
+                $mvc->exportReport($data);
             }
         }
     }
@@ -551,7 +551,7 @@ abstract class deals_DealBase extends core_Master
     /**
      * Екшън който експортира данните
      */
-    protected function еxportReport(&$data)
+    protected function exportReport(&$data)
     {
         expect(Request::get('export', 'int'));
         expect($rec = $data->rec);

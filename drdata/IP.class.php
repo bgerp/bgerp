@@ -263,7 +263,7 @@ class drdata_IP
         $this->countries['PW'] = array('Palau', 'PS', 'PW', 'PLW', '585', 'Koror', 'Oceania', 'US dollar', 'USD', '19092');
         $this->countries['PY'] = array('Paraguay', 'PA', 'PY', 'PRY', '600', 'Asuncion', 'South America', 'Guarani', 'PYG', '5734139');
         $this->countries['QA'] = array('Qatar', 'QA', 'QA', 'QAT', '634', 'Doha', 'Middle East', 'Qatari Rial', 'QAR', '769152');
-        $this->countries['RE'] = array('Rйunion', 'RE', 'RE', 'REU', '638', 'Saint-Denis', 'World', 'Euro', 'EUR', '732570');
+        $this->countries['RE'] = array('Reunion', 'RE', 'RE', 'REU', '638', 'Saint-Denis', 'World', 'Euro', 'EUR', '732570');
         $this->countries['RO'] = array('Romania', 'RO', 'RO', 'ROU', '642', 'Bucharest', 'Europe', 'Leu', 'ROL', '22364022');
         $this->countries['RU'] = array('Russia', 'RS', 'RU', 'RUS', '643', 'Moscow', 'Asia', 'Russian Ruble', 'RUB', '145470197');
         $this->countries['RW'] = array('Rwanda', 'RW', 'RW', 'RWA', '646', 'Kigali', 'Africa', 'Rwanda Franc', 'RWF', '7312756');
@@ -282,7 +282,7 @@ class drdata_IP
         $this->countries['SN'] = array('Senegal', 'SG', 'SN', 'SEN', '686', 'Dakar', 'Africa', 'CFA Franc BCEAO', 'XOF', '10284929');
         $this->countries['SO'] = array('Somalia', 'SO', 'SO', 'SOM', '706', 'Mogadishu', 'Africa', 'Somali Shilling', 'SOS', '7488773');
         $this->countries['SR'] = array('Suriname', 'NS', 'SR', 'SUR', '740', 'Paramaribo', 'South America', 'Suriname Guilder', 'SRG', '433998');
-        $this->countries['ST'] = array('Sгo Tomй and Prнncipe', 'TP', 'ST', 'STP', '678', 'Sao Tome', 'Africa', 'Dobra', 'STD', '165034');
+        $this->countries['ST'] = array('Sao Tome and Principe', 'TP', 'ST', 'STP', '678', 'Sao Tome', 'Africa', 'Dobra', 'STD', '165034');
         $this->countries['SV'] = array('El Salvador', 'ES', 'SV', 'SLV', '222', 'San Salvador', 'Central America and the Caribbean', 'El Salvador Colon', 'SVC', '6237662');
         $this->countries['SY'] = array('Syria', 'SY', 'SY', 'SYR', '760', 'Damascus', 'Middle East', 'Syrian Pound', 'SYP', '16728808');
         $this->countries['SZ'] = array('Swaziland', 'WZ', 'SZ', 'SWZ', '748', 'Mbabane', 'Africa', 'Lilangeni', 'SZL', '1104343');

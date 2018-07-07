@@ -477,10 +477,10 @@ class fileman_Log extends core_Manager
                 // Добавяме иконата
                 $data->rows[$key]->FileIcon = ht::createLink($img, '#', null, $attr);
                 
-                // Взeмаме иконата с линка към сингъла на файла
+                // Вземаме иконата с линка към сингъла на файла
                 $nameStr = $fileNameLink . "<br /><span class='fileman-log-action-date'>" . $action . ' ' . $date . '</span>';
                 
-                // Взemame иконата с линка към сингъл на файла
+                // Вземаме иконата с линка към сингъл на файла
                 $nameLink = ht::createLinkRef($nameStr, array('fileman_Files', 'single', $fh), null, array('target' => '_blank', 'title' => 'Към изгледа на файла'));
                 
                 // Добавяме името на файла

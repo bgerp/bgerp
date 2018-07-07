@@ -14,7 +14,7 @@
  *
  *
  *
- * source=Class:Method($params - Параметрите на типa,
+ * source=Class:Method($params - Параметрите на типа,
  *                     $limit = 0 - колко резултата да върнем,
  *                     $q = '' - пълнотекстова заявка,
  *                     $sectionWith = array() - id-та, само сред които се прави търсенето,

@@ -550,7 +550,7 @@ class cat_BomDetails extends doc_Detail
         
         if ($rec->type == 'stage') {
             $row->ROW_ATTR['style'] = 'background-color:#EFEFEF';
-            $row->ROW_ATTR['title'] = tr('Eтап');
+            $row->ROW_ATTR['title'] = tr('Етап');
         } else {
             $row->ROW_ATTR['class'] = ($rec->type != 'input' && $rec->type != 'stage') ? 'row-removed' : 'row-added';
         }
@@ -901,7 +901,7 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
-     * Намира следващия най-голямa позиция за нивото
+     * Намира следващия най-голяма позиция за нивото
      *
      * @param  int $bomId
      * @param  int $parentId

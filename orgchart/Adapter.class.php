@@ -1,7 +1,8 @@
 <?php
 
 
-/** Oрганизациони структурии
+/** 
+ * Организациони структурии
  *
  * @category  vendors
  * @package   orgchart

@@ -37,13 +37,13 @@ class frame_CsvLib
                 // ако е doubele
                 if (in_array($field, array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount',
                                             'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount',
-                                            'quantity', 'аmountSelf', 'sum'))) {
+                                            'quantity', 'amountSelf', 'sum'))) {
                     $value = self::toCsvFormatDouble($value);
                 }
                 
                 // ако е doubele
                 if (in_array($field, array('quantityDelivered', 'quantityDelivered', 'quantityToDeliver', 'quantityJob',
-                                           'quantityТоDelivered', 'quantityProduced', 'quantityToProduced','store', 'inStore'))) {
+                                           'quantityToDelivered', 'quantityProduced', 'quantityToProduced','store', 'inStore'))) {
                     $Int = cls::get('type_Int');
                     $value = $Int->toVerbal($value);
                 }

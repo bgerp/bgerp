@@ -1,7 +1,7 @@
 <?php
 
 
-/** Гант таблицa
+/** Гант таблица
  *
  * @category  vendors
  * @package   orgchart
@@ -15,7 +15,7 @@ class gantt_Adapter extends core_Mvc
 
     /**
      * начертаване на гант таблици по дадена структура
-     * @param array $ganttData - структура, от която вземаме данните за гант таблицa
+     * @param array $ganttData - структура, от която вземаме данните за гант таблица
      */
     public static function render_($ganttData)
     {

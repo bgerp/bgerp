@@ -169,7 +169,7 @@ class blast_Lists extends core_Master
     {
         // Информация за папката
         $this->FLD('title', 'varchar', 'caption=Заглавие,width=100%,mandatory');
-        $this->FLD('keyField', 'enum(email=Имейл,mobile=Мобилен,fax=Факс,names=Лице,company=Фирма,uniqId=№)', 'caption=Ключ,width=100%,mandatory,hint=Kлючовото поле за списъка');
+        $this->FLD('keyField', 'enum(email=Имейл,mobile=Мобилен,fax=Факс,names=Лице,company=Фирма,uniqId=№)', 'caption=Ключ,width=100%,mandatory,hint=Ключовото поле за списъка');
         $this->FLD('fields', 'text', 'caption=Полета,width=100%,mandatory,hint=Напишете името на всяко поле на отделен ред,column=none');
         $this->FNC('allFields', 'text', 'column=none,input=none');
         

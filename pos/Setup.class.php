@@ -1,7 +1,7 @@
 <?php
 
 /**
- *  Tемата по-подразбиране за пос терминала
+ *  Темата по-подразбиране за пос терминала
  */
 defIfNot('POS_PRODUCTS_DEFAULT_THEME', 'pos_DefaultTheme');
 
@@ -85,7 +85,7 @@ class pos_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     public $configDescription = array(
-            'POS_PRODUCTS_DEFAULT_THEME' => array('class(interface=pos_ThemeIntf,select=title)', 'caption=Tемата по-подразбиране за пос терминала->Тема'),
+            'POS_PRODUCTS_DEFAULT_THEME' => array('class(interface=pos_ThemeIntf,select=title)', 'caption=Темата по-подразбиране за пос терминала->Тема'),
             'POS_RESULT_PRODUCT_PARAMS' => array('keylist(mvc=cat_Params,select=name)', 'caption=Параметри за показване търсене на продукт->Параметри,columns=2'),
             'POS_SHOW_RECEIPT_DIGITS' => array('double', 'caption=Цифри показващи се цифри от кода на бележката->Брой'),
             'POS_CLOSE_REPORTS_PER_TRY' => array('int', 'caption=По колко отчета да се приключват автоматично на опит->Брой,columns=2'),

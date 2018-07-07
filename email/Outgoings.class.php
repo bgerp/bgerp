@@ -2378,7 +2378,7 @@ class email_Outgoings extends core_Master
     
     /**
      * След рендиране на singleLayout заместваме плейсхолдера
-     * с шаблонa за тялото на съобщение в документната система
+     * с шаблона за тялото на съобщение в документната система
      */
     public function renderSingleLayout_(&$data)
     {

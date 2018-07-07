@@ -31,7 +31,7 @@ class core_Cron extends core_Manager
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = 'Периодичeн процес';
+    public $singleTitle = 'Периодичен процес';
     
     
     /**

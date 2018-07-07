@@ -26,7 +26,7 @@ class cms_VerbalId extends core_Manager
     /**
      * Заглавие в единично число
      */
-    public $singleTitle = 'вербалнo id-та';
+    public $singleTitle = 'вербално id-та';
     
     
     /**

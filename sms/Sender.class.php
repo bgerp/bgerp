@@ -25,7 +25,7 @@ class sms_Sender extends core_Manager
     
     
     /**
-     * Интерфeйси
+     * Интерфейси
      */
     public $interfaces = 'bgerp_SMSIntf';
     

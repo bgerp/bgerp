@@ -583,7 +583,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         $row->amountRest = $Double->toVerbal($rec->amountRest);
         $row->amount = $Double->toVerbal($rec->amount);
 
-        $state = array('pending' => 'Чакащо', 'overdue' => 'Просроченo', 'paid' => 'Платенo', 'repaid' => 'Издължено');
+        $state = array('pending' => 'Чакащо', 'overdue' => 'Просрочено', 'paid' => 'Платено', 'repaid' => 'Издължено');
      
         $row->paymentState = $state[$rec->paymentState];
 
@@ -653,7 +653,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
          
         if (count($this->innerState->recs)) {
             foreach ($this->innerState->recs as $rec) {
-                $state = array('pending' => 'Чакащо', 'overdue' => 'Просроченo', 'paid' => 'Платенo', 'repaid' => 'Издължено');
+                $state = array('pending' => 'Чакащо', 'overdue' => 'Просрочено', 'paid' => 'Платено', 'repaid' => 'Издължено');
                  
                 $rec->paymentState = $state[$rec->paymentState];
             }

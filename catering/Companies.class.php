@@ -26,7 +26,7 @@ class catering_Companies extends core_Manager
     /**
      * Заглавие в единично число
      */
-    public $singleTitle = 'Фирмa за кетъринг';
+    public $singleTitle = 'Фирма за кетъринг';
     
     
     /**

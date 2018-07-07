@@ -366,7 +366,7 @@ class acc_Limits extends core_Manager
         
         
     /**
-     * Еkшън проверяващ дали лимитите са надвишени
+     * Екшън проверяващ дали лимитите са надвишени
      */
     public function act_checkLimits()
     {

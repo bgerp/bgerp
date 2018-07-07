@@ -1,7 +1,7 @@
 <?php
 
 
-/** Гант таблицa
+/** Гант таблица
  *
  * @category  bgerp
  * @package   gantt

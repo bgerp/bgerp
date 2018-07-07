@@ -25,7 +25,7 @@ class core_Math
      * @param int    $fractionalLen     текуща максимална дробна част
      * @param int    $significantDigits минимален брой значещи цифри след закръглянето
      *
-     * @return double|string закръгленo число
+     * @return double|string закръглено число
      */
     public static function roundNumber($number, &$fractionalLen = 0, $significantDigits = null)
     {

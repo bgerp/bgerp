@@ -74,7 +74,8 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за имейл на български за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG = "Уважаеми [#NAME#],\n\nБлагодарим за вашата покупка [#SALE_HANDLER#],\nАко желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от този [#link#], който изтича след 7 дни";
+    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG = "Уважаеми [#NAME#],\n\nБлагодарим за вашата покупка [#SALE_HANDLER#],\n" .
+        "Ако желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от този [#link#], който изтича след 7 дни";
       
     
     /**
@@ -86,7 +87,8 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за имейл на английски за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN = "Dear [#NAME#],\n\nThank you for your purchase [#SALE_HANDLER#],\nIf you want to save time in the future purchases of our online shop, please register from this [#link#], which expires in 7 days";
+    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN = "Dear [#NAME#],\n\nThank you for your purchase [#SALE_HANDLER#]," . 
+        "\nIf you want to save time in the future purchases of our online shop, please register from this [#link#], which expires in 7 days";
      
     
     /**
@@ -125,7 +127,7 @@ class eshop_Settings extends core_Manager
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Свързване със склад->Избор');
         $this->FLD('notInStockText', 'varchar(24)', 'caption=Информация при недостатъчно количество->Текст');
         
-        $this->FLD('enableCart', 'enum(yes=Винаги,no=Aко съдържа продукти)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
+        $this->FLD('enableCart', 'enum(yes=Винаги,no=Ако съдържа продукти)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
         $this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
         $this->FLD('info', 'richtext(rows=3)', 'caption=Условия на продажбата под количката->Текст');
         $this->FLD('inboxId', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Кутия от която да се изпраща имейл->Кутия');

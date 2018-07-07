@@ -103,7 +103,7 @@ class core_Interfaces extends core_Manager
     
     
     /**
-     * Връща масив с ид-та на поддържаните от класа интерфeйси
+     * Връща масив с ид-та на поддържаните от класа интерфейси
      *
      * @param  mixed $class string (име на клас) или object (инстанция) или int (ид на клас)
      * @return array ключове - ид на интерфейси, стойности - TRUE
@@ -135,7 +135,7 @@ class core_Interfaces extends core_Manager
     
     
     /**
-     * Връща keylist с поддържаните от класа интерфeйси
+     * Връща keylist с поддържаните от класа интерфейси
      *
      * @param  mixed  $class string (име на клас) или object (инстанция) или int (ид на клас)
      * @return string keylist от ид-тата на интерфейсите

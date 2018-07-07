@@ -173,7 +173,7 @@ class type_tests_Richtext extends unit_Class
     /**
      * Конвертира към HTML елементите [link=...]...[/link], сочещи към вътрешни URL
      *
-     * @param  string $url   URL, къдетo трябва да сочи връзката
+     * @param  string $url   URL, където трябва да сочи връзката
      * @param  string $text  текст под връзката
      * @param  string $place
      * @return string HTML елемент <a href="...">...</a>
@@ -188,7 +188,7 @@ class type_tests_Richtext extends unit_Class
      *
      * Може да бъде прихванат в плъгин на `type_Richtext` с on_AfterExternalLink()
      *
-     * @param  string $url   URL, къдетo трябва да сочи връзката
+     * @param  string $url   URL, където трябва да сочи връзката
      * @param  string $text  текст под връзката
      * @param  string $place
      * @return string HTML елемент <a href="...">...</a>

@@ -155,7 +155,7 @@ class planning_Centers extends core_Master
                                  affiliate=Филиал,
                                  division=Дивизия,
                                  direction=Дирекция,
-                                 department=Oтдел,
+                                 department=Отдел,
                                  plant=Завод,
                                  workshop=Цех,
                                  store=Склад,

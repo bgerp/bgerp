@@ -31,7 +31,7 @@ class doc_ThreadUsers extends core_Manager
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = 'Отношениe на потребител, към тредове';
+    public $singleTitle = 'Отношение на потребител, към тредове';
     
     
     /**

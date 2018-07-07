@@ -27,7 +27,7 @@ class xmpphp_Sender extends core_Manager
     
     
     /**
-     * Интерфeйси
+     * Интерфейси
      */
     public $interfaces = 'bgerp_XmppIntf';
     

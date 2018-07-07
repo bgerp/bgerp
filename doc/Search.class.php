@@ -83,7 +83,7 @@ class doc_Search extends core_Manager
      */
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->title = 'Tърсене на документи';
+        $data->listFilter->title = 'Търсене на документи';
         $data->listFilter->FNC('scopeFolderId', 'enum(0=Всички папки)', 'input=none,silent,width=100%,caption=Обхват');
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');

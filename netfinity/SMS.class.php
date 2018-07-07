@@ -72,7 +72,7 @@ class netfinity_SMS extends core_Manager
      * @param string $message - Текста на съобщението
      * @param string $sender  - От кого се изпраща съобщението
      *
-     * @return array - Mасив с информация, дали е получено
+     * @return array - Масив с информация, дали е получено
      *               $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
      *               $nRes['uid'] string - Уникалното id на съобщението
      *               $nRes['msg'] - Статуса

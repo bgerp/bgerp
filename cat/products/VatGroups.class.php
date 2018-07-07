@@ -67,7 +67,7 @@ class cat_products_VatGroups extends core_Detail
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent,mandatory');
         $this->FLD('vatGroup', 'key(mvc=acc_VatGroups,select=title,allowEmpty)', 'caption=Група,mandatory');
-        $this->FLD('validFrom', 'datetime', 'caption=В сила oт');
+        $this->FLD('validFrom', 'datetime', 'caption=В сила от');
     }
 
     
@@ -191,7 +191,7 @@ class cat_products_VatGroups extends core_Detail
     {
         $wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
         $table = cls::get('core_TableView', array('mvc' => $this));
-        $data->listFields = array('vatGroup' => 'Група', 'vatPercent' => 'ДДС|* (%)', 'validFrom' => 'В сила oт', 'createdOn' => 'Създаване');
+        $data->listFields = array('vatGroup' => 'Група', 'vatPercent' => 'ДДС|* (%)', 'validFrom' => 'В сила от', 'createdOn' => 'Създаване');
         $tpl = $table->get($data->rows, $data->listFields);
         
         $title = 'ДДС';

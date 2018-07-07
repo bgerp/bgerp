@@ -837,7 +837,7 @@ class core_Users extends core_Manager
             $rec->rolesInput = keylist::merge($rec->roleRank, $rec->roleTeams, $rec->roleOthers);
         }
         
-        // Aдминистратор не може да премахне сам на себе си ролята `administrator`
+        // Администратор не може да премахне сам на себе си ролята `administrator`
         if ($rec->id && $rec->id == core_Users::getCurrent()) {
             $exRec = self::fetch($rec->id);
             $adminId = core_Roles::fetchByName('admin');

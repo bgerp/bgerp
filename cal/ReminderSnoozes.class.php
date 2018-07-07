@@ -81,7 +81,7 @@ class cal_ReminderSnoozes extends core_Detail
         $this->FLD('remId', 'key(mvc=cal_Reminders,select=title)', 'caption=Напомняне,input=hidden,silent,column=none');
         
         // Начало на новото напомнянето
-        $this->FLD('timeStart', 'time(suggestions=1 час|3 часа|5 часа|8 часа|10 часа|1 ден|2 дена|3 дена|4 дена|5 денa|6 дена|7 дена)', 'caption=Време->Начало, silent,changable');
+        $this->FLD('timeStart', 'time(suggestions=1 час|3 часа|5 часа|8 часа|10 часа|1 ден|2 дена|3 дена|4 дена|5 дена|6 дена|7 дена)', 'caption=Време->Начало, silent,changable');
 
         // Статус съобщение
         $this->FLD('message', 'richtext(rows=5, bucket=calReminders)', 'caption=Съобщение');

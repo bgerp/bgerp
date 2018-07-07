@@ -36,7 +36,7 @@ class core_tests_String extends unit_Class
         
         ut::expectEqual(core_String::utf2ascii($originalText), $expectedText);
         
-        $originalText = 'TESTЙорданTEST TESTЕкскалибурTEST TESTБългарияTEST TEStТЕСт TEstТЕст';
+        $originalText = 'TESTЙорданTEST TESTЕкскалибурTEST TESTБългарияTEST TEStТЕСт TEstТЕст'; // CyrLat
         $expectedText = 'TESTJordanTEST TESTExkaliburTEST TESTBulgariaTEST TEStTest TEstTest';
         
         ut::expectEqual(core_String::utf2ascii($originalText), $expectedText);

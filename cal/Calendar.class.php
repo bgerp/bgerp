@@ -1276,7 +1276,7 @@ class cal_Calendar extends core_Master
 
         $form = cls::get('core_Form');
         $form->FLD('startOn', 'datetime', 'caption=Начало,mandatory');
-        $form->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|2 дена|2 седмици|2 месеца|3 седмици|1 месец|2 месецa|3 месецa|4 месецa|5 месецa|6 месецa|12 месецa|24 месецa,min=86400)', 'caption=Период,mandatory');
+        $form->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|2 дена|2 седмици|2 месеца|3 седмици|1 месец|2 месеца|3 месеца|4 месеца|5 месеца|6 месеца|12 месеца|24 месеца,min=86400)', 'caption=Период,mandatory');
         $form->FLD('ajust1', 'enum()', 'caption=Напасване');
         $form->FLD('ajust2', 'enum()', 'caption=Или по-близо');
         $form->FLD('after', 'datetime', 'caption=След');

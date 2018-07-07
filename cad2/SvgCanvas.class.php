@@ -480,7 +480,7 @@ class cad2_SvgCanvas extends cad2_Canvas
 
 
     /**
-     * Отваря новa шарка
+     * Отваря нова шарка
      */
     public function openPattern($attr = array())
     {

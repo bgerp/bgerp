@@ -69,7 +69,7 @@ defIfNot('CAT_PACKAGING_AUTO_BARCODE_BEGIN', '');
 
 
 /**
- * Kраен брояч на баркодовете
+ * Краен брояч на баркодовете
  */
 defIfNot('CAT_PACKAGING_AUTO_BARCODE_END', '');
 

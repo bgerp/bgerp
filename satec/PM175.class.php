@@ -12,7 +12,7 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Eлектромер SATEC
+ * @title     Електромер SATEC
  * @see       http://www.satec-global.com/UserFiles/satec/files/314_PM175%20Modbus.pdf
  */
 class satec_PM175 extends sens2_ProtoDriver

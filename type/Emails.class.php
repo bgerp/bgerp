@@ -145,7 +145,7 @@ class type_Emails extends type_Varchar
         //Проверяваме за грешки
         $res = parent::isValid($value);
         
-        //Ако има грешки връщаме резултатa
+        //Ако има грешки връщаме резултата
         if (count($res)) {
             
             return $res;

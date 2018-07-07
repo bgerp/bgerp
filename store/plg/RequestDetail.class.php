@@ -107,8 +107,7 @@ class store_plg_RequestDetail extends core_Plugin
     
     /**
      * Дали потребителя е 'Заявител' на складовия документ и
-     * може да променя заявените количестваpublic static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
-    {
+     * може да променя заявените количества
      *
      * @param  core_Mvc $mvc
      * @param  stdClass $rec

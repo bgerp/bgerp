@@ -96,7 +96,7 @@ class docoffice_Jodconverter extends core_Manager
 
         // Стартираме скрипта синхронно
         $Script->setCheckProgramsArr('java');
-        // Стартираме скрипта Aсинхронно
+        // Стартираме скрипта асинхронно
         if ($Script->run($params['asynch']) === false) {
             if ($params['outType']) {
                 $params['type'] = $params['outType'];

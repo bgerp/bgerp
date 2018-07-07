@@ -229,14 +229,14 @@ class doc_PdfCreator extends core_Manager
     
     
     /**
-     * Изчиства всикo което е между <form> ... </form>
+     * Изчиства всико което е между <form> ... </form>
      */
     public static function removeFormAttr($html)
     {
         // Шаблон за намиране на <form ... </form>
         $pattern = '/\<form.*\<\/form\>/is';
         
-        // Премахваме всикo което е между <form> ... </form>
+        // Премахваме всико което е между <form> ... </form>
         $res = preg_replace_callback($pattern, array(get_called_class(), 'removeMatchedFormAttr'), $html);
         
         if (($res === null) || ($res === false)) {

@@ -19,7 +19,7 @@ class hr_ShiftDetails extends core_Detail
     /**
      * Заглавие
      */
-    public $title = 'Грaфици - детайли';
+    public $title = 'Графици - детайли';
     
     /**
      * @todo Чака за документация...

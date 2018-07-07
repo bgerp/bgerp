@@ -712,7 +712,7 @@ class fileman_Files2 extends core_Master
 
     
     /**
-     * Връща mimе типа за съответния файл
+     * Връща mime типа за съответния файл
      *
      * @param string $path - Пътя до файла
      *

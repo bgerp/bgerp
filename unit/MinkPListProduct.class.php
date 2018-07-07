@@ -348,7 +348,7 @@ class unit_MinkPListProduct extends core_Manager
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPListProductsG');
         //$browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
-        $browser->setValue('chargeVat', 'Oсвободено от ДДС');
+        $browser->setValue('chargeVat', 'Освободено от ДДС');
         $browser->setValue('template', 'Sales contract');
         // Записване черновата на продажбата
         $browser->press('Чернова');

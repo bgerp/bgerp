@@ -400,7 +400,7 @@ class acc_ValueCorrections extends core_Master
                     $rec->amount = round($rec->amount, 2);
                 }
                 
-                // Kешираме от всички възможни продукти, тези които са били избрани във функционалното поле
+                // Кешираме от всички възможни продукти, тези които са били избрани във функционалното поле
                 $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
                 $error = self::allocateAmount($rec->productsData, $rec->amount, $rec->allocateBy);
                 if (!empty($error)) {

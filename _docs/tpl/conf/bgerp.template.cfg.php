@@ -262,7 +262,7 @@ defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'https://experta.bg/api_Companies/ge
  # defIfNot('EF_USSERS_EMAIL_AS_NICK', FALSE);
 
 
-// Как да се казва променливата на cookieто
+// Как да се казва променливата на cooki-eто
  # defIfNot('EF_USERS_COOKIE', 'uid');
 
 
@@ -495,7 +495,7 @@ defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
  # defIfNot('BGERP_BLAST_NO_MAIL', 'Не може да се намери имейл адреса Ви.');
 
 
-// Teкст, който се показва когато премахнем имейл-а от блокираните
+// Текст, който се показва когато премахнем имейл-а от блокираните
  # defIfNot('BGERP_BLAST_SUCCESS_ADD', 'Имейлът Ви е добавен в списъка за информационни съобщения. Искате ли да го премахнете?');
 
 

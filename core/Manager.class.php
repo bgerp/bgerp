@@ -1079,7 +1079,7 @@ class core_Manager extends core_Mvc
     {
         // Обработваме заявката
         $q = strtolower(str::utf2ascii($q));
-        $q = trim(preg_replace('/[^a-zа-я0-9]+/', ' ', $q));
+        $q = trim(preg_replace('/[^a-z0-9]+/', ' ', $q));
         
         $query = $this->getQuery();
         

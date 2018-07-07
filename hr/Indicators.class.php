@@ -132,7 +132,7 @@ class hr_Indicators extends core_Manager
         requireRole('ceo,hrMaster');
         
         $form = cls::get('core_Form');
-        $form->FLD('timeline', 'datetime', 'caption=Oт кога');
+        $form->FLD('timeline', 'datetime', 'caption=От кога');
         $form->input();
         
         if ($form->isSubmitted()) {

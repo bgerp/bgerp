@@ -142,7 +142,7 @@ class plg_RefreshRows extends core_Plugin
         $manualNameHash = static::getManualNameHash($nameHash);
         
         // Ако ще се обновява ръчно и вече е обновен n пъти
-        $stopRefresh = $mvc->stopМanualRefresh($manualNameHash);
+        $stopRefresh = $mvc->stopManualRefresh($manualNameHash);
         
         if ($stopRefresh === true) {
             
@@ -317,7 +317,7 @@ class plg_RefreshRows extends core_Plugin
      * @param core_Mvc     $mvc
      * @param boolean|NULL $res
      */
-    public static function on_AfterStopМanualRefresh($mvc, &$res, $nameHash)
+    public static function on_AfterStopManualRefresh($mvc, &$res, $nameHash)
     {
         if (!$mvc->manualRefreshCnt) {
             

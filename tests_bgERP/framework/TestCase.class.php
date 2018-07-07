@@ -32,12 +32,12 @@ class framework_TestCase extends PHPUnit_Framework_TestCase
      * @param array $fixtureData тестови данни. Структурата на масива е
      *
      * array(
-     *     "име_МVC1" => array(
+     *     "име_MVC1" => array(
      *         array( ... 'запис на MVC1' ... ),
      *         array( ... 'запис на MVC1' ... ),
      *         ...
      *     ),
-     *     "име_МVC2" => array(
+     *     "име_MVC2" => array(
      *         array( ... 'запис на MVC2' ... ),
      *         array( ... 'запис на MVC2' ... ),
      *         ...

@@ -53,7 +53,7 @@ class auto_Calls extends core_Manager
     
     
     /**
-     * Да се извика ли на шътvarдаун
+     * Да се извика ли на on_Shutdown
      *
      * @param boolean
      */

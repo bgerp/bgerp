@@ -125,7 +125,7 @@ class blast_ListDetails extends doc_Detail
         $this->FLD('listId', 'key(mvc=blast_Lists,select=title)', 'caption=Списък,mandatory,column=none');
         
         $this->FLD('data', 'blob', 'caption=Данни,input=none,column=none,export');
-        $this->FLD('key', 'varchar(64)', 'caption=Kлюч,input=none,column=none');
+        $this->FLD('key', 'varchar(64)', 'caption=Ключ,input=none,column=none');
         
         $this->setDbUnique('listId,key');
     }

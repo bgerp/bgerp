@@ -55,7 +55,7 @@ class type_Identifier extends type_Varchar
         //Проверяваме за грешки
         $res = parent::isValid($value);
         
-        //Ако има грешки връщаме резултатa
+        //Ако има грешки връщаме резултата
         if ($res['error']) {
             
             return $res;

@@ -619,7 +619,7 @@ class doc_Files extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        // Името на файла да е линк към singле' a му
+        // Името на файла да е линк към сингъл изгледа му
         $row->fileHnd = fileman_Files::getLink($rec->fileHnd);
         
         if ($rec->containerId) {

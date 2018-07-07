@@ -590,7 +590,7 @@ class core_Form extends core_FieldSet
                     $label = tr('Игнорирай предупрежденията');
                     $title = tr('Предупреждения');
                 } else {
-                    $label = tr('Игнорирай предупреждениeто');
+                    $label = tr('Игнорирай предупреждението');
                     $title = tr('Предупреждение');
                 }
                 $tpl->append($title, 'WARNINGS_TITLE');

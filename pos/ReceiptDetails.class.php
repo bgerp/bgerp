@@ -373,7 +373,7 @@ class pos_ReceiptDetails extends core_Detail
             $rec->value = 'change';
         }
         
-        // Запис на плащанетo
+        // Запис на плащането
         if ($this->save($rec)) {
             core_Statuses::newStatus('|Плащането е направено успешно|*!');
             

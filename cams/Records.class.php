@@ -341,7 +341,7 @@ class cams_Records extends core_Master
      */
     private static function isRecordConverting($mp4File)
     {
-        // Ако файлa е заключен за транскодиране => има процес
+        // Ако файла е заключен за транскодиране => има процес
         $mp4File = basename($mp4File);
         if (core_Locks::isLocked($mp4File)) {
             
@@ -381,7 +381,7 @@ class cams_Records extends core_Master
         
         $Script->params = $params;
         
-        // Стартираме скрипта Aсинхронно
+        // Стартираме скрипта асинхронно
         if ($Script->run($params['asynch']) === false) {
             $this->logError('Грешка при пускане на прекодиране на видео');
             // Добавяме съобщение
@@ -595,7 +595,7 @@ class cams_Records extends core_Master
         // Ако не е указано, селектират се всички записи
         setIfNot($fRec->select, 'all');
         
-        // Ако не е указанa, залагаме последно използваната камера
+        // Ако не е указана, залагаме последно използваната камера
         setIfNot($fRec->cameraId, Mode::get('monLastUsedCameraId'));
         
         //Ако имаме cameraId

@@ -24,7 +24,7 @@ class sens2_MockupDrv extends sens2_ProtoDriver
     
     
     /**
-     * Интерфeйси, поддържани от всички наследници
+     * Интерфейси, поддържани от всички наследници
      */
     public $interfaces = 'sens2_DriverIntf';
 
@@ -75,11 +75,11 @@ class sens2_MockupDrv extends sens2_ProtoDriver
     /**
      * Записва стойностите на изходите на контролера
      *
-     * @param array $outputs         масив със системните имена на изходите и стойностите, които трябва да бъдат записани
-     * @param array $config          конфигурациони параметри
-     * @param array $persistentState персистентно състояние на контролера от базата данни
+     * @param array $outputs         Масив със системните имена на изходите и стойностите, които трябва да бъдат записани
+     * @param array $config          Конфигурациони параметри
+     * @param array $persistentState Персистентно състояние на контролера от базата данни
      *
-     * @return array Mасив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
+     * @return array Масив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
      */
     public function writeOutputs($outputs, $config, &$persistentState)
     {

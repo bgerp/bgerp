@@ -205,7 +205,7 @@ class bgerp_Menu extends core_Manager
                 // Ако контролера не е core_Packs
                 if (strtolower($currUrl['Ctr']) != 'core_packs') {
                     
-                    // Редиректваме към yправление на пакети
+                    // Редиректваме към управление на пакети
                     redirect(array('core_Packs', 'list'), false, '|Няма инсталирано меню');
                 }
             }
@@ -275,7 +275,7 @@ class bgerp_Menu extends core_Manager
                 // Ако контролера не е core_Packs
                 if (strtolower($currUrl['Ctr']) != 'core_packs') {
                     
-                    // Редиректваме към yправление на пакети
+                    // Редиректваме към управление на пакети
                     redirect(array('core_Packs', 'list'), false, '|Няма инсталирано меню');
                 }
             }

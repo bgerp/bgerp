@@ -60,7 +60,7 @@ class forum_Setup extends core_ProtoSetup
             
             'FORUM_DEFAULT_THEME' => array('class(interface=forum_ThemeIntf,select=title)', 'caption=Тема по подразбиране във форум->Тема'),
          
-            'FORUM_THEMES_PER_PAGE' => array('int', 'caption=Tемите в една страница->Брой'),
+            'FORUM_THEMES_PER_PAGE' => array('int', 'caption=Темите в една страница->Брой'),
     
             'FORUM_GREETING_MESSAGE' => array('text', 'mandatory, caption=Съобщение за поздрав->Съобщение'),
          

@@ -73,7 +73,7 @@ class email_UserInboxPlg extends core_Plugin
         // Създава или обновява профилната визитка на новия потребител.
         $personId = crm_Profiles::syncPerson($user->personId, $user);
         
-        // Акo няма резултат
+        // Ако няма резултат
         if (!$personId) {
             
             // Опитваме се да вземем от request
@@ -129,7 +129,7 @@ class email_UserInboxPlg extends core_Plugin
     
     
     /**
-     * След вкарване на записите в едит форматa
+     * След вкарване на записите в едит формата
      */
     public function on_AfterInputEditForm($mvc, &$form)
     {

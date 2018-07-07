@@ -1022,7 +1022,7 @@ class callcenter_SMS extends core_Master
                 // Ако не открием мобилен номер, няма да се праща съобщение
                 if (!$mobileNum) {
                     $notMobileCnt++;
-                    $clsInst->logNotice("Kъм '{$type}:${pId}' не e изпратено циркулярно съобщение, защото няма мобилен номер: ", $objId);
+                    $clsInst->logNotice("Към '{$type}:${pId}' не e изпратено циркулярно съобщение, защото няма мобилен номер: ", $objId);
                     continue;
                 }
                 

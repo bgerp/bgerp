@@ -185,7 +185,7 @@ class fileman_RichTextPlg extends core_Plugin
                         // Вземаме данните за файла
                         $fRec = fileman_Files::fetch($params['id']);
     
-                        // Добавяме в масивa
+                        // Добавяме в масива
                         $files[$fRec->fileHnd] = fileman_Files::getVerbal($fRec, 'name');
                     }
                 }

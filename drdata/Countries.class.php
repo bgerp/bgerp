@@ -92,14 +92,14 @@ class drdata_Countries extends core_Manager
     public function description()
     {
         $this->FLD('commonName', 'varchar', 'caption=Наименование');
-        $this->FLD('commonNameBg', 'varchar', 'caption=НаименованиеBG');
+        $this->FLD('commonNameBg', 'varchar', 'caption=Наименование BG');
         $this->FLD('formalName', 'varchar', 'caption=Формално име');
         $this->FLD('type', 'varchar', 'caption=Тип');
         $this->FLD('sovereignty', 'varchar', 'caption=Суверинитет');
         $this->FLD('capital', 'varchar', 'caption=Столица');
         $this->FLD('currencyCode', 'varchar(3)', 'caption=Валута->Код');
         $this->FLD('currencyName', 'varchar', 'caption=Валута->Име');
-        $this->FLD('telCode', 'varchar(6)', 'caption=Tел. код');
+        $this->FLD('telCode', 'varchar(6)', 'caption=Тел. код');
         $this->FLD('letterCode2', 'varchar(3)', 'caption=ISO 3166-1->2,rem=ISO 3166-1 2 буквен код');
         $this->FLD('letterCode3', 'varchar(3)', 'caption=ISO 3166-1->3, rem=ISO 3166-1 3 буквен код');
         $this->FLD('isoNumber', 'int', 'caption=ISO 3166-1->N, rem=ISO Номер');

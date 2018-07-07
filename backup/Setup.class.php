@@ -326,7 +326,7 @@ class backup_Setup extends core_ProtoSetup
             return "<li class='debug-error'>липсва tar!</li>";
         }
         
-        // Проверка дали МySql сървъра е настроен за binlog
+        // Проверка дали MySql сървъра е настроен за binlog
         $res = @exec('mysql -u' . EF_DB_USER . '  -p' . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"");
         // Премахваме всички табулации, нови редове и шпации - log_bin ON
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));

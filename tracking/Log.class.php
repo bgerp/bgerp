@@ -53,7 +53,7 @@ class tracking_Log extends core_Master
         $this->FLD('data', 'blob', 'caption=Данни');
         $this->FLD('fixTime', 'datetime()', 'caption=Време на засичне');
         $this->FNC('text', 'html', 'caption=Данни');
-        $this->FLD('remoteIp', 'ip', 'caption=Tракер IP');
+        $this->FLD('remoteIp', 'ip', 'caption=Тракер IP');
         
         $this->setDbIndex('vehicleId');
         $this->dbEngine = 'InnoDB';

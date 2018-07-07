@@ -205,7 +205,7 @@ class doc_FolderPlg extends core_Plugin
             if ($mvc->haveRightFor('createnewfolder', $data->rec)) {
                 $title = $mvc->getFolderTitle($data->rec->id, false);
                 $data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
-                        'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
+                        'warning' => "Наистина ли желаете да създадете папка за документи към|* \"{$title}\"?",
                 ), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към|* {$title}"));
             }
         }
@@ -702,7 +702,7 @@ class doc_FolderPlg extends core_Plugin
                 if ($mvc->hasPlugin('plg_RowTools2')) {
                     if ($mvc->haveRightFor('createnewfolder', $rec) && !$currUrl['Rejected']) {
                         core_RowToolbar::createIfNotExists($row->_rowTools);
-                        $row->_rowTools->addLink('Папка', array($mvc, 'createFolder', $rec->id), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към|* {$folderTitle}", 'class' => 'new-folder-btn', 'warning' => "Наистина ли желаете да създадетe папка за документи към|*  \"{$folderTitle}\"?", 'order' => 19));
+                        $row->_rowTools->addLink('Папка', array($mvc, 'createFolder', $rec->id), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към|* {$folderTitle}", 'class' => 'new-folder-btn', 'warning' => "Наистина ли желаете да създадете папка за документи към|*  \"{$folderTitle}\"?", 'order' => 19));
                     }
                 }
             }

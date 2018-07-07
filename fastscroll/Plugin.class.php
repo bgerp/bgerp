@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'fastscroll_Plugin' - плъгин за бързо скрoлиране на страниците
+ * Клас 'fastscroll_Plugin' - плъгин за бързо скролиране на страниците
  *
  *
  * @category  vendors

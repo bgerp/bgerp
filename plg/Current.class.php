@@ -67,7 +67,7 @@ class plg_Current extends core_Plugin
     
     
     /**
-     * Слага id-тo на даден мениджър в сесия
+     * Слага id-то на даден мениджър в сесия
      *
      * @param  core_Mvc $mvc
      * @param  stdClass $res

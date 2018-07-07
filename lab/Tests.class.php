@@ -181,7 +181,7 @@ class lab_Tests extends core_Master
         $this->FLD('lastChangedOn', 'datetime', 'caption=Последна промяна,input=none,notSorting');
         $this->FLD(
             'state',
-            'enum(draft=Чернова,active=Активен,rejected=Изтрит,pending=Зaявка,stopped=Спрян,closed=Приключен,wakeup=Събуден)',
+            'enum(draft=Чернова,active=Активен,rejected=Изтрит,pending=Заявка,stopped=Спрян,closed=Приключен,wakeup=Събуден)',
             'caption=Статус,input=none,notSorting'
         );
       

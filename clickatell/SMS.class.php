@@ -69,7 +69,7 @@ class clickatell_SMS extends core_Manager
      *
      * @see callcenter_SentSMSIntf
      *
-     * @return array $nRes - Mасив с информация, дали е получено
+     * @return array $nRes - Масив с информация, дали е получено
      *               $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
      *               $nRes['uid'] string - Уникалното id на съобщението
      *               $nRes['msg'] - Статуса

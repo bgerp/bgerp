@@ -260,9 +260,9 @@ class cal_Reminders extends core_Master
             'repetitionType',
             'enum(   days=дена,
 			                                  weeks=седмици,
-			                                  months=месецa,
-			                                  weekDay=месецa-ден от началото на седмицата,
-			                                  monthDay=месецa-ден от началото на месеца)',
+			                                  months=месеца,
+			                                  weekDay=месеца-ден от началото на седмицата,
+			                                  monthDay=месеца-ден от началото на месеца)',
            'caption=Повторение->Мярка, maxRadio=5,columns=1,notNull,value=days,changable,autohide=any'
         );
         
@@ -740,7 +740,7 @@ class cal_Reminders extends core_Master
         $toDate = ($cYear + 2) . '-12-31';
         
         // Префикс на клучовете за напомнянията в календара
-        $prefix = 'RЕМ';
+        $prefix = 'REM';
         
         $events = array();
 

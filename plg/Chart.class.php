@@ -265,9 +265,9 @@ class plg_Chart extends core_Plugin
             if ($chartType) {
                 $url = getCurrentUrl();
                 unset($url['Chart']);
-                $title->append(ht::createLink(tr('Tаблица'), $url), 'ListSummary');
+                $title->append(ht::createLink(tr('Таблица'), $url), 'ListSummary');
             } else {
-                $title->append(tr('Tаблица'), 'ListSummary');
+                $title->append(tr('Таблица'), 'ListSummary');
             }
             
             foreach ($data->chartTypes as $type => $caption) {

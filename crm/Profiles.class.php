@@ -319,7 +319,7 @@ class crm_Profiles extends core_Master
                 $changePassUrl = array('crm_Profiles', 'changePassword', 'ret_url' => true);
                 
                 // Линк за промяна на URL
-                $changePasswordLink = ht::createLink('(' . tr('cмяна') . ')', $changePassUrl, false, 'title=Смяна на парола');
+                $changePasswordLink = ht::createLink('(' . tr('смяна') . ')', $changePassUrl, false, 'title=Смяна на парола');
                 
                 // Променяме паролата
                 $data->User->row->password = str_repeat('*', 7) . ' ' . $changePasswordLink;

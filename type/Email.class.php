@@ -139,7 +139,7 @@ class type_Email extends type_Varchar
         $email = self::removeBadPart($email);
         
         if (!haveRole('user') && !Mode::is('text', 'plain')) {
-            $verbal = str_replace('@', ' [аt] ', $email);
+            $verbal = str_replace('@', ' [аt] ', $email); //CyrLat
         } else {
             $verbal = $email;
         }

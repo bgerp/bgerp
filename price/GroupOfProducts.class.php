@@ -86,7 +86,7 @@ class price_GroupOfProducts extends core_Detail
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,silent,mandatory,hint=Само продаваеми продукти');
         $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,silent,remember');
-        $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|21:00)', 'caption=В сила oт');
+        $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|21:00)', 'caption=В сила от');
     }
 
 
@@ -420,7 +420,7 @@ class price_GroupOfProducts extends core_Detail
         $table = cls::get('core_TableView', array('mvc' => $this));
         $data->listFields = $this->listFields;
         
-        $data->listFields = array('groupId' => 'Група', 'validFrom' => 'В сила oт', 'createdBy' => 'Създаване от||Created by', 'createdOn' => 'Създаване на||Created on');
+        $data->listFields = array('groupId' => 'Група', 'validFrom' => 'В сила от', 'createdBy' => 'Създаване от||Created by', 'createdOn' => 'Създаване на||Created on');
         $details = $table->get($data->rows, $data->listFields);
         
         $tpl = getTplFromFile('cat/tpl/ProductDetail.shtml');

@@ -46,7 +46,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('period', 'key(mvc=acc_Periods,title=title)', 'caption = Период,after=accountId,single=none');
-        $fieldset->FLD('accountId', 'key(mvc=acc_Accounts,title=title)', 'caption = Сметкa,after=title,single=none');
+        $fieldset->FLD('accountId', 'key(mvc=acc_Accounts,title=title)', 'caption = Сметка,after=title,single=none');
         $fieldset->FLD('minval', 'double(decimals=2)', 'caption = Минимален праг за отчитане,unit= (количество),
                         placeholder=Без праг,after=period');
     }

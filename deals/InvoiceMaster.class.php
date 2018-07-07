@@ -102,7 +102,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място,hint=Избор измежду въведените обекти на контрагента');
         $mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС');
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
-        $mvc->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъчни параметри->ДДС,input=hidden');
+        $mvc->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Освободено, no=Без начисляване)', 'caption=Данъчни параметри->ДДС,input=hidden');
         $mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
         $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden,summary=amount');
         $mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
@@ -776,7 +776,7 @@ abstract class deals_InvoiceMaster extends core_Master
             if (!empty($rec->vatReason)) {
                 if (mb_strlen($rec->vatReason) < 15) {
                     $form->setError('vatReason', 'Основанието за ДДС трябва да е поне|* <b>15</b> |символа|*');
-                } elseif (!preg_match('/[a-zA-Zа-яА-Я]/i', $rec->vatReason)) {
+                } elseif (!preg_match('/[a-zA-Zа-яА-Я]/iu', $rec->vatReason)) {
                     $form->setError('vatReason', 'Основанието за ДДС трябва да съдържа букви');
                 }
             }

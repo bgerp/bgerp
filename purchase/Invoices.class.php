@@ -214,7 +214,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         $origin = $mvc->getOrigin($form->rec);
         
         if ($origin->isInstanceOf('findeals_AdvanceReports')) {
-            $form->setOptions('vatRate', arr::make('separate=Отделно, exempt=Oсвободено, no=Без начисляване'));
+            $form->setOptions('vatRate', arr::make('separate=Отделно, exempt=Освободено, no=Без начисляване'));
             $form->setField('vatRate', 'input');
             $form->setDefault('vatRate', 'separate');
             

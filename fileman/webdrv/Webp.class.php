@@ -53,7 +53,7 @@ class fileman_webdrv_Webp extends fileman_webdrv_ImageT
         $Script->fh = $fRec->fileHnd;
         
         $Script->setCheckProgramsArr('dwebp');
-        // Стартираме скрипта Aсинхронно
+        // Стартираме скрипта асинхронно
         if ($Script->run() === false) {
             fileman_Indexes::createError($params);
         }

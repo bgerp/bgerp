@@ -108,7 +108,7 @@ class bgerp_Portal extends core_Manager
         $taskTitle = str_replace(' ', '&nbsp;', $taskTitle);
         
         $tasksTpl = new ET('<div class="clearfix21 portal" style="background-color:#fffff0;margin-bottom:25px;">
-            <div class="legend" style="background-color:#ffd;">' . $taskTitle . '&nbsp;' . crm_Profiles::createLink() . '&nbsp;[#SWITCH_BTN#]&nbsp;[#ADD_BTN#]&nbsp;[#RЕМ_BTN#]</div>
+            <div class="legend" style="background-color:#ffd;">' . $taskTitle . '&nbsp;' . crm_Profiles::createLink() . '&nbsp;[#SWITCH_BTN#]&nbsp;[#ADD_BTN#]&nbsp;[#REM_BTN#]</div>
             [#TASKS#]
             </div>');
         
@@ -125,7 +125,7 @@ class bgerp_Portal extends core_Manager
         // Бутон за смяна от <-> към
         $addUrl = array('cal_Reminders', 'add', 'ret_url' => true);
         $addBtn = ht::createLink(' ', $addUrl, null, array('ef_icon' => 'img/16/alarm_clock_add.png', 'class' => 'addTask', 'title' => 'Добавяне на ново Напомняне'));
-        $tasksTpl->append($addBtn, 'RЕМ_BTN');
+        $tasksTpl->append($addBtn, 'REM_BTN');
         
         $tasksTpl->append(cal_Tasks::renderPortal(), 'TASKS');
         

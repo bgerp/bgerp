@@ -1191,7 +1191,7 @@ class unit_MinkPbgERP extends core_Manager
         }
         //if(strpos($browser->gettext(), 'Доставка: EXW: 4000 Пловдив, ул.Родопи, №52')) {
         //} else {
-        //    return $this->reportErr('Грешнo условие на доставка', 'warning');
+        //    return $this->reportErr('Грешно условие на доставка', 'warning');
         //}
         // Складова разписка
         // Когато няма автом. избиране
@@ -1281,7 +1281,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('deliveryTermId', 'EXW');
         $browser->setValue('note', 'MinkPTestCreatePurchaseC');
         $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
-        //$browser->setValue('chargeVat', "Oсвободено от ДДС"); //// Ако контрагентът е от България дава грешка.
+        //$browser->setValue('chargeVat', "Освободено от ДДС"); //// Ако контрагентът е от България дава грешка.
         $browser->setValue('chargeVat', 'exempt');
         //$browser->setValue('chargeVat', "Без начисляване на ДДС");
         $browser->setValue('template', 'Purchase contract');
@@ -1464,7 +1464,7 @@ class unit_MinkPbgERP extends core_Manager
         }
         //if(strpos($browser->gettext(), 'Доставка: DDP: 4000 Пловдив, ул.Родопи, №52')) {
         //} else {
-        //    return $this->reportErr('Грешнo условие на доставка', 'warning');
+        //    return $this->reportErr('Грешно условие на доставка', 'warning');
         //}
         // Проформа
         $browser->press('Проформа');

@@ -187,7 +187,7 @@ class core_Tabs extends core_BaseClass
     
     
     /**
-     * Kои са зададените табове в обекта
+     * Кои са зададените табове в обекта
      */
     public function getTabs()
     {

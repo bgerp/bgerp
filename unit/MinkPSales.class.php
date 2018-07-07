@@ -687,7 +687,7 @@ class unit_MinkPSales extends core_Manager
         $browser->setValue('note', 'MinkPSaleEURVatFree3');
         $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
         $browser->setValue('chargeVat', 'exempt');
-        //$browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
+        //$browser->setValue('chargeVat', "Освободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
         // Записване черновата на продажбата
         $browser->press('Чернова');
         
@@ -763,7 +763,7 @@ class unit_MinkPSales extends core_Manager
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleVatFreeAdv');
         $browser->setValue('paymentMethodId', '100% авансово');
-        //$browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
+        //$browser->setValue('chargeVat', "Освободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
         $browser->setValue('chargeVat', 'exempt');
         // Записване черновата на продажбата
         $browser->press('Чернова');
@@ -1167,7 +1167,7 @@ class unit_MinkPSales extends core_Manager
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleCIDICVATFree');
         $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
-        //$browser->setValue('chargeVat', "Oсвободено от ДДС");
+        //$browser->setValue('chargeVat', "Освободено от ДДС");
         $browser->setValue('chargeVat', 'exempt');
         // Записване черновата на продажбата
         $browser->press('Чернова');
@@ -1888,7 +1888,7 @@ class unit_MinkPSales extends core_Manager
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleCIDICVATFreeAdv');
         $browser->setValue('paymentMethodId', '30% авансово и 70% преди експедиция');
-        //$browser->setValue('chargeVat', "Oсвободено от ДДС");
+        //$browser->setValue('chargeVat', "Освободено от ДДС");
         $browser->setValue('chargeVat', 'exempt');
         // Записване черновата на продажбата
         $browser->press('Чернова');
@@ -2354,12 +2354,12 @@ class unit_MinkPSales extends core_Manager
         // Записваме черновата на продажбата
         $browser->press('Чернова');
         if (strpos($browser->gettext(), 'Датата е в несъществуващ счетоводен период')) {
-            $browser->setValue('Игнорирай предупреждениeто', true);
+            $browser->setValue('Игнорирай предупреждението', true);
             //$browser->setValue('Ignore', 1);
             $browser->press('Чернова');
         }
         if (strpos($browser->gettext(), 'Датата е в бъдещ счетоводен период')) {
-            $browser->setValue('Игнорирай предупреждениeто', true);
+            $browser->setValue('Игнорирай предупреждението', true);
             $browser->press('Чернова');
         }
         
@@ -2503,7 +2503,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Журнал');
         //if(strpos($browser->gettext(), '2,70 Извънредни приходи - надплатени')) {
         //} else {
-        //    return unit_MinkPbgERP::reportErr('Грешkа ', 'warning');
+        //    return unit_MinkPbgERP::reportErr('Грешка ', 'warning');
         //}
     }
     
@@ -3112,7 +3112,7 @@ class unit_MinkPSales extends core_Manager
         $browser->setValue('note', 'MinkPSaleManuf');
         $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
         $browser->setValue('chargeVat', 'exempt');
-        //$browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
+        //$browser->setValue('chargeVat', "Освободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
         $browser->setValue('template', 'Manufacturing contract');
         // Записване черновата на продажбата
         $browser->press('Чернова');

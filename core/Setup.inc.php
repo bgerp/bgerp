@@ -1207,7 +1207,7 @@ function linksToHtml($links)
 }
 
 /**
- * Изпълнява git команда и връща стрингoвия резултат
+ * Изпълнява git команда и връща стринговия резултат
  */
 function gitExec($cmd, &$output)
 {

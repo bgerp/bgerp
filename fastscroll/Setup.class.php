@@ -13,7 +13,7 @@ defIfNot('FASTSCROLL_ACTIVE_RATIO', '2');
 
 
 /**
- * Клас 'fastscroll_Setup' -  плъгин за бързо скрoлиране на страниците
+ * Клас 'fastscroll_Setup' -  плъгин за бързо скролиране на страниците
  *
  *
  * @category  vendors
@@ -25,7 +25,7 @@ defIfNot('FASTSCROLL_ACTIVE_RATIO', '2');
  */
 class fastscroll_Setup extends core_ProtoSetup
 {
-    public $info = 'Бързо скрoлиране в дълги страници';
+    public $info = 'Бързо скролиране в дълги страници';
     
     
     /**

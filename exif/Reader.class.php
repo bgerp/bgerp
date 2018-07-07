@@ -44,7 +44,7 @@ class exif_Reader
             return;
         }
         
-        // ЕXIF информация
+        // EXIF информация
         $exif = @exif_read_data($path);
 
         // Изтриваме временния файл

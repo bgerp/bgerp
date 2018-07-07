@@ -156,7 +156,7 @@ class teracom_TCW121 extends sens2_ProtoDriver
      * @param array $config          конфигурациони параметри
      * @param array $persistentState персистентно състояние на контролера от базата данни
      *
-     * @return array Mасив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
+     * @return array Масив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
      */
     public function writeOutputs($outputs, $config, &$persistentState)
     {

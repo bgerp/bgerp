@@ -35,7 +35,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         'InD2' => array('unit' => 'InD2', 'param' => 'Цифров вход 2', 'details' => '(ON,OFF)', 'xmlPath' => '/Entry[2]/Value[1]'),
         'InA1' => array('unit' => 'InA1', 'param' => 'Аналогов вход 1', 'details' => 'V', 'xmlPath' => '/Entry[3]/Value[1]'),
         'InA2' => array('unit' => 'InA2', 'param' => 'Аналогов вход 2', 'details' => 'V', 'xmlPath' => '/Entry[4]/Value[1]'),
-        // Oписваме и изходите за да можем да ги следим в логовете
+        // Описваме и изходите за да можем да ги следим в логовете
         'OutD1' => array('unit' => 'OutD1', 'param' => 'Цифров изход 1', 'details' => '(ON,OFF)', 'xmlPath' => '/Entry[9]/Value[1]'),
         'OutD2' => array('unit' => 'OutD2', 'param' => 'Цифров изход 2', 'details' => '(ON,OFF)', 'xmlPath' => '/Entry[10]/Value[1]')
     

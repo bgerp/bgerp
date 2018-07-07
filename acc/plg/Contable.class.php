@@ -211,7 +211,7 @@ class acc_plg_Contable extends core_Plugin
     
     
     /**
-     * Уорнинг на бутона за контиране/активиранe
+     * Уорнинг на бутона за контиране/активиране
      */
     public static function on_AfterGetContoWarning($mvc, &$res, $id, $isContable)
     {
@@ -632,7 +632,7 @@ class acc_plg_Contable extends core_Plugin
                 if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
                     $res = $Cover->getShortHyperLink();
                 } else {
-                    // Aко няма основание, но журнала на документа има връщаме него
+                    // Ако няма основание, но журнала на документа има връщаме него
                     if ($jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $id)) {
                         $Varchar = cls::get('type_Varchar');
                         $res = $Varchar->toVerbal($jRec->reason);

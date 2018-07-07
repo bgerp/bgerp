@@ -18,7 +18,7 @@ class unipi_Neuron extends sens2_ProtoDriver
 {
 
     /**
-     * Интерфeйси, поддържани от всички наследници
+     * Интерфейси, поддържани от всички наследници
      */
     public $interfaces = 'sens2_DriverIntf';
 

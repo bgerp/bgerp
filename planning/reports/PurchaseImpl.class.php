@@ -196,7 +196,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
                                 (object) array('id' => $product->productId,
                                                 'quantity' => $product->quantity,
                                                 'quantityDelivered' => $product->quantityDelivered,
-                                                'quantityТоDelivered' => abs($product->quantityDelivered - $product->quantity),
+                                                'quantityToDelivered' => abs($product->quantityDelivered - $product->quantity),
                                                 'dateSale' => $dateSale[$product->productId],
                                                 'sales' => array($product->saleId),
                                                 'store' => array($store));

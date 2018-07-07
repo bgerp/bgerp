@@ -430,7 +430,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->setValue('note', 'MinkPPurchaseEURVatFree');
         $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
         $browser->setValue('chargeVat', 'exempt');
-        //$browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
+        //$browser->setValue('chargeVat', "Освободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
         // Записване черновата на Покупката
         $browser->press('Чернова');
         
@@ -505,7 +505,7 @@ class unit_MinkPPurchases extends core_Manager
         }
         $browser->setValue('note', 'MinkPPurchaseVatFreeAdv');
         $browser->setValue('paymentMethodId', '100% авансово');
-        //$browser->setValue('chargeVat', "Oсвободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
+        //$browser->setValue('chargeVat', "Освободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
         $browser->setValue('chargeVat', 'exempt');
         // Записване черновата на Покупката
         $browser->press('Чернова');
@@ -751,7 +751,7 @@ class unit_MinkPPurchases extends core_Manager
         //$browser->hasText('Създаване на Покупка');
         $browser->setValue('note', 'MinkPPurchaseCIDICVATFree');
         $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
-        //$browser->setValue('chargeVat', "Oсвободено от ДДС");
+        //$browser->setValue('chargeVat', "Освободено от ДДС");
         $browser->setValue('chargeVat', 'exempt');
         // Записване черновата на Покупката
         $browser->press('Чернова');
@@ -1312,12 +1312,12 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Чернова');
         
         if (strpos($browser->gettext(), 'Датата е в несъществуващ счетоводен период')) {
-            $browser->setValue('Игнорирай предупреждениeто', true);
+            $browser->setValue('Игнорирай предупреждението', true);
             //$browser->setValue('Ignore', 1);
             $browser->press('Чернова');
         }
         if (strpos($browser->gettext(), 'Датата е в бъдещ счетоводен период')) {
-            $browser->setValue('Игнорирай предупреждениeто', true);
+            $browser->setValue('Игнорирай предупреждението', true);
             $browser->press('Чернова');
         }
         

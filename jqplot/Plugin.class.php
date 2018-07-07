@@ -238,9 +238,9 @@ class jqplot_Plugin extends core_Plugin
             $reqestedChartName = $mvc::getRequestedChartName();
 
             if ($reqestedChartName) {
-                $menu[] = ht::createLink(tr('Tаблица'), $mvc::getChartUrl(null));
+                $menu[] = ht::createLink(tr('Таблица'), $mvc::getChartUrl(null));
             } else {
-                $menu[] = tr('Tаблица');
+                $menu[] = tr('Таблица');
             }
 
             foreach ($chartConfigs as $chartName => $chartConfig) {

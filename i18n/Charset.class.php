@@ -19,7 +19,7 @@ class i18n_Charset extends core_MVC
 {
     
     /**
-     *  Mасив с ключове - алиас-и на чар сетове и стойности - официални имена на чар сетове
+     *  Масив с ключове - алиас-и на чар сетове и стойности - официални имена на чар сетове
      */
     public static $charsetsMatchs = array(
         'EXTENDED_UNIX_CODE_PACKED_FORMAT_FOR_JAPANESE' => 'EUC-JP', 'CSISO159JISX02121990' => 'JIS_X0212', 'CSEUCPKDFMTJAPANESE' => 'EUC-JP',

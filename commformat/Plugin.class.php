@@ -29,11 +29,11 @@ class commformat_Plugin extends core_Plugin
             if (in_array('tel', $format)) {
                 // Ако намери съвпадение на регулярния израз изпълнява функцията
                 // намира телефонните номера
-                $html = preg_replace_callback("/^\s*((Тел|Телефон|tel\/fax|тел\/факс|Tel|Telephone|Phone|Тел.|Тelefax)\.?\:? *)[^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationTelFormat'), $html);
+                $html = preg_replace_callback("/^\s*((Тел|Телефон|tel\/fax|тел\/факс|Tel|Telephone|Phone|Тел.|Telefax)\.?\:? *)[^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationTelFormat'), $html);
             }
            
             if (in_array('fax', $format)) {
-                $html = preg_replace_callback("/^\s*((Tel\/fax|Тел\/факс|Факс|Fax|Тelefax)\.?\:? *)[^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationFaxFormat'), $html);
+                $html = preg_replace_callback("/^\s*((Tel\/fax|Тел\/факс|Факс|Fax|Telefax)\.?\:? *)[^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationFaxFormat'), $html);
             }
            
             if (in_array('mob', $format)) {

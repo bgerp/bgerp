@@ -293,7 +293,7 @@ class pallet_Movements extends core_Manager
                 unset($ppRackId2RackNumResult);
                 
                 $data->formTitle = "СВАЛЯНЕ |*<b>|на пода|*</b>| на палет с|* ID=<b>{$palletId}</b>
-                                <br/>|от пoзиция|* <b>{$position}</b>";
+                                <br/>|от позиция|* <b>{$position}</b>";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 $form->FNC('completed', 'set(YES=Да)', 'caption=Приключено');
                 

@@ -69,7 +69,7 @@ class batch_definitions_Component extends batch_definitions_Proto
         }
         
         $begining = substr($parts[0], 0, $this->rec->numberLetters);
-        if (!preg_match('/^[a-zA-ZА-Яа-я]+$/', $begining)) {
+        if (!preg_match('/^[a-zA-ZА-Яа-я]+$/u', $begining)) {
             $msg .= "Първите|* '{$this->rec->numberLetters}' |символа трябва да са букви|*.";
         }
         

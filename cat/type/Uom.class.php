@@ -74,7 +74,7 @@ class cat_type_Uom extends type_Varchar
             return;
         }
         
-        // Ако стойността е двoично число
+        // Ако стойността е двоично число
         if (is_numeric($value)) {
             $value = $this->double->fromVerbal($value);
         

@@ -83,9 +83,9 @@ class ssh_Actions
      * Изпълнява команда на отдалечен хост
      *
      * @param string $command
-     * @param string $output      [optionаl]
-     * @param string $errors      [optionаl]
-     * @param string $callBackUrl [optionаl]
+     * @param string $output      [optional]
+     * @param string $errors      [optional]
+     * @param string $callBackUrl [optional]
      */
     public function exec($command, &$output = null, &$errors = null, $callBackUrl = null)
     {

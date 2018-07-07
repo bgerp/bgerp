@@ -976,7 +976,7 @@ class core_Url
 
         if (!in_array($scheme, array('http', 'https', 'ftp', 'ftps'))) {
             $scheme = preg_replace('/[^a-z0-9]+/', '', $scheme);
-            $url = "javascript:alert('" . tr('Непозволенa URL схема') . ":&quot;{$scheme}&quot;');";
+            $url = "javascript:alert('" . tr('Непозволена URL схема') . ":&quot;{$scheme}&quot;');";
         }
         
         // $url = htmlentities($url, ENT_QUOTES, 'UTF-8');

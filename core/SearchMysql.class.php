@@ -55,7 +55,7 @@ class core_SearchMysql extends core_BaseClass
         $this->_query = array();
         
         // Разбиваме заявката на думи
-        if (!preg_match_all("/[a-zа-я0-9]+|\"|\^[a-zа-я0-9]+/", $str, $matches)) {
+        if (!preg_match_all("/[a-zа-я0-9]+|\"|\^[a-zа-я0-9]+/u", $str, $matches)) {
             return;
         }
         
@@ -298,7 +298,7 @@ class core_SearchMysql extends core_BaseClass
             $word = str_replace('_', '.', trim($word));
             
             if (!$used[$word] && strpos(' ', $word) === false) {
-                $str = preg_replace("/([^a-zа-я0-9])({$word})([^a-zа-я0-9])/i", "\\1{$prefix}\\2{$suffix}\\3", $str);
+                $str = preg_replace("/([^a-zа-я0-9])({$word})([^a-zа-я0-9])/iu", "\\1{$prefix}\\2{$suffix}\\3", $str);
                 $used[$word] = true;
             }
         }

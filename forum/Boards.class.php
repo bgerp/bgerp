@@ -87,7 +87,7 @@ class forum_Boards extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(50)', 'caption=Име, mandatory');
-        $this->FLD('shortDesc', 'varchar(100)', 'caption=Oписание, mandatory');
+        $this->FLD('shortDesc', 'varchar(100)', 'caption=Описание, mandatory');
         $this->FLD('category', 'key(mvc=forum_Categories,select=title,groupBy=type)', 'caption=Категория, mandatory');
         $this->FLD('boardType', 'enum(normal=Нормална,confidential=Конфиденциална)', 'caption=Достъп->Тип, notNull, value=normal');
         $this->FLD('shared', 'userList', 'caption=Достъп->Споделяне');

@@ -299,7 +299,7 @@ class sales_TransportValues extends core_Manager
     {
         requireRole('debug');
             
-        // Изчистваne записите от моделите
+        // Изчистване записите от моделите
         self::truncate();
             
         $this->logWrite('Изтриване на кеша на транспортните суми');

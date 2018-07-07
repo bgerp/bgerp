@@ -262,7 +262,7 @@ class dec_Declarations extends core_Master
             if (is_numeric($rec->declaratorName)) {
                 if ($declaratorData = crm_Persons::fetch($rec->declaratorName)) {
                     $row->manager = $declaratorData->name;
-                    $row->{'managerЕGN'} = $declaratorData->egn;
+                    $row->{'managerEGN'} = $declaratorData->egn;
                 }
             }
             

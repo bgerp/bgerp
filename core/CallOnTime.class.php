@@ -58,7 +58,7 @@ class core_CallOnTime extends core_Manager
     public function description()
     {
         $this->FLD('hash', 'varchar(32)', 'caption=Хеш, input=none');
-        $this->FLD('className', 'varchar(128)', 'caption=Kлас');
+        $this->FLD('className', 'varchar(128)', 'caption=Клас');
         $this->FLD('methodName', 'varchar(128)', 'caption=Функция');
         $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни, input=none');
         $this->FLD('callOn', 'datetime(format=smartTime)', 'caption=Време');

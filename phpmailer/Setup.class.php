@@ -120,7 +120,7 @@ class phpmailer_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'PML_CHARSET' => array('varchar', 'mandatory, caption=Имейл съобщение->Kодировка'),
+            'PML_CHARSET' => array('varchar', 'mandatory, caption=Имейл съобщение->Кодировка'),
             'PML_FROM_EMAIL' => array('email', 'mandatory, caption=Имейл съобщение->Адрес `From`'),
             'PML_FROM_NAME' => array('varchar', 'mandatory, caption=Имейл съобщение->Име `From`'),
             'PML_MAILER' => array('enum(mail=mail, sendmail=sendmail, smtp=smtp)', 'caption=Изпращане на писма->Метод'),

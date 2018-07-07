@@ -218,9 +218,9 @@ class plg_Search extends core_Plugin
                 }
                 
                 if ($w{0} == '*') {
-                    $wТ = substr($w, 1);
-                    $wТ = trim($wТ);
-                    if (!$wТ) {
+                    $wT = substr($w, 1);
+                    $wT = trim($wT);
+                    if (!$wT) {
                         continue;
                     }
                     $wordBegin = '';
@@ -483,7 +483,7 @@ class plg_Search extends core_Plugin
 
 
     /**
-     * Maркира текста, отговарящ на заявката
+     * Маркира текста, отговарящ на заявката
      */
     public static function highlight($text, $query, $class = 'document')
     {

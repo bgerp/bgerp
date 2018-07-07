@@ -44,7 +44,7 @@ class batch_Templates extends embed_Manager
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = 'Вид партидa';
+    public $singleTitle = 'Вид партида';
     
     
     /**

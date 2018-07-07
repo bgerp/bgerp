@@ -3,8 +3,7 @@
 
 
 /**
- * Драйвер за IP сензор Teracom TCW-121B - следи състоянието на цифров и аналогов входowe
- *
+ * Драйвер за IP сензор Teracom TCW-121B - следи състоянието на цифрови и аналогови входове
  *
  * @category  bgerp
  * @package   sens
@@ -186,7 +185,7 @@ class teracom_TCW122B extends sens2_ProtoDriver
      * @param array $config          конфигурациони параметри
      * @param array $persistentState персистентно състояние на контролера от базата данни
      *
-     * @return array Mасив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
+     * @return array Масив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
      */
     public function writeOutputs($outputs, $config, &$persistentState)
     {

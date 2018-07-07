@@ -41,7 +41,7 @@ class findeals_DebitDocuments extends deals_Document
     /**
      * Заглавие на единичен документ
      */
-    public $singleTitle = 'Прехвърляне на взeмане';
+    public $singleTitle = 'Прехвърляне на вземане';
     
     
     /**

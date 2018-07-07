@@ -155,7 +155,7 @@ class cash_InternalMoneyTransfer extends core_Master
      */
     public function description()
     {
-        $this->FLD('operationSysId', 'enum(case2case=Вътрешeн касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасирани безналични плащания)', 'caption=Операция,mandatory,silent');
+        $this->FLD('operationSysId', 'enum(case2case=Вътрешен касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасирани безналични плащания)', 'caption=Операция,mandatory,silent');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory,summary=amount');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
@@ -248,7 +248,7 @@ class cash_InternalMoneyTransfer extends core_Master
     {
         $form = cls::get('core_Form');
         $form->method = 'GET';
-        $form->FNC('operationSysId', 'enum(case2case=Вътрешeн касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасирани безналични плащания)', 'input,caption=Операция');
+        $form->FNC('operationSysId', 'enum(case2case=Вътрешен касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасирани безналични плащания)', 'input,caption=Операция');
         $form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
         $form->title = 'Нов вътрешен касов трансфер';
         $form->toolbar->addSbBtn('Напред', '', 'ef_icon = img/16/move.png, title=Продължете напред');

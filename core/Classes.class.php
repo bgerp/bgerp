@@ -210,7 +210,7 @@ class core_Classes extends core_Manager
                     
                     $interfaceId = $Interfaces->fetchByName($interface);
                     
-                    // Очакваме валиден интерфeйс
+                    // Очакваме валиден интерфейс
                     expect($interfaceId);
                     
                     $interfaceCondArr[] = "#interfaces LIKE '%|{$interfaceId}|%'";
@@ -272,7 +272,7 @@ class core_Classes extends core_Manager
             $interfaceId = $interface;
         }
 
-        // Очакваме валиден интерфeйс
+        // Очакваме валиден интерфейс
         expect($interfaceId);
         
         $query = core_Classes::getQuery();

@@ -399,7 +399,7 @@ class cat_Categories extends core_Master
      * Връща възможните за избор прототипни артикули с дадения драйвер и свойства
      *
      * @param  int|NULL    $driverId - Ид на продуктов драйвер
-     * @param  string|NULL $meta     - Мета свойствo на артикулите
+     * @param  string|NULL $meta     - Мета свойство на артикулите
      * @param  int|NULL    $limit    - Ограничаване на резултатите
      * @param  int|NULL    $folderId - Папка
      * @return array       $newOptions - прототипните артикули

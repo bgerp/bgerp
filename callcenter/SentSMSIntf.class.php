@@ -21,7 +21,7 @@ class callcenter_SentSMSIntf
      * @param string $message - Текста на съобщението
      * @param string $sender  - От кого се изпраща съобщението
      *
-     * @return array $res - Mасив с информация, дали е получено
+     * @return array $res - Масив с информация, дали е получено
      *               o $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
      *               o $res['uid'] string - Уникалното id на съобщението
      *               o $res['msg'] - Статуса

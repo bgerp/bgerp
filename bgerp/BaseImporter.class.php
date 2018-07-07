@@ -67,7 +67,7 @@ class bgerp_BaseImporter extends core_Manager
      * Инпортиране на csv-файл в даден мениджър
      * @param  array  $rows   - масив с обработени csv данни, получен от Експерта в bgerp_Import
      * @param  array  $fields - масив с съответстията на колоните от csv-то и
-     *                        полетата от модела array[{поле_oт_модела}] = {колона_от_csv}
+     *                        полетата от модела array[{поле_от_модела}] = {колона_от_csv}
      * @return string $html - съобщение с резултата
      */
     public function import($rows, $fields)
@@ -155,7 +155,7 @@ class bgerp_BaseImporter extends core_Manager
             if ($errCnt == 1) {
                 $errCntW = '1 |запис|. |Записан е в|*: ';
             } else {
-                $errCntW = $errCnt . ' |записa|. |Записани са в|*: ';
+                $errCntW = $errCnt . ' |записа|. |Записани са в|*: ';
             }
             status_Messages::newStatus('|Грешка в|* ' . $errCntW . fileman::getLinkToSingle($fh));
         }

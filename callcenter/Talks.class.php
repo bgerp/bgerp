@@ -2108,7 +2108,7 @@ class callcenter_Talks extends core_Master
                 if ($cnt == 1) {
                     $word = 'разговор';
                 } else {
-                    $word = 'разговорa';
+                    $word = 'разговора';
                 }
                 
                 $changetTalksStr = implode(', ', $changedTalksArr);
@@ -2183,7 +2183,7 @@ class callcenter_Talks extends core_Master
             if ($cnt == 1) {
                 $word = 'разговор';
             } else {
-                $word = 'разговорa';
+                $word = 'разговора';
             }
             
             $changetTalksStr = implode(', ', $nChangedTalksArr);

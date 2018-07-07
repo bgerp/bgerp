@@ -488,7 +488,7 @@ class plg_UserReg extends core_Plugin
         
         while (empty($nicks)) {
             foreach ($res as $nick) {
-                $nick = preg_replace('/[^a-zа-я0-9\.]+/', '_', $nick) . $n;
+                $nick = preg_replace('/[^a-zа-я0-9\.]+/u', '_', $nick) . $n;
                 
                 if (!$mvc->fetch("#nick = '{$nick}'")) {
                     $nicks[] = $nick;
@@ -507,7 +507,7 @@ class plg_UserReg extends core_Plugin
     
     
     /**
-     * Изпращане на писмо за активиране на сметкатa
+     * Изпращане на писмо за активиране на сметката
      *
      * @param core_Users   $mvc
      * @param NULL|boolean $res

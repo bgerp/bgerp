@@ -132,7 +132,7 @@ class survey_Surveys extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory');
-        $this->FLD('description', 'text(rows=2)', 'caption=Oписание, mandatory');
+        $this->FLD('description', 'text(rows=2)', 'caption=Описание, mandatory');
         $this->FLD('enddate', 'date(format=d.m.Y)', 'caption=Краен срок,mandatory');
         $this->FLD('summary', 'enum(internal=Вътрешно,personal=Персонално,public=Публично)', 'caption=Обобщение,mandatory');
         $this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,input=none');

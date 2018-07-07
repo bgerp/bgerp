@@ -372,7 +372,7 @@ class oembed_Plugin extends core_Plugin
             } else {
                 //
                 // @TODO за някои ресурси (напр. снимките) може да не се върне HTML за вграждане,
-                //         но той може да се  построи тук на базата на полетата нa $response
+                //         но той може да се  построи тук на базата на полетата на $response
                 $response['html'] = '<p class="embed">' . $response['orig_url'] . ' (' . $response['type'] . ')</p>';
                 $response['cache_age'] = 0;
             }

@@ -714,7 +714,7 @@ class label_Prints extends core_Master
             // Ако съсотоянието е затворено показваме предупреждение
             if ($data->rec->printedCnt) {
                 $modifiedDate = dt::mysql2verbal($data->rec->modifiedOn);
-                $warning = "warning=Този етикет е бил отпечатван нa|* ${modifiedDate}. |Искате ли да го отпечатате още веднъж|*?";
+                $warning = "warning=Този етикет е бил отпечатван на|* ${modifiedDate}. |Искате ли да го отпечатате още веднъж|*?";
             }
             
             $data->toolbar->addBtn('Печат', array($mvc, 'print', $data->rec->id), $warning, 'ef_icon=img/16/printer.png, title = Отпечатване');
@@ -806,7 +806,7 @@ class label_Prints extends core_Master
             // Ако съсотоянието е затворено показваме предупреждение
             if ($rec->printedCnt) {
                 $modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y H:i');
-                $warning = "Този етикет е бил отпечатван нa|* ${modifiedDate}. |Искате ли да го отпечатате още веднъж|*?";
+                $warning = "Този етикет е бил отпечатван на|* ${modifiedDate}. |Искате ли да го отпечатате още веднъж|*?";
             }
             
             $btnAttr = arr::make('ef_icon=img/16/printer.png, title=Отпечатване, class=fleft');
@@ -1274,7 +1274,7 @@ class label_Prints extends core_Master
                 $retUrl = array($this, 'single', $id);
             }
             
-            $form->toolbar->addSbBtn('Печат', 'print', 'ef_icon = img/16/printer.png, title = Oтпечатване на данните');
+            $form->toolbar->addSbBtn('Печат', 'print', 'ef_icon = img/16/printer.png, title=Отпечатване на данните');
             $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
             
             $formTpl = $this->renderWrapping($form->renderHtml());

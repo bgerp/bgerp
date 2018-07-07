@@ -151,7 +151,7 @@ class cms_Profiles extends core_Master
         // Подмяна на линка за смяна на паролата
         $data->User->row->password = substr($data->User->row->password, 0, 7);
         $changePassUrl = array($this, 'ChangePassword', 'ret_url' => true);
-        $data->User->row->password .= ' ' . ht::createLink('(' . tr('cмяна') . ')', $changePassUrl, false, 'title=Смяна на парола');
+        $data->User->row->password .= ' ' . ht::createLink('(' . tr('смяна') . ')', $changePassUrl, false, 'title=Смяна на парола');
     }
     
     

@@ -30,7 +30,7 @@ class pallet_ArrangeStrategyMain
     
     
     /**
-     * Какви интерфeйси поддържа този мениджър
+     * Какви интерфейси поддържа този мениджър
      */
     public $interfaces = 'pallet_ArrangeStrategyIntf';
     

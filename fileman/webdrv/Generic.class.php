@@ -1303,7 +1303,7 @@ class fileman_webdrv_Generic extends core_Manager
             self::$archiveInst[$fRec->fileHnd] = $zip;
         } else {
             
-            // Вземаме инстанцията от предишното генерa
+            // Вземаме инстанцията от предишното генера
             $zip = self::$archiveInst[$fRec->fileHnd];
         }
     

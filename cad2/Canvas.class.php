@@ -124,7 +124,7 @@ abstract class cad2_Canvas extends core_BaseClass
     
     
     /**
-     * Отваря новa шарка
+     * Отваря нова шарка
      */
     abstract public function openPattern($attr = array());
     

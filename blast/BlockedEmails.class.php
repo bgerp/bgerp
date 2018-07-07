@@ -153,7 +153,7 @@ class blast_BlockedEmails extends core_Manager
     
     
     /**
-     * Добавя имейлa в блокирани
+     * Добавя имейла в блокирани
      *
      * @param string $email
      *

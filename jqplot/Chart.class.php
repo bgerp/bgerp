@@ -245,7 +245,7 @@ class jqplot_Chart
                 '; height: ' . count($series) * count($series[0]) * 20 . 'px';
         }
 
-        // Създаваме контейнер елемента със зададените HТML атрибути
+        // Създаваме контейнер елемента със зададените HTML атрибути
         $chartEl = core_Html::createElement('div', $this->htmlAttr, '', true);
 
         $options = $this->options;

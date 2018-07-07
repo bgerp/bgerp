@@ -248,7 +248,7 @@ class support_Systems extends core_Master
             $row->folderId = ht::createBtn(
                 'Папка',
                 array($mvc, 'createFolder', $rec->id),
-                "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
+                "Наистина ли желаете да създадете папка за документи към|* \"{$title}\"?",
                              false,
                 'ef_icon = img/16/folder_new.png'
             );

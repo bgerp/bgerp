@@ -164,7 +164,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 
             // Колко е очакваното авансово плащане
             $downPayment = $dealInfo->agreedDownpayment;
-            // Колко е oчакваното платено
+            // Колко е очакваното платено
             $downpayment = $dealInfo->downpayment;
             // колко е платено
             $downpaymentAmount = $dealInfo->amountPaid;

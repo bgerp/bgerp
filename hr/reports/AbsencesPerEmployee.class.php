@@ -167,7 +167,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             }
         }
         
-        // Kомандировъчни
+        // Командировъчни
         
         $doc = array();
         $docPeriod = array();
@@ -322,7 +322,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
      * @param  array    $doc
      *                       - начална и крайна дата на документа
      * @return array    - масив с начална и крайна дата на периода за проверка,
-     *                      брой календарни дни, брoй работни дни.
+     *                      брой календарни дни, брой работни дни.
      */
     public function getPeriod($rec, $doc)
     {

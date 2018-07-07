@@ -26,7 +26,7 @@ class catering_Requests extends core_Master
     /**
      * Заглавие в единично число
      */
-    public $singleTitle = 'Заявкa за кетъринг';
+    public $singleTitle = 'Заявка за кетъринг';
     
     
     /**
