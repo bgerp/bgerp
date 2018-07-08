@@ -311,7 +311,7 @@ class core_Debug
         foreach ($trace as $count => $frame) {
             $file = 'unknown';
             if (!empty($frame['file'])) {
-                $line = self::getEditLink($frame['file'], $frame['line']);
+                $line = self::getEditLink($frame['file'], $frame['line'], $frame['line']);
                 $file = self::getEditLink($frame['file']);
                 $file = $file . ' : ' . $line;
                 if ($rUrl = self::getGithubSourceUrl($frame['file'], $frame['line'])) {
@@ -605,7 +605,7 @@ class core_Debug
             $data['errTitle'] = $state['errTitle'];
         }
 
-        $lineHtml = self::getEditLink($breakFile, $breakLine);
+        $lineHtml = self::getEditLink($breakFile, $breakLine, $breakLine);
         $fileHtml = self::getEditLink($breakFile);
         
         if (isset($state['header'])) {
