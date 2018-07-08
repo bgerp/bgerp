@@ -556,7 +556,7 @@ class acc_plg_Contable extends core_Plugin
      * Обект-транзакция, съответстващ на счетоводен документ, ако е възможно да се генерира
      *
      * @param core_Mvc                $mvc
-     * @param acc_journal_Transaction $transation FALSE, ако не може да се генерира транзакция
+     * @param acc_journal_Transaction $transaction FALSE, ако не може да се генерира транзакция
      * @param stdClass                $rec
      */
     public static function on_AfterGetValidatedTransaction(core_Mvc $mvc, &$transaction, $rec)

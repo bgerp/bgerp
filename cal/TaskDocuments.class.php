@@ -114,7 +114,7 @@ class cal_TaskDocuments extends core_Detail
      * @param integer $taskId
      * @param integer $cId
      *
-     * @return NULL|number
+     * @return NULL|float
      */
     public static function add($taskId, $cId)
     {

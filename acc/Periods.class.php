@@ -240,7 +240,8 @@ class acc_Periods extends core_Manager
      * до края на насотящия период
      *
      * @param date $dateToCheck - Дата която да се сравни
-     * @param string|FALSE - грешката или FALSE ако няма
+     *
+     * @return string|FALSE - грешката или FALSE ако няма
      */
     public static function checkDocumentDate($dateToCheck)
     {

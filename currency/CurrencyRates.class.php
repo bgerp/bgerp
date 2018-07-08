@@ -317,13 +317,14 @@ class currency_CurrencyRates extends core_Detail
      *
      *  Закръгля резултата до 4-тата цифра след дес. точка
      *
-     *  @param double $amount Сума която ще обърнем
-     *  @param date $date NULL = текущата дата
-     *  @param string $from Код на валутата от която ще обръщаме
-     *                      NULL = базова валута към $date
-     *  @param string $to Код на валутата към която ще обръщаме
-     *                    NULL = базова валута към $date
-     *  @return double $amount Конвертираната стойност на сумата
+     *  @param double      $amount Сума която ще обърнем
+     *  @param date        $date   NULL = текущата дата
+     *  @param string|null $from   Код на валутата от която ще обръщаме
+     *                             NULL = базова валута към $date
+     *  @param string|null $to     Код на валутата към която ще обръщаме
+     *                             NULL = базова валута към $date
+     *
+     *  @return double $amount     Конвертираната стойност на сумата
      */
     public static function getRate($date, $from, $to)
     {

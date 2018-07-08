@@ -257,7 +257,7 @@ class barcode_Generator extends core_Manager
     /**
      * Връща новия размер в зависимост от съотношението
      *
-     * @param number  $size  - Размер
+     * @param float   $size  - Размер
      * @param integer $ratio - Съотношение
      */
     public static function getNewSize($size, $ratio)

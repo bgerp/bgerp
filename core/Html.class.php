@@ -818,13 +818,12 @@ class core_Html
 
 
     /**
-     *
      * Създава хипервръзка
      *
      * @param string       $title
      * @param FALSE|array  $url
      * @param FALSE|string $warning
-     * @param array        $attr
+     * @param array|string $attr
      *
      * @return core_ET
      */

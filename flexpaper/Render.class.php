@@ -33,11 +33,11 @@ class flexpaper_Render
      * @param string $flexId - Уникалното id на div' а, в който се намира swfobj
      *
      * @param array   $params                          - Масив от атрибути, които се използват от flexpaper
-     * @param number  $params['Scale']                 - Първоначалното увеличение. Трябва да е над 0 (1=100%)
+     * @param float   $params['Scale']                 - Първоначалното увеличение. Трябва да е над 0 (1=100%)
      * @param string  $params['ZoomTransition']        - Начина на преход при увеличаване на файла.
      *                                                 Използва същите преходи като при "Tweener". Пример: easenone, easeout, linear, easeoutquad
-     * @param number  $params['ZoomTime']              - Времето необходимо за увеличение. Трябва да е над 0.
-     * @param number  $params['ZoomInterval']          - Интервалът, който плъзгача за мащабиране ползва.
+     * @param float   $params['ZoomTime']              - Времето необходимо за увеличение. Трябва да е над 0.
+     * @param float   $params['ZoomInterval']          - Интервалът, който плъзгача за мащабиране ползва.
      *                                                 Трябва да е положително число.
      * @param boolean $params['FitPageOnLoad']         - Да пасва на страницата при зареждане
      * @param boolean $params['FitWidthOnLoad']        - Да пасва на широчината при зареждане
@@ -45,8 +45,8 @@ class flexpaper_Render
      * @param boolean $params['FullScreenAsMaxWindow'] - Задава дали да се отвори в нова страница, при увеличаване на цял екран.
      * @param boolean $params['ProgressiveLoading']    - Дали да се зареди документа постепенно или да се изчака цялото му зареждане.
      *                                                 Необходимо е флаша да е над версия 9.
-     * @param number  $params['MaxZoomSize']           - Задава максималното допустимо ниво на мащабиране.
-     * @param number  $params['MinZoomSize']           - Задава минималното допустимо ниво на мащабиране.
+     * @param float   $params['MaxZoomSize']           - Задава максималното допустимо ниво на мащабиране.
+     * @param float   $params['MinZoomSize']           - Задава минималното допустимо ниво на мащабиране.
      * @param boolean $params['SearchMatchAll']        - Ако TRUE, тогава се подчертават всички съвпадения при търсене на документа.
      * @param string  $params['InitViewMode']          - Задава началния изглед. Пример: "Portrait" или "TwoPage".
      * @param boolean $params['ViewModeToolsVisible']  - Показване или скриване режима на преглед от лентата с инструменти.
@@ -56,8 +56,8 @@ class flexpaper_Render
      * @param boolean $params['SearchToolsVisible']    - Показване или скриване на инструментите за търсене в лентата.
      * @param boolean $params['PrintEnabled']          - Дали да е активирана функцията за разпечатване на документа
      *
-     * @param number $params['width']  - Широчина на блока
-     * @param number $params['height'] - Височина на блока
+     * @param float  $params['width']  - Широчина на блока
+     * @param float  $params['height'] - Височина на блока
      *
      * @param array  $attributes         - Масив от атрибути, които се използват от swfObj
      * @param string $attributes['id']   - Id, което се използва в swfObj

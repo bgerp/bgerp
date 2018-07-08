@@ -279,8 +279,9 @@ class acc_Balances extends core_Master
     /**
      * Маркира балансите, които се засягат от документ с посочения вальор
      *
-     * @param  string  $date дата, към която
-     * @return boolean
+     * @param  string  $date       Вальорът на алтерниращият документ 
+     * @param  int     $docClassId Класът на алтерниращият документ
+     * @param  int     $docId      id на алтерниращият документ
      */
     public static function alternate($date, $docClassId, $docId)
     {
@@ -309,7 +310,8 @@ class acc_Balances extends core_Master
      * Ако е необходимо записва и изчислява баланса за посочения период
      *
      * @param  stdClass Запис на баланс, с попълнени $fromDate, $toDate и $periodId
-     * @return boolean                                                      Дали е правено преизчисляване
+     *
+     * @return boolean  Дали е правено преизчисляване
      */
     private function forceCalc(&$rec)
     {

@@ -968,10 +968,10 @@ class acc_BalanceDetails extends core_Detail
             $ent2Id = !empty($rec->ent2Id) ? $rec->ent2Id : null;
             $ent3Id = !empty($rec->ent3Id) ? $rec->ent3Id : null;
             
-            if ($strategy = $this->getStrategyFor($accId, $ent1Id, $ent2Id, $ent3Id)) {
+            // "Захранваме" обекта стратегия с количество и сума, ако к-то е неотрицателно
+            if ($rec->blQuantity >= 0) {
+                if ($strategy = $this->getStrategyFor($accId, $ent1Id, $ent2Id, $ent3Id)) {
                 
-                // "Захранваме" обекта стратегия с количество и сума, ако к-то е неотрицателно
-                if ($rec->blQuantity >= 0) {
                     $strategy->feed($rec->blQuantity, $rec->blAmount);
                 }
             }
@@ -1329,7 +1329,7 @@ class acc_BalanceDetails extends core_Detail
      * Ако $v = '', $add = '', то след $v += $add, $v ще има стойност нула. Целта на този метод
      * е стойността на $v да остане непроменена (празна) в такива случаи.
      *
-     * @param number $v
+     * @param float  $v
      * @param mixed  $add
      */
     private function inc(&$v, $add)

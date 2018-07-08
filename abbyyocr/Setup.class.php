@@ -102,13 +102,13 @@ class abbyyocr_Setup extends core_ProtoSetup
     /**
      * Проверява дали програмата е инсталирана в сървъра
      *
-     * @return NULL|string
+     * @return null|string
      */
     public function checkConfig()
     {
         if (fconv_Remote::canRunRemote('abbyyocr9')) {
             
-            return ;
+            return;
         }
         
         $conf = core_Packs::getConfig('abbyyocr');

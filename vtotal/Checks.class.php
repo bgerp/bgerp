@@ -560,7 +560,7 @@ class vtotal_Checks extends core_Master
      *
      * @param string $rateStr
      *
-     * @return number
+     * @return float 
      */
     protected function getDangerRateByRateStr($rateStr)
     {

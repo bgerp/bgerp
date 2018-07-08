@@ -481,7 +481,7 @@ class core_Os
      *
      *
      * @param unknown $file
-     * @param number  $limit
+     * @param float   $limit
      * @param string  $trim
      *
      * @return array

@@ -657,9 +657,10 @@ class acc_Lists extends core_Manager
     /**
      * Връща бройката на перата в посочената номенклатура
      *
-     * @param  mixed  $listId   - ид или систем ид на номенклатура
-     * @param  string $systemId - дали $listId е систем ид или не
-     * @return int    - брой пера в номенклатурата
+     * @param  mixed       $listId   id или систем ид на номенклатура
+     * @param  string|bool $systemId Дали $listId е систем ид или не
+     *
+     * @return int Брой пера в номенклатурата
      */
     public static function getItemsCountInList($listId, $systemId = true)
     {

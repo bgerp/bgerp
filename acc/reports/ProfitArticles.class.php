@@ -218,8 +218,6 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
 
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
-     *
-     * @param stdClass $data
      */
     public function hidePriceFields()
     {

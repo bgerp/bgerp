@@ -144,7 +144,7 @@ class distro_Repositories extends core_Master
      * Парсира и връща линиите от системния файл в отдалечената директория
      *
      * @param integer $repoId
-     * @param number  $linesCnt
+     * @param float   $linesCnt
      * @param boolean $removeDuplicated
      *
      * @return array

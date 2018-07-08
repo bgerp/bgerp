@@ -356,9 +356,9 @@ class acc_Journal extends core_Master
      *
      * Документът ($docClassId, $docId) ТРЯБВА да поддържа интерфейс acc_TransactionSourceIntf
      *
-     * @param mixed   $docClassId     - класа на документа
-     * @param int     $docId          - ид на документа
-     * @param boolean $notifyDocument - да нотифицира ли документа, че транзакцията е приключена
+     * @param mixed       $docClassId     - класа на документа
+     * @param int|object  $docId          - ид на документа
+     * @param boolean     $notifyDocument - да нотифицира ли документа, че транзакцията е приключена
      */
     public static function saveTransaction($docClassId, $docId, $notifyDocument = true)
     {

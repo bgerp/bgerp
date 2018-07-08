@@ -148,7 +148,7 @@ class acc_ValueCorrections extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         if ($firstDoc->fetchField('containerId') != $rec->correspondingDealOriginId) {
             if (isset($rec->correspondingDealOriginId)) {
-                $row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(0);
+                $row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(false);
             } else {
                 $row->correspondingDealOriginId = "<span class='red'>" . tr('Проблем при показването') . '</span>';
             }
@@ -441,6 +441,7 @@ class acc_ValueCorrections extends core_Master
      *                         o transportVolume - транспортен обем на артикула
      * @param double $amount   - сумата за разпределяне
      * @param value|quantity|volume|weight - режим на разпределяне
+     *
      * @return mixed
      */
     public static function allocateAmount(&$products, $amount, $allocateBy)

@@ -22,6 +22,8 @@ class boilerplate_Plugin extends core_Plugin
      *
      * @param core_Mvc $mvc
      * @param stdClass $data
+     *
+     * @return bool|null
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
@@ -33,8 +35,10 @@ class boilerplate_Plugin extends core_Plugin
      *
      * След зареждане на формата за добавяне / редактиране.
      *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     *
+     * @return bool|null
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
@@ -48,6 +52,8 @@ class boilerplate_Plugin extends core_Plugin
      *
      * @param core_Mvc $mvc
      * @param stdClass $data
+     *
+     * @return bool|null
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {

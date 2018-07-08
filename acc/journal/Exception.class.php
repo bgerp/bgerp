@@ -9,12 +9,13 @@ class acc_journal_Exception extends core_exception_Expect
      * @param  boolean $condition
      * @param  string  $message
      * @param  array   $options
-     * @throws static
+     *
+     * @throws acc_journal_Exception
      */
     public static function expect($condition, $message, $options = array())
     {
         if (!(boolean) $condition) {
-            throw new static($message, $options);
+            throw new acc_journal_Exception($message, $options);
         }
     }
 }

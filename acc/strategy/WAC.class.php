@@ -9,15 +9,20 @@ cls::load('acc_strategy_Strategy');
  *
  * @category  bgerp
  * @package   acc
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @author    Milen Georgiev <milen@experta.bg>
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class acc_strategy_WAC extends acc_strategy_Strategy
 {
     
-    
+    /**
+     * Тип на сметката, към която е тази стратегия
+     */
+    protected $accountType;
+
+
     /**
      * Текущото количество
      */

@@ -58,7 +58,7 @@ class fconv_Processes extends core_Manager
      *
      * @param string $processId
      * @param string $script
-     * @param number $time
+     * @param float  $time
      * @param string $timeoutCallback
      */
     public static function add($processId, $script, $time = 2, $timeoutCallback = '')

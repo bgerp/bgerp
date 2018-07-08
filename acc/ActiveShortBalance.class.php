@@ -151,8 +151,10 @@ class acc_ActiveShortBalance
     /**
      * Връща крайното салдо на няколко сметки
      *
-     * @param  mixed    $accs - масив от систем ид-та на сметка
-     * @return stdClass $res - масив с 'amount' - крайното салдо
+     * @param  mixed    $accs   - масив от систем ид-та на сметка
+     * @param  bool|int $itemId - дали да се филтрира само за посоченото перо
+     *
+     * @return float    $res    - крайното салдо
      */
     public function getAmount($accs, $itemId = false)
     {

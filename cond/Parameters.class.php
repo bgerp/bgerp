@@ -157,7 +157,7 @@ class cond_Parameters extends bgerp_ProtoParam
      * @param  string      $type    - тип на параметъра
      * @param  NULL|text   $options - опции на параметъра само за типовете enum и set
      * @param  NULL|string $suffix  - наставка
-     * @return number      - ид на параметъра
+     * @return float       - ид на параметъра
      */
     public static function force($sysId, $name, $type, $options = array(), $suffix = null)
     {

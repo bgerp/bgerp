@@ -1,6 +1,6 @@
 <?php
 /**
- * Клас 'boilerplate_Manager'
+ * Клас 'boilerplate_Master'
  *
  * Шаблон за bgerp мениджър
  *
@@ -8,12 +8,11 @@
  * @category  bgerp
  * @package   [име на пакет]
  * @author    [Име на автора] <[имейл на автора]>
- * @copyright 2006 - 2013 Experta OOD
- * @license   GPL 3
+ * @copyright 2006 - 2018 Experta OOD
+ * @license   GPLv3
  * @since     v 0.1
- * @todo      Текстовете в [правоъгълни скоби] да се заменят със съотв. стойности
  */
-class boilerplate_Manager extends core_Manager
+class boilerplate_Master extends core_Manager
 {
     /**
      * Заглавие в множествено число

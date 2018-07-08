@@ -151,7 +151,7 @@ class core_FieldSet extends core_BaseClass
      * @param string       $name
      * @param string       $type
      * @param string|array $params
-     * @param array        $moreParams
+     * @param string|array $moreParams
      */
     public function FNC($name, $type, $params = array(), $moreParams = array())
     {

@@ -483,8 +483,9 @@ class acc_Accounts extends core_Manager
     /**
      * Връща 'id' от acc_Lists по подаден стринг, от който се взема 'num'
      *
-     * @param string стринг от вида `име на номенклатура (код)`
-     * @return int ид на номенклатура
+     * @param  string   $string Стринг от вида `име на номенклатура (код)`
+     *
+     * @return int|null id на номенклатура
      */
     private static function getListsId($string)
     {
@@ -650,18 +651,15 @@ class acc_Accounts extends core_Manager
      * Factory метод - създава обект стратегия (наследник на @link acc_Strategy) според
      * стратегията на зададената сметка.
      *
-     * @param  int          $accountId ид на аналитична сметка
+     * @param  int  $accountId ид на аналитична сметка
+     *
      * @return acc_Strategy
      */
     public function createStrategyObject($accountId)
     {
         $strategyType = $this->fetch($accountId, 'strategy');
         $strategy = false;
-        
-        if ($accountId == 37) {
-            time();
-        }
-        
+                
         switch ($strategyType->strategy) {
             case 'LIFO':
                 $strategy = new acc_strategy_LIFO($accountId);

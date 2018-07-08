@@ -23,15 +23,16 @@ class jsgauge_Gauge
     
     /**
      * Рендира уред за измерване на температурата
+     *
      * @param string $canvasId                         - Уникално id на всеки canvas елемент
-     * @param number $value                            - Текущата стойност на елемента
+     * @param float  $value                            - Текущата стойност на елемента
      * @param array  $arr                              - Масив от атрибути
      * @param string $arr['label']                     - Надписа, който се показва в измервателния уред
      * @param string $arr['unitsLabel']                - Единицата за измерване
-     * @param number $arr['min']                       - Минималната стойност в измервателния уред
-     * @param number $arr['max']                       - Максималната стойност в измервателния уред
-     * @param number $arr['majorTicks']                - Броя на големите линии
-     * @param number $arr['minorTicks']                - Броя на малките линии
+     * @param float  $arr['min']                       - Минималната стойност в измервателния уред
+     * @param float  $arr['max']                       - Максималната стойност в измервателния уред
+     * @param float  $arr['majorTicks']                - Броя на големите линии
+     * @param float  $arr['minorTicks']                - Броя на малките линии
      * @param string $arr['colorOfText']               - Цвят на текста
      * @param string $arr['colorOfWarningText']        - Цвят на предупредителния текст
      * @param array  $arr['colorOfFill']               - Цветове, които се използват за чертане на измервателния уред
@@ -39,12 +40,12 @@ class jsgauge_Gauge
      * @param string $arr['colorOfPointerStroke']      - Цвят, който се използва за външната линия на иглата
      * @param string $arr['colorOfCenterCircleFill']   - Цвят, който се използва за запълване на кръга на иглата
      * @param string $arr['colorOfCenterCircleStroke'] - Цвят, който се използва за външната линия на кръга на иглата
-     * @param number $arr['greenFrom']                 - Начало на зеления цвят
-     * @param number $arr['greenTo']                   - Край на зеления цвят
-     * @param number $arr['yellowFrom']                - Начало на жълтия цвят
-     * @param number $arr['yellowTo']                  - Край на жълтия цвят
-     * @param number $arr['redFrom']                   - Начало на червения цвят
-     * @param number $arr['redTo']                     - Край на червения цвят
+     * @param float  $arr['greenFrom']                 - Начало на зеления цвят
+     * @param float  $arr['greenTo']                   - Край на зеления цвят
+     * @param float  $arr['yellowFrom']                - Начало на жълтия цвят
+     * @param float  $arr['yellowTo']                  - Край на жълтия цвят
+     * @param float  $arr['redFrom']                   - Начало на червения цвят
+     * @param float  $arr['redTo']                     - Край на червения цвят
      * @param string $arr['redColor']                  - Цвят на "червената" лента
      * @param string $arr['yellowColor']               - Цвят на "жълтата" лента
      * @param string $arr['greenColor']                - Цвят на "зелената" лента

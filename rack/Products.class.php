@@ -94,7 +94,7 @@ class rack_Products extends store_Products
      *
      * @param  core_Mvc    $mvc
      * @param  stdClass    $rec
-     * @return void|number
+     * @return void|float 
      */
     public static function on_CalcQuantityNotOnPallets(core_Mvc $mvc, $rec)
     {

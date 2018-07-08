@@ -277,7 +277,7 @@ class abbyyocr_Converter extends core_Manager
      *
      * @param fconv_Script $script - Обект с данните
      *
-     * @param boolean
+     * @return boolean
      */
     public function afterGetTextByAbbyyOcr($script)
     {

@@ -977,7 +977,7 @@ class core_Debug
     /**
      * Връща, ако може линк за редактиране на файла
      */
-    private static function getEditLink($file, $line = null, $title = null)
+    public static function getEditLink($file, $line = null, $title = null)
     {
         if (strpos($file, "eval()'d code")) {
             if (!$title) {
@@ -992,7 +992,7 @@ class core_Debug
                 //$line = 1;
                 $title = $file;
             } else {
-                $title = $line;
+                $title = $file . ':' . $line;
             }
         }
 

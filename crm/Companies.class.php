@@ -918,7 +918,7 @@ class crm_Companies extends core_Master
      *
      * @param string $companyName
      *
-     * @return number
+     * @return float 
      */
     public static function getCompanyFontSize($companyName)
     {

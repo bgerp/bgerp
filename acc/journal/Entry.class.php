@@ -186,7 +186,7 @@ class acc_journal_Entry
     /**
      * Връща сумата на реда от транзакция или NULL, ако е неопределена
      *
-     * @return number
+     * @return float
      */
     public function amount()
     {

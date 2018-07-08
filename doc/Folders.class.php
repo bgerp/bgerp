@@ -1527,7 +1527,7 @@ class doc_Folders extends core_Master
      *
      * @param stdClass $rec
      *
-     * @return number
+     * @return float 
      */
     protected static function getPointsForRec($rec)
     {

@@ -126,7 +126,7 @@ class doc_Linked extends core_Manager
      * @param string  $type
      * @param integer $id
      * @param boolean $showRejecte
-     * @param number  $limit
+     * @param float   $limit
      *
      * @return array
      */

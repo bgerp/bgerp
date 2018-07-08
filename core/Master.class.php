@@ -597,7 +597,7 @@ class core_Master extends core_Manager
      *
      * Забранява изтриването на вече използвани сметки
      *
-     * @param core_Manager  $mvc
+     * @param core_Mvc      $mvc
      * @param string        $requiredRoles
      * @param string        $action
      * @param stdClass|NULL $rec
@@ -802,6 +802,7 @@ class core_Master extends core_Manager
      *
      * @param  int            $id   - ид на запис
      * @param  boolean        $icon - дали линка да е с икона
+     *
      * @return string|core_ET - линк към единичния изглед или името ако потребителя няма права
      */
     public static function getShortHyperlink($id, $icon = false)

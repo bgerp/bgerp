@@ -230,12 +230,12 @@ class boilerplate_Manager extends core_Manager
     /**
      * След изтриване на записи
      *
-     * @param core_Mvc   $mvc
-     * @param int        $numRows
-     * @param core_Query $query
-     * @param string|array
+     * @param core_Mvc     $mvc
+     * @param int          $numRows
+     * @param core_Query   $query
+     * @param string|array $cond
      *
-     * @return bool Дали да продължи обработката на опашката от събития
+     * @return bool|null   Дали да продължи обработката на опашката от събития
      */
     public static function on_AfterDelete($mvc, $numRows, $query, $cond)
     {
@@ -302,8 +302,8 @@ class boilerplate_Manager extends core_Manager
      *
      * @param core_Mvc            $mvc
      * @param null|string|core_ET $res
-     * @param string|core_ET      $tpl
-     * @param stdClass            $data
+     * @param string|core_ET|null $tpl
+     * @param stdClass|null       $data
      *
      * @return boolean
      */
