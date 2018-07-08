@@ -2247,6 +2247,8 @@ class doclog_Documents extends core_Manager
      */
     protected static function getCountOfDownloads($data)
     {
+        $downloadCount = 0;
+
         // Ако е масив
         if (is_array($data)) {
             

@@ -241,7 +241,8 @@ class pear_Vcard
      *                             'pobox' | 'ext' | 'street' | 'locality' | 'region' | 'code' |
      *                             'country' | NULL
      * @param  array|string $types
-     * @return Ambigous     <NULL, multitype:, mixed>
+     *
+     * @return mixed
      */
     public function getAddress($part = null, $types = null)
     {

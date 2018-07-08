@@ -1059,9 +1059,9 @@ class acc_BalanceDetails extends core_Detail
             }
             
             foreach ($recs as $rec) {
-                $this->calcAmount($rec);
                 
-                $update = $this->updateJournal($rec);
+                $this->calcAmount($rec);
+                $update = $this->calcPrice($rec);
                 
                 $this->addEntry($rec, 'debit');
                 $this->addEntry($rec, 'credit');
@@ -1085,8 +1085,12 @@ class acc_BalanceDetails extends core_Detail
      * Проверява дали сумата на записа се различава от тази по стратегия
      * Ако не участват сметки по стратегия или няма променени цени по стратегия
      * не се прави промяна на записа
+     * 
+     * @param $rec stdClass запис от детайла на журнала
+     *
+     * @return bool дали трябва да се обнови журнала с новата цена
      */
-    private function updateJournal(&$rec)
+    private function calcPrice(&$rec)
     {
         $res = false;
          
@@ -1129,7 +1133,7 @@ class acc_BalanceDetails extends core_Detail
                             // И има интерфейс за дефолт цена
                             if (cls::haveInterface('acc_RegistryDefaultCostIntf', $itemRec->classId)) {
                                 
-                                // Ако сметката има стратегия сметката
+                                // Ако сметката има стратегия
                                 if (acc_Accounts::hasStrategy($rec->{"{$type}AccId"})) {
                                     
                                     // Извличаме дефолт цената му според записа

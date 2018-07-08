@@ -16,8 +16,13 @@
  */
 class drdata_IP
 {
-    
-    
+
+    /**
+     * Масив за държавите
+     */
+    public $countries = array();
+
+
     /**
      * Add hyper link to RIPE.net on IP
      */

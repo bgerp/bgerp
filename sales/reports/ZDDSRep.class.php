@@ -319,11 +319,11 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     /**
      * Подготвяме заявката към мастър класа и детайла
      *
-     * @param query    $query
-     * @param stdClass $period
-     * @param string   $masterClass
-     * @param string   $detailClass
-     * @param string   $masterKey
+     * @param core_Query $query
+     * @param stdClass   $period
+     * @param string     $masterClass
+     * @param string     $detailClass
+     * @param string     $masterKey
      */
     protected function prepareQuery(&$query, &$data, $period, $masterClass, $detailClass, $masterKey)
     {

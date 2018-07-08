@@ -25,7 +25,8 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
      * Помощна ф-я проверяваща дали действието с документа може да стане
      *
      * @param  stdClass $rec - запис на обекта
-     * @return Ambigous <FALSE, string> - съобщението за грешка, или FALSE ако може да се продължи
+     *
+     * @return false|string  - съобщението за грешка, или FALSE ако може да се продължи
      */
     private static function stopAction($rec)
     {

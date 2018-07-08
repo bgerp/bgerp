@@ -319,6 +319,7 @@ class drdata_Address extends core_MVC
             return;
         }
 
+        $cnt = 0;
         foreach ($obj->_wordsLower as $w) {
             if (strpos(self::$givenNames, "|${w}|")) {
                 $cnt += 3;
@@ -339,7 +340,6 @@ class drdata_Address extends core_MVC
             $cnt += ($obj->titleCaseCnt / count($obj->_wordsLower)) * 1.5;
             $cnt *= ($obj->titleCaseCnt / count($obj->_wordsLower) + 0.5);
         }
-
         
         $obj->personRate += round(min(100, 25 * ($cnt / count($obj->_wordsLower))));
     }

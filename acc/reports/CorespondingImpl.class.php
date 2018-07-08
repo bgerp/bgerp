@@ -334,25 +334,24 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     /**
      * Помощна функция, която ще направи резултатния sdtClass
      *
-     *
-     * @param mvc      $mvc
-     * @param stdClass $data
-     * @param query    $query
-     * @param stdClass $form
-     * @param stdClass $res
-     * @param string   $type
+     * @param core_Mvc   $mvc
+     * @param stdClass   $data
+     * @param core_Query $query
+     * @param stdClass   $form
+     * @param stdClass   $res
+     * @param string     $type
      *
      * @return stdClass
      */
     public static function prepareData($mvc, $data, $query, $form, $res, $sufix)
     {
-        // За всеки запис добавяме го към намерените резултати
+        // Всеки запис се добавя към намерените резултати
         $recs = $query->fetchAll();
         $allItems = array();
         
         if (is_array($recs)) {
         
-            // проверяваме имали избрано групиране по свойство което не е името на перото
+            // Проверяваме имали избрано групиране по свойство, което не е името на перото
             $groupByFeatures = false;
             foreach (range(1, 3) as $i) {
                 $groupByFeatures = $groupByFeatures || !empty($form->{"feat{$i}"});
