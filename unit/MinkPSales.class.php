@@ -505,8 +505,15 @@ class unit_MinkPSales extends core_Manager
     
         // активиране на продажбата
         $browser->press('Активиране');
-        $browser->press('Активиране/Контиране');
-         
+       
+        if(strpos($browser->gettext(), 'Контирането на документа ще доведе до отрицателни количества')) {
+            $browser->setValue('Ignore', '1');
+            $browser->press('Активиране/Контиране');    
+        } else {
+            return unit_MinkPbgERP::reportErr('Не дава грешка за отрицателно количество', 'warning');
+        }
+        //return $browser->getHtml();
+            
         // Когато няма автом. избиране - ЕН
     
         // Фактура с днешна дата
@@ -760,7 +767,7 @@ class unit_MinkPSales extends core_Manager
             $browser->press('Продажба');
         }
         $browser->setValue('reff', 'MinkP');
-        $browser->setValue('bankAccountId', '');
+        $browser->setValue('bankAccountId', '#BG22UNCR70001519562302');
         $browser->setValue('note', 'MinkPSaleVatFreeAdv');
         $browser->setValue('paymentMethodId', '100% авансово');
         //$browser->setValue('chargeVat', "Освободено от ДДС");//Ако контрагентът е от България дава грешка 234 - NodeElement.php
@@ -792,12 +799,13 @@ class unit_MinkPSales extends core_Manager
             
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
-        
+     
         // Фактура
         $browser->press('Фактура');
         $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
         $browser->setValue('amountAccrued', '3.3');
         $browser->press('Чернова');
+        //return $browser->getHtml();
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'Tax base: BGN 6,45')) {
         } else {
@@ -1487,7 +1495,6 @@ class unit_MinkPSales extends core_Manager
          
         //$browser->hasText('Създаване на продажба');
         $browser->setValue('reff', 'MinkP');
-        $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleCIDICVAT');
         $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
         $browser->setValue('bankAccountId', '#BG22UNCR70001519562302');
