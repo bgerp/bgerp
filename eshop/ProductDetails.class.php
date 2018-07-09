@@ -284,7 +284,7 @@ class eshop_ProductDetails extends core_Detail
         	$data->paramListFields["param{$paramId}"] = cat_Params::getVerbal($paramId, 'typeExt');
         }
         
-        $data->listFields = $data->paramListFields + arr::make('code=Код,productId=Опция,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;');
+        $data->listFields = $data->paramListFields + arr::make('code=Код,productId=Опция,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена,btn=|*&nbsp;');
         $fields = cls::get(get_called_class())->selectFields();
         $fields['-external'] = $fields;
         
@@ -429,6 +429,7 @@ class eshop_ProductDetails extends core_Detail
         $fieldset->setField('quantity', 'tdClass=quantity-input-column');
         
         $table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
+        $paramsTable = cls::get('core_TableView', array('tableClass' => 'paramsTable'));
         
         if ($data->optionsProductsCount == 1) {
             unset($data->listFields['code']);
@@ -462,8 +463,7 @@ class eshop_ProductDetails extends core_Detail
         $tpl->append($cartInfo, 'ROW_AFTER');
         
         if(count($commonParamRows)){
-        	$table2 = cls::get('core_TableView');
-        	$commonParamsTpl = $table->get($commonParamRows, 'caption=Общи параметри,value=|*&nbsp;');
+        	$commonParamsTpl = $paramsTable->get($commonParamRows, 'caption=Параметри,value=|*&nbsp;');
         	$commonParamsTpl->removePlaces();
         	$commonParamsTpl->removeBlocks();
         	$tpl->append($commonParamsTpl, 'ROW_AFTER');

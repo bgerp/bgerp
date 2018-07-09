@@ -136,7 +136,7 @@ class eshop_Products extends core_Master
 
         $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
-        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри');
+        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри,optionsFunc=cat_Params::getPublic');
        
         // Запитване за нестандартен продукт
         $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId,silent');
@@ -696,7 +696,7 @@ class eshop_Products extends core_Master
         $form->FNC('productId', 'int', 'caption=Артикул,silent,input=hidden');
         $form->FNC('packagings', 'keylist(mvc=cat_UoM,select=shortName)', 'caption=Опаковки,silent,after=image5');
         $form->input(null, 'hidden');
-        
+        $form->setSuggestions('showParams', cat_Params::getPublic());
         if ($id = $form->rec->id) {
             $rec = self::fetch($id);
             $gRec = eshop_Groups::fetch($rec->groupId);
@@ -1012,7 +1012,7 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Връща параметрите за показване
+     * Връща параметрите за показване във външната част
      * 
      * @param int $id
      * @return array 
@@ -1020,12 +1020,15 @@ class eshop_Products extends core_Master
     public static function getParamsToDisplay($id)
     {
     	$rec = self::fetchRec($id);
-    	
     	if (!empty($rec->showParams)) return keylist::toArray($rec->showParams);
     	
-    	$groupParams = eshop_Groups::fetchField($rec->groupId, 'showParams');
+    	$groupRec = eshop_Groups::fetch($rec->groupId, 'showParams,menuId');
+    	if (!empty($groupRec->showParams)) return keylist::toArray($groupRec->showParams);
     	
-    	return keylist::toArray($groupParams);
+    	$domainId = cms_Content::fetchField($groupRec->menuId, 'domainId');
+    	$settings = cms_Domains::getSettings($domainId);
+    	
+    	return keylist::toArray($settings->showParams);
     }
     
     
@@ -1051,6 +1054,7 @@ class eshop_Products extends core_Master
     	$dQuery->show('productId');
     	
     	while($dRec = $dQuery->fetch()){
+    		if (!eshop_ProductDetails::getPublicDisplayPrice($dRec->productId)) continue;
     		
     		// Какви стойности имат избраните параметри
     		$intersect = array();

@@ -4,7 +4,7 @@
    <div class = 'cart-view-buttons-top'>[#CART_TOOLBAR_TOP#]</div>
    <div class="clearfix21"></div>
    <!--ET_END CART_TOOLBAR_TOP-->
-   <div style="display: inline-block">
+   <div class="cartHolder">
 
       <div class='cart-container clearfix21'>
          <!--ET_BEGIN INFO_BLOCK-->
@@ -27,7 +27,7 @@
                   <!--ET_END email-->
                   <!--ET_BEGIN tel-->
                   <tr>
-                     <td>|Тел.|*: [#tel#]</td>
+                     <td>|Телефон|*: [#tel#]</td>
                   </tr>
                   <!--ET_END tel-->
                   <!--ET_BEGIN paymentId-->

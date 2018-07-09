@@ -170,7 +170,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $productId = acc_Items::fetch($dRec->articulId)->objectId;
         
-        $row->articul = cat_Products::getLinkToSingle_($productId, 'name');
+        $row->articul = cat_Products::getHyperlink($productId, 'name');
         
         $row->uomId = cat_UoM::getTitleById($dRec->uomId);
         

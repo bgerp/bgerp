@@ -358,6 +358,7 @@ class eshop_CartDetails extends core_Detail
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
             $row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, true);
         } elseif (isset($fields['-external'])) {
+        	
             core_RowToolbar::createIfNotExists($row->_rowTools);
             if ($mvc->haveRightFor('removeexternal', $rec)) {
                 $removeUrl = toUrl(array('eshop_CartDetails', 'removeexternal', $rec->id), 'local');
@@ -403,6 +404,12 @@ class eshop_CartDetails extends core_Detail
         
         $url = eshop_Products::getUrl($rec->eshopProductId);
         $row->productId = ht::createLinkRef($row->productId, $url);
+        
+        // Показване на уникалните параметри под името на артикула
+        $paramsText = self::getUniqueParamsAsText($rec);
+        if(!empty($paramsText)){
+        	$row->productId .= "<br><span class='cart-qunique-product-params'>{$paramsText}</span>";
+        }
     }
     
     
@@ -618,5 +625,33 @@ class eshop_CartDetails extends core_Detail
         if ($update === true && $save === true) {
             self::save($rec, 'oldPrice,finalPrice,discount');
         }
+    }
+    
+    
+    /**
+     * Кои са уникалните параметри на артикула като текст
+     * 
+     * @param stdClass $rec
+     * @return string $str
+     */
+    public static function getUniqueParamsAsText($rec)
+    {
+    	$displayParams = eshop_Products::getParamsToDisplay($rec->eshopProductId);
+    	$commonParams = eshop_Products::getCommonParams($rec->eshopProductId);
+    	$productParams = cat_Products::getParams($rec->productId, null, true);
+    	 
+    	$productParams = array_intersect_key($productParams, $displayParams);
+    	$diff = array_diff_key($productParams, $commonParams);
+    	
+    	$arr = array();
+    	foreach ($diff as $paramId => $value){
+    		$paramRec = cat_Params::fetch($paramId);
+    		$value = (!empty($paramRec->suffix)) ? $value .  " " . tr($paramRec->suffix) : $value;
+    		$arr[] = tr(cat_Params::getVerbal($paramRec, 'name')) . ": " . $value;
+    	}
+    	
+    	$str = (count($arr)) ? implode(', ', $arr) : '';
+    	
+    	return $str;
     }
 }

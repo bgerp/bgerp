@@ -118,7 +118,7 @@ class eshop_Carts extends core_Master
     	
     	$this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име||Your name,mandatory');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,hint=Вашият имейл||Your email,mandatory');
-    	$this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Контактни данни->Тел,hint=Вашият телефон,mandatory');
+    	$this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Контактни данни->Телефон,hint=Вашият телефон,mandatory');
     	
     	$this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Начин,removeAndRefreshForm=deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|deliveryData,silent,mandatory');
     	$this->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,hint=Страна за доставка');
@@ -511,8 +511,11 @@ class eshop_Carts extends core_Master
    				$price /= 1 + $dRec->vat;
    			}
    			
+   			$paramsText = eshop_CartDetails::getUniqueParamsAsText($dRec);
+   			$notes = (!empty($paramsText)) ? $paramsText : NULL;
+   			
    			$price = currency_CurrencyRates::convertAmount($price, NULL, $dRec->currencyId);
-   			sales_Sales::addRow($saleId, $dRec->productId, $dRec->packQuantity, $price, $dRec->packagingId, $dRec->discount);
+   			sales_Sales::addRow($saleId, $dRec->productId, $dRec->packQuantity, $price, $dRec->packagingId, $dRec->discount, NULL, NULL, $notes);
    		}
    		
    		// Добавяне на транспорта, ако има
@@ -523,7 +526,7 @@ class eshop_Carts extends core_Master
    		
    		// Продажбата става на заявка, кошницата се активира
    		$saleRec = self::makeSalePending($saleId);
-   		self::activate($rec, $saleId);
+   		//self::activate($rec, $saleId);
    		doc_Threads::doUpdateThread($saleRec->threadId);
    		
    		// Ако е партньор и има достъп до нишката, директно се реидректва към нея
@@ -710,8 +713,11 @@ class eshop_Carts extends core_Master
     public function act_View()
     {
     	$this->requireRightFor('viewexternal');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = self::fetch($id));
+    	$id = Request::get('id', 'int');
+    	if (empty($id)) redirect(array($this, 'force'));
+    	
+    	$rec = self::fetch($id);
+    	if (empty($rec)) redirect(array($this, 'force'));
     	
     	// Редирект към ешопа ако количката е активна
     	if($rec->state == 'active'){
@@ -858,7 +864,7 @@ class eshop_Carts extends core_Master
     	$rec = self::fetchRec($id);
     	$shopUrl = cls::get('eshop_Groups')->getUrlByMenuId(NULL);
 
-		$btn = ht::createLink(tr('Назад към магазина'), $shopUrl, NULL, 'title=Връщане в онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
+		$btn = ht::createLink(tr('Назад към магазина'), $shopUrl, NULL, 'title=Връщане в онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go_back.png');
 		$tpl->append($btn, 'CART_TOOLBAR_TOP');
 
 		$wideSpan = Mode::is('screenMode', 'wide') ? "<span>|</span>" : "";
@@ -925,7 +931,7 @@ class eshop_Carts extends core_Master
     {
     	$fields = cls::get('eshop_CartDetails')->selectFields();
     	$fields['-external'] = TRUE;
-    	$data->listFields = arr::make("code=Код,productId=Артикул,quantity=К-во,finalPrice=Цена,amount=Сума");
+    	$data->listFields = arr::make("code=Код,productId=Артикул,quantity=Количество,finalPrice=Цена,amount=Сума");
     	$settings = cms_Domains::getSettings();
     	
     	$data->productRecs = $data->productRows = array();
@@ -1032,7 +1038,7 @@ class eshop_Carts extends core_Master
     	}
     	
     	if($action == 'finalize' && isset($rec)){
-    		if(empty($rec->personNames)){
+    		if(empty($rec->personNames) || empty($rec->productCount)){
     			$requiredRoles = 'no_one';
     		} elseif($rec->deliveryNoVat < 0){
     			$requiredRoles = 'no_one';
@@ -1221,7 +1227,7 @@ class eshop_Carts extends core_Master
     	Mode::set('wrapper', 'cms_page_External');
     	 
     	// Добавяне на бутони
-    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на данните за поръчката');
+    	$form->toolbar->addSbBtn('Продължи', 'save', 'ef_icon = img/16/disk.png, title = Запис на данните за поръчката');
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	
     	if ($form->cmd == 'refresh') {

@@ -2766,10 +2766,25 @@ span.sharing-history-title {
     color: #666666; }
   .cart-view-buttons-top a {
     display: inline-block;
-    margin-bottom: 10px; }
+    margin-bottom: 10px;
+    font-size: 1.05em;
+    padding-left: 22px !important; }
+
+.paramsTable td {
+  padding: 1px 5px;
+  color: #333333;
+  font-family: sans-serif;
+  line-height: 1.4em; }
 
 .narrow .cart-view-buttons-top a {
   display: block; }
+
+.wide .cartHolder {
+  display: inline-block; }
+
+.narrow .summary-holder {
+  float: left;
+  margin-top: 10px; }
 
 .eshop-link {
   font-size: 16px;
@@ -2931,7 +2946,8 @@ span.sharing-history-title {
   height: 29px; }
 
 .narrow .optionsTable {
-  min-width: 320px; }
+  min-width: 320px;
+  margin-top: 15px; }
 
 .eshop-product-navigation {
   margin-bottom: 20px;
