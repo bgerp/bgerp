@@ -429,7 +429,6 @@ class eshop_ProductDetails extends core_Detail
         $fieldset->setField('quantity', 'tdClass=quantity-input-column');
         
         $table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
-        $paramsTable = cls::get('core_TableView', array('tableClass' => 'paramsTable'));
         
         if ($data->optionsProductsCount == 1) {
             unset($data->listFields['code']);
@@ -462,10 +461,16 @@ class eshop_ProductDetails extends core_Detail
         $cartInfo = "<tr><td colspan='{$colspan}' class='option-table-info'>{$cartInfo}</td></tr>";
         $tpl->append($cartInfo, 'ROW_AFTER');
         
+        // Рендиране на таблицата с общите параметри
         if(count($commonParamRows)){
-        	$commonParamsTpl = $paramsTable->get($commonParamRows, 'caption=Параметри,value=|*&nbsp;');
-        	$commonParamsTpl->removePlaces();
-        	$commonParamsTpl->removeBlocks();
+        	$commonParamsTpl = new core_ET("<table class='paramsTable'>[#row#]</table>");
+        	foreach ($commonParamRows as $paramRow){
+        		$paramBlock = new core_ET("<tr><td>[#caption#]</td><td>[#value#]</td></tr>");
+        		$paramBlock->placeObject($paramRow);
+        		$paramBlock->removeBlocks();
+        		$paramBlock->removePlaces();
+        		$commonParamsTpl->append($paramBlock, 'row');
+        	}
         	$tpl->append($commonParamsTpl, 'ROW_AFTER');
         }
         
