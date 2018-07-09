@@ -27,7 +27,7 @@
                   <!--ET_END email-->
                   <!--ET_BEGIN tel-->
                   <tr>
-                     <td>|Тел.|*: [#tel#]</td>
+                     <td>|Телефон|*: [#tel#]</td>
                   </tr>
                   <!--ET_END tel-->
                   <!--ET_BEGIN paymentId-->
