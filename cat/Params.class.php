@@ -279,4 +279,23 @@ class cat_Params extends bgerp_ProtoParam
         
         return $res;
     }
+    
+    
+    /**
+     * Кои са публичните параметри
+     * 
+     * @return array $res
+     */
+    public static function getPublic()
+    {
+    	$res = array();
+    	$query = self::getQuery();
+    	$query->where("#showInPublicDocuments = 'yes' AND #state = 'active'");
+    	$query->show('id,typeExt');
+    	while ($rec = $query->fetch()){
+    		$res[$rec->id] = $rec->typeExt;
+    	}
+    	
+    	return $res;
+    }
 }
