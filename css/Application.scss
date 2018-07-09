@@ -3220,6 +3220,13 @@ fieldset.sharing-history {
 	display: block;
 }
 
+.wide .cartHolder {
+	display: inline-block;
+}
+.narrow .summary-holder{
+	float: left;
+	margin-top: 10px;
+}
 .eshop-link {
 	font-size: 16px;
 	font-weight: normal;
@@ -3413,6 +3420,7 @@ fieldset.sharing-history {
 }
 .narrow .optionsTable {
 	min-width: 320px;
+	margin-top: 15px;
 }
 
 .eshop-product-navigation {
