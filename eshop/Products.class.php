@@ -372,15 +372,16 @@ class eshop_Products extends core_Master
                 foreach ($selectedPackagings as $selPackId){
                 	$q = $packs[$selPackId];
                 	if (!$q) continue;
-                	if (is_null($minPackagingId) || (isset($minPackagingId) && $q->quantity < $minQuantityInPack)){
+                	
+                	if (is_null($minPackagingId) || (isset($minPackagingId) && $q < $minQuantityInPack)){
                 		$minPackagingId = $selPackId;
-                		$minQuantityInPack = $q->quantity;
+                		$minQuantityInPack = $q;
                 	}
                 }
                
                 // Ако мярката е брой и е показано да се показва
                 if (isset($minPackagingId)) {
-                    if ($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $minPackagingId, 1)) {
+                    if ($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $minPackagingId, $minQuantityInPack)) {
                         $singlePrice = core_Type::getByName('double(decimals=2)')->toVerbal($singlePrice->price);
                         $settings = cms_Domains::getSettings();
                         $pRow->singlePrice = $singlePrice;
